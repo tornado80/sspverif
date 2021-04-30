@@ -7,16 +7,12 @@ impl Type for BasicType {}
 
 trait Expression {}
 
-/*
- * This should generalize variables and constants. Also: Should this really contain the type? Or is this just the name for the variable, and what that name means is kept somewhere else?
- */
 #[derive(Debug)]
-struct Var<T: Type> {
+struct Identifier {
     name: String,
-    tipe: T,
 }
 
-impl<T: Type> Expression for Var<T> {}
+impl Expression for Identifier {}
 
 #[derive(Debug)]
 struct FnInvoc<ArgsT: Expression, RetT: Type> {
@@ -67,9 +63,8 @@ fn main() {
         left: FnInvoc {
             name: "f".to_string(),
             args: Pair {
-                left: Var {
+                left: Identifier {
                     name: "k".to_string(),
-                    tipe: BasicType("Key".to_string()),
                 },
                 right: Literal {
                     value: "\"t0ps3cr3t\"".to_string(),
@@ -78,9 +73,8 @@ fn main() {
             },
             ret_tipe: BasicType("String".to_string()),
         },
-        right: Var {
+        right: Identifier {
             name: "0xabc".to_string(),
-            tipe: BasicType("Int".to_string()),
         },
     };
 
