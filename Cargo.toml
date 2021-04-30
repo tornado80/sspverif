@@ -1,0 +1,9 @@
+[package]
+name = "sspds-rs"
+version = "0.1.0"
+authors = ["Jan Winkelmann (keks) <git@keks.cool>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
