@@ -41,7 +41,7 @@ enum Expression {
     Literal(String),
     Identifier(String),
     Tuple(Vec<Box<Expression>>),
-    Arith(ArithOp, Vec<Box<Expression>>),
+    Arith(ArithOp, Box<Expression>, Box<Expression>),
     FnCall(String, Vec<Box<Expression>>),
     // or maybe at some point: FnCall(Box<Expression>, Vec<Box<Expression>>),
     OracleInvoc(String, Vec<Box<Expression>>),
@@ -52,7 +52,46 @@ impl Expression {
 		Expression::Identifier(name.to_string())
 	}
 	
-	
+	fn new_arith(op: ArithOp, op1: &Expression, op2: &Expression) -> Expression {
+        Expression::Arith(op, Box::new(op1.clone()), Box::new(op2.clone()))
+    }
+}
+
+
+macro_rules! tuple {
+    ( $($e:expr),* ) => {
+        {
+            let mut res = Vec::new();
+            $(
+                res.push(Box::new($e.clone()));
+            )*
+            Expression::Tuple(res)
+        }
+    };
+}
+
+macro_rules! oracleinvoc {
+    ( $name:expr, $($e:expr),* ) => {
+        {
+            let mut res = Vec::new();
+            $(
+                res.push(Box::new($e.clone()));
+            )*
+            Expression::OracleInvoc($name.to_string(), res)
+        }
+    };
+}
+
+macro_rules! fncall {
+    ( $name:expr, $($e:expr),* ) => {
+        {
+            let mut res = Vec::new();
+            $(
+                res.push(Box::new($e.clone()));
+            )*
+            Expression::FnCall($name.to_string(), res)
+        }
+    };
 }
 
 #[derive(Debug, Clone)]
@@ -61,6 +100,19 @@ enum Statement {
     Return(Expression),
     Assign(String, Expression),
     IfThenElse(Expression, Vec<Box<Statement>>, Vec<Box<Statement>>),
+}
+
+
+macro_rules! block {
+    ( $( $s:expr ),* ) => {
+        {
+            let mut res = Vec::new();
+            $(
+                res.push(Box::new($s.clone()));
+            )*
+            res
+        }
+    }
 }
 
 /*
@@ -122,26 +174,23 @@ fn main() {
                 },
                 code: vec![
                     Statement::IfThenElse(
-                        Expression::Arith(
+                        Expression::new_arith(
                             ArithOp::Equals,
-                            vec![
-                                Box::new(Expression::new_identifier("k")),
-                                Box::new(Expression::Bot),
-                            ],
+                            &Expression::new_identifier("k"),
+                            &Expression::Bot,
                         ),
-                        vec![Box::new(Statement::Assign(
-                            "k".to_string(),
-                            Expression::Sample(Type::new_bits("n")),
-                        ))],
-                        vec![],
+                        block! {
+                            Statement::Assign("k".to_string(),
+                                              Expression::Sample(Type::new_bits("n")),
+                            )},
+                        block! {},
                     ),
-                    Statement::Return(Expression::FnCall(
-                        "f".to_string(),
-                        vec![
-                            Box::new(Expression::new_identifier("k")),
-                            Box::new(Expression::new_identifier("msg")),
-                        ],
-                    )),
+                    Statement::Return(
+                        fncall! { "f",
+                            Expression::new_identifier("k"),
+                            Expression::new_identifier("msg")
+                        }
+                    ),
                 ],
             }],
         },
