@@ -10,6 +10,20 @@ enum Type {
     Table((Box<Type>, Box<Type>)),
 }
 
+impl Type {
+	fn new_bits(length: &str) -> Type {
+		Type::Bits(length.to_string())
+	}
+	
+	fn new_scalar(name: &str) -> Type {
+		Type::Scalar(name.to_string())
+	}
+	
+	fn new_list(t: &Type) -> Type {
+		Type::List(Box::new(t.clone()))
+	}
+}
+
 #[derive(Debug, Clone)]
 enum ArithOp {
     Add,
@@ -33,6 +47,14 @@ enum Expression {
     OracleInvoc(String, Vec<Box<Expression>>),
 }
 
+impl Expression {
+	fn new_identifier(name: &str) -> Expression {
+		Expression::Identifier(name.to_string())
+	}
+	
+	
+}
+
 #[derive(Debug, Clone)]
 enum Statement {
     Abort,
@@ -43,9 +65,10 @@ enum Statement {
 
 /*
  * Next Steps:
- * - after package, do call graph
  * - type check
+ * - normalize/canonicalize nested composition
  * - usable constructors
+ * - extract SMT-LIB
  * - pretty-print: both text-only and cryptocode
  */
 
@@ -89,34 +112,34 @@ fn main() {
     let prf_real_game = PackageInstance::Atom {
         params: params,
         pkg: Package {
-            params: vec![("n".to_string(), Type::Scalar("int".to_string()))],
-            state: vec![("k".to_string(), Type::Bits("n".to_string()))],
+            params: vec![("n".to_string(), Type::new_scalar("int"))],
+            state: vec![("k".to_string(), Type::new_bits("n"))],
             oracles: vec![OracleDef {
                 sig: OracleSig {
                     name: "Eval".to_string(),
-                    args: vec![("msg".to_string(), Type::Bits("*".to_string()))],
-                    tipe: Type::Bits("*".to_string()),
+                    args: vec![("msg".to_string(), Type::new_bits("*"))],
+                    tipe: Type::new_bits("*"),
                 },
                 code: vec![
                     Statement::IfThenElse(
                         Expression::Arith(
                             ArithOp::Equals,
                             vec![
-                                Box::new(Expression::Identifier("k".to_string())),
+                                Box::new(Expression::new_identifier("k")),
                                 Box::new(Expression::Bot),
                             ],
                         ),
                         vec![Box::new(Statement::Assign(
                             "k".to_string(),
-                            Expression::Sample(Type::Bits("n".to_string())),
+                            Expression::Sample(Type::new_bits("n")),
                         ))],
                         vec![],
                     ),
                     Statement::Return(Expression::FnCall(
                         "f".to_string(),
                         vec![
-                            Box::new(Expression::Identifier("k".to_string())),
-                            Box::new(Expression::Identifier("msg".to_string())),
+                            Box::new(Expression::new_identifier("k")),
+                            Box::new(Expression::new_identifier("msg")),
                         ],
                     )),
                 ],
