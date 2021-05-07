@@ -3,6 +3,9 @@ use std::collections::HashMap;
 #[derive(Debug, Clone)]
 enum Type {
     Empty,
+    Integer,
+    String,
+    Boolean,
     Bits(String), // Bits strings of length ...
     Scalar(String),
     List(Box<Type>),
@@ -38,10 +41,13 @@ enum ArithOp {
 enum Expression {
     Bot,
     Sample(Type),
-    Literal(String),
+    StringLiteral(String),
+    IntegerLiteral(String),
+    BooleanLiteral(String),
     Identifier(String),
     Tuple(Vec<Box<Expression>>),
     Arith(ArithOp, Box<Expression>, Box<Expression>),
+    List(Vec<Box<Expression>>),
     FnCall(String, Vec<Box<Expression>>),
     // or maybe at some point: FnCall(Box<Expression>, Vec<Box<Expression>>),
     OracleInvoc(String, Vec<Box<Expression>>),
@@ -69,6 +75,19 @@ macro_rules! tuple {
         }
     };
 }
+
+macro_rules! list {
+    ( $($e:expr),* ) => {
+        {
+            let mut res = Vec::new();
+            $(
+                res.push(Box::new($e.clone()));
+            )*
+            Expression::Tuple(res)
+        }
+    };
+}
+
 
 macro_rules! oracleinvoc {
     ( $name:expr, $($e:expr),* ) => {
