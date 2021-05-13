@@ -8,33 +8,30 @@ enum Type {
     Boolean,
     Bits(String), // Bits strings of length ...
     Scalar(String),
+    AddiGroup(String), // name of the group
+    MultGroup(String), // name of the group
     List(Box<Type>),
+    Set(Box<Type>),
     Tuple(Vec<Box<Type>>),
     Table((Box<Type>, Box<Type>)),
 }
 
 impl Type {
-	fn new_bits(length: &str) -> Type {
-		Type::Bits(length.to_string())
-	}
-	
-	fn new_scalar(name: &str) -> Type {
-		Type::Scalar(name.to_string())
-	}
-	
-	fn new_list(t: &Type) -> Type {
-		Type::List(Box::new(t.clone()))
-	}
-}
+    fn new_bits(length: &str) -> Type {
+        Type::Bits(length.to_string())
+    }
 
-#[derive(Debug, Clone)]
-enum ArithOp {
-    Add,
-    Sub,
-    Mul,
-    Div,
-    Pow,
-    Equals,
+    fn new_scalar(name: &str) -> Type {
+        Type::Scalar(name.to_string())
+    }
+
+    fn new_list(t: &Type) -> Type {
+        Type::List(Box::new(t.clone()))
+    }
+
+    fn new_set(t: &Type) -> Type {
+        Type::Set(Box::new(t.clone()))
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -46,23 +43,54 @@ enum Expression {
     BooleanLiteral(String),
     Identifier(String),
     Tuple(Vec<Box<Expression>>),
-    Arith(ArithOp, Box<Expression>, Box<Expression>),
     List(Vec<Box<Expression>>),
     FnCall(String, Vec<Box<Expression>>),
     // or maybe at some point: FnCall(Box<Expression>, Vec<Box<Expression>>),
     OracleInvoc(String, Vec<Box<Expression>>),
+
+    // Scalar Operations:
+    Not(Box<Expression>), // 1-x (not really, in fact: true \mapsto false; false \mapsto true)
+    Neg(Box<Expression>), //  -x
+    Inv(Box<Expression>), // 1/x
+
+    Sub(Box<Expression>, Box<Expression>),
+    Div(Box<Expression>, Box<Expression>),
+    Pow(Box<Expression>, Box<Expression>),
+    Mod(Box<Expression>, Box<Expression>),
+    Xor(Box<Expression>, Box<Expression>),
+
+    Equals(Vec<Box<Expression>>),
+    Add(Vec<Box<Expression>>),
+    Mul(Vec<Box<Expression>>),
+    And(Vec<Box<Expression>>),
+    Or(Vec<Box<Expression>>),
+
+    // Set/List Operations:
+    Sum(Box<Expression>),
+    Prod(Box<Expression>),
+    Any(Box<Expression>), // set/list or
+    All(Box<Expression>), // set/list and
+    Union(Box<Expression>),
+    Cut(Box<Expression>),
+    SetDiff(Box<Expression>),
+
+    Concat(Vec<Box<Expression>>),
 }
 
 impl Expression {
-	fn new_identifier(name: &str) -> Expression {
-		Expression::Identifier(name.to_string())
-	}
-	
-	fn new_arith(op: ArithOp, op1: &Expression, op2: &Expression) -> Expression {
-        Expression::Arith(op, Box::new(op1.clone()), Box::new(op2.clone()))
+    fn new_identifier(name: &str) -> Expression {
+        Expression::Identifier(name.to_string())
+    }
+
+    fn new_equals(exprs: Vec<&Expression>) -> Expression {
+        Expression::Equals(
+            exprs
+                .into_iter()
+                .map(|expr| Box::new(expr.clone()))
+                .collect(),
+        )
     }
 }
-
 
 macro_rules! tuple {
     ( $($e:expr),* ) => {
@@ -87,7 +115,6 @@ macro_rules! list {
         }
     };
 }
-
 
 macro_rules! oracleinvoc {
     ( $name:expr, $($e:expr),* ) => {
@@ -121,7 +148,6 @@ enum Statement {
     IfThenElse(Expression, Vec<Box<Statement>>, Vec<Box<Statement>>),
 }
 
-
 macro_rules! block {
     ( $( $s:expr ),* ) => {
         {
@@ -142,6 +168,13 @@ macro_rules! block {
  * - extract SMT-LIB
  * - pretty-print: both text-only and cryptocode
  */
+
+#[derive(Debug, Clone)]
+struct FnSig {
+    name: String,
+    args: Vec<(String, Type)>,
+    tipe: Type,
+}
 
 #[derive(Debug, Clone)]
 struct OracleSig {
@@ -193,23 +226,20 @@ fn main() {
                 },
                 code: vec![
                     Statement::IfThenElse(
-                        Expression::new_arith(
-                            ArithOp::Equals,
+                        Expression::new_equals(vec![
                             &Expression::new_identifier("k"),
                             &Expression::Bot,
-                        ),
+                        ]),
                         block! {
                             Statement::Assign("k".to_string(),
                                               Expression::Sample(Type::new_bits("n")),
-                            )},
+                        )},
                         block! {},
                     ),
-                    Statement::Return(
-                        fncall! { "f",
-                            Expression::new_identifier("k"),
-                            Expression::new_identifier("msg")
-                        }
-                    ),
+                    Statement::Return(fncall! { "f",
+                        Expression::new_identifier("k"),
+                        Expression::new_identifier("msg")
+                    }),
                 ],
             }],
         },
