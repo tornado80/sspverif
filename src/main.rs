@@ -1,6 +1,8 @@
 use std::collections::HashMap;
+use std::fmt;
 
-#[derive(Debug, Clone)]
+
+#[derive(Debug, Clone, Eq, PartialEq)]
 enum Type {
     Empty,
     Integer,
@@ -8,13 +10,17 @@ enum Type {
     Boolean,
     Bits(String), // Bits strings of length ...
     Scalar(String),
-    AddiGroup(String), // name of the group
-    MultGroup(String), // name of the group
+    AddiGroupEl(String), // name of the group
+    MultGroupEl(String), // name of the group
     List(Box<Type>),
     Set(Box<Type>),
     Tuple(Vec<Box<Type>>),
     Table((Box<Type>, Box<Type>)),
 }
+
+// TODO
+#[derive(Debug, Clone)]
+struct Scope();
 
 impl Type {
     fn new_bits(length: &str) -> Type {
@@ -34,6 +40,24 @@ impl Type {
     }
 }
 
+
+#[derive(Debug, Clone)]
+enum Identifier {
+  Scalar(String),
+  Bracket(Box<Identifier>, Expression),
+}
+
+impl Identifier {
+	fn new_scalar(name: &str) -> Identifier {
+		Identifier::Scalar(name.to_string())
+	}
+	
+	// TODO implement correct converter trait to identifier expression
+	fn to_expression(&self) -> Expression {
+		Expression::Identifier(Box::new(self.clone()))
+	}
+}
+
 #[derive(Debug, Clone)]
 enum Expression {
     Bot,
@@ -41,7 +65,7 @@ enum Expression {
     StringLiteral(String),
     IntegerLiteral(String),
     BooleanLiteral(String),
-    Identifier(String),
+    Identifier(Box<Identifier>),
     Tuple(Vec<Box<Expression>>),
     List(Vec<Box<Expression>>),
     FnCall(String, Vec<Box<Expression>>),
@@ -57,13 +81,13 @@ enum Expression {
     Div(Box<Expression>, Box<Expression>),
     Pow(Box<Expression>, Box<Expression>),
     Mod(Box<Expression>, Box<Expression>),
-    Xor(Box<Expression>, Box<Expression>),
 
     Equals(Vec<Box<Expression>>),
     Add(Vec<Box<Expression>>),
     Mul(Vec<Box<Expression>>),
     And(Vec<Box<Expression>>),
     Or(Vec<Box<Expression>>),
+    Xor(Vec<Box<Expression>>),
 
     // Set/List Operations:
     Sum(Box<Expression>),
@@ -77,10 +101,23 @@ enum Expression {
     Concat(Vec<Box<Expression>>),
 }
 
+#[derive(Debug, Clone)]
+struct TypeError;
+
+type TypeResult = std::result::Result<Type, TypeError>;
+
+impl fmt::Display for TypeError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "invalid type")
+    }
+}
+
 impl Expression {
+	/*
     fn new_identifier(name: &str) -> Expression {
         Expression::Identifier(name.to_string())
     }
+	*/
 
     fn new_equals(exprs: Vec<&Expression>) -> Expression {
         Expression::Equals(
@@ -89,6 +126,103 @@ impl Expression {
                 .map(|expr| Box::new(expr.clone()))
                 .collect(),
         )
+    }
+    
+    fn get_type(&self, scope: &Scope) -> TypeResult {
+    	match self {
+    	  Expression::Sample(t) => Ok(t.clone()),
+    	  Expression::StringLiteral(_) => Ok(Type::String),
+    	  Expression::IntegerLiteral(_) => Ok(Type::Integer),
+    	  Expression::BooleanLiteral(_) => Ok(Type::Boolean),
+    	  Expression::Tuple(elems) => {
+    	  	let mut types = vec![];
+    	  	
+    	  	for elem in elems {
+    	  		types.push(Box::new(elem.get_type(scope)?));
+    	  	}
+    	  	
+    	  	Ok(Type::Tuple(types))
+    	  },
+    	  Expression::Neg(v) => {
+    	  	let t = v.get_type(scope)?;
+    	  	if t == Type::Integer && matches!(t, Type::AddiGroupEl(_)) {
+    	  		Ok(t)
+    	  	} else {
+ 	   	  		Err(TypeError)
+    	  	}
+    	  },
+    	  Expression::Not(v) => {
+    	  	let t = v.get_type(scope)?;
+    	  	if t != Type::Boolean {
+    	  		return Err(TypeError)
+    	  	}
+    	  	
+    	  	Ok(t)
+    	  },
+    	  Expression::Inv(v) => {
+    	  	let t = v.get_type(scope)?;
+    	  	if matches!(t, Type::MultGroupEl(_)) {
+    	  		return Ok(t)
+    	  	}
+    	  	
+    	  	Err(TypeError)
+    	  },
+    	  Expression::Sub(left, right) => {
+    	  	let t_left = left.get_type(scope)?;
+    	  	let t_right = right.get_type(scope)?;
+    	  	
+    	  	if (t_left.clone() == Type::Integer || matches!(t_left, Type::AddiGroupEl(_))) && t_left == t_right {
+    	  		return Ok(t_left)
+    	  	}
+    	  	
+    	  	Err(TypeError)
+    	  },
+    	  Expression::Div(left, right) => {
+    	  	let t_left = left.get_type(scope)?;
+    	  	let t_right = right.get_type(scope)?;
+    	  	
+    	  	if t_left != Type::Integer || t_left != t_right {
+    	  		return Err(TypeError)
+    	  	}
+    	  	
+    	  	Ok(t_left)
+    	  },
+    	  Expression::Pow(base, exp) => {
+    	  	let t_base = base.get_type(scope)?;
+    	  	let t_exp = exp.get_type(scope)?;
+    	  	
+    	  	if (t_base == Type::Integer || matches!(t_base.clone(), Type::MultGroupEl(x))) && t_base == Type::Integer {
+    	  		return Ok(t_base)
+    	  	}
+    	  	
+    	  	return Err(TypeError)
+    	  },
+    	  Expression::Mod(num, modulus) => {
+    	  	let t_num = num.get_type(scope)?;
+    	  	let t_mod = modulus.get_type(scope)?;
+    	  	
+    	  	if t_num != Type::Integer || t_mod != Type::Integer {
+    	  		return Err(TypeError)
+    	  	}
+    	  	
+    	  	Ok(t_num)
+    	  },
+    	  Expression::Xor(vs) | Expression::And(vs) | Expression::Or(vs)=> {
+    	    // TODO bit strings
+    	  	for v in vs {
+    	  	  if v.get_type(scope)? != Type::Boolean {
+    	  	  	return Err(TypeError)
+    	  	  }
+    	  	}
+    	  	
+    	  	Ok(Type::Boolean)
+    	  },
+
+    	  _ => {
+      	  	  println!("not implemented!");
+    	  	  Err(TypeError)
+    	    },
+    	}
     }
 }
 
@@ -144,7 +278,7 @@ macro_rules! fncall {
 enum Statement {
     Abort,
     Return(Expression),
-    Assign(String, Expression),
+    Assign(Identifier, Expression),
     IfThenElse(Expression, Vec<Box<Statement>>, Vec<Box<Statement>>),
 }
 
@@ -227,18 +361,18 @@ fn main() {
                 code: vec![
                     Statement::IfThenElse(
                         Expression::new_equals(vec![
-                            &Expression::new_identifier("k"),
+                        	&(Identifier::new_scalar("k").to_expression()),
                             &Expression::Bot,
                         ]),
                         block! {
-                            Statement::Assign("k".to_string(),
+                            Statement::Assign(Identifier::new_scalar("k"),
                                               Expression::Sample(Type::new_bits("n")),
                         )},
                         block! {},
                     ),
                     Statement::Return(fncall! { "f",
-                        Expression::new_identifier("k"),
-                        Expression::new_identifier("msg")
+                        Identifier::new_scalar("k").to_expression(),
+                     	Identifier::new_scalar("msg").to_expression()
                     }),
                 ],
             }],
@@ -246,4 +380,13 @@ fn main() {
     };
 
     println!("{:#?}", prf_real_game);
+    
+    let scope : Scope = Scope();
+    println!("{:#?}", Expression::Xor(vec![
+    	Box::new(Expression::BooleanLiteral("true".to_string())),
+    	Box::new(Expression::BooleanLiteral("false".to_string())),
+    	Box::new(Expression::BooleanLiteral("true".to_string())),
+    	Box::new(Expression::BooleanLiteral("false".to_string())),
+    	Box::new(Expression::BooleanLiteral("true".to_string())),
+	]).get_type(&scope));
 }
