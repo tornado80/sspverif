@@ -16,6 +16,7 @@ enum Type {
     Set(Box<Type>),
     Tuple(Vec<Box<Type>>),
     Table((Box<Type>, Box<Type>)),
+    Maybe(Box<Type>)
 }
 
 // TODO
@@ -71,6 +72,10 @@ enum Expression {
     FnCall(String, Vec<Box<Expression>>),
     // or maybe at some point: FnCall(Box<Expression>, Vec<Box<Expression>>),
     OracleInvoc(String, Vec<Box<Expression>>),
+    
+    None(Type),
+    Some(Box<Expression>),
+    Unwrap(Box<Expression>),
 
     // Scalar Operations:
     Not(Box<Expression>), // 1-x (not really, in fact: true \mapsto false; false \mapsto true)
@@ -143,12 +148,21 @@ impl Expression {
     	  	
     	  	Ok(Type::Tuple(types))
     	  },
+	  Expression::Some(v) => Ok(Type::Maybe(Box::new(v.get_type(scope)?))),
+          Expression::None(t) => Ok(Type::Maybe(Box::new(t.clone()))),
+    	  Expression::Unwrap(v) => {
+    	  	if let Expression::Some(inner) = &**v {
+    	  		Ok(inner.get_type(scope)?)
+    	  	} else {
+ 	   	  	Err(TypeError)
+    	  	}
+    	  },
     	  Expression::Neg(v) => {
     	  	let t = v.get_type(scope)?;
     	  	if t == Type::Integer && matches!(t, Type::AddiGroupEl(_)) {
     	  		Ok(t)
     	  	} else {
- 	   	  		Err(TypeError)
+ 	   	  	Err(TypeError)
     	  	}
     	  },
     	  Expression::Not(v) => {
@@ -434,4 +448,8 @@ fn main() {
     	Box::new(Expression::BooleanLiteral("false".to_string())),
     	Box::new(Expression::BooleanLiteral("true".to_string())),
 	]).get_type(&scope));
+	
+	println!("{:#?}", Expression::Unwrap(
+    		Box::new(Expression::Some(
+    			Box::new(Expression::BooleanLiteral("false".to_string()))))).get_type(&scope));
 }
