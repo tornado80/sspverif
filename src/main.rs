@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::fmt;
 
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
 enum Type {
     Empty,
     Integer,
@@ -18,9 +18,49 @@ enum Type {
     Maybe(Box<Type>),
 }
 
+struct ScopeError;
+
 // TODO
 #[derive(Debug, Clone)]
-struct Scope();
+struct Scope(Vec<HashMap<Identifier, Type>>);
+
+impl Scope {
+    fn new() -> Scope {
+        Scope(vec![])
+    }
+
+    fn enter(&mut self) {
+        self.0.push(HashMap::new())
+    }
+
+    fn leave(&mut self) -> Result<(), ScopeError> {
+        if self.0.len() > 0 {
+            self.0.pop();
+            Ok(())
+        } else {
+            Err(ScopeError)
+        }
+    }
+
+    fn declare(&mut self, id: Identifier, t: Type) -> Result<(), ScopeError> {
+        if let Some(mut last) = self.0.last_mut() {
+            last.insert(id, t);
+            Ok(())
+        } else {
+            Err(ScopeError)
+        }
+    }
+
+    fn lookup(&self, id: Identifier) -> Option<Type> {
+        for table in self.0.clone().into_iter().rev() {
+            if let Some(t) = table.get(&id) {
+                return Some(t.clone());
+            }
+        }
+
+        None
+    }
+}
 
 impl Type {
     fn new_bits(length: &str) -> Type {
@@ -40,7 +80,7 @@ impl Type {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
 enum Identifier {
     Scalar(String),
     Bracket(Box<Identifier>, Expression),
@@ -57,7 +97,7 @@ impl Identifier {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 enum Expression {
     Bot,
     Sample(Type),
@@ -440,7 +480,7 @@ fn main() {
 
     println!("{:#?}", prf_real_game);
 
-    let scope: Scope = Scope();
+    let scope: Scope = Scope::new();
     println!(
         "{:#?}",
         Expression::Xor(vec![
@@ -460,4 +500,13 @@ fn main() {
         ))))
         .get_type(&scope)
     );
+
+    let foo_identifier = Identifier::Scalar("foo".to_string());
+
+    let mut scp = Scope::new();
+    scp.enter();
+    scp.declare(foo_identifier.clone(), Type::Integer);
+    println!("{:#?}", scp.lookup(foo_identifier.clone()));
+    scp.leave();
+    println!("{:#?}", scp.lookup(foo_identifier));
 }
