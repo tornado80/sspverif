@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use std::fmt;
 
-
 #[derive(Debug, Clone, Eq, PartialEq)]
 enum Type {
     Empty,
@@ -16,7 +15,7 @@ enum Type {
     Set(Box<Type>),
     Tuple(Vec<Box<Type>>),
     Table((Box<Type>, Box<Type>)),
-    Maybe(Box<Type>)
+    Maybe(Box<Type>),
 }
 
 // TODO
@@ -41,22 +40,21 @@ impl Type {
     }
 }
 
-
 #[derive(Debug, Clone)]
 enum Identifier {
-  Scalar(String),
-  Bracket(Box<Identifier>, Expression),
+    Scalar(String),
+    Bracket(Box<Identifier>, Expression),
 }
 
 impl Identifier {
-	fn new_scalar(name: &str) -> Identifier {
-		Identifier::Scalar(name.to_string())
-	}
-	
-	// TODO implement correct converter trait to identifier expression
-	fn to_expression(&self) -> Expression {
-		Expression::Identifier(Box::new(self.clone()))
-	}
+    fn new_scalar(name: &str) -> Identifier {
+        Identifier::Scalar(name.to_string())
+    }
+
+    // TODO implement correct converter trait to identifier expression
+    fn to_expression(&self) -> Expression {
+        Expression::Identifier(Box::new(self.clone()))
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -72,7 +70,7 @@ enum Expression {
     FnCall(String, Vec<Box<Expression>>),
     // or maybe at some point: FnCall(Box<Expression>, Vec<Box<Expression>>),
     OracleInvoc(String, Vec<Box<Expression>>),
-    
+
     None(Type),
     Some(Box<Expression>),
     Unwrap(Box<Expression>),
@@ -118,11 +116,11 @@ impl fmt::Display for TypeError {
 }
 
 impl Expression {
-	/*
+    /*
     fn new_identifier(name: &str) -> Expression {
         Expression::Identifier(name.to_string())
     }
-	*/
+    */
 
     fn new_equals(exprs: Vec<&Expression>) -> Expression {
         Expression::Equals(
@@ -132,156 +130,158 @@ impl Expression {
                 .collect(),
         )
     }
-    
-    fn get_type(&self, scope: &Scope) -> TypeResult {
-    	match self {
-    	  Expression::Sample(t) => Ok(t.clone()),
-    	  Expression::StringLiteral(_) => Ok(Type::String),
-    	  Expression::IntegerLiteral(_) => Ok(Type::Integer),
-    	  Expression::BooleanLiteral(_) => Ok(Type::Boolean),
-    	  Expression::Tuple(elems) => {
-    	  	let mut types = vec![];
-    	  	
-    	  	for elem in elems {
-    	  		types.push(Box::new(elem.get_type(scope)?));
-    	  	}
-    	  	
-    	  	Ok(Type::Tuple(types))
-    	  },
-	  Expression::Some(v) => Ok(Type::Maybe(Box::new(v.get_type(scope)?))),
-          Expression::None(t) => Ok(Type::Maybe(Box::new(t.clone()))),
-    	  Expression::Unwrap(v) => {
-    	  	if let Expression::Some(inner) = &**v {
-    	  		Ok(inner.get_type(scope)?)
-    	  	} else {
- 	   	  	Err(TypeError)
-    	  	}
-    	  },
-    	  Expression::Neg(v) => {
-    	  	let t = v.get_type(scope)?;
-    	  	if t == Type::Integer && matches!(t, Type::AddiGroupEl(_)) {
-    	  		Ok(t)
-    	  	} else {
- 	   	  	Err(TypeError)
-    	  	}
-    	  },
-    	  Expression::Not(v) => {
-    	  	let t = v.get_type(scope)?;
-    	  	if t != Type::Boolean {
-    	  		return Err(TypeError)
-    	  	}
-    	  	
-    	  	Ok(t)
-    	  },
-    	  Expression::Inv(v) => {
-    	  	let t = v.get_type(scope)?;
-    	  	if matches!(t, Type::MultGroupEl(_)) {
-    	  		return Ok(t)
-    	  	}
-    	  	
-    	  	Err(TypeError)
-    	  },
-    	  Expression::Add(left, right) => {
-    	  	let t_left = left.get_type(scope)?;
-    	  	let t_right = right.get_type(scope)?;
-    	  	
-    	  	let same_type = t_left == t_right;
-    	  	let left_is_int = t_left.clone() == Type::Integer;
-    	  	let left_is_age = matches!(t_left, Type::AddiGroupEl(_));
-    	    	
-    	    	if same_type && (left_is_int || left_is_age) {
-    	  		Ok(t_left)
-    	  	} else {
-    	  		Err(TypeError)
-    	  	}
-    	  },
-    	  Expression::Mul(left, right) => {
-    	  	let t_left = left.get_type(scope)?;
-    	  	let t_right = right.get_type(scope)?;
-    	  	
-    	  	let same_type = t_left == t_right;
-    	  	let left_is_int = t_left.clone() == Type::Integer;
-    	  	let left_is_mge = matches!(t_left, Type::MultGroupEl(_));
-    	  	let right_is_age = matches!(t_right, Type::AddiGroupEl(_));
-    	  	
-    	  	if same_type {
-    	  		if left_is_int || left_is_mge {
-    	  			Ok(t_left)
-    	  		} else {
-    	  			Err(TypeError)
-    	  		}
-    	  	} else {
-    	  		if left_is_int && right_is_age {
-    	  			Ok(t_right)
-    	  		} else {
-    	  			Err(TypeError)
-    	  		}
-    	  	}
-    	  },
-    	  Expression::Sub(left, right) => {
-    	  	let t_left = left.get_type(scope)?;
-    	  	let t_right = right.get_type(scope)?;
-    	  	
-    	  	if (t_left.clone() == Type::Integer || matches!(t_left, Type::AddiGroupEl(_))) && t_left == t_right {
-    	  		return Ok(t_left)
-    	  	}
-    	  	
-    	  	Err(TypeError)
-    	  },
-    	  Expression::Div(left, right) => {
-    	  	let t_left = left.get_type(scope)?;
-    	  	let t_right = right.get_type(scope)?;
-    	  	
-    	  	if t_left != Type::Integer || t_left != t_right {
-    	  		return Err(TypeError)
-    	  	}
-    	  	
-    	  	Ok(t_left)
-    	  },
-    	  Expression::Pow(base, exp) => {
-    	  	let t_base = base.get_type(scope)?;
-    	  	let t_exp = exp.get_type(scope)?;
-    	  	    	  	
-    	  	let base_is_int = t_base.clone() == Type::Integer;
-    	  	let exp_is_int = t_exp.clone() == Type::Integer;
-    	  	let base_is_mge = matches!(t_base, Type::MultGroupEl(_));
-    	  	
-    	  	if exp_is_int {
-    	  		if base_is_int || base_is_mge {
-    	  			Ok(t_base)
-    	  		} else {
-    	  			Err(TypeError)
-    	  		}
-    	  	} else {
-    	  		Err(TypeError)
-    	  	}
-   	  },
-    	  Expression::Mod(num, modulus) => {
-    	  	let t_num = num.get_type(scope)?;
-    	  	let t_mod = modulus.get_type(scope)?;
-    	  	
-    	  	if t_num != Type::Integer || t_mod != Type::Integer {
-    	  		return Err(TypeError)
-    	  	}
-    	  	
-    	  	Ok(t_num)
-    	  },
-    	  Expression::Xor(vs) | Expression::And(vs) | Expression::Or(vs)=> {
-    	    // TODO bit strings
-    	  	for v in vs {
-    	  	  if v.get_type(scope)? != Type::Boolean {
-    	  	  	return Err(TypeError)
-    	  	  }
-    	  	}
-    	  	
-    	  	Ok(Type::Boolean)
-    	  },
 
-    	  _ => {
-      	  	  println!("not implemented!");
-    	  	  Err(TypeError)
-    	    },
-    	}
+    fn get_type(&self, scope: &Scope) -> TypeResult {
+        match self {
+            Expression::Sample(t) => Ok(t.clone()),
+            Expression::StringLiteral(_) => Ok(Type::String),
+            Expression::IntegerLiteral(_) => Ok(Type::Integer),
+            Expression::BooleanLiteral(_) => Ok(Type::Boolean),
+            Expression::Tuple(elems) => {
+                let mut types = vec![];
+
+                for elem in elems {
+                    types.push(Box::new(elem.get_type(scope)?));
+                }
+
+                Ok(Type::Tuple(types))
+            }
+            Expression::Some(v) => Ok(Type::Maybe(Box::new(v.get_type(scope)?))),
+            Expression::None(t) => Ok(Type::Maybe(Box::new(t.clone()))),
+            Expression::Unwrap(v) => {
+                if let Expression::Some(inner) = &**v {
+                    Ok(inner.get_type(scope)?)
+                } else {
+                    Err(TypeError)
+                }
+            }
+            Expression::Neg(v) => {
+                let t = v.get_type(scope)?;
+                if t == Type::Integer && matches!(t, Type::AddiGroupEl(_)) {
+                    Ok(t)
+                } else {
+                    Err(TypeError)
+                }
+            }
+            Expression::Not(v) => {
+                let t = v.get_type(scope)?;
+                if t != Type::Boolean {
+                    return Err(TypeError);
+                }
+
+                Ok(t)
+            }
+            Expression::Inv(v) => {
+                let t = v.get_type(scope)?;
+                if matches!(t, Type::MultGroupEl(_)) {
+                    return Ok(t);
+                }
+
+                Err(TypeError)
+            }
+            Expression::Add(left, right) => {
+                let t_left = left.get_type(scope)?;
+                let t_right = right.get_type(scope)?;
+
+                let same_type = t_left == t_right;
+                let left_is_int = t_left.clone() == Type::Integer;
+                let left_is_age = matches!(t_left, Type::AddiGroupEl(_));
+
+                if same_type && (left_is_int || left_is_age) {
+                    Ok(t_left)
+                } else {
+                    Err(TypeError)
+                }
+            }
+            Expression::Mul(left, right) => {
+                let t_left = left.get_type(scope)?;
+                let t_right = right.get_type(scope)?;
+
+                let same_type = t_left == t_right;
+                let left_is_int = t_left.clone() == Type::Integer;
+                let left_is_mge = matches!(t_left, Type::MultGroupEl(_));
+                let right_is_age = matches!(t_right, Type::AddiGroupEl(_));
+
+                if same_type {
+                    if left_is_int || left_is_mge {
+                        Ok(t_left)
+                    } else {
+                        Err(TypeError)
+                    }
+                } else {
+                    if left_is_int && right_is_age {
+                        Ok(t_right)
+                    } else {
+                        Err(TypeError)
+                    }
+                }
+            }
+            Expression::Sub(left, right) => {
+                let t_left = left.get_type(scope)?;
+                let t_right = right.get_type(scope)?;
+
+                if (t_left.clone() == Type::Integer || matches!(t_left, Type::AddiGroupEl(_)))
+                    && t_left == t_right
+                {
+                    return Ok(t_left);
+                }
+
+                Err(TypeError)
+            }
+            Expression::Div(left, right) => {
+                let t_left = left.get_type(scope)?;
+                let t_right = right.get_type(scope)?;
+
+                if t_left != Type::Integer || t_left != t_right {
+                    return Err(TypeError);
+                }
+
+                Ok(t_left)
+            }
+            Expression::Pow(base, exp) => {
+                let t_base = base.get_type(scope)?;
+                let t_exp = exp.get_type(scope)?;
+
+                let base_is_int = t_base.clone() == Type::Integer;
+                let exp_is_int = t_exp.clone() == Type::Integer;
+                let base_is_mge = matches!(t_base, Type::MultGroupEl(_));
+
+                if exp_is_int {
+                    if base_is_int || base_is_mge {
+                        Ok(t_base)
+                    } else {
+                        Err(TypeError)
+                    }
+                } else {
+                    Err(TypeError)
+                }
+            }
+            Expression::Mod(num, modulus) => {
+                let t_num = num.get_type(scope)?;
+                let t_mod = modulus.get_type(scope)?;
+
+                if t_num != Type::Integer || t_mod != Type::Integer {
+                    return Err(TypeError);
+                }
+
+                Ok(t_num)
+            }
+            Expression::Xor(vs) | Expression::And(vs) | Expression::Or(vs) => {
+                // TODO bit strings
+                for v in vs {
+                    if v.get_type(scope)? != Type::Boolean {
+                        return Err(TypeError);
+                    }
+                }
+
+                Ok(Type::Boolean)
+            }
+
+            _ => {
+                println!("not implemented!");
+                Err(TypeError)
+            }
+        }
     }
 }
 
@@ -420,7 +420,7 @@ fn main() {
                 code: vec![
                     Statement::IfThenElse(
                         Expression::new_equals(vec![
-                        	&(Identifier::new_scalar("k").to_expression()),
+                            &(Identifier::new_scalar("k").to_expression()),
                             &Expression::Bot,
                         ]),
                         block! {
@@ -431,7 +431,7 @@ fn main() {
                     ),
                     Statement::Return(fncall! { "f",
                         Identifier::new_scalar("k").to_expression(),
-                     	Identifier::new_scalar("msg").to_expression()
+                         Identifier::new_scalar("msg").to_expression()
                     }),
                 ],
             }],
@@ -439,17 +439,25 @@ fn main() {
     };
 
     println!("{:#?}", prf_real_game);
-    
-    let scope : Scope = Scope();
-    println!("{:#?}", Expression::Xor(vec![
-    	Box::new(Expression::BooleanLiteral("true".to_string())),
-    	Box::new(Expression::BooleanLiteral("false".to_string())),
-    	Box::new(Expression::BooleanLiteral("true".to_string())),
-    	Box::new(Expression::BooleanLiteral("false".to_string())),
-    	Box::new(Expression::BooleanLiteral("true".to_string())),
-	]).get_type(&scope));
-	
-	println!("{:#?}", Expression::Unwrap(
-    		Box::new(Expression::Some(
-    			Box::new(Expression::BooleanLiteral("false".to_string()))))).get_type(&scope));
+
+    let scope: Scope = Scope();
+    println!(
+        "{:#?}",
+        Expression::Xor(vec![
+            Box::new(Expression::BooleanLiteral("true".to_string())),
+            Box::new(Expression::BooleanLiteral("false".to_string())),
+            Box::new(Expression::BooleanLiteral("true".to_string())),
+            Box::new(Expression::BooleanLiteral("false".to_string())),
+            Box::new(Expression::BooleanLiteral("true".to_string())),
+        ])
+        .get_type(&scope)
+    );
+
+    println!(
+        "{:#?}",
+        Expression::Unwrap(Box::new(Expression::Some(Box::new(
+            Expression::BooleanLiteral("false".to_string())
+        ))))
+        .get_type(&scope)
+    );
 }
