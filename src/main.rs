@@ -77,14 +77,14 @@ enum Expression {
     Neg(Box<Expression>), //  -x
     Inv(Box<Expression>), // 1/x
 
+    Add(Box<Expression>, Box<Expression>),
     Sub(Box<Expression>, Box<Expression>),
+    Mul(Box<Expression>, Box<Expression>),
     Div(Box<Expression>, Box<Expression>),
     Pow(Box<Expression>, Box<Expression>),
     Mod(Box<Expression>, Box<Expression>),
 
     Equals(Vec<Box<Expression>>),
-    Add(Vec<Box<Expression>>),
-    Mul(Vec<Box<Expression>>),
     And(Vec<Box<Expression>>),
     Or(Vec<Box<Expression>>),
     Xor(Vec<Box<Expression>>),
@@ -167,6 +167,43 @@ impl Expression {
     	  	
     	  	Err(TypeError)
     	  },
+    	  Expression::Add(left, right) => {
+    	  	let t_left = left.get_type(scope)?;
+    	  	let t_right = right.get_type(scope)?;
+    	  	
+    	  	let same_type = t_left == t_right;
+    	  	let left_is_int = t_left.clone() == Type::Integer;
+    	  	let left_is_age = matches!(t_left, Type::AddiGroupEl(_));
+    	    	
+    	    	if same_type && (left_is_int || left_is_age) {
+    	  		Ok(t_left)
+    	  	} else {
+    	  		Err(TypeError)
+    	  	}
+    	  },
+    	  Expression::Mul(left, right) => {
+    	  	let t_left = left.get_type(scope)?;
+    	  	let t_right = right.get_type(scope)?;
+    	  	
+    	  	let same_type = t_left == t_right;
+    	  	let left_is_int = t_left.clone() == Type::Integer;
+    	  	let left_is_mge = matches!(t_left, Type::MultGroupEl(_));
+    	  	let right_is_age = matches!(t_right, Type::AddiGroupEl(_));
+    	  	
+    	  	if same_type {
+    	  		if left_is_int || left_is_mge {
+    	  			Ok(t_left)
+    	  		} else {
+    	  			Err(TypeError)
+    	  		}
+    	  	} else {
+    	  		if left_is_int && right_is_age {
+    	  			Ok(t_right)
+    	  		} else {
+    	  			Err(TypeError)
+    	  		}
+    	  	}
+    	  },
     	  Expression::Sub(left, right) => {
     	  	let t_left = left.get_type(scope)?;
     	  	let t_right = right.get_type(scope)?;
@@ -190,13 +227,21 @@ impl Expression {
     	  Expression::Pow(base, exp) => {
     	  	let t_base = base.get_type(scope)?;
     	  	let t_exp = exp.get_type(scope)?;
+    	  	    	  	
+    	  	let base_is_int = t_base.clone() == Type::Integer;
+    	  	let exp_is_int = t_exp.clone() == Type::Integer;
+    	  	let base_is_mge = matches!(t_base, Type::MultGroupEl(_));
     	  	
-    	  	if (t_base == Type::Integer || matches!(t_base.clone(), Type::MultGroupEl(x))) && t_base == Type::Integer {
-    	  		return Ok(t_base)
+    	  	if exp_is_int {
+    	  		if base_is_int || base_is_mge {
+    	  			Ok(t_base)
+    	  		} else {
+    	  			Err(TypeError)
+    	  		}
+    	  	} else {
+    	  		Err(TypeError)
     	  	}
-    	  	
-    	  	return Err(TypeError)
-    	  },
+   	  },
     	  Expression::Mod(num, modulus) => {
     	  	let t_num = num.get_type(scope)?;
     	  	let t_mod = modulus.get_type(scope)?;
