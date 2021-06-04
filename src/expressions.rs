@@ -214,6 +214,7 @@ impl Expression {
 
             _ => {
                 println!("not implemented!");
+                println!("{:#?}", self);
                 Err(TypeError)
             }
         }

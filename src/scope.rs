@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::types::Type;
 use crate::identifier::Identifier;
 
-
+#[derive(Debug)]
 pub struct ScopeError;
 
 // TODO
