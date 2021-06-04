@@ -28,18 +28,26 @@ impl Scope {
         }
     }
 
+    /* Error conditions:
+     *  - No scope at all
+     *  - Identifier exists somewhere in the scope tower already
+     */
     pub fn declare(&mut self, id: Identifier, t: Type) -> Result<(), ScopeError> {
-        if let Some(mut last) = self.0.last_mut() {
-            last.insert(id, t);
-            Ok(())
+        if self.lookup(&id) == None {
+            if let Some(mut last) = self.0.last_mut() {
+                last.insert(id, t);
+                Ok(())
+            } else {
+                Err(ScopeError)
+            }
         } else {
             Err(ScopeError)
         }
     }
 
-    pub fn lookup(&self, id: Identifier) -> Option<Type> {
+    pub fn lookup(&self, id: &Identifier) -> Option<Type> {
         for table in self.0.clone().into_iter().rev() {
-            if let Some(t) = table.get(&id) {
+            if let Some(t) = table.get(id) {
                 return Some(t.clone());
             }
         }

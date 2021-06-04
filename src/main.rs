@@ -147,7 +147,7 @@ fn main() {
     let mut scp = Scope::new();
     scp.enter();
     scp.declare(foo_identifier.clone(), Type::Integer);
-    println!("{:#?}", scp.lookup(foo_identifier.clone()));
+    println!("{:#?}", scp.lookup(&foo_identifier));
     scp.leave();
-    println!("{:#?}", scp.lookup(foo_identifier));
+    println!("{:#?}", scp.lookup(&foo_identifier));
 }
