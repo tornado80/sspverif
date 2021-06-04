@@ -3,7 +3,7 @@ use crate::expressions::Expression;
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum Identifier {
     Scalar(String),
-    Bracket(Box<Identifier>, Expression),
+//    Bracket(Box<Identifier>, Expression),
 }
 
 impl Identifier {

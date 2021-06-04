@@ -19,6 +19,7 @@ enum Statement {
     Abort,
     Return(Expression),
     Assign(Identifier, Expression),
+    TableAssign(Identifier, Expression, Expression), // TableAssign(T, 2+3, g^r) <== T[2+3] <-- g^r
     IfThenElse(Expression, Vec<Box<Statement>>, Vec<Box<Statement>>),
 }
 

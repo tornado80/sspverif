@@ -10,6 +10,7 @@ pub enum Expression {
     IntegerLiteral(String),
     BooleanLiteral(String),
     Identifier(Box<Identifier>),
+    TableAccess(Box<Identifier>, Box<Expression>),
     Tuple(Vec<Box<Expression>>),
     List(Vec<Box<Expression>>),
     FnCall(String, Vec<Box<Expression>>),

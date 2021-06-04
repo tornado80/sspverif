@@ -13,7 +13,7 @@ pub enum Type {
     List(Box<Type>),
     Set(Box<Type>),
     Tuple(Vec<Box<Type>>),
-    Table((Box<Type>, Box<Type>)),
+    Table(Box<Type>, Box<Type>),
     Maybe(Box<Type>),
 }
 
