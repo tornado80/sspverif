@@ -15,6 +15,7 @@ pub enum Type {
     Tuple(Vec<Box<Type>>),
     Table(Box<Type>, Box<Type>),
     Maybe(Box<Type>),
+    Fn(Vec<Box<Type>>, Box<Type>), // arg types, return type
 }
 
 
@@ -33,6 +34,15 @@ impl Type {
 
     pub fn new_set(t: &Type) -> Type {
         Type::Set(Box::new(t.clone()))
+    }
+
+    pub fn new_fn(args: Vec<&Type>, ret: &Type) -> Type {        
+        let args_boxed = args
+            .into_iter()
+            .map(|arg| Box::new(arg.clone()))
+            .collect();
+
+        Type::Fn(args_boxed, Box::new(ret.clone()))
     }
 }
 

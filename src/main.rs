@@ -35,6 +35,7 @@ fn verify_package(p: &Package) -> Result<(),TypeCheckError> {
     };
     
     for oracle in oracles {
+        println!("checking oracle {:?}", oracle);
         verify_oracle(oracle, scope.clone())?;
     }
     Ok(())
@@ -81,7 +82,7 @@ fn typecheck(ret_type: &Type, block: &Vec<Box<Statement>>, scope: &mut Scope) ->
             Statement::Return(expr) => {
                 let expr_type = expr.get_type(scope)?;
                 if expr_type != *ret_type {
-                    return Err(TypeCheckError::TypeCheck("return type does not match".to_string()))
+                    return Err(TypeCheckError::TypeCheck(format!("return type does not match: {:?} != {:?}", ret_type, expr_type).to_string()))
                 } else {
                     return Ok(())
                 }
@@ -108,7 +109,7 @@ fn typecheck(ret_type: &Type, block: &Vec<Box<Statement>>, scope: &mut Scope) ->
                         return Err(TypeCheckError::TypeCheck("table access on non-table".to_string()))
                     }
                 } else {
-                    return Err(TypeCheckError::TypeCheck("reading from table but table does not exist (here)".to_string()))
+                    return Err(TypeCheckError::TypeCheck("assigning to table but table does not exist (here)".to_string()))
                 }
             },
             Statement::IfThenElse(expr, ifcode, elsecode) => {
@@ -190,11 +191,17 @@ enum PackageInstance {
 fn main() {
     let mut params = HashMap::new();
     params.insert("n".to_string(), "256".to_string());
+    
 
     let prf_real_game = PackageInstance::Atom {
         params: params,
         pkg: Package {
-            params: vec![("n".to_string(), Type::new_scalar("int"))],
+            params: vec![
+                ("n".to_string(), Type::new_scalar("int")),
+                ("f".to_string(), Type::new_fn(
+                    vec![&Type::new_bits("n"), &Type::new_bits("*")],
+                    &Type::new_bits("*"))),
+            ],
             state: vec![("k".to_string(), Type::new_bits("n"))],
             oracles: vec![OracleDef {
                 sig: OracleSig {
@@ -212,14 +219,14 @@ fn main() {
                             Statement::Assign(Identifier::new_scalar("k"),
                                               Expression::Sample(Type::new_bits("n")),
                             )},
-                        block! { // This is total nonsense, the block was empty before
+                        block! { /* // This is total nonsense, the block was empty before
                             Statement::TableAssign(Identifier::new_scalar("D"),
                                                    Expression::Add(Box::new(Expression::IntegerLiteral("2".to_string())),
                                                                    Box::new(Expression::IntegerLiteral("3".to_string()))),
                                                    Expression::StringLiteral("Hallo".to_string())),
                             Statement::Assign(Identifier::new_scalar("handle"),
                                               Expression::TableAccess(Box::new(Identifier::new_scalar("D")),
-                                                                      Box::new(Expression::IntegerLiteral("5".to_string()))))
+                                                                      Box::new(Expression::IntegerLiteral("5".to_string())))) */
                         },
                     ),
                     Statement::Return(fncall! { "f",
@@ -232,14 +239,14 @@ fn main() {
     };
 
     if let PackageInstance::Atom { params, pkg } = prf_real_game.clone() {
-        println!("{:#?}", verify_package(&pkg));
+        println!("verify package: {:#?}", verify_package(&pkg));
     }
     
-    println!("{:#?}", prf_real_game);
+    println!("real game: {:#?}", prf_real_game);
 
     let scope: Scope = Scope::new();
     println!(
-        "{:#?}",
+        "xor: {:#?}",
         Expression::Xor(vec![
             Box::new(Expression::BooleanLiteral("true".to_string())),
             Box::new(Expression::BooleanLiteral("false".to_string())),
@@ -251,7 +258,7 @@ fn main() {
     );
 
     println!(
-        "{:#?}",
+        "type of false: {:#?}",
         Expression::Unwrap(Box::new(Expression::Some(Box::new(
             Expression::BooleanLiteral("false".to_string())
         ))))
@@ -263,7 +270,7 @@ fn main() {
     let mut scp = Scope::new();
     scp.enter();
     scp.declare(foo_identifier.clone(), Type::Integer);
-    println!("{:#?}", scp.lookup(&foo_identifier));
+    println!("foo lookup: {:#?}", scp.lookup(&foo_identifier));
     scp.leave();
-    println!("{:#?}", scp.lookup(&foo_identifier));
+    println!("foo lookup: {:#?}", scp.lookup(&foo_identifier));
 }
