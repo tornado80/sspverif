@@ -233,6 +233,28 @@ impl Expression {
                 }
             }
 
+
+            Expression::OracleInvoc(name, args) => {
+                if let Some(Type::Fn(arg_types, ret_type)) = scope.lookup(&Identifier::new_scalar(name)) {
+                    // 1. check that arg types match args
+                    if args.len() != arg_types.len() {
+                        return Err(TypeError);
+                    }
+
+                    for (i, arg) in args.into_iter().enumerate() {
+                        if arg.get_type(scope)? != *(arg_types[i]) {
+                            return Err(TypeError);
+                        }
+                    }
+
+                    // 2. return ret type
+                    return Ok(*ret_type);
+                } else {
+                    return Err(TypeError);
+                }
+            }
+
+
             Expression::Identifier(id) => {
                 if let Some(t) = scope.lookup(id) {
                     Ok(t)

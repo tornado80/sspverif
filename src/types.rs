@@ -16,6 +16,7 @@ pub enum Type {
     Table(Box<Type>, Box<Type>),
     Maybe(Box<Type>),
     Fn(Vec<Box<Type>>, Box<Type>), // arg types, return type
+    Oracle(Vec<Box<Type>>, Box<Type>), // arg types, return type
 }
 
 
