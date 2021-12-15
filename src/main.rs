@@ -35,7 +35,7 @@ fn verify_package(p: &Package, scope: &mut Scope) -> Result<(),TypeCheckError> {
     };
     
     for oracle in oracles {
-        println!("checking oracle {:?}", oracle);
+        //println!("checking oracle {:?}", oracle);
         verify_oracle(oracle, scope)?;
     }
     Ok(())
@@ -77,7 +77,7 @@ fn typecheck(ret_type: &Type, block: &Vec<Box<Statement>>, scope: &mut Scope) ->
     scope.enter();
 
     for (i, stmt) in block.into_iter().enumerate() {
-        println!("looking at {:} - {:?}", i, stmt);
+        //println!("looking at {:} - {:?}", i, stmt);
         match &**stmt {
             Statement::Abort => return Ok(()),
             Statement::Return(expr) => {
@@ -89,7 +89,7 @@ fn typecheck(ret_type: &Type, block: &Vec<Box<Statement>>, scope: &mut Scope) ->
                 }
             },
             Statement::Assign(id, expr) => {
-                println!("scope: {:?}", scope);
+                //println!("scope: {:?}", scope);
                 
                 let expr_type = expr.get_type(scope)?;
                 if let Some(id_type) = scope.lookup(id) {
@@ -248,7 +248,6 @@ impl PackageInstance {
                     scope.enter();
                     for (from, _, sig) in edges {
                         if from.clone() == id {
-                            println!("adding oracle {:} to scope", sig.name);
                             scope.declare(
                                 Identifier::new_scalar(sig.name.as_str()),
                                 Type::Oracle(

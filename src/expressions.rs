@@ -88,7 +88,7 @@ impl Expression {
                 if let Expression::Some(inner) = &**v {
                     Ok(inner.get_type(scope)?)
                 } else {
-                    Err(TypeError)
+                    Err(TypeError("".to_string()))
                 }
             }
             Expression::Neg(v) => {
@@ -96,13 +96,13 @@ impl Expression {
                 if t == Type::Integer && matches!(t, Type::AddiGroupEl(_)) {
                     Ok(t)
                 } else {
-                    Err(TypeError)
+                    Err(TypeError("".to_string()))
                 }
             }
             Expression::Not(v) => {
                 let t = v.get_type(scope)?;
                 if t != Type::Boolean {
-                    return Err(TypeError);
+                    return Err(TypeError("".to_string()));
                 }
 
                 Ok(t)
@@ -113,7 +113,7 @@ impl Expression {
                     return Ok(t);
                 }
 
-                Err(TypeError)
+                Err(TypeError("".to_string()))
             }
             Expression::Add(left, right) => {
                 let t_left = left.get_type(scope)?;
@@ -126,7 +126,7 @@ impl Expression {
                 if same_type && (left_is_int || left_is_age) {
                     Ok(t_left)
                 } else {
-                    Err(TypeError)
+                    Err(TypeError("".to_string()))
                 }
             }
             Expression::Mul(left, right) => {
@@ -142,13 +142,13 @@ impl Expression {
                     if left_is_int || left_is_mge {
                         Ok(t_left)
                     } else {
-                        Err(TypeError)
+                        Err(TypeError("".to_string()))
                     }
                 } else {
                     if left_is_int && right_is_age {
                         Ok(t_right)
                     } else {
-                        Err(TypeError)
+                        Err(TypeError("".to_string()))
                     }
                 }
             }
@@ -162,14 +162,14 @@ impl Expression {
                     return Ok(t_left);
                 }
 
-                Err(TypeError)
+                Err(TypeError("".to_string()))
             }
             Expression::Div(left, right) => {
                 let t_left = left.get_type(scope)?;
                 let t_right = right.get_type(scope)?;
 
                 if t_left != Type::Integer || t_left != t_right {
-                    return Err(TypeError);
+                    return Err(TypeError("".to_string()));
                 }
 
                 Ok(t_left)
@@ -186,10 +186,10 @@ impl Expression {
                     if base_is_int || base_is_mge {
                         Ok(t_base)
                     } else {
-                        Err(TypeError)
+                        Err(TypeError("".to_string()))
                     }
                 } else {
-                    Err(TypeError)
+                    Err(TypeError("".to_string()))
                 }
             }
             Expression::Mod(num, modulus) => {
@@ -197,7 +197,7 @@ impl Expression {
                 let t_mod = modulus.get_type(scope)?;
 
                 if t_num != Type::Integer || t_mod != Type::Integer {
-                    return Err(TypeError);
+                    return Err(TypeError("".to_string()));
                 }
 
                 Ok(t_num)
@@ -206,7 +206,7 @@ impl Expression {
                 // TODO bit strings
                 for v in vs {
                     if v.get_type(scope)? != Type::Boolean {
-                        return Err(TypeError);
+                        return Err(TypeError("".to_string()));
                     }
                 }
 
@@ -217,40 +217,44 @@ impl Expression {
                 if let Some(Type::Fn(arg_types, ret_type)) = scope.lookup(&Identifier::new_scalar(name)) {
                     // 1. check that arg types match args
                     if args.len() != arg_types.len() {
-                        return Err(TypeError);
+                        return Err(TypeError("".to_string()));
                     }
 
                     for (i, arg) in args.into_iter().enumerate() {
                         if arg.get_type(scope)? != *(arg_types[i]) {
-                            return Err(TypeError);
+                            return Err(TypeError("".to_string()));
                         }
                     }
 
                     // 2. return ret type
                     return Ok(*ret_type);
                 } else {
-                    return Err(TypeError);
+                    return Err(TypeError("".to_string()));
                 }
             }
 
 
             Expression::OracleInvoc(name, args) => {
-                if let Some(Type::Fn(arg_types, ret_type)) = scope.lookup(&Identifier::new_scalar(name)) {
+                if let Some(entry) = scope.lookup(&Identifier::new_scalar(name)) {
+                    if let Type::Oracle(arg_types, ret_type) = entry {
                     // 1. check that arg types match args
                     if args.len() != arg_types.len() {
-                        return Err(TypeError);
+                        return Err(TypeError("oracle invocation arg count mismatch".to_string()));
                     }
 
                     for (i, arg) in args.into_iter().enumerate() {
                         if arg.get_type(scope)? != *(arg_types[i]) {
-                            return Err(TypeError);
+                            return Err(TypeError(format!("oracle invocation arg type doesn't match at position {:}", i)));
                         }
                     }
 
                     // 2. return ret type
                     return Ok(*ret_type);
+                    } else {
+                        return Err(TypeError(format!("expected oracle, got {:#?}", entry)));
+                    } 
                 } else {
-                    return Err(TypeError);
+                    return Err(TypeError(format!("couldn't look up oracle {:}", name)));
                 }
             }
 
@@ -259,14 +263,14 @@ impl Expression {
                 if let Some(t) = scope.lookup(id) {
                     Ok(t)
                 } else {
-                    Err(TypeError)
+                    Err(TypeError("".to_string()))
                 }
             }
 
             _ => {
                 println!("get_type not implemented for:");
                 println!("{:#?}", self);
-                Err(TypeError)
+                Err(TypeError("".to_string()))
             }
         }
     }

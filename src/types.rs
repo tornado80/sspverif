@@ -48,7 +48,7 @@ impl Type {
 }
 
 #[derive(Debug, Clone)]
-pub struct TypeError;
+pub struct TypeError(pub String);
 
 pub type TypeResult = std::result::Result<Type, TypeError>;
 
