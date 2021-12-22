@@ -2,7 +2,7 @@ use crate::types::Type;
 use crate::identifier::Identifier;
 use crate::scope::Scope;
 use crate::errors::TypeCheckError;
-use crate::statement::{Statement, CodeBlock};
+use crate::statement::{Statement, TypedCodeBlock};
 
 use std::collections::HashMap;
 
@@ -45,7 +45,7 @@ impl OracleDef {
         for (name, ntipe) in args {
             scope.declare(Identifier::new_scalar(name), ntipe.clone())?;
         };
-        let code_block = CodeBlock{
+        let code_block = TypedCodeBlock{
             expected_return_type: tipe.clone(),
             block: code.clone(),
         };

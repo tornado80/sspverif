@@ -4,6 +4,8 @@ use crate::identifier::Identifier;
 use crate::scope::Scope;
 use crate::errors::TypeCheckError;
 
+pub type CodeBlock = Vec<Box<Statement>>;
+
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Statement {
@@ -11,17 +13,18 @@ pub enum Statement {
     Return(Expression),
     Assign(Identifier, Expression),
     TableAssign(Identifier, Expression, Expression), // TableAssign(T, 2+3, g^r) <== T[2+3] <-- g^r
-    IfThenElse(Expression, Vec<Box<Statement>>, Vec<Box<Statement>>),
+    IfThenElse(Expression, CodeBlock, CodeBlock),
 }
 
-pub struct CodeBlock {
+
+pub struct TypedCodeBlock {
     pub expected_return_type: Type,
-    pub block: Vec<Box<Statement>>,
+    pub block: CodeBlock
 }
 
-impl CodeBlock {
+impl TypedCodeBlock {
     pub fn typecheck(&self, scope: &mut Scope) -> Result<(), TypeCheckError> {
-        let CodeBlock{ expected_return_type: ret_type, block } = self;
+        let TypedCodeBlock{ expected_return_type: ret_type, block } = self;
         scope.enter();
 
         for (i, stmt) in block.into_iter().enumerate() {
@@ -72,12 +75,12 @@ impl CodeBlock {
                     if expr.get_type(scope)? != Type::Boolean {
                         return Err(TypeCheckError::TypeCheck("condition must be boolean".to_string()))
                     }
-                    CodeBlock{
+                    TypedCodeBlock{
                         expected_return_type: ret_type.clone(),
                         block: ifcode.clone(),
                     }.typecheck(scope)?;
 
-                    CodeBlock{
+                    TypedCodeBlock{
                         expected_return_type: ret_type.clone(),
                         block: elsecode.clone(),
                     }.typecheck(scope)?;
