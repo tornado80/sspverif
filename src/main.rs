@@ -10,7 +10,7 @@ mod expressions;
 mod package;
 mod statement;
 mod errors;
-
+mod smtgen;
 
 use crate::types::Type;
 use crate::identifier::Identifier;

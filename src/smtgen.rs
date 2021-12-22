@@ -1,3 +1,58 @@
+use std::io::{Result, Write};
+//use std::io::prelude::*;
+
+use crate::statement::CodeBlock;
+use crate::statement::Statement;
+use crate::expressions::Expression;
+
+pub trait SmtFmt {
+    fn write_smt_to<T: Write>(&self, write: &mut T) -> Result<()>;
+}
+
+
+impl SmtFmt for CodeBlock {
+    fn write_smt_to<T: Write>(&self, write: &mut T) -> Result<()> {
+        write!(write, "(")?;
+        for line in self {
+            line.write_smt_to(write)?;
+        }
+        write!(write, ")")?;
+        Ok(())
+    }
+}
+
+
+impl SmtFmt for Statement {
+    fn write_smt_to<T: Write>(&self, write: &mut T) -> Result<()> {
+        match self {
+            Statement::IfThenElse(expr, ifcode, elsecode) => {
+                write!(write, "(ite ")?;
+                expr.write_smt_to(write)?;
+                ifcode.write_smt_to(write)?;
+                elsecode.write_smt_to(write)?;
+                write!(write, ")\n")?;
+            },
+            _ => { panic!("no implemented"); }
+        }
+        Ok(())
+    }
+}
+
+
+impl SmtFmt for Expression {
+    fn write_smt_to<T: Write>(&self, write: &mut T) -> Result<()> {
+        match self {
+            Expression::BooleanLiteral(litname) => {
+                write!(write, "{}", litname)?;
+            }
+            _ => { panic!("no implemented"); }
+        }
+        Ok(())
+    }
+}
+
+
+
 
 
 /*
@@ -18,10 +73,7 @@ returns/aborts inside (as opposed to just one at the very end) are still a big h
 */
 
 
-
-
-
-
+/*
 fn set_value(identifier: Identifier, expression: Expression, varname: String, ctr: i32, scope: Scope) {
     let mut result = String::new();
     result.push(format!("(let (({varname}.{ctr} (make-variable-mapping",
@@ -73,3 +125,4 @@ pub fn generate_smt(block: &Vec<Box<Statement>>, varname:String) -> () {
         println!(")");
     }
 }
+*/
