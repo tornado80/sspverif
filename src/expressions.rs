@@ -1,5 +1,6 @@
 use crate::identifier::Identifier;
-use crate::types::{Type, TypeResult, TypeError};
+use crate::types::{Type, TypeResult};
+use crate::errors::TypeError;
 use crate::scope::Scope;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]

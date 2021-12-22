@@ -1,4 +1,4 @@
-use std::fmt;
+use crate::errors::TypeError;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum Type {
@@ -47,13 +47,4 @@ impl Type {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct TypeError(pub String);
-
 pub type TypeResult = std::result::Result<Type, TypeError>;
-
-impl fmt::Display for TypeError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "invalid type")
-    }
-}
