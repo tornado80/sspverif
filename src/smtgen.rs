@@ -9,6 +9,62 @@ pub trait SmtFmt {
     fn write_smt_to<T: Write>(&self, write: &mut T) -> Result<()>;
 }
 
+pub enum SmtExpr {
+    Atom(String),
+    List(Vec<SmtExpr>)
+}
+
+impl SmtFmt for SmtExpr {
+    fn write_smt_to<T: Write>(&self, write: &mut T) -> Result<()> {
+        match self {
+            SmtExpr::Atom(str) => write!(write, "{}", str),
+            SmtExpr::List(lst) => {
+                write!(write, "(")?;
+                for elem in lst {
+                    elem.write_smt_to(write)?;
+                    write!(write, " ")?;
+                };
+                write!(write, ")")
+            },
+
+        }
+    }
+}
+
+impl Into<SmtExpr> for Expression {
+    fn into(self) -> SmtExpr {
+        match self {
+            Expression::BooleanLiteral(litname) => {
+                SmtExpr::Atom(litname)
+            }
+            _ => { panic!("not implemented"); }
+        }
+    }
+}
+
+impl Into<SmtExpr> for Statement {
+    fn into(self) -> SmtExpr {
+        match self {
+            Statement::IfThenElse(cond, ifcode, elsecode) => {
+                SmtExpr::List(vec![
+                    SmtExpr::Atom("ite".to_string()),
+                    cond.into(),
+                    ifcode.into(),
+                    elsecode.into(),
+                ])
+            }
+            _ => {panic!("not implemented")}
+        }
+    }
+
+}
+
+impl Into<SmtExpr> for CodeBlock {
+    fn into(self) -> SmtExpr {
+        SmtExpr::List(vec![])
+    }
+
+}
 
 impl SmtFmt for CodeBlock {
     fn write_smt_to<T: Write>(&self, write: &mut T) -> Result<()> {

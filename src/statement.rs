@@ -4,8 +4,35 @@ use crate::identifier::Identifier;
 use crate::scope::Scope;
 use crate::errors::TypeCheckError;
 
-pub type CodeBlock = Vec<Box<Statement>>;
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub  struct CodeBlock(pub Vec<Box<Statement>>);
 
+impl CodeBlock {
+    /*
+    fn treeify(&self) -> CodeBlock {
+        let mut committed = vec![];
+        let targets = vec![vec![]];
+        let mut foundIte = false;
+        for elem in self.0 {
+            for target in targets {
+                target.push(elem);
+            }
+            
+            if let Statement::IfThenElse(cond, CodeBlock(ifcode), CodeBlock(elsecode)) = *elem {
+                foundIte = true;
+                committed = targets[0].clone();
+                targets[0] = ifcode;
+                targets.push(elsecode);
+            }
+            
+        }
+        
+        let out = CodeBlock(committed);
+        CodeBlock(vec![])
+
+    }
+    */
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Statement {
@@ -26,10 +53,13 @@ impl TypedCodeBlock {
     pub fn typecheck(&self, scope: &mut Scope) -> Result<(), TypeCheckError> {
         let TypedCodeBlock{ expected_return_type: ret_type, block } = self;
         scope.enter();
+        
+        // unpack
+        let block = block.0;
 
         for (i, stmt) in block.into_iter().enumerate() {
             //println!("looking at {:} - {:?}", i, stmt);
-            match &**stmt {
+            match *stmt {
                 Statement::Abort => {
                     if i < block.len() - 1 {
                         return Err(TypeCheckError::TypeCheck(format!("Abort found before end of code block!")));
@@ -48,7 +78,7 @@ impl TypedCodeBlock {
                     //println!("scope: {:?}", scope);
                     
                     let expr_type = expr.get_type(scope)?;
-                    if let Some(id_type) = scope.lookup(id) {
+                    if let Some(id_type) = scope.lookup(&id) {
                         if id_type != expr_type {
                             return Err(TypeCheckError::TypeCheck("overwriting some value with incompatible type".to_string()))
                         }
@@ -59,7 +89,7 @@ impl TypedCodeBlock {
                 Statement::TableAssign(id, idx, expr) => {
                     let expr_type = expr.get_type(scope)?;
                     let idx_type = idx.get_type(scope)?;
-                    if let Some(id_type) = scope.lookup(id) {
+                    if let Some(id_type) = scope.lookup(&id) {
                         if let Type::Table(k, v) = id_type {
                             if *k != idx_type || *v != expr_type {
                                 return Err(TypeCheckError::TypeCheck("type of the table does not match".to_string()))
