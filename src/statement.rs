@@ -8,30 +8,50 @@ use crate::errors::TypeCheckError;
 pub  struct CodeBlock(pub Vec<Box<Statement>>);
 
 impl CodeBlock {
-    /*
     fn treeify(&self) -> CodeBlock {
-        let mut committed = vec![];
-        let targets = vec![vec![]];
-        let mut foundIte = false;
-        for elem in self.0 {
-            for target in targets {
-                target.push(elem);
-            }
-            
-            if let Statement::IfThenElse(cond, CodeBlock(ifcode), CodeBlock(elsecode)) = *elem {
-                foundIte = true;
-                committed = targets[0].clone();
-                targets[0] = ifcode;
-                targets.push(elsecode);
-            }
-            
-        }
-        
-        let out = CodeBlock(committed);
-        CodeBlock(vec![])
+        let before = vec![];
+        let after = vec![];
+        let mut found = false;
 
+        let mut ifcode = None;
+        let mut elsecode = None;
+        let mut cond = None;
+        
+        for elem in self.0 {
+            match *elem {
+                Statement::IfThenElse(cond_, CodeBlock(ifcode_), CodeBlock(elsecode_)) => {
+                    if ! found {
+                        ifcode = Some(ifcode_);
+                        elsecode = Some(elsecode_);
+                        cond = Some(cond_);
+                        found = true;
+                    } else {
+                        after.push(elem);
+                    }
+                }
+                _ => {
+                    if ! found {
+                        before.push(elem);
+                    } else {
+                        after.push(elem);
+                    }
+                }
+            }
+        }
+
+        if found {
+            let newifcode = ifcode.unwrap();
+            newifcode.append(&mut after.clone());
+            let newelsecode = elsecode.unwrap();
+            newelsecode.append(&mut after.clone());
+            before.push(Box::new(Statement::IfThenElse(cond.unwrap(),
+                                                       CodeBlock(newifcode).treeify(),
+                                                       CodeBlock(newelsecode).treeify())));
+            CodeBlock(before)
+        } else {
+            self.clone()
+        }
     }
-    */
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
