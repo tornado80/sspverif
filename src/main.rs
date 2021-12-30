@@ -15,7 +15,7 @@ mod smtgen;
 use crate::types::Type;
 use crate::identifier::Identifier;
 use crate::scope::Scope;
-use crate::statement::Statement;
+use crate::statement::{Statement, CodeBlock};
 use crate::package::{PackageInstance, Package, OracleDef, OracleSig};
 use crate::expressions::Expression;
 

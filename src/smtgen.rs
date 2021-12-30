@@ -69,7 +69,7 @@ impl Into<SmtExpr> for CodeBlock {
 impl SmtFmt for CodeBlock {
     fn write_smt_to<T: Write>(&self, write: &mut T) -> Result<()> {
         write!(write, "(")?;
-        for line in self {
+        for line in &self.0 {
             line.write_smt_to(write)?;
         }
         write!(write, ")")?;

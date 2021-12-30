@@ -5,48 +5,48 @@ use crate::scope::Scope;
 use crate::errors::TypeCheckError;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub  struct CodeBlock(pub Vec<Box<Statement>>);
+pub  struct CodeBlock(pub Vec<Statement>);
 
 impl CodeBlock {
     fn treeify(&self) -> CodeBlock {
-        let before = vec![];
-        let after = vec![];
+        let mut before: Vec<Statement> = vec![];
+        let mut after:Vec<Statement> = vec![];
         let mut found = false;
 
         let mut ifcode = None;
         let mut elsecode = None;
         let mut cond = None;
         
-        for elem in self.0 {
-            match *elem {
+        for elem in &self.0 {
+            match &*elem {
                 Statement::IfThenElse(cond_, CodeBlock(ifcode_), CodeBlock(elsecode_)) => {
                     if ! found {
-                        ifcode = Some(ifcode_);
-                        elsecode = Some(elsecode_);
+                        ifcode = Some(ifcode_.clone());
+                        elsecode = Some(elsecode_.clone());
                         cond = Some(cond_);
                         found = true;
                     } else {
-                        after.push(elem);
+                        after.push(elem.clone());
                     }
                 }
                 _ => {
                     if ! found {
-                        before.push(elem);
+                        before.push(elem.clone());
                     } else {
-                        after.push(elem);
+                        after.push(elem.clone());
                     }
                 }
             }
         }
 
         if found {
-            let newifcode = ifcode.unwrap();
+            let mut newifcode = ifcode.unwrap();
             newifcode.append(&mut after.clone());
-            let newelsecode = elsecode.unwrap();
+            let mut newelsecode = elsecode.unwrap();
             newelsecode.append(&mut after.clone());
-            before.push(Box::new(Statement::IfThenElse(cond.unwrap(),
-                                                       CodeBlock(newifcode).treeify(),
-                                                       CodeBlock(newelsecode).treeify())));
+            before.push(Statement::IfThenElse(cond.unwrap().clone(),
+                                              CodeBlock(newifcode.clone()).treeify(),
+                                              CodeBlock(newelsecode.clone()).treeify()));
             CodeBlock(before)
         } else {
             self.clone()
@@ -73,13 +73,13 @@ impl TypedCodeBlock {
     pub fn typecheck(&self, scope: &mut Scope) -> Result<(), TypeCheckError> {
         let TypedCodeBlock{ expected_return_type: ret_type, block } = self;
         scope.enter();
-        
+
         // unpack
-        let block = block.0;
+        let block = &block.0;
 
         for (i, stmt) in block.into_iter().enumerate() {
             //println!("looking at {:} - {:?}", i, stmt);
-            match *stmt {
+            match &*stmt {
                 Statement::Abort => {
                     if i < block.len() - 1 {
                         return Err(TypeCheckError::TypeCheck(format!("Abort found before end of code block!")));
@@ -96,7 +96,7 @@ impl TypedCodeBlock {
                 },
                 Statement::Assign(id, expr) => {
                     //println!("scope: {:?}", scope);
-                    
+
                     let expr_type = expr.get_type(scope)?;
                     if let Some(id_type) = scope.lookup(&id) {
                         if id_type != expr_type {
@@ -149,9 +149,9 @@ macro_rules! block {
         {
             let mut res = Vec::new();
             $(
-                res.push(Box::new($s.clone()));
+                res.push($s.clone());
             )*
-                res
+                CodeBlock(res)
         }
     }
 }

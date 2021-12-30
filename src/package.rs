@@ -2,7 +2,7 @@ use crate::types::Type;
 use crate::identifier::Identifier;
 use crate::scope::Scope;
 use crate::errors::TypeCheckError;
-use crate::statement::{Statement, TypedCodeBlock};
+use crate::statement::{TypedCodeBlock, CodeBlock};
 
 use std::collections::HashMap;
 
@@ -32,7 +32,7 @@ pub struct OracleSig {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct OracleDef {
     pub sig: OracleSig,
-    pub code: Vec<Box<Statement>>,
+    pub code: CodeBlock,
 }
 
 impl OracleDef {
