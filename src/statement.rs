@@ -8,7 +8,7 @@ use crate::errors::TypeCheckError;
 pub  struct CodeBlock(pub Vec<Statement>);
 
 impl CodeBlock {
-    fn treeify(&self) -> CodeBlock {
+    pub fn treeify(&self) -> CodeBlock {
         let mut before: Vec<Statement> = vec![];
         let mut after:Vec<Statement> = vec![];
         let mut found = false;
