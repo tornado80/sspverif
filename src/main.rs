@@ -27,6 +27,7 @@ fn main() {
     
 
     let prf_real_game = PackageInstance::Atom {
+        name: "mono prf game".to_string(),
         params: params.clone(),
         pkg: Package {
             params: vec![
@@ -85,6 +86,7 @@ fn main() {
     };
 
     let key_real_pkg = PackageInstance::Atom {
+        name: "the one and only key package".to_string(),
         params: params.clone(),
         pkg: Package {
             params: vec![
@@ -138,6 +140,7 @@ fn main() {
 
 
     let mod_prf_real_pkg = PackageInstance::Atom {
+        name: "modular prf".to_string(),
         params: params.clone(),
         pkg: Package {
             params: vec![

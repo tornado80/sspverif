@@ -91,6 +91,7 @@ pub enum PackageInstance {
     Atom {
         params: HashMap<String, String>,
         pkg: Package,
+        name: String,
     },
     Composition {
         pkgs: Vec<PackageInstance>,
