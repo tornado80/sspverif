@@ -168,8 +168,8 @@ fn main() {
 
     let mod_prf_game = PackageInstance::Composition{
         pkgs: vec![
-            Box::new(key_real_pkg.clone()),
-            Box::new(mod_prf_real_pkg.clone()),
+            key_real_pkg.clone(),
+            mod_prf_real_pkg.clone(),
         ],
         edges: vec![
             (1, 0, key_real_pkg.get_pkg().oracles[1].sig.clone())

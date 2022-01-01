@@ -93,7 +93,7 @@ pub enum PackageInstance {
         pkg: Package,
     },
     Composition {
-        pkgs: Vec<Box<PackageInstance>>,
+        pkgs: Vec<PackageInstance>,
         edges: Vec<(usize, usize, OracleSig)>,  // (from, to, oraclesig)
                                                 // TODO: how do we deal with the case where we have
                                                 // e.g. multiple key packages that we Set into?
