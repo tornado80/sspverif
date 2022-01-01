@@ -3,6 +3,7 @@ use crate::identifier::Identifier;
 use crate::scope::Scope;
 use crate::errors::TypeCheckError;
 use crate::statement::{TypedCodeBlock, CodeBlock};
+use crate::smtgen::SmtExpr;
 
 use std::collections::HashMap;
 
@@ -103,10 +104,88 @@ pub enum PackageInstance {
                                                 // contemplation: globally unique oracle identifiers vs
                                                 // multiple shades of local uniqueness
         exports: Vec<(usize, OracleSig)>,
+        name: String,
     },
 }
 
 impl PackageInstance {
+    /*
+    Example:
+    (declare-datatype State_right-pkey (
+         (mk-state-right-pkey   (state-right-pkey-pk   (Array Int String))
+                                (state-right-pkey-sk   (Array Int String))
+                                (state-right-pkey-id   (Array String Int))
+                                (state-right-pkey-ctr  Int)
+                                (state-right-pkey-rand RandState))))
+
+    (declare-datatype State_right (
+        (mk-state-right         (state-right-pkey State_right-pkey)
+
+        )
+    ))
+
+    */
+    pub fn state_smt(&self) -> Vec<SmtExpr> {
+        match &self {
+            PackageInstance::Atom{pkg, name, ..} => {
+                let mut tmp = vec![SmtExpr::Atom(format!("mk-state-{}", name))];
+
+                for (id, tipe) in pkg.clone().state {
+                    tmp.push(SmtExpr::List(vec![
+                        SmtExpr::Atom(format!("state-{}-{}", name, id)),
+                        tipe.into(),
+                    ]))
+                }
+
+                vec![
+                    SmtExpr::List(vec![
+                        SmtExpr::Atom("declare-datatype".to_string()),
+                        SmtExpr::Atom(format!("State_{}", name)),
+                        SmtExpr::List(vec![
+                            SmtExpr::List(tmp)
+                        ])
+                    ])
+                ]
+            },
+            PackageInstance::Composition{pkgs, name, ..} => {
+                
+                // 1. each package in composition
+                let mut states: Vec<SmtExpr> = pkgs.clone().iter()
+                    .map(|x|  x.state_smt())
+                    .flatten()
+                    .collect();
+
+                
+                // 2. composed state
+                let mut tmp = vec![
+                    SmtExpr::Atom(format!("mk-state-composition-{}", name))
+                ];
+
+                for pkg in pkgs {
+                    let name = match pkg {
+                        PackageInstance::Atom{name, ..}        => name,
+                        PackageInstance::Composition{name, ..} => name,
+                    };
+
+                    tmp.push(SmtExpr::List(vec![
+                        SmtExpr::Atom(format!("state-{}", name)),
+                        SmtExpr::Atom(format!("State_{}", name)),
+                    ]));
+                }
+
+                states.push(SmtExpr::List(vec![
+                    SmtExpr::Atom("declare-datatype".to_string()),
+                    SmtExpr::Atom(format!("State_composition-{}", name)),
+                    SmtExpr::List(vec![
+                        SmtExpr::List(tmp)
+                    ])
+                ]));
+
+                states
+            }
+        }
+    }
+
     pub fn get_pkg(&self) -> Package {
         match self {
             PackageInstance::Atom{pkg, ..} => pkg.clone(),
@@ -136,7 +215,7 @@ impl PackageInstance {
                 // TODO also check params
                 pkg.typecheck(scope)
             },
-            PackageInstance::Composition{pkgs, edges, exports} => {
+            PackageInstance::Composition{pkgs, edges, exports, ..} => {
                 
                 // 1. check signature exists in edge destination
                 for (_, to, sig_) in edges {

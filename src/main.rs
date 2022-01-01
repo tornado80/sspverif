@@ -18,6 +18,7 @@ use crate::scope::Scope;
 use crate::statement::{Statement, CodeBlock};
 use crate::package::{PackageInstance, Package, OracleDef, OracleSig};
 use crate::expressions::Expression;
+use crate::smtgen::SmtFmt;
 
 
 
@@ -27,7 +28,7 @@ fn main() {
     
 
     let prf_real_game = PackageInstance::Atom {
-        name: "mono prf game".to_string(),
+        name: "mono-prf".to_string(),
         params: params.clone(),
         pkg: Package {
             params: vec![
@@ -86,7 +87,7 @@ fn main() {
     };
 
     let key_real_pkg = PackageInstance::Atom {
-        name: "the one and only key package".to_string(),
+        name: "key".to_string(),
         params: params.clone(),
         pkg: Package {
             params: vec![
@@ -140,7 +141,7 @@ fn main() {
 
 
     let mod_prf_real_pkg = PackageInstance::Atom {
-        name: "modular prf".to_string(),
+        name: "mod-prf".to_string(),
         params: params.clone(),
         pkg: Package {
             params: vec![
@@ -173,6 +174,7 @@ fn main() {
         pkgs: vec![
             key_real_pkg.clone(),
             mod_prf_real_pkg.clone(),
+          
         ],
         edges: vec![
             (1, 0, key_real_pkg.get_pkg().oracles[1].sig.clone())
@@ -181,6 +183,7 @@ fn main() {
             (0, key_real_pkg.get_pkg().oracles[0].sig.clone()),
             (1, mod_prf_real_pkg.get_pkg().oracles[0].sig.clone()),
         ],
+        name: "real".to_string(),
     };
 
 
@@ -195,7 +198,14 @@ fn main() {
 
     let mut scope: Scope = Scope::new();
     println!("modular game typecheck: {:#?}", mod_prf_game.typecheck(&mut scope));
-    println!("scope now: {:?}", scope);
+    //println!("scope now: {:?}", scope);
+
+    println!("smt expression of real composition");
+
+    for line in mod_prf_game.state_smt() {
+        line.write_smt_to(&mut std::io::stdout()).unwrap();
+        println!();
+    }
 
     /*
     let scope: Scope = Scope::new();

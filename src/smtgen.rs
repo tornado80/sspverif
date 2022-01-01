@@ -5,11 +5,13 @@ use crate::statement::CodeBlock;
 use crate::statement::Statement;
 use crate::expressions::Expression;
 use crate::identifier::Identifier;
+use crate::types::Type;
 
 pub trait SmtFmt {
     fn write_smt_to<T: Write>(&self, write: &mut T) -> Result<()>;
 }
 
+#[derive(Debug)]
 pub enum SmtExpr {
     Atom(String),
     List(Vec<SmtExpr>)
@@ -109,6 +111,21 @@ impl Into<SmtExpr> for CodeBlock {
             });
         }
         result.unwrap()
+    }
+}
+
+impl Into<SmtExpr> for Type {
+    fn into(self) -> SmtExpr {
+        match &self {
+            Type::Bits(length) => {
+                // TODO make sure we define this somewhere
+                SmtExpr::Atom(format!("Bits_{}", length))
+            },
+            Type::Boolean => {
+                SmtExpr::Atom("Bool".to_string())
+            },
+            _ => {panic!("not implemented!")}
+        }
     }
 }
 
