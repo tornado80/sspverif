@@ -4,6 +4,7 @@ use std::io::{Result, Write};
 use crate::statement::CodeBlock;
 use crate::statement::Statement;
 use crate::expressions::Expression;
+use crate::identifier::Identifier;
 
 pub trait SmtFmt {
     fn write_smt_to<T: Write>(&self, write: &mut T) -> Result<()>;
@@ -36,7 +37,26 @@ impl Into<SmtExpr> for Expression {
         match self {
             Expression::BooleanLiteral(litname) => {
                 SmtExpr::Atom(litname)
-            }
+            },
+            Expression::Equals(exprs) => {
+                let mut acc = vec![];
+                acc.push(SmtExpr::Atom("=".to_string()));
+                for expr in exprs {
+                    acc.push((*expr).clone().into());
+                }
+                SmtExpr::List(acc)
+            },
+            Expression::Identifier(ident) => {
+                let Identifier::Scalar(identname) = *ident;
+                SmtExpr::Atom(identname)
+            },
+            Expression::Bot => {
+                SmtExpr::List(vec![SmtExpr::Atom("bot".to_string())])
+            },
+            Expression::Sample(tipe) => {
+                // TODO: fix this later! This is generally speaking not correct!
+                SmtExpr::List(vec![SmtExpr::Atom("rand".to_string())])
+            },
             _ => { panic!("not implemented"); }
         }
     }
@@ -61,9 +81,35 @@ impl Into<SmtExpr> for Statement {
 
 impl Into<SmtExpr> for CodeBlock {
     fn into(self) -> SmtExpr {
-        SmtExpr::List(vec![])
+        let mut result = None;
+        for stmt in self.0.iter().rev() {
+            result = Some(match stmt {
+                Statement::IfThenElse(cond, ifcode, elsecode) => {
+                    SmtExpr::List(vec![
+                        SmtExpr::Atom("ite".to_string()),
+                        cond.clone().into(),
+                        ifcode.clone().into(),
+                        elsecode.clone().into(),
+                    ])
+                },
+                Statement::Assign(ident, expr) => {
+                    let Identifier::Scalar(identname) = ident;
+                    SmtExpr::List(vec![
+                        SmtExpr::Atom("let".to_string()),
+                        SmtExpr::List(vec![
+                            SmtExpr::List(vec![
+                                SmtExpr::Atom(identname.clone()),
+                                expr.clone().into()
+                            ])
+                        ]),
+                        result.unwrap()
+                    ])
+                }
+                _ => {panic!("not implemented")}
+            });
+        }
+        result.unwrap()
     }
-
 }
 
 impl SmtFmt for CodeBlock {
