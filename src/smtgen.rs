@@ -11,7 +11,7 @@ pub trait SmtFmt {
     fn write_smt_to<T: Write>(&self, write: &mut T) -> Result<()>;
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum SmtExpr {
     Atom(String),
     List(Vec<SmtExpr>)
