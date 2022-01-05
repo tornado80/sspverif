@@ -57,7 +57,7 @@ impl CodeBlock {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Statement {
     Abort,
-    Return(Expression),
+    Return(Option<Expression>),
     Assign(Identifier, Expression),
     TableAssign(Identifier, Expression, Expression), // TableAssign(T, 2+3, g^r) <== T[2+3] <-- g^r
     IfThenElse(Expression, CodeBlock, CodeBlock),
@@ -85,13 +85,18 @@ impl TypedCodeBlock {
                         return Err(TypeCheckError::TypeCheck(format!("Abort found before end of code block!")));
                     }
                 },
-                Statement::Return(expr) => {
+                Statement::Return(Some(expr)) => {
                     let expr_type = expr.get_type(scope)?;
                     if i < block.len() - 1 {
                         return Err(TypeCheckError::TypeCheck(format!("Return found before end of code block!")));
                     }
                     if expr_type != *ret_type {
                         return Err(TypeCheckError::TypeCheck(format!("return type does not match: {:?} != {:?}", ret_type, expr_type).to_string()))
+                    }
+                },
+                Statement::Return(None) => {
+                    if Type::Empty != *ret_type {
+                        return Err(TypeCheckError::TypeCheck(format!("return type does not match: {:?} != Empty", ret_type)))
                     }
                 },
                 Statement::Assign(id, expr) => {

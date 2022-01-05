@@ -76,10 +76,10 @@ fn main() {
                             block! {Statement::Abort},
                             block! {},
                         ),
-                        Statement::Return(fncall! { "f",
-                                                    Identifier::new_scalar("k").to_expression(),
-                                                    Identifier::new_scalar("msg").to_expression()
-                        })
+                        Statement::Return(Some(fncall! { "f",
+                                                          Identifier::new_scalar("k").to_expression(),
+                                                          Identifier::new_scalar("msg").to_expression()
+                        }))
                     },
                 },
             ],
@@ -132,7 +132,7 @@ fn main() {
                             block! {Statement::Abort},
                             block! {},
                         ),
-                        Statement::Return(Identifier::new_scalar("k").to_expression())
+                        Statement::Return(Some(Identifier::new_scalar("k").to_expression()))
                     },
                 },
             ],
@@ -160,10 +160,10 @@ fn main() {
                     },
                     code: block! {
                         Statement::Assign(Identifier::new_scalar("k"), Expression::OracleInvoc("Get".to_string(), vec![])), // TODO figure out why the macro doesn't work (and why it's a macro and not a function)
-                        Statement::Return(fncall! { "f",
-                                                    Identifier::new_scalar("k").to_expression(),
-                                                    Identifier::new_scalar("msg").to_expression()
-                        })
+                        Statement::Return(Some(fncall! { "f",
+                                                          Identifier::new_scalar("k").to_expression(),
+                                                          Identifier::new_scalar("msg").to_expression()
+                        }))
                     },
                 },
             ],
