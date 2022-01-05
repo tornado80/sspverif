@@ -501,7 +501,7 @@ impl PackageInstance {
                                 Type::Oracle(
                                     sig.args.clone()
                                         .into_iter()
-                                        .map(|(_, tipe)| Box::new(tipe)).collect(),
+                                        .map(|(_, tipe)| tipe).collect(),
                                     Box::new(sig.tipe.clone()))
                             )?;
                         }

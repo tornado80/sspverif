@@ -34,8 +34,8 @@ fn main() {
             params: vec![
                 ("n".to_string(), Type::new_scalar("int")),
                 ("f".to_string(), Type::new_fn(
-                    vec![&Type::new_bits("n"), &Type::new_bits("*")],
-                    &Type::new_bits("*"))),
+                    vec![Type::new_bits("n"), Type::new_bits("*")],
+                    Type::new_bits("*"))),
             ],
             state: vec![("k".to_string(), Type::new_bits("n"))],
             oracles: vec![
@@ -147,8 +147,8 @@ fn main() {
             params: vec![
                 ("n".to_string(), Type::new_scalar("int")),
                 ("f".to_string(), Type::new_fn(
-                    vec![&Type::new_bits("n"), &Type::new_bits("*")],
-                    &Type::new_bits("*"))),
+                    vec![Type::new_bits("n"), Type::new_bits("*")],
+                    Type::new_bits("*"))),
             ],
             state: vec![],
             oracles: vec![

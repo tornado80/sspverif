@@ -12,11 +12,11 @@ pub enum Expression {
     BooleanLiteral(String),
     Identifier(Identifier),
     TableAccess(Box<Identifier>, Box<Expression>),
-    Tuple(Vec<Box<Expression>>),
-    List(Vec<Box<Expression>>),
-    FnCall(String, Vec<Box<Expression>>),
-    // or maybe at some point: FnCall(Box<Expression>, Vec<Box<Expression>>),
-    OracleInvoc(String, Vec<Box<Expression>>),
+    Tuple(Vec<Expression>),
+    List(Vec<Expression>),
+    FnCall(String, Vec<Expression>),
+    // or maybe at some point: FnCall(Box<Expression>, Vec<Expression>),
+    OracleInvoc(String, Vec<Expression>),
 
     None(Type),
     Some(Box<Expression>),
@@ -34,10 +34,10 @@ pub enum Expression {
     Pow(Box<Expression>, Box<Expression>),
     Mod(Box<Expression>, Box<Expression>),
 
-    Equals(Vec<Box<Expression>>),
-    And(Vec<Box<Expression>>),
-    Or(Vec<Box<Expression>>),
-    Xor(Vec<Box<Expression>>),
+    Equals(Vec<Expression>),
+    And(Vec<Expression>),
+    Or(Vec<Expression>),
+    Xor(Vec<Expression>),
 
     // Set/List Operations:
     Sum(Box<Expression>),
@@ -48,7 +48,7 @@ pub enum Expression {
     Cut(Box<Expression>),
     SetDiff(Box<Expression>),
 
-    Concat(Vec<Box<Expression>>),
+    Concat(Vec<Expression>),
 }
 
 impl Expression {
@@ -68,27 +68,23 @@ impl Expression {
             Expression::TableAccess(id, expr) => {Expression::TableAccess(id.clone(), Box::new(expr.map(f)))}
             Expression::Tuple(exprs) => {
                 Expression::Tuple(exprs.iter()
-                .map(|expr| Box::new(
-                    expr.map(f))
-                ).collect())
+                .map(|expr|expr.map(f))
+                .collect())
             },
             Expression::Equals(exprs) => {
                 Expression::Equals(exprs.iter()
-                .map(|expr| Box::new(
-                    expr.map(f))
-                ).collect())
+                .map(|expr|expr.map(f))
+                .collect())
             },
             Expression::FnCall(str, exprs) => {
                 Expression::FnCall(str.clone(), exprs.iter()
-                .map(|expr| Box::new(
-                    expr.map(f))
-                ).collect())
+                .map(|expr| expr.map(f))
+                .collect())
             },
             Expression::OracleInvoc(str, exprs) => {
                 Expression::OracleInvoc(str.clone(), exprs.iter()
-                .map(|expr| Box::new(
-                    expr.map(f))
-                ).collect())
+                .map(|expr| expr.map(f))
+                .collect())
             },
             _ => {panic!("Expression: not implemented: {:#?}", self)}
         })
@@ -98,7 +94,7 @@ impl Expression {
         Expression::Equals(
             exprs
                 .into_iter()
-                .map(|expr| Box::new(expr.clone()))
+                .map(|expr| expr.clone())
                 .collect(),
         )
     }
@@ -114,7 +110,7 @@ impl Expression {
                 let mut types = vec![];
 
                 for elem in elems {
-                    types.push(Box::new(elem.get_type(scope)?));
+                    types.push(elem.get_type(scope)?);
                 }
 
                 Ok(Type::Tuple(types))
@@ -258,7 +254,7 @@ impl Expression {
                     }
 
                     for (i, arg) in args.into_iter().enumerate() {
-                        if arg.get_type(scope)? != *(arg_types[i]) {
+                        if arg.get_type(scope)? != arg_types[i] {
                             return Err(TypeError("".to_string()));
                         }
                     }
@@ -280,7 +276,7 @@ impl Expression {
                     }
 
                     for (i, arg) in args.into_iter().enumerate() {
-                        if arg.get_type(scope)? != *(arg_types[i]) {
+                        if arg.get_type(scope)? != arg_types[i] {
                             return Err(TypeError(format!("oracle invocation arg type doesn't match at position {:}", i)));
                         }
                     }
@@ -358,7 +354,7 @@ macro_rules! fncall {
         {
             let mut res = Vec::new();
             $(
-                res.push(Box::new($e.clone()));
+                res.push($e.clone());
             )*
             Expression::FnCall($name.to_string(), res)
         }

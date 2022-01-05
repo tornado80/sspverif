@@ -12,11 +12,11 @@ pub enum Type {
     MultGroupEl(String), // name of the group
     List(Box<Type>),
     Set(Box<Type>),
-    Tuple(Vec<Box<Type>>),
+    Tuple(Vec<Type>),
     Table(Box<Type>, Box<Type>),
     Maybe(Box<Type>),
-    Fn(Vec<Box<Type>>, Box<Type>), // arg types, return type
-    Oracle(Vec<Box<Type>>, Box<Type>), // arg types, return type
+    Fn(Vec<Type>, Box<Type>), // arg types, return type
+    Oracle(Vec<Type>, Box<Type>), // arg types, return type
 }
 
 
@@ -37,13 +37,8 @@ impl Type {
         Type::Set(Box::new(t.clone()))
     }
 
-    pub fn new_fn(args: Vec<&Type>, ret: &Type) -> Type {        
-        let args_boxed = args
-            .into_iter()
-            .map(|arg| Box::new(arg.clone()))
-            .collect();
-
-        Type::Fn(args_boxed, Box::new(ret.clone()))
+    pub fn new_fn(args: Vec<Type>, ret: Type) -> Type {        
+        Type::Fn(args, Box::new(ret))
     }
 }
 

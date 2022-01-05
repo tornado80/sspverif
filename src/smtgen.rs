@@ -48,7 +48,7 @@ impl Into<SmtExpr> for Expression {
                 let mut acc = vec![];
                 acc.push(SmtExpr::Atom("=".to_string()));
                 for expr in exprs {
-                    acc.push((*expr).clone().into());
+                    acc.push(expr.clone().into());
                 }
                 SmtExpr::List(acc)
             },
