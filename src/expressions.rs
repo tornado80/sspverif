@@ -10,7 +10,7 @@ pub enum Expression {
     StringLiteral(String),
     IntegerLiteral(String),
     BooleanLiteral(String),
-    Identifier(Box<Identifier>),
+    Identifier(Identifier),
     TableAccess(Box<Identifier>, Box<Expression>),
     Tuple(Vec<Box<Expression>>),
     List(Vec<Box<Expression>>),
@@ -57,6 +57,42 @@ impl Expression {
         Expression::Identifier(name.to_string())
     }
     */
+
+    pub fn map<F>(&self, f: F) -> Expression where F: Fn(Expression) -> Expression + Copy {
+        f(match &self {
+            Expression::Bot | Expression::None(_) | Expression::Sample(_) |
+            Expression::StringLiteral(_) | Expression::IntegerLiteral(_) | Expression::BooleanLiteral(_) |
+            Expression::Identifier(_) => { self.clone() },
+
+            Expression::Some(expr) => {Expression::Some(Box::new(expr.map(f)))},
+            Expression::TableAccess(id, expr) => {Expression::TableAccess(id.clone(), Box::new(expr.map(f)))}
+            Expression::Tuple(exprs) => {
+                Expression::Tuple(exprs.iter()
+                .map(|expr| Box::new(
+                    expr.map(f))
+                ).collect())
+            },
+            Expression::Equals(exprs) => {
+                Expression::Equals(exprs.iter()
+                .map(|expr| Box::new(
+                    expr.map(f))
+                ).collect())
+            },
+            Expression::FnCall(str, exprs) => {
+                Expression::FnCall(str.clone(), exprs.iter()
+                .map(|expr| Box::new(
+                    expr.map(f))
+                ).collect())
+            },
+            Expression::OracleInvoc(str, exprs) => {
+                Expression::OracleInvoc(str.clone(), exprs.iter()
+                .map(|expr| Box::new(
+                    expr.map(f))
+                ).collect())
+            },
+            _ => {panic!("Expression: not implemented: {:#?}", self)}
+        })
+    }
 
     pub fn new_equals(exprs: Vec<&Expression>) -> Expression {
         Expression::Equals(

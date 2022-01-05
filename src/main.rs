@@ -189,36 +189,39 @@ fn main() {
 
     let mut scope: Scope = Scope::new();
     if let PackageInstance::Atom { pkg, .. } = prf_real_game.clone() {
-        println!("typecheck mono prf package: {:#?}", pkg.typecheck(&mut scope));
-        println!("scope now: {:?}", scope);
+        eprintln!("typecheck mono prf package: {:#?}", pkg.typecheck(&mut scope));
+        eprintln!("scope now: {:?}", scope);
     }
 
     //println!("real game: {:#?}",    prf_real_game);
     //println!("modular game: {:#?}", mod_prf_game);
 
     let mut scope: Scope = Scope::new();
-    println!("modular game typecheck: {:#?}", mod_prf_game.typecheck(&mut scope));
+    eprintln!("modular game typecheck: {:#?}", mod_prf_game.typecheck(&mut scope));
     //println!("scope now: {:?}", scope);
 
-    println!("smt expression of real composition");
+    eprintln!("smt expression of real composition");
 
-    println!("States");
+    eprintln!("States");
     for line in mod_prf_game.state_smt() {
         line.write_smt_to(&mut std::io::stdout()).unwrap();
         println!();
     }
 
-    println!("Return Tipes");
+    eprintln!("Return Tipes");
     for line in mod_prf_game.return_smt() {
         line.write_smt_to(&mut std::io::stdout()).unwrap();
         println!();
     }
 
-    println!("Oracle Codes");
-    for line in key_real_pkg.code_smt() {
+    eprintln!("Oracle Codes");
+    for line in key_real_pkg.var_specify().code_smt() {
         line.write_smt_to(&mut std::io::stdout()).unwrap();
         println!();
     }
+
+    //println!("Variable Specification");
+    //println!("{:?}", mod_prf_game.var_specify());
 
     /*
     let scope: Scope = Scope::new();

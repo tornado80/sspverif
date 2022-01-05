@@ -4,17 +4,9 @@ use crate::scope::Scope;
 use crate::errors::TypeCheckError;
 use crate::statement::{TypedCodeBlock, CodeBlock, Statement};
 use crate::smtgen::SmtExpr;
+use crate::expressions::Expression;
 
 use std::collections::HashMap;
-
-/*
- * Next Steps:
- * - type check
- * - normalize/canonicalize nested composition
- * - usable constructors
- * - extract SMT-LIB
- * - pretty-print: both text-only and cryptocode
- */
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FnSig {
@@ -68,7 +60,6 @@ pub struct Package {
 impl Package {
     pub fn typecheck(&self, scope: &mut Scope) -> Result<(),TypeCheckError> {
         let Package{ params, state, oracles } = self;
-        //println!("scope in package typecheck: {:?}", scope);
 
         scope.enter();
         for (name, ntipe) in params {
@@ -125,6 +116,97 @@ impl PackageInstance {
     ))
 
     */
+
+    fn var_specify_helper(&self, block: CodeBlock) -> CodeBlock {
+        if let PackageInstance::Atom{
+            name,
+            pkg: Package{
+                state,
+                params,
+                ..
+            },
+            ..
+        } = self {
+            let fixup = |expr| {
+                match expr {
+                    Expression::Identifier(Identifier::Scalar(id)) => {
+                        if state.clone().iter().any(|(id_, _)| {id == *id_} ) {
+                            Expression::Identifier(Identifier::State{name:id, pkgname: name.clone()})
+                        } else if params.clone().iter().any(|(id_, _)| {id == *id_}) {
+                            Expression::Identifier(Identifier::Params{name:id, pkgname: name.clone()})
+                        } else {
+                            Expression::Identifier(Identifier::Local(id))
+                        }
+                    }
+                    _ => {
+                        expr
+                    }
+                }
+                
+            };
+            CodeBlock(block.0.iter().map(|stmt| {
+                match stmt {
+                    Statement::Abort => Statement::Abort,
+                    Statement::Return(None) => Statement::Return(None),
+                    Statement::Return(Some(expr)) => Statement::Return(Some(expr.map(fixup))),
+                    Statement::Assign(id, expr) => {
+                        if let Expression::Identifier(id) = fixup(id.to_expression()) {
+                            Statement::Assign(id, expr.map(fixup))
+                        } else {
+                            panic!("unreachable")
+                        }
+                    },
+                    Statement::IfThenElse(expr, ifcode, elsecode) => Statement::IfThenElse(
+                        expr.map(fixup),
+                        self.var_specify_helper(ifcode.clone()),
+                        self.var_specify_helper(elsecode.clone()),
+                    ),
+                    _ => panic!("not implemented")
+                }
+            }).collect())
+        } else {
+            panic!("unreachable")
+        }
+    }
+
+    pub fn var_specify(&self) -> PackageInstance {
+        match &self {
+            PackageInstance::Composition{pkgs, edges, exports, name} => {
+                PackageInstance::Composition{
+                    name: name.clone(),
+                    exports: exports.clone(),
+                    edges: edges.clone(),
+                    pkgs: pkgs.iter().map(|pkg| {
+                        pkg.var_specify()
+                    }).collect(),
+                }
+            },
+            PackageInstance::Atom{
+                pkg: Package {
+                    params: pkg_params, state, oracles
+                },
+                name,
+                params
+            } => {
+                PackageInstance::Atom{
+                    name: name.clone(),
+                    params: params.clone(),
+                    pkg: Package {
+                        params: pkg_params.clone(),
+                        state: state.clone(),
+                        oracles:
+                            oracles.iter().map(|def| {
+                                OracleDef{
+                                    sig: def.sig.clone(),
+                                    code: self.var_specify_helper(def.code.clone()),
+                                }
+                        }).collect()
+                    }
+                }
+            }
+        }
+    }
+
     pub fn state_smt(&self) -> Vec<SmtExpr> {
         match &self {
             PackageInstance::Atom{pkg, name, ..} => {
@@ -188,6 +270,7 @@ impl PackageInstance {
 
 
     /*
+    example:
     (declare-datatype Return_key_get (
         (mk-return-key-get         (return-key-get-state State_key)
                                     (return-key_get-value Bits_n))
@@ -288,15 +371,23 @@ impl PackageInstance {
                         },
                         Statement::Assign(ident, expr) => {
                             // State_{name} (quote " state")
-                            let Identifier::Scalar(identname) = ident;
-                            let assignment =
-                                if pkg.state.iter().any(|(varname, _)| varname == identname) {
-
+                            let assignment = match ident {
+                                Identifier::Scalar(name) => panic!("found a "),
+                                Identifier::Local(name) => {
+                                    vec![
+                                        SmtExpr::List(vec![
+                                            SmtExpr::Atom(name.clone()),
+                                            expr.clone().into()
+                                        ])
+                                    ]
+                                },
+                                Identifier::State{name, pkgname} => {
                                     let mut tmp = vec![
                                         SmtExpr::Atom(format!("mk-state-{}", pkgname))
                                     ];
+
                                     for (varname,_) in pkg.state.clone() {
-                                        if varname == *identname {
+                                        if varname == *name {
                                             tmp.push(expr.clone().into());
                                         } else {
                                             tmp.push(SmtExpr::List(vec![
@@ -307,24 +398,11 @@ impl PackageInstance {
 
                                     }
 
+                                    tmp
+                                },
+                                _ => panic!("not implemented"),
+                            };
 
-                                    vec![
-                                        statevarname.clone(),
-                                        /*
-                                        (mk-state-{name} (state-{name}-foo statevarname)
-                                        (state-{name}-bar statevarname)
-                                        expr
-                                         */
-                                        SmtExpr::List(tmp)
-                                    ]
-                                } else {
-                                    vec![
-                                        SmtExpr::List(vec![
-                                            SmtExpr::Atom(identname.clone()),
-                                            expr.clone().into()
-                                        ])
-                                    ]
-                                };
                             SmtExpr::List(vec![
                                 SmtExpr::Atom("let".to_string()),
                                 SmtExpr::List(assignment),
@@ -345,24 +423,14 @@ impl PackageInstance {
 
     pub fn code_smt(&self) -> Vec<SmtExpr> {
         match &self {
-            PackageInstance::Atom{pkg, name: pkgname, ..} => {
-                let mut smts = vec![];
-                let statevarname = SmtExpr::List(vec![
-                    SmtExpr::Atom("'".to_string()),
-                    SmtExpr::Atom("sspds-rs".to_string()),
-                    SmtExpr::Atom("state".to_string()),
-                ]);
-
-                for def in pkg.oracles.clone() {
-                    println!("pkg = {}, oracle = {}", pkgname, def.sig.name);
-                    let code = def.code.treeify().returnify();
-                    smts.push(self.code_smt_helper(code, &def.sig))
-                }
-                smts
+            PackageInstance::Atom{pkg, ..} => {
+                pkg.oracles.iter()
+                    .map(|def| {
+                        let code = def.code.treeify().returnify();
+                        self.code_smt_helper(code, &def.sig)
+                    }).collect()
             },
-            PackageInstance::Composition{pkgs, name, ..} => {
-
-                // 1. each package in composition
+            PackageInstance::Composition{pkgs, ..} => {
                 pkgs.clone().iter()
                     .map(|x|  x.code_smt())
                     .flatten()
