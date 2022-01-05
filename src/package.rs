@@ -77,7 +77,7 @@ impl Package {
         for (name, ntipe) in state {
             scope.declare(Identifier::new_scalar(name), ntipe.clone())?;
         };
-        
+
         for oracle in oracles {
             oracle.typecheck(scope)?;
         }
@@ -148,14 +148,14 @@ impl PackageInstance {
                 ]
             },
             PackageInstance::Composition{pkgs, name, ..} => {
-                
+
                 // 1. each package in composition
                 let mut states: Vec<SmtExpr> = pkgs.clone().iter()
                     .map(|x|  x.state_smt())
                     .flatten()
                     .collect();
 
-                
+
                 // 2. composed state
                 let mut tmp = vec![
                     SmtExpr::Atom(format!("mk-state-composition-{}", name))
@@ -185,6 +185,67 @@ impl PackageInstance {
             }
         }
     }
+
+
+    /*
+    (declare-datatype Return_key_get (
+        (mk-return-key-get         (return-key-get-state State_key)
+                                    (return-key_get-value Bits_n))
+        (mk-abort-key-get)
+    ))
+
+
+     */
+    pub fn return_smt(&self) -> Vec<SmtExpr> {
+        match &self {
+            PackageInstance::Atom{pkg, name, ..} => {
+                let mut smts = vec![];
+
+                for osig in self.get_oracle_sigs() {
+                    let mut constructor = vec![
+                        SmtExpr::Atom(format!("mk-return-{}-{}", name, osig.name)),
+                        SmtExpr::List(vec![
+                            SmtExpr::Atom(format!("return-{}-{}-state", name, osig.name)),
+                            SmtExpr::Atom(format!("State_{}", name)),
+                        ]),
+                    ];
+
+                    if Type::Empty != osig.tipe {
+                        constructor.push(
+                            SmtExpr::List(vec![
+                                SmtExpr::Atom(format!("return-{}-{}-value", name, osig.name)),
+                                osig.tipe.into(),
+                            ])
+                        );
+                    }
+
+
+                    smts.push(
+                        SmtExpr::List(vec![
+                            SmtExpr::Atom("declare-datatype".to_string()),
+                            SmtExpr::Atom(format!("Return_{}_{}", name, osig.name)),
+                            SmtExpr::List(vec![
+                                SmtExpr::List(constructor),
+                                SmtExpr::List(vec![
+                                    SmtExpr::Atom(format!("mk-abort-{}-{}", name, osig.name)),
+                                ])
+                            ]),
+                        ]))
+                }
+                smts
+            },
+            PackageInstance::Composition{pkgs, name, ..} => {
+
+                // 1. each package in composition
+                pkgs.clone().iter()
+                    .map(|x|  x.return_smt())
+                    .flatten()
+                    .collect()
+            }
+        }
+    }
+
+
 
     pub fn get_pkg(&self) -> Package {
         match self {
@@ -216,7 +277,7 @@ impl PackageInstance {
                 pkg.typecheck(scope)
             },
             PackageInstance::Composition{pkgs, edges, exports, ..} => {
-                
+
                 // 1. check signature exists in edge destination
                 for (_, to, sig_) in edges {
                     let mut found = false;

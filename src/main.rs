@@ -202,7 +202,14 @@ fn main() {
 
     println!("smt expression of real composition");
 
+    println!("States");
     for line in mod_prf_game.state_smt() {
+        line.write_smt_to(&mut std::io::stdout()).unwrap();
+        println!();
+    }
+
+    println!("Return Tipes");
+    for line in mod_prf_game.return_smt() {
         line.write_smt_to(&mut std::io::stdout()).unwrap();
         println!();
     }
