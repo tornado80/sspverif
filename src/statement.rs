@@ -8,6 +8,29 @@ use crate::errors::TypeCheckError;
 pub  struct CodeBlock(pub Vec<Statement>);
 
 impl CodeBlock {
+    pub fn returnify(&self) -> CodeBlock {
+        match self.0.last() {
+            Some(Statement::IfThenElse(expr, ifcode, elsecode)) => {
+                let mut retval = self.0.clone();
+                retval.pop();
+                retval.push(
+                    Statement::IfThenElse(
+                        expr.clone(),
+                        ifcode.returnify(),
+                        elsecode.returnify()));
+                CodeBlock(retval)
+            },
+            Some(Statement::Return(_)) | Some(Statement::Abort) => {
+                self.clone()
+            },
+            _ => {
+                let mut retval = self.0.clone();
+                retval.push(Statement::Return(None));
+                CodeBlock(retval)
+            }
+        }
+    }
+    
     pub fn treeify(&self) -> CodeBlock {
         let mut before: Vec<Statement> = vec![];
         let mut after:Vec<Statement> = vec![];

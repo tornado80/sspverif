@@ -214,6 +214,12 @@ fn main() {
         println!();
     }
 
+    println!("Oracle Codes");
+    for line in key_real_pkg.code_smt() {
+        line.write_smt_to(&mut std::io::stdout()).unwrap();
+        println!();
+    }
+
     /*
     let scope: Scope = Scope::new();
     println!(

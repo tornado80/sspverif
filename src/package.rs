@@ -2,7 +2,7 @@ use crate::types::Type;
 use crate::identifier::Identifier;
 use crate::scope::Scope;
 use crate::errors::TypeCheckError;
-use crate::statement::{TypedCodeBlock, CodeBlock};
+use crate::statement::{TypedCodeBlock, CodeBlock, Statement};
 use crate::smtgen::SmtExpr;
 
 use std::collections::HashMap;
@@ -245,6 +245,131 @@ impl PackageInstance {
         }
     }
 
+    fn code_smt_helper(&self, block:CodeBlock, sig:&OracleSig) -> SmtExpr {
+        if let PackageInstance::Atom{pkg, name: pkgname, ..} = self {
+                let statevarname = SmtExpr::List(vec![
+                    SmtExpr::Atom("'".to_string()),
+                    SmtExpr::Atom("sspds-rs".to_string()),
+                    SmtExpr::Atom("state".to_string()),
+                ]);
+
+                let mut result = None;
+                for stmt in block.0.iter().rev() {
+                    result = Some(match stmt {
+                        Statement::IfThenElse(cond, ifcode, elsecode) => {
+                            SmtExpr::List(vec![
+                                SmtExpr::Atom("ite".to_string()),
+                                cond.clone().into(),
+                                self.code_smt_helper(ifcode.clone(), sig),
+                                self.code_smt_helper(elsecode.clone(), sig),
+                            ])
+                        },
+                        Statement::Return(None) => {
+                            // (mk-return-{name} statevarname)
+                            SmtExpr::List(vec![
+                                SmtExpr::Atom(format!("mk-return-{}-{}", pkgname, sig.name)),
+                                statevarname.clone()
+                            ])
+                        },
+                        Statement::Return(Some(expr)) => {
+                            // (mk-return-{name} statevarname expr)
+                            SmtExpr::List(vec![
+                                SmtExpr::Atom(format!("mk-return-{}-{}", pkgname, sig.name)),
+                                statevarname.clone(),
+                                expr.clone().into()
+                            ])
+                        },
+                        Statement::Abort => {
+                            // (mk-return-{name} statevarname)
+                            SmtExpr::List(vec![
+                                SmtExpr::Atom(format!("mk-abort-{}-{}", pkgname, sig.name)),
+                                statevarname.clone()
+                            ])
+                        },
+                        Statement::Assign(ident, expr) => {
+                            // State_{name} (quote " state")
+                            let Identifier::Scalar(identname) = ident;
+                            let assignment =
+                                if pkg.state.iter().any(|(varname, _)| varname == identname) {
+
+                                    let mut tmp = vec![
+                                        SmtExpr::Atom(format!("mk-state-{}", pkgname))
+                                    ];
+                                    for (varname,_) in pkg.state.clone() {
+                                        if varname == *identname {
+                                            tmp.push(expr.clone().into());
+                                        } else {
+                                            tmp.push(SmtExpr::List(vec![
+                                                SmtExpr::Atom(format!("state-{}-{}", pkgname, varname)),
+                                                statevarname.clone()
+                                            ]));
+                                        }
+
+                                    }
+
+
+                                    vec![
+                                        statevarname.clone(),
+                                        /*
+                                        (mk-state-{name} (state-{name}-foo statevarname)
+                                        (state-{name}-bar statevarname)
+                                        expr
+                                         */
+                                        SmtExpr::List(tmp)
+                                    ]
+                                } else {
+                                    vec![
+                                        SmtExpr::List(vec![
+                                            SmtExpr::Atom(identname.clone()),
+                                            expr.clone().into()
+                                        ])
+                                    ]
+                                };
+                            SmtExpr::List(vec![
+                                SmtExpr::Atom("let".to_string()),
+                                SmtExpr::List(assignment),
+                                result.unwrap()
+                            ])
+                        }
+                        _ => {panic!("not implemented")}
+                    });
+                }
+                result.unwrap()
+            
+        } else {
+            panic!("Unreachable Branch")
+        }
+    }
+
+
+
+    pub fn code_smt(&self) -> Vec<SmtExpr> {
+        match &self {
+            PackageInstance::Atom{pkg, name: pkgname, ..} => {
+                let mut smts = vec![];
+                let statevarname = SmtExpr::List(vec![
+                    SmtExpr::Atom("'".to_string()),
+                    SmtExpr::Atom("sspds-rs".to_string()),
+                    SmtExpr::Atom("state".to_string()),
+                ]);
+
+                for def in pkg.oracles.clone() {
+                    println!("pkg = {}, oracle = {}", pkgname, def.sig.name);
+                    let code = def.code.treeify().returnify();
+                    smts.push(self.code_smt_helper(code, &def.sig))
+                }
+                smts
+            },
+            PackageInstance::Composition{pkgs, name, ..} => {
+
+                // 1. each package in composition
+                pkgs.clone().iter()
+                    .map(|x|  x.code_smt())
+                    .flatten()
+                    .collect()
+            }
+        }
+    }
 
 
     pub fn get_pkg(&self) -> Package {
