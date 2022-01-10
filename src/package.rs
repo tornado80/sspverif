@@ -3,7 +3,7 @@ use crate::identifier::Identifier;
 use crate::scope::Scope;
 use crate::errors::TypeCheckError;
 use crate::statement::{TypedCodeBlock, CodeBlock, Statement};
-use crate::smtgen::SmtExpr;
+use crate::smtgen::{SmtExpr, statevarname};
 use crate::expressions::Expression;
 
 use std::collections::HashMap;
@@ -281,7 +281,7 @@ impl PackageInstance {
      */
     pub fn return_smt(&self) -> Vec<SmtExpr> {
         match &self {
-            PackageInstance::Atom{pkg, name, ..} => {
+            PackageInstance::Atom{name, ..} => {
                 let mut smts = vec![];
 
                 for osig in self.get_oracle_sigs() {
@@ -317,7 +317,7 @@ impl PackageInstance {
                 }
                 smts
             },
-            PackageInstance::Composition{pkgs, name, ..} => {
+            PackageInstance::Composition{pkgs, ..} => {
 
                 // 1. each package in composition
                 pkgs.clone().iter()
@@ -330,12 +330,6 @@ impl PackageInstance {
 
     fn code_smt_helper(&self, block:CodeBlock, sig:&OracleSig) -> SmtExpr {
         if let PackageInstance::Atom{pkg, name: pkgname, ..} = self {
-                let statevarname = SmtExpr::List(vec![
-                    SmtExpr::Atom("'".to_string()),
-                    SmtExpr::Atom("sspds-rs".to_string()),
-                    SmtExpr::Atom("state".to_string()),
-                ]);
-
                 let mut result = None;
                 for stmt in block.0.iter().rev() {
                     result = Some(match stmt {
@@ -351,14 +345,14 @@ impl PackageInstance {
                             // (mk-return-{name} statevarname)
                             SmtExpr::List(vec![
                                 SmtExpr::Atom(format!("mk-return-{}-{}", pkgname, sig.name)),
-                                statevarname.clone()
+                                statevarname()
                             ])
                         },
                         Statement::Return(Some(expr)) => {
                             // (mk-return-{name} statevarname expr)
                             SmtExpr::List(vec![
                                 SmtExpr::Atom(format!("mk-return-{}-{}", pkgname, sig.name)),
-                                statevarname.clone(),
+                                statevarname(),
                                 expr.clone().into()
                             ])
                         },
@@ -366,13 +360,13 @@ impl PackageInstance {
                             // (mk-return-{name} statevarname)
                             SmtExpr::List(vec![
                                 SmtExpr::Atom(format!("mk-abort-{}-{}", pkgname, sig.name)),
-                                statevarname.clone()
+                                statevarname()
                             ])
                         },
                         Statement::Assign(ident, expr) => {
                             // State_{name} (quote " state")
                             let assignment = match ident {
-                                Identifier::Scalar(name) => panic!("found a "),
+                                Identifier::Scalar(name) => panic!("found a {:?}", name),
                                 Identifier::Local(name) => {
                                     vec![
                                         SmtExpr::List(vec![
@@ -392,7 +386,7 @@ impl PackageInstance {
                                         } else {
                                             tmp.push(SmtExpr::List(vec![
                                                 SmtExpr::Atom(format!("state-{}-{}", pkgname, varname)),
-                                                statevarname.clone()
+                                                statevarname()
                                             ]));
                                         }
 

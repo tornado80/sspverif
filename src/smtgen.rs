@@ -32,14 +32,18 @@ impl SmtFmt for SmtExpr {
     }
 }
 
+
+pub fn statevarname() -> SmtExpr {
+    SmtExpr::List(vec![
+        SmtExpr::Atom("'".to_string()),
+        SmtExpr::Atom("sspds-rs".to_string()),
+        SmtExpr::Atom("state".to_string()),
+    ])
+}
+
+
 impl Into<SmtExpr> for Expression {
     fn into(self) -> SmtExpr {
-        let statevarname = SmtExpr::List(vec![
-            SmtExpr::Atom("'".to_string()),
-            SmtExpr::Atom("sspds-rs".to_string()),
-            SmtExpr::Atom("state".to_string()),
-        ]);
-
         match self {
             Expression::BooleanLiteral(litname) => {
                 SmtExpr::Atom(litname)
@@ -59,7 +63,7 @@ impl Into<SmtExpr> for Expression {
                 SmtExpr::Atom(identname)
             },
             Expression::Identifier(Identifier::State{name:identname, pkgname}) => {
-                SmtExpr::List(vec![SmtExpr::Atom(format!("state-{}-{}", pkgname, identname)), statevarname.clone()])
+                SmtExpr::List(vec![SmtExpr::Atom(format!("state-{}-{}", pkgname, identname)), statevarname()])
             },
             Expression::Bot => {
                 SmtExpr::List(vec![SmtExpr::Atom("bot".to_string())])

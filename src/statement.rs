@@ -68,8 +68,8 @@ impl CodeBlock {
             let mut newelsecode = elsecode.unwrap();
             newelsecode.append(&mut after.clone());
             before.push(Statement::IfThenElse(cond.unwrap().clone(),
-                                              CodeBlock(newifcode.clone()).treeify(),
-                                              CodeBlock(newelsecode.clone()).treeify()));
+                                              CodeBlock(newifcode).treeify(),
+                                              CodeBlock(newelsecode).treeify()));
             CodeBlock(before)
         } else {
             self.clone()
@@ -114,7 +114,7 @@ impl TypedCodeBlock {
                         return Err(TypeCheckError::TypeCheck(format!("Return found before end of code block!")));
                     }
                     if expr_type != *ret_type {
-                        return Err(TypeCheckError::TypeCheck(format!("return type does not match: {:?} != {:?}", ret_type, expr_type).to_string()))
+                        return Err(TypeCheckError::TypeCheck(format!("return type does not match: {:?} != {:?}", ret_type, expr_type)))
                     }
                 },
                 Statement::Return(None) => {
@@ -175,6 +175,7 @@ impl TypedCodeBlock {
 macro_rules! block {
     ( $( $s:expr ),* ) => {
         {
+            #[allow(unused_mut)]
             let mut res = Vec::new();
             $(
                 res.push($s.clone());

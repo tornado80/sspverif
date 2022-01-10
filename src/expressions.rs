@@ -3,6 +3,7 @@ use crate::types::{Type, TypeResult};
 use crate::errors::TypeError;
 use crate::scope::Scope;
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Expression {
     Bot,
@@ -94,7 +95,7 @@ impl Expression {
         Expression::Equals(
             exprs
                 .into_iter()
-                .map(|expr| expr.clone())
+                .cloned()
                 .collect(),
         )
     }
@@ -260,9 +261,9 @@ impl Expression {
                     }
 
                     // 2. return ret type
-                    return Ok(*ret_type);
+                    Ok(*ret_type)
                 } else {
-                    return Err(TypeError("".to_string()));
+                    Err(TypeError("".to_string()))
                 }
             }
 
@@ -282,12 +283,12 @@ impl Expression {
                     }
 
                     // 2. return ret type
-                    return Ok(*ret_type);
+                    Ok(*ret_type)
                     } else {
-                        return Err(TypeError(format!("expected oracle, got {:#?}", entry)));
+                        Err(TypeError(format!("expected oracle, got {:#?}", entry)))
                     } 
                 } else {
-                    return Err(TypeError(format!("couldn't look up oracle {:}", name)));
+                    Err(TypeError(format!("couldn't look up oracle {:}", name)))
                 }
             }
 

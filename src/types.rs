@@ -1,5 +1,6 @@
 use crate::errors::TypeError;
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum Type {
     Empty,

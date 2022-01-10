@@ -37,7 +37,7 @@ impl Scope {
         //let bt = Backtrace::capture();
         //println!("declaring: {:?} {:?} {}", id, t, bt);
         if self.lookup(&id) == None {
-            if let Some(mut last) = self.0.last_mut() {
+            if let Some(last) = self.0.last_mut() {
                 last.insert(id, t);
                 Ok(())
             } else {
