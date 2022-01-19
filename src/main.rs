@@ -42,7 +42,7 @@ fn main() {
                 OracleDef {
                     sig: OracleSig {
                         name: "Set".to_string(),
-                        args: vec![("k'".to_string(), Type::new_bits("n"))],
+                        args: vec![("k_".to_string(), Type::new_bits("n"))],
                         tipe: Type::Empty,
                     },
                     code: block! {
@@ -86,6 +86,13 @@ fn main() {
         },
     };
 
+    let prf_real_game = PackageInstance::Composition{
+        pkgs: vec![prf_real_game.clone()],
+        edges: vec![],
+        exports: prf_real_game.get_oracle_sigs().iter().map(|osig| (0, osig.clone())).collect(),
+        name: String::from("mono-prf-game"),
+    };
+
     let key_real_pkg = PackageInstance::Atom {
         name: "key".to_string(),
         params: params.clone(),
@@ -98,7 +105,7 @@ fn main() {
                 OracleDef {
                     sig: OracleSig {
                         name: "Set".to_string(),
-                        args: vec![("k'".to_string(), Type::new_bits("n"))],
+                        args: vec![("k_".to_string(), Type::new_bits("n"))],
                         tipe: Type::Empty,
                     },
                     code: block! {
@@ -193,15 +200,38 @@ fn main() {
         eprintln!("scope now: {:?}", scope);
     }
 
+    use crate::smtgen::{SmtExpr};
+
+    let bits_n_smt = SmtExpr::List(vec![
+        SmtExpr::Atom(String::from("declare-sort")),
+        SmtExpr::Atom(String::from("Bits_n")),
+        SmtExpr::Atom(String::from("0")),
+    ]);
+    bits_n_smt.write_smt_to(&mut std::io::stdout()).unwrap();
+    println!();
+
+    let bits_ast_smt = SmtExpr::List(vec![
+        SmtExpr::Atom(String::from("declare-sort")),
+        SmtExpr::Atom(String::from("Bits_*")),
+        SmtExpr::Atom(String::from("0")),
+    ]);
+    bits_ast_smt.write_smt_to(&mut std::io::stdout()).unwrap();
+    println!();
+
+    println!("(declare-const rand Bits_n)");
+    println!("(declare-const bot Bits_n)");
+    println!("(assert (not (= bot rand)))");
+
+
     //println!("real game: {:#?}",    prf_real_game);
     //println!("modular game: {:#?}", mod_prf_game);
-
+        
     let mut scope: Scope = Scope::new();
     eprintln!("modular game typecheck: {:#?}", mod_prf_game.typecheck(&mut scope));
     //println!("scope now: {:?}", scope);
 
     eprintln!("smt expression of real composition");
-
+/*
     eprintln!("States");
     for line in mod_prf_game.state_smt() {
         line.write_smt_to(&mut std::io::stdout()).unwrap();
@@ -215,10 +245,55 @@ fn main() {
     }
 
     eprintln!("Oracle Codes");
-    for line in key_real_pkg.var_specify().code_smt() {
+    for line in key_real_pkg.var_specify().inner_code_smt("composition-real") {
         line.write_smt_to(&mut std::io::stdout()).unwrap();
         println!();
     }
+*/
+    println!("; Ze PRF");
+    println!("(declare-fun f (Bits_n Bits_*) Bits_*)");
+    println!();
+
+    println!(";;;;; Real Mono PRF");
+    println!("; Real Mono PRF State Types");
+    for line in prf_real_game.state_smt() {
+        line.write_smt_to(&mut std::io::stdout()).unwrap();
+        println!();
+    }
+    println!();
+    println!("; Real Mono PRF Return Types");
+    for line in prf_real_game.return_smt() {
+        line.write_smt_to(&mut std::io::stdout()).unwrap();
+        println!();
+    }
+    println!();
+    println!("; Real Mono PRF Oracle Code");
+    for line in prf_real_game.var_specify().code_smt() {
+        line.write_smt_to(&mut std::io::stdout()).unwrap();
+        println!();
+    }
+
+    println!(";;;;; Real Mod PRF Game");
+    println!("; Real Mod PRF State Types");
+    for line in mod_prf_game.state_smt() {
+        line.write_smt_to(&mut std::io::stdout()).unwrap();
+        println!();
+    }
+    println!();
+    println!("; Real Mod PRF Return Types");
+    for line in mod_prf_game.return_smt() {
+        line.write_smt_to(&mut std::io::stdout()).unwrap();
+        println!();
+    }
+    println!();
+    println!("; Real Mod PRF Oracle Code");
+    for line in mod_prf_game.var_specify().code_smt() {
+        line.write_smt_to(&mut std::io::stdout()).unwrap();
+        println!();
+    }
+
+    println!("(check-sat)");
+    println!("(get-model)");
 
     //println!("Variable Specification");
     //println!("{:?}", mod_prf_game.var_specify());

@@ -18,6 +18,7 @@ pub enum Expression {
     FnCall(String, Vec<Expression>),
     // or maybe at some point: FnCall(Box<Expression>, Vec<Expression>),
     OracleInvoc(String, Vec<Expression>),
+    LowLevelOracleInvoc{name: String, pkgname: String, args: Vec<Expression>},
 
     None(Type),
     Some(Box<Expression>),
@@ -77,15 +78,20 @@ impl Expression {
                 .map(|expr|expr.map(f))
                 .collect())
             },
-            Expression::FnCall(str, exprs) => {
-                Expression::FnCall(str.clone(), exprs.iter()
+            Expression::FnCall(name, exprs) => {
+                Expression::FnCall(name.clone(), exprs.iter()
                 .map(|expr| expr.map(f))
                 .collect())
             },
-            Expression::OracleInvoc(str, exprs) => {
-                Expression::OracleInvoc(str.clone(), exprs.iter()
+            Expression::OracleInvoc(name, exprs) => {
+                Expression::OracleInvoc(name.clone(), exprs.iter()
                 .map(|expr| expr.map(f))
                 .collect())
+            },
+            Expression::LowLevelOracleInvoc{name, pkgname, args} => {
+                Expression::LowLevelOracleInvoc{name: name.clone(), pkgname: pkgname.clone(), args: args.iter()
+                .map(|expr| expr.map(f))
+                .collect()}
             },
             _ => {panic!("Expression: not implemented: {:#?}", self)}
         })

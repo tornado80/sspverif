@@ -34,11 +34,15 @@ impl SmtFmt for SmtExpr {
 
 
 pub fn statevarname() -> SmtExpr {
+    /*
     SmtExpr::List(vec![
         SmtExpr::Atom("'".to_string()),
         SmtExpr::Atom("sspds-rs".to_string()),
         SmtExpr::Atom("state".to_string()),
     ])
+    */
+
+    SmtExpr::Atom(String::from("sspds-rs-state"))
 }
 
 
@@ -66,13 +70,24 @@ impl Into<SmtExpr> for Expression {
                 SmtExpr::List(vec![SmtExpr::Atom(format!("state-{}-{}", pkgname, identname)), statevarname()])
             },
             Expression::Bot => {
-                SmtExpr::List(vec![SmtExpr::Atom("bot".to_string())])
+                SmtExpr::Atom("bot".to_string())
             },
             Expression::Sample(tipe) => {
                 // TODO: fix this later! This is generally speaking not correct!
-                SmtExpr::List(vec![SmtExpr::Atom("rand".to_string())])
+                SmtExpr::Atom("rand".to_string())
             },
-            _ => { panic!("not implemented"); }
+            Expression::FnCall(name, exprs) => {
+                let mut call = vec![
+                    SmtExpr::Atom(name),
+                ];
+
+                for expr in exprs {
+                    call.push(expr.into());
+                }
+
+                SmtExpr::List(call)
+            },
+            _ => { panic!("not implemented: {:?}", self); }
         }
     }
 }
