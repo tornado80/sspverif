@@ -11,6 +11,7 @@ pub trait SmtFmt {
 
 #[derive(Debug, Clone)]
 pub enum SmtExpr {
+    Comment(String),
     Atom(String),
     List(Vec<SmtExpr>)
 }
@@ -18,16 +19,21 @@ pub enum SmtExpr {
 impl SmtFmt for SmtExpr {
     fn write_smt_to<T: Write>(&self, write: &mut T) -> Result<()> {
         match self {
+            SmtExpr::Comment(str) => write!(write, "; {}", str),
             SmtExpr::Atom(str) => write!(write, "{}", str),
             SmtExpr::List(lst) => {
+                let mut peek = lst.iter().peekable();
+                
                 write!(write, "(")?;
-                for elem in lst {
+                while let Some(elem) = peek.next() {
                     elem.write_smt_to(write)?;
+
+                    if peek.peek().is_some() {
                     write!(write, " ")?;
+                    }
                 };
                 write!(write, ")")
-            },
-
+            }
         }
     }
 }

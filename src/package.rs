@@ -543,11 +543,17 @@ impl PackageInstance {
                         ])
                     }).collect()
             },
-            PackageInstance::Composition{pkgs, edges, ..} => {
-                pkgs.clone().iter().enumerate()
-                    .map(|(i, x)|  x.lowlevelify_oracleinvocs(i, pkgs, edges).inner_code_smt(comp_name))
-                    .flatten()
-                    .collect()
+            PackageInstance::Composition{pkgs, edges, name, ..} => {
+                let comment = vec![
+                        SmtExpr::Comment(format!("Composition of {}", name))
+                    ];
+                let code = pkgs.iter().enumerate()
+                    .map(|(i, x)|  x
+                        .lowlevelify_oracleinvocs(i, pkgs, edges)
+                        .inner_code_smt(comp_name))
+                    .flatten();
+                
+                comment.into_iter().chain(code).collect()
             }
         }
     }
