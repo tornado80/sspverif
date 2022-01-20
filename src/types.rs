@@ -29,11 +29,13 @@ impl Type {
     pub fn new_scalar(name: &str) -> Type {
         Type::Scalar(name.to_string())
     }
-
+    
+    #[allow(dead_code)]
     pub fn new_list(t: &Type) -> Type {
         Type::List(Box::new(t.clone()))
     }
 
+    #[allow(dead_code)]
     pub fn new_set(t: &Type) -> Type {
         Type::Set(Box::new(t.clone()))
     }

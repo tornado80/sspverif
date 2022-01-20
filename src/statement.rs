@@ -82,6 +82,7 @@ pub enum Statement {
     Abort,
     Return(Option<Expression>),
     Assign(Identifier, Expression),
+    #[allow(dead_code)]
     TableAssign(Identifier, Expression, Expression), // TableAssign(T, 2+3, g^r) <== T[2+3] <-- g^r
     IfThenElse(Expression, CodeBlock, CodeBlock),
 }
