@@ -401,14 +401,14 @@ impl PackageInstance {
                                             SmtExpr::Atom(String::from("state_all")),
                                             SmtExpr::List(vec![
                                                 SmtExpr::Atom(format!("return-{}-{}-state", dst_pkgname, name)),
-                                                SmtExpr::Atom(format!("ret")),
+                                                SmtExpr::Atom(String::from("ret")),
                                             ])
                                         ]),
                                         SmtExpr::List(vec![
                                             ident.to_expression().into(),
                                             SmtExpr::List(vec![
                                                 SmtExpr::Atom(format!("return-{}-{}-value", dst_pkgname, name)),
-                                                SmtExpr::Atom(format!("ret")),
+                                                SmtExpr::Atom(String::from("ret")),
                                             ])
                                         ])
                                     ]),
@@ -558,7 +558,7 @@ impl PackageInstance {
         }
     }
 
-    fn lowlevelify_oracleinvocs(&self, pos: usize, pkgs: &Vec<PackageInstance>, edges: &Vec<(usize, usize, OracleSig)>) -> Self {
+    fn lowlevelify_oracleinvocs(&self, pos: usize, pkgs: &[PackageInstance], edges: &[(usize, usize, OracleSig)]) -> Self {
         let (mut pkg, name, params) = match self {
             PackageInstance::Atom{pkg, name, params} => {(pkg.clone(), name, params)},
             _ => unreachable!(),
@@ -622,7 +622,7 @@ impl PackageInstance {
                     .collect()
             },
             PackageInstance::Composition{exports, ..} => {
-                exports.into_iter()
+                exports.iter()
                     .map(|(_, sig)| sig.clone())
                     .collect()
             }
@@ -640,20 +640,20 @@ impl PackageInstance {
                 // 1. check signature exists in edge destination
                 for (_, to, sig_) in edges {
                     let mut found = false;
-                    for sig in pkgs[to.clone()].get_oracle_sigs() {
+                    for sig in pkgs[*to].get_oracle_sigs() {
                         if sig == sig_.clone() {
                             found = true
                         }
                     }
                     if !found {
-                        return Err(TypeCheckError::TypeCheck(format!("couldn't find signature for {:?} in package {:?} with id {:}", sig_, pkgs[to.clone()], to)))
+                        return Err(TypeCheckError::TypeCheck(format!("couldn't find signature for {:?} in package {:?} with id {:}", sig_, pkgs[*to], to)))
                     }
                 }
 
                 // 2. check exports exists
                 for (id, sig) in exports {
-                    if !pkgs[id.clone()].get_oracle_sigs().contains(sig) {
-                        return Err(TypeCheckError::TypeCheck(format!("signature {:?} is not in package {:?} with index {:}", sig, pkgs[id.clone()].clone(), id)))
+                    if !pkgs[*id].get_oracle_sigs().contains(sig) {
+                        return Err(TypeCheckError::TypeCheck(format!("signature {:?} is not in package {:?} with index {:}", sig, pkgs[*id].clone(), id)))
                     }
                 }
 
@@ -661,7 +661,7 @@ impl PackageInstance {
                 for (id, pkg) in pkgs.clone().into_iter().enumerate() {
                     scope.enter();
                     for (from, _, sig) in edges {
-                        if from.clone() == id {
+                        if *from == id {
                             scope.declare(
                                 Identifier::new_scalar(sig.name.as_str()),
                                 Type::Oracle(

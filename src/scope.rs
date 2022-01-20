@@ -20,7 +20,7 @@ impl Scope {
     }
 
     pub fn leave(&mut self)  {
-        if self.0.len() > 0 {
+        if !self.0.is_empty() {
             self.0.pop();
         } else {
             panic!("scope leave: scope stack is empty");

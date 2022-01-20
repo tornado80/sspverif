@@ -121,7 +121,7 @@ impl Expression {
                 }
 
                 Ok(Type::Tuple(types))
-            }
+            },
             Expression::Some(v) => Ok(Type::Maybe(Box::new(v.get_type(scope)?))),
             Expression::None(t) => Ok(Type::Maybe(Box::new(t.clone()))),
             Expression::Unwrap(v) => {
@@ -130,7 +130,7 @@ impl Expression {
                 } else {
                     Err(TypeError("".to_string()))
                 }
-            }
+            },
             Expression::Neg(v) => {
                 let t = v.get_type(scope)?;
                 if t == Type::Integer && matches!(t, Type::AddiGroupEl(_)) {
@@ -138,7 +138,7 @@ impl Expression {
                 } else {
                     Err(TypeError("".to_string()))
                 }
-            }
+            },
             Expression::Not(v) => {
                 let t = v.get_type(scope)?;
                 if t != Type::Boolean {
@@ -146,7 +146,7 @@ impl Expression {
                 }
 
                 Ok(t)
-            }
+            },
             Expression::Inv(v) => {
                 let t = v.get_type(scope)?;
                 if matches!(t, Type::MultGroupEl(_)) {
@@ -154,13 +154,13 @@ impl Expression {
                 }
 
                 Err(TypeError("".to_string()))
-            }
+            },
             Expression::Add(left, right) => {
                 let t_left = left.get_type(scope)?;
                 let t_right = right.get_type(scope)?;
 
                 let same_type = t_left == t_right;
-                let left_is_int = t_left.clone() == Type::Integer;
+                let left_is_int = t_left == Type::Integer;
                 let left_is_age = matches!(t_left, Type::AddiGroupEl(_));
 
                 if same_type && (left_is_int || left_is_age) {
@@ -168,16 +168,17 @@ impl Expression {
                 } else {
                     Err(TypeError("".to_string()))
                 }
-            }
+            },
             Expression::Mul(left, right) => {
                 let t_left = left.get_type(scope)?;
                 let t_right = right.get_type(scope)?;
 
                 let same_type = t_left == t_right;
-                let left_is_int = t_left.clone() == Type::Integer;
+                let left_is_int = t_left == Type::Integer;
                 let left_is_mge = matches!(t_left, Type::MultGroupEl(_));
                 let right_is_age = matches!(t_right, Type::AddiGroupEl(_));
 
+                #[allow(clippy::collapsible_else_if)]
                 if same_type {
                     if left_is_int || left_is_mge {
                         Ok(t_left)
@@ -191,19 +192,19 @@ impl Expression {
                         Err(TypeError("".to_string()))
                     }
                 }
-            }
+            },
             Expression::Sub(left, right) => {
                 let t_left = left.get_type(scope)?;
                 let t_right = right.get_type(scope)?;
 
-                if (t_left.clone() == Type::Integer || matches!(t_left, Type::AddiGroupEl(_)))
+                if (t_left == Type::Integer || matches!(t_left, Type::AddiGroupEl(_)))
                     && t_left == t_right
                 {
                     return Ok(t_left);
                 }
 
                 Err(TypeError("".to_string()))
-            }
+            },
             Expression::Div(left, right) => {
                 let t_left = left.get_type(scope)?;
                 let t_right = right.get_type(scope)?;
@@ -218,8 +219,8 @@ impl Expression {
                 let t_base = base.get_type(scope)?;
                 let t_exp = exp.get_type(scope)?;
 
-                let base_is_int = t_base.clone() == Type::Integer;
-                let exp_is_int = t_exp.clone() == Type::Integer;
+                let base_is_int = t_base == Type::Integer;
+                let exp_is_int = t_exp == Type::Integer;
                 let base_is_mge = matches!(t_base, Type::MultGroupEl(_));
 
                 if exp_is_int {
@@ -231,7 +232,8 @@ impl Expression {
                 } else {
                     Err(TypeError("".to_string()))
                 }
-            }
+            },
+
             Expression::Mod(num, modulus) => {
                 let t_num = num.get_type(scope)?;
                 let t_mod = modulus.get_type(scope)?;
@@ -241,7 +243,8 @@ impl Expression {
                 }
 
                 Ok(t_num)
-            }
+            },
+
             Expression::Xor(vs) | Expression::And(vs) | Expression::Or(vs) => {
                 // TODO bit strings
                 for v in vs {
@@ -251,7 +254,7 @@ impl Expression {
                 }
 
                 Ok(Type::Boolean)
-            }
+            },
 
             Expression::FnCall(name, args) => {
                 if let Some(Type::Fn(arg_types, ret_type)) = scope.lookup(&Identifier::new_scalar(name)) {
@@ -260,7 +263,7 @@ impl Expression {
                         return Err(TypeError("".to_string()));
                     }
 
-                    for (i, arg) in args.into_iter().enumerate() {
+                    for (i, arg) in args.iter().enumerate() {
                         if arg.get_type(scope)? != arg_types[i] {
                             return Err(TypeError("".to_string()));
                         }
@@ -271,8 +274,7 @@ impl Expression {
                 } else {
                     Err(TypeError("".to_string()))
                 }
-            }
-
+            },
 
             Expression::OracleInvoc(name, args) => {
                 if let Some(entry) = scope.lookup(&Identifier::new_scalar(name)) {
@@ -282,7 +284,7 @@ impl Expression {
                         return Err(TypeError("oracle invocation arg count mismatch".to_string()));
                     }
 
-                    for (i, arg) in args.into_iter().enumerate() {
+                    for (i, arg) in args.iter().enumerate() {
                         if arg.get_type(scope)? != arg_types[i] {
                             return Err(TypeError(format!("oracle invocation arg type doesn't match at position {:}", i)));
                         }
@@ -296,8 +298,7 @@ impl Expression {
                 } else {
                     Err(TypeError(format!("couldn't look up oracle {:}", name)))
                 }
-            }
-
+            },
 
             Expression::Identifier(id) => {
                 if let Some(t) = scope.lookup(id) {
@@ -305,7 +306,7 @@ impl Expression {
                 } else {
                     Err(TypeError("".to_string()))
                 }
-            }
+            },
 
             _ => {
                 println!("get_type not implemented for:");
@@ -320,11 +321,7 @@ impl Expression {
 macro_rules! tuple {
     ( $($e:expr),* ) => {
         {
-            let mut res = Vec::new();
-            $(
-                res.push(Box::new($e.clone()));
-            )*
-            Expression::Tuple(res)
+            Expression::Tuple(vec![ $( $e.clone(), )* ])
         }
     };
 }
@@ -333,11 +330,7 @@ macro_rules! tuple {
 macro_rules! list {
     ( $($e:expr),* ) => {
         {
-            let mut res = Vec::new();
-            $(
-                res.push(Box::new($e.clone()));
-            )*
-            Expression::Tuple(res)
+            Expression::List(vec![ $( $e.clone(), )* ])
         }
     };
 }
@@ -346,11 +339,10 @@ macro_rules! list {
 macro_rules! oracleinvoc {
     ( $name:expr, $($e:expr),* ) => {
         {
-            let mut res = Vec::new();
-            $(
-                res.push(Box::new($e.clone()));
-            )*
-            Expression::OracleInvoc($name.to_string(), res)
+            Expression::OracleInvoc(
+                $name.to_string(),
+                vec![ $( $e.clone(), )* ],
+            )
         }
     };
 }
@@ -359,11 +351,10 @@ macro_rules! oracleinvoc {
 macro_rules! fncall {
     ( $name:expr, $($e:expr),* ) => {
         {
-            let mut res = Vec::new();
-            $(
-                res.push($e.clone());
-            )*
-            Expression::FnCall($name.to_string(), res)
+            Expression::FnCall(
+                $name.to_string(),
+                vec![ $( $e.clone(), )* ],
+            )
         }
     };
 }

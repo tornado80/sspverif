@@ -101,18 +101,18 @@ impl TypedCodeBlock {
         // unpack
         let block = &block.0;
 
-        for (i, stmt) in block.into_iter().enumerate() {
+        for (i, stmt) in block.iter().enumerate() {
             //println!("looking at {:} - {:?}", i, stmt);
             match &*stmt {
                 Statement::Abort => {
                     if i < block.len() - 1 {
-                        return Err(TypeCheckError::TypeCheck(format!("Abort found before end of code block!")));
+                        return Err(TypeCheckError::TypeCheck("Abort found before end of code block!".to_string()));
                     }
                 },
                 Statement::Return(Some(expr)) => {
                     let expr_type = expr.get_type(scope)?;
                     if i < block.len() - 1 {
-                        return Err(TypeCheckError::TypeCheck(format!("Return found before end of code block!")));
+                        return Err(TypeCheckError::TypeCheck("Return found before end of code block!".to_string()));
                     }
                     if expr_type != *ret_type {
                         return Err(TypeCheckError::TypeCheck(format!("return type does not match: {:?} != {:?}", ret_type, expr_type)))
@@ -127,7 +127,7 @@ impl TypedCodeBlock {
                     //println!("scope: {:?}", scope);
 
                     let expr_type = expr.get_type(scope)?;
-                    if let Some(id_type) = scope.lookup(&id) {
+                    if let Some(id_type) = scope.lookup(id) {
                         if id_type != expr_type {
                             return Err(TypeCheckError::TypeCheck("overwriting some value with incompatible type".to_string()))
                         }
@@ -138,7 +138,7 @@ impl TypedCodeBlock {
                 Statement::TableAssign(id, idx, expr) => {
                     let expr_type = expr.get_type(scope)?;
                     let idx_type = idx.get_type(scope)?;
-                    if let Some(id_type) = scope.lookup(&id) {
+                    if let Some(id_type) = scope.lookup(id) {
                         if let Type::Table(k, v) = id_type {
                             if *k != idx_type || *v != expr_type {
                                 return Err(TypeCheckError::TypeCheck("type of the table does not match".to_string()))
@@ -176,12 +176,7 @@ impl TypedCodeBlock {
 macro_rules! block {
     ( $( $s:expr ),* ) => {
         {
-            #[allow(unused_mut)]
-            let mut res = Vec::new();
-            $(
-                res.push($s.clone());
-            )*
-                CodeBlock(res)
+            CodeBlock(vec![ $( $s.clone(), )* ])
         }
     }
 }

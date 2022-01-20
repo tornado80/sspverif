@@ -29,7 +29,7 @@ impl SmtFmt for SmtExpr {
                     elem.write_smt_to(write)?;
 
                     if peek.peek().is_some() {
-                    write!(write, " ")?;
+                        write!(write, " ")?;
                     }
                 };
                 write!(write, ")")
@@ -52,9 +52,9 @@ pub fn statevarname() -> SmtExpr {
 }
 
 
-impl Into<SmtExpr> for Expression {
-    fn into(self) -> SmtExpr {
-        match self {
+impl From<Expression> for SmtExpr {
+    fn from(expr: Expression) -> SmtExpr {
+        match expr {
             Expression::BooleanLiteral(litname) => {
                 SmtExpr::Atom(litname)
             },
@@ -62,11 +62,12 @@ impl Into<SmtExpr> for Expression {
                 SmtExpr::Atom(litname)
             }
             Expression::Equals(exprs) => {
-                let mut acc = vec![];
-                acc.push(SmtExpr::Atom("=".to_string()));
+                let mut acc = vec![
+                    SmtExpr::Atom("=".to_string())];
                 for expr in exprs {
                     acc.push(expr.clone().into());
                 }
+
                 SmtExpr::List(acc)
             },
             Expression::Identifier(Identifier::Scalar(identname)) => {
@@ -81,7 +82,7 @@ impl Into<SmtExpr> for Expression {
             Expression::Bot => {
                 SmtExpr::Atom("bot".to_string())
             },
-            Expression::Sample(tipe) => {
+            Expression::Sample(_tipe) => {
                 // TODO: fix this later! This is generally speaking not correct!
                 SmtExpr::Atom("rand".to_string())
             },
@@ -96,14 +97,14 @@ impl Into<SmtExpr> for Expression {
 
                 SmtExpr::List(call)
             },
-            _ => { panic!("not implemented: {:?}", self); }
+            _ => { panic!("not implemented: {:?}", expr); }
         }
     }
 }
 
-impl Into<SmtExpr> for Type {
-    fn into(self) -> SmtExpr {
-        match &self {
+impl From<Type> for SmtExpr {
+    fn from(t: Type) -> SmtExpr {
+        match t {
             Type::Bits(length) => {
                 // TODO make sure we define this somewhere
                 SmtExpr::Atom(format!("Bits_{}", length))
@@ -152,8 +153,8 @@ mod tests {
     enum TestError {
         #[error("Error parsing the utf8: {0}")]
         Utf8DecodeError(#[from] FromUtf8Error),
-        #[error("I/O Error: {0}")]
-        IoError(#[from] std::io::Error),
+        #[error("Error Writing: {0}")]
+        WriteError(#[from] std::io::Error),
     }
 
     type TestResult = std::result::Result<(), TestError>;
