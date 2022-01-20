@@ -58,6 +58,9 @@ impl Into<SmtExpr> for Expression {
             Expression::BooleanLiteral(litname) => {
                 SmtExpr::Atom(litname)
             },
+            Expression::IntegerLiteral(litname) => {
+                SmtExpr::Atom(litname)
+            }
             Expression::Equals(exprs) => {
                 let mut acc = vec![];
                 acc.push(SmtExpr::Atom("=".to_string()));
@@ -110,5 +113,64 @@ impl Into<SmtExpr> for Type {
             },
             _ => {panic!("not implemented!")}
         }
+    }
+}
+
+impl From<SmtLet> for SmtExpr {
+    fn from(l: SmtLet) -> SmtExpr {
+        SmtExpr::List(vec![
+            SmtExpr::Atom(String::from("let")),
+            SmtExpr::List(
+                l.bindings
+                    .into_iter()
+                    .map(|(id, expr)| {
+                        SmtExpr::List(vec![
+                            id.to_expression().into(),
+                            expr.into(),
+                        ])
+                    }).collect()
+            ),
+            l.body,           
+        ])
+    }
+}
+
+struct SmtLet {
+    bindings: Vec<(Identifier, Expression)>,
+    body: SmtExpr,
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use std::string::FromUtf8Error;
+    use thiserror::Error;
+
+    #[derive(Error, Debug)]
+    enum TestError {
+        #[error("Error parsing the utf8: {0}")]
+        Utf8DecodeError(#[from] FromUtf8Error),
+        #[error("I/O Error: {0}")]
+        IoError(#[from] std::io::Error),
+    }
+
+    type TestResult = std::result::Result<(), TestError>;
+
+    #[test]
+    fn test_smtlet() -> TestResult {
+        let l = SmtLet{
+            bindings: vec![(Identifier::Local(String::from("x")), Expression::IntegerLiteral(String::from("42")))],
+            body: SmtExpr::Atom(String::from("x")),
+        };
+
+        let out: SmtExpr = l.into();
+        let mut str = Vec::<u8>::new();
+        out.write_smt_to(&mut str)?;
+
+        assert_eq!(String::from_utf8(str)?, "(let ((x 42)) x)");
+
+        Ok(())
     }
 }
