@@ -3,29 +3,26 @@
 use std::collections::HashMap;
 //use std::fmt;
 
-mod types;
-mod scope;
-mod identifier;
-mod expressions;
-mod package;
-mod statement;
 mod errors;
+mod expressions;
+mod identifier;
+mod package;
+mod scope;
 mod smtgen;
+mod statement;
+mod types;
 
-use crate::types::Type;
-use crate::identifier::Identifier;
-use crate::scope::Scope;
-use crate::statement::{Statement, CodeBlock};
-use crate::package::{PackageInstance, Package, OracleDef, OracleSig};
 use crate::expressions::Expression;
+use crate::identifier::Identifier;
+use crate::package::{OracleDef, OracleSig, Package, PackageInstance};
+use crate::scope::Scope;
 use crate::smtgen::SmtFmt;
-
-
+use crate::statement::{CodeBlock, Statement};
+use crate::types::Type;
 
 fn main() {
     let mut params = HashMap::new();
     params.insert("n".to_string(), "256".to_string());
-    
 
     let prf_real_game = PackageInstance::Atom {
         name: "mono-prf".to_string(),
@@ -33,9 +30,13 @@ fn main() {
         pkg: Package {
             params: vec![
                 ("n".to_string(), Type::new_scalar("int")),
-                ("f".to_string(), Type::new_fn(
-                    vec![Type::new_bits("n"), Type::new_bits("*")],
-                    Type::new_bits("*"))),
+                (
+                    "f".to_string(),
+                    Type::new_fn(
+                        vec![Type::new_bits("n"), Type::new_bits("*")],
+                        Type::new_bits("*"),
+                    ),
+                ),
             ],
             state: vec![("k".to_string(), Type::new_bits("n"))],
             oracles: vec![
@@ -86,10 +87,14 @@ fn main() {
         },
     };
 
-    let prf_real_game = PackageInstance::Composition{
+    let prf_real_game = PackageInstance::Composition {
         pkgs: vec![prf_real_game.clone()],
         edges: vec![],
-        exports: prf_real_game.get_oracle_sigs().iter().map(|osig| (0, osig.clone())).collect(),
+        exports: prf_real_game
+            .get_oracle_sigs()
+            .iter()
+            .map(|osig| (0, osig.clone()))
+            .collect(),
         name: String::from("mono-prf-game"),
     };
 
@@ -97,9 +102,7 @@ fn main() {
         name: "key".to_string(),
         params: params.clone(),
         pkg: Package {
-            params: vec![
-                ("n".to_string(), Type::new_scalar("int")),
-            ],
+            params: vec![("n".to_string(), Type::new_scalar("int"))],
             state: vec![("k".to_string(), Type::new_bits("n"))],
             oracles: vec![
                 OracleDef {
@@ -146,46 +149,41 @@ fn main() {
         },
     };
 
-
     let mod_prf_real_pkg = PackageInstance::Atom {
         name: "mod-prf".to_string(),
         params: params.clone(),
         pkg: Package {
             params: vec![
                 ("n".to_string(), Type::new_scalar("int")),
-                ("f".to_string(), Type::new_fn(
-                    vec![Type::new_bits("n"), Type::new_bits("*")],
-                    Type::new_bits("*"))),
+                (
+                    "f".to_string(),
+                    Type::new_fn(
+                        vec![Type::new_bits("n"), Type::new_bits("*")],
+                        Type::new_bits("*"),
+                    ),
+                ),
             ],
             state: vec![],
-            oracles: vec![
-                OracleDef {
-                    sig: OracleSig {
-                        name: "Eval".to_string(),
-                        args: vec![("msg".to_string(), Type::new_bits("*"))],
-                        tipe: Type::new_bits("*"),
-                    },
-                    code: block! {
-                        Statement::Assign(Identifier::new_scalar("k"), Expression::OracleInvoc("Get".to_string(), vec![])), // TODO figure out why the macro doesn't work (and why it's a macro and not a function)
-                        Statement::Return(Some(fncall! { "f",
-                                                          Identifier::new_scalar("k").to_expression(),
-                                                          Identifier::new_scalar("msg").to_expression()
-                        }))
-                    },
+            oracles: vec![OracleDef {
+                sig: OracleSig {
+                    name: "Eval".to_string(),
+                    args: vec![("msg".to_string(), Type::new_bits("*"))],
+                    tipe: Type::new_bits("*"),
                 },
-            ],
+                code: block! {
+                    Statement::Assign(Identifier::new_scalar("k"), Expression::OracleInvoc("Get".to_string(), vec![])), // TODO figure out why the macro doesn't work (and why it's a macro and not a function)
+                    Statement::Return(Some(fncall! { "f",
+                                                      Identifier::new_scalar("k").to_expression(),
+                                                      Identifier::new_scalar("msg").to_expression()
+                    }))
+                },
+            }],
         },
     };
 
-    let mod_prf_game = PackageInstance::Composition{
-        pkgs: vec![
-            key_real_pkg.clone(),
-            mod_prf_real_pkg.clone(),
-          
-        ],
-        edges: vec![
-            (1, 0, key_real_pkg.get_pkg().oracles[1].sig.clone())
-        ],
+    let mod_prf_game = PackageInstance::Composition {
+        pkgs: vec![key_real_pkg.clone(), mod_prf_real_pkg.clone()],
+        edges: vec![(1, 0, key_real_pkg.get_pkg().oracles[1].sig.clone())],
         exports: vec![
             (0, key_real_pkg.get_pkg().oracles[0].sig.clone()),
             (1, mod_prf_real_pkg.get_pkg().oracles[0].sig.clone()),
@@ -193,14 +191,16 @@ fn main() {
         name: "real".to_string(),
     };
 
-
     let mut scope: Scope = Scope::new();
     if let PackageInstance::Atom { pkg, .. } = prf_real_game.clone() {
-        eprintln!("typecheck mono prf package: {:#?}", pkg.typecheck(&mut scope));
+        eprintln!(
+            "typecheck mono prf package: {:#?}",
+            pkg.typecheck(&mut scope)
+        );
         eprintln!("scope now: {:?}", scope);
     }
 
-    use crate::smtgen::{SmtExpr};
+    use crate::smtgen::SmtExpr;
 
     let bits_n_smt = SmtExpr::List(vec![
         SmtExpr::Atom(String::from("declare-sort")),
@@ -222,34 +222,36 @@ fn main() {
     println!("(declare-const bot Bits_n)");
     println!("(assert (not (= bot rand)))");
 
-
     //println!("real game: {:#?}",    prf_real_game);
     //println!("modular game: {:#?}", mod_prf_game);
-        
+
     let mut scope: Scope = Scope::new();
-    eprintln!("modular game typecheck: {:#?}", mod_prf_game.typecheck(&mut scope));
+    eprintln!(
+        "modular game typecheck: {:#?}",
+        mod_prf_game.typecheck(&mut scope)
+    );
     //println!("scope now: {:?}", scope);
 
     eprintln!("smt expression of real composition");
-/*
-    eprintln!("States");
-    for line in mod_prf_game.state_smt() {
-        line.write_smt_to(&mut std::io::stdout()).unwrap();
-        println!();
-    }
+    /*
+        eprintln!("States");
+        for line in mod_prf_game.state_smt() {
+            line.write_smt_to(&mut std::io::stdout()).unwrap();
+            println!();
+        }
 
-    eprintln!("Return Tipes");
-    for line in mod_prf_game.return_smt() {
-        line.write_smt_to(&mut std::io::stdout()).unwrap();
-        println!();
-    }
+        eprintln!("Return Tipes");
+        for line in mod_prf_game.return_smt() {
+            line.write_smt_to(&mut std::io::stdout()).unwrap();
+            println!();
+        }
 
-    eprintln!("Oracle Codes");
-    for line in key_real_pkg.var_specify().inner_code_smt("composition-real") {
-        line.write_smt_to(&mut std::io::stdout()).unwrap();
-        println!();
-    }
-*/
+        eprintln!("Oracle Codes");
+        for line in key_real_pkg.var_specify().inner_code_smt("composition-real") {
+            line.write_smt_to(&mut std::io::stdout()).unwrap();
+            println!();
+        }
+    */
     println!("; Ze PRF");
     println!("(declare-fun f (Bits_n Bits_*) Bits_*)");
     println!();

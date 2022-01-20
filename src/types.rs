@@ -16,10 +16,9 @@ pub enum Type {
     Tuple(Vec<Type>),
     Table(Box<Type>, Box<Type>),
     Maybe(Box<Type>),
-    Fn(Vec<Type>, Box<Type>), // arg types, return type
+    Fn(Vec<Type>, Box<Type>),     // arg types, return type
     Oracle(Vec<Type>, Box<Type>), // arg types, return type
 }
-
 
 impl Type {
     pub fn new_bits(length: &str) -> Type {
@@ -29,7 +28,7 @@ impl Type {
     pub fn new_scalar(name: &str) -> Type {
         Type::Scalar(name.to_string())
     }
-    
+
     #[allow(dead_code)]
     pub fn new_list(t: &Type) -> Type {
         Type::List(Box::new(t.clone()))
@@ -40,7 +39,7 @@ impl Type {
         Type::Set(Box::new(t.clone()))
     }
 
-    pub fn new_fn(args: Vec<Type>, ret: Type) -> Type {        
+    pub fn new_fn(args: Vec<Type>, ret: Type) -> Type {
         Type::Fn(args, Box::new(ret))
     }
 }

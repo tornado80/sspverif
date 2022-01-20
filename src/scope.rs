@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
-use crate::types::Type;
-use crate::identifier::Identifier;
 use crate::errors::ScopeError;
+use crate::identifier::Identifier;
+use crate::types::Type;
 
 //use std::backtrace::Backtrace;
 
@@ -19,15 +19,13 @@ impl Scope {
         self.0.push(HashMap::new())
     }
 
-    pub fn leave(&mut self)  {
+    pub fn leave(&mut self) {
         if !self.0.is_empty() {
             self.0.pop();
         } else {
             panic!("scope leave: scope stack is empty");
         }
     }
-
-
 
     /* Error conditions:
      *  - No scope at all

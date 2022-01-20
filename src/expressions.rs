@@ -1,7 +1,7 @@
-use crate::identifier::Identifier;
-use crate::types::{Type, TypeResult};
 use crate::errors::TypeError;
+use crate::identifier::Identifier;
 use crate::scope::Scope;
+use crate::types::{Type, TypeResult};
 
 #[allow(dead_code)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -18,7 +18,11 @@ pub enum Expression {
     FnCall(String, Vec<Expression>),
     // or maybe at some point: FnCall(Box<Expression>, Vec<Expression>),
     OracleInvoc(String, Vec<Expression>),
-    LowLevelOracleInvoc{name: String, pkgname: String, args: Vec<Expression>},
+    LowLevelOracleInvoc {
+        name: String,
+        pkgname: String,
+        args: Vec<Expression>,
+    },
 
     None(Type),
     Some(Box<Expression>),
@@ -60,50 +64,53 @@ impl Expression {
     }
     */
 
-    pub fn map<F>(&self, f: F) -> Expression where F: Fn(Expression) -> Expression + Copy {
+    pub fn map<F>(&self, f: F) -> Expression
+    where
+        F: Fn(Expression) -> Expression + Copy,
+    {
         f(match &self {
-            Expression::Bot | Expression::None(_) | Expression::Sample(_) |
-            Expression::StringLiteral(_) | Expression::IntegerLiteral(_) | Expression::BooleanLiteral(_) |
-            Expression::Identifier(_) => { self.clone() },
+            Expression::Bot
+            | Expression::None(_)
+            | Expression::Sample(_)
+            | Expression::StringLiteral(_)
+            | Expression::IntegerLiteral(_)
+            | Expression::BooleanLiteral(_)
+            | Expression::Identifier(_) => self.clone(),
 
-            Expression::Some(expr) => {Expression::Some(Box::new(expr.map(f)))},
-            Expression::TableAccess(id, expr) => {Expression::TableAccess(id.clone(), Box::new(expr.map(f)))}
+            Expression::Some(expr) => Expression::Some(Box::new(expr.map(f))),
+            Expression::TableAccess(id, expr) => {
+                Expression::TableAccess(id.clone(), Box::new(expr.map(f)))
+            }
             Expression::Tuple(exprs) => {
-                Expression::Tuple(exprs.iter()
-                .map(|expr|expr.map(f))
-                .collect())
-            },
+                Expression::Tuple(exprs.iter().map(|expr| expr.map(f)).collect())
+            }
             Expression::Equals(exprs) => {
-                Expression::Equals(exprs.iter()
-                .map(|expr|expr.map(f))
-                .collect())
-            },
+                Expression::Equals(exprs.iter().map(|expr| expr.map(f)).collect())
+            }
             Expression::FnCall(name, exprs) => {
-                Expression::FnCall(name.clone(), exprs.iter()
-                .map(|expr| expr.map(f))
-                .collect())
+                Expression::FnCall(name.clone(), exprs.iter().map(|expr| expr.map(f)).collect())
+            }
+            Expression::OracleInvoc(name, exprs) => Expression::OracleInvoc(
+                name.clone(),
+                exprs.iter().map(|expr| expr.map(f)).collect(),
+            ),
+            Expression::LowLevelOracleInvoc {
+                name,
+                pkgname,
+                args,
+            } => Expression::LowLevelOracleInvoc {
+                name: name.clone(),
+                pkgname: pkgname.clone(),
+                args: args.iter().map(|expr| expr.map(f)).collect(),
             },
-            Expression::OracleInvoc(name, exprs) => {
-                Expression::OracleInvoc(name.clone(), exprs.iter()
-                .map(|expr| expr.map(f))
-                .collect())
-            },
-            Expression::LowLevelOracleInvoc{name, pkgname, args} => {
-                Expression::LowLevelOracleInvoc{name: name.clone(), pkgname: pkgname.clone(), args: args.iter()
-                .map(|expr| expr.map(f))
-                .collect()}
-            },
-            _ => {panic!("Expression: not implemented: {:#?}", self)}
+            _ => {
+                panic!("Expression: not implemented: {:#?}", self)
+            }
         })
     }
 
     pub fn new_equals(exprs: Vec<&Expression>) -> Expression {
-        Expression::Equals(
-            exprs
-                .into_iter()
-                .cloned()
-                .collect(),
-        )
+        Expression::Equals(exprs.into_iter().cloned().collect())
     }
 
     pub fn get_type(&self, scope: &Scope) -> TypeResult {
@@ -121,7 +128,7 @@ impl Expression {
                 }
 
                 Ok(Type::Tuple(types))
-            },
+            }
             Expression::Some(v) => Ok(Type::Maybe(Box::new(v.get_type(scope)?))),
             Expression::None(t) => Ok(Type::Maybe(Box::new(t.clone()))),
             Expression::Unwrap(v) => {
@@ -130,7 +137,7 @@ impl Expression {
                 } else {
                     Err(TypeError("".to_string()))
                 }
-            },
+            }
             Expression::Neg(v) => {
                 let t = v.get_type(scope)?;
                 if t == Type::Integer && matches!(t, Type::AddiGroupEl(_)) {
@@ -138,7 +145,7 @@ impl Expression {
                 } else {
                     Err(TypeError("".to_string()))
                 }
-            },
+            }
             Expression::Not(v) => {
                 let t = v.get_type(scope)?;
                 if t != Type::Boolean {
@@ -146,7 +153,7 @@ impl Expression {
                 }
 
                 Ok(t)
-            },
+            }
             Expression::Inv(v) => {
                 let t = v.get_type(scope)?;
                 if matches!(t, Type::MultGroupEl(_)) {
@@ -154,7 +161,7 @@ impl Expression {
                 }
 
                 Err(TypeError("".to_string()))
-            },
+            }
             Expression::Add(left, right) => {
                 let t_left = left.get_type(scope)?;
                 let t_right = right.get_type(scope)?;
@@ -168,7 +175,7 @@ impl Expression {
                 } else {
                     Err(TypeError("".to_string()))
                 }
-            },
+            }
             Expression::Mul(left, right) => {
                 let t_left = left.get_type(scope)?;
                 let t_right = right.get_type(scope)?;
@@ -192,7 +199,7 @@ impl Expression {
                         Err(TypeError("".to_string()))
                     }
                 }
-            },
+            }
             Expression::Sub(left, right) => {
                 let t_left = left.get_type(scope)?;
                 let t_right = right.get_type(scope)?;
@@ -204,7 +211,7 @@ impl Expression {
                 }
 
                 Err(TypeError("".to_string()))
-            },
+            }
             Expression::Div(left, right) => {
                 let t_left = left.get_type(scope)?;
                 let t_right = right.get_type(scope)?;
@@ -232,7 +239,7 @@ impl Expression {
                 } else {
                     Err(TypeError("".to_string()))
                 }
-            },
+            }
 
             Expression::Mod(num, modulus) => {
                 let t_num = num.get_type(scope)?;
@@ -243,7 +250,7 @@ impl Expression {
                 }
 
                 Ok(t_num)
-            },
+            }
 
             Expression::Xor(vs) | Expression::And(vs) | Expression::Or(vs) => {
                 // TODO bit strings
@@ -254,10 +261,12 @@ impl Expression {
                 }
 
                 Ok(Type::Boolean)
-            },
+            }
 
             Expression::FnCall(name, args) => {
-                if let Some(Type::Fn(arg_types, ret_type)) = scope.lookup(&Identifier::new_scalar(name)) {
+                if let Some(Type::Fn(arg_types, ret_type)) =
+                    scope.lookup(&Identifier::new_scalar(name))
+                {
                     // 1. check that arg types match args
                     if args.len() != arg_types.len() {
                         return Err(TypeError("".to_string()));
@@ -274,31 +283,36 @@ impl Expression {
                 } else {
                     Err(TypeError("".to_string()))
                 }
-            },
+            }
 
             Expression::OracleInvoc(name, args) => {
                 if let Some(entry) = scope.lookup(&Identifier::new_scalar(name)) {
                     if let Type::Oracle(arg_types, ret_type) = entry {
-                    // 1. check that arg types match args
-                    if args.len() != arg_types.len() {
-                        return Err(TypeError("oracle invocation arg count mismatch".to_string()));
-                    }
-
-                    for (i, arg) in args.iter().enumerate() {
-                        if arg.get_type(scope)? != arg_types[i] {
-                            return Err(TypeError(format!("oracle invocation arg type doesn't match at position {:}", i)));
+                        // 1. check that arg types match args
+                        if args.len() != arg_types.len() {
+                            return Err(TypeError(
+                                "oracle invocation arg count mismatch".to_string(),
+                            ));
                         }
-                    }
 
-                    // 2. return ret type
-                    Ok(*ret_type)
+                        for (i, arg) in args.iter().enumerate() {
+                            if arg.get_type(scope)? != arg_types[i] {
+                                return Err(TypeError(format!(
+                                    "oracle invocation arg type doesn't match at position {:}",
+                                    i
+                                )));
+                            }
+                        }
+
+                        // 2. return ret type
+                        Ok(*ret_type)
                     } else {
                         Err(TypeError(format!("expected oracle, got {:#?}", entry)))
-                    } 
+                    }
                 } else {
                     Err(TypeError(format!("couldn't look up oracle {:}", name)))
                 }
-            },
+            }
 
             Expression::Identifier(id) => {
                 if let Some(t) = scope.lookup(id) {
@@ -306,7 +320,7 @@ impl Expression {
                 } else {
                     Err(TypeError("".to_string()))
                 }
-            },
+            }
 
             _ => {
                 println!("get_type not implemented for:");

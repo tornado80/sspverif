@@ -3,7 +3,6 @@ use std::fmt;
 #[derive(Debug)]
 pub struct ScopeError;
 
-
 #[derive(Debug, Clone)]
 pub struct TypeError(pub String);
 
@@ -17,7 +16,7 @@ impl fmt::Display for TypeError {
 pub enum TypeCheckError {
     Scope(ScopeError),
     Type(TypeError),
-    TypeCheck(String)
+    TypeCheck(String),
 }
 
 impl From<ScopeError> for TypeCheckError {

@@ -13,7 +13,7 @@ pub trait SmtFmt {
 pub enum SmtExpr {
     Comment(String),
     Atom(String),
-    List(Vec<SmtExpr>)
+    List(Vec<SmtExpr>),
 }
 
 impl SmtFmt for SmtExpr {
@@ -23,7 +23,7 @@ impl SmtFmt for SmtExpr {
             SmtExpr::Atom(str) => write!(write, "{}", str),
             SmtExpr::List(lst) => {
                 let mut peek = lst.iter().peekable();
-                
+
                 write!(write, "(")?;
                 while let Some(elem) = peek.next() {
                     elem.write_smt_to(write)?;
@@ -31,13 +31,12 @@ impl SmtFmt for SmtExpr {
                     if peek.peek().is_some() {
                         write!(write, " ")?;
                     }
-                };
+                }
                 write!(write, ")")
             }
         }
     }
 }
-
 
 pub fn statevarname() -> SmtExpr {
     /*
@@ -51,53 +50,45 @@ pub fn statevarname() -> SmtExpr {
     SmtExpr::Atom(String::from("sspds-rs-state"))
 }
 
-
 impl From<Expression> for SmtExpr {
     fn from(expr: Expression) -> SmtExpr {
         match expr {
-            Expression::BooleanLiteral(litname) => {
-                SmtExpr::Atom(litname)
-            },
-            Expression::IntegerLiteral(litname) => {
-                SmtExpr::Atom(litname)
-            }
+            Expression::BooleanLiteral(litname) => SmtExpr::Atom(litname),
+            Expression::IntegerLiteral(litname) => SmtExpr::Atom(litname),
             Expression::Equals(exprs) => {
-                let mut acc = vec![
-                    SmtExpr::Atom("=".to_string())];
+                let mut acc = vec![SmtExpr::Atom("=".to_string())];
                 for expr in exprs {
                     acc.push(expr.clone().into());
                 }
 
                 SmtExpr::List(acc)
-            },
-            Expression::Identifier(Identifier::Scalar(identname)) => {
-                SmtExpr::Atom(identname)
-            },
-            Expression::Identifier(Identifier::Local(identname)) => {
-                SmtExpr::Atom(identname)
-            },
-            Expression::Identifier(Identifier::State{name:identname, pkgname}) => {
-                SmtExpr::List(vec![SmtExpr::Atom(format!("state-{}-{}", pkgname, identname)), statevarname()])
-            },
-            Expression::Bot => {
-                SmtExpr::Atom("bot".to_string())
-            },
+            }
+            Expression::Identifier(Identifier::Scalar(identname)) => SmtExpr::Atom(identname),
+            Expression::Identifier(Identifier::Local(identname)) => SmtExpr::Atom(identname),
+            Expression::Identifier(Identifier::State {
+                name: identname,
+                pkgname,
+            }) => SmtExpr::List(vec![
+                SmtExpr::Atom(format!("state-{}-{}", pkgname, identname)),
+                statevarname(),
+            ]),
+            Expression::Bot => SmtExpr::Atom("bot".to_string()),
             Expression::Sample(_tipe) => {
                 // TODO: fix this later! This is generally speaking not correct!
                 SmtExpr::Atom("rand".to_string())
-            },
+            }
             Expression::FnCall(name, exprs) => {
-                let mut call = vec![
-                    SmtExpr::Atom(name),
-                ];
+                let mut call = vec![SmtExpr::Atom(name)];
 
                 for expr in exprs {
                     call.push(expr.into());
                 }
 
                 SmtExpr::List(call)
-            },
-            _ => { panic!("not implemented: {:?}", expr); }
+            }
+            _ => {
+                panic!("not implemented: {:?}", expr);
+            }
         }
     }
 }
@@ -108,11 +99,11 @@ impl From<Type> for SmtExpr {
             Type::Bits(length) => {
                 // TODO make sure we define this somewhere
                 SmtExpr::Atom(format!("Bits_{}", length))
-            },
-            Type::Boolean => {
-                SmtExpr::Atom("Bool".to_string())
-            },
-            _ => {panic!("not implemented!")}
+            }
+            Type::Boolean => SmtExpr::Atom("Bool".to_string()),
+            _ => {
+                panic!("not implemented!")
+            }
         }
     }
 }
@@ -124,14 +115,10 @@ impl From<SmtLet> for SmtExpr {
             SmtExpr::List(
                 l.bindings
                     .into_iter()
-                    .map(|(id, expr)| {
-                        SmtExpr::List(vec![
-                            id.to_expression().into(),
-                            expr.into(),
-                        ])
-                    }).collect()
+                    .map(|(id, expr)| SmtExpr::List(vec![id.to_expression().into(), expr.into()]))
+                    .collect(),
             ),
-            l.body,           
+            l.body,
         ])
     }
 }
@@ -140,7 +127,6 @@ struct SmtLet {
     bindings: Vec<(Identifier, Expression)>,
     body: SmtExpr,
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -161,8 +147,11 @@ mod tests {
 
     #[test]
     fn test_smtlet() -> TestResult {
-        let l = SmtLet{
-            bindings: vec![(Identifier::Local(String::from("x")), Expression::IntegerLiteral(String::from("42")))],
+        let l = SmtLet {
+            bindings: vec![(
+                Identifier::Local(String::from("x")),
+                Expression::IntegerLiteral(String::from("42")),
+            )],
             body: SmtExpr::Atom(String::from("x")),
         };
 
