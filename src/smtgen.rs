@@ -1,13 +1,27 @@
 use std::io::{Result, Write};
-//use std::io::prelude::*;
 
 use crate::expressions::Expression;
 use crate::identifier::Identifier;
 use crate::types::Type;
 
+pub fn smt_to_string<T: Into<SmtExpr>>(t: T) -> String {
+    let expr: SmtExpr = t.into();
+    expr.to_string()
+}
+
 pub trait SmtFmt {
     fn write_smt_to<T: Write>(&self, write: &mut T) -> Result<()>;
+
+    fn to_string(&self) -> String {
+        let mut buf = vec![];
+        self.write_smt_to(&mut buf)
+            .expect("can't happen, we assume the buffer never errors");
+
+        String::from_utf8(buf)
+            .expect("can't happen, we only write utf8")
+    }
 }
+
 
 #[derive(Debug, Clone)]
 pub enum SmtExpr {
@@ -124,15 +138,15 @@ where
     }
 }
 
-impl From<SmtIs> for SmtExpr {
-    fn from(is: SmtIs) -> SmtExpr {
+impl<C, E> From<SmtIs<C, E>> for SmtExpr  where C: Into<String>, E: Into<SmtExpr>{
+    fn from(is: SmtIs<C, E>) -> SmtExpr {
         SmtExpr::List(vec![
             SmtExpr::List(vec![
                 SmtExpr::Atom("_".into()),
                 SmtExpr::Atom("is".into()),
-                SmtExpr::Atom(is.con),
+                SmtExpr::Atom(is.con.into()),
             ]),
-            is.expr,
+            is.expr.into(),
         ])
     }
 }
@@ -155,6 +169,20 @@ where
     }
 }
 
+impl From<SspSmtVar> for SmtExpr {
+    fn from(v: SspSmtVar) -> SmtExpr {
+        match v {
+            SspSmtVar::GlobalState => SmtExpr::Atom("__global_state".into()),
+            SspSmtVar::SelfState => SmtExpr::Atom("__self_state".into()),
+            SspSmtVar::ReturnValue => SmtExpr::Atom("__ret".into()),
+            SspSmtVar::PackageStateConstructor{pkgname} => SmtExpr::Atom(format!("mk-state-{}", pkgname)),
+            SspSmtVar::OracleReturnConstructor{pkgname, oname} => SmtExpr::Atom(format!("mk-return-{}-{}", pkgname, oname)),
+            SspSmtVar::OracleAbort{pkgname, oname} => SmtExpr::Atom(format!("mk-abort-{}-{}", pkgname, oname)),
+            SspSmtVar::CompositionStateConstructor{compname} => SmtExpr::Atom(format!("mk-composition-state-{}", compname)),
+        }
+    }
+}
+
 pub struct SmtLet<B>
 where
     B: Into<SmtExpr>,
@@ -174,9 +202,23 @@ where
     pub els: E,
 }
 
-pub struct SmtIs {
-    pub con: String,
-    pub expr: SmtExpr,
+pub struct SmtIs<C, E> 
+    where
+    C: Into<String>,
+    E: Into<SmtExpr>
+    {
+    pub con: C,
+    pub expr: E,
+}
+
+pub enum SspSmtVar {
+    GlobalState,
+    SelfState,
+    ReturnValue,
+    CompositionStateConstructor{compname: String},
+    PackageStateConstructor{pkgname: String},
+    OracleReturnConstructor{pkgname: String, oname: String},
+    OracleAbort{pkgname: String, oname: String},
 }
 
 #[cfg(test)]

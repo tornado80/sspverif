@@ -2,7 +2,7 @@ use crate::errors::TypeCheckError;
 use crate::expressions::Expression;
 use crate::identifier::Identifier;
 use crate::scope::Scope;
-use crate::smtgen::{statevarname, SmtExpr, SmtIs, SmtIte, SmtLet};
+use crate::smtgen::{statevarname, SmtExpr, SmtIs, SmtFmt, SmtIte, SmtLet, SspSmtVar, smt_to_string};
 use crate::statement::{CodeBlock, Statement, TypedCodeBlock};
 use crate::types::Type;
 
@@ -328,7 +328,7 @@ impl PackageInstance {
         }
     }
 
-    fn code_smt_helper(&self, block: CodeBlock, sig: &OracleSig) -> SmtExpr {
+    fn code_smt_helper(&self, block: CodeBlock, sig: &OracleSig, comp_name: &str) -> SmtExpr {
         if let PackageInstance::Atom {
             pkg, name: pkgname, ..
         } = self
@@ -336,30 +336,43 @@ impl PackageInstance {
             let mut result = None;
             for stmt in block.0.iter().rev() {
                 result = Some(match stmt {
-                    Statement::IfThenElse(cond, ifcode, elsecode) => SmtExpr::List(vec![
-                        SmtExpr::Atom("ite".to_string()),
-                        cond.clone().into(),
-                        self.code_smt_helper(ifcode.clone(), sig),
-                        self.code_smt_helper(elsecode.clone(), sig),
-                    ]),
+                    Statement::IfThenElse(cond, ifcode, elsecode) => SmtIte{
+                        cond: cond.clone(),
+                        then: self.code_smt_helper(ifcode.clone(), sig, comp_name),
+                        els: self.code_smt_helper(elsecode.clone(), sig, comp_name),
+                    }.into(),
                     Statement::Return(None) => {
                         // (mk-return-{name} statevarname)
                         SmtExpr::List(vec![
-                            SmtExpr::Atom(format!("mk-return-{}-{}", pkgname, sig.name)),
-                            statevarname(),
+                            SspSmtVar::OracleReturnConstructor{
+                                pkgname: pkgname.clone(),
+                                oname: sig.name.clone(),
+                            }.into(),
+                            SspSmtVar::GlobalState.into(),
                         ])
                     }
                     Statement::Return(Some(expr)) => {
                         // (mk-return-{name} statevarname expr)
-                        SmtExpr::List(vec![
-                            SmtExpr::Atom(format!("mk-return-{}-{}", pkgname, sig.name)),
-                            statevarname(),
-                            expr.clone().into(),
-                        ])
+                        SmtLet{
+                            bindings: vec![(
+                                smt_to_string(SspSmtVar::GlobalState),
+                                SmtExpr::List(vec![SmtExpr::Atom("mist".into())]) // we need the composition info here, let's figure out how to structure this instead...
+                            
+                            )],
+                            body: SmtExpr::List(vec![
+                                SspSmtVar::OracleReturnConstructor{
+                                    pkgname: pkgname.clone(),
+                                    oname: sig.name.clone(),
+                                }.into(),
+                                SspSmtVar::GlobalState.into(),
+                                expr.clone().into(),
+                            ]),
+                        }.into()
                     }
                     Statement::Abort => {
                         // mk-abort-{name}
-                        SmtExpr::Atom(format!("mk-abort-{}-{}", pkgname, sig.name))
+                        SspSmtVar::OracleAbort{pkgname: pkgname.clone(), oname: sig.name.clone()}.into()
+                        //SmtExpr::Atom(format!("mk-abort-{}-{}", pkgname, sig.name))
                     }
                     Statement::Assign(
                         ident,
@@ -373,7 +386,7 @@ impl PackageInstance {
                             bindings: vec![("ret".into(), {
                                 let mut cmdline = vec![
                                     SmtExpr::Atom(format!("oracle-{}-{}", dst_pkgname, name)),
-                                    SmtExpr::Atom(String::from("state_all")),
+                                    SspSmtVar::GlobalState.into(),
                                 ];
 
                                 for arg in args {
@@ -385,9 +398,9 @@ impl PackageInstance {
                             body: SmtIte {
                                 cond: SmtIs {
                                     con: format!("mk-abort-{}-{}", dst_pkgname, name),
-                                    expr: SmtExpr::Atom(String::from("ret")),
+                                    expr: SspSmtVar::ReturnValue,
                                 },
-                                then: SmtExpr::Atom(format!("mk-abort-{}-{}", pkgname, sig.name)),
+                                then: SspSmtVar::OracleAbort{pkgname: pkgname.into(), oname: sig.name.clone()},
                                 els: SmtLet {
                                     bindings: vec![
                                         (
@@ -397,7 +410,7 @@ impl PackageInstance {
                                                     "return-{}-{}-state",
                                                     dst_pkgname, name
                                                 )),
-                                                SmtExpr::Atom(String::from("ret")),
+                                                SspSmtVar::ReturnValue.into(),
                                             ]),
                                         ),
                                         (
@@ -407,7 +420,7 @@ impl PackageInstance {
                                                     "return-{}-{}-value",
                                                     dst_pkgname, name
                                                 )),
-                                                SmtExpr::Atom(String::from("ret")),
+                                                SspSmtVar::ReturnValue.into(),
                                             ]),
                                         ),
                                     ],
@@ -416,68 +429,6 @@ impl PackageInstance {
                             },
                         }
                         .into()
-                        /*
-                        SmtExpr::List(vec![
-                            // let returnvalue <- oracle call
-                            // if return is an abort: abort
-                            // else: proceed.
-                            SmtExpr::Atom(String::from("let")),
-                            SmtExpr::List(vec![SmtExpr::List(vec![
-                                SmtExpr::Atom(String::from("ret")),
-                                SmtExpr::List({
-                                    let mut cmdline = vec![
-                                        SmtExpr::Atom(format!("oracle-{}-{}", dst_pkgname, name)),
-                                        SmtExpr::Atom(String::from("state_all")),
-                                    ];
-
-                                    for arg in args {
-                                        cmdline.push(arg.clone().into())
-                                    }
-
-                                    cmdline
-                                }),
-                            ])]),
-
-                            SmtExpr::List(vec![
-                                SmtExpr::Atom(String::from("ite")),
-                                SmtExpr::List(vec![
-                                    SmtExpr::List(vec![
-                                        SmtExpr::Atom(String::from("_")),
-                                        SmtExpr::Atom(String::from("is")),
-                                        SmtExpr::Atom(format!("mk-abort-{}-{}", dst_pkgname, name)),
-                                    ]),
-                                    SmtExpr::Atom(String::from("ret")),
-                                ]),
-                                SmtExpr::Atom(format!("mk-abort-{}-{}", pkgname, sig.name)),
-                                SmtExpr::List(vec![
-                                    SmtExpr::Atom(String::from("let")),
-                                    SmtExpr::List(vec![
-                                        SmtExpr::List(vec![
-                                            SmtExpr::Atom(String::from("state_all")),
-                                            SmtExpr::List(vec![
-                                                SmtExpr::Atom(format!(
-                                                    "return-{}-{}-state",
-                                                    dst_pkgname, name
-                                                )),
-                                                SmtExpr::Atom(String::from("ret")),
-                                            ]),
-                                        ]),
-                                        SmtExpr::List(vec![
-                                            ident.to_expression().into(),
-                                            SmtExpr::List(vec![
-                                                SmtExpr::Atom(format!(
-                                                    "return-{}-{}-value",
-                                                    dst_pkgname, name
-                                                )),
-                                                SmtExpr::Atom(String::from("ret")),
-                                            ]),
-                                        ]),
-                                    ]),
-                                    result.unwrap(),
-                                ]),
-                            ]),
-                        ])
-                        */
                     }
                     Statement::Assign(ident, expr) => {
                         // State_{name} (quote " state")
@@ -490,7 +441,9 @@ impl PackageInstance {
                                 ])])]
                             }
                             Identifier::State { name, pkgname } => {
-                                let mut tmp = vec![SmtExpr::Atom(format!("mk-state-{}", pkgname))];
+                                let mut tmp = vec![
+                                    SspSmtVar::PackageStateConstructor{pkgname: pkgname.clone()}.into()
+                                ];
 
                                 for (varname, _) in pkg.state.clone() {
                                     if varname == *name {
@@ -498,12 +451,12 @@ impl PackageInstance {
                                     } else {
                                         tmp.push(SmtExpr::List(vec![
                                             SmtExpr::Atom(format!("state-{}-{}", pkgname, varname)),
-                                            statevarname(),
+                                            SspSmtVar::SelfState.into(),
                                         ]));
                                     }
                                 }
 
-                                vec![SmtExpr::List(vec![statevarname(), SmtExpr::List(tmp)])]
+                                vec![SmtExpr::List(vec![SspSmtVar::SelfState.into(), SmtExpr::List(tmp)])]
                             }
                             _ => panic!("not implemented"),
                         };
@@ -576,17 +529,16 @@ impl PackageInstance {
                         SmtExpr::Atom(format!("oracle-{}-{}", name, def.sig.name)),
                         SmtExpr::List(args),
                         SmtExpr::Atom(format!("Return_{}_{}", name, def.sig.name)),
-                        SmtExpr::List(vec![
-                            SmtExpr::Atom(String::from("let")),
-                            SmtExpr::List(vec![SmtExpr::List(vec![
-                                statevarname(),
+                        SmtLet{
+                            bindings: vec![(
+                                {let e: SmtExpr = SspSmtVar::SelfState.into(); e}.to_string(),
                                 SmtExpr::List(vec![
                                     SmtExpr::Atom(format!("state-{}", name)),
-                                    SmtExpr::Atom(String::from("state_all")),
-                                ]),
-                            ])]),
-                            self.code_smt_helper(code, &def.sig),
-                        ]),
+                                    SspSmtVar::GlobalState.into(),
+                                ])
+                            )],
+                            body: self.code_smt_helper(code.clone(), &def.sig, comp_name),
+                        }.into(),
                     ])
                 })
                 .collect(),
