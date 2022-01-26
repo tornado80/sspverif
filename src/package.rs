@@ -2,7 +2,7 @@ use crate::errors::TypeCheckError;
 use crate::expressions::Expression;
 use crate::identifier::Identifier;
 use crate::scope::Scope;
-use crate::smtgen::{statevarname, SmtExpr};
+use crate::smtgen::{statevarname, SmtExpr, SmtIs, SmtIte, SmtLet};
 use crate::statement::{CodeBlock, Statement, TypedCodeBlock};
 use crate::types::Type;
 
@@ -369,6 +369,54 @@ impl PackageInstance {
                             args,
                         },
                     ) => {
+                        SmtLet {
+                            bindings: vec![("ret".into(), {
+                                let mut cmdline = vec![
+                                    SmtExpr::Atom(format!("oracle-{}-{}", dst_pkgname, name)),
+                                    SmtExpr::Atom(String::from("state_all")),
+                                ];
+
+                                for arg in args {
+                                    cmdline.push(arg.clone().into())
+                                }
+
+                                SmtExpr::List(cmdline)
+                            })],
+                            body: SmtIte {
+                                cond: SmtIs {
+                                    con: format!("mk-abort-{}-{}", dst_pkgname, name),
+                                    expr: SmtExpr::Atom(String::from("ret")),
+                                },
+                                then: SmtExpr::Atom(format!("mk-abort-{}-{}", pkgname, sig.name)),
+                                els: SmtLet {
+                                    bindings: vec![
+                                        (
+                                            "state_all".into(),
+                                            SmtExpr::List(vec![
+                                                SmtExpr::Atom(format!(
+                                                    "return-{}-{}-state",
+                                                    dst_pkgname, name
+                                                )),
+                                                SmtExpr::Atom(String::from("ret")),
+                                            ]),
+                                        ),
+                                        (
+                                            ident.ident(),
+                                            SmtExpr::List(vec![
+                                                SmtExpr::Atom(format!(
+                                                    "return-{}-{}-value",
+                                                    dst_pkgname, name
+                                                )),
+                                                SmtExpr::Atom(String::from("ret")),
+                                            ]),
+                                        ),
+                                    ],
+                                    body: result.unwrap(),
+                                },
+                            },
+                        }
+                        .into()
+                        /*
                         SmtExpr::List(vec![
                             // let returnvalue <- oracle call
                             // if return is an abort: abort
@@ -389,6 +437,7 @@ impl PackageInstance {
                                     cmdline
                                 }),
                             ])]),
+
                             SmtExpr::List(vec![
                                 SmtExpr::Atom(String::from("ite")),
                                 SmtExpr::List(vec![
@@ -428,6 +477,7 @@ impl PackageInstance {
                                 ]),
                             ]),
                         ])
+                        */
                     }
                     Statement::Assign(ident, expr) => {
                         // State_{name} (quote " state")

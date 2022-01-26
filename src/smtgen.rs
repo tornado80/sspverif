@@ -108,24 +108,75 @@ impl From<Type> for SmtExpr {
     }
 }
 
-impl From<SmtLet> for SmtExpr {
-    fn from(l: SmtLet) -> SmtExpr {
+impl<C, T, E> From<SmtIte<C, T, E>> for SmtExpr
+where
+    C: Into<SmtExpr>,
+    T: Into<SmtExpr>,
+    E: Into<SmtExpr>,
+{
+    fn from(ite: SmtIte<C, T, E>) -> SmtExpr {
+        SmtExpr::List(vec![
+            SmtExpr::Atom("ite".into()),
+            ite.cond.into(),
+            ite.then.into(),
+            ite.els.into(),
+        ])
+    }
+}
+
+impl From<SmtIs> for SmtExpr {
+    fn from(is: SmtIs) -> SmtExpr {
+        SmtExpr::List(vec![
+            SmtExpr::List(vec![
+                SmtExpr::Atom("_".into()),
+                SmtExpr::Atom("is".into()),
+                SmtExpr::Atom(is.con),
+            ]),
+            is.expr,
+        ])
+    }
+}
+
+impl<B> From<SmtLet<B>> for SmtExpr
+where
+    B: Into<SmtExpr>,
+{
+    fn from(l: SmtLet<B>) -> SmtExpr {
         SmtExpr::List(vec![
             SmtExpr::Atom(String::from("let")),
             SmtExpr::List(
                 l.bindings
                     .into_iter()
-                    .map(|(id, expr)| SmtExpr::List(vec![id.to_expression().into(), expr.into()]))
+                    .map(|(id, expr)| SmtExpr::List(vec![SmtExpr::Atom(id), expr]))
                     .collect(),
             ),
-            l.body,
+            l.body.into(),
         ])
     }
 }
 
-struct SmtLet {
-    bindings: Vec<(Identifier, Expression)>,
-    body: SmtExpr,
+pub struct SmtLet<B>
+where
+    B: Into<SmtExpr>,
+{
+    pub bindings: Vec<(String, SmtExpr)>,
+    pub body: B,
+}
+
+pub struct SmtIte<C, T, E>
+where
+    C: Into<SmtExpr>,
+    T: Into<SmtExpr>,
+    E: Into<SmtExpr>,
+{
+    pub cond: C,
+    pub then: T,
+    pub els: E,
+}
+
+pub struct SmtIs {
+    pub con: String,
+    pub expr: SmtExpr,
 }
 
 #[cfg(test)]
@@ -149,8 +200,8 @@ mod tests {
     fn test_smtlet() -> TestResult {
         let l = SmtLet {
             bindings: vec![(
-                Identifier::Local(String::from("x")),
-                Expression::IntegerLiteral(String::from("42")),
+                "x".into(),
+                Expression::IntegerLiteral(String::from("42")).into(),
             )],
             body: SmtExpr::Atom(String::from("x")),
         };

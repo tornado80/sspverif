@@ -18,4 +18,13 @@ impl Identifier {
     pub fn to_expression(&self) -> Expression {
         Expression::Identifier(self.clone())
     }
+
+    pub fn ident(&self) -> String {
+        match self {
+            Identifier::Scalar(ident) => ident.clone(),
+            Identifier::Local(ident) => ident.clone(),
+            Identifier::State { name, .. } => name.clone(),
+            Identifier::Params { name, .. } => name.clone(),
+        }
+    }
 }
