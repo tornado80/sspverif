@@ -14,9 +14,9 @@ mod types;
 
 use crate::expressions::Expression;
 use crate::identifier::Identifier;
-use crate::package::{OracleDef, OracleSig, Package, PackageInstance};
+use crate::package::{Composition, OracleDef, OracleSig, Package, PackageInstance};
 use crate::scope::Scope;
-use crate::smtgen::SmtFmt;
+use crate::smtgen::{CompositionSmtWriter, SmtFmt};
 use crate::statement::{CodeBlock, Statement};
 use crate::types::Type;
 
@@ -24,7 +24,7 @@ fn main() {
     let mut params = HashMap::new();
     params.insert("n".to_string(), "256".to_string());
 
-    let prf_real_game = PackageInstance::Atom {
+    let prf_real_game = PackageInstance {
         name: "mono-prf".to_string(),
         params: params.clone(),
         pkg: Package {
@@ -87,18 +87,7 @@ fn main() {
         },
     };
 
-    let prf_real_game = PackageInstance::Composition {
-        pkgs: vec![prf_real_game.clone()],
-        edges: vec![],
-        exports: prf_real_game
-            .get_oracle_sigs()
-            .iter()
-            .map(|osig| (0, osig.clone()))
-            .collect(),
-        name: String::from("mono-prf-game"),
-    };
-
-    let key_real_pkg = PackageInstance::Atom {
+    let key_real_pkg = PackageInstance {
         name: "key".to_string(),
         params: params.clone(),
         pkg: Package {
@@ -149,7 +138,7 @@ fn main() {
         },
     };
 
-    let mod_prf_real_pkg = PackageInstance::Atom {
+    let mod_prf_real_pkg = PackageInstance {
         name: "mod-prf".to_string(),
         params: params.clone(),
         pkg: Package {
@@ -181,24 +170,37 @@ fn main() {
         },
     };
 
-    let mod_prf_game = PackageInstance::Composition {
+    let mod_prf_game = Composition {
         pkgs: vec![key_real_pkg.clone(), mod_prf_real_pkg.clone()],
-        edges: vec![(1, 0, key_real_pkg.get_pkg().oracles[1].sig.clone())],
+        edges: vec![(1, 0, key_real_pkg.pkg.clone().oracles[1].sig.clone())],
         exports: vec![
-            (0, key_real_pkg.get_pkg().oracles[0].sig.clone()),
-            (1, mod_prf_real_pkg.get_pkg().oracles[0].sig.clone()),
+            (0, key_real_pkg.pkg.clone().oracles[0].sig.clone()),
+            (1, mod_prf_real_pkg.pkg.clone().oracles[0].sig.clone()),
         ],
         name: "real".to_string(),
     };
 
     let mut scope: Scope = Scope::new();
-    if let PackageInstance::Atom { pkg, .. } = prf_real_game.clone() {
+
+    {
+        let PackageInstance { pkg, .. } = prf_real_game.clone();
         eprintln!(
             "typecheck mono prf package: {:#?}",
             pkg.typecheck(&mut scope)
         );
         eprintln!("scope now: {:?}", scope);
     }
+
+    let prf_real_game = Composition {
+        pkgs: vec![prf_real_game.clone()],
+        edges: vec![],
+        exports: prf_real_game
+            .get_oracle_sigs()
+            .iter()
+            .map(|osig| (0, osig.clone()))
+            .collect(),
+        name: String::from("mono-prf-game"),
+    };
 
     use crate::smtgen::SmtExpr;
 
@@ -258,38 +260,49 @@ fn main() {
 
     println!(";;;;; Real Mono PRF");
     println!("; Real Mono PRF State Types");
-    for line in prf_real_game.state_smt() {
+
+    let prf_real_game_writer = CompositionSmtWriter {
+        comp: prf_real_game,
+    };
+
+    let smt_lines = prf_real_game_writer.smt_composition_state();
+    for line in smt_lines {
         line.write_smt_to(&mut std::io::stdout()).unwrap();
         println!();
     }
     println!();
     println!("; Real Mono PRF Return Types");
-    for line in prf_real_game.return_smt() {
+
+    let smt_lines = prf_real_game_writer.smt_composition_return();
+    for line in smt_lines {
         line.write_smt_to(&mut std::io::stdout()).unwrap();
         println!();
     }
     println!();
     println!("; Real Mono PRF Oracle Code");
-    for line in prf_real_game.var_specify().code_smt() {
+    let smt_lines = prf_real_game_writer.code_smt();
+    for line in smt_lines {
         line.write_smt_to(&mut std::io::stdout()).unwrap();
         println!();
     }
 
+    let mod_prf_game_writer = CompositionSmtWriter { comp: mod_prf_game };
+
     println!(";;;;; Real Mod PRF Game");
     println!("; Real Mod PRF State Types");
-    for line in mod_prf_game.state_smt() {
+    for line in mod_prf_game_writer.smt_composition_state() {
         line.write_smt_to(&mut std::io::stdout()).unwrap();
         println!();
     }
     println!();
     println!("; Real Mod PRF Return Types");
-    for line in mod_prf_game.return_smt() {
+    for line in mod_prf_game_writer.smt_composition_return() {
         line.write_smt_to(&mut std::io::stdout()).unwrap();
         println!();
     }
     println!();
     println!("; Real Mod PRF Oracle Code");
-    for line in mod_prf_game.var_specify().code_smt() {
+    for line in mod_prf_game_writer.code_smt() {
         line.write_smt_to(&mut std::io::stdout()).unwrap();
         println!();
     }
