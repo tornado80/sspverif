@@ -102,7 +102,7 @@ impl PackageInstance {
             .collect()
     }
 
-    fn var_specify_helper(&self, block: CodeBlock) -> CodeBlock {
+    fn var_specify_helper(&self, block: CodeBlock, comp_name: &str) -> CodeBlock {
         let PackageInstance {
             name,
             pkg: Package { state, params, .. },
@@ -115,11 +115,13 @@ impl PackageInstance {
                     Expression::Identifier(Identifier::State {
                         name: id,
                         pkgname: name.clone(),
+                        compname: comp_name.into(),
                     })
                 } else if params.clone().iter().any(|(id_, _)| id == *id_) {
                     Expression::Identifier(Identifier::Params {
                         name: id,
                         pkgname: name.clone(),
+                        compname: comp_name.into(),
                     })
                 } else {
                     Expression::Identifier(Identifier::Local(id))
@@ -144,8 +146,8 @@ impl PackageInstance {
                     }
                     Statement::IfThenElse(expr, ifcode, elsecode) => Statement::IfThenElse(
                         expr.map(fixup),
-                        self.var_specify_helper(ifcode.clone()),
-                        self.var_specify_helper(elsecode.clone()),
+                        self.var_specify_helper(ifcode.clone(), comp_name),
+                        self.var_specify_helper(elsecode.clone(), comp_name),
                     ),
                     _ => panic!("not implemented"),
                 })
@@ -153,7 +155,7 @@ impl PackageInstance {
         )
     }
 
-    pub fn var_specify(&self) -> PackageInstance {
+    pub fn var_specify(&self, comp_name: &str) -> PackageInstance {
         PackageInstance {
             name: self.name.clone(),
             params: self.params.clone(),
@@ -166,7 +168,7 @@ impl PackageInstance {
                     .iter()
                     .map(|def| OracleDef {
                         sig: def.sig.clone(),
-                        code: self.var_specify_helper(def.code.clone()),
+                        code: self.var_specify_helper(def.code.clone(), comp_name),
                     })
                     .collect(),
             },

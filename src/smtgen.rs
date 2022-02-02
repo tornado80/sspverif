@@ -71,8 +71,9 @@ impl From<Expression> for SmtExpr {
             Expression::Identifier(Identifier::State {
                 name: identname,
                 pkgname,
+                compname,
             }) => SmtExpr::List(vec![
-                SmtExpr::Atom(format!("state-{}-{}", pkgname, identname)),
+                SmtExpr::Atom(format!("state-{}-{}-{}", compname, pkgname, identname)),
                 SspSmtVar::SelfState.into(),
             ]),
             Expression::Bot => SmtExpr::Atom("bot".to_string()),
@@ -100,8 +101,9 @@ impl From<Type> for SmtExpr {
                 SmtExpr::Atom(format!("Bits_{}", length))
             }
             Type::Boolean => SmtExpr::Atom("Bool".to_string()),
+            Type::Integer => SmtExpr::Atom("Int".into()),
             _ => {
-                panic!("not implemented!")
+                panic!("not implemented: {:?}", t)
             }
         }
     }
@@ -164,17 +166,11 @@ impl From<SspSmtVar> for SmtExpr {
             SspSmtVar::GlobalState => SmtExpr::Atom("__global_state".into()),
             SspSmtVar::SelfState => SmtExpr::Atom("__self_state".into()),
             SspSmtVar::ReturnValue => SmtExpr::Atom("__ret".into()),
-            SspSmtVar::PackageStateConstructor { pkgname } => {
-                SmtExpr::Atom(format!("mk-state-{}", pkgname))
-            }
             SspSmtVar::OracleReturnConstructor { pkgname, oname } => {
                 SmtExpr::Atom(format!("mk-return-{}-{}", pkgname, oname))
             }
             SspSmtVar::OracleAbort { pkgname, oname } => {
                 SmtExpr::Atom(format!("mk-abort-{}-{}", pkgname, oname))
-            }
-            SspSmtVar::CompositionStateConstructor { compname } => {
-                SmtExpr::Atom(format!("mk-state-composition-{}", compname))
             }
         }
     }
@@ -212,17 +208,64 @@ pub enum SspSmtVar {
     GlobalState,
     SelfState,
     ReturnValue,
-    CompositionStateConstructor { compname: String },
-    PackageStateConstructor { pkgname: String },
     OracleReturnConstructor { pkgname: String, oname: String },
     OracleAbort { pkgname: String, oname: String },
 }
 
-pub struct CompositionSmtWriter {
-    pub comp: Composition,
+pub struct CompositionSmtWriter<'a> {
+    pub comp: &'a Composition,
+
+    state_helpers: std::collections::HashMap<String, SmtPackageState<'a>>,
+    comp_helper: SmtCompositionState<'a>,
 }
 
-impl CompositionSmtWriter {
+use std::default::Default;
+
+impl<'a> CompositionSmtWriter<'a> {
+    pub fn new(comp: &'a Composition) -> CompositionSmtWriter<'a> {
+        let mut csw = CompositionSmtWriter {
+            comp: comp,
+            state_helpers: Default::default(),
+            comp_helper: SmtCompositionState {
+                comp_name: &comp.name,
+                substate_names: vec!["__randomness"]
+                    .into_iter()
+                    .chain(comp.pkgs.iter().map(|inst| &inst.name as &str))
+                    .collect(),
+            },
+        };
+
+        csw.state_helpers.insert(
+            "__randomness".into(),
+            SmtPackageState::<'a> {
+                comp_name: &csw.comp.name,
+                inst_name: "__randomness",
+                state: vec![("ctr".into(), Type::Integer)],
+            },
+        );
+
+        for inst in &csw.comp.pkgs {
+            csw.state_helpers.insert(
+                inst.name.clone(),
+                SmtPackageState {
+                    comp_name: &csw.comp.name,
+                    inst_name: &inst.name,
+                    state: inst.pkg.state.clone(),
+                },
+            );
+        }
+
+        csw
+    }
+
+    fn get_state_helper(&'a self, instname: &str) -> &'a SmtPackageState<'a> {
+        if instname == "__randomness" {}
+
+        self.state_helpers
+            .get(instname)
+            .expect(&format!("error looking up smt state helper: {}", instname))
+    }
+
     /*
     Example:
     (declare-datatype State_right-pkey (
@@ -239,26 +282,11 @@ impl CompositionSmtWriter {
     ))
 
     */
-    fn smt_pkg_state(&self, inst: &PackageInstance) -> Vec<SmtExpr> {
-        let mut tmp = vec![SmtExpr::Atom(format!("mk-state-{}", inst.name))];
-
-        for (id, tipe) in inst.pkg.clone().state {
-            tmp.push(SmtExpr::List(vec![
-                SmtExpr::Atom(format!("state-{}-{}", inst.name, id)),
-                tipe.into(),
-            ]))
-        }
-
-        vec![SmtExpr::List(vec![
-            SmtExpr::Atom("declare-datatype".to_string()),
-            SmtExpr::Atom(format!("State_{}", inst.name)),
-            SmtExpr::List(vec![SmtExpr::List(tmp)]),
-        ])]
+    fn smt_pkg_state(&self, inst: &PackageInstance) -> SmtExpr {
+        self.get_state_helper(&inst.name).smt_declare_datatype()
     }
 
     pub fn smt_composition_state(&self) -> Vec<SmtExpr> {
-        let compname = self.comp.name.clone();
-
         // 1. each package in composition
         let mut states: Vec<SmtExpr> = self
             .comp
@@ -266,32 +294,9 @@ impl CompositionSmtWriter {
             .clone()
             .iter()
             .map(|pkg| self.smt_pkg_state(pkg))
-            .flatten()
             .collect();
 
-        // 2. composed state
-        let mut tmp = vec![
-            // constructor name
-            SmtExpr::Atom(format!("mk-state-composition-{}", compname)),
-            // randomness sampling state
-            SmtExpr::List(vec![
-                SmtExpr::Atom(format!("state-composition-{}-__randomness", compname)),
-                SmtExpr::Atom(format!("State___randomness")),
-            ]),
-        ];
-
-        for inst in &self.comp.pkgs {
-            tmp.push(SmtExpr::List(vec![
-                SmtExpr::Atom(format!("state-composition-{}-{}", compname, inst.name)),
-                SmtExpr::Atom(format!("State_{}", inst.name)),
-            ]));
-        }
-
-        states.push(SmtExpr::List(vec![
-            SmtExpr::Atom("declare-datatype".to_string()),
-            SmtExpr::Atom(format!("State_composition-{}", compname)),
-            SmtExpr::List(vec![SmtExpr::List(tmp)]),
-        ]));
+        states.push(self.comp_helper.smt_declare_datatype());
 
         states
     }
@@ -315,7 +320,7 @@ impl CompositionSmtWriter {
                 SmtExpr::Atom(format!("mk-return-{}-{}", inst.name, osig.name)),
                 SmtExpr::List(vec![
                     SmtExpr::Atom(format!("return-{}-{}-state", inst.name, osig.name)),
-                    SmtExpr::Atom(format!("State_composition-{}", self.comp.name)),
+                    self.comp_helper.smt_sort(),
                 ]),
             ];
 
@@ -383,42 +388,10 @@ impl CompositionSmtWriter {
                 }
                 Statement::Return(Some(expr)) => {
                     // (mk-return-{name} statevarname expr)
-                    SmtLet {
-                        bindings: vec![(smt_to_string(SspSmtVar::GlobalState), {
-                            let stuff = self.comp.pkgs.iter().map(|iterinst| {
-                                if iterinst.name == inst.name {
-                                    SspSmtVar::SelfState.into()
-                                } else {
-                                    SmtExpr::List(vec![
-                                        SmtExpr::Atom(format!(
-                                            "state-composition-{}-{}",
-                                            self.comp.name, iterinst.name
-                                        )),
-                                        SspSmtVar::GlobalState.into(),
-                                    ])
-                                }
-                                // (state-composition-xxx-packagename globalstate)
-                            });
-
-                            let liststart = vec![
-                                SspSmtVar::CompositionStateConstructor {
-                                    compname: self.comp.name.clone(),
-                                }
-                                .into(),
-                                SmtExpr::List(vec![
-                                    SmtExpr::Atom(format!(
-                                        "state-composition-{}-__randomness",
-                                        self.comp.name
-                                    )),
-                                    SspSmtVar::GlobalState.into(),
-                                ]),
-                            ];
-
-                            //SmtExpr::List(vec![SmtExpr::Atom("mist".into())]) // we need the composition info here, let's figure out how to structure this instead...
-
-                            SmtExpr::List(liststart.into_iter().chain(stuff).collect())
-                        })],
-                        body: SmtExpr::List(vec![
+                    self.comp_helper.smt_set(
+                        &inst.name,
+                        &SspSmtVar::SelfState.into(),
+                        SmtExpr::List(vec![
                             SspSmtVar::OracleReturnConstructor {
                                 pkgname: pkgname.clone(),
                                 oname: sig.name.clone(),
@@ -427,8 +400,7 @@ impl CompositionSmtWriter {
                             SspSmtVar::GlobalState.into(),
                             expr.clone().into(),
                         ]),
-                    }
-                    .into()
+                    )
                 }
                 Statement::Abort => {
                     // mk-abort-{name}
@@ -440,67 +412,53 @@ impl CompositionSmtWriter {
                     //SmtExpr::Atom(format!("mk-abort-{}-{}", pkgname, sig.name))
                 }
                 // TODO actually use the type that we sample to know how far to advance the randomness tape
-                Statement::Assign(ident, Expression::Sample(_)) => SmtLet {
-                    /**
+                Statement::Assign(ident, Expression::Sample(_)) => {
+                    let ctr = self.get_state_helper("__randomness").smt_access(
+                        "ctr",
+                        self.comp_helper
+                            .smt_access("__randomness", SspSmtVar::GlobalState.into()),
+                    );
+                    /*
+                     *   1. get counter
+                     *   2. assign ident
+                     *   3. overwrite state
+                     *   4. continue
+                     *
                      * let
                      *   ident = sample(ctr)
                      *   __global = mk-compositionState ( mk-randomndess-state (ctr + 1) ... )
+                     *
+                     *
+                     * ,
+                     *   let (ident = rand(access(counter)) (
+                     *       comp_helper.smt_set(counter, counter+1, body)
+                     * ))
+                     * )
+                     *
                      */
-                    bindings: vec![
-                        (
+                    SmtLet {
+                        bindings: vec![(
                             ident.ident(),
                             SmtExpr::List(vec![
                                 SmtExpr::Atom(format!("__sample-rand-{}", self.comp.name)),
-                                SmtExpr::List(vec![
-                                    SmtExpr::Atom("state-__randomness-ctr".into()),
-                                    SmtExpr::List(vec![
-                                        SmtExpr::Atom(format!(
-                                            "state-composition-{}-__randomness",
-                                            self.comp.name
-                                        )),
-                                        SspSmtVar::GlobalState.into(),
-                                    ]),
-                                ]),
+                                ctr.clone(),
                             ]),
-                        ),
-                        (smt_to_string(SspSmtVar::GlobalState), {
-                            let mut state_construction = vec![
-                                SmtExpr::Atom(format!("mk-state-composition-{}", self.comp.name)),
-                                SmtExpr::List(vec![
-                                    SmtExpr::Atom("mk-state-__randomness".into()),
-                                    SmtExpr::List(vec![
-                                        SmtExpr::Atom("+".into()),
-                                        SmtExpr::Atom("1".into()),
-                                        SmtExpr::List(vec![
-                                            SmtExpr::Atom("state-__randomness-ctr".into()),
-                                            SmtExpr::List(vec![
-                                                SmtExpr::Atom(format!(
-                                                    "state-composition-{}-__randomness",
-                                                    self.comp.name
-                                                )),
-                                                SspSmtVar::GlobalState.into(),
-                                            ]),
-                                        ]),
-                                    ]),
+                        )],
+                        body: self.comp_helper.smt_set(
+                            "__randomness",
+                            &self.get_state_helper("__randomness").smt_set(
+                                "ctr",
+                                &SmtExpr::List(vec![
+                                    SmtExpr::Atom("+".into()),
+                                    SmtExpr::Atom("1".into()),
+                                    ctr,
                                 ]),
-                            ];
-
-                            for iterinst in &self.comp.pkgs {
-                                state_construction.push(SmtExpr::List(vec![
-                                    SmtExpr::Atom(format!(
-                                        "state-composition-{}-{}",
-                                        self.comp.name, iterinst.name
-                                    )),
-                                    SspSmtVar::GlobalState.into(),
-                                ]))
-                            }
-
-                            SmtExpr::List(state_construction)
-                        }),
-                    ],
-                    body: result.unwrap(),
+                            ),
+                            result.unwrap(),
+                        ),
+                    }
+                    .into()
                 }
-                .into(),
                 Statement::Assign(
                     ident,
                     Expression::LowLevelOracleInvoc {
@@ -560,44 +518,29 @@ impl CompositionSmtWriter {
                 .into(),
                 Statement::Assign(ident, expr) => {
                     // State_{name} (quote " state")
-                    let assignment = match ident {
+                    match ident {
                         Identifier::Scalar(name) => panic!("found a {:?}", name),
-                        Identifier::Local(name) => {
-                            vec![SmtExpr::List(vec![SmtExpr::List(vec![
-                                SmtExpr::Atom(name.clone()),
-                                expr.clone().into(),
-                            ])])]
+                        Identifier::Local(name) => SmtLet {
+                            bindings: vec![(name.clone(), expr.clone().into())],
+                            body: result.unwrap(),
                         }
-                        Identifier::State { name, pkgname } => {
-                            let mut tmp = vec![SspSmtVar::PackageStateConstructor {
-                                pkgname: pkgname.clone(),
-                            }
-                            .into()];
-
-                            for (varname, _) in pkg.state.clone() {
-                                if varname == *name {
-                                    tmp.push(expr.clone().into());
-                                } else {
-                                    tmp.push(SmtExpr::List(vec![
-                                        SmtExpr::Atom(format!("state-{}-{}", pkgname, varname)),
-                                        SspSmtVar::SelfState.into(),
-                                    ]));
-                                }
-                            }
-
-                            vec![SmtExpr::List(vec![
-                                SspSmtVar::SelfState.into(),
-                                SmtExpr::List(tmp),
-                            ])]
+                        .into(),
+                        Identifier::State {
+                            name,
+                            pkgname,
+                            compname,
+                        } => SmtLet {
+                            bindings: vec![(
+                                smt_to_string(SspSmtVar::SelfState),
+                                self.get_state_helper(&pkgname)
+                                    .smt_set(name, &expr.clone().into()),
+                            )],
+                            body: result.unwrap(),
                         }
+                        .into(),
+
                         _ => panic!("not implemented"),
-                    };
-
-                    SmtExpr::List(vec![
-                        SmtExpr::Atom("let".to_string()),
-                        SmtExpr::List(assignment),
-                        result.unwrap(),
-                    ])
+                    }
                 }
                 _ => {
                     panic!("not implemented")
@@ -629,7 +572,7 @@ impl CompositionSmtWriter {
     }
 
     fn smt_pkg_code(&self, inst: &PackageInstance) -> Vec<SmtExpr> {
-        inst.var_specify()
+        inst.var_specify(&self.comp.name)
             .pkg
             .oracles
             .iter()
@@ -637,7 +580,7 @@ impl CompositionSmtWriter {
                 let code = def.code.treeify().returnify();
                 let mut args = vec![SmtExpr::List(vec![
                     SspSmtVar::GlobalState.into(),
-                    SmtExpr::Atom(format!("State_composition-{}", self.comp.name)),
+                    self.comp_helper.smt_sort(),
                 ])];
 
                 for (name, tipe) in def.sig.args.clone() {
@@ -652,13 +595,8 @@ impl CompositionSmtWriter {
                     SmtLet {
                         bindings: vec![(
                             smt_to_string(SspSmtVar::SelfState),
-                            SmtExpr::List(vec![
-                                SmtExpr::Atom(format!(
-                                    "state-composition-{}-{}",
-                                    self.comp.name, inst.name
-                                )),
-                                SspSmtVar::GlobalState.into(),
-                            ]),
+                            self.comp_helper
+                                .smt_access(&inst.name, SspSmtVar::GlobalState.into()),
                         )],
                         body: self.code_smt_helper(code.clone(), &def.sig, inst),
                     }
@@ -681,6 +619,197 @@ impl CompositionSmtWriter {
             .flatten();
 
         comment.into_iter().chain(code).collect()
+    }
+}
+
+/**
+* composition state smt gen helper type
+*
+* what do we need?
+* - composition state sort name
+* - composition state constructor name
+* - composition state accessor names
+* - composition state sort definition
+* - composition state accessor helpers
+* - overwrite/copy-on-write helper
+*
+* for that we need...
+* - composition name
+* - SmtPackageState values for each instance
+*
+*
+   (declare-datatype State_right-pkey (
+        (mk-state-right-pkey   (state-right-pkey-pk   (Array Int String))
+                               (state-right-pkey-sk   (Array Int String))
+                               (state-right-pkey-id   (Array String Int))
+                               (state-right-pkey-ctr  Int)
+                               (state-right-pkey-rand RandState))))
+*
+*/
+
+struct SmtCompositionState<'a> {
+    comp_name: &'a str,
+    substate_names: Vec<&'a str>,
+}
+
+impl<'a> SmtCompositionState<'a> {
+    pub fn new(comp_name: &'a str, substate_names: Vec<&'a str>) -> SmtCompositionState<'a> {
+        SmtCompositionState {
+            comp_name,
+            substate_names,
+        }
+    }
+    fn smt_sort(&self) -> SmtExpr {
+        SmtExpr::Atom(format!("CompositionState-{}", self.comp_name))
+    }
+
+    fn smt_constructor(&self) -> SmtExpr {
+        SmtExpr::Atom(format!("mk-composition-state-{}", self.comp_name))
+    }
+
+    fn smt_accessor(&self, inst_name: &str) -> SmtExpr {
+        // TODO should we check that inst_name is in inst_names? same for SmtPackageState
+        SmtExpr::Atom(format!(
+            "composition-state-{}-{}",
+            self.comp_name, inst_name
+        ))
+    }
+
+    fn smt_access(&self, inst_name: &str, term: SmtExpr) -> SmtExpr {
+        SmtExpr::List(vec![self.smt_accessor(inst_name), term])
+    }
+
+    fn smt_declare_datatype(&self) -> SmtExpr {
+        let mut tmp = vec![self.smt_constructor()];
+
+        for inst_name in &self.substate_names {
+            let pkg_state = SmtPackageState {
+                comp_name: self.comp_name,
+                inst_name: inst_name,
+                state: vec![],
+            };
+            tmp.push(SmtExpr::List(vec![
+                self.smt_accessor(inst_name),
+                pkg_state.smt_sort(),
+            ]))
+        }
+
+        SmtExpr::List(vec![
+            SmtExpr::Atom("declare-datatype".to_string()),
+            self.smt_sort(),
+            SmtExpr::List(vec![SmtExpr::List(tmp)]),
+        ])
+    }
+
+    fn smt_set(&self, target: &str, new: &SmtExpr, body: SmtExpr) -> SmtExpr {
+        let mut tmp = vec![self.smt_constructor()];
+
+        for inst_name in &self.substate_names {
+            tmp.push(if *inst_name == target {
+                new.clone()
+            } else {
+                self.smt_access(inst_name, SspSmtVar::GlobalState.into())
+            });
+        }
+
+        SmtLet {
+            bindings: vec![(smt_to_string(SspSmtVar::GlobalState), SmtExpr::List(tmp))],
+            body,
+        }
+        .into()
+    }
+}
+
+/**
+ * packages state smt gen helper type
+ *
+ * what do we need?
+ * - state type name ✅
+ * - state type definition ✅
+ * - state type constructor name ✅
+ * - state type accessors ✅
+ * - overwrite/copy-on-write helper ✅
+ *
+ * for that we need...
+ * - composition name
+ * - package instance name
+ * - state variables
+ */
+pub struct SmtPackageState<'a> {
+    comp_name: &'a str,
+    inst_name: &'a str,
+    state: Vec<(String, Type)>,
+}
+
+/**
+ * comp = mod_prf_game
+ * inst = multi_key
+ */
+
+impl<'a> SmtPackageState<'a> {
+    pub fn new(
+        comp_name: &'a str,
+        inst_name: &'a str,
+        state: Vec<(String, Type)>,
+    ) -> SmtPackageState<'a> {
+        SmtPackageState {
+            comp_name,
+            inst_name,
+            state,
+        }
+    }
+
+    fn smt_constructor(&self) -> SmtExpr {
+        SmtExpr::Atom(format!("mk-state-{}-{}", self.comp_name, self.inst_name))
+    }
+
+    fn smt_sort(&self) -> SmtExpr {
+        SmtExpr::Atom(format!("State-{}-{}", self.comp_name, self.inst_name))
+    }
+
+    fn smt_accessor(&self, id: &str) -> SmtExpr {
+        SmtExpr::Atom(format!(
+            "state-{}-{}-{}",
+            self.comp_name, self.inst_name, id
+        ))
+    }
+
+    fn smt_access(&self, id: &str, term: SmtExpr) -> SmtExpr {
+        SmtExpr::List(vec![self.smt_accessor(id), term])
+    }
+
+    pub fn smt_declare_datatype(&self) -> SmtExpr {
+        let mut tmp = vec![self.smt_constructor()];
+
+        for (id, tipe) in &self.state {
+            tmp.push(SmtExpr::List(vec![
+                self.smt_accessor(id),
+                tipe.clone().into(),
+            ]))
+        }
+
+        SmtExpr::List(vec![
+            SmtExpr::Atom("declare-datatype".to_string()),
+            self.smt_sort(),
+            SmtExpr::List(vec![SmtExpr::List(tmp)]),
+        ])
+    }
+
+    fn smt_set(&self, id: &str, new: &SmtExpr) -> SmtExpr {
+        let mut tmp = vec![self.smt_constructor()];
+
+        for (varname, _) in self.state.clone() {
+            if varname == *id {
+                tmp.push(new.clone());
+            } else {
+                tmp.push(SmtExpr::List(vec![
+                    self.smt_accessor(&varname),
+                    SspSmtVar::SelfState.into(),
+                ]));
+            }
+        }
+
+        SmtExpr::List(tmp)
     }
 }
 

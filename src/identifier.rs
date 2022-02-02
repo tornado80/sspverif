@@ -3,8 +3,16 @@ use crate::expressions::Expression;
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum Identifier {
     Scalar(String),
-    State { name: String, pkgname: String },
-    Params { name: String, pkgname: String },
+    State {
+        name: String,
+        pkgname: String,
+        compname: String,
+    },
+    Params {
+        name: String,
+        pkgname: String,
+        compname: String,
+    },
     Local(String),
     //    Bracket(Box<Identifier>, Expression),
 }

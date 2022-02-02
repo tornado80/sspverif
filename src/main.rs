@@ -16,7 +16,7 @@ use crate::expressions::Expression;
 use crate::identifier::Identifier;
 use crate::package::{Composition, OracleDef, OracleSig, Package, PackageInstance};
 use crate::scope::Scope;
-use crate::smtgen::{CompositionSmtWriter, SmtFmt};
+use crate::smtgen::{CompositionSmtWriter, SmtFmt, SmtPackageState};
 use crate::statement::{CodeBlock, Statement};
 use crate::types::Type;
 
@@ -227,38 +227,34 @@ fn main() {
         "(assert (forall ((n Int)) (= (__sample-rand-real n) (__sample-rand-mono-prf-game n))))"
     );
 
-    println!("(declare-datatype State___randomness ((mk-state-__randomness (state-__randomness-ctr Int))))");
+    SmtPackageState::new(
+        &prf_real_game.name,
+        "__randomness",
+        vec![("ctr".into(), Type::Integer)],
+    )
+    .smt_declare_datatype()
+    .write_smt_to(&mut std::io::stdout())
+    .unwrap();
 
-    //println!("real game: {:#?}",    prf_real_game);
-    //println!("modular game: {:#?}", mod_prf_game);
+    SmtPackageState::new(
+        &mod_prf_game.name,
+        "__randomness",
+        vec![("ctr".into(), Type::Integer)],
+    )
+    .smt_declare_datatype()
+    .write_smt_to(&mut std::io::stdout())
+    .unwrap();
+
+    //    println!("(declare-datatype State___randomness ((mk-state-__randomness (state-__randomness-ctr Int))))");
 
     let mut scope: Scope = Scope::new();
     eprintln!(
         "modular game typecheck: {:#?}",
         mod_prf_game.typecheck(&mut scope)
     );
-    //println!("scope now: {:?}", scope);
 
     eprintln!("smt expression of real composition");
-    /*
-        eprintln!("States");
-        for line in mod_prf_game.state_smt() {
-            line.write_smt_to(&mut std::io::stdout()).unwrap();
-            println!();
-        }
 
-        eprintln!("Return Tipes");
-        for line in mod_prf_game.return_smt() {
-            line.write_smt_to(&mut std::io::stdout()).unwrap();
-            println!();
-        }
-
-        eprintln!("Oracle Codes");
-        for line in key_real_pkg.var_specify().inner_code_smt("composition-real") {
-            line.write_smt_to(&mut std::io::stdout()).unwrap();
-            println!();
-        }
-    */
     println!("; Ze PRF");
     println!("(declare-fun f (Bits_n Bits_*) Bits_*)");
     println!();
@@ -266,9 +262,7 @@ fn main() {
     println!(";;;;; Real Mono PRF");
     println!("; Real Mono PRF State Types");
 
-    let prf_real_game_writer = CompositionSmtWriter {
-        comp: prf_real_game,
-    };
+    let prf_real_game_writer = CompositionSmtWriter::new(&prf_real_game);
 
     let smt_lines = prf_real_game_writer.smt_composition_state();
     for line in smt_lines {
@@ -291,7 +285,7 @@ fn main() {
         println!();
     }
 
-    let mod_prf_game_writer = CompositionSmtWriter { comp: mod_prf_game };
+    let mod_prf_game_writer = CompositionSmtWriter::new(&mod_prf_game);
 
     println!(";;;;; Real Mod PRF Game");
     println!("; Real Mod PRF State Types");
@@ -314,39 +308,4 @@ fn main() {
 
     println!("(check-sat)");
     println!("(get-model)");
-
-    //println!("Variable Specification");
-    //println!("{:?}", mod_prf_game.var_specify());
-
-    /*
-    let scope: Scope = Scope::new();
-    println!(
-        "xor: {:#?}",
-        Expression::Xor(vec![
-            Box::new(Expression::BooleanLiteral("true".to_string())),
-            Box::new(Expression::BooleanLiteral("false".to_string())),
-            Box::new(Expression::BooleanLiteral("true".to_string())),
-            Box::new(Expression::BooleanLiteral("false".to_string())),
-            Box::new(Expression::BooleanLiteral("true".to_string())),
-        ])
-            .get_type(&scope)
-    );
-
-    println!(
-        "type of false: {:#?}",
-        Expression::Unwrap(Box::new(Expression::Some(Box::new(
-            Expression::BooleanLiteral("false".to_string())
-        ))))
-            .get_type(&scope)
-    );
-
-    let foo_identifier = Identifier::Scalar("foo".to_string());
-
-    let mut scp = Scope::new();
-    scp.enter();
-    scp.declare(foo_identifier.clone(), Type::Integer);
-    println!("foo lookup: {:#?}", scp.lookup(&foo_identifier));
-    scp.leave();
-    println!("foo lookup: {:#?}", scp.lookup(&foo_identifier));
-    */
 }
