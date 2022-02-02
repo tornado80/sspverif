@@ -76,12 +76,6 @@ impl From<Expression> for SmtExpr {
                 SspSmtVar::SelfState.into(),
             ]),
             Expression::Bot => SmtExpr::Atom("bot".to_string()),
-            /*
-            Expression::Sample(_tipe) => {
-                // TODO: fix this later! This is generally speaking not correct!
-                SmtExpr::Atom("rand".to_string())
-            }
-            */
             Expression::FnCall(name, exprs) => {
                 let mut call = vec![SmtExpr::Atom(name)];
 
