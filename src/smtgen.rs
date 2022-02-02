@@ -76,10 +76,12 @@ impl From<Expression> for SmtExpr {
                 SspSmtVar::SelfState.into(),
             ]),
             Expression::Bot => SmtExpr::Atom("bot".to_string()),
+            /*
             Expression::Sample(_tipe) => {
                 // TODO: fix this later! This is generally speaking not correct!
                 SmtExpr::Atom("rand".to_string())
             }
+            */
             Expression::FnCall(name, exprs) => {
                 let mut call = vec![SmtExpr::Atom(name)];
 
@@ -274,7 +276,15 @@ impl CompositionSmtWriter {
             .collect();
 
         // 2. composed state
-        let mut tmp = vec![SmtExpr::Atom(format!("mk-state-composition-{}", compname))];
+        let mut tmp = vec![
+            // constructor name
+            SmtExpr::Atom(format!("mk-state-composition-{}", compname)),
+            // randomness sampling state
+            SmtExpr::List(vec![
+                SmtExpr::Atom(format!("state-composition-{}-__randomness", compname)),
+                SmtExpr::Atom(format!("State___randomness")),
+            ]),
+        ];
 
         for inst in &self.comp.pkgs {
             tmp.push(SmtExpr::List(vec![
@@ -396,10 +406,19 @@ impl CompositionSmtWriter {
                                 // (state-composition-xxx-packagename globalstate)
                             });
 
-                            let liststart = vec![SspSmtVar::CompositionStateConstructor {
-                                compname: self.comp.name.clone(),
-                            }
-                            .into()];
+                            let liststart = vec![
+                                SspSmtVar::CompositionStateConstructor {
+                                    compname: self.comp.name.clone(),
+                                }
+                                .into(),
+                                SmtExpr::List(vec![
+                                    SmtExpr::Atom(format!(
+                                        "state-composition-{}-__randomness",
+                                        self.comp.name
+                                    )),
+                                    SspSmtVar::GlobalState.into(),
+                                ]),
+                            ];
 
                             //SmtExpr::List(vec![SmtExpr::Atom("mist".into())]) // we need the composition info here, let's figure out how to structure this instead...
 
@@ -426,6 +445,68 @@ impl CompositionSmtWriter {
                     .into()
                     //SmtExpr::Atom(format!("mk-abort-{}-{}", pkgname, sig.name))
                 }
+                // TODO actually use the type that we sample to know how far to advance the randomness tape
+                Statement::Assign(ident, Expression::Sample(_)) => SmtLet {
+                    /**
+                     * let
+                     *   ident = sample(ctr)
+                     *   __global = mk-compositionState ( mk-randomndess-state (ctr + 1) ... )
+                     */
+                    bindings: vec![
+                        (
+                            ident.ident(),
+                            SmtExpr::List(vec![
+                                SmtExpr::Atom(format!("__sample-rand-{}", self.comp.name)),
+                                SmtExpr::List(vec![
+                                    SmtExpr::Atom("state-__randomness-ctr".into()),
+                                    SmtExpr::List(vec![
+                                        SmtExpr::Atom(format!(
+                                            "state-composition-{}-__randomness",
+                                            self.comp.name
+                                        )),
+                                        SspSmtVar::GlobalState.into(),
+                                    ]),
+                                ]),
+                            ]),
+                        ),
+                        (smt_to_string(SspSmtVar::GlobalState), {
+                            let mut state_construction = vec![
+                                SmtExpr::Atom(format!("mk-state-composition-{}", self.comp.name)),
+                                SmtExpr::List(vec![
+                                    SmtExpr::Atom("mk-state-__randomness".into()),
+                                    SmtExpr::List(vec![
+                                        SmtExpr::Atom("+".into()),
+                                        SmtExpr::Atom("1".into()),
+                                        SmtExpr::List(vec![
+                                            SmtExpr::Atom("state-__randomness-ctr".into()),
+                                            SmtExpr::List(vec![
+                                                SmtExpr::Atom(format!(
+                                                    "state-composition-{}-__randomness",
+                                                    self.comp.name
+                                                )),
+                                                SspSmtVar::GlobalState.into(),
+                                            ]),
+                                        ]),
+                                    ]),
+                                ]),
+                            ];
+
+                            for iterinst in &self.comp.pkgs {
+                                state_construction.push(SmtExpr::List(vec![
+                                    SmtExpr::Atom(format!(
+                                        "state-composition-{}-{}",
+                                        self.comp.name, iterinst.name
+                                    )),
+                                    SspSmtVar::GlobalState.into(),
+                                ]))
+                            }
+
+                            SmtExpr::List(state_construction)
+                        }),
+                    ],
+                    body: result.unwrap(),
+                }
+                .into(),
                 Statement::Assign(
                     ident,
                     Expression::LowLevelOracleInvoc {

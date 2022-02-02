@@ -220,9 +220,14 @@ fn main() {
     bits_ast_smt.write_smt_to(&mut std::io::stdout()).unwrap();
     println!();
 
-    println!("(declare-const rand Bits_n)");
     println!("(declare-const bot Bits_n)");
-    println!("(assert (not (= bot rand)))");
+    println!("(declare-fun __sample-rand-mono-prf-game (Int) Bits_n)");
+    println!("(declare-fun __sample-rand-real (Int) Bits_n)");
+    println!(
+        "(assert (forall ((n Int)) (= (__sample-rand-real n) (__sample-rand-mono-prf-game n))))"
+    );
+
+    println!("(declare-datatype State___randomness ((mk-state-__randomness (state-__randomness-ctr Int))))");
 
     //println!("real game: {:#?}",    prf_real_game);
     //println!("modular game: {:#?}", mod_prf_game);
