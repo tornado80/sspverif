@@ -18,7 +18,9 @@ use crate::smtgen::{CompositionSmtWriter, SmtFmt, SmtPackageState};
 use crate::statement::{CodeBlock, Statement};
 use crate::types::Type;
 
-use crate::transforms::{Transformation, treeify::Transformation as Treeify};
+use crate::transforms::{Transformation,
+                        treeify::Transformation as Treeify,
+                        returnify::Transformation as Returnify};
 
 fn main() {
     let mut params = HashMap::new();
@@ -201,6 +203,10 @@ fn main() {
         Treeify(&prf_real_game)
             .transform()
             .expect("treeify of prf real game failed").0;
+    let prf_real_game =
+        Returnify(&prf_real_game)
+            .transform()
+            .expect("returnify of prf real game failed").0;
 
     use crate::smtgen::SmtExpr;
 
@@ -255,6 +261,9 @@ fn main() {
     let mod_prf_game = Treeify(&mod_prf_game)
         .transform()
         .expect("treeify of mod_prf_game failed").0;
+    let mod_prf_game = Returnify(&mod_prf_game)
+        .transform()
+        .expect("returnify of mod_prf_game failed").0;
 
     eprintln!("smt expression of real composition");
 
