@@ -7,7 +7,10 @@ use crate::types::Type;
 use crate::package::{Composition, OracleSig, PackageInstance};
 use crate::statement::{CodeBlock, Statement};
 
-use crate::transforms::{oraclelowlevelify::Transformation as OLLTransform, Transformation};
+use crate::transforms::{
+    oraclelowlevelify::Transformation as OLLTransform,
+    varspecify::Transformation as VarSpecTransformation, Transformation,
+};
 
 pub fn smt_to_string<T: Into<SmtExpr>>(t: T) -> String {
     let expr: SmtExpr = t.into();
@@ -568,8 +571,7 @@ impl<'a> CompositionSmtWriter<'a> {
     }
 
     fn smt_pkg_code(&self, inst: &PackageInstance) -> Vec<SmtExpr> {
-        inst.var_specify(&self.comp.name)
-            .pkg
+        inst.pkg
             .oracles
             .iter()
             .map(|def| {
@@ -607,11 +609,15 @@ impl<'a> CompositionSmtWriter<'a> {
             "Composition of {}",
             self.comp.name
         ))];
-        let llcomp = OLLTransform(self.comp)
+        let ll_comp = OLLTransform(self.comp)
             .transform()
             .expect("the oracle-lowlevelify transformation failed unexpectedly")
             .0;
-        let code = llcomp
+        let varspec_comp = VarSpecTransformation(ll_comp)
+            .transform()
+            .expect("the varspecify transformation failed unexpectedly")
+            .0;
+        let code = varspec_comp
             .pkgs
             .iter()
             .map(|inst| self.smt_pkg_code(inst))
