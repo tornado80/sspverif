@@ -1,4 +1,5 @@
 /target
 *~
 test*.smt
+test*.z3out
 settings.json
