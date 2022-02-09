@@ -8,7 +8,6 @@ mod expressions;
 mod identifier;
 mod package;
 mod smt;
-mod smtgen;
 mod statement;
 mod transforms;
 mod types;
