@@ -3,6 +3,7 @@
 use std::collections::HashMap;
 //use std::fmt;
 
+mod examples;
 mod expressions;
 mod identifier;
 mod package;
@@ -10,7 +11,6 @@ mod smtgen;
 mod statement;
 mod transforms;
 mod types;
-mod examples;
 
 use crate::package::Composition;
 use crate::smtgen::{CompositionSmtWriter, SmtFmt, SmtPackageState};
@@ -24,7 +24,6 @@ fn main() {
     let key_real_pkg = examples::keypkg::key_pkg(&params);
     let mod_prf_real_pkg = examples::modprf::mod_prf(&params);
 
-        
     let mod_prf_game = Composition {
         pkgs: vec![key_real_pkg.clone(), mod_prf_real_pkg.clone()],
         edges: vec![(1, 0, key_real_pkg.pkg.clone().oracles[1].sig.clone())],
@@ -101,49 +100,15 @@ fn main() {
     println!("(declare-fun f (Bits_n Bits_*) Bits_*)");
     println!();
 
-    println!(";;;;; Real Mono PRF");
-    println!("; Real Mono PRF State Types");
-
     let prf_real_game_writer = CompositionSmtWriter::new(&prf_real_game);
-
-    let smt_lines = prf_real_game_writer.smt_composition_state();
-    for line in smt_lines {
+    println!(";;;;; Real Mono PRF Game");
+    for line in prf_real_game_writer.smt_composition_all() {
         line.write_smt_to(&mut std::io::stdout()).unwrap();
         println!();
     }
-    println!();
-    println!("; Real Mono PRF Return Types");
-
-    let smt_lines = prf_real_game_writer.smt_composition_return();
-    for line in smt_lines {
-        line.write_smt_to(&mut std::io::stdout()).unwrap();
-        println!();
-    }
-    println!();
-    println!("; Real Mono PRF Oracle Code");
-    let smt_lines = prf_real_game_writer.code_smt();
-    for line in smt_lines {
-        line.write_smt_to(&mut std::io::stdout()).unwrap();
-        println!();
-    }
-
     let mod_prf_game_writer = CompositionSmtWriter::new(&mod_prf_game);
-
     println!(";;;;; Real Mod PRF Game");
-    println!("; Real Mod PRF State Types");
-    for line in mod_prf_game_writer.smt_composition_state() {
-        line.write_smt_to(&mut std::io::stdout()).unwrap();
-        println!();
-    }
-    println!();
-    println!("; Real Mod PRF Return Types");
-    for line in mod_prf_game_writer.smt_composition_return() {
-        line.write_smt_to(&mut std::io::stdout()).unwrap();
-        println!();
-    }
-    println!();
-    println!("; Real Mod PRF Oracle Code");
-    for line in mod_prf_game_writer.code_smt() {
+    for line in mod_prf_game_writer.smt_composition_all() {
         line.write_smt_to(&mut std::io::stdout()).unwrap();
         println!();
     }

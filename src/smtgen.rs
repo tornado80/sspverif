@@ -613,6 +613,18 @@ impl<'a> CompositionSmtWriter<'a> {
 
         comment.into_iter().chain(code).collect()
     }
+
+    pub fn smt_composition_all(&self) -> Vec<SmtExpr> {
+        let state = self.smt_composition_state();
+        let ret = self.smt_composition_return();
+        let code = self.smt_composition_code();
+
+        state
+            .into_iter()
+            .chain(ret.into_iter())
+            .chain(code.into_iter())
+            .collect()
+    }
 }
 
 /**
