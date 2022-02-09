@@ -1,10 +1,10 @@
 use super::Composition;
-use std::error::Error;
 
 pub mod typecheck;
 
-trait Transformation {
-    type E: Error;
+pub trait Transformation {
+    type Err;
+    type Aux;
 
-    fn transform(&self) -> Result<Composition, Self::E>;
+    fn transform(&self) -> Result<(Composition, Self::Aux), Self::Err>;
 }

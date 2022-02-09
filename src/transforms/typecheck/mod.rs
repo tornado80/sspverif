@@ -4,7 +4,7 @@ mod errors;
 mod expression;
 mod oracledef;
 mod pkg;
-pub mod scope;
+mod scope;
 
 use composition::typecheck_comp;
 use errors::*;
@@ -26,13 +26,18 @@ impl Transform {
         Transform::new(Scope::new(), comp)
     }
 
-    pub fn transform(mut self) -> Result<Composition, TypeCheckError> {
-        typecheck_comp(&self.comp, &mut self.scope)?;
-
-        Ok(self.comp)
-    }
-
     pub fn scope(self) -> Scope {
         self.scope
+    }
+}
+
+impl super::Transformation for Transform {
+    type Err = TypeCheckError;
+    type Aux = Scope;
+    fn transform(&self) -> Result<(Composition, Scope), TypeCheckError> {
+        let scope = self.scope.clone();
+        typecheck_comp(&self.comp, &mut scope.clone())?;
+
+        Ok((self.comp.clone(), scope))
     }
 }

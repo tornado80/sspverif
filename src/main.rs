@@ -18,6 +18,8 @@ use crate::smtgen::{CompositionSmtWriter, SmtFmt, SmtPackageState};
 use crate::statement::{CodeBlock, Statement};
 use crate::types::Type;
 
+use crate::transforms::Transformation;
+
 fn main() {
     let mut params = HashMap::new();
     params.insert("n".to_string(), "256".to_string());
@@ -192,7 +194,8 @@ fn main() {
     let prf_real_game =
         crate::transforms::typecheck::Transform::new_with_empty_scope(prf_real_game)
             .transform()
-            .expect("typecheck of prf real game failed");
+            .expect("typecheck of prf real game failed")
+            .0;
 
     use crate::smtgen::SmtExpr;
 
@@ -241,7 +244,8 @@ fn main() {
 
     let mod_prf_game = transforms::typecheck::Transform::new_with_empty_scope(mod_prf_game)
         .transform()
-        .expect("typecheck of mod_prf_game failed");
+        .expect("typecheck of mod_prf_game failed")
+        .0;
 
     eprintln!("smt expression of real composition");
 
