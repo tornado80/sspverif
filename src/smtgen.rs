@@ -614,13 +614,31 @@ impl<'a> CompositionSmtWriter<'a> {
         comment.into_iter().chain(code).collect()
     }
 
+    fn smt_composition_randomness(&self) -> Vec<SmtExpr> {
+        vec![
+            SmtPackageState::new(
+                &self.comp.name,
+                "__randomness",
+                vec![("ctr".into(), Type::Integer)],
+            )
+            .smt_declare_datatype(),
+            SmtExpr::List(vec![
+                SmtExpr::Atom("declare-fun".into()),
+                SmtExpr::Atom(format!("__sample-rand-{}", self.comp.name)),
+                SmtExpr::List(vec![SmtExpr::Atom("Int".into())]),
+                SmtExpr::Atom(format!("Bits_n")),
+            ]),
+        ]
+    }
+
     pub fn smt_composition_all(&self) -> Vec<SmtExpr> {
+        let rand = self.smt_composition_randomness();
         let state = self.smt_composition_state();
         let ret = self.smt_composition_return();
         let code = self.smt_composition_code();
 
-        state
-            .into_iter()
+        rand.into_iter()
+            .chain(state.into_iter())
             .chain(ret.into_iter())
             .chain(code.into_iter())
             .collect()
