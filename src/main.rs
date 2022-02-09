@@ -7,14 +7,14 @@ mod examples;
 mod expressions;
 mod identifier;
 mod package;
-mod smtgen;
+mod smt;
 mod statement;
 mod transforms;
 mod types;
 
 use crate::package::Composition;
-use crate::smtgen::{CompositionSmtWriter, SmtFmt, SmtPackageState};
-use crate::types::Type;
+use crate::smt::exprs::{SmtExpr, SmtFmt};
+use crate::smt::writer::CompositionSmtWriter;
 
 fn main() {
     let mut params = HashMap::new();
@@ -45,10 +45,6 @@ fn main() {
         name: String::from("mono-prf-game"),
     };
 
-    let (prf_real_game, _) = crate::transforms::transform_all(&prf_real_game).unwrap();
-
-    use crate::smtgen::SmtExpr;
-
     let bits_n_smt = SmtExpr::List(vec![
         SmtExpr::Atom(String::from("declare-sort")),
         SmtExpr::Atom(String::from("Bits_n")),
@@ -66,53 +62,30 @@ fn main() {
     println!();
 
     println!("(declare-const bot Bits_n)");
-    println!("(declare-fun __sample-rand-mono-prf-game (Int) Bits_n)");
-    println!("(declare-fun __sample-rand-real (Int) Bits_n)");
-    println!(
-        "(assert (forall ((n Int)) (= (__sample-rand-real n) (__sample-rand-mono-prf-game n))))"
-    );
 
-    SmtPackageState::new(
-        &prf_real_game.name,
-        "__randomness",
-        vec![("ctr".into(), Type::Integer)],
-    )
-    .smt_declare_datatype()
-    .write_smt_to(&mut std::io::stdout())
-    .unwrap();
-
-    SmtPackageState::new(
-        &mod_prf_game.name,
-        "__randomness",
-        vec![("ctr".into(), Type::Integer)],
-    )
-    .smt_declare_datatype()
-    .write_smt_to(&mut std::io::stdout())
-    .unwrap();
-
-    //    println!("(declare-datatype State___randomness ((mk-state-__randomness (state-__randomness-ctr Int))))");
-
-    let (mod_prf_game, _) = crate::transforms::transform_all(&mod_prf_game).unwrap();
-
-    eprintln!("smt expression of real composition");
-
-    println!("; Ze PRF");
+    println!("; The PRF");
     println!("(declare-fun f (Bits_n Bits_*) Bits_*)");
     println!();
 
-    let prf_real_game_writer = CompositionSmtWriter::new(&prf_real_game);
     println!(";;;;; Real Mono PRF Game");
+    let (prf_real_game, _) = crate::transforms::transform_all(&prf_real_game).unwrap();
+    let prf_real_game_writer = CompositionSmtWriter::new(&prf_real_game);
     for line in prf_real_game_writer.smt_composition_all() {
         line.write_smt_to(&mut std::io::stdout()).unwrap();
         println!();
     }
-    let mod_prf_game_writer = CompositionSmtWriter::new(&mod_prf_game);
+
     println!(";;;;; Real Mod PRF Game");
+    let (mod_prf_game, _) = crate::transforms::transform_all(&mod_prf_game).unwrap();
+    let mod_prf_game_writer = CompositionSmtWriter::new(&mod_prf_game);
     for line in mod_prf_game_writer.smt_composition_all() {
         line.write_smt_to(&mut std::io::stdout()).unwrap();
         println!();
     }
 
+    println!(
+        "(assert (forall ((n Int)) (= (__sample-rand-real n) (__sample-rand-mono-prf-game n))))"
+    );
     println!("(check-sat)");
     println!("(get-model)");
 }
