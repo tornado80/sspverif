@@ -28,90 +28,10 @@ fn main() {
     params.insert("n".to_string(), "256".to_string());
 
     let prf_real_game = examples::monoprf::mono_prf(&params);
+    let key_real_pkg = examples::keypkg::key_pkg(&params);
+    let mod_prf_real_pkg = examples::modprf::mod_prf(&params);
 
-    let key_real_pkg = PackageInstance {
-        name: "key".to_string(),
-        params: params.clone(),
-        pkg: Package {
-            params: vec![("n".to_string(), Type::new_scalar("int"))],
-            state: vec![("k".to_string(), Type::new_bits("n"))],
-            oracles: vec![
-                OracleDef {
-                    sig: OracleSig {
-                        name: "Set".to_string(),
-                        args: vec![("k_".to_string(), Type::new_bits("n"))],
-                        tipe: Type::Empty,
-                    },
-                    code: block! {
-                        Statement::IfThenElse(
-                            Expression::new_equals(vec![
-                                &(Identifier::new_scalar("k").to_expression()),
-                                &Expression::Bot,
-                            ]),
-                            block! {
-                                Statement::Assign(Identifier::new_scalar("k"),
-                                                Expression::Sample(Type::new_bits("n")),
-                                )},
-                            block! {
-                                Statement::Abort
-                            },
-                        )
-                    },
-                },
-                OracleDef {
-                    sig: OracleSig {
-                        name: "Get".to_string(),
-                        args: vec![],
-                        tipe: Type::new_bits("n"),
-                    },
-                    code: block! {
-                        Statement::IfThenElse(
-                            Expression::new_equals(vec![
-                                &(Identifier::new_scalar("k").to_expression()),
-                                &Expression::Bot,
-                            ]),
-                            block! {Statement::Abort},
-                            block! {},
-                        ),
-                        Statement::Return(Some(Identifier::new_scalar("k").to_expression()))
-                    },
-                },
-            ],
-        },
-    };
-
-    let mod_prf_real_pkg = PackageInstance {
-        name: "mod-prf".to_string(),
-        params: params.clone(),
-        pkg: Package {
-            params: vec![
-                ("n".to_string(), Type::new_scalar("int")),
-                (
-                    "f".to_string(),
-                    Type::new_fn(
-                        vec![Type::new_bits("n"), Type::new_bits("*")],
-                        Type::new_bits("*"),
-                    ),
-                ),
-            ],
-            state: vec![],
-            oracles: vec![OracleDef {
-                sig: OracleSig {
-                    name: "Eval".to_string(),
-                    args: vec![("msg".to_string(), Type::new_bits("*"))],
-                    tipe: Type::new_bits("*"),
-                },
-                code: block! {
-                    Statement::Assign(Identifier::new_scalar("k"), Expression::OracleInvoc("Get".to_string(), vec![])), // TODO figure out why the macro doesn't work (and why it's a macro and not a function)
-                    Statement::Return(Some(fncall! { "f",
-                                                      Identifier::new_scalar("k").to_expression(),
-                                                      Identifier::new_scalar("msg").to_expression()
-                    }))
-                },
-            }],
-        },
-    };
-
+        
     let mod_prf_game = Composition {
         pkgs: vec![key_real_pkg.clone(), mod_prf_real_pkg.clone()],
         edges: vec![(1, 0, key_real_pkg.pkg.clone().oracles[1].sig.clone())],
