@@ -3,9 +3,9 @@ use crate::identifier::Identifier;
 use crate::package::{Composition, OracleDef, Package, PackageInstance};
 use crate::statement::{CodeBlock, Statement};
 
-pub struct Transformation(pub Composition);
+pub struct Transformation<'a>(pub &'a Composition);
 
-impl super::Transformation for Transformation {
+impl<'a> super::Transformation for Transformation<'a> {
     type Err = ();
     type Aux = ();
 
