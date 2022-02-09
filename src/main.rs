@@ -12,11 +12,8 @@ mod transforms;
 mod types;
 mod examples;
 
-use crate::expressions::Expression;
-use crate::identifier::Identifier;
-use crate::package::{Composition, OracleDef, OracleSig, Package, PackageInstance};
+use crate::package::Composition;
 use crate::smtgen::{CompositionSmtWriter, SmtFmt, SmtPackageState};
-use crate::statement::{CodeBlock, Statement};
 use crate::types::Type;
 
 use crate::transforms::{Transformation,
