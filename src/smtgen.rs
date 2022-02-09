@@ -7,6 +7,8 @@ use crate::types::Type;
 use crate::package::{Composition, OracleSig, PackageInstance};
 use crate::statement::{CodeBlock, Statement};
 
+use crate::transforms::{oraclelowlevelify::Transformation as OLLTransform, Transformation};
+
 pub fn smt_to_string<T: Into<SmtExpr>>(t: T) -> String {
     let expr: SmtExpr = t.into();
     expr.to_string()
@@ -362,9 +364,7 @@ impl<'a> CompositionSmtWriter<'a> {
         sig: &OracleSig,
         inst: &PackageInstance,
     ) -> SmtExpr {
-        let PackageInstance {
-            pkg, name: pkgname, ..
-        } = inst;
+        let PackageInstance { name: pkgname, .. } = inst;
 
         let mut result = None;
         for stmt in block.0.iter().rev() {
@@ -525,11 +525,7 @@ impl<'a> CompositionSmtWriter<'a> {
                             body: result.unwrap(),
                         }
                         .into(),
-                        Identifier::State {
-                            name,
-                            pkgname,
-                            compname,
-                        } => SmtLet {
+                        Identifier::State { name, pkgname, .. } => SmtLet {
                             bindings: vec![(
                                 smt_to_string(SspSmtVar::SelfState),
                                 self.get_state_helper(&pkgname)
@@ -611,7 +607,10 @@ impl<'a> CompositionSmtWriter<'a> {
             "Composition of {}",
             self.comp.name
         ))];
-        let llcomp = self.comp.lowlevelify_oracleinvocs();
+        let llcomp = OLLTransform(self.comp)
+            .transform()
+            .expect("the oracle-lowlevelify transformation failed unexpectedly")
+            .0;
         let code = llcomp
             .pkgs
             .iter()
