@@ -63,6 +63,9 @@ impl From<Expression> for SmtExpr {
 
                 SmtExpr::List(acc)
             }
+            Expression::Not(expr) => {
+                SmtExpr::List(vec![SmtExpr::Atom("not".to_string()), (*expr).into()])
+            }
             Expression::Identifier(Identifier::Scalar(identname)) => SmtExpr::Atom(identname),
             Expression::Identifier(Identifier::Local(identname)) => SmtExpr::Atom(identname),
             Expression::Identifier(Identifier::State {
@@ -74,6 +77,20 @@ impl From<Expression> for SmtExpr {
                 SspSmtVar::SelfState.into(),
             ]),
             Expression::Bot => SmtExpr::Atom("bot".to_string()),
+            Expression::TableAccess(table, index) => SmtExpr::List(vec![
+                SmtExpr::Atom("select".into()),
+                (*table).to_expression().into(),
+                (*index).into(),
+            ]),
+            Expression::Tuple(exprs) => {
+                let mut l = vec![SmtExpr::Atom(format!("mk-tuple-{}", "grrrTODO"))];
+
+                for expr in exprs {
+                    l.push(expr.into())
+                }
+
+                SmtExpr::List(l)
+            }
             Expression::FnCall(name, exprs) => {
                 let mut call = vec![SmtExpr::Atom(name)];
 
@@ -99,6 +116,22 @@ impl From<Type> for SmtExpr {
             }
             Type::Boolean => SmtExpr::Atom("Bool".to_string()),
             Type::Integer => SmtExpr::Atom("Int".into()),
+            Type::Table(t_idx, t_val) => SmtExpr::List(vec![
+                SmtExpr::Atom("Array".into()),
+                (*t_idx).into(),
+                (*t_val).into(),
+            ]),
+            Type::Tuple(types) => SmtExpr::List(vec![SmtExpr::Atom(format!(
+                "Tuple__{}",
+                types
+                    .into_iter()
+                    .map(|t| {
+                        let expr: SmtExpr = t.into();
+                        smt_to_string(expr)
+                    })
+                    .collect::<Vec<String>>()
+                    .join("_")
+            ))]),
             _ => {
                 panic!("not implemented: {:?}", t)
             }

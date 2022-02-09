@@ -11,6 +11,7 @@ pub fn get_type(expr: &Expression, scope: &Scope) -> TypeResult {
         Expression::StringLiteral(_) => Ok(Type::String),
         Expression::IntegerLiteral(_) => Ok(Type::Integer),
         Expression::BooleanLiteral(_) => Ok(Type::Boolean),
+        Expression::Not(_) => Ok(Type::Boolean),
         Expression::Equals(_) => Ok(Type::Boolean),
         Expression::Tuple(elems) => {
             let mut types = vec![];
@@ -27,7 +28,7 @@ pub fn get_type(expr: &Expression, scope: &Scope) -> TypeResult {
             if let Expression::Some(inner) = &**v {
                 Ok(get_type(inner, scope)?)
             } else {
-                Err(TypeError("".to_string()))
+                Err(TypeError(format!("type error: {:?}", expr)))
             }
         }
         Expression::Neg(v) => {
@@ -35,13 +36,13 @@ pub fn get_type(expr: &Expression, scope: &Scope) -> TypeResult {
             if t == Type::Integer && matches!(t, Type::AddiGroupEl(_)) {
                 Ok(t)
             } else {
-                Err(TypeError("".to_string()))
+                Err(TypeError(format!("type error: {:?}", expr)))
             }
         }
         Expression::Not(v) => {
             let t = get_type(v, scope)?;
             if t != Type::Boolean {
-                return Err(TypeError("".to_string()));
+                return Err(TypeError(format!("type error: {:?}", expr)));
             }
 
             Ok(t)
@@ -52,7 +53,7 @@ pub fn get_type(expr: &Expression, scope: &Scope) -> TypeResult {
                 return Ok(t);
             }
 
-            Err(TypeError("".to_string()))
+            Err(TypeError(format!("type error: {:?}", expr)))
         }
         Expression::Add(left, right) => {
             let t_left = get_type(left, scope)?;
@@ -65,7 +66,7 @@ pub fn get_type(expr: &Expression, scope: &Scope) -> TypeResult {
             if same_type && (left_is_int || left_is_age) {
                 Ok(t_left)
             } else {
-                Err(TypeError("".to_string()))
+                Err(TypeError(format!("type error: {:?}", expr)))
             }
         }
         Expression::Mul(left, right) => {
@@ -82,13 +83,13 @@ pub fn get_type(expr: &Expression, scope: &Scope) -> TypeResult {
                 if left_is_int || left_is_mge {
                     Ok(t_left)
                 } else {
-                    Err(TypeError("".to_string()))
+                    Err(TypeError(format!("type error: {:?}", expr)))
                 }
             } else {
                 if left_is_int && right_is_age {
                     Ok(t_right)
                 } else {
-                    Err(TypeError("".to_string()))
+                    Err(TypeError(format!("type error: {:?}", expr)))
                 }
             }
         }
@@ -102,14 +103,14 @@ pub fn get_type(expr: &Expression, scope: &Scope) -> TypeResult {
                 return Ok(t_left);
             }
 
-            Err(TypeError("".to_string()))
+            Err(TypeError(format!("type error: {:?}", expr)))
         }
         Expression::Div(left, right) => {
             let t_left = get_type(left, scope)?;
             let t_right = get_type(right, scope)?;
 
             if t_left != Type::Integer || t_left != t_right {
-                return Err(TypeError("".to_string()));
+                return Err(TypeError(format!("type error: {:?}", expr)));
             }
 
             Ok(t_left)
@@ -126,10 +127,10 @@ pub fn get_type(expr: &Expression, scope: &Scope) -> TypeResult {
                 if base_is_int || base_is_mge {
                     Ok(t_base)
                 } else {
-                    Err(TypeError("".to_string()))
+                    Err(TypeError(format!("type error: {:?}", expr)))
                 }
             } else {
-                Err(TypeError("".to_string()))
+                Err(TypeError(format!("type error: {:?}", expr)))
             }
         }
 
@@ -138,7 +139,7 @@ pub fn get_type(expr: &Expression, scope: &Scope) -> TypeResult {
             let t_mod = get_type(modulus, scope)?;
 
             if t_num != Type::Integer || t_mod != Type::Integer {
-                return Err(TypeError("".to_string()));
+                return Err(TypeError(format!("type error: {:?}", expr)));
             }
 
             Ok(t_num)
@@ -148,7 +149,7 @@ pub fn get_type(expr: &Expression, scope: &Scope) -> TypeResult {
             // TODO bit strings
             for v in vs {
                 if get_type(v, scope)? != Type::Boolean {
-                    return Err(TypeError("".to_string()));
+                    return Err(TypeError(format!("type error: {:?}", expr)));
                 }
             }
 
@@ -160,19 +161,19 @@ pub fn get_type(expr: &Expression, scope: &Scope) -> TypeResult {
             {
                 // 1. check that arg types match args
                 if args.len() != arg_types.len() {
-                    return Err(TypeError("".to_string()));
+                    return Err(TypeError(format!("type error: {:?}", expr)));
                 }
 
                 for (i, arg) in args.iter().enumerate() {
                     if get_type(arg, scope)? != arg_types[i] {
-                        return Err(TypeError("".to_string()));
+                        return Err(TypeError(format!("type error: {:?}", expr)));
                     }
                 }
 
                 // 2. return ret type
                 Ok(*ret_type)
             } else {
-                Err(TypeError("".to_string()))
+                Err(TypeError(format!("type error: {:?}", expr)))
             }
         }
 
@@ -187,10 +188,14 @@ pub fn get_type(expr: &Expression, scope: &Scope) -> TypeResult {
                     }
 
                     for (i, arg) in args.iter().enumerate() {
-                        if get_type(arg, scope)? != arg_types[i] {
+                        let t_arg = get_type(arg, scope)?;
+                        if t_arg != arg_types[i] {
                             return Err(TypeError(format!(
-                                "oracle invocation arg type doesn't match at position {:}",
-                                i
+                                "oracle {:} invocation arg type doesn't match at position {:}. expected {:?}, got {:?}",
+                                name,
+                                i,
+                                arg_types[i],
+                                t_arg
                             )));
                         }
                     }
@@ -209,14 +214,34 @@ pub fn get_type(expr: &Expression, scope: &Scope) -> TypeResult {
             if let Some(t) = scope.lookup(id) {
                 Ok(t)
             } else {
-                Err(TypeError("".to_string()))
+                Err(TypeError(format!("type error: {:?}", expr)))
             }
         }
-
+        Expression::TableAccess(id, expr) => match scope.lookup(&**id) {
+            Some(Type::Table(t_idx, t_val)) => {
+                let t_expr = get_type(expr, scope)?;
+                if *t_idx == t_expr {
+                    Ok(*t_val)
+                } else {
+                    Err(TypeError(format!(
+                        "type error: bad index type. expected {:?}, got {:?}",
+                        t_idx, t_expr
+                    )))
+                }
+            }
+            Some(t) => Err(TypeError(format!(
+                "type error: table access on value of type {:?}",
+                t
+            ))),
+            _ => Err(TypeError(format!(
+                "error during table accesses; couldn't find identifier {:?} in scope",
+                id
+            ))),
+        },
         _ => {
             println!("get_type not implemented for:");
             println!("{:#?}", expr);
-            Err(TypeError("".to_string()))
+            Err(TypeError(format!("type error: {:?}", expr)))
         }
     }
 }

@@ -1,4 +1,3 @@
-
 /*
 Questions I:
 Code-specific:
@@ -43,54 +42,52 @@ Questions II:
 
 use crate::expressions::Expression;
 use crate::identifier::Identifier;
+use crate::package::{Composition, OracleDef, OracleSig, Package, PackageInstance};
 use crate::statement::{CodeBlock, Statement};
-use crate::package::{OracleDef, OracleSig, Package, PackageInstance, Composition};
 use crate::types::Type;
 use std::collections::HashMap;
 
 use crate::block;
 use crate::fncall;
-use crate::Type::Integer;
 
-
-
-fn main() {
-    let mut params = HashMap::new();
-    params.insert("n".to_string(), "256".to_string());
-
+pub fn no_mapping_game(params: &HashMap<String, String>) -> Composition {
     let key_pkg_top = PackageInstance {
         name: "key_pkg_top".to_string(),
         params: params.clone(),
         pkg: Package {
-            params: vec![("n".to_string(), Type::Integer)],   /* key length*/
-            state: vec![("T".to_string(), Type::Table(Box::new(Integer),new_bits("n")))], /* Box ?*/
+            params: vec![("n".to_string(), Type::Integer)], /* key length*/
+            state: vec![(
+                "T".to_string(),
+                Type::Table(Box::new(Type::Integer), Box::new(Type::new_bits("n"))),
+            )], /* Box ?*/
             oracles: vec![
                 OracleDef {
                     sig: OracleSig {
                         name: "Set".to_string(),
-                        args: vec![("h".to_string(), Type::Integer),  /* handle h */
-                                   ("k".to_string(), Type::new_bits("n"))], /* key k  */
+                        args: vec![
+                            ("h".to_string(), Type::Integer), /* handle h */
+                            ("k".to_string(), Type::new_bits("n")),
+                        ], /* key k  */
                         tipe: Type::Integer,
                     },
                     code: block! { /* if T[h] != bot, return bot */
                         Statement::IfThenElse(
                             Expression:: Not( /* Box ? */
-                                new_equals(vec![
-                                    &Expression::TableAccess(Box::(Identifier::new_scalar("T")), /* Box ? */
-                                                             Box::(Identifier::new_scalar("h").to_expression())), /* Box ? */
+                                Box::new(Expression::new_equals(vec![
+                                    &Expression::TableAccess(Box::new(Identifier::new_scalar("T")), /* Box ? */
+                                                             Box::new(Identifier::new_scalar("h").to_expression())), /* Box ? */
                                     &Expression::Bot,
-                                ]),),
+                                ]))),
                             block! {
-                                Statement::TableAssign(Identifier::new_scalar("T"), 
-                                                       Identifier::new_scalar("h").to_expression(), 
-                                                       Identifier::new_scalar("k").to_expression()),
+                                Statement::TableAssign(Identifier::new_scalar("T"),
+                                                       Identifier::new_scalar("h").to_expression(),
+                                                       Identifier::new_scalar("k").to_expression())
                                    },
-                            block! {},      
-                                ),},
-                            block! { 
-                                Return(Expression:h)
-                                 },
-                            },
+                            block! {},
+                        ),
+                        Statement::Return(Some(Identifier::new_scalar("h").to_expression()))
+                    },
+                },
                 OracleDef {
                     sig: OracleSig {
                         name: "Get".to_string(),
@@ -98,23 +95,23 @@ fn main() {
                         tipe: Type::new_bits("n"),
                     },
                     code: block! {
-                        Statement::IfThenElse(
-                            Expression::new_equals(vec![
-                                    &Expression::TableAccess(Box::(Identifier::new_scalar("T")), /* Box ? */
-                                                             Box::(Identifier::new_scalar("h").to_expression())), /* Box ? */
-                                    &Expression::Bot,
-                            ]),
-                            block! {Statement::Abort},
-                            block! {}                                        
-                        ),
-                        block! {Return(Expression::TableAccess(Box::(Identifier::new_scalar("T")), /* Box ? */
-                                                               Box::(Identifier::new_scalar("h").to_expression())))}, /* Box ? */
-                                 }
-                    },
-                ],
-            },
-        };
-
+                    Statement::IfThenElse(
+                        Expression::new_equals(vec![
+                                &Expression::TableAccess(Box::new(Identifier::new_scalar("T")), /* Box ? */
+                                                         Box::new(Identifier::new_scalar("h").to_expression())), /* Box ? */
+                                &Expression::Bot,
+                        ]),
+                        block! {Statement::Abort},
+                        block! {}
+                    ),
+                    Statement::Return(
+                        Some(Expression::TableAccess(Box::new(Identifier::new_scalar("T")), /* Box ? */
+                                                           Box::new(Identifier::new_scalar("h").to_expression()))))
+                                            }, /* Box ? */
+                },
+            ],
+        },
+    };
 
     let mod_prf = PackageInstance {
         name: "prf".to_string(),
@@ -126,7 +123,7 @@ fn main() {
                     "f".to_string(),
                     Type::new_fn(
                         vec![Type::new_bits("n"), Type::new_bits("*")],
-                        Type::new_bits("*"),
+                        Type::new_bits("n"),
                     ),
                 ),
             ],
@@ -134,88 +131,120 @@ fn main() {
             oracles: vec![OracleDef {
                 sig: OracleSig {
                     name: "Eval".to_string(),
-                    args: vec![("h".to_string(), Type::Integer),("msg".to_string(), Type::new_bits("*"))],
-                    tipe: Type::Tuple(vec![Integer,String]),
+                    args: vec![
+                        ("h".to_string(), Type::Integer),
+                        ("msg".to_string(), Type::new_bits("*")),
+                    ],
+                    tipe: Type::Tuple(vec![Type::Integer, Type::new_bits("*")]),
                 },
                 code: block! {
-                    Statement::Assign(Identifier::new_scalar("k"), Expression::OracleInvoc("Get".to_string(), vec![Expression::h])), 
-                    Statement::Assign(Identifier::new_scalar("y"),Some(fncall! { "f",
+                    Statement::Assign(Identifier::new_scalar("k"), Expression::OracleInvoc("Get".to_string(), vec![Identifier::new_scalar("h").to_expression()])),
+                    Statement::Assign(Identifier::new_scalar("y"),fncall! { "f",
                                                       Identifier::new_scalar("k").to_expression(),
-                                                      Identifier::new_scalar("msg").to_expression()}))
-                    Statement::Assign(Identifier::new_scalar("z"), Expression::OracleInvoc("Set".to_string(), vec![Tuple::vec![Expression::h,Expression::k],Expression::y])), 
-                            },
-                    block! {Return(Expression::Tuple::vec![Expression::h,Expression::msg])}
-                    },
-                ],
-            },
-        };
+                                                      Identifier::new_scalar("msg").to_expression()}),
+                    Statement::Assign(Identifier::new_scalar("z"), Expression::OracleInvoc(
+                        "Set".to_string(),
+                        vec![
+                            Expression::Tuple(vec![
+                                Identifier::new_scalar("h").to_expression(),
+                                Identifier::new_scalar("msg").to_expression()
+                            ]),
+                            Identifier::new_scalar("y").to_expression()
+                        ]
+                    )),
+                    Statement::Return(Some(
+                        Expression::Tuple(vec![
+                            Identifier::new_scalar("h").to_expression(),
+                            Identifier::new_scalar("msg").to_expression()
+                        ])
+                    ))
+                },
+            }],
+        },
+    };
 
     let key_pkg_bottom = PackageInstance {
         name: "key_pkg_bottom".to_string(),
         params: params.clone(),
         pkg: Package {
-            params: vec![("n".to_string(), Type::Integer)],   /* key length*/
-            state: vec![("T".to_string(), Type::Table(Type::Tuple(vec![Integer,new_bits("*")]),Box<new_bits("n")>))],
+            params: vec![("n".to_string(), Type::Integer)], /* key length*/
+            state: vec![(
+                "T".to_string(),
+                Type::Table(
+                    Box::new(Type::Tuple(vec![Type::Integer, Type::new_bits("*")])),
+                    Box::new(Type::new_bits("n")),
+                ),
+            )],
             oracles: vec![
                 OracleDef {
                     sig: OracleSig {
                         name: "Set".to_string(),
-                        args: vec![("h".to_string(), Type::Tuple(vec![Integer,new_bits("*")]))],  /* handle (int,msg) */
-                        tipe: Type::new_bits("*"),
+                        args: vec![
+                            (
+                                "h".to_string(),
+                                Type::Tuple(vec![Type::Integer, Type::new_bits("*")]),
+                            ),
+                            ("k".to_string(), Type::new_bits("n")),
+                        ], /* handle (int,msg) */
+                        tipe: Type::Tuple(vec![Type::Integer, Type::new_bits("*")]),
                     },
                     code: block! { /* if T[h] != bot, return bot */
                         Statement::IfThenElse(
-                            Expression:: Not( /* Box ? */
-                                new_equals(vec![
-                                    &Expression::TableAccess(Box::(Identifier::new_scalar("T")), /* Box ? */
-                                                             Box::(Identifier::new_scalar("h").to_expression())), /* Box ? */
+                            Expression::Not( /* Box ? */
+                                Box::new(
+                                Expression::new_equals(vec![
+                                    &Expression::TableAccess(Box::new(Identifier::new_scalar("T")), /* Box ? */
+                                                             Box::new(Identifier::new_scalar("h").to_expression())), /* Box ? */
                                     &Expression::Bot,
-                                ])),
+                                ]))),
                             block! {
-                                Statement::TableAssign(Identifier::new_scalar("T"), 
-                                                       Identifier::new_scalar("h").to_expression(), 
-                                                       Identifier::new_scalar("k").to_expression()),
+                                Statement::TableAssign(Identifier::new_scalar("T"),
+                                                       Identifier::new_scalar("h").to_expression(),
+                                                       Identifier::new_scalar("k").to_expression())
                                    },
-                            block! {},      
-                                ),},
-                            block! { 
-                                Return(Identifier::new_scalar("h").to_expression())
-                                 },
-                            },
+                            block! {},
+                        ),
+                        Statement::Return(Some(Identifier::new_scalar("h").to_expression()))
+                    },
+                },
                 OracleDef {
                     sig: OracleSig {
                         name: "Get".to_string(),
-                        args: vec![("h".to_string(), Type::Tuple(vec![Integer,new_bits("*")]))],
+                        args: vec![(
+                            "h".to_string(),
+                            Type::Tuple(vec![Type::Integer, Type::new_bits("*")]),
+                        )],
                         tipe: Type::new_bits("n"),
                     },
                     code: block! {
                         Statement::IfThenElse(
                             Expression::new_equals(vec![
-                                    &Expression::TableAccess(Box::(Identifier::new_scalar("T")), /* Box ? */
-                                                             Box::(Identifier::new_scalar("h").to_expression())), /* Box ? */
+                                    &Expression::TableAccess(Box::new(Identifier::new_scalar("T")), /* Box ? */
+                                                             Box::new(Identifier::new_scalar("h").to_expression())), /* Box ? */
                                     &Expression::Bot,
                             ]),
                             block! {Statement::Abort},
-                            block! {}                                        
+                            block! {}
                         ),
-                        block! {Return(Expression::TableAccess(Box::(Identifier::new_scalar("T")), /* Box ? */
-                                                               Box::(Identifier::new_scalar("h").to_expression())))}, /* Box ? */
-                                 }
+                        Statement::Return(Some(Expression::TableAccess(Box::new(Identifier::new_scalar("T")), /* Box ? */
+                                                               Box::new(Identifier::new_scalar("h").to_expression())))) /* Box ? */
                     },
-                ],
-            },
-        };
+                },
+            ],
+        },
+    };
 
-    let plain_prf_game = Composition {
+    Composition {
         pkgs: vec![key_pkg_top.clone(), mod_prf.clone(), key_pkg_bottom.clone()],
-        edges: vec![(1, 0, key_pkg_top.pkg.clone().oracles[1].sig.clone()),
-                    (1, 2, key_pkg_bottom.pkg.clone().oracles[0].sig.clone())
-                   ],
+        edges: vec![
+            (1, 0, key_pkg_top.pkg.clone().oracles[1].sig.clone()),
+            (1, 2, key_pkg_bottom.pkg.clone().oracles[0].sig.clone()),
+        ],
         exports: vec![
             (0, key_pkg_top.pkg.clone().oracles[0].sig.clone()),
             (1, mod_prf.pkg.clone().oracles[0].sig.clone()),
             (2, key_pkg_bottom.pkg.clone().oracles[1].sig.clone()),
-            ],
-        name: "real".to_string(),
-    };
+        ],
+        name: "no_mapping_game".to_string(),
+    }
 }

@@ -72,7 +72,13 @@ fn var_specify_helper(inst: &PackageInstance, block: CodeBlock, comp_name: &str)
                     var_specify_helper(inst, ifcode.clone(), comp_name),
                     var_specify_helper(inst, elsecode.clone(), comp_name),
                 ),
-                _ => panic!("not implemented"),
+                Statement::TableAssign(table, index, expr) => {
+                    if let Expression::Identifier(table) = fixup(table.to_expression()) {
+                        Statement::TableAssign(table, index.map(fixup), expr.map(fixup))
+                    } else {
+                        unreachable!()
+                    }
+                }
             })
             .collect(),
     )

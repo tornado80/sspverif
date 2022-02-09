@@ -327,8 +327,35 @@ impl<'a> CompositionSmtWriter<'a> {
                         _ => panic!("not implemented"),
                     }
                 }
+                Statement::TableAssign(table, index, expr) => {
+                    let new_val = SmtExpr::List(vec![
+                        SmtExpr::Atom("store".into()),
+                        SmtExpr::Atom(table.clone().ident()),
+                        index.clone().into(),
+                        expr.clone().into(),
+                    ]);
+
+                    match table {
+                        Identifier::Scalar(name) => panic!("found a {:?}", name),
+                        Identifier::Local(name) => SmtLet {
+                            bindings: vec![(name.clone(), new_val)],
+                            body: result.unwrap(),
+                        }
+                        .into(),
+                        Identifier::State { name, pkgname, .. } => SmtLet {
+                            bindings: vec![(
+                                smt_to_string(SspSmtVar::SelfState),
+                                self.get_state_helper(&pkgname).smt_set(name, &new_val),
+                            )],
+                            body: result.unwrap(),
+                        }
+                        .into(),
+
+                        _ => panic!("not implemented"),
+                    }
+                }
                 _ => {
-                    panic!("not implemented")
+                    panic!("not implemented: {:?}", stmt)
                 }
             });
         }

@@ -40,8 +40,8 @@ impl TypedCodeBlock {
                     }
                     if expr_type != *ret_type {
                         return Err(TypeCheckError::TypeCheck(format!(
-                            "return type does not match: {:?} != {:?}",
-                            ret_type, expr_type
+                            "return type does not match: {:?} != {:?} (when returning {:?})",
+                            ret_type, expr_type, expr
                         )));
                     }
                 }

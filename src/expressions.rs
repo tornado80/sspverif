@@ -75,6 +75,7 @@ impl Expression {
             | Expression::BooleanLiteral(_)
             | Expression::Identifier(_) => self.clone(),
 
+            Expression::Not(expr) => Expression::Not(Box::new(expr.map(f))),
             Expression::Some(expr) => Expression::Some(Box::new(expr.map(f))),
             Expression::TableAccess(id, expr) => {
                 Expression::TableAccess(id.clone(), Box::new(expr.map(f)))
