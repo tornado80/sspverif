@@ -16,10 +16,6 @@ use crate::package::Composition;
 use crate::smtgen::{CompositionSmtWriter, SmtFmt, SmtPackageState};
 use crate::types::Type;
 
-use crate::transforms::{Transformation,
-                        treeify::Transformation as Treeify,
-                        returnify::Transformation as Returnify};
-
 fn main() {
     let mut params = HashMap::new();
     params.insert("n".to_string(), "256".to_string());
@@ -50,20 +46,7 @@ fn main() {
         name: String::from("mono-prf-game"),
     };
 
-    let prf_real_game =
-        crate::transforms::typecheck::Transform::new_with_empty_scope(prf_real_game)
-            .transform()
-            .expect("typecheck of prf real game failed")
-            .0;
-
-    let prf_real_game =
-        Treeify(&prf_real_game)
-            .transform()
-            .expect("treeify of prf real game failed").0;
-    let prf_real_game =
-        Returnify(&prf_real_game)
-            .transform()
-            .expect("returnify of prf real game failed").0;
+    let (prf_real_game, _) = crate::transforms::transform_all(&prf_real_game).unwrap();
 
     use crate::smtgen::SmtExpr;
 
@@ -110,17 +93,7 @@ fn main() {
 
     //    println!("(declare-datatype State___randomness ((mk-state-__randomness (state-__randomness-ctr Int))))");
 
-    let mod_prf_game = transforms::typecheck::Transform::new_with_empty_scope(mod_prf_game)
-        .transform()
-        .expect("typecheck of mod_prf_game failed")
-        .0;
-
-    let mod_prf_game = Treeify(&mod_prf_game)
-        .transform()
-        .expect("treeify of mod_prf_game failed").0;
-    let mod_prf_game = Returnify(&mod_prf_game)
-        .transform()
-        .expect("returnify of mod_prf_game failed").0;
+    let (mod_prf_game, _) = crate::transforms::transform_all(&mod_prf_game).unwrap();
 
     eprintln!("smt expression of real composition");
 
