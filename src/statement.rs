@@ -4,9 +4,6 @@ use crate::identifier::Identifier;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CodeBlock(pub Vec<Statement>);
 
-impl CodeBlock {
-}
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Statement {
     Abort,
