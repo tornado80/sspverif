@@ -2,6 +2,7 @@ use super::Composition;
 
 pub mod oraclelowlevelify;
 pub mod typecheck;
+pub mod treeify;
 
 pub trait Transformation {
     type Err;

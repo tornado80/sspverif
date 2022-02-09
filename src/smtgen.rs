@@ -573,7 +573,7 @@ impl<'a> CompositionSmtWriter<'a> {
             .oracles
             .iter()
             .map(|def| {
-                let code = def.code.treeify().returnify();
+                let code = def.code.returnify();
                 let mut args = vec![SmtExpr::List(vec![
                     SspSmtVar::GlobalState.into(),
                     self.comp_helper.smt_sort(),
