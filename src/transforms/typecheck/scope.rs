@@ -1,10 +1,7 @@
-use std::collections::HashMap;
-
-use crate::errors::ScopeError;
+use super::errors::ScopeError;
 use crate::identifier::Identifier;
 use crate::types::Type;
-
-//use std::backtrace::Backtrace;
+use std::collections::HashMap;
 
 // TODO
 #[derive(Debug, Clone)]

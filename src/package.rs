@@ -1,8 +1,6 @@
-use crate::errors::TypeCheckError;
 use crate::expressions::Expression;
 use crate::identifier::Identifier;
-use crate::scope::Scope;
-use crate::statement::{CodeBlock, Statement, TypedCodeBlock};
+use crate::statement::{CodeBlock, Statement};
 use crate::types::Type;
 
 use std::collections::HashMap;
@@ -27,32 +25,6 @@ pub struct OracleDef {
     pub code: CodeBlock,
 }
 
-impl OracleDef {
-    pub fn typecheck(&self, scope: &mut Scope) -> Result<(), TypeCheckError> {
-        let OracleDef {
-            sig:
-                OracleSig {
-                    name: _name,
-                    args,
-                    tipe,
-                },
-            code,
-        } = self;
-        scope.enter();
-        for (name, ntipe) in args {
-            scope.declare(Identifier::new_scalar(name), ntipe.clone())?;
-        }
-        let code_block = TypedCodeBlock {
-            expected_return_type: tipe.clone(),
-            block: code.clone(),
-        };
-
-        code_block.typecheck(scope)?;
-        scope.leave();
-        Ok(())
-    }
-}
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Package {
     pub params: Vec<(String, Type)>,
@@ -60,30 +32,7 @@ pub struct Package {
     pub oracles: Vec<OracleDef>,
 }
 
-impl Package {
-    pub fn typecheck(&self, scope: &mut Scope) -> Result<(), TypeCheckError> {
-        let Package {
-            params,
-            state,
-            oracles,
-        } = self;
-
-        scope.enter();
-        for (name, ntipe) in params {
-            scope.declare(Identifier::new_scalar(name), ntipe.clone())?;
-        }
-        for (name, ntipe) in state {
-            scope.declare(Identifier::new_scalar(name), ntipe.clone())?;
-        }
-
-        for oracle in oracles {
-            oracle.typecheck(scope)?;
-        }
-
-        scope.leave();
-        Ok(())
-    }
-}
+impl Package {}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PackageInstance {
@@ -270,64 +219,5 @@ impl Composition {
             pkgs,
             ..self.clone()
         }
-    }
-
-    pub fn typecheck(&self, scope: &mut Scope) -> Result<(), TypeCheckError> {
-        let Composition {
-            pkgs,
-            edges,
-            exports,
-            ..
-        } = self;
-
-        // 1. check signature exists in edge destination
-        for (_, to, sig_) in edges {
-            let mut found = false;
-            for sig in pkgs[*to].get_oracle_sigs() {
-                if sig == sig_.clone() {
-                    found = true
-                }
-            }
-            if !found {
-                return Err(TypeCheckError::TypeCheck(format!(
-                    "couldn't find signature for {:?} in package {:?} with id {:}",
-                    sig_, pkgs[*to], to
-                )));
-            }
-        }
-
-        // 2. check exports exists
-        for (id, sig) in exports {
-            if !pkgs[*id].get_oracle_sigs().contains(sig) {
-                return Err(TypeCheckError::TypeCheck(format!(
-                    "signature {:?} is not in package {:?} with index {:}",
-                    sig,
-                    pkgs[*id].clone(),
-                    id
-                )));
-            }
-        }
-
-        // 3. check all package instances
-        for (id, pkg) in pkgs.clone().into_iter().enumerate() {
-            scope.enter();
-            for (from, _, sig) in edges {
-                if *from == id {
-                    scope.declare(
-                        Identifier::new_scalar(sig.name.as_str()),
-                        Type::Oracle(
-                            sig.args.clone().into_iter().map(|(_, tipe)| tipe).collect(),
-                            Box::new(sig.tipe.clone()),
-                        ),
-                    )?;
-                }
-            }
-            let result = pkg.pkg.typecheck(scope)?;
-            scope.leave();
-
-            result
-        }
-
-        Ok(())
     }
 }

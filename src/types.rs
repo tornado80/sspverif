@@ -1,5 +1,3 @@
-use crate::errors::TypeError;
-
 #[allow(dead_code)]
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum Type {
@@ -43,5 +41,3 @@ impl Type {
         Type::Fn(args, Box::new(ret))
     }
 }
-
-pub type TypeResult = std::result::Result<Type, TypeError>;

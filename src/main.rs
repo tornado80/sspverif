@@ -3,19 +3,17 @@
 use std::collections::HashMap;
 //use std::fmt;
 
-mod errors;
 mod expressions;
 mod identifier;
 mod package;
-mod scope;
 mod smtgen;
 mod statement;
+mod transforms;
 mod types;
 
 use crate::expressions::Expression;
 use crate::identifier::Identifier;
 use crate::package::{Composition, OracleDef, OracleSig, Package, PackageInstance};
-use crate::scope::Scope;
 use crate::smtgen::{CompositionSmtWriter, SmtFmt, SmtPackageState};
 use crate::statement::{CodeBlock, Statement};
 use crate::types::Type;
@@ -180,17 +178,6 @@ fn main() {
         name: "real".to_string(),
     };
 
-    let mut scope: Scope = Scope::new();
-
-    {
-        let PackageInstance { pkg, .. } = prf_real_game.clone();
-        eprintln!(
-            "typecheck mono prf package: {:#?}",
-            pkg.typecheck(&mut scope)
-        );
-        eprintln!("scope now: {:?}", scope);
-    }
-
     let prf_real_game = Composition {
         pkgs: vec![prf_real_game.clone()],
         edges: vec![],
@@ -201,6 +188,11 @@ fn main() {
             .collect(),
         name: String::from("mono-prf-game"),
     };
+
+    let prf_real_game =
+        crate::transforms::typecheck::Transform::new_with_empty_scope(prf_real_game)
+            .transform()
+            .expect("typecheck of prf real game failed");
 
     use crate::smtgen::SmtExpr;
 
@@ -247,11 +239,9 @@ fn main() {
 
     //    println!("(declare-datatype State___randomness ((mk-state-__randomness (state-__randomness-ctr Int))))");
 
-    let mut scope: Scope = Scope::new();
-    eprintln!(
-        "modular game typecheck: {:#?}",
-        mod_prf_game.typecheck(&mut scope)
-    );
+    let mod_prf_game = transforms::typecheck::Transform::new_with_empty_scope(mod_prf_game)
+        .transform()
+        .expect("typecheck of mod_prf_game failed");
 
     eprintln!("smt expression of real composition");
 

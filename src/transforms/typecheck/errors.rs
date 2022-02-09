@@ -1,5 +1,7 @@
 use std::fmt;
 
+use crate::types::Type;
+
 #[derive(Debug)]
 pub struct ScopeError;
 
@@ -30,3 +32,5 @@ impl From<TypeError> for TypeCheckError {
         TypeCheckError::Type(error)
     }
 }
+
+pub type TypeResult = std::result::Result<Type, TypeError>;
