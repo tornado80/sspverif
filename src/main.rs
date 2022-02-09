@@ -7,13 +7,15 @@ mod examples;
 mod expressions;
 mod identifier;
 mod package;
+mod smt;
 mod smtgen;
 mod statement;
 mod transforms;
 mod types;
 
 use crate::package::Composition;
-use crate::smtgen::{CompositionSmtWriter, SmtFmt};
+use crate::smt::exprs::{SmtExpr, SmtFmt};
+use crate::smt::writer::CompositionSmtWriter;
 
 fn main() {
     let mut params = HashMap::new();
@@ -43,8 +45,6 @@ fn main() {
             .collect(),
         name: String::from("mono-prf-game"),
     };
-
-    use crate::smtgen::SmtExpr;
 
     let bits_n_smt = SmtExpr::List(vec![
         SmtExpr::Atom(String::from("declare-sort")),
