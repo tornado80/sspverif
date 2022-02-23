@@ -19,7 +19,7 @@ pub struct CompositionSmtWriter<'a> {
 impl<'a> CompositionSmtWriter<'a> {
     pub fn new(comp: &'a Composition) -> CompositionSmtWriter<'a> {
         let mut csw = CompositionSmtWriter {
-            comp: comp,
+            comp,
             state_helpers: Default::default(),
             comp_helper: SmtCompositionState::new(
                 &comp.name,
@@ -353,9 +353,6 @@ impl<'a> CompositionSmtWriter<'a> {
 
                         _ => panic!("not implemented"),
                     }
-                }
-                _ => {
-                    panic!("not implemented: {:?}", stmt)
                 }
             });
         }

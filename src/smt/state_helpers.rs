@@ -65,7 +65,7 @@ impl<'a> SmtCompositionState<'a> {
         for inst_name in &self.substate_names {
             let pkg_state = SmtPackageState {
                 comp_name: self.comp_name,
-                inst_name: inst_name,
+                inst_name,
                 state: vec![],
             };
             tmp.push(SmtExpr::List(vec![
