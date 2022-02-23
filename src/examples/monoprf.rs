@@ -1,14 +1,13 @@
-
 use crate::expressions::Expression;
 use crate::identifier::Identifier;
-use crate::statement::{CodeBlock, Statement};
 use crate::package::{OracleDef, OracleSig, Package, PackageInstance};
+use crate::statement::{CodeBlock, Statement};
 use crate::types::Type;
 use std::collections::HashMap;
 
 use crate::{block, fncall};
 
-pub fn mono_prf(params: &HashMap<String,String>) -> PackageInstance {
+pub fn mono_prf(params: &HashMap<String, String>) -> PackageInstance {
     PackageInstance {
         name: "mono-prf".to_string(),
         params: params.clone(),
@@ -23,7 +22,7 @@ pub fn mono_prf(params: &HashMap<String,String>) -> PackageInstance {
                     ),
                 ),
             ],
-            state: vec![("k".to_string(), Type::new_bits("n"))],
+            state: vec![("k".to_string(), Type::Maybe(Box::new(Type::new_bits("n"))))],
             oracles: vec![
                 OracleDef {
                     sig: OracleSig {
@@ -35,7 +34,7 @@ pub fn mono_prf(params: &HashMap<String,String>) -> PackageInstance {
                         Statement::IfThenElse(
                             Expression::new_equals(vec![
                                 &(Identifier::new_scalar("k").to_expression()),
-                                &Expression::Bot,
+                                &Expression::None(Type::new_bits("n")),
                             ]),
                             block! {
                                 Statement::Assign(Identifier::new_scalar("k"),
@@ -57,7 +56,7 @@ pub fn mono_prf(params: &HashMap<String,String>) -> PackageInstance {
                         Statement::IfThenElse(
                             Expression::new_equals(vec![
                                 &(Identifier::new_scalar("k").to_expression()),
-                                &Expression::Bot,
+                                &Expression::None(Type::new_bits("n")),
                             ]),
                             block! {Statement::Abort},
                             block! {},

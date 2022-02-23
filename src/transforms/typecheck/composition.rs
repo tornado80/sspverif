@@ -1,13 +1,16 @@
-use super::errors::*;
+use super::errors::TypeCheckError;
 use super::pkg::typecheck_pkg;
 use super::scope::Scope;
 
-use crate::package::Composition;
+use crate::package::{Composition, PackageInstance};
 
 use crate::identifier::Identifier;
 use crate::types::Type;
 
-pub fn typecheck_comp(comp: &Composition, scope: &mut Scope) -> Result<(), TypeCheckError> {
+pub fn typecheck_comp(
+    comp: &Composition,
+    scope: &mut Scope,
+) -> Result<Composition, TypeCheckError> {
     let Composition {
         pkgs,
         edges,
@@ -43,6 +46,8 @@ pub fn typecheck_comp(comp: &Composition, scope: &mut Scope) -> Result<(), TypeC
         }
     }
 
+    let mut typed_pkgs = vec![];
+
     // 3. check all package instances
     for (id, pkg) in pkgs.clone().into_iter().enumerate() {
         scope.enter();
@@ -60,8 +65,14 @@ pub fn typecheck_comp(comp: &Composition, scope: &mut Scope) -> Result<(), TypeC
         let result = typecheck_pkg(&pkg.pkg, scope)?;
         scope.leave();
 
-        result
+        typed_pkgs.push(PackageInstance {
+            pkg: result,
+            ..pkg.clone()
+        });
     }
 
-    Ok(())
+    Ok(Composition {
+        pkgs: typed_pkgs,
+        ..comp.clone()
+    })
 }
