@@ -23,7 +23,8 @@ fn main() {
     let prf_real_game = examples::monoprf::mono_prf(&params);
     let key_real_pkg = examples::keypkg::key_pkg(&params);
     let mod_prf_real_pkg = examples::modprf::mod_prf(&params);
-    let no_mapping_game = examples::mapping::no_mapping_game(&params);
+    let no_mapping_game = examples::nomapping::no_mapping_game(&params);
+    let mapping_game = examples::mapping::mapping_game(&params);
 
     let mod_prf_game = Composition {
         pkgs: vec![key_real_pkg.clone(), mod_prf_real_pkg.clone()],
@@ -88,6 +89,14 @@ fn main() {
     let (no_mapping_game, _) = crate::transforms::transform_all(&no_mapping_game).unwrap();
     let no_mapping_game_writer = CompositionSmtWriter::new(&no_mapping_game);
     for line in no_mapping_game_writer.smt_composition_all() {
+        line.write_smt_to(&mut std::io::stdout()).unwrap();
+        println!();
+    }
+
+    println!(";;;;; Mapping Game");
+    let (mapping_game, _) = crate::transforms::transform_all(&mapping_game).unwrap();
+    let mapping_game_writer = CompositionSmtWriter::new(&mapping_game);
+    for line in mapping_game_writer.smt_composition_all() {
         line.write_smt_to(&mut std::io::stdout()).unwrap();
         println!();
     }
