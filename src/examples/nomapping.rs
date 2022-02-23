@@ -76,7 +76,7 @@ pub fn no_mapping_game(params: &HashMap<String, String>) -> Composition {
                                 Expression::new_equals(vec![
                                     &Expression::TableAccess(Box::new(Identifier::new_scalar("T")),
                                                              Box::new(Identifier::new_scalar("h").to_expression())),
-                                    &Expression::Bot,
+                                    &Expression::None(Type::new_bits("n")),
                                 ]),
                          block! {
                                 Statement::TableAssign(Identifier::new_scalar("T"),
@@ -102,7 +102,7 @@ pub fn no_mapping_game(params: &HashMap<String, String>) -> Composition {
                         Expression::new_equals(vec![
                                 &Expression::TableAccess(Box::new(Identifier::new_scalar("T")),
                                                          Box::new(Identifier::new_scalar("h").to_expression())),
-                                &Expression::Bot,
+                                &Expression::None(Type::new_bits("n")),
                         ]),
                         block! {Statement::Abort},
                         block! {Statement::Return(
@@ -196,7 +196,7 @@ pub fn no_mapping_game(params: &HashMap<String, String>) -> Composition {
                                Expression::new_equals(vec![
                                    &Expression::TableAccess(Box::new(Identifier::new_scalar("T")),
                                                             Box::new(Identifier::new_scalar("h").to_expression())),
-                                   &Expression::Bot,
+                                   &Expression::None(Type::new_bits("n")),
                                ]),
                             block! {
                                 Statement::TableAssign(Identifier::new_scalar("T"),
@@ -223,7 +223,7 @@ pub fn no_mapping_game(params: &HashMap<String, String>) -> Composition {
                             Expression::new_equals(vec![
                                     &Expression::TableAccess(Box::new(Identifier::new_scalar("T")), 
                                                              Box::new(Identifier::new_scalar("h").to_expression())), 
-                                    &Expression::Bot,
+                                    &Expression::None(Type::new_bits("n")),
                             ]),
                             block! {Statement::Abort},
                             block! {Statement::Return(Some(Expression::TableAccess(Box::new(Identifier::new_scalar("T")),
