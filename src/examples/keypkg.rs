@@ -27,7 +27,7 @@ pub fn key_pkg(params: &HashMap<String,String>) -> PackageInstance {
                         Statement::IfThenElse(
                             Expression::new_equals(vec![
                                 &(Identifier::new_scalar("k").to_expression()),
-                                &Expression::Bot,
+                                &Expression::None(Type::new_bits("n")),
                             ]),
                             block! {
                                 Statement::Assign(Identifier::new_scalar("k"),
@@ -49,7 +49,7 @@ pub fn key_pkg(params: &HashMap<String,String>) -> PackageInstance {
                         Statement::IfThenElse(
                             Expression::new_equals(vec![
                                 &(Identifier::new_scalar("k").to_expression()),
-                                &Expression::Bot,
+                                &Expression::None(Type::new_bits("n")),
                             ]),
                             block! {Statement::Abort},
                             block! {},
