@@ -11,8 +11,27 @@ pub fn get_type(expr: &Expression, scope: &Scope) -> TypeResult {
         Expression::StringLiteral(_) => Ok(Type::String),
         Expression::IntegerLiteral(_) => Ok(Type::Integer),
         Expression::BooleanLiteral(_) => Ok(Type::Boolean),
-        Expression::Not(_) => Ok(Type::Boolean),
-        Expression::Equals(_) => Ok(Type::Boolean),
+        Expression::Equals(exprs) => {
+            let mut t: Option<Type> = None;
+
+            for expr in exprs {
+                match &t {
+                    None => {
+                        t = Some(get_type(expr, scope)?);
+                    }
+                    Some(t_) => {
+                        let t__ = get_type(expr, scope)?;
+                        if t_ != &t__ {
+                            return Err(TypeError(format!(
+                                "equality compares expression of different type: {:?}",
+                                exprs
+                            )));
+                        }
+                    }
+                }
+            }
+            Ok(Type::Boolean)
+        }
         Expression::Tuple(elems) => {
             let mut types = vec![];
 
