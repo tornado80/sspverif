@@ -7,7 +7,7 @@ mod pkg;
 mod scope;
 
 use composition::typecheck_comp;
-use errors::*;
+use errors::TypeCheckError;
 use scope::Scope;
 
 use crate::package::Composition;
@@ -36,8 +36,8 @@ impl super::Transformation for Transform {
     type Aux = Scope;
     fn transform(&self) -> Result<(Composition, Scope), TypeCheckError> {
         let scope = self.scope.clone();
-        typecheck_comp(&self.comp, &mut scope.clone())?;
+        let typed_comp = typecheck_comp(&self.comp, &mut scope.clone())?;
 
-        Ok((self.comp.clone(), scope))
+        Ok((typed_comp, scope))
     }
 }

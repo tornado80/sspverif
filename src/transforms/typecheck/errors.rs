@@ -1,5 +1,6 @@
 use std::fmt;
 
+use crate::expressions::Expression;
 use crate::types::Type;
 
 #[derive(Debug)]
@@ -33,4 +34,7 @@ impl From<TypeError> for TypeCheckError {
     }
 }
 
-pub type TypeResult = std::result::Result<Type, TypeError>;
+pub type Result<T> = std::result::Result<T, TypeError>;
+
+pub type TypeResult = Result<Type>;
+pub type ExpressionResult = Result<Expression>;

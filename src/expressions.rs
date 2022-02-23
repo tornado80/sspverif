@@ -4,6 +4,7 @@ use crate::types::Type;
 #[allow(dead_code)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Expression {
+    Typed(Type, Box<Expression>),
     Bot,
     Sample(Type),
     StringLiteral(String),

@@ -1,12 +1,12 @@
 use super::codeblock::TypedCodeBlock;
-use super::errors::*;
+use super::errors::TypeCheckError;
 use super::scope::Scope;
 
 use crate::package::{OracleDef, OracleSig};
 
 use crate::identifier::Identifier;
 
-pub fn typecheck_odef(odef: &OracleDef, scope: &mut Scope) -> Result<(), TypeCheckError> {
+pub fn typecheck_odef(odef: &OracleDef, scope: &mut Scope) -> Result<OracleDef, TypeCheckError> {
     let OracleDef {
         sig: OracleSig {
             name: _name,
@@ -24,7 +24,11 @@ pub fn typecheck_odef(odef: &OracleDef, scope: &mut Scope) -> Result<(), TypeChe
         block: code.clone(),
     };
 
-    code_block.typecheck(scope)?;
+    let code_block_with_typed_statements = code_block.typecheck(scope)?;
     scope.leave();
-    Ok(())
+
+    Ok(OracleDef {
+        code: code_block_with_typed_statements.block,
+        ..odef.clone()
+    })
 }
