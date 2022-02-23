@@ -33,8 +33,8 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                         let t__ = get_type(expr, scope)?;
                         if t_ != &t__ {
                             return Err(TypeError(format!(
-                                "equality compares expression of different type: {:?}",
-                                exprs
+                                "equality compares expression of different type: {:?} {:?} in {:?}",
+                                t_, t__, exprs
                             )));
                         }
                     }
