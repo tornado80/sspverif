@@ -201,7 +201,9 @@ impl<'a> CompositionSmtWriter<'a> {
                     //SmtExpr::Atom(format!("mk-abort-{}-{}", pkgname, sig.name))
                 }
                 // TODO actually use the type that we sample to know how far to advance the randomness tape
-                Statement::Assign(ident, Expression::Sample(_)) => {
+                Statement::Assign(ident, Expression::Typed(t, inner))
+                    if matches!(**inner, Expression::Sample(_)) =>
+                {
                     let ctr = self.get_state_helper("__randomness").smt_access(
                         "ctr",
                         self.comp_helper
@@ -248,63 +250,67 @@ impl<'a> CompositionSmtWriter<'a> {
                     }
                     .into()
                 }
-                Statement::Assign(
-                    ident,
-                    Expression::LowLevelOracleInvoc {
-                        name,
-                        pkgname: dst_pkgname,
-                        args,
-                    },
-                ) => SmtLet {
-                    bindings: vec![(smt_to_string(SspSmtVar::ReturnValue), {
-                        let mut cmdline = vec![
-                            SmtExpr::Atom(format!("oracle-{}-{}", dst_pkgname, name)),
-                            SspSmtVar::GlobalState.into(),
-                        ];
+                Statement::Assign(ident, Expression::Typed(t, inner))
+                    if matches!(**inner, Expression::LowLevelOracleInvoc { .. }) =>
+                {
+                    match *inner.clone() {
+                        Expression::LowLevelOracleInvoc {
+                            name,
+                            pkgname: dst_pkgname,
+                            args,
+                        } => SmtLet {
+                            bindings: vec![(smt_to_string(SspSmtVar::ReturnValue), {
+                                let mut cmdline = vec![
+                                    SmtExpr::Atom(format!("oracle-{}-{}", dst_pkgname, name)),
+                                    SspSmtVar::GlobalState.into(),
+                                ];
 
-                        for arg in args {
-                            cmdline.push(arg.clone().into())
+                                for arg in args {
+                                    cmdline.push(arg.clone().into())
+                                }
+
+                                SmtExpr::List(cmdline)
+                            })],
+                            body: SmtIte {
+                                cond: SmtIs {
+                                    con: format!("mk-abort-{}-{}", dst_pkgname, name),
+                                    expr: SspSmtVar::ReturnValue,
+                                },
+                                then: SspSmtVar::OracleAbort {
+                                    pkgname: pkgname.into(),
+                                    oname: sig.name.clone(),
+                                },
+                                els: SmtLet {
+                                    bindings: vec![
+                                        (
+                                            smt_to_string(SspSmtVar::GlobalState),
+                                            SmtExpr::List(vec![
+                                                SmtExpr::Atom(format!(
+                                                    "return-{}-{}-state",
+                                                    dst_pkgname, name
+                                                )),
+                                                SspSmtVar::ReturnValue.into(),
+                                            ]),
+                                        ),
+                                        (
+                                            ident.ident(),
+                                            SmtExpr::List(vec![
+                                                SmtExpr::Atom(format!(
+                                                    "return-{}-{}-value",
+                                                    dst_pkgname, name
+                                                )),
+                                                SspSmtVar::ReturnValue.into(),
+                                            ]),
+                                        ),
+                                    ],
+                                    body: result.unwrap(),
+                                },
+                            },
                         }
-
-                        SmtExpr::List(cmdline)
-                    })],
-                    body: SmtIte {
-                        cond: SmtIs {
-                            con: format!("mk-abort-{}-{}", dst_pkgname, name),
-                            expr: SspSmtVar::ReturnValue,
-                        },
-                        then: SspSmtVar::OracleAbort {
-                            pkgname: pkgname.into(),
-                            oname: sig.name.clone(),
-                        },
-                        els: SmtLet {
-                            bindings: vec![
-                                (
-                                    smt_to_string(SspSmtVar::GlobalState),
-                                    SmtExpr::List(vec![
-                                        SmtExpr::Atom(format!(
-                                            "return-{}-{}-state",
-                                            dst_pkgname, name
-                                        )),
-                                        SspSmtVar::ReturnValue.into(),
-                                    ]),
-                                ),
-                                (
-                                    ident.ident(),
-                                    SmtExpr::List(vec![
-                                        SmtExpr::Atom(format!(
-                                            "return-{}-{}-value",
-                                            dst_pkgname, name
-                                        )),
-                                        SspSmtVar::ReturnValue.into(),
-                                    ]),
-                                ),
-                            ],
-                            body: result.unwrap(),
-                        },
-                    },
+                        .into(),
+                        _ => unreachable!(format!("{:?}", stmt)),
+                    }
                 }
-                .into(),
                 Statement::Assign(ident, expr) => {
                     // State_{name} (quote " state")
                     match ident {

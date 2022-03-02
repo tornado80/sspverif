@@ -67,9 +67,10 @@ impl TypedCodeBlock {
                     let expr_type = get_type(&typed_expr, scope)?;
                     if let Some(id_type) = scope.lookup(id) {
                         if id_type != expr_type {
-                            return Err(TypeCheckError::TypeCheck(
-                                "overwriting some value with incompatible type".to_string(),
-                            ));
+                            return Err(TypeCheckError::TypeCheck(format!(
+                                "overwriting some value with incompatible type: {:?} <- {:?}",
+                                id, expr
+                            )));
                         }
                     } else {
                         scope.declare(id.clone(), expr_type)?;
@@ -85,10 +86,14 @@ impl TypedCodeBlock {
                     let idx_type = get_type(&typed_idx, scope)?;
 
                     if let Some(id_type) = scope.lookup(id) {
-                        if let Type::Table(k, v) = id_type {
-                            if *k != idx_type || *v != expr_type {
+                        if let Type::Table(k, v) = id_type.clone() {
+                            if *k != idx_type {
+                                return Err(TypeCheckError::TypeCheck(format!(
+                                    "type of expression {:?} used as index to table {:?} does not match: expected {:?}, got {:?}", idx, id, k, idx_type)));
+                            }
+                            if *v != expr_type {
                                 return Err(TypeCheckError::TypeCheck(
-                                    "type of the table does not match".to_string(),
+                                    "value type of the table does not match".to_string(),
                                 ));
                             }
                         } else {

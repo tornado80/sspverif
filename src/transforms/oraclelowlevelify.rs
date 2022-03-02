@@ -6,6 +6,39 @@ use std::collections::HashMap;
 
 pub struct Transformation<'a>(pub &'a Composition);
 
+fn transform_helper(table: &HashMap<String, String>, block: CodeBlock) -> CodeBlock {
+    let fixup = |expr| match expr {
+        Expression::OracleInvoc(name, args) => {
+            if let Some(pkgname) = table.get(&name) {
+                Expression::LowLevelOracleInvoc {
+                    name,
+                    pkgname: pkgname.clone(),
+                    args,
+                }
+            } else {
+                panic!("couldn't find package for oracle {}", name);
+            }
+        }
+        _ => expr,
+    };
+
+    let out = block
+        .0
+        .iter()
+        .map(|stmt| match stmt {
+            Statement::Assign(id, expr) => Statement::Assign(id.clone(), expr.map(fixup)),
+            Statement::IfThenElse(cond, ifcode, elsecode) => Statement::IfThenElse(
+                cond.clone(),
+                transform_helper(table, ifcode.clone()),
+                transform_helper(table, elsecode.clone()),
+            ),
+            _ => stmt.clone(),
+        })
+        .collect();
+
+    CodeBlock(out)
+}
+
 impl<'a> super::Transformation for Transformation<'a> {
     type Err = ();
     type Aux = ();
@@ -25,21 +58,6 @@ impl<'a> super::Transformation for Transformation<'a> {
                     table.insert(sig.name.clone(), pkgname);
                 }
 
-                let fixup = |expr| match expr {
-                    Expression::OracleInvoc(name, args) => {
-                        if let Some(pkgname) = table.get(&name) {
-                            Expression::LowLevelOracleInvoc {
-                                name,
-                                pkgname: pkgname.clone(),
-                                args,
-                            }
-                        } else {
-                            panic!("couldn't find package for oracle {}", name);
-                        }
-                    }
-                    _ => expr,
-                };
-
                 PackageInstance {
                     pkg: Package {
                         oracles: inst
@@ -47,19 +65,7 @@ impl<'a> super::Transformation for Transformation<'a> {
                             .oracles
                             .iter()
                             .map(|oracle| OracleDef {
-                                code: CodeBlock(
-                                    oracle
-                                        .code
-                                        .0
-                                        .iter()
-                                        .map(|stmt| match stmt {
-                                            Statement::Assign(id, expr) => {
-                                                Statement::Assign(id.clone(), expr.map(fixup))
-                                            }
-                                            _ => stmt.clone(),
-                                        })
-                                        .collect(),
-                                ),
+                                code: transform_helper(&table, oracle.code.clone()),
                                 ..oracle.clone()
                             })
                             .collect(),

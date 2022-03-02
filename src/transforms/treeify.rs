@@ -1,5 +1,5 @@
-use crate::statement::{CodeBlock,Statement};
 use crate::package::Composition;
+use crate::statement::{CodeBlock, Statement};
 
 pub struct Transformation<'a>(pub &'a Composition);
 
@@ -8,17 +8,13 @@ impl<'a> super::Transformation for Transformation<'a> {
     type Aux = ();
 
     fn transform(&self) -> Result<(Composition, ()), ()> {
-        let insts = self.0.pkgs.iter().map(
-            |inst| {
-                let mut newinst = inst.clone();
-                newinst.pkg.oracles.iter_mut().for_each(
-                    |oracle| {
-                        oracle.code = treeify(&oracle.code);
-                    }
-                );
-                newinst
-            }
-        );
+        let insts = self.0.pkgs.iter().map(|inst| {
+            let mut newinst = inst.clone();
+            newinst.pkg.oracles.iter_mut().for_each(|oracle| {
+                oracle.code = treeify(&oracle.code);
+            });
+            newinst
+        });
         Ok((
             Composition {
                 pkgs: insts.collect(),

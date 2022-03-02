@@ -103,6 +103,9 @@ impl Expression {
                 pkgname: pkgname.clone(),
                 args: args.iter().map(|expr| expr.map(f)).collect(),
             },
+            Expression::Typed(t, inner) => {
+                Expression::Typed(t.clone(), Box::new(f(*inner.clone())))
+            }
             _ => {
                 panic!("Expression: not implemented: {:#?}", self)
             }

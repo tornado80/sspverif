@@ -1,21 +1,19 @@
-
 use crate::expressions::Expression;
 use crate::identifier::Identifier;
-use crate::statement::{CodeBlock, Statement};
 use crate::package::{OracleDef, OracleSig, Package, PackageInstance};
+use crate::statement::{CodeBlock, Statement};
 use crate::types::Type;
 use std::collections::HashMap;
 
 use crate::block;
 
-
-pub fn key_pkg(params: &HashMap<String,String>) -> PackageInstance {
+pub fn key_pkg(params: &HashMap<String, String>) -> PackageInstance {
     PackageInstance {
         name: "key".to_string(),
         params: params.clone(),
         pkg: Package {
             params: vec![("n".to_string(), Type::new_scalar("int"))],
-            state: vec![("k".to_string(), Type::new_bits("n"))],
+            state: vec![("k".to_string(), Type::Maybe(Box::new(Type::new_bits("n"))))],
             oracles: vec![
                 OracleDef {
                     sig: OracleSig {
@@ -30,9 +28,13 @@ pub fn key_pkg(params: &HashMap<String,String>) -> PackageInstance {
                                 &Expression::None(Type::new_bits("n")),
                             ]),
                             block! {
-                                Statement::Assign(Identifier::new_scalar("k"),
+                                Statement::Assign(Identifier::new_scalar("k_sample"),
                                                   Expression::Sample(Type::new_bits("n")),
-                                )},
+                                ),
+                                Statement::Assign(Identifier::new_scalar("k"),
+                                                  Expression::Some(Box::new(Identifier::new_scalar("k_sample").to_expression())),
+                                )
+                            },
                             block! {
                                 Statement::Abort
                             },
@@ -54,7 +56,7 @@ pub fn key_pkg(params: &HashMap<String,String>) -> PackageInstance {
                             block! {Statement::Abort},
                             block! {},
                         ),
-                        Statement::Return(Some(Identifier::new_scalar("k").to_expression()))
+                        Statement::Return(Some(Expression::Unwrap(Box::new(Identifier::new_scalar("k").to_expression()))))
                     },
                 },
             ],

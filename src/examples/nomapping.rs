@@ -59,7 +59,7 @@ pub fn no_mapping_game(params: &HashMap<String, String>) -> Composition {
             state: vec![(
                 "T".to_string(),
                 Type::Table(Box::new(Type::Integer), Box::new(Type::new_bits("n"))),
-            )], 
+            )],
             oracles: vec![
                 OracleDef {
                     sig: OracleSig {
@@ -86,7 +86,7 @@ pub fn no_mapping_game(params: &HashMap<String, String>) -> Composition {
                                  },
                                  block! {
                                     Statement::Return(Some(Identifier::new_scalar("h").to_expression()))
-                                     },    
+                                     },
                         /*  block! {Statement::Abort},*/
                                 )
                     },
@@ -103,11 +103,13 @@ pub fn no_mapping_game(params: &HashMap<String, String>) -> Composition {
                                 &Expression::TableAccess(Box::new(Identifier::new_scalar("T")),
                                                          Box::new(Identifier::new_scalar("h").to_expression())),
                                 &Expression::None(Type::new_bits("n")),
+
                         ]),
                         block! {Statement::Abort},
                         block! {Statement::Return(
-                            Some(Expression::TableAccess(Box::new(Identifier::new_scalar("T")),
-                                                               Box::new(Identifier::new_scalar("h").to_expression()))))
+                            Some(Expression::Unwrap(Box::new(
+                                Expression::TableAccess(Box::new(Identifier::new_scalar("T")),
+                                                               Box::new(Identifier::new_scalar("h").to_expression()))))))
                                 }
                                         )
                     },
@@ -192,22 +194,22 @@ pub fn no_mapping_game(params: &HashMap<String, String>) -> Composition {
                         tipe: Type::Tuple(vec![Type::Integer, Type::new_bits("*")]),
                     },
                     code: block! { /* assert T[h] = bot, T[h]<--k, return h  */
-                        Statement::IfThenElse(
-                               Expression::new_equals(vec![
-                                   &Expression::TableAccess(Box::new(Identifier::new_scalar("T")),
-                                                            Box::new(Identifier::new_scalar("h").to_expression())),
-                                   &Expression::None(Type::new_bits("n")),
-                               ]),
-                            block! {
-                                Statement::TableAssign(Identifier::new_scalar("T"),
-                                Identifier::new_scalar("h").to_expression(),
-                                Identifier::new_scalar("k").to_expression()),
-                                Statement::Return(Some(Identifier::new_scalar("h").to_expression()))
-                                   },
-                            block! {Statement::Return(Some(Identifier::new_scalar("h").to_expression()))}
-/*                            block! {Statement::Abort}*/
-                        )
-                    },
+                                            Statement::IfThenElse(
+                                            Expression::new_equals(vec![
+                                                &Expression::TableAccess(Box::new(Identifier::new_scalar("T")),
+                                                                         Box::new(Identifier::new_scalar("h").to_expression())),
+                                                &Expression::None(Type::new_bits("n")),
+                                            ]),
+                                         block! {
+                                                    Statement::TableAssign(Identifier::new_scalar("T"),
+                                                    Identifier::new_scalar("h").to_expression(),
+                                                    Identifier::new_scalar("k").to_expression()),
+                                                    Statement::Return(Some(Identifier::new_scalar("h").to_expression()))
+                                                       },
+                                                block! {Statement::Return(Some(Identifier::new_scalar("h").to_expression()))}
+                    /*                            block! {Statement::Abort}*/
+                                            )
+                                        },
                 },
                 OracleDef {
                     sig: OracleSig {
@@ -221,13 +223,13 @@ pub fn no_mapping_game(params: &HashMap<String, String>) -> Composition {
                     code: block! { /*assert T[h]!=bot, return T[h] */
                         Statement::IfThenElse(
                             Expression::new_equals(vec![
-                                    &Expression::TableAccess(Box::new(Identifier::new_scalar("T")), 
-                                                             Box::new(Identifier::new_scalar("h").to_expression())), 
+                                    &Expression::TableAccess(Box::new(Identifier::new_scalar("T")),
+                                                             Box::new(Identifier::new_scalar("h").to_expression())),
                                     &Expression::None(Type::new_bits("n")),
                             ]),
                             block! {Statement::Abort},
-                            block! {Statement::Return(Some(Expression::TableAccess(Box::new(Identifier::new_scalar("T")),
-                            Box::new(Identifier::new_scalar("h").to_expression()))))}
+                            block! {Statement::Return(Some(Expression::Unwrap(Box::new( Expression::TableAccess(Box::new(Identifier::new_scalar("T")),
+                            Box::new(Identifier::new_scalar("h").to_expression()))))))}
                         )
                     },
                 },

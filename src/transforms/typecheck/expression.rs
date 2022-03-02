@@ -70,14 +70,49 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
             Box::new(Expression::None(t.clone())),
         )),
         Expression::Unwrap(v) => {
-            if let Expression::Some(inner) = &**v {
-                Ok(Expression::Typed(
+            match &**v {
+                Expression::Some(inner) => Ok(Expression::Typed(
                     get_type(inner, scope)?,
                     Box::new(Expression::Unwrap(Box::new(typify(v, scope)?))),
-                ))
-            } else {
-                Err(TypeError(format!("type error: {:?}", expr)))
+                )),
+                Expression::None(t) => Ok(Expression::Typed(t.clone(), Box::new(expr.clone()))),
+                Expression::Identifier(id) => {
+                    if let Some(t) = scope.lookup(id) {
+                        if let Type::Maybe(inner_t) = t {
+                            Ok(Expression::Typed(*inner_t, Box::new(expr.clone())))
+                        } else {
+                            Err(TypeError(format!(
+                                "type error: Unwrap contains identifier with non-Maybe type: {:?}",
+                                t
+                            )))
+                        }
+                    } else {
+                        Err(TypeError(format!(
+                            "type error: Unwrap contains identifier that is not in scope: {:?}",
+                            id
+                        )))
+                    }
+                }
+                Expression::TableAccess(id, _) => {
+                    if let Some(Type::Table(_, t_val)) = scope.lookup(id) {
+                        Ok(Expression::Typed(*t_val.clone(), Box::new(expr.clone())))
+                    } else {
+                        Err(TypeError(format!(
+                            "type error: Unwrap contains access to table that is not in scope: {:?}",
+                            id
+                        )))
+                    }
+                }
+                _ => Err(TypeError(format!(
+                    "type error: Unwrap contains expression other than Some or None: {:?}",
+                    v
+                ))),
             }
+            /*
+            if let Expression::Some(inner) = &**v {
+            } else {
+            }
+            */
         }
         Expression::Neg(v) => {
             let t = get_type(v, scope)?;
@@ -301,22 +336,37 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
             {
                 // 1. check that arg types match args
                 if args.len() != arg_types.len() {
-                    return Err(TypeError(format!("type error: {:?}", expr)));
+                    return Err(TypeError(format!(
+                        "type error: argument count mismatch. get {}, expected {}",
+                        args.len(),
+                        arg_types.len()
+                    )));
                 }
 
+                let mut typified_args = vec![];
+
                 for (i, arg) in args.iter().enumerate() {
-                    if get_type(arg, scope)? != arg_types[i] {
-                        return Err(TypeError(format!("type error: {:?}", expr)));
+                    let typified_arg = typify(arg, scope)?;
+                    let arg_type = get_type(arg, scope)?;
+                    if arg_type != arg_types[i] {
+                        return Err(TypeError(format!(
+                            "type error: argument type mismatch. got {:?}, expected {:?}",
+                            arg_type, arg_types[i]
+                        )));
                     }
+                    typified_args.push(typified_arg);
                 }
 
                 // 2. return ret type
                 Ok(Expression::Typed(
                     *ret_type,
-                    Box::new(Expression::OracleInvoc(name.clone(), args.clone())),
+                    Box::new(Expression::FnCall(name.clone(), typified_args)),
                 ))
             } else {
-                Err(TypeError(format!("type error: {:?}", expr)))
+                Err(TypeError(format!(
+                    "type error: function {:?} not found in scope",
+                    name
+                )))
             }
         }
 
@@ -329,9 +379,11 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                             "oracle invocation arg count mismatch".to_string(),
                         ));
                     }
+                    let mut typified_args = vec![];
 
                     for (i, arg) in args.iter().enumerate() {
-                        let t_arg = get_type(arg, scope)?;
+                        let typified_arg = typify(arg, scope)?;
+                        let t_arg = get_type(&typified_arg, scope)?;
                         if t_arg != arg_types[i] {
                             return Err(TypeError(format!(
                                 "oracle {:} invocation arg type doesn't match at position {:}. expected {:?}, got {:?}",
@@ -341,12 +393,14 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                                 t_arg
                             )));
                         }
+
+                        typified_args.push(typified_arg);
                     }
 
                     // 2. return ret type
                     Ok(Expression::Typed(
                         *ret_type,
-                        Box::new(Expression::OracleInvoc(name.clone(), args.clone())),
+                        Box::new(Expression::OracleInvoc(name.clone(), typified_args)),
                     ))
                 } else {
                     Err(TypeError(format!("expected oracle, got {:#?}", entry)))
@@ -372,7 +426,7 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                 let t_expr = get_type(&expr_, scope)?;
                 if *t_idx == t_expr {
                     Ok(Expression::Typed(
-                        *t_val,
+                        Type::Maybe(t_val),
                         Box::new(Expression::TableAccess(id.clone(), Box::new(expr_))),
                     ))
                 } else {

@@ -1,14 +1,13 @@
-
 use crate::expressions::Expression;
 use crate::identifier::Identifier;
-use crate::statement::{CodeBlock, Statement};
 use crate::package::{OracleDef, OracleSig, Package, PackageInstance};
+use crate::statement::{CodeBlock, Statement};
 use crate::types::Type;
 use std::collections::HashMap;
 
 use crate::{block, fncall};
 
-pub fn mod_prf(params: &HashMap<String,String>) -> PackageInstance {
+pub fn mod_prf(params: &HashMap<String, String>) -> PackageInstance {
     PackageInstance {
         name: "mod-prf".to_string(),
         params: params.clone(),

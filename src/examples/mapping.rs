@@ -8,7 +8,6 @@ use std::collections::HashMap;
 use crate::block;
 use crate::fncall;
 
-
 pub fn mapping_game(params: &HashMap<String, String>) -> Composition {
     let key_pkg_top_map = PackageInstance {
         name: "key_pkg_top_map".to_string(),
@@ -18,7 +17,7 @@ pub fn mapping_game(params: &HashMap<String, String>) -> Composition {
             state: vec![(
                 "T".to_string(),
                 Type::Table(Box::new(Type::Integer), Box::new(Type::new_bits("n"))),
-            )], 
+            )],
             oracles: vec![
                 OracleDef {
                     sig: OracleSig {
@@ -30,25 +29,25 @@ pub fn mapping_game(params: &HashMap<String, String>) -> Composition {
                         tipe: Type::Integer,
                     },
                     code: block! { /* if T[h] = bot, T[h]<--k, return h */
-                                   /* if T[h] = bot, T[h]<--k, return h, else return h */
-                        Statement::IfThenElse(
-                                Expression::new_equals(vec![
-                                    &Expression::TableAccess(Box::new(Identifier::new_scalar("T")),
-                                                             Box::new(Identifier::new_scalar("h").to_expression())),
-                                    &Expression::None(Type::new_bits("n")),
-                                ]),
-                         block! {
-                                Statement::TableAssign(Identifier::new_scalar("T"),
-                                                       Identifier::new_scalar("h").to_expression(),
-                                                       Identifier::new_scalar("k").to_expression()),
-                                Statement::Return(Some(Identifier::new_scalar("h").to_expression()))
-                                 },
-/*                         block! {Statement::Abort},*/
-                        block! {
-                                Statement::Return(Some(Identifier::new_scalar("h").to_expression()))
-                               }
-                            )
-                    },
+                                                       /* if T[h] = bot, T[h]<--k, return h, else return h */
+                                            Statement::IfThenElse(
+                                                    Expression::new_equals(vec![
+                                                        &Expression::TableAccess(Box::new(Identifier::new_scalar("T")),
+                                                                                 Box::new(Identifier::new_scalar("h").to_expression())),
+                                                        &Expression::None(Type::new_bits("n")),
+                                                    ]),
+                                             block! {
+                                                    Statement::TableAssign(Identifier::new_scalar("T"),
+                                                                           Identifier::new_scalar("h").to_expression(),
+                                                                           Identifier::new_scalar("k").to_expression()),
+                                                    Statement::Return(Some(Identifier::new_scalar("h").to_expression()))
+                                                     },
+                    /*                         block! {Statement::Abort},*/
+                                            block! {
+                                                    Statement::Return(Some(Identifier::new_scalar("h").to_expression()))
+                                                   }
+                                                )
+                                        },
                 },
                 OracleDef {
                     sig: OracleSig {
@@ -65,8 +64,8 @@ pub fn mapping_game(params: &HashMap<String, String>) -> Composition {
                         ]),
                         block! {Statement::Abort},
                         block! {Statement::Return(
-                            Some(Expression::TableAccess(Box::new(Identifier::new_scalar("T")),
-                                                               Box::new(Identifier::new_scalar("h").to_expression()))))
+                            Some(Expression::Unwrap(Box::new( Expression::TableAccess(Box::new(Identifier::new_scalar("T")),
+                                                               Box::new(Identifier::new_scalar("h").to_expression()))))))
                                 }
                                         )
                     },
@@ -153,9 +152,10 @@ pub fn mapping_game(params: &HashMap<String, String>) -> Composition {
                     code: block! { /* assert T[h] = bot, T[h]<--k, return h  */
                         Statement::IfThenElse(
                                Expression::new_equals(vec![
-                                   &Expression::TableAccess(Box::new(Identifier::new_scalar("T")),
+                                    &Expression::TableAccess(Box::new(Identifier::new_scalar("T")),
                                                             Box::new(Identifier::new_scalar("h").to_expression())),
-                                   &Expression::None(Type::new_bits("n")),
+
+                                    &Expression::None(Type::new_bits("n")),
                                ]),
                             block! {
                                 Statement::TableAssign(Identifier::new_scalar("T"),
@@ -180,13 +180,14 @@ pub fn mapping_game(params: &HashMap<String, String>) -> Composition {
                     code: block! { /*assert T[h]!=bot, return T[h] */
                         Statement::IfThenElse(
                             Expression::new_equals(vec![
-                                    &Expression::TableAccess(Box::new(Identifier::new_scalar("T")), 
-                                                             Box::new(Identifier::new_scalar("h").to_expression())), 
-                                    &Expression::None(Type::new_bits("n")),
+
+                                    &Expression::TableAccess(Box::new(Identifier::new_scalar("T")),
+                                                            Box::new(Identifier::new_scalar("h").to_expression())),
+                            &Expression::None(Type::new_bits("n")),
                             ]),
                             block! {Statement::Abort},
-                            block! {Statement::Return(Some(Expression::TableAccess(Box::new(Identifier::new_scalar("T")),
-                            Box::new(Identifier::new_scalar("h").to_expression()))))}
+                            block! {Statement::Return(Some(Expression::Unwrap(Box::new( Expression::TableAccess(Box::new(Identifier::new_scalar("T")),
+                            Box::new(Identifier::new_scalar("h").to_expression()))))))}
                         )
                     },
                 },
@@ -199,93 +200,103 @@ pub fn mapping_game(params: &HashMap<String, String>) -> Composition {
         params: params.clone(),
         pkg: Package {
             params: vec![("n".to_string(), Type::Integer)], /* key length*/
-            state: vec![(
-                "Input_Map".to_string(),
-                Type::Table(
-                    Box::new(Type::Integer),
-                    Box::new(Type::Integer),
-                )),
+            state: vec![
                 (
-                "Output_Map".to_string(),
-                Type::Table(
-                    Box::new(Type::Tuple(vec![Type::Integer, Type::new_bits("*")])),
-                    Box::new(Type::Tuple(vec![Type::Integer, Type::new_bits("*")])),
-                ))],
+                    "Input_Map".to_string(),
+                    Type::Table(Box::new(Type::Integer), Box::new(Type::Integer)),
+                ),
+                (
+                    "Output_Map".to_string(),
+                    Type::Table(
+                        Box::new(Type::Tuple(vec![Type::Integer, Type::new_bits("*")])),
+                        Box::new(Type::Tuple(vec![Type::Integer, Type::new_bits("*")])),
+                    ),
+                ),
+            ],
             oracles: vec![
                 OracleDef {
                     sig: OracleSig {
                         name: "Set".to_string(),
                         args: vec![
-                            (
-                                "h".to_string(),
-                                Type::Tuple(vec![Type::Integer, Type::new_bits("*")]),
-                            ),
+                            ("h".to_string(), Type::Integer),
                             ("k".to_string(), Type::new_bits("n")),
                         ], /* handle (int,msg) */
-                        tipe: Type::Tuple(vec![Type::Integer, Type::new_bits("*")]),
+                        tipe: Type::Integer,
                     },
                     code: block! { /* if Input_Map[h] = bot, Input_Map[h] <-- Set(h,k), return h. Else return h.  */
                     Statement::IfThenElse(
                         Expression::new_equals(vec![
                             &Expression::TableAccess(Box::new(Identifier::new_scalar("Input_Map")),
                                                      Box::new(Identifier::new_scalar("h").to_expression())),
-                            &Expression::None(Type::Integer),
+
+                        &Expression::None(Type::Integer),
+
                         ]),
                         block! {
                     Statement::Assign(Identifier::new_scalar("hh"), Expression::OracleInvoc(
                         "Set".to_string(),
                         vec![
-                                Identifier::new_scalar("h").to_expression(),
-                                Identifier::new_scalar("k").to_expression()
-                            ])),
-                            Statement::TableAssign(Identifier::new_scalar("Input_Map"),
                             Identifier::new_scalar("h").to_expression(),
-                            Identifier::new_scalar("hh").to_expression()),
+                            Identifier::new_scalar("k").to_expression()
+                        ])),
+                    Statement::TableAssign(Identifier::new_scalar("Input_Map"),
+                        Identifier::new_scalar("h").to_expression(),
+                        Identifier::new_scalar("hh").to_expression()),
                     Statement::Return(Some(Identifier::new_scalar("h").to_expression()))
                             },
-                        block! {Statement::Return(Some(Identifier::new_scalar("h").to_expression()))}                         
+                        block! {Statement::Return(Some(Identifier::new_scalar("h").to_expression()))}
                     /* block! {Statement::Abort} */
                     )
                     },
+                },
+                OracleDef {
+                    sig: OracleSig {
+                        name: "Eval".to_string(),
+                        args: vec![
+                            ("h".to_string(), Type::Integer),
+                            ("msg".to_string(), Type::new_bits("*")),
+                        ],
+                        tipe: Type::Tuple(vec![Type::Integer, Type::new_bits("*")]),
                     },
-                    OracleDef {
-                        sig: OracleSig {
-                            name: "Eval".to_string(),
-                            args: vec![
-                                ("h".to_string(), Type::Integer),
-                                ("msg".to_string(), Type::new_bits("*")),
-                            ],
-                            tipe: Type::Tuple(vec![Type::Integer, Type::new_bits("*")]),
-                        },
-                        code: block! { /* if Input_Map[h] = bot, Output_Map[h,msg] <-- Eval(h,msg), return h. Else return h.  */
-                            Statement::IfThenElse(
-                                Expression::new_equals(vec![
-                                    &Expression::TableAccess(Box::new(Identifier::new_scalar("Input_Map")),
-                                                             Box::new(Identifier::new_scalar("h").to_expression())),
-                                    &Expression::None(Type::Integer),
-                                ]),
-                                block! {Statement::Return(Some(Identifier::new_scalar("h").to_expression()))}                         ,
-                                /* block! {Statement::Abort} */    
-                                block! {
-                                    Statement::Assign(Identifier::new_scalar("hh"), Expression::TableAccess(Box::new(Identifier::new_scalar("Input_Map")),
-                                    Box::new(Identifier::new_scalar("h").to_expression()))),
-                                    Statement::Assign(Identifier::new_scalar("hhh"), Expression::OracleInvoc(
-                                        "Eval".to_string(),
-                                vec![
-                                        Identifier::new_scalar("hh").to_expression(),
-                                        Identifier::new_scalar("msg").to_expression()
-                                    ])),
-                                    Statement::TableAssign(Identifier::new_scalar("Output_Map"),
-                                    Identifier::new_scalar("hh").to_expression(),
-                                    Identifier::new_scalar("hhh").to_expression()),
-                            Statement::Return(Some(Expression::Tuple(vec![
-                                Identifier::new_scalar("h").to_expression(),
-                                Identifier::new_scalar("msg").to_expression()
-                            ])))
-                            }
-                            )
-                        },
+                    code: block! { /* if Input_Map[h] = bot, Output_Map[h,msg] <-- Eval(h,msg), return h. Else return h.  */
+                        Statement::IfThenElse(
+                            Expression::new_equals(vec![
+                                &Expression::TableAccess(Box::new(Identifier::new_scalar("Input_Map")),
+                                                         Box::new(Identifier::new_scalar("h").to_expression())),
+                                &Expression::None(Type::Integer),
+                            ]),
+                            block! {
+                                Statement::Return(
+                                    Some(
+                                        Expression::Tuple(
+                                            vec![
+                                                Identifier::new_scalar("h").to_expression(),
+                                                Identifier::new_scalar("msg").to_expression()
+                                            ]
+                                        )
+                                    )
+                                )},
+                            /* block! {Statement::Abort} */
+                            block! {
+                                Statement::Assign(Identifier::new_scalar("hh"), Expression::TableAccess(Box::new(Identifier::new_scalar("Input_Map")),
+                                Box::new(Identifier::new_scalar("h").to_expression()))),
+                                Statement::Assign(Identifier::new_scalar("hhh"), Expression::OracleInvoc(
+                                    "Eval".to_string(),
+                            vec![
+                                    Expression::Unwrap(Box::new( Identifier::new_scalar("hh").to_expression())),
+                                    Identifier::new_scalar("msg").to_expression()
+                                ])),
+                                Statement::TableAssign(Identifier::new_scalar("Output_Map"),
+                                Expression::Tuple(vec![ Expression::Unwrap(Box::new(Identifier::new_scalar("hh").to_expression())), Identifier::new_scalar("msg").to_expression()]),
+                                Identifier::new_scalar("hhh").to_expression()),
+                        Statement::Return(Some(Expression::Tuple(vec![
+                            Identifier::new_scalar("h").to_expression(),
+                            Identifier::new_scalar("msg").to_expression()
+                        ])))
+                        }
+                        )
                     },
+                },
                 OracleDef {
                     sig: OracleSig {
                         name: "Get".to_string(),
@@ -296,47 +307,77 @@ pub fn mapping_game(params: &HashMap<String, String>) -> Composition {
                         tipe: Type::new_bits("n"),
                     },
                     /*
-                    if Output-Map[h] = bot
-                    	abort
-                    else hh <-- Output-Map[h]
-                    	k <-- Get(hh)
-                    	return k
+                    if Output_Map[h] = bot
+                        abort
+                    else hh <-- Output_Map[h]
+                        k <-- Get(hh)
+                        return k
                     */
                     code: block! {
                         Statement::IfThenElse(
                             Expression::new_equals(vec![
-                                    &Expression::TableAccess(Box::new(Identifier::new_scalar("Output-Map")),
-                                                             Box::new(Identifier::new_scalar("h").to_expression())), 
+                                    &Expression::TableAccess(Box::new(Identifier::new_scalar("Output_Map")),
+                                                             Box::new(Identifier::new_scalar("h").to_expression())),
                                     &Expression::None(Type::Tuple(vec![Type::Integer, Type::new_bits("*")])),
                             ]),
                             block! {Statement::Abort},
                             block! {
                                 Statement::Assign(Identifier::new_scalar("hh"),
-                                Expression::TableAccess(Box::new(Identifier::new_scalar("Output-Map")),
+                                Expression::TableAccess(Box::new(Identifier::new_scalar("Output_Map")),
                                                         Box::new(Identifier::new_scalar("h").to_expression()))),
-                                Statement::Assign(Identifier::new_scalar("k"), Expression::OracleInvoc("Get".to_string(), vec![Identifier::new_scalar("hh").to_expression()])),
+                                Statement::Assign(Identifier::new_scalar("k"), Expression::OracleInvoc("Get".to_string(), vec![Expression::Unwrap(Box::new( Identifier::new_scalar("hh").to_expression()))])),
                                 Statement::Return(Some(Identifier::new_scalar("k").to_expression()))
                             }
                         )
                     },
-                }
+                },
             ],
         },
     };
 
+    const pkgidx_key_top_map: usize = 0;
+    const pkgidx_mod_prf: usize = 1;
+    const pkgidx_key_pkg_bottom: usize = 2;
+    const pkgidx_map_pkg: usize = 3;
+
     Composition {
-        pkgs: vec![key_pkg_top_map.clone(), mod_prf.clone(), key_pkg_bottom.clone(), map_pkg.clone()],
+        pkgs: vec![
+            key_pkg_top_map.clone(),
+            mod_prf.clone(),
+            key_pkg_bottom.clone(),
+            map_pkg.clone(),
+        ],
         edges: vec![
-            (1, 0, key_pkg_top_map.pkg.clone().oracles[1].sig.clone()),
-            (1, 2, key_pkg_bottom.pkg.clone().oracles[0].sig.clone()),
-            (3, 0, key_pkg_top_map.pkg.clone().oracles[0].sig.clone()),
-            (3, 1, mod_prf.pkg.clone().oracles[0].sig.clone()),
-            (3, 2, key_pkg_bottom.pkg.clone().oracles[1].sig.clone()),
-            ],
+            (
+                pkgidx_mod_prf,
+                pkgidx_key_top_map,
+                key_pkg_top_map.pkg.clone().oracles[1].sig.clone(), //Get
+            ),
+            (
+                pkgidx_mod_prf,
+                pkgidx_key_pkg_bottom,
+                key_pkg_bottom.pkg.clone().oracles[0].sig.clone(), //Set
+            ),
+            (
+                pkgidx_map_pkg,
+                pkgidx_key_top_map,
+                key_pkg_top_map.pkg.clone().oracles[0].sig.clone(), // Set
+            ),
+            (
+                pkgidx_map_pkg,
+                pkgidx_mod_prf,
+                mod_prf.pkg.clone().oracles[0].sig.clone(), //Eval
+            ),
+            (
+                pkgidx_map_pkg,
+                pkgidx_key_pkg_bottom,
+                key_pkg_bottom.pkg.clone().oracles[1].sig.clone(), // Get
+            ),
+        ],
         exports: vec![
-            (0, map_pkg.pkg.clone().oracles[0].sig.clone()),
-            (1, map_pkg.pkg.clone().oracles[1].sig.clone()),
-            (2, map_pkg.pkg.clone().oracles[2].sig.clone()),
+            (pkgidx_map_pkg, map_pkg.pkg.clone().oracles[0].sig.clone()),
+            (pkgidx_map_pkg, map_pkg.pkg.clone().oracles[1].sig.clone()),
+            (pkgidx_map_pkg, map_pkg.pkg.clone().oracles[2].sig.clone()),
         ],
         name: "no_mapping_game".to_string(),
     }

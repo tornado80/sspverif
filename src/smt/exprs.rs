@@ -53,6 +53,24 @@ impl SmtFmt for SmtExpr {
 impl From<Expression> for SmtExpr {
     fn from(expr: Expression) -> SmtExpr {
         match expr {
+            Expression::Typed(t, inner) => match *inner {
+                Expression::Unwrap(inner) => SmtExpr::List(vec![
+                    SmtExpr::Atom(format!("unwrap-{}", smt_to_string(t))),
+                    SmtExpr::from(*inner),
+                ]),
+                Expression::Some(inner) => {
+                    if let Type::Maybe(t_inner) = t {
+                        SmtExpr::List(vec![
+                            SmtExpr::Atom(format!("mk-maybe-{}", smt_to_string(*t_inner))),
+                            SmtExpr::from(*inner),
+                        ])
+                    } else {
+                        unreachable!()
+                    }
+                }
+                _ => SmtExpr::from(*inner),
+            },
+            Expression::None(t) => SmtExpr::Atom(format!("mk-none-{}", smt_to_string(t))),
             Expression::BooleanLiteral(litname) => SmtExpr::Atom(litname),
             Expression::IntegerLiteral(litname) => SmtExpr::Atom(litname),
             Expression::Equals(exprs) => {
@@ -114,6 +132,15 @@ impl From<Type> for SmtExpr {
                 // TODO make sure we define this somewhere
                 SmtExpr::Atom(format!("Bits_{}", length))
             }
+            Type::Maybe(t) => match *t {
+                Type::Boolean => SmtExpr::Atom("Maybe_Bool".to_string()),
+                Type::Integer => SmtExpr::Atom("Maybe_Int".to_string()),
+                Type::String => SmtExpr::Atom("Maybe_String".to_string()),
+                Type::Bits(l) => SmtExpr::Atom(format!("Maybe_Bits_{}", l)),
+                _ => {
+                    panic!("Maybe is only implemented over Bool, Int, String and Bits.")
+                }
+            },
             Type::Boolean => SmtExpr::Atom("Bool".to_string()),
             Type::Integer => SmtExpr::Atom("Int".into()),
             Type::Table(t_idx, t_val) => SmtExpr::List(vec![

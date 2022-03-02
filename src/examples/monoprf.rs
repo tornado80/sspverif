@@ -37,8 +37,11 @@ pub fn mono_prf(params: &HashMap<String, String>) -> PackageInstance {
                                 &Expression::None(Type::new_bits("n")),
                             ]),
                             block! {
-                                Statement::Assign(Identifier::new_scalar("k"),
+                                Statement::Assign(Identifier::new_scalar("k_sample"),
                                                 Expression::Sample(Type::new_bits("n")),
+                                ),
+                                Statement::Assign(Identifier::new_scalar("k"),
+                                                Expression::Some(Box::new(Identifier::new_scalar("k_sample").to_expression())),
                                 )},
                             block! {
                                 Statement::Abort
@@ -62,7 +65,7 @@ pub fn mono_prf(params: &HashMap<String, String>) -> PackageInstance {
                             block! {},
                         ),
                         Statement::Return(Some(fncall! { "f",
-                                                          Identifier::new_scalar("k").to_expression(),
+                                                          Expression::Unwrap(Box::new(Identifier::new_scalar("k").to_expression())),
                                                           Identifier::new_scalar("msg").to_expression()
                         }))
                     },
