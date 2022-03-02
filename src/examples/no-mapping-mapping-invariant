@@ -1,0 +1,131 @@
+; invariant
+; Notation: Left: no mapping, Right: mapping
+;      TIKL: T in input  (top)    key package left
+;      TIKR: T in input  (top)    key package right
+;      TOKL: T in output (bottom) key package left
+;      TOKR: T in output (bottom) key package right
+;      MIR : input- mapping table (right)
+;      MOR : output-mapping table (right)
+;
+; Left-Right Invariant:
+; (LRIa) TIKL[h] != bot iff MIR[h] != bot 
+; (LRIb) MIR [h]  = h' != bot => TIKL[h] = TIKR[h']
+; (LROa) TOKL[h] != bot iff MOR[h] != bot 
+; (LROb) MOR [h]  = h' != bot => TOKL[h] = TOKR[h']
+;
+; Right-Right Invariant:
+; (RI) (exists h s.t. MIR[h] = h') iff TIKR[h'] != bot
+; (RO) (exists h s.t. MOR[h] = h') iff TOKR[h'] != bot
+; 
+; Post-condition:
+; called on same inputs, then output is the same and if output was not abort, then same state
+;
+
+
+
+; define invariant on s-left,s-right
+(define-fun inv                                 ; function name 
+           ((s-left  State-no_mapping_game-prf) ; function input 
+            (s-right State-mapping_game-prf))  
+            Boolean                             ; function behaviour
+            (ite
+            ( 
+            (exists (TIKL (Array Int               Bits_n))   ;      TIKL: T in output (bottom) key package left
+                    (TIKR (Array Int               Bits_n))   ;      TIKR: T in output (bottom) key package right
+                    (TOKL (Array Tuple__Int_Bits_* Bits_n))   ;      TOKL: T in output (bottom) key package left
+                    (TOKR (Array Tuple__Int_Bits_* Bits_n))   ;      TOKR: T in output (bottom) key package right
+                    (MIR  (Array Int Int))                    ;      MIR : input- mapping table (right)
+                    (MOR  (Array Tuple__Int_Bits_* 
+                                 Tuple__Int_Bits_*))          ;      MOR : output- mapping table (right)
+            ) 
+            (and
+                ; assigment of tables
+                    (TIKL ... s-left)    ???
+                    (TIKR ... s-right)   ???
+                    (TOKL ... s-left)    ???
+                    (TOKR ... s-right)   ???
+                    (MIR  ... s-right)   ???
+                    (MOR  ... s-right)   ???
+                ; (LRIa)  TIKL[h] = bot => MIR[h]  = bot 
+                    (forall (h Int)) (=> (= (TIKL h) bot) (= (MIR h) bot)) ??? forall syntax       
+                ; (LRIa') MIR[h]  = bot => TIKL[h]    
+                    (forall (h Int)) (=> (= (MIR h) bot)  (= (TIKR h) bot))
+                ; (LRIb)  MIR [h] = hh  => TIKL[h] = TIKR[h'] or hh=bot         
+                    (forall (h Int) (hh Int)) 
+                                     (=> (= (MIR h) hh) (or (= (TIKL h) (TIKR hh))
+                                                            (= hh bot))
+                ; (LROa)  TOKL[h] = bot => MOR[h]  = bot
+                    (forall (h Tuple__Int_Bits_*)) 
+                                      (=> (= (TOKL h) bot) (= (MIR h) bot))
+                ; (LROa') MOR[h]  = bot => TOKL[h]  = bot 
+                    (forall (h Tuple__Int_Bits_*)) 
+                                      (=> (= (MOR h) bot) (= (TOKR h) bot))            
+                ; (LROb)  MOR [h] = hh  => TOKL[h] = TOKR[h'] or hh=bot         
+                    (forall (h Tuple__Int_Bits_*) (hh Tuple__Int_Bits_*)) 
+                                     (=> (= (MOR h) hh) (or (= (TOKL h) (TIKR hh))
+                                                            (= hh bot))
+                ; (RI)  (exists h s.t. MIR[h] = h') => TIKR[h'] != bot
+                    (forall (hh Int)) 
+                                     (=> 
+                                     (
+                                     (exists (h Int))
+                                     (= (MIR h) hh)
+                                     )
+                                     (or (not (=  (TIKR hh) bot)
+                                              (= hh bot))))
+                ; (RI') TIKR[h'] != bot => (exists h s.t. MIR[h] = h')
+                    (forall (hh Int)) 
+                                     (=> 
+                                     (not (=  (TIKR hh) bot))
+                                     (
+                                     (exists (h Int))
+                                     (= (MIR h) hh)
+                                     ))
+                ; (RO)  (exists h s.t. MOR[h] = h') => TOKR[h'] != bot
+                    (forall (hh Tuple__Int_Bits_*)) 
+                                     (=> 
+                                     (
+                                     (exists (h Tuple__Int_Bits_*))
+                                     (= (MOR h) hh)
+                                     )
+                                     (or (not (=  (TOKR hh) bot)
+                                              (= hh bot))))
+                ; (RO') TOKR[h'] != bot => (exists h s.t. MOR[h] = h')
+                                     (=> 
+                                     (or (not (=  (TOKR hh) bot)
+                                              (= hh bot))))
+                                     (
+                                     (exists (h Tuple__Int_Bits_*))
+                                     (= (MOR h) hh)
+                                     )
+            )
+            )
+            true
+            false
+            ))
+
+; existential quantification
+assert exists ((s-left-old  State-no_mapping_game-prf)
+               (s-right-old State-mapping_game-prf)   
+               (s-left-new  State-no_mapping_game-prf)
+               (s-right-new State-mapping_game-prf)
+               () ??? Oracle and call ?
+               )
+(and
+; pre-condtion
+      (= (inv s-left-old s-right-old))
+
+(not (or
+; post-condtion
+      (= (inv s-left-new s-right-new))
+      (= y-left-new y-right-new )
+))
+
+; assignment after execution
+      (= left-new     ... s-left-old ... input oracle ???)
+      (= s-left-new   ... left-new)
+      (= y-left-new   ... left-new)
+      (= right-new    ... s-right-old ... input oracle ???)      
+      (= s-right-new  ... right-new)
+      (= y-right-new  ... right-new)
+)
