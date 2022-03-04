@@ -331,10 +331,10 @@ pub fn mapping_game(params: &HashMap<String, String>) -> Composition {
         },
     };
 
-    const pkgidx_key_top_map: usize = 0;
-    const pkgidx_mod_prf: usize = 1;
-    const pkgidx_key_pkg_bottom: usize = 2;
-    const pkgidx_map_pkg: usize = 3;
+    const PKGIDX_KEY_TOP_MAP: usize = 0;
+    const PKGIDX_MOD_PRF: usize = 1;
+    const PKGIDX_KEY_PKG_BOTTOM: usize = 2;
+    const PKGIDX_MAP_PKG: usize = 3;
 
     Composition {
         pkgs: vec![
@@ -345,35 +345,35 @@ pub fn mapping_game(params: &HashMap<String, String>) -> Composition {
         ],
         edges: vec![
             (
-                pkgidx_mod_prf,
-                pkgidx_key_top_map,
+                PKGIDX_MOD_PRF,
+                PKGIDX_KEY_TOP_MAP,
                 key_pkg_top_map.pkg.clone().oracles[1].sig.clone(), //Get
             ),
             (
-                pkgidx_mod_prf,
-                pkgidx_key_pkg_bottom,
+                PKGIDX_MOD_PRF,
+                PKGIDX_KEY_PKG_BOTTOM,
                 key_pkg_bottom.pkg.clone().oracles[0].sig.clone(), //Set
             ),
             (
-                pkgidx_map_pkg,
-                pkgidx_key_top_map,
+                PKGIDX_MAP_PKG,
+                PKGIDX_KEY_TOP_MAP,
                 key_pkg_top_map.pkg.clone().oracles[0].sig.clone(), // Set
             ),
             (
-                pkgidx_map_pkg,
-                pkgidx_mod_prf,
+                PKGIDX_MAP_PKG,
+                PKGIDX_MOD_PRF,
                 mod_prf.pkg.clone().oracles[0].sig.clone(), //Eval
             ),
             (
-                pkgidx_map_pkg,
-                pkgidx_key_pkg_bottom,
+                PKGIDX_MAP_PKG,
+                PKGIDX_KEY_PKG_BOTTOM,
                 key_pkg_bottom.pkg.clone().oracles[1].sig.clone(), // Get
             ),
         ],
         exports: vec![
-            (pkgidx_map_pkg, map_pkg.pkg.clone().oracles[0].sig.clone()),
-            (pkgidx_map_pkg, map_pkg.pkg.clone().oracles[1].sig.clone()),
-            (pkgidx_map_pkg, map_pkg.pkg.clone().oracles[2].sig.clone()),
+            (PKGIDX_MAP_PKG, map_pkg.pkg.clone().oracles[0].sig.clone()),
+            (PKGIDX_MAP_PKG, map_pkg.pkg.clone().oracles[1].sig.clone()),
+            (PKGIDX_MAP_PKG, map_pkg.pkg.clone().oracles[2].sig.clone()),
         ],
         name: "no_mapping_game".to_string(),
     }
