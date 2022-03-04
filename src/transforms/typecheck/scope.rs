@@ -53,3 +53,71 @@ impl Scope {
         None
     }
 }
+
+#[cfg(test)]
+mod test {
+    use crate::identifier::Identifier;
+    use crate::types::Type;
+
+    use super::Scope;
+
+    /* Properties:
+    - (enter then) only lookup -> fails trivially (not tested)
+    - (enter then) declare then lookup -> success
+    - access variable that was declared inside a block after leaving -> fails
+    - access varable that was declared, then enter and leave -> success
+    */
+
+    #[test]
+    fn declare_then_lookup_succeeds() {
+        let id = Identifier::Local("test_id".to_string());
+        let t = Type::Integer;
+
+        let mut scope = Scope::new();
+        scope.enter();
+        scope
+            .declare(id.clone(), t.clone())
+            .expect("declare failed");
+        let t_ = scope.lookup(&id).expect("lookup failed");
+
+        assert_eq!(t, t_, "lookup returned wrong type");
+    }
+
+    #[test]
+    fn gone_after_leave() {
+        let id = Identifier::Local("test_id".to_string());
+        let t = Type::Integer;
+
+        let mut scope = Scope::new();
+        scope.enter();
+        scope.enter();
+        scope
+            .declare(id.clone(), t.clone())
+            .expect("declare failed");
+        scope.leave();
+
+        assert_eq!(None, scope.lookup(&id));
+    }
+
+    #[test]
+    fn still_there_after_enter_and_leave() {
+        let id = Identifier::Local("test_id".to_string());
+        let id2 = Identifier::Local("test_id2".to_string());
+        let t = Type::Integer;
+        let t2 = Type::String;
+
+        let mut scope = Scope::new();
+        scope.enter();
+        scope
+            .declare(id.clone(), t.clone())
+            .expect("declare id failed");
+
+        scope.enter();
+        scope.declare(id2, t2).expect("declare id2 failed");
+        scope.leave();
+
+        let t_ = scope.lookup(&id).expect("lookup failed");
+
+        assert_eq!(t, t_, "lookup returned wrong type");
+    }
+}
