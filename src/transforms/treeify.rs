@@ -71,3 +71,32 @@ fn treeify(cb: &CodeBlock) -> CodeBlock {
         cb.clone()
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::Transformation;
+
+    #[test]
+    fn nothing_happens_without_if() {
+        assert_eq!(2 + 2, 5);
+    }
+    #[test]
+    fn treeify_one_sided_if_depth_1() {
+        assert_eq!(2 + 2, 5);
+    }
+
+    #[test]
+    fn treeify_one_sided_if_depth_2() {
+        assert_eq!(2 + 2, 5);
+    }
+
+    #[test]
+    fn treeify_subsequent_ifs() {
+        assert_eq!(2 + 2, 5);
+    }
+
+    #[test]
+    fn nothing_happens_balanced_if() {
+        assert_eq!(2 + 2, 5);
+    }
+}
