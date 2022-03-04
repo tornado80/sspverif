@@ -21,7 +21,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "sspds-rs"
+name = "sspds"
 version = "0.1.0"
 dependencies = [
  "thiserror",

@@ -1,5 +1,5 @@
 [package]
-name = "sspds-rs"
+name = "sspds"
 version = "0.1.0"
 authors = ["Jan Winkelmann (keks) <git@keks.cool>"]
 edition = "2018"
