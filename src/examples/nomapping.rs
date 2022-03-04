@@ -98,20 +98,23 @@ pub fn no_mapping_game(params: &HashMap<String, String>) -> Composition {
                         tipe: Type::new_bits("n"),
                     },
                     code: block! {
-                    Statement::IfThenElse(
-                        Expression::new_equals(vec![
-                                &Expression::TableAccess(Box::new(Identifier::new_scalar("T")),
-                                                         Box::new(Identifier::new_scalar("h").to_expression())),
-                                &Expression::None(Type::new_bits("n")),
+                        Statement::IfThenElse(
+                            Expression::new_equals(vec![
+                                    &Expression::TableAccess(Box::new(Identifier::new_scalar("T")),
+                                                            Box::new(Identifier::new_scalar("h").to_expression())),
+                                    &Expression::None(Type::new_bits("n")),
 
-                        ]),
-                        block! {Statement::Abort},
-                        block! {Statement::Return(
-                            Some(Expression::Unwrap(Box::new(
-                                Expression::TableAccess(Box::new(Identifier::new_scalar("T")),
-                                                               Box::new(Identifier::new_scalar("h").to_expression()))))))
-                                }
-                                        )
+                            ]),
+                            block! {Statement::Abort},
+                            block! {Statement::Return(Some(
+                                Expression::Unwrap(Box::new(
+                                    Expression::TableAccess(
+                                        Box::new(Identifier::new_scalar("T")),
+                                        Box::new(Identifier::new_scalar("h").to_expression())
+                                    )
+                                ))
+                            ))}
+                        )
                     },
                 },
             ],

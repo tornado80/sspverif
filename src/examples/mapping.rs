@@ -154,7 +154,6 @@ pub fn mapping_game(params: &HashMap<String, String>) -> Composition {
                                Expression::new_equals(vec![
                                     &Expression::TableAccess(Box::new(Identifier::new_scalar("T")),
                                                             Box::new(Identifier::new_scalar("h").to_expression())),
-
                                     &Expression::None(Type::new_bits("n")),
                                ]),
                             block! {
@@ -180,10 +179,9 @@ pub fn mapping_game(params: &HashMap<String, String>) -> Composition {
                     code: block! { /*assert T[h]!=bot, return T[h] */
                         Statement::IfThenElse(
                             Expression::new_equals(vec![
-
                                     &Expression::TableAccess(Box::new(Identifier::new_scalar("T")),
-                                                            Box::new(Identifier::new_scalar("h").to_expression())),
-                            &Expression::None(Type::new_bits("n")),
+                                                             Box::new(Identifier::new_scalar("h").to_expression())),
+                                                             &Expression::None(Type::new_bits("n")),
                             ]),
                             block! {Statement::Abort},
                             block! {Statement::Return(Some(Expression::Unwrap(Box::new( Expression::TableAccess(Box::new(Identifier::new_scalar("T")),
@@ -228,9 +226,7 @@ pub fn mapping_game(params: &HashMap<String, String>) -> Composition {
                         Expression::new_equals(vec![
                             &Expression::TableAccess(Box::new(Identifier::new_scalar("Input_Map")),
                                                      Box::new(Identifier::new_scalar("h").to_expression())),
-
-                        &Expression::None(Type::Integer),
-
+                            &Expression::None(Type::Integer),
                         ]),
                         block! {
                     Statement::Assign(Identifier::new_scalar("hh"), Expression::OracleInvoc(
@@ -263,7 +259,7 @@ pub fn mapping_game(params: &HashMap<String, String>) -> Composition {
                             Expression::new_equals(vec![
                                 &Expression::TableAccess(Box::new(Identifier::new_scalar("Input_Map")),
                                                          Box::new(Identifier::new_scalar("h").to_expression())),
-                                &Expression::None(Type::Integer),
+                                                         &Expression::None(Type::Integer),
                             ]),
                             block! {
                                 Statement::Return(
