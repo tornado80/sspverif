@@ -103,3 +103,202 @@ fn var_specify(inst: &PackageInstance, comp_name: &str) -> PackageInstance {
         },
     }
 }
+
+
+
+#[cfg(test)]
+mod test {
+    use super::{Transformation,var_specify};
+    use crate::expressions::Expression;
+    use crate::identifier::Identifier;
+    use crate::package::{Package,PackageInstance, OracleDef,OracleSig};
+    use crate::statement::{CodeBlock, Statement};
+    use crate::types::Type;
+    use crate::block;
+    use std::collections::HashMap;
+
+    fn generate_code_blocks(source_id: Identifier, target_id:Identifier) -> Vec<(CodeBlock, CodeBlock)>{
+        vec![
+            (
+                block!{
+                    Statement::Assign(source_id.clone(),
+                                      Expression::Sample(Type::Integer))
+                },
+                block!{
+                    Statement::Assign(target_id.clone(),
+                                      Expression::Sample(Type::Integer))
+                },
+            ),
+            (
+                block!{
+                    Statement::IfThenElse(
+                        Expression::new_equals(vec![&(source_id.clone().to_expression()),
+                                                    &(Expression::IntegerLiteral("5".to_string()))]),
+                        block!{
+                            Statement::Abort
+                        },
+                        block!{
+                            Statement::Abort
+                        })
+                },
+                block!{
+                    Statement::IfThenElse(
+                        Expression::new_equals(vec![&(target_id.clone().to_expression()),
+                                                    &(Expression::IntegerLiteral("5".to_string()))]),
+                        block!{
+                            Statement::Abort
+                        },
+                        block!{
+                            Statement::Abort
+                        })
+                },
+            ),
+            (
+                block!{
+                    Statement::IfThenElse(
+                        Expression::new_equals(vec![&(Expression::IntegerLiteral("5".to_string())),
+                                                    &(Expression::IntegerLiteral("5".to_string()))]),
+                        block!{
+                            Statement::Return(Some(source_id.clone().to_expression()))
+                        },
+                        block!{
+                            Statement::Abort
+                        })
+                },
+                block!{
+                    Statement::IfThenElse(
+                        Expression::new_equals(vec![&(Expression::IntegerLiteral("5".to_string())),
+                                                    &(Expression::IntegerLiteral("5".to_string()))]),
+                        block!{
+                            Statement::Return(Some(target_id.clone().to_expression()))
+                        },
+                        block!{
+                            Statement::Abort
+                        })
+                },
+            ),
+            (
+                block!{
+                    Statement::IfThenElse(
+                        Expression::new_equals(vec![&(Expression::IntegerLiteral("5".to_string())),
+                                                    &(Expression::IntegerLiteral("5".to_string()))]),
+                        block!{
+                            Statement::Abort
+                        },
+                        block!{
+                            Statement::Return(Some(source_id.clone().to_expression()))
+                        })
+                },
+                block!{
+                    Statement::IfThenElse(
+                        Expression::new_equals(vec![&(Expression::IntegerLiteral("5".to_string())),
+                                                    &(Expression::IntegerLiteral("5".to_string()))]),
+                        block!{
+                            Statement::Abort
+                        },
+                        block!{
+                            Statement::Return(Some(target_id.clone().to_expression()))
+                        })
+                },
+            ),
+        ]
+    }
+
+    #[test]
+    fn variable_is_local() {
+        let params : HashMap<String, String> = HashMap::new();
+        let param_t: Vec<(String, Type)> = Vec::new();
+        let state  : Vec<(String, Type)> = Vec::new();
+
+        let source_id = Identifier::Scalar("v".to_string());
+        let target_id = Identifier::Local("v".to_string());
+
+        let code = generate_code_blocks(source_id, target_id);
+            code.iter().for_each(|c| {
+                let res = var_specify(&PackageInstance{
+                    params: params.clone(),
+                    name: "test".to_string(),
+                    pkg: Package{
+                        params: param_t.clone(),
+                        state: state.clone(),
+                        oracles: vec![
+                            OracleDef{
+                                code: c.0.clone(),
+                                sig: OracleSig {
+                                    tipe: Type::Empty,
+                                    name: "test".to_string(),
+                                    args: vec![]
+                                }
+                            }
+                        ]
+                    }}, "test");
+                assert_eq!(res.pkg.oracles[0].code, c.1)
+            })
+    }
+
+    #[test]
+    fn variable_is_state() {
+        let params : HashMap<String, String> = HashMap::new();
+        let param_t: Vec<(String, Type)> = Vec::new();
+        let mut state  : Vec<(String, Type)> = Vec::new();
+        state.push(("v".to_string(), Type::Integer));
+
+        let source_id = Identifier::Scalar("v".to_string());
+        let target_id = Identifier::State{name: "v".to_string(), pkgname: "test".to_string(), compname: "test".to_string()};
+
+        let code = generate_code_blocks(source_id, target_id);
+        code.iter().for_each(|c| {
+            let res = var_specify(&PackageInstance{
+                params: params.clone(),
+                name: "test".to_string(),
+                pkg: Package{
+                    params: param_t.clone(),
+                    state: state.clone(),
+                    oracles: vec![
+                        OracleDef{
+                            code: c.0.clone(),
+                            sig: OracleSig {
+                                tipe: Type::Empty,
+                                name: "test".to_string(),
+                                args: vec![]
+                            }
+                        }
+                    ]
+                }}, "test");
+            assert_eq!(res.pkg.oracles[0].code, c.1)
+        })
+    }
+
+    #[test]
+    fn variable_is_param() {
+        let params : HashMap<String, String> = HashMap::new();
+        let mut param_t: Vec<(String, Type)> = Vec::new();
+        let state  : Vec<(String, Type)> = Vec::new();
+        param_t.push(("v".to_string(), Type::Integer));
+
+        let source_id = Identifier::Scalar("v".to_string());
+        let target_id = Identifier::Params{name: "v".to_string(), pkgname: "test".to_string(), compname: "test".to_string()};
+
+        let code = generate_code_blocks(source_id, target_id);
+        code.iter().for_each(|c| {
+            let res = var_specify(&PackageInstance{
+                params: params.clone(),
+                name: "test".to_string(),
+                pkg: Package{
+                    params: param_t.clone(),
+                    state: state.clone(),
+                    oracles: vec![
+                        OracleDef{
+                            code: c.0.clone(),
+                            sig: OracleSig {
+                                tipe: Type::Empty,
+                                name: "test".to_string(),
+                                args: vec![]
+                            }
+                        }
+                    ]
+                }}, "test");
+            assert_eq!(res.pkg.oracles[0].code, c.1)
+        })
+    }
+}
