@@ -157,7 +157,7 @@ mod test {
                             Statement::Return(Some(id.clone().to_expression()))
                         })
             }
-        ].to_vec().into_iter().map(|f| (f(&source_id), f(&target_id))).collect()
+        ].iter().map(|f| (f(&source_id), f(&target_id))).collect()
     }
 
     #[test]
@@ -200,13 +200,13 @@ mod test {
         state.push(("v".to_string(), Type::Integer));
 
         let source_id = Identifier::Scalar("v".to_string());
-        let target_id = Identifier::State{name: "v".to_string(), pkgname: "test".to_string(), compname: "test".to_string()};
+        let target_id = Identifier::State{name: "v".to_string(), pkgname: "testpkg".to_string(), compname: "testcomp".to_string()};
 
         let code = generate_code_blocks(source_id, target_id);
         code.iter().for_each(|c| {
             let res = var_specify(&PackageInstance{
                 params: params.clone(),
-                name: "test".to_string(),
+                name: "testpkg".to_string(),
                 pkg: Package{
                     params: param_t.clone(),
                     state: state.clone(),
@@ -220,7 +220,7 @@ mod test {
                             }
                         }
                     ]
-                }}, "test");
+                }}, "testcomp");
             assert_eq!(res.pkg.oracles[0].code, c.1)
         })
     }
@@ -233,13 +233,13 @@ mod test {
         param_t.push(("v".to_string(), Type::Integer));
 
         let source_id = Identifier::Scalar("v".to_string());
-        let target_id = Identifier::Params{name: "v".to_string(), pkgname: "test".to_string(), compname: "test".to_string()};
+        let target_id = Identifier::Params{name: "v".to_string(), pkgname: "testpkg".to_string(), compname: "testcomp".to_string()};
 
         let code = generate_code_blocks(source_id, target_id);
         code.iter().for_each(|c| {
             let res = var_specify(&PackageInstance{
                 params: params.clone(),
-                name: "test".to_string(),
+                name: "testpkg".to_string(),
                 pkg: Package{
                     params: param_t.clone(),
                     state: state.clone(),
@@ -253,7 +253,7 @@ mod test {
                             }
                         }
                     ]
-                }}, "test");
+                }}, "testcomp");
             assert_eq!(res.pkg.oracles[0].code, c.1)
         })
     }
