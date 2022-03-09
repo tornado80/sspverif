@@ -118,21 +118,14 @@ mod test {
     use std::collections::HashMap;
 
     fn generate_code_blocks(source_id: Identifier, target_id:Identifier) -> Vec<(CodeBlock, CodeBlock)>{
-        vec![
-            (
-                block!{
-                    Statement::Assign(source_id.clone(),
+        [
+            |id:&Identifier| block!{
+                    Statement::Assign(id.clone(),
                                       Expression::Sample(Type::Integer))
-                },
-                block!{
-                    Statement::Assign(target_id.clone(),
-                                      Expression::Sample(Type::Integer))
-                },
-            ),
-            (
-                block!{
+            },
+            |id:&Identifier| block!{
                     Statement::IfThenElse(
-                        Expression::new_equals(vec![&(source_id.clone().to_expression()),
+                        Expression::new_equals(vec![&(id.clone().to_expression()),
                                                     &(Expression::IntegerLiteral("5".to_string()))]),
                         block!{
                             Statement::Abort
@@ -140,45 +133,20 @@ mod test {
                         block!{
                             Statement::Abort
                         })
-                },
-                block!{
-                    Statement::IfThenElse(
-                        Expression::new_equals(vec![&(target_id.clone().to_expression()),
-                                                    &(Expression::IntegerLiteral("5".to_string()))]),
-                        block!{
-                            Statement::Abort
-                        },
-                        block!{
-                            Statement::Abort
-                        })
-                },
-            ),
-            (
-                block!{
-                    Statement::IfThenElse(
+            },
+            |id:&Identifier| block!{
+                                    Statement::IfThenElse(
                         Expression::new_equals(vec![&(Expression::IntegerLiteral("5".to_string())),
                                                     &(Expression::IntegerLiteral("5".to_string()))]),
                         block!{
-                            Statement::Return(Some(source_id.clone().to_expression()))
+                            Statement::Return(Some(id.clone().to_expression()))
                         },
                         block!{
                             Statement::Abort
                         })
-                },
-                block!{
-                    Statement::IfThenElse(
-                        Expression::new_equals(vec![&(Expression::IntegerLiteral("5".to_string())),
-                                                    &(Expression::IntegerLiteral("5".to_string()))]),
-                        block!{
-                            Statement::Return(Some(target_id.clone().to_expression()))
-                        },
-                        block!{
-                            Statement::Abort
-                        })
-                },
-            ),
-            (
-                block!{
+
+            },
+            |id:&Identifier| block!{
                     Statement::IfThenElse(
                         Expression::new_equals(vec![&(Expression::IntegerLiteral("5".to_string())),
                                                     &(Expression::IntegerLiteral("5".to_string()))]),
@@ -186,22 +154,10 @@ mod test {
                             Statement::Abort
                         },
                         block!{
-                            Statement::Return(Some(source_id.clone().to_expression()))
+                            Statement::Return(Some(id.clone().to_expression()))
                         })
-                },
-                block!{
-                    Statement::IfThenElse(
-                        Expression::new_equals(vec![&(Expression::IntegerLiteral("5".to_string())),
-                                                    &(Expression::IntegerLiteral("5".to_string()))]),
-                        block!{
-                            Statement::Abort
-                        },
-                        block!{
-                            Statement::Return(Some(target_id.clone().to_expression()))
-                        })
-                },
-            ),
-        ]
+            }
+        ].to_vec().into_iter().map(|f| (f(&source_id), f(&target_id))).collect()
     }
 
     #[test]
