@@ -46,6 +46,13 @@ pub fn returnify(cb: &CodeBlock) -> CodeBlock {
     }
 }
 
+/// Unit tests for returnify.
+/// - First, all cases where blocks already end properly should be preserved:
+///     preserves_return_none, preserves_return_some, preserves_abort
+/// - Second, if a block ends in a non-return-type statement, a Return(None) is added
+///     adds_return
+/// - Finally, returnify should also consider ell branches of if-then-else
+///     adds_if_return_with_branches, adds_else_return_with_branches
 #[cfg(test)]
 mod test {
     use super::{Transformation,returnify};

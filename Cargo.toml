@@ -1,7 +1,7 @@
 [package]
 name = "sspds"
 version = "0.1.0"
-authors = ["Jan Winkelmann (keks) <git@keks.cool>"]
+authors = ["Jan Winkelmann (keks) <git@keks.cool>", "Christoph Egger <christoph.egger@alumni.fau.de>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
