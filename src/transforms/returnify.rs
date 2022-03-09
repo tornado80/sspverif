@@ -51,7 +51,6 @@ mod test {
     use super::{Transformation,returnify};
     use crate::expressions::Expression;
     use crate::identifier::Identifier;
-    use crate::package::{OracleDef, OracleSig, Package, PackageInstance};
     use crate::statement::{CodeBlock, Statement};
     use crate::types::Type;
     use crate::block;
@@ -96,6 +95,75 @@ mod test {
             Statement::Assign(Identifier::new_scalar("d"),
                               Expression::Sample(Type::Integer)),
             Statement::Return(None)
+        };
+        assert_eq!(after, returnify(&before));
+        assert_eq!(after, returnify(&after));
+    }
+
+    #[test]
+    fn adds_if_return_with_branches() {
+        let before = block!{
+            Statement::IfThenElse(
+                Expression::new_equals(vec![&(Identifier::new_scalar("a").to_expression()),
+                                            &(Identifier::new_scalar("a").to_expression())]),
+                block!{
+                    Statement::Assign(Identifier::new_scalar("d"),
+                                      Expression::Sample(Type::Integer))
+                },
+                block!{
+                    Statement::Assign(Identifier::new_scalar("e"),
+                                      Expression::Sample(Type::Integer)),
+                    Statement::Return(None)
+                })
+        };
+        let after = block!{
+            Statement::IfThenElse(
+                Expression::new_equals(vec![&(Identifier::new_scalar("a").to_expression()),
+                                            &(Identifier::new_scalar("a").to_expression())]),
+                block!{
+                    Statement::Assign(Identifier::new_scalar("d"),
+                                      Expression::Sample(Type::Integer)),
+                    Statement::Return(None)
+                },
+                block!{
+                    Statement::Assign(Identifier::new_scalar("e"),
+                                      Expression::Sample(Type::Integer)),
+                    Statement::Return(None)
+                })
+        };
+        assert_eq!(after, returnify(&before));
+        assert_eq!(after, returnify(&after));
+    }
+
+    #[test]
+    fn adds_else_return_with_branches() {
+        let before = block!{
+            Statement::IfThenElse(
+                Expression::new_equals(vec![&(Identifier::new_scalar("a").to_expression()),
+                                            &(Identifier::new_scalar("a").to_expression())]),
+                block!{
+                    Statement::Assign(Identifier::new_scalar("d"),
+                                      Expression::Sample(Type::Integer))
+                },
+                block!{
+                    Statement::Assign(Identifier::new_scalar("e"),
+                                      Expression::Sample(Type::Integer))
+                })
+        };
+        let after = block!{
+            Statement::IfThenElse(
+                Expression::new_equals(vec![&(Identifier::new_scalar("a").to_expression()),
+                                            &(Identifier::new_scalar("a").to_expression())]),
+                block!{
+                    Statement::Assign(Identifier::new_scalar("d"),
+                                      Expression::Sample(Type::Integer)),
+                    Statement::Return(None)
+                },
+                block!{
+                    Statement::Assign(Identifier::new_scalar("e"),
+                                      Expression::Sample(Type::Integer)),
+                    Statement::Return(None)
+                })
         };
         assert_eq!(after, returnify(&before));
         assert_eq!(after, returnify(&after));
