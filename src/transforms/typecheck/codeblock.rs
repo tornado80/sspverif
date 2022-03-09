@@ -424,10 +424,12 @@ mod test {
     fn table_assign_succeedes() {
         let mut scope = Scope::new();
         scope.enter();
-        scope.declare(
-            Identifier::Local("test".to_string()),
-            Type::Table(Box::new(Type::Integer), Box::new(Type::String)),
-        );
+        scope
+            .declare(
+                Identifier::Local("test".to_string()),
+                Type::Table(Box::new(Type::Integer), Box::new(Type::String)),
+            )
+            .unwrap();
         let code = TypedCodeBlock {
             block: block! {
                 Statement::TableAssign(Identifier::Local("test".to_string()),
@@ -437,23 +439,20 @@ mod test {
             expected_return_type: Type::Empty,
         };
         let ret = code.typecheck(&mut scope);
-        match ret {
-            Ok(_) => assert!(true, "Typecheck should succeede"),
-            Err(TypeCheckError::TypeCheck(_)) => {
-                assert!(false, "Typecheck should succeede TypeCheckError")
-            }
-            Err(e) => assert!(false, format!("Unexpected error type: {:?}", e)),
-        }
+
+        assert!(matches!(ret, Ok(_)), "Typecheck should succeed");
     }
 
     #[test]
     fn table_assign_wrong_index_type() {
         let mut scope = Scope::new();
         scope.enter();
-        scope.declare(
-            Identifier::Local("test".to_string()),
-            Type::Table(Box::new(Type::Integer), Box::new(Type::String)),
-        );
+        scope
+            .declare(
+                Identifier::Local("test".to_string()),
+                Type::Table(Box::new(Type::Integer), Box::new(Type::String)),
+            )
+            .unwrap();
         let code = TypedCodeBlock {
             block: block! {
                 Statement::TableAssign(Identifier::Local("test".to_string()),
@@ -463,23 +462,22 @@ mod test {
             expected_return_type: Type::Empty,
         };
         let ret = code.typecheck(&mut scope);
-        match ret {
-            Ok(_) => assert!(false, "Typecheck should fail here"),
-            Err(TypeCheckError::TypeCheck(_)) => {
-                assert!(true, "Typecheck should return a TypeCheckError")
-            }
-            Err(e) => assert!(false, format!("Unexpected error type: {:?}", e)),
-        }
+        assert!(
+            matches!(ret, Err(TypeCheckError::TypeMismatch(_, _, _, _))),
+            "expected to fail with a TypeCheckError::TypeMismatch"
+        );
     }
 
     #[test]
     fn table_assign_wrong_value() {
         let mut scope = Scope::new();
         scope.enter();
-        scope.declare(
-            Identifier::Local("test".to_string()),
-            Type::Table(Box::new(Type::Integer), Box::new(Type::String)),
-        );
+        scope
+            .declare(
+                Identifier::Local("test".to_string()),
+                Type::Table(Box::new(Type::Integer), Box::new(Type::String)),
+            )
+            .unwrap();
         let code = TypedCodeBlock {
             block: block! {
                 Statement::TableAssign(Identifier::Local("test".to_string()),
@@ -489,20 +487,19 @@ mod test {
             expected_return_type: Type::Empty,
         };
         let ret = code.typecheck(&mut scope);
-        match ret {
-            Ok(_) => assert!(false, "Typecheck should fail here"),
-            Err(TypeCheckError::TypeCheck(_)) => {
-                assert!(true, "Typecheck should return a TypeCheckError")
-            }
-            Err(e) => assert!(false, format!("Unexpected error type: {:?}", e)),
-        }
+        assert!(
+            matches!(ret, Err(TypeCheckError::TypeMismatch(_, _, _, _))),
+            "expected to fail with a TypeCheckError::TypeMismatch"
+        );
     }
 
     #[test]
     fn table_assign_not_table() {
         let mut scope = Scope::new();
         scope.enter();
-        scope.declare(Identifier::Local("test".to_string()), Type::Integer);
+        scope
+            .declare(Identifier::Local("test".to_string()), Type::Integer)
+            .unwrap();
         let code = TypedCodeBlock {
             block: block! {
                 Statement::TableAssign(Identifier::Local("test".to_string()),
@@ -512,13 +509,10 @@ mod test {
             expected_return_type: Type::Empty,
         };
         let ret = code.typecheck(&mut scope);
-        match ret {
-            Ok(_) => assert!(false, "Typecheck should fail here"),
-            Err(TypeCheckError::TypeCheck(_)) => {
-                assert!(true, "Typecheck should return a TypeCheckError")
-            }
-            Err(e) => assert!(false, format!("Unexpected error type: {:?}", e)),
-        }
+        assert!(
+            matches!(ret, Err(TypeCheckError::TypeMismatch(_, _, _, _))),
+            "expected to fail with a TypeCheckError::TypeMismatch"
+        );
     }
 
     #[test]
@@ -534,12 +528,9 @@ mod test {
             expected_return_type: Type::Empty,
         };
         let ret = code.typecheck(&mut scope);
-        match ret {
-            Ok(_) => assert!(false, "Typecheck should fail here"),
-            Err(TypeCheckError::TypeCheck(_)) => {
-                assert!(true, "Typecheck should return a TypeCheckError")
-            }
-            Err(e) => assert!(false, format!("Unexpected error type: {:?}", e)),
-        }
+        assert!(
+            matches!(ret, Err(TypeCheckError::UndefinedTable(_, _, _))),
+            "expected to fail with a TypeCheckError::TypeMismatch"
+        );
     }
 }
