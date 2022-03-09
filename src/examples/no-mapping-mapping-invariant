@@ -202,40 +202,42 @@ Return_key_pkg_bottom_Set (let ((__self_state (composition-state-no_mapping_game
 ;                                     (= (MOR h) hh)
 ;                                     ))
             )
-            )
             true
             false
-            ))
+            )
+
 
 ;;;;;;;;;; SET oracle
 ; existential quantification
-assert (exists (s-left-old  CompositionState-no_mapping_game)
+(assert (and (exists 
+               ((s-left-old  CompositionState-no_mapping_game)
                (s-right-old CompositionState-mapping_game)   
                (s-left-new  CompositionState-no_mapping_game)
                (s-right-new CompositionState-mapping_game)
                (h Int)
-               (k Bits_n)
+               (k Bits_n))
 (and
 ; pre-condtion
-      (= (inv s-left-old s-right-old))
+    (= bot bot)     ; undefined stuff (= (inv s-left-old s-right-old))
 
 (not (or
 ; post-condtion
-      (= (inv s-left-new s-right-new))
-      (= y-left-new y-right-new )
+      (= bot bot)  ; undefined stuff (= (inv s-left-new s-right-new))
+      (= bot bot)  ; undefined stuff (= y-left-new y-right-new )
 ))
 
 ; assignment after execution
-      (= left-new     oracle-key_pkg_top-Set s-left-old (h k))) ; left function on left state
-      (= s-left-new   return-key_pkg_top-Set-state left-new)
-      (= y-left-new   return-key_pkg_top-Set-value left-new)
-      (= right-new    oracle-key_pkg_top_map-Set s-right-old (h k))) ; left function on left state     
-      (= s-right-new  return-key_pkg_top_map-Set-state right-new)
-      (= y-right-new  return-key_pkg_top_map-Set-value right-new)
+      ; re-activate (= left-new     oracle-key_pkg_top-Set s-left-old (h k))) ; left function on left state
+      ; re-activate (= s-left-new   return-key_pkg_top-Set-state left-new)
+      ; re-activate (= y-left-new   return-key_pkg_top-Set-value left-new)
+      ; re-activate (= right-new    oracle-key_pkg_top_map-Set s-right-old (h k)) ; left function on left state     
+      ; re-activate (= s-right-new  return-key_pkg_top_map-Set-state right-new)
+      ; re-activate (= y-right-new  return-key_pkg_top_map-Set-value right-new)
 )
-)
+))
 
 ; manual concat
-(assert (forall ((n Int)) (= (__sample-rand-real n) (__sample-rand-mono-prf-game n))))
+;(assert (forall ((n Int)) (= (__sample-rand-real n) (__sample-rand-mono-prf-game n))))
+
 (check-sat)
 (get-model)
