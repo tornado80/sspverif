@@ -74,7 +74,7 @@ pub fn no_mapping_game(params: &HashMap<String, String>) -> Composition {
                                    /* if T[h] = bot, T[h]<--k, return h, else do nothing */
                         Statement::IfThenElse(
                                 Expression::new_equals(vec![
-                                    &Expression::TableAccess(Box::new(Identifier::new_scalar("T")),
+                                    &Expression::TableAccess(Identifier::new_scalar("T"),
                                                              Box::new(Identifier::new_scalar("h").to_expression())),
                                     &Expression::None(Type::new_bits("n")),
                                 ]),
@@ -100,7 +100,7 @@ pub fn no_mapping_game(params: &HashMap<String, String>) -> Composition {
                     code: block! {
                         Statement::IfThenElse(
                             Expression::new_equals(vec![
-                                    &Expression::TableAccess(Box::new(Identifier::new_scalar("T")),
+                                    &Expression::TableAccess(Identifier::new_scalar("T"),
                                                             Box::new(Identifier::new_scalar("h").to_expression())),
                                     &Expression::None(Type::new_bits("n")),
 
@@ -109,7 +109,7 @@ pub fn no_mapping_game(params: &HashMap<String, String>) -> Composition {
                             block! {Statement::Return(Some(
                                 Expression::Unwrap(Box::new(
                                     Expression::TableAccess(
-                                        Box::new(Identifier::new_scalar("T")),
+                                        Identifier::new_scalar("T"),
                                         Box::new(Identifier::new_scalar("h").to_expression())
                                     )
                                 ))
@@ -199,7 +199,7 @@ pub fn no_mapping_game(params: &HashMap<String, String>) -> Composition {
                     code: block! { /* assert T[h] = bot, T[h]<--k, return h  */
                                             Statement::IfThenElse(
                                             Expression::new_equals(vec![
-                                                &Expression::TableAccess(Box::new(Identifier::new_scalar("T")),
+                                                &Expression::TableAccess(Identifier::new_scalar("T"),
                                                                          Box::new(Identifier::new_scalar("h").to_expression())),
                                                 &Expression::None(Type::new_bits("n")),
                                             ]),
@@ -226,12 +226,12 @@ pub fn no_mapping_game(params: &HashMap<String, String>) -> Composition {
                     code: block! { /*assert T[h]!=bot, return T[h] */
                         Statement::IfThenElse(
                             Expression::new_equals(vec![
-                                    &Expression::TableAccess(Box::new(Identifier::new_scalar("T")),
+                                    &Expression::TableAccess(Identifier::new_scalar("T"),
                                                              Box::new(Identifier::new_scalar("h").to_expression())),
                                     &Expression::None(Type::new_bits("n")),
                             ]),
                             block! {Statement::Abort},
-                            block! {Statement::Return(Some(Expression::Unwrap(Box::new( Expression::TableAccess(Box::new(Identifier::new_scalar("T")),
+                            block! {Statement::Return(Some(Expression::Unwrap(Box::new( Expression::TableAccess(Identifier::new_scalar("T"),
                             Box::new(Identifier::new_scalar("h").to_expression()))))))}
                         )
                     },

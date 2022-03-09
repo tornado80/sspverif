@@ -11,7 +11,7 @@ pub enum Expression {
     IntegerLiteral(String),
     BooleanLiteral(String),
     Identifier(Identifier),
-    TableAccess(Box<Identifier>, Box<Expression>),
+    TableAccess(Identifier, Box<Expression>),
     Tuple(Vec<Expression>),
     List(Vec<Expression>),
     FnCall(String, Vec<Expression>),

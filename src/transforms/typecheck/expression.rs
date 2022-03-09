@@ -110,7 +110,7 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                             ErrorLocation::Unknown,
                             "type error: Unwrap contains access to table that is not in scope"
                                 .to_string(),
-                            *id.clone(),
+                            id.clone(),
                         ))
                     }
                 }
@@ -585,7 +585,7 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                 ))
             }
         }
-        Expression::TableAccess(id, expr) => match scope.lookup(&**id) {
+        Expression::TableAccess(id, expr) => match scope.lookup(id) {
             Some(Type::Table(t_idx, t_val)) => {
                 let expr_ = typify(&expr, scope)?;
                 let t_expr = get_type(&expr_, scope)?;
@@ -613,7 +613,7 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
             _ => Err(TypeCheckError::Undefined(
                 ErrorLocation::Unknown,
                 "accessing undefined table".to_string(),
-                *id.clone(),
+                id.clone(),
             )),
         },
         _ => {

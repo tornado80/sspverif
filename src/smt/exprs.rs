@@ -84,7 +84,7 @@ impl From<Expression> for SmtExpr {
             Expression::Not(expr) => {
                 SmtExpr::List(vec![SmtExpr::Atom("not".to_string()), (*expr).into()])
             }
-            Expression::Identifier(Identifier::Scalar(identname)) => SmtExpr::Atom(identname),
+            Expression::Identifier(Identifier::Scalar(identname)) => panic!{"Found a scalar {:} which should have been removed by varspecify at this point", identname},
             Expression::Identifier(Identifier::Local(identname)) => SmtExpr::Atom(identname),
             Expression::Identifier(Identifier::State {
                 name: identname,
@@ -97,7 +97,7 @@ impl From<Expression> for SmtExpr {
             Expression::Bot => SmtExpr::Atom("bot".to_string()),
             Expression::TableAccess(table, index) => SmtExpr::List(vec![
                 SmtExpr::Atom("select".into()),
-                (*table).to_expression().into(),
+                table.to_expression().into(),
                 (*index).into(),
             ]),
             Expression::Tuple(exprs) => {
