@@ -1,23 +1,27 @@
 use crate::package::Composition;
 use crate::statement::{CodeBlock, Statement};
+use crate::types::Type;
 
 pub struct Transformation<'a>(pub &'a Composition);
 
+#[derive(Debug, Clone)]
+pub struct Error(pub String);
+
 impl<'a> super::Transformation for Transformation<'a> {
-    type Err = ();
+    type Err = Error;
     type Aux = ();
 
-    fn transform(&self) -> Result<(Composition, ()), ()> {
-        let insts = self.0.pkgs.iter().map(|inst| {
+    fn transform(&self) -> Result<(Composition, ()), Error> {
+        let insts : Result<Vec<_>,_> = self.0.pkgs.iter().map(|inst| {
             let mut newinst = inst.clone();
-            newinst.pkg.oracles.iter_mut().for_each(|oracle| {
-                oracle.code = returnify(&oracle.code);
-            });
-            newinst
-        });
+            for (i, oracle) in newinst.pkg.oracles.clone().iter().enumerate() {
+                newinst.pkg.oracles[i].code = returnify(&oracle.code, oracle.sig.tipe == Type::Empty)?;
+            }
+            Ok(newinst)
+        }).collect();
         Ok((
             Composition {
-                pkgs: insts.collect(),
+                pkgs: insts?,
                 ..self.0.clone()
             },
             (),
@@ -25,23 +29,27 @@ impl<'a> super::Transformation for Transformation<'a> {
     }
 }
 
-pub fn returnify(cb: &CodeBlock) -> CodeBlock {
+pub fn returnify(cb: &CodeBlock, none_ok: bool) -> Result<CodeBlock, Error> {
     match cb.0.last() {
         Some(Statement::IfThenElse(expr, ifcode, elsecode)) => {
             let mut retval = cb.0.clone();
             retval.pop();
             retval.push(Statement::IfThenElse(
                 expr.clone(),
-                returnify(ifcode),
-                returnify(elsecode),
+                returnify(ifcode, none_ok)?,
+                returnify(elsecode, none_ok)?,
             ));
-            CodeBlock(retval)
+            Ok(CodeBlock(retval))
         }
-        Some(Statement::Return(_)) | Some(Statement::Abort) => cb.clone(),
+        Some(Statement::Return(_)) | Some(Statement::Abort) => Ok(cb.clone()),
         _ => {
-            let mut retval = cb.0.clone();
-            retval.push(Statement::Return(None));
-            CodeBlock(retval)
+            if !none_ok {
+                Err(Error("Missing return at end of code block with expected return value".to_string()))
+            } else {
+                let mut retval = cb.0.clone();
+                retval.push(Statement::Return(None));
+                Ok(CodeBlock(retval))
+            }
         }
     }
 }
@@ -69,7 +77,7 @@ mod test {
                               Expression::Sample(Type::Integer)),
             Statement::Return(None)
         };
-        assert_eq!(code, returnify(&code));
+        assert_eq!(code, returnify(&code, true).unwrap());
     }
 
     #[test]
@@ -79,7 +87,7 @@ mod test {
                               Expression::Sample(Type::Integer)),
             Statement::Return(Some(Expression::IntegerLiteral("5".to_string())))
         };
-        assert_eq!(code, returnify(&code));
+        assert_eq!(code, returnify(&code, true).unwrap());
     }
 
     #[test]
@@ -89,7 +97,7 @@ mod test {
                               Expression::Sample(Type::Integer)),
             Statement::Abort
         };
-        assert_eq!(code, returnify(&code));
+        assert_eq!(code, returnify(&code, true).unwrap());
     }
 
     #[test]
@@ -103,8 +111,8 @@ mod test {
                               Expression::Sample(Type::Integer)),
             Statement::Return(None)
         };
-        assert_eq!(after, returnify(&before));
-        assert_eq!(after, returnify(&after));
+        assert_eq!(after, returnify(&before, true).unwrap());
+        assert_eq!(after, returnify(&after, true).unwrap());
     }
 
     #[test]
@@ -138,8 +146,8 @@ mod test {
                     Statement::Return(None)
                 })
         };
-        assert_eq!(after, returnify(&before));
-        assert_eq!(after, returnify(&after));
+        assert_eq!(after, returnify(&before, true).unwrap());
+        assert_eq!(after, returnify(&after, true).unwrap());
     }
 
     #[test]
@@ -172,7 +180,7 @@ mod test {
                     Statement::Return(None)
                 })
         };
-        assert_eq!(after, returnify(&before));
-        assert_eq!(after, returnify(&after));
+        assert_eq!(after, returnify(&before, true).unwrap());
+        assert_eq!(after, returnify(&after, true).unwrap());
     }
 }

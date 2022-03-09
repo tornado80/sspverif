@@ -1,6 +1,6 @@
 use crate::package::Composition;
 
-pub mod oraclelowlevelify;
+pub mod resolveoracles;
 pub mod returnify;
 pub mod treeify;
 pub mod typecheck;
@@ -29,9 +29,9 @@ pub fn transform_all(
     let (comp, _) = varspecify::Transformation(&comp)
         .transform()
         .expect("varspecify transformation failed unexpectedly");
-    let (comp, _) = oraclelowlevelify::Transformation(&comp)
+    let (comp, _) = resolveoracles::Transformation(&comp)
         .transform()
-        .expect("oraclelowlevelify transformation failed unexpectedly");
+        .expect("resolveoracles transformation failed unexpectedly");
 
     Ok((comp, scope))
 }
