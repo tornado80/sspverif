@@ -157,7 +157,7 @@ impl TypedCodeBlock {
 /// - Should follow branching
 ///     return_first_branch_wrong, return_second_branch_wrong, return_both_branch_correct, return_one_branch_aborts_correct
 /// - Should check on (table-)assign
-///     assign_succeedes, assign_fails
+///     assign_succeedes_exists, assign_succeedes_new, assign_fails
 #[cfg(test)]
 mod test {
     use super::TypedCodeBlock;
@@ -373,10 +373,28 @@ mod test {
     }
 
     #[test]
-    fn assign_succeedes() {
+    fn assign_succeedes_exists() {
         let mut scope = Scope::new();
         scope.enter();
         scope.declare(Identifier::Local("test".to_string()), Type::Integer);
+        let code = TypedCodeBlock{
+            block: block!{
+                Statement::Assign(Identifier::Local("test".to_string()), Expression::IntegerLiteral("42".to_string()))
+            },
+            expected_return_type: Type::Empty
+        };
+        let ret = code.typecheck(&mut scope);
+        match ret {
+            Ok(_) => assert!(true, "Typecheck should succeede"),
+            Err(TypeCheckError::TypeCheck(_)) => assert!(false, "Typecheck should succeede TypeCheckError"),
+            Err(e) => assert!(false, format!("Unexpected error type: {:?}", e)),
+        }
+    }
+
+    #[test]
+    fn assign_succeedes_new() {
+        let mut scope = Scope::new();
+        scope.enter();
         let code = TypedCodeBlock{
             block: block!{
                 Statement::Assign(Identifier::Local("test".to_string()), Expression::IntegerLiteral("42".to_string()))
