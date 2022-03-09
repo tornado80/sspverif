@@ -74,8 +74,8 @@ pub fn mapping_game(params: &HashMap<String, String>) -> Composition {
         },
     };
 
-    let mod_prf = PackageInstance {
-        name: "prf".to_string(),
+    let mod_prf_mapping = PackageInstance {
+        name: "prf_mapping".to_string(),
         params: params.clone(),
         pkg: Package {
             params: vec![
@@ -124,8 +124,8 @@ pub fn mapping_game(params: &HashMap<String, String>) -> Composition {
         },
     };
 
-    let key_pkg_bottom = PackageInstance {
-        name: "key_pkg_bottom".to_string(),
+    let key_pkg_bottom_mapping = PackageInstance {
+        name: "key_pkg_bottom_mapping".to_string(),
         params: params.clone(),
         pkg: Package {
             params: vec![("n".to_string(), Type::Integer)], /* key length*/
@@ -332,27 +332,27 @@ pub fn mapping_game(params: &HashMap<String, String>) -> Composition {
     };
 
     const PKGIDX_KEY_TOP_MAP: usize = 0;
-    const PKGIDX_MOD_PRF: usize = 1;
-    const PKGIDX_KEY_PKG_BOTTOM: usize = 2;
+    const PKGIDX_MOD_PRF_MAPPING: usize = 1;
+    const PKGIDX_KEY_PKG_BOTTOM_MAPPING: usize = 2;
     const PKGIDX_MAP_PKG: usize = 3;
 
     Composition {
         pkgs: vec![
             key_pkg_top_map.clone(),
-            mod_prf.clone(),
-            key_pkg_bottom.clone(),
+            mod_prf_mapping.clone(),
+            key_pkg_bottom_mapping.clone(),
             map_pkg.clone(),
         ],
         edges: vec![
             (
-                PKGIDX_MOD_PRF,
+                PKGIDX_MOD_PRF_MAPPING,
                 PKGIDX_KEY_TOP_MAP,
                 key_pkg_top_map.pkg.clone().oracles[1].sig.clone(), //Get
             ),
             (
-                PKGIDX_MOD_PRF,
-                PKGIDX_KEY_PKG_BOTTOM,
-                key_pkg_bottom.pkg.clone().oracles[0].sig.clone(), //Set
+                PKGIDX_MOD_PRF_MAPPING,
+                PKGIDX_KEY_PKG_BOTTOM_MAPPING,
+                key_pkg_bottom_mapping.pkg.clone().oracles[0].sig.clone(), //Set
             ),
             (
                 PKGIDX_MAP_PKG,
@@ -361,13 +361,13 @@ pub fn mapping_game(params: &HashMap<String, String>) -> Composition {
             ),
             (
                 PKGIDX_MAP_PKG,
-                PKGIDX_MOD_PRF,
-                mod_prf.pkg.clone().oracles[0].sig.clone(), //Eval
+                PKGIDX_MOD_PRF_MAPPING,
+                mod_prf_mapping.pkg.clone().oracles[0].sig.clone(), //Eval
             ),
             (
                 PKGIDX_MAP_PKG,
-                PKGIDX_KEY_PKG_BOTTOM,
-                key_pkg_bottom.pkg.clone().oracles[1].sig.clone(), // Get
+                PKGIDX_KEY_PKG_BOTTOM_MAPPING,
+                key_pkg_bottom_mapping.pkg.clone().oracles[1].sig.clone(), // Get
             ),
         ],
         exports: vec![
@@ -375,6 +375,6 @@ pub fn mapping_game(params: &HashMap<String, String>) -> Composition {
             (PKGIDX_MAP_PKG, map_pkg.pkg.clone().oracles[1].sig.clone()),
             (PKGIDX_MAP_PKG, map_pkg.pkg.clone().oracles[2].sig.clone()),
         ],
-        name: "no_mapping_game".to_string(),
+        name: "mapping_game".to_string(),
     }
 }
