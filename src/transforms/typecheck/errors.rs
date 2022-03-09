@@ -1,7 +1,13 @@
 use std::fmt;
 
 use crate::expressions::Expression;
+use crate::identifier::Identifier;
 use crate::types::Type;
+
+#[derive(Debug, Clone)]
+pub enum ErrorLocation {
+    Unknown,
+}
 
 #[derive(Debug)]
 pub struct ScopeError;
@@ -17,6 +23,14 @@ impl fmt::Display for TypeError {
 
 #[derive(Debug)]
 pub enum TypeCheckError {
+    MisplacedStatement(ErrorLocation, String),
+    TypeMismatch(
+        ErrorLocation,
+        String, // message
+        Type,   // found
+        Type,   // expected
+    ),
+    UndefinedTable(ErrorLocation, String, Identifier),
     Scope(ScopeError),
     Type(TypeError),
     TypeCheck(String),
@@ -34,7 +48,7 @@ impl From<TypeError> for TypeCheckError {
     }
 }
 
-pub type Result<T> = std::result::Result<T, TypeError>;
+pub type Result<T> = std::result::Result<T, TypeCheckError>;
 
 pub type TypeResult = Result<Type>;
 pub type ExpressionResult = Result<Expression>;

@@ -1,4 +1,4 @@
-use super::errors::TypeCheckError;
+use super::errors::{ErrorLocation, TypeCheckError};
 use super::expression::{get_type, typify};
 use super::scope::Scope;
 
@@ -27,7 +27,8 @@ impl TypedCodeBlock {
             match &*stmt {
                 Statement::Abort => {
                     if i < block.len() - 1 {
-                        return Err(TypeCheckError::TypeCheck(
+                        return Err(TypeCheckError::MisplacedStatement(
+                            ErrorLocation::Unknown,
                             "Abort found before end of code block!".to_string(),
                         ));
                     }
@@ -38,24 +39,29 @@ impl TypedCodeBlock {
                     let typed_expr = typify(expr, scope)?;
                     let expr_type = get_type(&typed_expr, scope)?;
                     if i < block.len() - 1 {
-                        return Err(TypeCheckError::TypeCheck(
+                        return Err(TypeCheckError::MisplacedStatement(
+                            ErrorLocation::Unknown,
                             "Return found before end of code block!".to_string(),
                         ));
                     }
                     if expr_type != *ret_type {
-                        return Err(TypeCheckError::TypeCheck(format!(
-                            "return type does not match: {:?} != {:?} (when returning {:?})",
-                            ret_type, expr_type, expr
-                        )));
+                        return Err(TypeCheckError::TypeMismatch(
+                            ErrorLocation::Unknown,
+                            format!("return type does not match when returning {:?}", expr),
+                            expr_type,
+                            ret_type.clone(),
+                        ));
                     }
                     new_block.push(Statement::Return(Some(typed_expr)))
                 }
                 Statement::Return(None) => {
                     if Type::Empty != *ret_type {
-                        return Err(TypeCheckError::TypeCheck(format!(
-                            "return type does not match: {:?} != Empty",
-                            ret_type
-                        )));
+                        return Err(TypeCheckError::TypeMismatch(
+                            ErrorLocation::Unknown,
+                            "empty return in function that returns something".to_string(),
+                            Type::Empty,
+                            ret_type.clone(),
+                        ));
                     }
 
                     new_block.push(stmt.clone());
@@ -67,10 +73,15 @@ impl TypedCodeBlock {
                     let expr_type = get_type(&typed_expr, scope)?;
                     if let Some(id_type) = scope.lookup(id) {
                         if id_type != expr_type {
-                            return Err(TypeCheckError::TypeCheck(format!(
-                                "overwriting some value with incompatible type: {:?} <- {:?}",
-                                id, expr
-                            )));
+                            return Err(TypeCheckError::TypeMismatch(
+                                ErrorLocation::Unknown,
+                                format!(
+                                    "assigning {:?} to variable {:?} of different type",
+                                    expr, id
+                                ),
+                                expr_type,
+                                id_type,
+                            ));
                         }
                     } else {
                         scope.declare(id.clone(), expr_type)?;
@@ -88,22 +99,33 @@ impl TypedCodeBlock {
                     if let Some(id_type) = scope.lookup(id) {
                         if let Type::Table(k, v) = id_type.clone() {
                             if *k != idx_type {
-                                return Err(TypeCheckError::TypeCheck(format!(
-                                    "type of expression {:?} used as index to table {:?} does not match: expected {:?}, got {:?}", idx, id, k, idx_type)));
+                                return Err(TypeCheckError::TypeMismatch(ErrorLocation::Unknown, format!(
+                                    "type of expression {:?} used as index to table {:?} does not match", idx, id),
+                                    idx_type,
+                                    *k
+                                ));
                             }
                             if *v != expr_type {
-                                return Err(TypeCheckError::TypeCheck(
+                                return Err(TypeCheckError::TypeMismatch(
+                                    ErrorLocation::Unknown,
                                     "value type of the table does not match".to_string(),
+                                    expr_type,
+                                    *v,
                                 ));
                             }
                         } else {
-                            return Err(TypeCheckError::TypeCheck(
+                            return Err(TypeCheckError::TypeMismatch(
+                                ErrorLocation::Unknown,
                                 "table access on non-table".to_string(),
+                                id_type,
+                                Type::Table(Box::new(idx_type), Box::new(expr_type)),
                             ));
                         }
                     } else {
-                        return Err(TypeCheckError::TypeCheck(
-                            "assigning to table but table does not exist (here)".to_string(),
+                        return Err(TypeCheckError::UndefinedTable(
+                            ErrorLocation::Unknown,
+                            "assigning to undefined table".to_string(),
+                            id.clone(),
                         ));
                     }
 
@@ -114,8 +136,14 @@ impl TypedCodeBlock {
                     let expr_type = get_type(&typed_expr, scope)?;
 
                     if expr_type != Type::Boolean {
-                        return Err(TypeCheckError::TypeCheck(
-                            "condition must be boolean".to_string(),
+                        return Err(TypeCheckError::TypeMismatch(
+                            ErrorLocation::Unknown,
+                            format!(
+                                "expression {:?} used as condition in if-then-else is not boolean",
+                                expr
+                            ),
+                            expr_type,
+                            Type::Boolean,
                         ));
                     }
 
