@@ -45,3 +45,59 @@ pub fn returnify(cb: &CodeBlock) -> CodeBlock {
         }
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::{Transformation,returnify};
+    use crate::expressions::Expression;
+    use crate::identifier::Identifier;
+    use crate::package::{OracleDef, OracleSig, Package, PackageInstance};
+    use crate::statement::{CodeBlock, Statement};
+    use crate::types::Type;
+    use crate::block;
+
+    #[test]
+    fn preserves_return_none() {
+        let code = block!{
+            Statement::Assign(Identifier::new_scalar("d"),
+                              Expression::Sample(Type::Integer)),
+            Statement::Return(None)
+        };
+        assert_eq!(code, returnify(&code));
+    }
+
+    #[test]
+    fn preserves_return_some() {
+        let code = block!{
+            Statement::Assign(Identifier::new_scalar("d"),
+                              Expression::Sample(Type::Integer)),
+            Statement::Return(Some(Expression::IntegerLiteral("5".to_string())))
+        };
+        assert_eq!(code, returnify(&code));
+    }
+
+    #[test]
+    fn preserves_abort() {
+        let code = block!{
+            Statement::Assign(Identifier::new_scalar("d"),
+                              Expression::Sample(Type::Integer)),
+            Statement::Abort
+        };
+        assert_eq!(code, returnify(&code));
+    }
+
+    #[test]
+    fn adds_return() {
+        let before = block!{
+            Statement::Assign(Identifier::new_scalar("d"),
+                              Expression::Sample(Type::Integer))
+        };
+        let after = block!{
+            Statement::Assign(Identifier::new_scalar("d"),
+                              Expression::Sample(Type::Integer)),
+            Statement::Return(None)
+        };
+        assert_eq!(after, returnify(&before));
+        assert_eq!(after, returnify(&after));
+    }
+}
