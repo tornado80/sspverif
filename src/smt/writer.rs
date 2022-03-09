@@ -314,7 +314,7 @@ impl<'a> CompositionSmtWriter<'a> {
                 Statement::Assign(ident, expr) => {
                     // State_{name} (quote " state")
                     match ident {
-                        Identifier::Scalar(name) => panic!("found a {:?}", name),
+                        Identifier::Scalar(name) => panic!("found a scalar {:?} which should have been removed by varspecify at this point", name),
                         Identifier::Local(name) => SmtLet {
                             bindings: vec![(name.clone(), expr.clone().into())],
                             body: result.unwrap(),
@@ -342,7 +342,7 @@ impl<'a> CompositionSmtWriter<'a> {
                     ]);
 
                     match table {
-                        Identifier::Scalar(name) => panic!("found a {:?}", name),
+                        Identifier::Scalar(name) => panic!("found a scalar {:?} which should have been removed by varspecify at this point", name),
                         Identifier::Local(name) => SmtLet {
                             bindings: vec![(name.clone(), new_val)],
                             body: result.unwrap(),

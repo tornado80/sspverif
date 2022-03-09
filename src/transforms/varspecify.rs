@@ -50,6 +50,23 @@ fn var_specify_helper(inst: &PackageInstance, block: CodeBlock, comp_name: &str)
                 Expression::Identifier(Identifier::Local(id))
             }
         }
+        Expression::TableAccess(Identifier::Scalar(id), expr) => {
+            if state.clone().iter().any(|(id_, _)| id == *id_) {
+                Expression::TableAccess(Identifier::State {
+                    name: id,
+                    pkgname: name.clone(),
+                    compname: comp_name.into(),
+                }, expr)
+            } else if params.clone().iter().any(|(id_, _)| id == *id_) {
+                Expression::TableAccess(Identifier::Params {
+                    name: id,
+                    pkgname: name.clone(),
+                    compname: comp_name.into(),
+                }, expr)
+            } else {
+                Expression::Identifier(Identifier::Local(id))
+            }
+        }
         _ => expr,
     };
     CodeBlock(
@@ -120,43 +137,54 @@ mod test {
     fn generate_code_blocks(source_id: Identifier, target_id:Identifier) -> Vec<(CodeBlock, CodeBlock)>{
         [
             |id:&Identifier| block!{
-                    Statement::Assign(id.clone(),
-                                      Expression::Sample(Type::Integer))
+                Statement::Assign(id.clone(),
+                                  Expression::Sample(Type::Integer))
             },
             |id:&Identifier| block!{
-                    Statement::IfThenElse(
-                        Expression::new_equals(vec![&(id.clone().to_expression()),
-                                                    &(Expression::IntegerLiteral("5".to_string()))]),
-                        block!{
-                            Statement::Abort
-                        },
-                        block!{
-                            Statement::Abort
-                        })
+                Statement::IfThenElse(
+                    Expression::new_equals(vec![&(id.clone().to_expression()),
+                                                &(Expression::IntegerLiteral("5".to_string()))]),
+                    block!{
+                        Statement::Abort
+                    },
+                    block!{
+                        Statement::Abort
+                    })
             },
             |id:&Identifier| block!{
-                                    Statement::IfThenElse(
-                        Expression::new_equals(vec![&(Expression::IntegerLiteral("5".to_string())),
-                                                    &(Expression::IntegerLiteral("5".to_string()))]),
-                        block!{
-                            Statement::Return(Some(id.clone().to_expression()))
-                        },
-                        block!{
-                            Statement::Abort
-                        })
+                Statement::IfThenElse(
+                    Expression::new_equals(vec![&(Expression::IntegerLiteral("5".to_string())),
+                                                &(id.clone().to_expression())]),
+                    block!{
+                        Statement::Abort
+                    },
+                    block!{
+                        Statement::Abort
+                    })
+            },
+            |id:&Identifier| block!{
+                Statement::IfThenElse(
+                    Expression::new_equals(vec![&(Expression::IntegerLiteral("5".to_string())),
+                                                &(Expression::IntegerLiteral("5".to_string()))]),
+                    block!{
+                        Statement::Return(Some(id.clone().to_expression()))
+                    },
+                    block!{
+                        Statement::Abort
+                    })
 
             },
             |id:&Identifier| block!{
-                    Statement::IfThenElse(
-                        Expression::new_equals(vec![&(Expression::IntegerLiteral("5".to_string())),
-                                                    &(Expression::IntegerLiteral("5".to_string()))]),
-                        block!{
-                            Statement::Abort
-                        },
-                        block!{
-                            Statement::Return(Some(id.clone().to_expression()))
-                        })
-            }
+                Statement::IfThenElse(
+                    Expression::new_equals(vec![&(Expression::IntegerLiteral("5".to_string())),
+                                                &(Expression::IntegerLiteral("5".to_string()))]),
+                    block!{
+                        Statement::Abort
+                    },
+                    block!{
+                        Statement::Return(Some(id.clone().to_expression()))
+                    })
+            },
         ].iter().map(|f| (f(&source_id), f(&target_id))).collect()
     }
 
@@ -170,26 +198,26 @@ mod test {
         let target_id = Identifier::Local("v".to_string());
 
         let code = generate_code_blocks(source_id, target_id);
-            code.iter().for_each(|c| {
-                let res = var_specify(&PackageInstance{
-                    params: params.clone(),
-                    name: "test".to_string(),
-                    pkg: Package{
-                        params: param_t.clone(),
-                        state: state.clone(),
-                        oracles: vec![
-                            OracleDef{
-                                code: c.0.clone(),
-                                sig: OracleSig {
-                                    tipe: Type::Empty,
-                                    name: "test".to_string(),
-                                    args: vec![]
-                                }
+        code.iter().for_each(|c| {
+            let res = var_specify(&PackageInstance{
+                params: params.clone(),
+                name: "test".to_string(),
+                pkg: Package{
+                    params: param_t.clone(),
+                    state: state.clone(),
+                    oracles: vec![
+                        OracleDef{
+                            code: c.0.clone(),
+                            sig: OracleSig {
+                                tipe: Type::Empty,
+                                name: "test".to_string(),
+                                args: vec![]
                             }
-                        ]
-                    }}, "test");
-                assert_eq!(res.pkg.oracles[0].code, c.1)
-            })
+                        }
+                    ]
+                }}, "test");
+            assert_eq!(res.pkg.oracles[0].code, c.1)
+        })
     }
 
     #[test]
