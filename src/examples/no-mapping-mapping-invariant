@@ -209,13 +209,12 @@ Return_key_pkg_bottom_Set (let ((__self_state (composition-state-no_mapping_game
 
 ;;;;;;;;;; SET oracle
 ; existential quantification
-assert exists ((s-left-old  CompositionState-no_mapping_game)
+assert (exists (s-left-old  CompositionState-no_mapping_game)
                (s-right-old CompositionState-mapping_game)   
                (s-left-new  CompositionState-no_mapping_game)
                (s-right-new CompositionState-mapping_game)
                (h Int)
                (k Bits_n)
-               )
 (and
 ; pre-condtion
       (= (inv s-left-old s-right-old))
@@ -233,6 +232,7 @@ assert exists ((s-left-old  CompositionState-no_mapping_game)
       (= right-new    oracle-key_pkg_top_map-Set s-right-old (h k))) ; left function on left state     
       (= s-right-new  return-key_pkg_top_map-Set-state right-new)
       (= y-right-new  return-key_pkg_top_map-Set-value right-new)
+)
 )
 
 ; manual concat
