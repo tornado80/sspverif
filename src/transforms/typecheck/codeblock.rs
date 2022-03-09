@@ -47,7 +47,8 @@ impl TypedCodeBlock {
                     if expr_type != *ret_type {
                         return Err(TypeCheckError::TypeMismatch(
                             ErrorLocation::Unknown,
-                            format!("return type does not match when returning {:?}", expr),
+                            format!("return type does not match"),
+                            Some(expr.clone()),
                             expr_type,
                             ret_type.clone(),
                         ));
@@ -59,6 +60,7 @@ impl TypedCodeBlock {
                         return Err(TypeCheckError::TypeMismatch(
                             ErrorLocation::Unknown,
                             "empty return in function that returns something".to_string(),
+                            None,
                             Type::Empty,
                             ret_type.clone(),
                         ));
@@ -75,10 +77,8 @@ impl TypedCodeBlock {
                         if id_type != expr_type {
                             return Err(TypeCheckError::TypeMismatch(
                                 ErrorLocation::Unknown,
-                                format!(
-                                    "assigning {:?} to variable {:?} of different type",
-                                    expr, id
-                                ),
+                                format!("assigning to variable {:?} of different type", id),
+                                Some(expr.clone()),
                                 expr_type,
                                 id_type,
                             ));
@@ -99,16 +99,19 @@ impl TypedCodeBlock {
                     if let Some(id_type) = scope.lookup(id) {
                         if let Type::Table(k, v) = id_type.clone() {
                             if *k != idx_type {
-                                return Err(TypeCheckError::TypeMismatch(ErrorLocation::Unknown, format!(
-                                    "type of expression {:?} used as index to table {:?} does not match", idx, id),
+                                return Err(TypeCheckError::TypeMismatch(
+                                    ErrorLocation::Unknown,
+                                    format!("type used as index to table {:?} does not match", id),
+                                    Some(idx.clone()),
                                     idx_type,
-                                    *k
+                                    *k,
                                 ));
                             }
                             if *v != expr_type {
                                 return Err(TypeCheckError::TypeMismatch(
                                     ErrorLocation::Unknown,
                                     "value type of the table does not match".to_string(),
+                                    Some(expr.clone()),
                                     expr_type,
                                     *v,
                                 ));
@@ -117,6 +120,7 @@ impl TypedCodeBlock {
                             return Err(TypeCheckError::TypeMismatch(
                                 ErrorLocation::Unknown,
                                 "table access on non-table".to_string(),
+                                None,
                                 id_type,
                                 Type::Table(Box::new(idx_type), Box::new(expr_type)),
                             ));
@@ -138,10 +142,9 @@ impl TypedCodeBlock {
                     if expr_type != Type::Boolean {
                         return Err(TypeCheckError::TypeMismatch(
                             ErrorLocation::Unknown,
-                            format!(
-                                "expression {:?} used as condition in if-then-else is not boolean",
-                                expr
-                            ),
+                            "expression used as condition in if-then-else is not boolean"
+                                .to_string(),
+                            Some(expr.clone()),
                             expr_type,
                             Type::Boolean,
                         ));
@@ -207,7 +210,7 @@ mod test {
         let ret = code.typecheck(&mut scope);
 
         assert!(
-            matches!(ret, Err(TypeCheckError::TypeMismatch(_, _, _, _))),
+            matches!(ret, Err(TypeCheckError::TypeMismatch(_, _, _, _, _))),
             "expected to fail with a TypeCheckError::TypeMismatch"
         );
     }
@@ -237,7 +240,7 @@ mod test {
         };
         let ret = code.typecheck(&mut scope);
         assert!(
-            matches!(ret, Err(TypeCheckError::TypeMismatch(_, _, _, _))),
+            matches!(ret, Err(TypeCheckError::TypeMismatch(_, _, _, _, _))),
             "expected to fail with a TypeCheckError::TypeMismatch"
         );
     }
@@ -290,7 +293,7 @@ mod test {
         let ret = code.typecheck(&mut scope);
 
         assert!(
-            matches!(ret, Err(TypeCheckError::TypeMismatch(_, _, _, _))),
+            matches!(ret, Err(TypeCheckError::TypeMismatch(_, _, _, _, _))),
             "expected to fail with a TypeCheckError::TypeMismatch"
         );
     }
@@ -315,7 +318,7 @@ mod test {
         let ret = code.typecheck(&mut scope);
 
         assert!(
-            matches!(ret, Err(TypeCheckError::TypeMismatch(_, _, _, _))),
+            matches!(ret, Err(TypeCheckError::TypeMismatch(_, _, _, _, _))),
             "expected to fail with a TypeCheckError::TypeMismatch"
         );
     }
@@ -382,7 +385,7 @@ mod test {
         let ret = code.typecheck(&mut scope);
 
         assert!(
-            matches!(ret, Err(TypeCheckError::TypeMismatch(_, _, _, _))),
+            matches!(ret, Err(TypeCheckError::TypeMismatch(_, _, _, _, _))),
             "expected to fail with a TypeCheckError::TypeMismatch"
         );
     }
@@ -463,7 +466,7 @@ mod test {
         };
         let ret = code.typecheck(&mut scope);
         assert!(
-            matches!(ret, Err(TypeCheckError::TypeMismatch(_, _, _, _))),
+            matches!(ret, Err(TypeCheckError::TypeMismatch(_, _, _, _, _))),
             "expected to fail with a TypeCheckError::TypeMismatch"
         );
     }
@@ -488,7 +491,7 @@ mod test {
         };
         let ret = code.typecheck(&mut scope);
         assert!(
-            matches!(ret, Err(TypeCheckError::TypeMismatch(_, _, _, _))),
+            matches!(ret, Err(TypeCheckError::TypeMismatch(_, _, _, _, _))),
             "expected to fail with a TypeCheckError::TypeMismatch"
         );
     }
@@ -510,7 +513,7 @@ mod test {
         };
         let ret = code.typecheck(&mut scope);
         assert!(
-            matches!(ret, Err(TypeCheckError::TypeMismatch(_, _, _, _))),
+            matches!(ret, Err(TypeCheckError::TypeMismatch(_, _, _, _, _))),
             "expected to fail with a TypeCheckError::TypeMismatch"
         );
     }

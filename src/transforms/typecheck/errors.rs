@@ -26,9 +26,10 @@ pub enum TypeCheckError {
     MisplacedStatement(ErrorLocation, String),
     TypeMismatch(
         ErrorLocation,
-        String, // message
-        Type,   // found
-        Type,   // expected
+        String,             // message
+        Option<Expression>, // found expression, if applicable
+        Type,               // found
+        Type,               // expected
     ),
     UndefinedTable(ErrorLocation, String, Identifier),
     Scope(ScopeError),
