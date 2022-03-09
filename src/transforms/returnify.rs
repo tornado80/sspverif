@@ -43,7 +43,7 @@ pub fn returnify(cb: &CodeBlock, none_ok: bool) -> Result<CodeBlock, Error> {
         }
         Some(Statement::Return(_)) | Some(Statement::Abort) => Ok(cb.clone()),
         _ => {
-            if (!none_ok) {
+            if !none_ok {
                 Err(Error("Missing return at end of code block with expected return value".to_string()))
             } else {
                 let mut retval = cb.0.clone();
@@ -77,7 +77,7 @@ mod test {
                               Expression::Sample(Type::Integer)),
             Statement::Return(None)
         };
-        assert_eq!(code, returnify(&code).unwrap());
+        assert_eq!(code, returnify(&code, true).unwrap());
     }
 
     #[test]
@@ -87,7 +87,7 @@ mod test {
                               Expression::Sample(Type::Integer)),
             Statement::Return(Some(Expression::IntegerLiteral("5".to_string())))
         };
-        assert_eq!(code, returnify(&code).unwrap());
+        assert_eq!(code, returnify(&code, true).unwrap());
     }
 
     #[test]
@@ -97,7 +97,7 @@ mod test {
                               Expression::Sample(Type::Integer)),
             Statement::Abort
         };
-        assert_eq!(code, returnify(&code).unwrap());
+        assert_eq!(code, returnify(&code, true).unwrap());
     }
 
     #[test]
@@ -111,8 +111,8 @@ mod test {
                               Expression::Sample(Type::Integer)),
             Statement::Return(None)
         };
-        assert_eq!(after, returnify(&before).unwrap());
-        assert_eq!(after, returnify(&after).unwrap());
+        assert_eq!(after, returnify(&before, true).unwrap());
+        assert_eq!(after, returnify(&after, true).unwrap());
     }
 
     #[test]
@@ -146,8 +146,8 @@ mod test {
                     Statement::Return(None)
                 })
         };
-        assert_eq!(after, returnify(&before).unwrap());
-        assert_eq!(after, returnify(&after).unwrap());
+        assert_eq!(after, returnify(&before, true).unwrap());
+        assert_eq!(after, returnify(&after, true).unwrap());
     }
 
     #[test]
@@ -180,7 +180,7 @@ mod test {
                     Statement::Return(None)
                 })
         };
-        assert_eq!(after, returnify(&before).unwrap());
-        assert_eq!(after, returnify(&after).unwrap());
+        assert_eq!(after, returnify(&before, true).unwrap());
+        assert_eq!(after, returnify(&after, true).unwrap());
     }
 }
