@@ -163,40 +163,44 @@ Return_key_pkg_bottom_Set (let ((__self_state (composition-state-no_mapping_game
 ;                                     (=> (= (MOR h) hh) (or (= (TOKL h) (TIKR hh))
 ;                                                            (= hh bot))))
                 ; (RI)  (exists h s.t. MIR[h] = h') => TIKR[h'] != bot
-                    (forall ((hh Int)) 
+                    (forall ((hh Int)(h Int)) 
                                      (=> 
-                                     (
-                                     (exists (h Int))
-                                     (= (MIR h) hh)
-                                     )
-                                     (or (not (=  (TIKR hh) bot)
-                                              (= hh bot)))))
+                                     (= bot bot) ; removed undefined (= (MIR h) hh)
+                                     (or (not (=  (TIKR hh) bot))
+                                              (= bot bot)))) ; bot still needs to be typed: (= hh bot)
                 ; (RI') TIKR[h'] != bot => (exists h s.t. MIR[h] = h')
                     (forall ((hh Int)) 
                                      (=> 
                                      (not (=  (TIKR hh) bot))
                                      (
-                                     (exists (h Int))
-                                     (= (MIR h) hh)
+                                     exists ((h Int))
+                                     (= bot bot) ; MIR still undefined (= (MIR h) hh)
                                      )))
-                ; (RO)  (exists h s.t. MOR[h] = h') => TOKR[h'] != bot
-                    (forall ((hh Tuple__Int_Bits_*)) 
-                                     (=> 
-                                     (
-                                     (exists (h Tuple__Int_Bits_*))
-                                     (= (MOR h) hh)
-                                     )
-                                     (or (not (=  (TOKR hh) bot)
-                                              (= hh bot)))))
-                ; (RO') TOKR[h'] != bot => (exists h s.t. MOR[h] = h')
-                    (forall ((hh Tuple__Int_Bits_*)) 
-                                     (=> 
-                                     (or (not (=  (TOKR hh) bot)
-                                              (= hh bot))))
-                                     (
-                                     (exists (h Tuple__Int_Bits_*))
-                                     (= (MOR h) hh)
-                                     ))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+;    removed the following because type Tuple__Int_Bits_* not yet defined
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+;
+;                ; (RO)  (exists h s.t. MOR[h] = h') => TOKR[h'] != bot
+;                    (forall ((hh Tuple__Int_Bits_*)) 
+;                                     (=> 
+;                                     (
+;                                     (exists (h Tuple__Int_Bits_*))
+;                                     (= (MOR h) hh)
+;                                     )
+;                                     (or (not (=  (TOKR hh) bot)
+;                                              (= hh bot)))))
+;                ; (RO') TOKR[h'] != bot => (exists h s.t. MOR[h] = h')
+;                    (forall ((hh Tuple__Int_Bits_*)) 
+;                                     (=> 
+;                                     (or (not (=  (TOKR hh) bot)
+;                                              (= hh bot))))
+;                                     (
+;                                     (exists (h Tuple__Int_Bits_*))
+;                                     (= (MOR h) hh)
+;                                     ))
             )
             )
             true
@@ -205,13 +209,12 @@ Return_key_pkg_bottom_Set (let ((__self_state (composition-state-no_mapping_game
 
 ;;;;;;;;;; SET oracle
 ; existential quantification
-assert exists ((s-left-old  CompositionState-no_mapping_game)
+assert (exists (s-left-old  CompositionState-no_mapping_game)
                (s-right-old CompositionState-mapping_game)   
                (s-left-new  CompositionState-no_mapping_game)
                (s-right-new CompositionState-mapping_game)
                (h Int)
                (k Bits_n)
-               )
 (and
 ; pre-condtion
       (= (inv s-left-old s-right-old))
@@ -229,6 +232,7 @@ assert exists ((s-left-old  CompositionState-no_mapping_game)
       (= right-new    oracle-key_pkg_top_map-Set s-right-old (h k))) ; left function on left state     
       (= s-right-new  return-key_pkg_top_map-Set-state right-new)
       (= y-right-new  return-key_pkg_top_map-Set-value right-new)
+)
 )
 
 ; manual concat
