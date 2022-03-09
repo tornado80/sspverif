@@ -8,3 +8,11 @@ edition = "2018"
 
 [dependencies]
 "thiserror" = "1.0.30"
+
+[lib]
+name = "sspds"
+path = "src/lib.rs"
+
+[[bin]]
+name = "ssp-gen-example-smt"
+path = "src/main.rs"

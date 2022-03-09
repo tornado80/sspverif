@@ -8,7 +8,7 @@ mod scope;
 
 use composition::typecheck_comp;
 use errors::TypeCheckError;
-use scope::Scope;
+pub use scope::Scope;
 
 use crate::package::Composition;
 

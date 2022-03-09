@@ -1,4 +1,4 @@
-use super::Composition;
+use crate::package::Composition;
 
 pub mod oraclelowlevelify;
 pub mod returnify;
