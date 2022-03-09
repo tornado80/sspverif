@@ -126,7 +126,7 @@ impl TypedCodeBlock {
                             ));
                         }
                     } else {
-                        return Err(TypeCheckError::UndefinedTable(
+                        return Err(TypeCheckError::Undefined(
                             ErrorLocation::Unknown,
                             "assigning to undefined table".to_string(),
                             id.clone(),
@@ -532,7 +532,7 @@ mod test {
         };
         let ret = code.typecheck(&mut scope);
         assert!(
-            matches!(ret, Err(TypeCheckError::UndefinedTable(_, _, _))),
+            matches!(ret, Err(TypeCheckError::Undefined(_, _, _))),
             "expected to fail with a TypeCheckError::TypeMismatch"
         );
     }

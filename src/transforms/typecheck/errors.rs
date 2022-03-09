@@ -31,7 +31,15 @@ pub enum TypeCheckError {
         Type,               // found
         Type,               // expected
     ),
-    UndefinedTable(ErrorLocation, String, Identifier),
+    TypeMismatchVague(
+        // This is used if multiple types would be valid and we can't just put one there
+        ErrorLocation,
+        String,             // message
+        Option<Expression>, // found expression, if applicable
+        Type,               // found
+    ),
+    Undefined(ErrorLocation, String, Identifier),
+    ShouldBeMaybe(ErrorLocation, String, Expression, Type),
     Scope(ScopeError),
     Type(TypeError),
     TypeCheck(String),
