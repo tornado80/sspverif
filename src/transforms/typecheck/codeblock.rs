@@ -147,3 +147,105 @@ impl TypedCodeBlock {
         })
     }
 }
+
+
+/// unit tests for typing of (typed) code blocks
+/// - Should honor the expected-return-type
+/// - Abort should be allowed
+/// - Should follow branching
+/// - Should check on (table-)assign
+#[cfg(test)]
+mod test {
+    use super::TypedCodeBlock;
+    use crate::transforms::typecheck::{errors::TypeCheckError,scope::Scope};
+    use crate::expressions::Expression;
+    use crate::identifier::Identifier;
+    use crate::statement::{CodeBlock, Statement};
+    use crate::types::Type;
+    use crate::block;
+
+    #[test]
+    fn return_none_fails() {
+        let mut scope = Scope::new();
+        let code = TypedCodeBlock{
+            block: block!{
+                Statement::Return(None)
+            },
+            expected_return_type: Type::Integer
+        };
+        let ret = code.typecheck(&mut scope);
+        match ret {
+            Ok(_) => assert!(false, "Typecheck should fail here"),
+            Err(TypeCheckError::TypeCheck(_)) => assert!(true, "Typecheck should return a TypeCheckError"),
+            Err(e) => assert!(false, format!("Unexpected error type: {:?}", e)),
+        }
+    }
+
+    #[test]
+    fn return_none_succeedes() {
+        let mut scope = Scope::new();
+        let code = TypedCodeBlock{
+            block: block!{
+                Statement::Return(None)
+            },
+            expected_return_type: Type::Empty
+        };
+        let ret = code.typecheck(&mut scope);
+        match ret {
+            Ok(_) => assert!(true, "Typecheck should succeede"),
+            Err(TypeCheckError::TypeCheck(_)) => assert!(false, "Typecheck should succeede TypeCheckError"),
+            Err(e) => assert!(false, format!("Unexpected error type: {:?}", e)),
+        }
+    }
+
+    #[test]
+    fn return_wrong_type_fails() {
+        let mut scope = Scope::new();
+        let code = TypedCodeBlock{
+            block: block!{
+                Statement::Return(Some(Expression::StringLiteral("test".to_string())))
+            },
+            expected_return_type: Type::Integer
+        };
+        let ret = code.typecheck(&mut scope);
+        match ret {
+            Ok(_) => assert!(false, "Typecheck should fail here"),
+            Err(TypeCheckError::TypeCheck(_)) => assert!(true, "Typecheck should return a TypeCheckError"),
+            Err(e) => assert!(false, format!("Unexpected error type: {:?}", e)),
+        }
+    }
+
+    #[test]
+    fn return_correcyt_type_succeedes() {
+        let mut scope = Scope::new();
+        let code = TypedCodeBlock{
+            block: block!{
+                Statement::Return(Some(Expression::IntegerLiteral("23".to_string())))
+            },
+            expected_return_type: Type::Integer
+        };
+        let ret = code.typecheck(&mut scope);
+        match ret {
+            Ok(_) => assert!(true, "Typecheck should succeede"),
+            Err(TypeCheckError::TypeCheck(_)) => assert!(false, "Typecheck should succeede TypeCheckError"),
+            Err(e) => assert!(false, format!("Unexpected error type: {:?}", e)),
+        }
+    }
+
+    #[test]
+    fn return_abort_succeedes() {
+        let mut scope = Scope::new();
+        let code = TypedCodeBlock{
+            block: block!{
+                Statement::Abort
+            },
+            expected_return_type: Type::Integer
+        };
+        let ret = code.typecheck(&mut scope);
+        match ret {
+            Ok(_) => assert!(true, "Typecheck should succeede"),
+            Err(TypeCheckError::TypeCheck(_)) => assert!(false, "Typecheck should succeede TypeCheckError"),
+            Err(e) => assert!(false, format!("Unexpected error type: {:?}", e)),
+        }
+    }
+}
