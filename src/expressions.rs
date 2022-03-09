@@ -78,6 +78,7 @@ impl Expression {
 
             Expression::Not(expr) => Expression::Not(Box::new(expr.map(f))),
             Expression::Some(expr) => Expression::Some(Box::new(expr.map(f))),
+            Expression::Unwrap(expr) => Expression::Unwrap(Box::new(expr.map(f))),
             Expression::TableAccess(id, expr) => {
                 Expression::TableAccess(id.clone(), Box::new(expr.map(f)))
             }
@@ -104,7 +105,7 @@ impl Expression {
                 args: args.iter().map(|expr| expr.map(f)).collect(),
             },
             Expression::Typed(t, inner) => {
-                Expression::Typed(t.clone(), Box::new(f(*inner.clone())))
+                Expression::Typed(t.clone(), Box::new(inner.map(f)))
             }
             _ => {
                 panic!("Expression: not implemented: {:#?}", self)

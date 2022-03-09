@@ -50,6 +50,23 @@ fn var_specify_helper(inst: &PackageInstance, block: CodeBlock, comp_name: &str)
                 Expression::Identifier(Identifier::Local(id))
             }
         }
+        Expression::TableAccess(Identifier::Scalar(id), expr) => {
+            if state.clone().iter().any(|(id_, _)| id == *id_) {
+                Expression::TableAccess(Identifier::State {
+                    name: id,
+                    pkgname: name.clone(),
+                    compname: comp_name.into(),
+                }, expr)
+            } else if params.clone().iter().any(|(id_, _)| id == *id_) {
+                Expression::TableAccess(Identifier::Params {
+                    name: id,
+                    pkgname: name.clone(),
+                    compname: comp_name.into(),
+                }, expr)
+            } else {
+                Expression::Identifier(Identifier::Local(id))
+            }
+        }
         _ => expr,
     };
     CodeBlock(
