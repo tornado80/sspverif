@@ -1,3 +1,82 @@
+;;;;; Manual Concat
+
+(declare-sort Bits_n 0)
+(declare-sort Bits_* 0)
+(declare-const bot Bits_n)
+; The PRF
+(declare-fun f (Bits_n Bits_*) Bits_*)
+
+;;;;; Real Mono PRF Game
+(declare-datatype State-mono-prf-game-__randomness ((mk-state-mono-prf-game-__randomness (state-mono-prf-game-__randomness-ctr Int))))
+(declare-fun __sample-rand-mono-prf-game (Int) Bits_n)
+(declare-datatype State-mono-prf-game-mono-prf ((mk-state-mono-prf-game-mono-prf (state-mono-prf-game-mono-prf-k Maybe_Bits_n))))
+(declare-datatype CompositionState-mono-prf-game ((mk-composition-state-mono-prf-game (composition-state-mono-prf-game-__randomness State-mono-prf-game-__randomness) (composition-state-mono-prf-game-mono-prf State-mono-prf-game-mono-prf))))
+(declare-datatype Return_mono-prf_Set ((mk-return-mono-prf-Set (return-mono-prf-Set-state CompositionState-mono-prf-game)) (mk-abort-mono-prf-Set)))
+(declare-datatype Return_mono-prf_Eval ((mk-return-mono-prf-Eval (return-mono-prf-Eval-state CompositionState-mono-prf-game) 
+(return-mono-prf-Eval-value Bits_*)) (mk-abort-mono-prf-Eval)))
+; Composition of mono-prf-game
+(define-fun oracle-mono-prf-Set ((__global_state CompositionState-mono-prf-game) (k_ Bits_n)) Return_mono-prf_Set (let ((__self_state (composition-state-mono-prf-game-mono-prf __global_state))) (ite (= k mk-none-Bits_n) (let ((k_sample (__sample-rand-mono-prf-game (state-mono-prf-game-__randomness-ctr (composition-state-mono-prf-game-__randomness __global_state))))) (let ((__global_state (mk-composition-state-mono-prf-game (mk-state-mono-prf-game-__randomness (+ 1 (state-mono-prf-game-__randomness-ctr (composition-state-mono-prf-game-__randomness __global_state)))) (composition-state-mono-prf-game-mono-prf __global_state)))) (let ((__self_state (mk-state-mono-prf-game-mono-prf (mk-maybe-Bits_n k_sample)))) (mk-return-mono-prf-Set __global_state)))) mk-abort-mono-prf-Set)))
+(define-fun oracle-mono-prf-Eval ((__global_state CompositionState-mono-prf-game) (msg Bits_*)) Return_mono-prf_Eval (let ((__self_state (composition-state-mono-prf-game-mono-prf __global_state))) (ite (= k mk-none-Bits_n) mk-abort-mono-prf-Eval (let ((__global_state (mk-composition-state-mono-prf-game (composition-state-mono-prf-game-__randomness __global_state) __self_state))) (mk-return-mono-prf-Eval __global_state (f (unwrap-Bits_n k) msg))))))
+;;;;; Real Mod PRF Game
+(declare-datatype State-real-__randomness ((mk-state-real-__randomness (state-real-__randomness-ctr Int))))
+(declare-fun __sample-rand-real (Int) Bits_n)
+(declare-datatype State-real-key ((mk-state-real-key (state-real-key-k Maybe_Bits_n))))
+(declare-datatype State-real-mod-prf ((mk-state-real-mod-prf)))
+(declare-datatype CompositionState-real ((mk-composition-state-real (composition-state-real-__randomness State-real-__randomness) (composition-state-real-key State-real-key) (composition-state-real-mod-prf State-real-mod-prf))))
+(declare-datatype Return_key_Set ((mk-return-key-Set (return-key-Set-state CompositionState-real)) (mk-abort-key-Set)))      
+(declare-datatype Return_key_Get ((mk-return-key-Get (return-key-Get-state CompositionState-real) (return-key-Get-value Bits_n)) (mk-abort-key-Get)))
+(declare-datatype Return_mod-prf_Eval ((mk-return-mod-prf-Eval (return-mod-prf-Eval-state CompositionState-real) (return-mod-prf-Eval-value Bits_*)) (mk-abort-mod-prf-Eval)))
+; Composition of real
+(define-fun oracle-key-Set ((__global_state CompositionState-real) (k_ Bits_n)) Return_key_Set (let ((__self_state (composition-state-real-key __global_state))) (ite (= k mk-none-Bits_n) (let ((k_sample (__sample-rand-real (state-real-__randomness-ctr (composition-state-real-__randomness __global_state))))) (let ((__global_state (mk-composition-state-real (mk-state-real-__randomness (+ 1 (state-real-__randomness-ctr (composition-state-real-__randomness __global_state)))) (composition-state-real-key __global_state) (composition-state-real-mod-prf __global_state)))) (let ((__self_state (mk-state-real-key (mk-maybe-Bits_n k_sample)))) (mk-return-key-Set __global_state)))) mk-abort-key-Set)))
+(define-fun oracle-key-Get ((__global_state CompositionState-real)) Return_key_Get (let ((__self_state (composition-state-real-key __global_state))) (ite (= k mk-none-Bits_n) mk-abort-key-Get (let ((__global_state (mk-composition-state-real (composition-state-real-__randomness __global_state) __self_state (composition-state-real-mod-prf __global_state)))) (mk-return-key-Get __global_state (unwrap-Bits_n k))))))
+(define-fun oracle-mod-prf-Eval ((__global_state CompositionState-real) (msg Bits_*)) Return_mod-prf_Eval (let ((__self_state (composition-state-real-mod-prf __global_state))) (let ((__ret (oracle-key-Get __global_state))) (ite ((_ is mk-abort-key-Get) __ret) mk-abort-mod-prf-Eval (let ((__global_state (return-key-Get-state __ret)) (k (return-key-Get-value __ret))) (let ((__global_state (mk-composition-state-real (composition-state-real-__randomness __global_state) (composition-state-real-key __global_state) __self_state))) (mk-return-mod-prf-Eval __global_state (f k msg))))))))
+;;;;; No Mapping Game
+(declare-datatype State-no_mapping_game-__randomness ((mk-state-no_mapping_game-__randomness (state-no_mapping_game-__randomness-ctr Int))))
+(declare-fun __sample-rand-no_mapping_game (Int) Bits_n)
+(declare-datatype State-no_mapping_game-key_pkg_top ((mk-state-no_mapping_game-key_pkg_top (state-no_mapping_game-key_pkg_top-T (Array Int Bits_n)))))
+(declare-datatype State-no_mapping_game-prf ((mk-state-no_mapping_game-prf)))
+(declare-datatype State-no_mapping_game-key_pkg_bottom ((mk-state-no_mapping_game-key_pkg_bottom (state-no_mapping_game-key_pkg_bottom-T (Array (Tuple__Int_Bits_*) Bits_n)))))
+(declare-datatype CompositionState-no_mapping_game ((mk-composition-state-no_mapping_game (composition-state-no_mapping_game-__randomness State-no_mapping_game-__randomness) (composition-state-no_mapping_game-key_pkg_top State-no_mapping_game-key_pkg_top) (composition-state-no_mapping_game-prf State-no_mapping_game-prf) (composition-state-no_mapping_game-key_pkg_bottom State-no_mapping_game-key_pkg_bottom))))
+(declare-datatype Return_key_pkg_top_Set ((mk-return-key_pkg_top-Set (return-key_pkg_top-Set-state CompositionState-no_mapping_game) (return-key_pkg_top-Set-value Int)) (mk-abort-key_pkg_top-Set)))
+(declare-datatype Return_key_pkg_top_Get ((mk-return-key_pkg_top-Get (return-key_pkg_top-Get-state CompositionState-no_mapping_game) (return-key_pkg_top-Get-value Bits_n)) (mk-abort-key_pkg_top-Get)))
+(declare-datatype Return_prf_Eval ((mk-return-prf-Eval (return-prf-Eval-state CompositionState-no_mapping_game) (return-prf-Eval-value (Tuple__Int_Bits_*))) (mk-abort-prf-Eval)))
+(declare-datatype Return_key_pkg_bottom_Set ((mk-return-key_pkg_bottom-Set (return-key_pkg_bottom-Set-state CompositionState-no_mapping_game) (return-key_pkg_bottom-Set-value (Tuple__Int_Bits_*))) (mk-abort-key_pkg_bottom-Set)))
+(declare-datatype Return_key_pkg_bottom_Get ((mk-return-key_pkg_bottom-Get (return-key_pkg_bottom-Get-state CompositionState-no_mapping_game) (return-key_pkg_bottom-Get-value Bits_n)) (mk-abort-key_pkg_bottom-Get)))
+; Composition of no_mapping_game
+(define-fun oracle-key_pkg_top-Set ((__global_state CompositionState-no_mapping_game) (h Int) (k Bits_n)) Return_key_pkg_top_Set (let ((__self_state (composition-state-no_mapping_game-key_pkg_top __global_state))) (ite (= (select T h) mk-none-Bits_n) (let ((__self_state (mk-state-no_mapping_game-key_pkg_top (store T h k)))) (let ((__global_state (mk-composition-state-no_mapping_game (composition-state-no_mapping_game-__randomness __global_state) __self_state (composition-state-no_mapping_game-prf __global_state) (composition-state-no_mapping_game-key_pkg_bottom __global_state)))) (mk-return-key_pkg_top-Set __global_state h))) (let ((__global_state (mk-composition-state-no_mapping_game (composition-state-no_mapping_game-__randomness __global_state) __self_state (composition-state-no_mapping_game-prf __global_state) (composition-state-no_mapping_game-key_pkg_bottom __global_state)))) (mk-return-key_pkg_top-Set __global_state h)))))
+(define-fun oracle-key_pkg_top-Get ((__global_state CompositionState-no_mapping_game) (h Int)) Return_key_pkg_top_Get (let ((__self_state (composition-state-no_mapping_game-key_pkg_top __global_state))) (ite (= (select T h) mk-none-Bits_n) mk-abort-key_pkg_top-Get (let ((__global_state (mk-composition-state-no_mapping_game (composition-state-no_mapping_game-__randomness __global_state) __self_state (composition-state-no_mapping_game-prf __global_state) (composition-state-no_mapping_game-key_pkg_bottom __global_state)))) (mk-return-key_pkg_top-Get __global_state (unwrap-Bits_n (select T h)))))))
+(define-fun oracle-prf-Eval ((__global_state CompositionState-no_mapping_game) (h Int) (msg Bits_*)) Return_prf_Eval (let ((__self_state (composition-state-no_mapping_game-prf __global_state))) (let ((__ret (oracle-key_pkg_top-Get __global_state h))) (ite ((_ is mk-abort-key_pkg_top-Get) __ret) mk-abort-prf-Eval (let ((__global_state (return-key_pkg_top-Get-state __ret)) (k (return-key_pkg_top-Get-value __ret))) (let ((y (f k msg))) (let ((__ret (oracle-key_pkg_bottom-Set __global_state (mk-tuple-grrrTODO h msg) y))) (ite ((_ is mk-abort-key_pkg_bottom-Set) __ret) mk-abort-prf-Eval (let ((__global_state (return-key_pkg_bottom-Set-state __ret)) (z (return-key_pkg_bottom-Set-value __ret))) (let ((__global_state (mk-composition-state-no_mapping_game (composition-state-no_mapping_game-__randomness __global_state) (composition-state-no_mapping_game-key_pkg_top __global_state) __self_state (composition-state-no_mapping_game-key_pkg_bottom __global_state)))) (mk-return-prf-Eval __global_state (mk-tuple-grrrTODO h msg))))))))))))
+(define-fun oracle-key_pkg_bottom-Set ((__global_state CompositionState-no_mapping_game) (h (Tuple__Int_Bits_*)) (k Bits_n)) 
+Return_key_pkg_bottom_Set (let ((__self_state (composition-state-no_mapping_game-key_pkg_bottom __global_state))) (ite (= (select T h) mk-none-Bits_n) (let ((__self_state (mk-state-no_mapping_game-key_pkg_bottom (store T h k)))) (let ((__global_state (mk-composition-state-no_mapping_game (composition-state-no_mapping_game-__randomness __global_state) (composition-state-no_mapping_game-key_pkg_top __global_state) (composition-state-no_mapping_game-prf __global_state) __self_state))) (mk-return-key_pkg_bottom-Set __global_state h))) (let ((__global_state (mk-composition-state-no_mapping_game (composition-state-no_mapping_game-__randomness __global_state) (composition-state-no_mapping_game-key_pkg_top __global_state) (composition-state-no_mapping_game-prf __global_state) __self_state))) (mk-return-key_pkg_bottom-Set __global_state h)))))
+(define-fun oracle-key_pkg_bottom-Get ((__global_state CompositionState-no_mapping_game) (h (Tuple__Int_Bits_*))) Return_key_pkg_bottom_Get (let ((__self_state (composition-state-no_mapping_game-key_pkg_bottom __global_state))) (ite (= (select T h) mk-none-Bits_n) mk-abort-key_pkg_bottom-Get (let ((__global_state (mk-composition-state-no_mapping_game (composition-state-no_mapping_game-__randomness __global_state) (composition-state-no_mapping_game-key_pkg_top __global_state) (composition-state-no_mapping_game-prf __global_state) __self_state))) (mk-return-key_pkg_bottom-Get __global_state (unwrap-Bits_n (select T h)))))))
+;;;;; Mapping Game
+(declare-datatype State-mapping_game-__randomness ((mk-state-mapping_game-__randomness (state-mapping_game-__randomness-ctr Int))))
+(declare-fun __sample-rand-mapping_game (Int) Bits_n)
+(declare-datatype State-mapping_game-key_pkg_top_map ((mk-state-mapping_game-key_pkg_top_map (state-mapping_game-key_pkg_top_map-T (Array Int Bits_n)))))
+(declare-datatype State-mapping_game-prf_mapping ((mk-state-mapping_game-prf_mapping)))
+(declare-datatype State-mapping_game-key_pkg_bottom_mapping ((mk-state-mapping_game-key_pkg_bottom_mapping (state-mapping_game-key_pkg_bottom_mapping-T (Array (Tuple__Int_Bits_*) Bits_n)))))
+(declare-datatype State-mapping_game-map_pkg ((mk-state-mapping_game-map_pkg (state-mapping_game-map_pkg-Input_Map (Array Int Int)) (state-mapping_game-map_pkg-Output_Map (Array (Tuple__Int_Bits_*) (Tuple__Int_Bits_*))))))
+(declare-datatype CompositionState-mapping_game ((mk-composition-state-mapping_game (composition-state-mapping_game-__randomness State-mapping_game-__randomness) (composition-state-mapping_game-key_pkg_top_map State-mapping_game-key_pkg_top_map) (composition-state-mapping_game-prf_mapping State-mapping_game-prf_mapping) (composition-state-mapping_game-key_pkg_bottom_mapping State-mapping_game-key_pkg_bottom_mapping) (composition-state-mapping_game-map_pkg State-mapping_game-map_pkg))))
+(declare-datatype Return_key_pkg_top_map_Set ((mk-return-key_pkg_top_map-Set (return-key_pkg_top_map-Set-state CompositionState-mapping_game) (return-key_pkg_top_map-Set-value Int)) (mk-abort-key_pkg_top_map-Set)))
+(declare-datatype Return_key_pkg_top_map_Get ((mk-return-key_pkg_top_map-Get (return-key_pkg_top_map-Get-state CompositionState-mapping_game) (return-key_pkg_top_map-Get-value Bits_n)) (mk-abort-key_pkg_top_map-Get)))
+(declare-datatype Return_prf_mapping_Eval ((mk-return-prf_mapping-Eval (return-prf_mapping-Eval-state CompositionState-mapping_game) (return-prf_mapping-Eval-value (Tuple__Int_Bits_*))) (mk-abort-prf_mapping-Eval)))
+(declare-datatype Return_key_pkg_bottom_mapping_Set ((mk-return-key_pkg_bottom_mapping-Set (return-key_pkg_bottom_mapping-Set-state CompositionState-mapping_game) (return-key_pkg_bottom_mapping-Set-value (Tuple__Int_Bits_*))) (mk-abort-key_pkg_bottom_mapping-Set)))
+(declare-datatype Return_key_pkg_bottom_mapping_Get ((mk-return-key_pkg_bottom_mapping-Get (return-key_pkg_bottom_mapping-Get-state CompositionState-mapping_game) (return-key_pkg_bottom_mapping-Get-value Bits_n)) (mk-abort-key_pkg_bottom_mapping-Get)))
+(declare-datatype Return_map_pkg_Set ((mk-return-map_pkg-Set (return-map_pkg-Set-state CompositionState-mapping_game) (return-map_pkg-Set-value Int)) (mk-abort-map_pkg-Set)))
+(declare-datatype Return_map_pkg_Eval ((mk-return-map_pkg-Eval (return-map_pkg-Eval-state CompositionState-mapping_game) (return-map_pkg-Eval-value (Tuple__Int_Bits_*))) (mk-abort-map_pkg-Eval)))
+(declare-datatype Return_map_pkg_Get ((mk-return-map_pkg-Get (return-map_pkg-Get-state CompositionState-mapping_game) (return-map_pkg-Get-value Bits_n)) (mk-abort-map_pkg-Get)))
+; Composition of mapping_game
+(define-fun oracle-key_pkg_top_map-Set ((__global_state CompositionState-mapping_game) (h Int) (k Bits_n)) Return_key_pkg_top_map_Set (let ((__self_state (composition-state-mapping_game-key_pkg_top_map __global_state))) (ite (= (select T h) mk-none-Bits_n) (let ((__self_state (mk-state-mapping_game-key_pkg_top_map (store T h k)))) (let ((__global_state (mk-composition-state-mapping_game (composition-state-mapping_game-__randomness __global_state) __self_state (composition-state-mapping_game-prf_mapping __global_state) (composition-state-mapping_game-key_pkg_bottom_mapping __global_state) (composition-state-mapping_game-map_pkg __global_state)))) (mk-return-key_pkg_top_map-Set __global_state h))) (let ((__global_state (mk-composition-state-mapping_game (composition-state-mapping_game-__randomness __global_state) __self_state (composition-state-mapping_game-prf_mapping __global_state) (composition-state-mapping_game-key_pkg_bottom_mapping __global_state) (composition-state-mapping_game-map_pkg __global_state)))) (mk-return-key_pkg_top_map-Set __global_state h)))))
+(define-fun oracle-key_pkg_top_map-Get ((__global_state CompositionState-mapping_game) (h Int)) Return_key_pkg_top_map_Get (let ((__self_state (composition-state-mapping_game-key_pkg_top_map __global_state))) (ite (= (select T h) mk-none-Bits_n) mk-abort-key_pkg_top_map-Get (let ((__global_state (mk-composition-state-mapping_game (composition-state-mapping_game-__randomness __global_state) __self_state (composition-state-mapping_game-prf_mapping __global_state) (composition-state-mapping_game-key_pkg_bottom_mapping __global_state) (composition-state-mapping_game-map_pkg __global_state)))) (mk-return-key_pkg_top_map-Get __global_state (unwrap-Bits_n (select T h)))))))
+(define-fun oracle-prf_mapping-Eval ((__global_state CompositionState-mapping_game) (h Int) (msg Bits_*)) Return_prf_mapping_Eval (let ((__self_state (composition-state-mapping_game-prf_mapping __global_state))) (let ((__ret (oracle-key_pkg_top_map-Get __global_state h))) (ite ((_ is mk-abort-key_pkg_top_map-Get) __ret) mk-abort-prf_mapping-Eval (let ((__global_state (return-key_pkg_top_map-Get-state __ret)) (k (return-key_pkg_top_map-Get-value __ret))) (let ((y (f k msg))) (let ((__ret (oracle-key_pkg_bottom_mapping-Set __global_state (mk-tuple-grrrTODO h msg) y))) (ite ((_ is mk-abort-key_pkg_bottom_mapping-Set) __ret) mk-abort-prf_mapping-Eval (let ((__global_state (return-key_pkg_bottom_mapping-Set-state __ret)) (z (return-key_pkg_bottom_mapping-Set-value __ret))) (let ((__global_state (mk-composition-state-mapping_game (composition-state-mapping_game-__randomness __global_state) (composition-state-mapping_game-key_pkg_top_map __global_state) __self_state (composition-state-mapping_game-key_pkg_bottom_mapping __global_state) (composition-state-mapping_game-map_pkg __global_state)))) (mk-return-prf_mapping-Eval __global_state (mk-tuple-grrrTODO h msg))))))))))))
+(define-fun oracle-key_pkg_bottom_mapping-Set ((__global_state CompositionState-mapping_game) (h (Tuple__Int_Bits_*)) (k Bits_n)) Return_key_pkg_bottom_mapping_Set (let ((__self_state (composition-state-mapping_game-key_pkg_bottom_mapping __global_state))) (ite (= (select T h) mk-none-Bits_n) (let ((__self_state (mk-state-mapping_game-key_pkg_bottom_mapping (store T h k)))) (let ((__global_state (mk-composition-state-mapping_game (composition-state-mapping_game-__randomness __global_state) (composition-state-mapping_game-key_pkg_top_map __global_state) (composition-state-mapping_game-prf_mapping __global_state) __self_state (composition-state-mapping_game-map_pkg __global_state)))) (mk-return-key_pkg_bottom_mapping-Set __global_state h))) (let ((__global_state (mk-composition-state-mapping_game (composition-state-mapping_game-__randomness __global_state) (composition-state-mapping_game-key_pkg_top_map __global_state) (composition-state-mapping_game-prf_mapping __global_state) __self_state (composition-state-mapping_game-map_pkg __global_state)))) (mk-return-key_pkg_bottom_mapping-Set __global_state h)))))   
+(define-fun oracle-key_pkg_bottom_mapping-Get ((__global_state CompositionState-mapping_game) (h (Tuple__Int_Bits_*))) Return_key_pkg_bottom_mapping_Get (let ((__self_state (composition-state-mapping_game-key_pkg_bottom_mapping __global_state))) (ite (= (select T h) mk-none-Bits_n) mk-abort-key_pkg_bottom_mapping-Get (let ((__global_state (mk-composition-state-mapping_game (composition-state-mapping_game-__randomness __global_state) (composition-state-mapping_game-key_pkg_top_map __global_state) (composition-state-mapping_game-prf_mapping __global_state) __self_state (composition-state-mapping_game-map_pkg __global_state)))) (mk-return-key_pkg_bottom_mapping-Get __global_state (unwrap-Bits_n (select T h)))))))
+(define-fun oracle-map_pkg-Set ((__global_state CompositionState-mapping_game) (h Int) (k Bits_n)) Return_map_pkg_Set (let ((__self_state (composition-state-mapping_game-map_pkg __global_state))) (ite (= (select Input_Map h) mk-none-Int) (let ((__ret (oracle-key_pkg_top_map-Set __global_state h k))) (ite ((_ is mk-abort-key_pkg_top_map-Set) __ret) mk-abort-map_pkg-Set (let ((__global_state (return-key_pkg_top_map-Set-state __ret)) (hh (return-key_pkg_top_map-Set-value __ret))) (let ((__self_state (mk-state-mapping_game-map_pkg (store Input_Map h hh) (state-mapping_game-map_pkg-Output_Map __self_state)))) (let ((__global_state (mk-composition-state-mapping_game (composition-state-mapping_game-__randomness __global_state) (composition-state-mapping_game-key_pkg_top_map __global_state) (composition-state-mapping_game-prf_mapping __global_state) (composition-state-mapping_game-key_pkg_bottom_mapping __global_state) __self_state))) (mk-return-map_pkg-Set __global_state h)))))) (let ((__global_state (mk-composition-state-mapping_game (composition-state-mapping_game-__randomness __global_state) (composition-state-mapping_game-key_pkg_top_map __global_state) (composition-state-mapping_game-prf_mapping __global_state) (composition-state-mapping_game-key_pkg_bottom_mapping __global_state) __self_state))) (mk-return-map_pkg-Set __global_state h)))))
+(define-fun oracle-map_pkg-Eval ((__global_state CompositionState-mapping_game) (h Int) (msg Bits_*)) Return_map_pkg_Eval (let ((__self_state (composition-state-mapping_game-map_pkg __global_state))) (ite (= (select Input_Map h) mk-none-Int) (let ((__global_state (mk-composition-state-mapping_game (composition-state-mapping_game-__randomness __global_state) (composition-state-mapping_game-key_pkg_top_map __global_state) (composition-state-mapping_game-prf_mapping __global_state) (composition-state-mapping_game-key_pkg_bottom_mapping __global_state) __self_state))) (mk-return-map_pkg-Eval __global_state (mk-tuple-grrrTODO h msg))) (let ((hh (select Input_Map h))) (let ((__ret (oracle-prf_mapping-Eval __global_state (unwrap-Int hh) msg))) (ite ((_ is mk-abort-prf_mapping-Eval) __ret) mk-abort-map_pkg-Eval (let ((__global_state (return-prf_mapping-Eval-state __ret)) (hhh (return-prf_mapping-Eval-value __ret))) (let ((__self_state (mk-state-mapping_game-map_pkg (state-mapping_game-map_pkg-Input_Map __self_state) (store Output_Map (mk-tuple-grrrTODO (unwrap-Int hh) msg) hhh)))) (let ((__global_state (mk-composition-state-mapping_game (composition-state-mapping_game-__randomness __global_state) (composition-state-mapping_game-key_pkg_top_map __global_state) (composition-state-mapping_game-prf_mapping __global_state) (composition-state-mapping_game-key_pkg_bottom_mapping __global_state) __self_state))) (mk-return-map_pkg-Eval __global_state (mk-tuple-grrrTODO h msg)))))))))))       
+(define-fun oracle-map_pkg-Get ((__global_state CompositionState-mapping_game) (h (Tuple__Int_Bits_*))) Return_map_pkg_Get (let ((__self_state (composition-state-mapping_game-map_pkg __global_state))) (ite (= (select Output_Map h) mk-none-(Tuple__Int_Bits_*)) mk-abort-map_pkg-Get (let ((hh (select Output_Map h))) (let ((__ret (oracle-key_pkg_bottom_mapping-Get __global_state (unwrap-(Tuple__Int_Bits_*) hh)))) (ite ((_ is mk-abort-key_pkg_bottom_mapping-Get) __ret) mk-abort-map_pkg-Get (let ((__global_state (return-key_pkg_bottom_mapping-Get-state __ret)) (k (return-key_pkg_bottom_mapping-Get-value __ret))) (let ((__global_state (mk-composition-state-mapping_game (composition-state-mapping_game-__randomness __global_state) (composition-state-mapping_game-key_pkg_top_map __global_state) (composition-state-mapping_game-prf_mapping __global_state) (composition-state-mapping_game-key_pkg_bottom_mapping __global_state) __self_state))) (mk-return-map_pkg-Get __global_state k)))))))))
+
+; Manual concat
+
 ; invariant
 ; Notation: Left: no mapping, Right: mapping
 ;      TIKL: T in input  (top)    key package left
@@ -22,94 +101,116 @@
 ;
 
 
-
 ; define invariant on s-left,s-right
-(define-fun inv                                 ; function name 
-           ((s-left  State-no_mapping_game-prf) ; function input 
-            (s-right State-mapping_game-prf))  
-            Boolean                             ; function behaviour
-            (ite
+(define-fun inv                                        ; function name 
+           ((s-left  CompositionState-no_mapping_game) ; function input 
+            (s-right CompositionState-mapping_game))
+            Bool                                       ; function behaviour           
             ( 
-            (exists (TIKL (Array Int               Bits_n))   ;      TIKL: T in output (bottom) key package left
-                    (TIKR (Array Int               Bits_n))   ;      TIKR: T in output (bottom) key package right
-                    (TOKL (Array Tuple__Int_Bits_* Bits_n))   ;      TOKL: T in output (bottom) key package left
-                    (TOKR (Array Tuple__Int_Bits_* Bits_n))   ;      TOKR: T in output (bottom) key package right
-                    (MIR  (Array Int Int))                    ;      MIR : input- mapping table (right)
-                    (MOR  (Array Tuple__Int_Bits_* 
-                                 Tuple__Int_Bits_*))          ;      MOR : output- mapping table (right)
-            ) 
-            (and
-                ; assigment of tables
-                    (TIKL ... s-left)    ???
-                    (TIKR ... s-right)   ???
-                    (TOKL ... s-left)    ???
-                    (TOKR ... s-right)   ???
-                    (MIR  ... s-right)   ???
-                    (MOR  ... s-right)   ???
+ ;           (TIKL (Array Int               Bits_n))   ;      TIKL: T in output (bottom) key package left
+ ;           (TIKR (Array Int               Bits_n))   ;      TIKR: T in output (bottom) key package right
+ ;           (TOKL (Array Tuple__Int_Bits_* Bits_n))   ;      TOKL: T in output (bottom) key package left
+ ;           (TOKR (Array Tuple__Int_Bits_* Bits_n))   ;      TOKR: T in output (bottom) key package right
+ ;           (MIR  (Array Int Int))                    ;      MIR : input- mapping table (right)
+ ;           (MOR  (Array Tuple__Int_Bits_* 
+ ;                        Tuple__Int_Bits_*))          ;      MOR : output- mapping table (right)
+  
+                ; assignment of tables
+                    let ((TIKL (state-no_mapping_game-key_pkg_top-T
+                            (composition-state-no_mapping_game-key_pkg_top 
+                             s-left)))
+                         (TIKR (state-mapping_game-key_pkg_top_map-T 
+                            (composition-state-mapping_game-key_pkg_top_map
+                             s-right)))
+  ; currently undefined  (TOKL (state-no_mapping_game-key_pkg_bottom-T
+  ;                          (composition-state-no_mapping_game-key_pkg_bottom 
+  ;                          s-left)))
+  ; currently undefined  (TOKR (state-mapping_game-key_pkg_bottom_mapping-T
+  ;                         (composition-state-mapping_game-key_pkg_bottom_mapping
+  ;                          s-right)))
+  ; currently undefined  (MIR  (state-mapping_game-map_pkg-Input_Map
+  ;                         (composition-state-mapping_game-map_pkg
+  ;                          s-right)))
+  ; currently undefined  (MOR  (state-mapping_game-map_pkg-Output_Map  
+  ;                         (composition-state-mapping_game-map_pkg
+  ;                          s-right)))
+                )
+                (ite
+                (and            ;;;;; (= bot bot) below is always dummy code to be replaced
                 ; (LRIa)  TIKL[h] = bot => MIR[h]  = bot 
-                    (forall (h Int)) (=> (= (TIKL h) bot) (= (MIR h) bot)) ??? forall syntax       
+                    (forall ((h Int)) (=> (= (TIKL h) bot) (= bot bot))) ; removed, undefined (= (MIR h) bot)))
                 ; (LRIa') MIR[h]  = bot => TIKL[h]    
-                    (forall (h Int)) (=> (= (MIR h) bot)  (= (TIKR h) bot))
+                    (forall ((h Int)) (=>  (= bot bot) (= (TIKR h) bot))) ; removed, undefined (= (MIR h) bot)
                 ; (LRIb)  MIR [h] = hh  => TIKL[h] = TIKR[h'] or hh=bot         
-                    (forall (h Int) (hh Int)) 
-                                     (=> (= (MIR h) hh) (or (= (TIKL h) (TIKR hh))
-                                                            (= hh bot))
-                ; (LROa)  TOKL[h] = bot => MOR[h]  = bot
-                    (forall (h Tuple__Int_Bits_*)) 
-                                      (=> (= (TOKL h) bot) (= (MIR h) bot))
-                ; (LROa') MOR[h]  = bot => TOKL[h]  = bot 
-                    (forall (h Tuple__Int_Bits_*)) 
-                                      (=> (= (MOR h) bot) (= (TOKR h) bot))            
-                ; (LROb)  MOR [h] = hh  => TOKL[h] = TOKR[h'] or hh=bot         
-                    (forall (h Tuple__Int_Bits_*) (hh Tuple__Int_Bits_*)) 
-                                     (=> (= (MOR h) hh) (or (= (TOKL h) (TIKR hh))
-                                                            (= hh bot))
+                    (forall ((h Int) (hh Int)) 
+                                     (=>  (= bot bot) (or (= (TIKL h) (TIKR hh)) ; removed, undefined (= (MIR h) hh)
+                                                            (= bot bot)))) ; removed, bot still has wrong type (= hh bot)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+;    removed the following because type Tuple__Int_Bits_* not yet defined
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+;                ; (LROa)  TOKL[h] = bot => MOR[h]  = bot
+;                    (forall ((h Tuple__Int_Bits_*)) 
+;                                      (=> (= (TOKL h) bot) (= (MIR h) bot)))
+;                ; (LROa') MOR[h]  = bot => TOKL[h]  = bot 
+;                    (forall ((h Tuple__Int_Bits_*)) 
+;                                      (=> (= (MOR h) bot) (= (TOKR h) bot)))            
+;                ; (LROb)  MOR [h] = hh  => TOKL[h] = TOKR[h'] or hh=bot         
+;                    (forall ((h Tuple__Int_Bits_*) (hh Tuple__Int_Bits_*)) 
+;                                     (=> (= (MOR h) hh) (or (= (TOKL h) (TIKR hh))
+;                                                            (= hh bot))))
                 ; (RI)  (exists h s.t. MIR[h] = h') => TIKR[h'] != bot
-                    (forall (hh Int)) 
+                    (forall ((hh Int)) 
                                      (=> 
                                      (
                                      (exists (h Int))
                                      (= (MIR h) hh)
                                      )
                                      (or (not (=  (TIKR hh) bot)
-                                              (= hh bot))))
+                                              (= hh bot)))))
                 ; (RI') TIKR[h'] != bot => (exists h s.t. MIR[h] = h')
-                    (forall (hh Int)) 
+                    (forall ((hh Int)) 
                                      (=> 
                                      (not (=  (TIKR hh) bot))
                                      (
                                      (exists (h Int))
                                      (= (MIR h) hh)
-                                     ))
+                                     )))
                 ; (RO)  (exists h s.t. MOR[h] = h') => TOKR[h'] != bot
-                    (forall (hh Tuple__Int_Bits_*)) 
+                    (forall ((hh Tuple__Int_Bits_*)) 
                                      (=> 
                                      (
                                      (exists (h Tuple__Int_Bits_*))
                                      (= (MOR h) hh)
                                      )
                                      (or (not (=  (TOKR hh) bot)
-                                              (= hh bot))))
+                                              (= hh bot)))))
                 ; (RO') TOKR[h'] != bot => (exists h s.t. MOR[h] = h')
+                    (forall ((hh Tuple__Int_Bits_*)) 
                                      (=> 
                                      (or (not (=  (TOKR hh) bot)
                                               (= hh bot))))
                                      (
                                      (exists (h Tuple__Int_Bits_*))
                                      (= (MOR h) hh)
-                                     )
+                                     ))
             )
             )
             true
             false
             ))
 
+;;;;;;;;;; SET oracle
 ; existential quantification
-assert exists ((s-left-old  State-no_mapping_game-prf)
-               (s-right-old State-mapping_game-prf)   
-               (s-left-new  State-no_mapping_game-prf)
-               (s-right-new State-mapping_game-prf)
-               () ??? Oracle and call ?
+assert exists ((s-left-old  CompositionState-no_mapping_game)
+               (s-right-old CompositionState-mapping_game)   
+               (s-left-new  CompositionState-no_mapping_game)
+               (s-right-new CompositionState-mapping_game)
+               (h Int)
+               (k Bits_n)
                )
 (and
 ; pre-condtion
@@ -122,10 +223,15 @@ assert exists ((s-left-old  State-no_mapping_game-prf)
 ))
 
 ; assignment after execution
-      (= left-new     ... s-left-old ... input oracle ???)
-      (= s-left-new   ... left-new)
-      (= y-left-new   ... left-new)
-      (= right-new    ... s-right-old ... input oracle ???)      
-      (= s-right-new  ... right-new)
-      (= y-right-new  ... right-new)
+      (= left-new     oracle-key_pkg_top-Set s-left-old (h k))) ; left function on left state
+      (= s-left-new   return-key_pkg_top-Set-state left-new)
+      (= y-left-new   return-key_pkg_top-Set-value left-new)
+      (= right-new    oracle-key_pkg_top_map-Set s-right-old (h k))) ; left function on left state     
+      (= s-right-new  return-key_pkg_top_map-Set-state right-new)
+      (= y-right-new  return-key_pkg_top_map-Set-value right-new)
 )
+
+; manual concat
+(assert (forall ((n Int)) (= (__sample-rand-real n) (__sample-rand-mono-prf-game n))))
+(check-sat)
+(get-model)
