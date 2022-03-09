@@ -73,30 +73,201 @@ fn treeify(cb: &CodeBlock) -> CodeBlock {
 }
 
 #[cfg(test)]
-mod test {
-    use super::Transformation;
+mod treeify_fn_test {
+    use crate::expressions::Expression;
+    use crate::identifier::Identifier;
+    use crate::statement::{CodeBlock, Statement};
+
+    use super::treeify;
 
     #[test]
     fn nothing_happens_without_if() {
-        assert_eq!(2 + 2, 5);
+        let cb = CodeBlock(vec![Statement::Return(None)]);
+
+        assert_eq!(cb.clone(), treeify(&cb));
     }
     #[test]
     fn treeify_one_sided_if_depth_1() {
-        assert_eq!(2 + 2, 5);
+        let x = Identifier::new_scalar("x");
+        let y = Identifier::new_scalar("y");
+        let before = CodeBlock(vec![
+            Statement::IfThenElse(
+                y.to_expression(),
+                CodeBlock(vec![Statement::Assign(
+                    x.clone(),
+                    Expression::IntegerLiteral("4".to_string()),
+                )]),
+                CodeBlock(vec![]),
+            ),
+            Statement::Return(Some(x.to_expression())),
+        ]);
+
+        let after = CodeBlock(vec![Statement::IfThenElse(
+            y.to_expression(),
+            CodeBlock(vec![
+                Statement::Assign(x.clone(), Expression::IntegerLiteral("4".to_string())),
+                Statement::Return(Some(x.to_expression())),
+            ]),
+            CodeBlock(vec![Statement::Return(Some(x.to_expression()))]),
+        )]);
+
+        assert_eq!(after.clone(), treeify(&before));
+
+        // make sure it's idempotent
+        assert_eq!(after.clone(), treeify(&after));
     }
 
     #[test]
     fn treeify_one_sided_if_depth_2() {
-        assert_eq!(2 + 2, 5);
+        let x = Identifier::new_scalar("x");
+        let y = Identifier::new_scalar("y");
+        let z = Identifier::new_scalar("z");
+        let before = CodeBlock(vec![
+            Statement::IfThenElse(
+                y.to_expression(),
+                CodeBlock(vec![Statement::IfThenElse(
+                    z.to_expression(),
+                    CodeBlock(vec![Statement::Assign(
+                        x.clone(),
+                        Expression::IntegerLiteral("42".to_string()),
+                    )]),
+                    CodeBlock(vec![]),
+                )]),
+                CodeBlock(vec![]),
+            ),
+            Statement::Return(Some(x.to_expression())),
+        ]);
+
+        let after = CodeBlock(vec![Statement::IfThenElse(
+            y.to_expression(),
+            CodeBlock(vec![Statement::IfThenElse(
+                z.to_expression(),
+                CodeBlock(vec![
+                    Statement::Assign(x.clone(), Expression::IntegerLiteral("42".to_string())),
+                    Statement::Return(Some(x.to_expression())),
+                ]),
+                CodeBlock(vec![Statement::Return(Some(x.to_expression()))]),
+            )]),
+            CodeBlock(vec![Statement::Return(Some(x.to_expression()))]),
+        )]);
+
+        assert_eq!(after.clone(), treeify(&before));
+
+        // make sure it's idempotent
+        assert_eq!(after.clone(), treeify(&after));
     }
 
     #[test]
     fn treeify_subsequent_ifs() {
-        assert_eq!(2 + 2, 5);
+        let x = Identifier::new_scalar("x");
+        let y = Identifier::new_scalar("y");
+        let z = Identifier::new_scalar("z");
+        let before = CodeBlock(vec![
+            Statement::IfThenElse(
+                y.to_expression(),
+                CodeBlock(vec![Statement::Assign(
+                    x.clone(),
+                    Expression::IntegerLiteral("1".to_string()),
+                )]),
+                CodeBlock(vec![Statement::Assign(
+                    x.clone(),
+                    Expression::IntegerLiteral("2".to_string()),
+                )]),
+            ),
+            Statement::IfThenElse(
+                z.to_expression(),
+                CodeBlock(vec![Statement::Assign(
+                    x.clone(),
+                    Expression::IntegerLiteral("3".to_string()),
+                )]),
+                CodeBlock(vec![Statement::Assign(
+                    x.clone(),
+                    Expression::IntegerLiteral("4".to_string()),
+                )]),
+            ),
+            Statement::Return(Some(x.to_expression())),
+        ]);
+
+        let after = CodeBlock(vec![Statement::IfThenElse(
+            y.to_expression(),
+            CodeBlock(vec![
+                Statement::Assign(x.clone(), Expression::IntegerLiteral("1".to_string())),
+                Statement::IfThenElse(
+                    z.to_expression(),
+                    CodeBlock(vec![
+                        Statement::Assign(x.clone(), Expression::IntegerLiteral("3".to_string())),
+                        Statement::Return(Some(x.to_expression())),
+                    ]),
+                    CodeBlock(vec![
+                        Statement::Assign(x.clone(), Expression::IntegerLiteral("4".to_string())),
+                        Statement::Return(Some(x.to_expression())),
+                    ]),
+                ),
+            ]),
+            CodeBlock(vec![
+                Statement::Assign(x.clone(), Expression::IntegerLiteral("2".to_string())),
+                Statement::IfThenElse(
+                    z.to_expression(),
+                    CodeBlock(vec![
+                        Statement::Assign(x.clone(), Expression::IntegerLiteral("3".to_string())),
+                        Statement::Return(Some(x.to_expression())),
+                    ]),
+                    CodeBlock(vec![
+                        Statement::Assign(x.clone(), Expression::IntegerLiteral("4".to_string())),
+                        Statement::Return(Some(x.to_expression())),
+                    ]),
+                ),
+            ]),
+        )]);
+
+        assert_eq!(after.clone(), treeify(&before));
+
+        // make sure it's idempotent
+        assert_eq!(after.clone(), treeify(&after));
     }
+}
+
+#[cfg(test)]
+mod treeify_transform_test {
+    use super::super::Transformation as TTransformation;
+    use super::Transformation;
+
+    use crate::examples::{keypkg, modprf};
+    use crate::package::Composition;
+    use std::collections::HashMap;
 
     #[test]
-    fn nothing_happens_balanced_if() {
-        assert_eq!(2 + 2, 5);
+    fn runs_for_all_packages_and_oracles() {
+        let mut params = HashMap::new();
+        params.insert("n".to_string(), "256".to_string());
+
+        let key_real_pkg = keypkg::key_pkg(&params);
+        let mod_prf_real_pkg = modprf::mod_prf(&params);
+
+        let mod_prf_game = Composition {
+            pkgs: vec![key_real_pkg.clone(), mod_prf_real_pkg.clone()],
+            edges: vec![(1, 0, key_real_pkg.pkg.clone().oracles[1].sig.clone())],
+            exports: vec![
+                (0, key_real_pkg.pkg.clone().oracles[0].sig.clone()),
+                (1, mod_prf_real_pkg.pkg.clone().oracles[0].sig.clone()),
+            ],
+            name: "real".to_string(),
+        };
+
+        let transform = Transformation(&mod_prf_game);
+        let (tranformed, _) = transform.transform().expect("error when transforming");
+
+        assert_eq!(
+            mod_prf_game.pkgs[0].pkg.oracles[0],
+            tranformed.pkgs[0].pkg.oracles[0]
+        );
+        assert_ne!(
+            mod_prf_game.pkgs[0].pkg.oracles[1],
+            tranformed.pkgs[0].pkg.oracles[1]
+        );
+        assert_eq!(
+            mod_prf_game.pkgs[1].pkg.oracles[0],
+            tranformed.pkgs[1].pkg.oracles[0]
+        );
     }
 }

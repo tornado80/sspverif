@@ -1,4 +1,4 @@
-use super::errors::TypeCheckError;
+use super::errors::{ErrorLocation, TypeCheckError};
 use super::expression::{get_type, typify};
 use super::scope::Scope;
 
@@ -27,7 +27,8 @@ impl TypedCodeBlock {
             match &*stmt {
                 Statement::Abort => {
                     if i < block.len() - 1 {
-                        return Err(TypeCheckError::TypeCheck(
+                        return Err(TypeCheckError::MisplacedStatement(
+                            ErrorLocation::Unknown,
                             "Abort found before end of code block!".to_string(),
                         ));
                     }
@@ -38,24 +39,31 @@ impl TypedCodeBlock {
                     let typed_expr = typify(expr, scope)?;
                     let expr_type = get_type(&typed_expr, scope)?;
                     if i < block.len() - 1 {
-                        return Err(TypeCheckError::TypeCheck(
+                        return Err(TypeCheckError::MisplacedStatement(
+                            ErrorLocation::Unknown,
                             "Return found before end of code block!".to_string(),
                         ));
                     }
                     if expr_type != *ret_type {
-                        return Err(TypeCheckError::TypeCheck(format!(
-                            "return type does not match: {:?} != {:?} (when returning {:?})",
-                            ret_type, expr_type, expr
-                        )));
+                        return Err(TypeCheckError::TypeMismatch(
+                            ErrorLocation::Unknown,
+                            format!("return type does not match"),
+                            Some(expr.clone()),
+                            expr_type,
+                            ret_type.clone(),
+                        ));
                     }
                     new_block.push(Statement::Return(Some(typed_expr)))
                 }
                 Statement::Return(None) => {
                     if Type::Empty != *ret_type {
-                        return Err(TypeCheckError::TypeCheck(format!(
-                            "return type does not match: {:?} != Empty",
-                            ret_type
-                        )));
+                        return Err(TypeCheckError::TypeMismatch(
+                            ErrorLocation::Unknown,
+                            "empty return in function that returns something".to_string(),
+                            None,
+                            Type::Empty,
+                            ret_type.clone(),
+                        ));
                     }
 
                     new_block.push(stmt.clone());
@@ -67,10 +75,13 @@ impl TypedCodeBlock {
                     let expr_type = get_type(&typed_expr, scope)?;
                     if let Some(id_type) = scope.lookup(id) {
                         if id_type != expr_type {
-                            return Err(TypeCheckError::TypeCheck(format!(
-                                "overwriting some value with incompatible type: {:?} <- {:?}",
-                                id, expr
-                            )));
+                            return Err(TypeCheckError::TypeMismatch(
+                                ErrorLocation::Unknown,
+                                format!("assigning to variable {:?} of different type", id),
+                                Some(expr.clone()),
+                                expr_type,
+                                id_type,
+                            ));
                         }
                     } else {
                         scope.declare(id.clone(), expr_type)?;
@@ -88,22 +99,37 @@ impl TypedCodeBlock {
                     if let Some(id_type) = scope.lookup(id) {
                         if let Type::Table(k, v) = id_type.clone() {
                             if *k != idx_type {
-                                return Err(TypeCheckError::TypeCheck(format!(
-                                    "type of expression {:?} used as index to table {:?} does not match: expected {:?}, got {:?}", idx, id, k, idx_type)));
+                                return Err(TypeCheckError::TypeMismatch(
+                                    ErrorLocation::Unknown,
+                                    format!("type used as index to table {:?} does not match", id),
+                                    Some(idx.clone()),
+                                    idx_type,
+                                    *k,
+                                ));
                             }
                             if *v != expr_type {
-                                return Err(TypeCheckError::TypeCheck(
+                                return Err(TypeCheckError::TypeMismatch(
+                                    ErrorLocation::Unknown,
                                     "value type of the table does not match".to_string(),
+                                    Some(expr.clone()),
+                                    expr_type,
+                                    *v,
                                 ));
                             }
                         } else {
-                            return Err(TypeCheckError::TypeCheck(
+                            return Err(TypeCheckError::TypeMismatch(
+                                ErrorLocation::Unknown,
                                 "table access on non-table".to_string(),
+                                None,
+                                id_type,
+                                Type::Table(Box::new(idx_type), Box::new(expr_type)),
                             ));
                         }
                     } else {
-                        return Err(TypeCheckError::TypeCheck(
-                            "assigning to table but table does not exist (here)".to_string(),
+                        return Err(TypeCheckError::Undefined(
+                            ErrorLocation::Unknown,
+                            "assigning to undefined table".to_string(),
+                            id.clone(),
                         ));
                     }
 
@@ -114,8 +140,13 @@ impl TypedCodeBlock {
                     let expr_type = get_type(&typed_expr, scope)?;
 
                     if expr_type != Type::Boolean {
-                        return Err(TypeCheckError::TypeCheck(
-                            "condition must be boolean".to_string(),
+                        return Err(TypeCheckError::TypeMismatch(
+                            ErrorLocation::Unknown,
+                            "expression used as condition in if-then-else is not boolean"
+                                .to_string(),
+                            Some(expr.clone()),
+                            expr_type,
+                            Type::Boolean,
                         ));
                     }
 
@@ -145,5 +176,364 @@ impl TypedCodeBlock {
             block: CodeBlock(new_block),
             expected_return_type: ret_type.clone(),
         })
+    }
+}
+
+/// unit tests for typing of (typed) code blocks
+/// - Should honor the expected-return-type
+///     return_none_fails, return_none_succeedes, return_wrong_type_fails, return_correcyt_type_succeedes
+/// - Abort should be allowed
+///     return_abort_succeedes
+/// - Should follow branching
+///     return_first_branch_wrong, return_second_branch_wrong, return_both_branch_correct, return_one_branch_aborts_correct
+/// - Should check on (table-)assign
+///     assign_succeedes_exists, assign_succeedes_new, assign_fails
+#[cfg(test)]
+mod test {
+    use super::TypedCodeBlock;
+    use crate::block;
+    use crate::expressions::Expression;
+    use crate::identifier::Identifier;
+    use crate::statement::{CodeBlock, Statement};
+    use crate::transforms::typecheck::{errors::TypeCheckError, scope::Scope};
+    use crate::types::Type;
+
+    #[test]
+    fn return_none_fails() {
+        let mut scope = Scope::new();
+        let code = TypedCodeBlock {
+            block: block! {
+                Statement::Return(None)
+            },
+            expected_return_type: Type::Integer,
+        };
+        let ret = code.typecheck(&mut scope);
+
+        assert!(
+            matches!(ret, Err(TypeCheckError::TypeMismatch(_, _, _, _, _))),
+            "expected to fail with a TypeCheckError::TypeMismatch"
+        );
+    }
+
+    #[test]
+    fn return_none_succeedes() {
+        let mut scope = Scope::new();
+        let code = TypedCodeBlock {
+            block: block! {
+                Statement::Return(None)
+            },
+            expected_return_type: Type::Empty,
+        };
+        let ret = code.typecheck(&mut scope);
+
+        assert!(matches!(ret, Ok(_)), "Typecheck should succeed");
+    }
+
+    #[test]
+    fn return_wrong_type_fails() {
+        let mut scope = Scope::new();
+        let code = TypedCodeBlock {
+            block: block! {
+                Statement::Return(Some(Expression::StringLiteral("test".to_string())))
+            },
+            expected_return_type: Type::Integer,
+        };
+        let ret = code.typecheck(&mut scope);
+        assert!(
+            matches!(ret, Err(TypeCheckError::TypeMismatch(_, _, _, _, _))),
+            "expected to fail with a TypeCheckError::TypeMismatch"
+        );
+    }
+
+    #[test]
+    fn return_correcyt_type_succeedes() {
+        let mut scope = Scope::new();
+        let code = TypedCodeBlock {
+            block: block! {
+                Statement::Return(Some(Expression::IntegerLiteral("23".to_string())))
+            },
+            expected_return_type: Type::Integer,
+        };
+        let ret = code.typecheck(&mut scope);
+
+        assert!(matches!(ret, Ok(_)), "Typecheck should succeed");
+    }
+
+    #[test]
+    fn return_abort_succeedes() {
+        let mut scope = Scope::new();
+        let code = TypedCodeBlock {
+            block: block! {
+                Statement::Abort
+            },
+            expected_return_type: Type::Integer,
+        };
+        let ret = code.typecheck(&mut scope);
+
+        assert!(matches!(ret, Ok(_)), "Typecheck should succeed");
+    }
+
+    #[test]
+    fn return_first_branch_wrong() {
+        let mut scope = Scope::new();
+        let code = TypedCodeBlock {
+            block: block! {
+            Statement::IfThenElse(
+                Expression::new_equals(vec![&(Expression::StringLiteral("23".to_string())),
+                                            &(Expression::StringLiteral("23".to_string()))]),
+                block!{
+                    Statement::Return(Some(Expression::StringLiteral("23".to_string())))
+                },
+                block!{
+                    Statement::Return(Some(Expression::IntegerLiteral("23".to_string())))
+                })
+            },
+            expected_return_type: Type::Integer,
+        };
+        let ret = code.typecheck(&mut scope);
+
+        assert!(
+            matches!(ret, Err(TypeCheckError::TypeMismatch(_, _, _, _, _))),
+            "expected to fail with a TypeCheckError::TypeMismatch"
+        );
+    }
+
+    #[test]
+    fn return_second_branch_wrong() {
+        let mut scope = Scope::new();
+        let code = TypedCodeBlock {
+            block: block! {
+            Statement::IfThenElse(
+                Expression::new_equals(vec![&(Expression::StringLiteral("23".to_string())),
+                                            &(Expression::StringLiteral("23".to_string()))]),
+                block!{
+                    Statement::Return(Some(Expression::IntegerLiteral("23".to_string())))
+                },
+                block!{
+                    Statement::Return(Some(Expression::StringLiteral("23".to_string())))
+                })
+            },
+            expected_return_type: Type::Integer,
+        };
+        let ret = code.typecheck(&mut scope);
+
+        assert!(
+            matches!(ret, Err(TypeCheckError::TypeMismatch(_, _, _, _, _))),
+            "expected to fail with a TypeCheckError::TypeMismatch"
+        );
+    }
+
+    #[test]
+    fn return_both_branch_correct() {
+        let mut scope = Scope::new();
+        let code = TypedCodeBlock {
+            block: block! {
+            Statement::IfThenElse(
+                Expression::new_equals(vec![&(Expression::StringLiteral("23".to_string())),
+                                            &(Expression::StringLiteral("23".to_string()))]),
+                block!{
+                    Statement::Return(Some(Expression::IntegerLiteral("23".to_string())))
+                },
+                block!{
+                    Statement::Return(Some(Expression::IntegerLiteral("23".to_string())))
+                })
+            },
+            expected_return_type: Type::Integer,
+        };
+        let ret = code.typecheck(&mut scope);
+        assert!(matches!(ret, Ok(_)), "Typecheck should succeed");
+    }
+
+    #[test]
+    fn return_one_branch_aborts_correct() {
+        let mut scope = Scope::new();
+        let code = TypedCodeBlock {
+            block: block! {
+            Statement::IfThenElse(
+                Expression::new_equals(vec![&(Expression::StringLiteral("23".to_string())),
+                                            &(Expression::StringLiteral("23".to_string()))]),
+                block!{
+                    Statement::Return(Some(Expression::IntegerLiteral("23".to_string())))
+                },
+                block!{
+                    Statement::Abort
+                })
+            },
+            expected_return_type: Type::Integer,
+        };
+        let ret = code.typecheck(&mut scope);
+
+        assert!(matches!(ret, Ok(_)), "Typecheck should succeed");
+    }
+
+    #[test]
+    fn assign_fails() {
+        let mut scope = Scope::new();
+        scope.enter();
+
+        scope
+            .declare(Identifier::Local("test".to_string()), Type::Integer)
+            .unwrap();
+        let code = TypedCodeBlock {
+            block: block! {
+                Statement::Assign(
+                    Identifier::Local("test".to_string()),
+                    Expression::StringLiteral("42".to_string()))
+            },
+            expected_return_type: Type::Empty,
+        };
+        let ret = code.typecheck(&mut scope);
+
+        assert!(
+            matches!(ret, Err(TypeCheckError::TypeMismatch(_, _, _, _, _))),
+            "expected to fail with a TypeCheckError::TypeMismatch"
+        );
+    }
+
+    #[test]
+    fn assign_succeedes_exists() {
+        let mut scope = Scope::new();
+        scope.enter();
+        scope
+            .declare(Identifier::Local("test".to_string()), Type::Integer)
+            .unwrap();
+        let code = TypedCodeBlock {
+            block: block! {
+                Statement::Assign(Identifier::Local("test".to_string()), Expression::IntegerLiteral("42".to_string()))
+            },
+            expected_return_type: Type::Empty,
+        };
+        let ret = code.typecheck(&mut scope);
+
+        assert!(matches!(ret, Ok(_)), "Typecheck should succeed");
+    }
+
+    #[test]
+    fn assign_succeedes_new() {
+        let mut scope = Scope::new();
+        scope.enter();
+        let code = TypedCodeBlock {
+            block: block! {
+                Statement::Assign(Identifier::Local("test".to_string()), Expression::IntegerLiteral("42".to_string()))
+            },
+            expected_return_type: Type::Empty,
+        };
+        let ret = code.typecheck(&mut scope);
+
+        assert!(matches!(ret, Ok(_)), "Typecheck should succeed");
+    }
+
+    #[test]
+    fn table_assign_succeedes() {
+        let mut scope = Scope::new();
+        scope.enter();
+        scope
+            .declare(
+                Identifier::Local("test".to_string()),
+                Type::Table(Box::new(Type::Integer), Box::new(Type::String)),
+            )
+            .unwrap();
+        let code = TypedCodeBlock {
+            block: block! {
+                Statement::TableAssign(Identifier::Local("test".to_string()),
+                                       Expression::IntegerLiteral("42".to_string()),
+                                       Expression::StringLiteral("42".to_string()))
+            },
+            expected_return_type: Type::Empty,
+        };
+        let ret = code.typecheck(&mut scope);
+
+        assert!(matches!(ret, Ok(_)), "Typecheck should succeed");
+    }
+
+    #[test]
+    fn table_assign_wrong_index_type() {
+        let mut scope = Scope::new();
+        scope.enter();
+        scope
+            .declare(
+                Identifier::Local("test".to_string()),
+                Type::Table(Box::new(Type::Integer), Box::new(Type::String)),
+            )
+            .unwrap();
+        let code = TypedCodeBlock {
+            block: block! {
+                Statement::TableAssign(Identifier::Local("test".to_string()),
+                                       Expression::StringLiteral("42".to_string()),
+                                       Expression::StringLiteral("42".to_string()))
+            },
+            expected_return_type: Type::Empty,
+        };
+        let ret = code.typecheck(&mut scope);
+        assert!(
+            matches!(ret, Err(TypeCheckError::TypeMismatch(_, _, _, _, _))),
+            "expected to fail with a TypeCheckError::TypeMismatch"
+        );
+    }
+
+    #[test]
+    fn table_assign_wrong_value() {
+        let mut scope = Scope::new();
+        scope.enter();
+        scope
+            .declare(
+                Identifier::Local("test".to_string()),
+                Type::Table(Box::new(Type::Integer), Box::new(Type::String)),
+            )
+            .unwrap();
+        let code = TypedCodeBlock {
+            block: block! {
+                Statement::TableAssign(Identifier::Local("test".to_string()),
+                                       Expression::IntegerLiteral("42".to_string()),
+                                       Expression::IntegerLiteral("42".to_string()))
+            },
+            expected_return_type: Type::Empty,
+        };
+        let ret = code.typecheck(&mut scope);
+        assert!(
+            matches!(ret, Err(TypeCheckError::TypeMismatch(_, _, _, _, _))),
+            "expected to fail with a TypeCheckError::TypeMismatch"
+        );
+    }
+
+    #[test]
+    fn table_assign_not_table() {
+        let mut scope = Scope::new();
+        scope.enter();
+        scope
+            .declare(Identifier::Local("test".to_string()), Type::Integer)
+            .unwrap();
+        let code = TypedCodeBlock {
+            block: block! {
+                Statement::TableAssign(Identifier::Local("test".to_string()),
+                                       Expression::IntegerLiteral("42".to_string()),
+                                       Expression::IntegerLiteral("42".to_string()))
+            },
+            expected_return_type: Type::Empty,
+        };
+        let ret = code.typecheck(&mut scope);
+        assert!(
+            matches!(ret, Err(TypeCheckError::TypeMismatch(_, _, _, _, _))),
+            "expected to fail with a TypeCheckError::TypeMismatch"
+        );
+    }
+
+    #[test]
+    fn table_assign_undeclared() {
+        let mut scope = Scope::new();
+        scope.enter();
+        let code = TypedCodeBlock {
+            block: block! {
+                Statement::TableAssign(Identifier::Local("test".to_string()),
+                                       Expression::IntegerLiteral("42".to_string()),
+                                       Expression::IntegerLiteral("42".to_string()))
+            },
+            expected_return_type: Type::Empty,
+        };
+        let ret = code.typecheck(&mut scope);
+        assert!(
+            matches!(ret, Err(TypeCheckError::Undefined(_, _, _))),
+            "expected to fail with a TypeCheckError::TypeMismatch"
+        );
     }
 }

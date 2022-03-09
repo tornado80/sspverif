@@ -2,7 +2,7 @@ use crate::expressions::Expression;
 use crate::identifier::Identifier;
 use crate::types::Type;
 
-use super::errors::{ExpressionResult, TypeError, TypeResult};
+use super::errors::{ErrorLocation, ExpressionResult, TypeCheckError, TypeResult};
 use super::scope::Scope;
 
 pub fn get_type(expr: &Expression, scope: &Scope) -> TypeResult {
@@ -19,23 +19,27 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
         Expression::IntegerLiteral(_) => Ok(Expression::Typed(Type::Integer, expr.clone().into())),
         Expression::BooleanLiteral(_) => Ok(Expression::Typed(Type::Boolean, expr.clone().into())),
         Expression::Equals(exprs) => {
+            let outer_expr = expr;
             let mut exprs_ = vec![];
-            let mut t: Option<Type> = None;
+            let mut t_opt: Option<Type> = None;
 
             for expr in exprs {
                 exprs_.push(typify(expr, scope)?);
 
-                match &t {
+                match &t_opt {
                     None => {
-                        t = Some(get_type(expr, scope)?);
+                        t_opt = Some(get_type(expr, scope)?);
                     }
-                    Some(t_) => {
-                        let t__ = get_type(expr, scope)?;
-                        if t_ != &t__ {
-                            return Err(TypeError(format!(
-                                "equality compares expression of different type: {:?} {:?} in {:?}",
-                                t_, t__, exprs
-                            )));
+                    Some(t) => {
+                        let t_found = get_type(expr, scope)?;
+                        if t != &t_found {
+                            return Err(TypeCheckError::TypeMismatch(
+                                ErrorLocation::Unknown,
+                                "equality compares expression of different type".to_string(),
+                                Some(outer_expr.clone()),
+                                t_found,
+                                t.clone(),
+                            ));
                         }
                     }
                 }
@@ -81,32 +85,41 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                         if let Type::Maybe(inner_t) = t {
                             Ok(Expression::Typed(*inner_t, Box::new(expr.clone())))
                         } else {
-                            Err(TypeError(format!(
-                                "type error: Unwrap contains identifier with non-Maybe type: {:?}",
-                                t
-                            )))
+                            Err(TypeCheckError::ShouldBeMaybe(
+                                ErrorLocation::Unknown,
+                                "type error: Unwrap contains identifier with non-Maybe type"
+                                    .to_string(),
+                                expr.clone(),
+                                t.clone(),
+                            ))
                         }
                     } else {
-                        Err(TypeError(format!(
-                            "type error: Unwrap contains identifier that is not in scope: {:?}",
-                            id
-                        )))
+                        Err(TypeCheckError::Undefined(
+                            ErrorLocation::Unknown,
+                            "type error: Unwrap contains identifier that is not in scope"
+                                .to_string(),
+                            id.clone(),
+                        ))
                     }
                 }
                 Expression::TableAccess(id, _) => {
                     if let Some(Type::Table(_, t_val)) = scope.lookup(id) {
                         Ok(Expression::Typed(*t_val.clone(), Box::new(expr.clone())))
                     } else {
-                        Err(TypeError(format!(
-                            "type error: Unwrap contains access to table that is not in scope: {:?}",
-                            id
-                        )))
+                        Err(TypeCheckError::Undefined(
+                            ErrorLocation::Unknown,
+                            "type error: Unwrap contains access to table that is not in scope"
+                                .to_string(),
+                            *id.clone(),
+                        ))
                     }
                 }
-                _ => Err(TypeError(format!(
-                    "type error: Unwrap contains expression other than Some or None: {:?}",
-                    v
-                ))),
+                _ => Err(TypeCheckError::ShouldBeMaybe(
+                    ErrorLocation::Unknown,
+                    "type error: Unwrap contains identifier with non-Maybe type".to_string(),
+                    expr.clone(),
+                    get_type(v, scope)?,
+                )),
             }
             /*
             if let Expression::Some(inner) = &**v {
@@ -122,13 +135,24 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                     Box::new(Expression::Neg(Box::new(typify(v, scope)?))),
                 ))
             } else {
-                Err(TypeError(format!("type error: {:?}", expr)))
+                Err(TypeCheckError::TypeMismatchVague(
+                    ErrorLocation::Unknown,
+                    "negation only allowed on integers and additive group elements".to_string(),
+                    Some(expr.clone()),
+                    t,
+                ))
             }
         }
         Expression::Not(v) => {
             let t = get_type(v, scope)?;
             if t != Type::Boolean {
-                return Err(TypeError(format!("type error: {:?}", expr)));
+                return Err(TypeCheckError::TypeMismatch(
+                    ErrorLocation::Unknown,
+                    "Not only allowed on boolean expressions".to_string(),
+                    Some(expr.clone()),
+                    t,
+                    Type::Boolean,
+                ));
             }
 
             Ok(Expression::Typed(
@@ -144,7 +168,12 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                     Box::new(Expression::Inv(Box::new(typify(v, scope)?))),
                 ));
             } else {
-                Err(TypeError(format!("type error: {:?}", expr)))
+                Err(TypeCheckError::TypeMismatchVague(
+                    ErrorLocation::Unknown,
+                    "inverse only allowed on multiplicative group elements".to_string(),
+                    Some(expr.clone()),
+                    t,
+                ))
             }
         }
         Expression::Add(left, right) => {
@@ -163,8 +192,21 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                         Box::new(typify(right, scope)?),
                     )),
                 ))
+            } else if !(left_is_int || left_is_age) {
+                Err(TypeCheckError::TypeMismatchVague(
+                    ErrorLocation::Unknown,
+                    "addition only works for ints and additive group elements".to_string(),
+                    Some(*left.clone()),
+                    t_left,
+                ))
             } else {
-                Err(TypeError(format!("type error: {:?}", expr)))
+                Err(TypeCheckError::TypeMismatch(
+                    ErrorLocation::Unknown,
+                    "added types don't match".to_string(),
+                    Some(*right.clone()),
+                    t_right,
+                    t_left,
+                ))
             }
         }
         Expression::Mul(left, right) => {
@@ -187,7 +229,13 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                         )),
                     ))
                 } else {
-                    Err(TypeError(format!("type error: {:?}", expr)))
+                    Err(TypeCheckError::TypeMismatchVague(
+                        ErrorLocation::Unknown,
+                        "multiplication only works for ints and multiplicative group elements"
+                            .to_string(),
+                        Some(*left.clone()),
+                        t_left,
+                    ))
                 }
             } else {
                 if left_is_int && right_is_age {
@@ -199,7 +247,13 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                         )),
                     ))
                 } else {
-                    Err(TypeError(format!("type error: {:?}", expr)))
+                    Err(TypeCheckError::TypeMismatchVague(
+                        ErrorLocation::Unknown,
+                        "multiplication only works for ints and multiplicative group elements"
+                            .to_string(),
+                        Some(*left.clone()),
+                        t_left,
+                    ))
                 }
             }
         }
@@ -207,35 +261,64 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
             let t_left = get_type(left, scope)?;
             let t_right = get_type(right, scope)?;
 
-            if (t_left == Type::Integer || matches!(t_left, Type::AddiGroupEl(_)))
-                && t_left == t_right
-            {
-                return Ok(Expression::Typed(
+            let same_type = t_left == t_right;
+            let left_is_int = t_left == Type::Integer;
+            let left_is_age = matches!(t_left, Type::AddiGroupEl(_));
+
+            if (left_is_int || left_is_age) && same_type {
+                Ok(Expression::Typed(
                     t_left,
                     Box::new(Expression::Sub(
                         Box::new(typify(left, scope)?),
                         Box::new(typify(right, scope)?),
                     )),
-                ));
+                ))
+            } else if !(left_is_int || left_is_age) {
+                Err(TypeCheckError::TypeMismatchVague(
+                    ErrorLocation::Unknown,
+                    "subtraction only works for ints and additive group elements".to_string(),
+                    Some(*left.clone()),
+                    t_left,
+                ))
+            } else {
+                Err(TypeCheckError::TypeMismatch(
+                    ErrorLocation::Unknown,
+                    "subtracted types don't match".to_string(),
+                    Some(*right.clone()),
+                    t_right,
+                    t_left,
+                ))
             }
-
-            Err(TypeError(format!("type error: {:?}", expr)))
         }
         Expression::Div(left, right) => {
             let t_left = get_type(left, scope)?;
             let t_right = get_type(right, scope)?;
 
-            if t_left != Type::Integer || t_left != t_right {
-                return Err(TypeError(format!("type error: {:?}", expr)));
+            if t_left != Type::Integer {
+                Err(TypeCheckError::TypeMismatch(
+                    ErrorLocation::Unknown,
+                    "divisor/numerator is not an int".to_string(),
+                    Some(*left.clone()),
+                    t_left,
+                    Type::Integer,
+                ))
+            } else if t_right != Type::Integer {
+                Err(TypeCheckError::TypeMismatch(
+                    ErrorLocation::Unknown,
+                    "dividend/denominator is not an int".to_string(),
+                    Some(*right.clone()),
+                    t_right,
+                    Type::Integer,
+                ))
+            } else {
+                Ok(Expression::Typed(
+                    t_left,
+                    Box::new(Expression::Div(
+                        Box::new(typify(left, scope)?),
+                        Box::new(typify(right, scope)?),
+                    )),
+                ))
             }
-
-            Ok(Expression::Typed(
-                t_left,
-                Box::new(Expression::Div(
-                    Box::new(typify(left, scope)?),
-                    Box::new(typify(right, scope)?),
-                )),
-            ))
         }
         Expression::Pow(base, exp) => {
             let t_base = get_type(base, scope)?;
@@ -255,10 +338,22 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                         )),
                     ))
                 } else {
-                    Err(TypeError(format!("type error: {:?}", expr)))
+                    Err(TypeCheckError::TypeMismatchVague(
+                        ErrorLocation::Unknown,
+                        "base for exponentiation needs to be int or multiplicative group element"
+                            .to_string(),
+                        Some(*base.clone()),
+                        t_base,
+                    ))
                 }
             } else {
-                Err(TypeError(format!("type error: {:?}", expr)))
+                Err(TypeCheckError::TypeMismatch(
+                    ErrorLocation::Unknown,
+                    "exponent is not an int".to_string(),
+                    Some(*exp.clone()),
+                    t_exp,
+                    Type::Integer,
+                ))
             }
         }
 
@@ -266,17 +361,31 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
             let t_num = get_type(num, scope)?;
             let t_mod = get_type(modulus, scope)?;
 
-            if t_num != Type::Integer || t_mod != Type::Integer {
-                return Err(TypeError(format!("type error: {:?}", expr)));
+            if t_num != Type::Integer {
+                Err(TypeCheckError::TypeMismatch(
+                    ErrorLocation::Unknown,
+                    "modulo'd number is not an int".to_string(),
+                    Some(*num.clone()),
+                    t_num,
+                    Type::Integer,
+                ))
+            } else if t_mod != Type::Integer {
+                Err(TypeCheckError::TypeMismatch(
+                    ErrorLocation::Unknown,
+                    "modulus is not an int".to_string(),
+                    Some(*modulus.clone()),
+                    t_mod,
+                    Type::Integer,
+                ))
+            } else {
+                Ok(Expression::Typed(
+                    t_num,
+                    Box::new(Expression::Pow(
+                        Box::new(typify(num, scope)?),
+                        Box::new(typify(modulus, scope)?),
+                    )),
+                ))
             }
-
-            Ok(Expression::Typed(
-                t_num,
-                Box::new(Expression::Pow(
-                    Box::new(typify(num, scope)?),
-                    Box::new(typify(modulus, scope)?),
-                )),
-            ))
         }
 
         Expression::Xor(vs) => {
@@ -284,8 +393,15 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
             // TODO bit strings
             for v in vs {
                 let v_ = typify(v, scope)?;
-                if get_type(&v_, scope)? != Type::Boolean {
-                    return Err(TypeError(format!("type error: {:?}", expr)));
+                let t_v = get_type(&v_, scope)?;
+                if t_v != Type::Boolean {
+                    return Err(TypeCheckError::TypeMismatch(
+                        ErrorLocation::Unknown,
+                        "xor'd value is not a bool".to_string(),
+                        Some(v.clone()),
+                        t_v,
+                        Type::Boolean,
+                    ));
                 }
 
                 vs_.push(v_);
@@ -302,8 +418,15 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
             // TODO bit strings
             for v in vs {
                 let v_ = typify(v, scope)?;
-                if get_type(&v_, scope)? != Type::Boolean {
-                    return Err(TypeError(format!("type error: {:?}", expr)));
+                let t_v = get_type(&v_, scope)?;
+                if t_v != Type::Boolean {
+                    return Err(TypeCheckError::TypeMismatch(
+                        ErrorLocation::Unknown,
+                        "and'd value is not a bool".to_string(),
+                        Some(v.clone()),
+                        t_v,
+                        Type::Boolean,
+                    ));
                 }
                 vs_.push(v_);
             }
@@ -319,8 +442,15 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
             // TODO bit strings
             for v in vs {
                 let v_ = typify(v, scope)?;
-                if get_type(&v_, scope)? != Type::Boolean {
-                    return Err(TypeError(format!("type error: {:?}", expr)));
+                let t_v = get_type(&v_, scope)?;
+                if t_v != Type::Boolean {
+                    return Err(TypeCheckError::TypeMismatch(
+                        ErrorLocation::Unknown,
+                        "or'd value is not a bool".to_string(),
+                        Some(v.clone()),
+                        t_v,
+                        Type::Boolean,
+                    ));
                 }
                 vs_.push(v_);
             }
@@ -336,11 +466,17 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
             {
                 // 1. check that arg types match args
                 if args.len() != arg_types.len() {
-                    return Err(TypeError(format!(
-                        "type error: argument count mismatch. get {}, expected {}",
-                        args.len(),
-                        arg_types.len()
-                    )));
+                    return Err(TypeCheckError::TypeMismatch(
+                        ErrorLocation::Unknown,
+                        format!(
+                            "type error: argument count mismatch. get {}, expected {}",
+                            args.len(),
+                            arg_types.len()
+                        ),
+                        Some(expr.clone()),
+                        get_type(expr, scope)?,
+                        Type::Fn(arg_types, ret_type),
+                    ));
                 }
 
                 let mut typified_args = vec![];
@@ -349,11 +485,18 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                     let typified_arg = typify(arg, scope)?;
                     let arg_type = get_type(arg, scope)?;
                     if arg_type != arg_types[i] {
-                        return Err(TypeError(format!(
-                            "type error: argument type mismatch. got {:?}, expected {:?}",
-                            arg_type, arg_types[i]
-                        )));
+                        return Err(TypeCheckError::TypeMismatch(
+                            ErrorLocation::Unknown,
+                            format!(
+                                "argument type mismatch at position {} when calling function {:}",
+                                i, name
+                            ),
+                            Some(arg.clone()),
+                            arg_type,
+                            arg_types[i].clone(),
+                        ));
                     }
+
                     typified_args.push(typified_arg);
                 }
 
@@ -363,10 +506,11 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                     Box::new(Expression::FnCall(name.clone(), typified_args)),
                 ))
             } else {
-                Err(TypeError(format!(
-                    "type error: function {:?} not found in scope",
-                    name
-                )))
+                Err(TypeCheckError::Undefined(
+                    ErrorLocation::Unknown,
+                    "function not found in scope".to_string(),
+                    Identifier::new_scalar(name),
+                ))
             }
         }
 
@@ -375,8 +519,16 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                 if let Type::Oracle(arg_types, ret_type) = entry {
                     // 1. check that arg types match args
                     if args.len() != arg_types.len() {
-                        return Err(TypeError(
-                            "oracle invocation arg count mismatch".to_string(),
+                        return Err(TypeCheckError::TypeMismatch(
+                            ErrorLocation::Unknown,
+                            format!(
+                                "oracle invocation argument count mismatch. get {}, expected {}",
+                                args.len(),
+                                arg_types.len()
+                            ),
+                            Some(expr.clone()),
+                            get_type(expr, scope)?,
+                            Type::Fn(arg_types, ret_type),
                         ));
                     }
                     let mut typified_args = vec![];
@@ -385,13 +537,13 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                         let typified_arg = typify(arg, scope)?;
                         let t_arg = get_type(&typified_arg, scope)?;
                         if t_arg != arg_types[i] {
-                            return Err(TypeError(format!(
-                                "oracle {:} invocation arg type doesn't match at position {:}. expected {:?}, got {:?}",
-                                name,
-                                i,
-                                arg_types[i],
-                                t_arg
-                            )));
+                            return Err(TypeCheckError::TypeMismatch(
+                                ErrorLocation::Unknown,
+                                format!("argument type mismatch at position {} at invocation of oracle {:}", i, name),
+                                Some(arg.clone()),
+                                t_arg,
+                                arg_types[i].clone(),
+                            ));
                         }
 
                         typified_args.push(typified_arg);
@@ -403,10 +555,19 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                         Box::new(Expression::OracleInvoc(name.clone(), typified_args)),
                     ))
                 } else {
-                    Err(TypeError(format!("expected oracle, got {:#?}", entry)))
+                    Err(TypeCheckError::TypeMismatchVague(
+                        ErrorLocation::Unknown,
+                        format!("name {:} resolved to non-oracle type", name),
+                        Some(expr.clone()),
+                        entry,
+                    ))
                 }
             } else {
-                Err(TypeError(format!("couldn't look up oracle {:}", name)))
+                Err(TypeCheckError::Undefined(
+                    ErrorLocation::Unknown,
+                    format!("oracle not found in scope"),
+                    Identifier::new_scalar(name),
+                ))
             }
         }
 
@@ -417,7 +578,11 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                     Box::new(Expression::Identifier(id.clone())),
                 ))
             } else {
-                Err(TypeError(format!("type error: {:?}", expr)))
+                Err(TypeCheckError::Undefined(
+                    ErrorLocation::Unknown,
+                    format!("identifier not found in scope"),
+                    id.clone(),
+                ))
             }
         }
         Expression::TableAccess(id, expr) => match scope.lookup(&**id) {
@@ -430,25 +595,29 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                         Box::new(Expression::TableAccess(id.clone(), Box::new(expr_))),
                     ))
                 } else {
-                    Err(TypeError(format!(
-                        "type error: bad index type. expected {:?}, got {:?}",
-                        t_idx, t_expr
-                    )))
+                    Err(TypeCheckError::TypeMismatch(
+                        ErrorLocation::Unknown,
+                        "unexpected index type".to_string(),
+                        Some(*expr.clone()),
+                        t_expr,
+                        *t_idx.clone(),
+                    ))
                 }
             }
-            Some(t) => Err(TypeError(format!(
-                "type error: table access on value of type {:?}",
-                t
-            ))),
-            _ => Err(TypeError(format!(
-                "error during table accesses; couldn't find identifier {:?} in scope",
-                id
-            ))),
+            Some(t) => Err(TypeCheckError::TypeMismatchVague(
+                ErrorLocation::Unknown,
+                "table access on non-table value".to_string(),
+                Some(id.to_expression()),
+                t,
+            )),
+            _ => Err(TypeCheckError::Undefined(
+                ErrorLocation::Unknown,
+                "accessing undefined table".to_string(),
+                *id.clone(),
+            )),
         },
         _ => {
-            println!("get_type not implemented for:");
-            println!("{:#?}", expr);
-            Err(TypeError(format!("type error: {:?}", expr)))
+            panic!("get_type not implemented for {:#?}", expr);
         }
     }
 }
