@@ -2,7 +2,7 @@ use crate::expressions::Expression;
 use crate::identifier::Identifier;
 use crate::types::Type;
 
-use super::errors::{ExpressionResult, TypeError, TypeResult};
+use super::errors::{ExpressionResult, TypeCheckError, TypeResult};
 use super::scope::Scope;
 
 pub fn get_type(expr: &Expression, scope: &Scope) -> TypeResult {
@@ -32,7 +32,7 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                     Some(t_) => {
                         let t__ = get_type(expr, scope)?;
                         if t_ != &t__ {
-                            return Err(TypeError(format!(
+                            return Err(TypeCheckError::TypeCheck(format!(
                                 "equality compares expression of different type: {:?} {:?} in {:?}",
                                 t_, t__, exprs
                             )));
@@ -81,13 +81,13 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                         if let Type::Maybe(inner_t) = t {
                             Ok(Expression::Typed(*inner_t, Box::new(expr.clone())))
                         } else {
-                            Err(TypeError(format!(
+                            Err(TypeCheckError::TypeCheck(format!(
                                 "type error: Unwrap contains identifier with non-Maybe type: {:?}",
                                 t
                             )))
                         }
                     } else {
-                        Err(TypeError(format!(
+                        Err(TypeCheckError::TypeCheck(format!(
                             "type error: Unwrap contains identifier that is not in scope: {:?}",
                             id
                         )))
@@ -97,13 +97,13 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                     if let Some(Type::Table(_, t_val)) = scope.lookup(id) {
                         Ok(Expression::Typed(*t_val.clone(), Box::new(expr.clone())))
                     } else {
-                        Err(TypeError(format!(
+                        Err(TypeCheckError::TypeCheck(format!(
                             "type error: Unwrap contains access to table that is not in scope: {:?}",
                             id
                         )))
                     }
                 }
-                _ => Err(TypeError(format!(
+                _ => Err(TypeCheckError::TypeCheck(format!(
                     "type error: Unwrap contains expression other than Some or None: {:?}",
                     v
                 ))),
@@ -122,13 +122,13 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                     Box::new(Expression::Neg(Box::new(typify(v, scope)?))),
                 ))
             } else {
-                Err(TypeError(format!("type error: {:?}", expr)))
+                Err(TypeCheckError::TypeCheck(format!("type error: {:?}", expr)))
             }
         }
         Expression::Not(v) => {
             let t = get_type(v, scope)?;
             if t != Type::Boolean {
-                return Err(TypeError(format!("type error: {:?}", expr)));
+                return Err(TypeCheckError::TypeCheck(format!("type error: {:?}", expr)));
             }
 
             Ok(Expression::Typed(
@@ -144,7 +144,7 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                     Box::new(Expression::Inv(Box::new(typify(v, scope)?))),
                 ));
             } else {
-                Err(TypeError(format!("type error: {:?}", expr)))
+                Err(TypeCheckError::TypeCheck(format!("type error: {:?}", expr)))
             }
         }
         Expression::Add(left, right) => {
@@ -164,7 +164,7 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                     )),
                 ))
             } else {
-                Err(TypeError(format!("type error: {:?}", expr)))
+                Err(TypeCheckError::TypeCheck(format!("type error: {:?}", expr)))
             }
         }
         Expression::Mul(left, right) => {
@@ -187,7 +187,7 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                         )),
                     ))
                 } else {
-                    Err(TypeError(format!("type error: {:?}", expr)))
+                    Err(TypeCheckError::TypeCheck(format!("type error: {:?}", expr)))
                 }
             } else {
                 if left_is_int && right_is_age {
@@ -199,7 +199,7 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                         )),
                     ))
                 } else {
-                    Err(TypeError(format!("type error: {:?}", expr)))
+                    Err(TypeCheckError::TypeCheck(format!("type error: {:?}", expr)))
                 }
             }
         }
@@ -219,14 +219,14 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                 ));
             }
 
-            Err(TypeError(format!("type error: {:?}", expr)))
+            Err(TypeCheckError::TypeCheck(format!("type error: {:?}", expr)))
         }
         Expression::Div(left, right) => {
             let t_left = get_type(left, scope)?;
             let t_right = get_type(right, scope)?;
 
             if t_left != Type::Integer || t_left != t_right {
-                return Err(TypeError(format!("type error: {:?}", expr)));
+                return Err(TypeCheckError::TypeCheck(format!("type error: {:?}", expr)));
             }
 
             Ok(Expression::Typed(
@@ -255,10 +255,10 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                         )),
                     ))
                 } else {
-                    Err(TypeError(format!("type error: {:?}", expr)))
+                    Err(TypeCheckError::TypeCheck(format!("type error: {:?}", expr)))
                 }
             } else {
-                Err(TypeError(format!("type error: {:?}", expr)))
+                Err(TypeCheckError::TypeCheck(format!("type error: {:?}", expr)))
             }
         }
 
@@ -267,7 +267,7 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
             let t_mod = get_type(modulus, scope)?;
 
             if t_num != Type::Integer || t_mod != Type::Integer {
-                return Err(TypeError(format!("type error: {:?}", expr)));
+                return Err(TypeCheckError::TypeCheck(format!("type error: {:?}", expr)));
             }
 
             Ok(Expression::Typed(
@@ -285,7 +285,7 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
             for v in vs {
                 let v_ = typify(v, scope)?;
                 if get_type(&v_, scope)? != Type::Boolean {
-                    return Err(TypeError(format!("type error: {:?}", expr)));
+                    return Err(TypeCheckError::TypeCheck(format!("type error: {:?}", expr)));
                 }
 
                 vs_.push(v_);
@@ -303,7 +303,7 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
             for v in vs {
                 let v_ = typify(v, scope)?;
                 if get_type(&v_, scope)? != Type::Boolean {
-                    return Err(TypeError(format!("type error: {:?}", expr)));
+                    return Err(TypeCheckError::TypeCheck(format!("type error: {:?}", expr)));
                 }
                 vs_.push(v_);
             }
@@ -320,7 +320,7 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
             for v in vs {
                 let v_ = typify(v, scope)?;
                 if get_type(&v_, scope)? != Type::Boolean {
-                    return Err(TypeError(format!("type error: {:?}", expr)));
+                    return Err(TypeCheckError::TypeCheck(format!("type error: {:?}", expr)));
                 }
                 vs_.push(v_);
             }
@@ -336,7 +336,7 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
             {
                 // 1. check that arg types match args
                 if args.len() != arg_types.len() {
-                    return Err(TypeError(format!(
+                    return Err(TypeCheckError::TypeCheck(format!(
                         "type error: argument count mismatch. get {}, expected {}",
                         args.len(),
                         arg_types.len()
@@ -349,7 +349,7 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                     let typified_arg = typify(arg, scope)?;
                     let arg_type = get_type(arg, scope)?;
                     if arg_type != arg_types[i] {
-                        return Err(TypeError(format!(
+                        return Err(TypeCheckError::TypeCheck(format!(
                             "type error: argument type mismatch. got {:?}, expected {:?}",
                             arg_type, arg_types[i]
                         )));
@@ -363,7 +363,7 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                     Box::new(Expression::FnCall(name.clone(), typified_args)),
                 ))
             } else {
-                Err(TypeError(format!(
+                Err(TypeCheckError::TypeCheck(format!(
                     "type error: function {:?} not found in scope",
                     name
                 )))
@@ -375,7 +375,7 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                 if let Type::Oracle(arg_types, ret_type) = entry {
                     // 1. check that arg types match args
                     if args.len() != arg_types.len() {
-                        return Err(TypeError(
+                        return Err(TypeCheckError::TypeCheck(
                             "oracle invocation arg count mismatch".to_string(),
                         ));
                     }
@@ -385,7 +385,7 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                         let typified_arg = typify(arg, scope)?;
                         let t_arg = get_type(&typified_arg, scope)?;
                         if t_arg != arg_types[i] {
-                            return Err(TypeError(format!(
+                            return Err(TypeCheckError::TypeCheck(format!(
                                 "oracle {:} invocation arg type doesn't match at position {:}. expected {:?}, got {:?}",
                                 name,
                                 i,
@@ -403,10 +403,16 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                         Box::new(Expression::OracleInvoc(name.clone(), typified_args)),
                     ))
                 } else {
-                    Err(TypeError(format!("expected oracle, got {:#?}", entry)))
+                    Err(TypeCheckError::TypeCheck(format!(
+                        "expected oracle, got {:#?}",
+                        entry
+                    )))
                 }
             } else {
-                Err(TypeError(format!("couldn't look up oracle {:}", name)))
+                Err(TypeCheckError::TypeCheck(format!(
+                    "couldn't look up oracle {:}",
+                    name
+                )))
             }
         }
 
@@ -417,7 +423,7 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                     Box::new(Expression::Identifier(id.clone())),
                 ))
             } else {
-                Err(TypeError(format!("type error: {:?}", expr)))
+                Err(TypeCheckError::TypeCheck(format!("type error: {:?}", expr)))
             }
         }
         Expression::TableAccess(id, expr) => match scope.lookup(&**id) {
@@ -430,17 +436,17 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                         Box::new(Expression::TableAccess(id.clone(), Box::new(expr_))),
                     ))
                 } else {
-                    Err(TypeError(format!(
+                    Err(TypeCheckError::TypeCheck(format!(
                         "type error: bad index type. expected {:?}, got {:?}",
                         t_idx, t_expr
                     )))
                 }
             }
-            Some(t) => Err(TypeError(format!(
+            Some(t) => Err(TypeCheckError::TypeCheck(format!(
                 "type error: table access on value of type {:?}",
                 t
             ))),
-            _ => Err(TypeError(format!(
+            _ => Err(TypeCheckError::TypeCheck(format!(
                 "error during table accesses; couldn't find identifier {:?} in scope",
                 id
             ))),
@@ -448,7 +454,7 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
         _ => {
             println!("get_type not implemented for:");
             println!("{:#?}", expr);
-            Err(TypeError(format!("type error: {:?}", expr)))
+            Err(TypeCheckError::TypeCheck(format!("type error: {:?}", expr)))
         }
     }
 }
