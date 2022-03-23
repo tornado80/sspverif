@@ -206,7 +206,10 @@ impl<'a> CompositionSmtWriter<'a> {
                     match *inner.clone() {
                         Expression::Unwrap(maybe) => SmtIte {
                             cond: SmtIs {
-                                con: "mk-none",
+                                con: format!("(mk-none () {})", {
+                                    let t_smt: SmtExpr = Type::Maybe(Box::new(t.clone())).into();
+                                    smt_to_string(t_smt)
+                                }),
                                 expr: *maybe.clone(),
                             },
                             then: SspSmtVar::OracleAbort {
@@ -217,10 +220,7 @@ impl<'a> CompositionSmtWriter<'a> {
                                 bindings: vec![(
                                     smt_to_string(ident.to_expression()),
                                     SmtExpr::List(vec![
-                                        SmtExpr::Atom(format!(
-                                            "some-{}-get",
-                                            smt_to_string(t.clone())
-                                        )),
+                                        SmtExpr::Atom("maybe-get".into()),
                                         SmtExpr::Atom(smt_to_string(*maybe.clone())),
                                     ]),
                                 )],
@@ -369,7 +369,7 @@ impl<'a> CompositionSmtWriter<'a> {
                 Statement::TableAssign(table, index, expr) => {
                     let new_val = SmtExpr::List(vec![
                         SmtExpr::Atom("store".into()),
-                        SmtExpr::Atom(table.clone().ident()),
+                        table.to_expression().into(),
                         index.clone().into(),
                         expr.clone().into(),
                     ]);

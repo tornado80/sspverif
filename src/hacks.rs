@@ -11,7 +11,7 @@ pub fn declare_datatype_Maybe(t: &str) {
 }
 
 pub fn declare_par_Maybe() {
-    println!("(declare-datatypes ((Maybe 1)) ((par (T) ((mk-some (get T)) (mk-none)))))");
+    println!("(declare-datatypes ((Maybe 1)) ((par (T) ((mk-some (maybe-get T)) (mk-none)))))");
 }
 
 pub fn declare_datatype_Tuple(ts: &[&str]) {
@@ -27,7 +27,7 @@ pub fn declare_datatype_Tuple(ts: &[&str]) {
 }
 
 pub fn declare_Tuple(n: usize) {
-    let types: String = (1..n)
+    let types: String = (1..n + 1)
         .map(|i| format!("T{}", i))
         .fold(String::new(), |acc, v| {
             let mut acc = acc.clone();
@@ -35,14 +35,15 @@ pub fn declare_Tuple(n: usize) {
             acc.push_str(&v);
             acc
         });
-    let ds: String = (1..n)
-        .map(|i| format!("(el{0} T{0})", i))
-        .fold(String::new(), |acc, v| {
-            let mut acc = acc.clone();
-            acc.push_str(" ");
-            acc.push_str(&v);
-            acc
-        });
+    let ds: String =
+        (1..n + 1)
+            .map(|i| format!("(el{0} T{0})", i))
+            .fold(String::new(), |acc, v| {
+                let mut acc = acc.clone();
+                acc.push_str(" ");
+                acc.push_str(&v);
+                acc
+            });
 
     let decl = format!(
         "(declare-datatypes ((Tuple{0} {0})) (

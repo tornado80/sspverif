@@ -107,7 +107,7 @@ impl TypedCodeBlock {
                                     *k,
                                 ));
                             }
-                            if *v != expr_type {
+                            if Type::Maybe(v.clone()) != expr_type {
                                 return Err(TypeCheckError::TypeMismatch(
                                     ErrorLocation::Unknown,
                                     "value type of the table does not match".to_string(),

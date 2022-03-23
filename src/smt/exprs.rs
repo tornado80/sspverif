@@ -141,7 +141,7 @@ impl From<Type> for SmtExpr {
             Type::Table(t_idx, t_val) => SmtExpr::List(vec![
                 SmtExpr::Atom("Array".into()),
                 (*t_idx).into(),
-                (*t_val).into(),
+                Type::Maybe(t_val).into(),
             ]),
             Type::Tuple(types) => SmtExpr::List({
                 let mut els = vec![SmtExpr::Atom(format!("Tuple{}", types.len()))];

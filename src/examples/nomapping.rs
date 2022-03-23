@@ -71,28 +71,28 @@ pub fn no_mapping_game(params: &HashMap<String, String>) -> Composition {
                         tipe: Type::Integer,
                     },
                     code: block! { /* assert T[h] = bot, T[h]<--k, return h */
-                                   /* if T[h] = bot, T[h]<--k, return h, else do nothing */
-                        Statement::Assign(Identifier::new_scalar("temp"), Expression::TableAccess(Identifier::new_scalar("T"),
-                        Box::new(Identifier::new_scalar("h").to_expression()))),
-                        Statement::IfThenElse(
-                                Expression::new_equals(vec![
-                                    &Identifier::new_scalar("temp").to_expression(),
-                                    /*                                    &Expression::TableAccess(Identifier::new_scalar("T"),*/
-/*                                                             Box::new(Identifier::new_scalar("h").to_expression())),*/
-                                    &Expression::None(Type::new_bits("n")),
-                                ]),
-                         block! {
-                                Statement::TableAssign(Identifier::new_scalar("T"),
-                                                       Identifier::new_scalar("h").to_expression(),
-                                                       Identifier::new_scalar("k").to_expression()),
-                                Statement::Return(Some(Identifier::new_scalar("h").to_expression()))
-                                 },
-                                 block! {
-                                    Statement::Return(Some(Identifier::new_scalar("h").to_expression()))
-                                     },
-                        /*  block! {Statement::Abort},*/
-                                )
-                    },
+                                                       /* if T[h] = bot, T[h]<--k, return h, else do nothing */
+                                            Statement::Assign(Identifier::new_scalar("temp"), Expression::TableAccess(Identifier::new_scalar("T"),
+                                            Box::new(Identifier::new_scalar("h").to_expression()))),
+                                            Statement::IfThenElse(
+                                                    Expression::new_equals(vec![
+                                                        &Identifier::new_scalar("temp").to_expression(),
+                                                        /*                                    &Expression::TableAccess(Identifier::new_scalar("T"),*/
+                    /*                                                             Box::new(Identifier::new_scalar("h").to_expression())),*/
+                                                        &Expression::None(Type::new_bits("n")),
+                                                    ]),
+                                             block! {
+                                                    Statement::TableAssign(Identifier::new_scalar("T"),
+                                                                           Identifier::new_scalar("h").to_expression(),
+                                                                           Expression::Some(Box::new(Identifier::new_scalar("k").to_expression()))),
+                                                    Statement::Return(Some(Identifier::new_scalar("h").to_expression()))
+                                                     },
+                                                     block! {
+                                                        Statement::Return(Some(Identifier::new_scalar("h").to_expression()))
+                                                         },
+                                            /*  block! {Statement::Abort},*/
+                                                    )
+                                        },
                 },
                 OracleDef {
                     sig: OracleSig {
@@ -209,9 +209,10 @@ pub fn no_mapping_game(params: &HashMap<String, String>) -> Composition {
                                                 &Expression::None(Type::new_bits("n")),
                                             ]),
                                          block! {
-                                                    Statement::TableAssign(Identifier::new_scalar("T"),
-                                                    Identifier::new_scalar("h").to_expression(),
-                                                    Identifier::new_scalar("k").to_expression()),
+                                                    Statement::TableAssign(
+                                                        Identifier::new_scalar("T"),
+                                                        Identifier::new_scalar("h").to_expression(),
+                                                        Expression::Some(Box::new(Identifier::new_scalar("k").to_expression()))),
                                                     Statement::Return(Some(Identifier::new_scalar("h").to_expression()))
                                                        },
                                                 block! {Statement::Return(Some(Identifier::new_scalar("h").to_expression()))}

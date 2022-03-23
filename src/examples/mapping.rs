@@ -39,7 +39,7 @@ pub fn mapping_game(params: &HashMap<String, String>) -> Composition {
                                              block! {
                                                     Statement::TableAssign(Identifier::new_scalar("T"),
                                                                            Identifier::new_scalar("h").to_expression(),
-                                                                           Identifier::new_scalar("k").to_expression()),
+                                                                           Expression::Some(Box::new(Identifier::new_scalar("k").to_expression()))),
                                                     Statement::Return(Some(Identifier::new_scalar("h").to_expression()))
                                                      },
                     /*                         block! {Statement::Abort},*/
@@ -158,9 +158,10 @@ pub fn mapping_game(params: &HashMap<String, String>) -> Composition {
                                     &Expression::None(Type::new_bits("n")),
                                ]),
                             block! {
-                                Statement::TableAssign(Identifier::new_scalar("T"),
-                                Identifier::new_scalar("h").to_expression(),
-                                Identifier::new_scalar("k").to_expression()),
+                                Statement::TableAssign(
+                                    Identifier::new_scalar("T"),
+                                    Identifier::new_scalar("h").to_expression(),
+                                    Expression::Some(Box::new(Identifier::new_scalar("k").to_expression()))),
                                 Statement::Return(Some(Identifier::new_scalar("h").to_expression()))
                                    },
                             block! {Statement::Return(Some(Identifier::new_scalar("h").to_expression()))}
@@ -238,9 +239,10 @@ pub fn mapping_game(params: &HashMap<String, String>) -> Composition {
                             Identifier::new_scalar("h").to_expression(),
                             Identifier::new_scalar("k").to_expression()
                         ])),
-                    Statement::TableAssign(Identifier::new_scalar("Input_Map"),
+                    Statement::TableAssign(
+                        Identifier::new_scalar("Input_Map"),
                         Identifier::new_scalar("h").to_expression(),
-                        Identifier::new_scalar("hh").to_expression()),
+                        Expression::Some(Box::new(Identifier::new_scalar("hh").to_expression()))),
                     Statement::Return(Some(Identifier::new_scalar("h").to_expression()))
                             },
                         block! {Statement::Return(Some(Identifier::new_scalar("h").to_expression()))}
@@ -289,9 +291,10 @@ pub fn mapping_game(params: &HashMap<String, String>) -> Composition {
                                     Identifier::new_scalar("msg").to_expression()
                                 ])),
                                 Statement::Assign(Identifier::new_scalar("hh_unwrapped"), Expression::Unwrap(Box::new(Identifier::new_scalar("hh").to_expression()))),
-                                Statement::TableAssign(Identifier::new_scalar("Output_Map"),
-                                Expression::Tuple(vec![ Identifier::new_scalar("hh_unwrapped").to_expression(), Identifier::new_scalar("msg").to_expression()]),
-                                Identifier::new_scalar("hhh").to_expression()),
+                                Statement::TableAssign(
+                                    Identifier::new_scalar("Output_Map"),
+                                    Expression::Tuple(vec![ Identifier::new_scalar("hh_unwrapped").to_expression(), Identifier::new_scalar("msg").to_expression()]),
+                                    Expression::Some(Box::new(Identifier::new_scalar("hhh").to_expression()))),
                         Statement::Return(Some(Expression::Tuple(vec![
                             Identifier::new_scalar("h").to_expression(),
                             Identifier::new_scalar("msg").to_expression()
