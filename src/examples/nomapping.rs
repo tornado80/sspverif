@@ -106,13 +106,15 @@ pub fn no_mapping_game(params: &HashMap<String, String>) -> Composition {
 
                             ]),
                             block! {Statement::Abort},
-                            block! {Statement::Return(Some(
-                                Expression::Unwrap(Box::new(
+                            block! {
+                                Statement::Assign(Identifier::new_scalar("res"), Expression::Unwrap(Box::new(
                                     Expression::TableAccess(
                                         Identifier::new_scalar("T"),
                                         Box::new(Identifier::new_scalar("h").to_expression())
                                     )
-                                ))
+                                ))),
+                                Statement::Return(Some(
+                                Identifier::new_scalar("res").to_expression()
                             ))}
                         )
                     },
@@ -231,8 +233,10 @@ pub fn no_mapping_game(params: &HashMap<String, String>) -> Composition {
                                     &Expression::None(Type::new_bits("n")),
                             ]),
                             block! {Statement::Abort},
-                            block! {Statement::Return(Some(Expression::Unwrap(Box::new( Expression::TableAccess(Identifier::new_scalar("T"),
-                            Box::new(Identifier::new_scalar("h").to_expression()))))))}
+                            block! {
+                                Statement::Assign(Identifier::new_scalar("res"), Expression::Unwrap(Box::new( Expression::TableAccess(Identifier::new_scalar("T"),
+                                Box::new(Identifier::new_scalar("h").to_expression()))))),
+                                Statement::Return(Some(Identifier::new_scalar("res").to_expression()))}
                         )
                     },
                 },

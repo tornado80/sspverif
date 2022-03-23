@@ -64,8 +64,9 @@ pub fn mono_prf(params: &HashMap<String, String>) -> PackageInstance {
                             block! {Statement::Abort},
                             block! {},
                         ),
+                        Statement::Assign(Identifier::new_scalar("k_unwrapped"), Expression::Unwrap(Box::new(Identifier::new_scalar("k").to_expression()))),
                         Statement::Return(Some(fncall! { "f",
-                                                          Expression::Unwrap(Box::new(Identifier::new_scalar("k").to_expression())),
+                                                          Identifier::new_scalar("k_unwrapped").to_expression(),
                                                           Identifier::new_scalar("msg").to_expression()
                         }))
                     },

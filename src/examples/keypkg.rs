@@ -56,7 +56,8 @@ pub fn key_pkg(params: &HashMap<String, String>) -> PackageInstance {
                             block! {Statement::Abort},
                             block! {},
                         ),
-                        Statement::Return(Some(Expression::Unwrap(Box::new(Identifier::new_scalar("k").to_expression()))))
+                        Statement::Assign(Identifier::new_scalar("k_unwrapped"), Expression::Unwrap(Box::new(Identifier::new_scalar("k").to_expression()))),
+                        Statement::Return(Some(Identifier::new_scalar("k_unwrapped").to_expression()))
                     },
                 },
             ],

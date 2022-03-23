@@ -63,9 +63,10 @@ pub fn mapping_game(params: &HashMap<String, String>) -> Composition {
                                 &Expression::None(Type::new_bits("n")),
                         ]),
                         block! {Statement::Abort},
-                        block! {Statement::Return(
-                            Some(Expression::Unwrap(Box::new( Expression::TableAccess(Identifier::new_scalar("T"),
-                                                               Box::new(Identifier::new_scalar("h").to_expression()))))))
+                        block! {
+                            Statement::Assign(Identifier::new_scalar("res"), Expression::Unwrap(Box::new( Expression::TableAccess(Identifier::new_scalar("T"),
+                            Box::new(Identifier::new_scalar("h").to_expression()))))),
+                            Statement::Return(Some(Identifier::new_scalar("res").to_expression()))
                                 }
                                         )
                     },
@@ -184,8 +185,10 @@ pub fn mapping_game(params: &HashMap<String, String>) -> Composition {
                                                              &Expression::None(Type::new_bits("n")),
                             ]),
                             block! {Statement::Abort},
-                            block! {Statement::Return(Some(Expression::Unwrap(Box::new( Expression::TableAccess(Identifier::new_scalar("T"),
-                            Box::new(Identifier::new_scalar("h").to_expression()))))))}
+                            block! {
+                                Statement::Assign(Identifier::new_scalar("res"), Expression::Unwrap(Box::new( Expression::TableAccess(Identifier::new_scalar("T"),
+                                Box::new(Identifier::new_scalar("h").to_expression()))))),
+                                Statement::Return(Some(Identifier::new_scalar("res").to_expression()))}
                         )
                     },
                 },
@@ -276,14 +279,18 @@ pub fn mapping_game(params: &HashMap<String, String>) -> Composition {
                             block! {
                                 Statement::Assign(Identifier::new_scalar("hh"), Expression::TableAccess(Identifier::new_scalar("Input_Map"),
                                 Box::new(Identifier::new_scalar("h").to_expression()))),
+                                Statement::Assign(
+                                    Identifier::new_scalar("hh_unwrapped"),
+                                    Expression::Unwrap(Box::new( Identifier::new_scalar("hh").to_expression()))),
                                 Statement::Assign(Identifier::new_scalar("hhh"), Expression::OracleInvoc(
                                     "Eval".to_string(),
                             vec![
-                                    Expression::Unwrap(Box::new( Identifier::new_scalar("hh").to_expression())),
+                                    Identifier::new_scalar("hh_unwrapped").to_expression(),
                                     Identifier::new_scalar("msg").to_expression()
                                 ])),
+                                Statement::Assign(Identifier::new_scalar("hh_unwrapped"), Expression::Unwrap(Box::new(Identifier::new_scalar("hh").to_expression()))),
                                 Statement::TableAssign(Identifier::new_scalar("Output_Map"),
-                                Expression::Tuple(vec![ Expression::Unwrap(Box::new(Identifier::new_scalar("hh").to_expression())), Identifier::new_scalar("msg").to_expression()]),
+                                Expression::Tuple(vec![ Identifier::new_scalar("hh_unwrapped").to_expression(), Identifier::new_scalar("msg").to_expression()]),
                                 Identifier::new_scalar("hhh").to_expression()),
                         Statement::Return(Some(Expression::Tuple(vec![
                             Identifier::new_scalar("h").to_expression(),
@@ -321,7 +328,12 @@ pub fn mapping_game(params: &HashMap<String, String>) -> Composition {
                                 Statement::Assign(Identifier::new_scalar("hh"),
                                 Expression::TableAccess(Identifier::new_scalar("Output_Map"),
                                                         Box::new(Identifier::new_scalar("h").to_expression()))),
-                                Statement::Assign(Identifier::new_scalar("k"), Expression::OracleInvoc("Get".to_string(), vec![Expression::Unwrap(Box::new( Identifier::new_scalar("hh").to_expression()))])),
+                                Statement::Assign(
+                                    Identifier::new_scalar("hh_unwrapped"),
+                                    Expression::Unwrap(Box::new( Identifier::new_scalar("hh").to_expression()))),
+                                Statement::Assign(
+                                    Identifier::new_scalar("k"),
+                                    Expression::OracleInvoc("Get".to_string(), vec![Identifier::new_scalar("hh_unwrapped").to_expression()])),
                                 Statement::Return(Some(Identifier::new_scalar("k").to_expression()))
                             }
                         )
