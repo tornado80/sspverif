@@ -455,9 +455,10 @@ impl<'a> CompositionSmtWriter<'a> {
             "Composition of {}",
             self.comp.name
         ))];
-        let code = self
+        let ordered_pkgs = self
             .comp
-            .pkgs
+            .ordered_pkgs();
+        let code = ordered_pkgs
             .iter()
             .map(|inst| self.smt_pkg_code(inst))
             .flatten();

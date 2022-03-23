@@ -80,4 +80,25 @@ impl Composition {
             name: self.name.clone(),
         }
     }
+
+    pub fn ordered_pkgs(&self) -> Vec<PackageInstance> {
+        let mut result = Vec::new();
+        let mut added_pkgs = vec![ false ; self.pkgs.len() ];
+
+        while result.len() < self.pkgs.len() {
+            let mut candidates = vec![ true ; self.pkgs.len() ];
+            for (from, to, _) in &self.edges {
+                if !added_pkgs[*to] {
+                    candidates[*from] = false;
+                }
+            }
+            for i in 0..self.pkgs.len() {
+                if ! added_pkgs[i] && candidates[i] {
+                    result.push(self.pkgs[i].clone());
+                    added_pkgs[i] = true;
+                }
+            }
+        }
+        result
+    }
 }
