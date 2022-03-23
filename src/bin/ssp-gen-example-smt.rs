@@ -59,24 +59,24 @@ fn main() {
     declare_tuples(10);
     declare_par_Maybe();
     println!("; The PRF");
-    println!("(declare-fun f (Bits_n Bits_*) Bits_*)");
+    println!("(declare-fun f (Bits_n Bits_*) Bits_n)");
     println!();
 
-    println!(";;;;; Real Mono PRF Game");
-    let (prf_real_game, _) = sspds::transforms::transform_all(&prf_real_game).unwrap();
-    let prf_real_game_writer = CompositionSmtWriter::new(&prf_real_game);
-    for line in prf_real_game_writer.smt_composition_all() {
-        line.write_smt_to(&mut std::io::stdout()).unwrap();
-        println!();
-    }
+    // println!(";;;;; Real Mono PRF Game");
+    // let (prf_real_game, _) = sspds::transforms::transform_all(&prf_real_game).unwrap();
+    // let prf_real_game_writer = CompositionSmtWriter::new(&prf_real_game);
+    // for line in prf_real_game_writer.smt_composition_all() {
+    //     line.write_smt_to(&mut std::io::stdout()).unwrap();
+    //     println!();
+    // }
 
-    println!(";;;;; Real Mod PRF Game");
-    let (mod_prf_game, _) = sspds::transforms::transform_all(&mod_prf_game).unwrap();
-    let mod_prf_game_writer = CompositionSmtWriter::new(&mod_prf_game);
-    for line in mod_prf_game_writer.smt_composition_all() {
-        line.write_smt_to(&mut std::io::stdout()).unwrap();
-        println!();
-    }
+    // println!(";;;;; Real Mod PRF Game");
+    // let (mod_prf_game, _) = sspds::transforms::transform_all(&mod_prf_game).unwrap();
+    // let mod_prf_game_writer = CompositionSmtWriter::new(&mod_prf_game);
+    // for line in mod_prf_game_writer.smt_composition_all() {
+    //     line.write_smt_to(&mut std::io::stdout()).unwrap();
+    //     println!();
+    // }
 
     println!(";;;;; No Mapping Game");
     let (no_mapping_game, _) = sspds::transforms::transform_all(&no_mapping_game).unwrap();
@@ -94,9 +94,9 @@ fn main() {
         println!();
     }
 
-    println!(
-        "(assert (forall ((n Int)) (= (__sample-rand-real n) (__sample-rand-mono-prf-game n))))"
-    );
+    // println!(
+    //     "(assert (forall ((n Int)) (= (__sample-rand-real n) (__sample-rand-mono-prf-game n))))"
+    // );
     println!("(check-sat)");
     println!("(get-model)");
 }
