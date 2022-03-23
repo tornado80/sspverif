@@ -72,10 +72,13 @@ pub fn no_mapping_game(params: &HashMap<String, String>) -> Composition {
                     },
                     code: block! { /* assert T[h] = bot, T[h]<--k, return h */
                                    /* if T[h] = bot, T[h]<--k, return h, else do nothing */
+                        Statement::Assign(Identifier::new_scalar("temp"), Expression::TableAccess(Identifier::new_scalar("T"),
+                        Box::new(Identifier::new_scalar("h").to_expression()))),
                         Statement::IfThenElse(
                                 Expression::new_equals(vec![
-                                    &Expression::TableAccess(Identifier::new_scalar("T"),
-                                                             Box::new(Identifier::new_scalar("h").to_expression())),
+                                    &Identifier::new_scalar("temp").to_expression(),
+                                    /*                                    &Expression::TableAccess(Identifier::new_scalar("T"),*/
+/*                                                             Box::new(Identifier::new_scalar("h").to_expression())),*/
                                     &Expression::None(Type::new_bits("n")),
                                 ]),
                          block! {
