@@ -150,7 +150,7 @@ impl From<Type> for SmtExpr {
                 (*t_idx).into(),
                 (*t_val).into(),
             ]),
-            Type::Tuple(types) => SmtExpr::List(vec![SmtExpr::Atom(format!(
+            Type::Tuple(types) => SmtExpr::Atom(format!(
                 "Tuple__{}",
                 types
                     .into_iter()
@@ -160,7 +160,7 @@ impl From<Type> for SmtExpr {
                     })
                     .collect::<Vec<String>>()
                     .join("_")
-            ))]),
+            )),
             _ => {
                 panic!("not implemented: {:?}", t)
             }
