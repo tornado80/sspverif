@@ -200,6 +200,39 @@ impl<'a> CompositionSmtWriter<'a> {
                     .into()
                     //SmtExpr::Atom(format!("mk-abort-{}-{}", pkgname, sig.name))
                 }
+                Statement::Assign(ident, Expression::Typed(t, inner))
+                    if matches!(**inner, Expression::Unwrap(_)) =>
+                {
+                    match *inner.clone() {
+                        Expression::Unwrap(maybe) => SmtIte {
+                            cond: SmtIs {
+                                con: format!("mk-none-{}", smt_to_string(t.clone())),
+                                expr: *maybe.clone(),
+                            },
+                            then: SspSmtVar::OracleAbort {
+                                pkgname: pkgname.into(),
+                                oname: sig.name.clone(),
+                            },
+                            els: SmtLet {
+                                bindings: vec![(
+                                    smt_to_string(ident.to_expression()),
+                                    SmtExpr::List(vec![
+                                        SmtExpr::Atom(format!(
+                                            "some-{}-get",
+                                            smt_to_string(t.clone())
+                                        )),
+                                        SmtExpr::Atom(smt_to_string(*maybe.clone())),
+                                    ]),
+                                )],
+                                body: result.unwrap(),
+                            },
+                        }
+                        .into(),
+                        _ => {
+                            unreachable!();
+                        }
+                    }
+                }
                 // TODO actually use the type that we sample to know how far to advance the randomness tape
                 Statement::Assign(ident, Expression::Typed(t, inner))
                     if matches!(**inner, Expression::Sample(_)) =>

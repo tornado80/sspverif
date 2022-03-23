@@ -54,10 +54,10 @@ impl From<Expression> for SmtExpr {
     fn from(expr: Expression) -> SmtExpr {
         match expr {
             Expression::Typed(t, inner) => match *inner {
-                Expression::Unwrap(inner) => SmtExpr::List(vec![
-                    SmtExpr::Atom(format!("unwrap-{}", smt_to_string(t))),
-                    SmtExpr::from(*inner),
-                ]),
+                Expression::Unwrap(inner) => {
+                    panic!("unwrap expressions need to be on the right hand side of an assign!");
+                    // TODO find a better way to present that error to the user.
+                }
                 Expression::Some(inner) => {
                     if let Type::Maybe(t_inner) = t {
                         SmtExpr::List(vec![
