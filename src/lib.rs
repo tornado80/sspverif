@@ -8,3 +8,5 @@ pub mod smt;
 pub mod transforms;
 
 pub mod examples;
+
+pub mod hacks;

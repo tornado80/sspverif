@@ -2,8 +2,7 @@
 
 use std::collections::HashMap;
 
-
-
+use sspds::hacks::declare_datatype_Maybe;
 use sspds::package::Composition;
 use sspds::smt::exprs::{SmtExpr, SmtFmt};
 use sspds::smt::writer::CompositionSmtWriter;
@@ -56,6 +55,8 @@ fn main() {
     println!();
 
     println!("(declare-const bot Bits_n)");
+
+    declare_datatype_Maybe("Bits_n");
 
     println!("; The PRF");
     println!("(declare-fun f (Bits_n Bits_*) Bits_*)");

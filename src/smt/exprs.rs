@@ -61,7 +61,7 @@ impl From<Expression> for SmtExpr {
                 Expression::Some(inner) => {
                     if let Type::Maybe(t_inner) = t {
                         SmtExpr::List(vec![
-                            SmtExpr::Atom(format!("mk-maybe-{}", smt_to_string(*t_inner))),
+                            SmtExpr::Atom(format!("mk-some-{}", smt_to_string(*t_inner))),
                             SmtExpr::from(*inner),
                         ])
                     } else {
