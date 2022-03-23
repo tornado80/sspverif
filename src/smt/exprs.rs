@@ -60,17 +60,18 @@ impl From<Expression> for SmtExpr {
                 }
                 Expression::Some(inner) => {
                     if let Type::Maybe(t_inner) = t {
-                        SmtExpr::List(vec![
-                            SmtExpr::Atom(format!("mk-some-{}", smt_to_string(*t_inner))),
-                            SmtExpr::from(*inner),
-                        ])
+                        SmtExpr::List(vec![SmtExpr::Atom("mk-some".into()), SmtExpr::from(*inner)])
                     } else {
                         unreachable!()
                     }
                 }
+                Expression::None(inner) => SmtExpr::List(vec![
+                    SmtExpr::Atom("as".into()),
+                    SmtExpr::Atom("mk-none".into()),
+                    t.into(),
+                ]),
                 _ => SmtExpr::from(*inner),
             },
-            Expression::None(t) => SmtExpr::Atom(format!("mk-none-{}", smt_to_string(t))),
             Expression::BooleanLiteral(litname) => SmtExpr::Atom(litname),
             Expression::IntegerLiteral(litname) => SmtExpr::Atom(litname),
             Expression::Equals(exprs) => {
@@ -103,7 +104,7 @@ impl From<Expression> for SmtExpr {
                 (*index).into(),
             ]),
             Expression::Tuple(exprs) => {
-                let mut l = vec![SmtExpr::Atom(format!("mk-tuple-{}", "grrrTODO"))];
+                let mut l = vec![SmtExpr::Atom(format!("mk-tuple{}", exprs.len()))];
 
                 for expr in exprs {
                     l.push(expr.into())
@@ -134,15 +135,7 @@ impl From<Type> for SmtExpr {
                 // TODO make sure we define this somewhere
                 SmtExpr::Atom(format!("Bits_{}", length))
             }
-            Type::Maybe(t) => match *t {
-                Type::Boolean => SmtExpr::Atom("Maybe_Bool".to_string()),
-                Type::Integer => SmtExpr::Atom("Maybe_Int".to_string()),
-                Type::String => SmtExpr::Atom("Maybe_String".to_string()),
-                Type::Bits(l) => SmtExpr::Atom(format!("Maybe_Bits_{}", l)),
-                _ => {
-                    panic!("Maybe is only implemented over Bool, Int, String and Bits.")
-                }
-            },
+            Type::Maybe(t) => SmtExpr::List(vec![SmtExpr::Atom("Maybe".into()), (*t).into()]),
             Type::Boolean => SmtExpr::Atom("Bool".to_string()),
             Type::Integer => SmtExpr::Atom("Int".into()),
             Type::Table(t_idx, t_val) => SmtExpr::List(vec![
@@ -150,17 +143,13 @@ impl From<Type> for SmtExpr {
                 (*t_idx).into(),
                 (*t_val).into(),
             ]),
-            Type::Tuple(types) => SmtExpr::Atom(format!(
-                "Tuple__{}",
-                types
-                    .into_iter()
-                    .map(|t| {
-                        let expr: SmtExpr = t.into();
-                        smt_to_string(expr)
-                    })
-                    .collect::<Vec<String>>()
-                    .join("_")
-            )),
+            Type::Tuple(types) => SmtExpr::List({
+                let mut els = vec![SmtExpr::Atom(format!("Tuple{}", types.len()))];
+                for t in types {
+                    els.push(t.into());
+                }
+                els
+            }),
             _ => {
                 panic!("not implemented: {:?}", t)
             }

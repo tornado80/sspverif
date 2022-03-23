@@ -206,7 +206,7 @@ impl<'a> CompositionSmtWriter<'a> {
                     match *inner.clone() {
                         Expression::Unwrap(maybe) => SmtIte {
                             cond: SmtIs {
-                                con: format!("mk-none-{}", smt_to_string(t.clone())),
+                                con: "mk-none",
                                 expr: *maybe.clone(),
                             },
                             then: SspSmtVar::OracleAbort {
