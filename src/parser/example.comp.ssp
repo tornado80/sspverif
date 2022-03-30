@@ -1,0 +1,24 @@
+composition ModPRFGame {
+    const n: Integer;
+    const f: fn (Bits(n), Bits(n)) -> Bits(n);
+
+    instance prf = PRF {
+        f: f,
+        n: n,
+    }
+
+    instance key_top = Key {
+        n: n,
+    }
+
+    instance key_bottom = Key {
+        n: n,
+    }
+
+    compose {
+        prf: {
+            Get: key_top,
+            Set: key_bottom,
+        }
+    }
+}

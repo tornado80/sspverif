@@ -1,0 +1,27 @@
+package Key {
+    params {
+        n: Integer,
+    }
+
+    state {
+        k: Maybe(Bits(n)),
+    }
+
+    oracle Get() -> Bits(n) {
+        if ( k == None) {
+            k_new <- Sample(Bits(n));
+            k <- Some(k_new);
+        }
+
+        k_ret <- Unwrap(k);
+        return k_ret;
+    }
+
+    oracle Set(k_new: Bits(n)){
+        if (k != None) {
+            abort;
+        }
+
+        k <- Some(k_new);
+    }
+}
