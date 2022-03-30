@@ -8,8 +8,8 @@ package Key {
     }
 
     oracle Get() -> Bits(n) {
-        if ( k == None) {
-            k_new <- Sample(Bits(n));
+        if ( k == None as Bits(n)) {
+            k_new <-$ Bits(n);
             k <- Some(k_new);
         }
 
@@ -17,8 +17,8 @@ package Key {
         return k_ret;
     }
 
-    oracle Set(k_new: Bits(n)){
-        if (k != None) {
+    oracle Set(k_new: Bits(n)) {
+        if (k != None as Bits(n)) {
             abort;
         }
 
