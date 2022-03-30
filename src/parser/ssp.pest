@@ -1,0 +1,16 @@
+WHITESPACE = _{ " " }
+
+identifier = { ASCII_ALPHA+ }
+num = { ASCII_DIGIT+ }
+
+tabl = { identifier ~ "[" ~ expression ~ "]" }
+location = { tabl | num | identifier }
+
+assign = { location ~ "<-" ~ location }
+block = { "{" ~ "\n"* ~ code ~  "\n"* ~ "}" ~ "\n"* }
+ite = { "if" ~ location ~ block ~ "else" ~ block }
+
+stmt = { assign | ite }
+code = { stmt ~ ("\n"+ ~ stmt)* }
+
+expression = { location ~ "+" ~ location }
