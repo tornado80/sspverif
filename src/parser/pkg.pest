@@ -1,20 +1,20 @@
 WHITESPACE = _{ " " | "\r" | "\n" | "\t" }
 
-kw_package = { "package" }
-kw_params = { "params" }
-kw_state = { "state" }
-kw_import = { "import" }
-kw_oracles = { "oracles" }
-kw_oracle = { "oracle" }
-kw_return = { "return" }
-kw_abort = { "abort" }
+kw_package = _{ "package" }
+kw_params = _{ "params" }
+kw_state = _{ "state" }
+kw_import = _{ "import" }
+kw_oracles = _{ "oracles" }
+kw_oracle = _{ "oracle" }
+kw_return = _{ "return" }
+kw_abort = _{ "abort" }
 
 
 package = { kw_package ~ identifier ~ "{" ~ package_spec_list ~ "}" }
 
 package_spec_list = { package_spec* }
 
-package_spec = {
+package_spec = _{
     params | state | import_oracles | oracle_def
 }
 
@@ -24,7 +24,8 @@ decl_spec = { identifier ~ ":" ~ tipe  }
 
 countspec = { identifier | num | "*" }
 
-tipe = { "Integer" | "String" | "Bool" | type_bits | type_maybe | type_fn | type_tuple | type_table |type_list | type_empty }
+tipe = _{ type_integer | "String" | "Bool" | type_bits | type_maybe | type_fn | type_tuple | type_table |type_list | type_empty }
+	type_integer = { "Integer" }
     type_bits = { "Bits(" ~ countspec ~ ")" }
     type_maybe = { "Maybe(" ~ tipe ~ ")" }
     type_fn = { "fn" ~ fn_arglist ~ "->" ~ tipe }
@@ -37,8 +38,10 @@ tipe = { "Integer" | "String" | "Bool" | type_bits | type_maybe | type_fn | type
 
 state = { kw_state ~ "{" ~ decl_list? ~ "}"  }
 
+fn_maybe_arglist = { fn_arglist? }
+
 import_oracles = {kw_import ~ kw_oracles ~ ( "{" ~ ( oracle_sig ~ ("," ~ oracle_sig)* ~ ","? )? ~ "}" )  }
-oracle_sig = { identifier ~ "(" ~ fn_arglist? ~ ")" ~ ("->" ~ tipe)? }
+oracle_sig = { identifier ~ "(" ~ fn_maybe_arglist ~ ")" ~ ("->" ~ tipe)? }
 
 oracle_def = { kw_oracle ~ oracle_sig ~ "{" ~ code ~ "}" }
 
@@ -48,18 +51,21 @@ num = { ASCII_DIGIT+ }
 
 
 code = { (stmt )* }
-stmt = { assign | return_stmt | abort | ite}
+stmt = _{ sample | assign | return_stmt | abort | ite }
 
 ite = {"if" ~ expression ~ "{" ~ code ~ "}" ~ ( "else" ~ "{" ~ code ~ "}" )? }
 
+sample = { identifier ~ "<-$" ~ tipe ~ ";" }
 assign = { identifier ~ "<-" ~ expression ~ ";" }
 return_stmt = { kw_return ~ expression ~ ";" }
 abort = { kw_abort ~ ";" }
 
-expression = {expr_equals | expr_not_equals | fn_call | table_access | identifier }
+expression = _{ expr_none | expr_some | expr_equals | expr_not_equals | fn_call | table_access | identifier }
 
 table_access = { identifier ~ "[" ~ expression ~ "]" }
 fn_call =  { identifier ~ "(" ~ fn_call_arglist? ~ ")" }
 fn_call_arglist = { expression ~ ( "," ~ expression)* }
 expr_equals     = { "("  ~ expression ~ ("==" ~ expression)* ~ ")" }
 expr_not_equals = { "("  ~ expression ~ ("!=" ~ expression)* ~ ")" }
+expr_none = { "None" ~ "as" ~ tipe }
+expr_some = { "Some" ~ "(" ~ expression ~ ")" }
