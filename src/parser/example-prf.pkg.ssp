@@ -1,0 +1,18 @@
+package PRF {
+    params {
+        n: Integer,
+        f: fn Bits(n), Bits(n) -> Bits(n),
+    }
+
+    state {}
+
+    import oracles {
+        Get() -> Bits(n),
+    }
+
+    oracle Eval(msg: Bits(n)) -> Bits(n) {
+        k <- Get();
+        out <- f(k, msg);
+        return out;
+    }
+}
