@@ -437,7 +437,7 @@ mod test {
             block: block! {
                 Statement::TableAssign(Identifier::Local("test".to_string()),
                                        Expression::IntegerLiteral("42".to_string()),
-                                       Expression::StringLiteral("42".to_string()))
+                                       Expression::Some(Box::new(Expression::StringLiteral("42".to_string()))))
             },
             expected_return_type: Type::Empty,
         };
