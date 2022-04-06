@@ -452,12 +452,10 @@ impl<'a> CompositionSmtWriter<'a> {
 
     fn smt_composition_code(&self) -> Vec<SmtExpr> {
         let comment = vec![SmtExpr::Comment(format!(
-            "Composition of {}",
+            "Composition of {}\n",
             self.comp.name
         ))];
-        let ordered_pkgs = self
-            .comp
-            .ordered_pkgs();
+        let ordered_pkgs = self.comp.ordered_pkgs();
         let code = ordered_pkgs
             .iter()
             .map(|inst| self.smt_pkg_code(inst))
