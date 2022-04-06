@@ -8,9 +8,9 @@ package Key {
     }
 
     oracle Get() -> Bits(n) {
-        if ( k== None as Bits(n)) {
+        if ( k == None as Bits(n)) {
             k_new <-$ Bits(n);
-            k<- Some(k_new);
+            k <- Some(k_new);
         }
 
         k_ret <- Unwrap(k);
@@ -18,10 +18,10 @@ package Key {
     }
 
     oracle Set(k_new: Bits(n)) {
-        if (k!= None as Bits(n)) {
+        if (k != None as Bits(n)) {
             abort;
         }
 
-        k<- Some(k_new);
+        k <- Some(k_new);
     }
 }
