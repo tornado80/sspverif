@@ -15,7 +15,7 @@ use sspds::expressions::Expression;
 use sspds::identifier::Identifier;
 
 #[derive(Parser)]
-#[grammar = "parser/pkg.pest"]
+#[grammar = "parser/ssp.pest"]
 pub struct SspParser;
 
 use pest::iterators::{Pair,Pairs};

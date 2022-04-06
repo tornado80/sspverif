@@ -16,6 +16,11 @@ composition ModPRFGame {
     }
 
     compose {
+        adversary: {
+            Set: key_top,
+            Get: key_bottom,
+        },
+        
         prf: {
             Get: key_top,
             Set: key_bottom,
