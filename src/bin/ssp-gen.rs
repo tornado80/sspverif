@@ -3,12 +3,13 @@ extern crate pest;
 extern crate pest_derive;
 
 use pest::Parser;
+use std::collections::HashMap;
 use std::env;
 use std::fs;
 
-#[derive(Parser)]
-#[grammar = "parser/ssp.pest"]
-pub struct SspParser;
+use sspds::parser::{composition::handle_composition, package::handle_pkg, Rule, SspParser};
+use sspds::smt::exprs::{SmtExpr, SmtFmt};
+use sspds::smt::writer::CompositionSmtWriter;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -44,24 +45,48 @@ fn main() {
     let pkgs_list: Vec<_> = pkgs_list
         .iter()
         .map(|(name, contents)| {
-            let ast = SspParser::parse(Rule::package, contents).unwrap();
-            (name, contents, ast)
+            let mut ast = SspParser::parse(Rule::package, contents).unwrap();
+            let (pkg_name, pkg) = handle_pkg(ast.next().unwrap());
+            (name, contents, ast, pkg_name, pkg)
         })
         .collect();
 
+    let mut pkgs_map = HashMap::new();
+    for (_, _, _, pkg_name, pkg) in pkgs_list {
+        pkgs_map.insert(pkg_name, pkg);
+    }
+
     let comp_list: Vec<_> = comp_list
         .iter()
-        .map(|(name, contents)| {
-            let ast = match SspParser::parse(Rule::composition, contents) {
+        .map(|(filename, contents)| {
+            let mut ast = match SspParser::parse(Rule::composition, contents) {
                 Ok(ast) => ast,
                 Err(e) => {
                     panic!("{:#?}", e);
                 }
             };
-            println!("ast: {:#?}", ast);
-            (name, contents, ast)
+
+            let comp = handle_composition(ast.next().unwrap(), &pkgs_map);
+            let name = comp.name.clone();
+            (filename, contents, ast, comp, name)
         })
         .collect();
+
+    for (_, _, _, comp, name) in comp_list {
+        println!("; {}", name);
+
+        //println!("{:#?}", comp);
+        let (comp, _) = match sspds::transforms::transform_all(&comp) {
+            Ok(x) => x,
+            Err(e) => {
+                panic!("found an error in composition {}: {:?}", name, e)
+            }
+        };
+        let writer = CompositionSmtWriter::new(&comp);
+        for line in writer.smt_composition_all() {
+            line.write_smt_to(&mut std::io::stdout()).unwrap();
+        }
+    }
 
     //println!("pkgs: {:#?}", pkgs_list);
     //println!("compositions: {:#?}", comp_list);

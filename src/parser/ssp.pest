@@ -1,4 +1,6 @@
 WHITESPACE = _{ " " | "\r" | "\n" | "\t" }
+COMMENT = _{ "/*" ~ (!"*/" ~ ANY)* ~ "*/" }
+
 
 kw_package = _{ "package" }
 kw_params = _{ "params" }
@@ -6,17 +8,17 @@ kw_state = _{ "state" }
 kw_import = _{ "import" }
 kw_oracles = _{ "oracles" }
 kw_oracle = _{ "oracle" }
-kw_return = _{ "return" }
-kw_abort = _{ "abort" }
 
 kw_composition = _{ "composition" }
 kw_const = _{ "const" }
 kw_instance = _{ "instance" }
 kw_compose = _{ "compose" }
 
+kw_return = _{ "return" }
+kw_abort = _{ "abort" }
+
 composition = { kw_composition ~ identifier ~ "{" ~ composition_spec_list ~ "}" }
-composition_spec_list = { composition_spec* }
-composition_spec = { const_decl | instance_decl | compose_decl }
+composition_spec_list = { const_decl* ~ instance_decl* ~ compose_decl? }
 
 const_decl = { kw_const ~ identifier ~ ":" ~ tipe ~ ";" }
 
@@ -25,9 +27,9 @@ instance_assign_list = { instance_assign ~ ( "," ~ instance_assign )* ~ ","? }
 instance_assign = { identifier ~ ":" ~ identifier }
 
 compose_decl = { kw_compose ~ "{" ~ compose_assign_body_list? ~ "}" }
-compose_assign_body_list = { compose_assign_body ~ ( "," ~ compose_assign_body)* ~ ","? }
+compose_assign_body_list = _{ compose_assign_body ~ ( "," ~ compose_assign_body)* ~ ","? }
 compose_assign_body = { identifier ~ ":" ~ "{" ~ compose_assign_list? ~ "}" }
-compose_assign_list = { compose_assign ~ ( "," ~ compose_assign)* ~ ","? }
+compose_assign_list = _{ compose_assign ~ ( "," ~ compose_assign)* ~ ","? }
 compose_assign = { identifier ~ ":" ~ identifier }
 
 package = { kw_package ~ identifier ~ "{" ~ package_spec_list ~ "}" }
@@ -66,7 +68,7 @@ oracle_sig = { identifier ~ "(" ~ fn_maybe_arglist ~ ")" ~ ("->" ~ tipe)? }
 oracle_def = { kw_oracle ~ oracle_sig ~ "{" ~ code ~ "}" }
 
 
-identifier = { (ASCII_ALPHA | "_")+ }
+identifier = { ( ASCII_ALPHA | "_" )+ }
 num = { ASCII_DIGIT+ }
 
 
@@ -80,7 +82,7 @@ assign = { identifier ~ "<-" ~ expression ~ ";" }
 return_stmt = { kw_return ~ expression ~ ";" }
 abort = { kw_abort ~ ";" }
 
-expression = _{ expr_none | expr_some | expr_equals | expr_not_equals | fn_call | table_access | identifier }
+expression = _{ expr_none | expr_some | expr_unwrap | expr_equals | expr_not_equals | fn_call | table_access | identifier }
 
 table_access = { identifier ~ "[" ~ expression ~ "]" }
 fn_call =  { identifier ~ "(" ~ fn_call_arglist? ~ ")" }
@@ -89,3 +91,4 @@ expr_equals     = { "("  ~ expression ~ ("==" ~ expression)* ~ ")" }
 expr_not_equals = { "("  ~ expression ~ ("!=" ~ expression)* ~ ")" }
 expr_none = { "None" ~ "as" ~ tipe }
 expr_some = { "Some" ~ "(" ~ expression ~ ")" }
+expr_unwrap = { "Unwrap" ~ "(" ~ expression ~ ")" }
