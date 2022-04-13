@@ -8,7 +8,7 @@ use crate::identifier::Identifier;
 use crate::types::Type;
 
 use std::collections::{HashMap,HashSet};
-
+use std::iter::FromIterator;
 
 pub fn typecheck_comp(
     comp: &Composition,
@@ -41,7 +41,7 @@ pub fn typecheck_comp(
     let mut declared_imports:HashMap<_,_> = pkgs.clone()
         .into_iter()
         .enumerate()
-        .map(|(i, pkg)| (i, HashSet::from(pkg.pkg.imports.into_iter().collect())))
+        .map(|(i, pkg)| (i, HashSet::from_iter(pkg.pkg.imports.into_iter())))
         .filter(|(_, v)| ! v.is_empty())
         .collect();
     let mut edge_imports = HashMap::new();
