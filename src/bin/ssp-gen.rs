@@ -44,19 +44,23 @@ fn main() {
 
     let pkgs_list: Vec<_> = pkgs_list
         .iter()
-        .map(|(name, contents)| {
+        .map(|(filename, contents)| {
             let mut ast = SspParser::parse(Rule::package, contents).unwrap();
             let (pkg_name, pkg) = handle_pkg(ast.next().unwrap());
-            (name, contents, ast, pkg_name, pkg)
+            (filename, contents, ast, pkg_name, pkg)
         })
         .collect();
 
     let mut pkgs_map = HashMap::new();
-    for (_, _, _, pkg_name, pkg) in pkgs_list {
-        if pkgs_map.contains_key(&pkg_name) {
-            panic!("Package of name {} redefined", pkg_name)
+    let mut pkgs_filenames = HashMap::new();
+
+    for (filename, _, _, pkg_name, pkg) in pkgs_list {
+        if let Some(other_filename) = pkgs_filenames.get(&pkg_name) {
+            panic!("Package {:?} redefined in {} (originally defined in {})", pkg_name, filename, other_filename)
         }
-        pkgs_map.insert(pkg_name, pkg);
+
+        pkgs_map.insert(pkg_name.clone(), pkg);
+        pkgs_filenames.insert(pkg_name, filename);
     }
 
     let comp_list: Vec<_> = comp_list
