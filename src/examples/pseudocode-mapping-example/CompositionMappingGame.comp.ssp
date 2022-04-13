@@ -32,9 +32,9 @@ instance map =
 
 compose { 
      adversary:
-        { SET:  key_top,
-          EVAL: prf,
-          GET:  key_bottom,
+        { SET:  map,
+          EVAL: map,
+          GET:  map,
         },
      prf:
         { GET:  key_top,

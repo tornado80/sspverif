@@ -10,12 +10,12 @@ package Map {
           }
 
     import oracles {
-        Set(h: Integer, k: Bits(n)) -> Integer,
-        Eval(h: Integer, m: Bits(*)) -> (Integer,Bits(*)),
-        Get(h: (Integer,Bits(*))) -> Bits(n),
+        SET(h: Integer, k: Bits(n)) -> Integer,
+        EVAL(h: Integer, m: Bits(*)) -> (Integer,Bits(*)),
+        GET(h: (Integer,Bits(*))) -> Bits(n),
     }
 
-    oracle Eval(h: Integer, m: Bits(*)) -> (Integer,Bits(*)) {
+    oracle EVAL(h: Integer, m: Bits(*)) -> (Integer,Bits(*)) {
         assert (Input_Map[h] != None as Integer);
         if (Output_Map[(h,m)] != None as (Integer,Bits(*)))
             {return Unwrap(Output_Map[(h,m)]);}
@@ -24,7 +24,7 @@ package Map {
            return Unwrap(Output_Map[(h,m)]);}
     }
 
-    oracle Set(h: Integer, k: Bits(n)) -> Integer {
+    oracle SET(h: Integer, k: Bits(n)) -> Integer {
         hh <- Set(h,k);
         if (Input_Map[h] == None as Integer)
            {Input_Map[h] <- hh;
@@ -32,7 +32,7 @@ package Map {
         else {return hh;}
     }
 
-    oracle Get(h: Integer, m: Bits(*)) -> Bits(n) {
+    oracle GET(h: Integer, m: Bits(*)) -> Bits(n) {
         assert (Output_Map[(h,k)] != None as (Integer,Bits(*)));
         hh <- Unwrap(Get(Output_Map[(h,k)]));
         return hh;

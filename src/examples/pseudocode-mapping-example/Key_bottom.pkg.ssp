@@ -7,13 +7,13 @@ package Key_bottom {
         T: Table((Integer,Bits(*)),Maybe(Bits(n))),
     }
 
-    oracle Get(h: (Integer,Bits(*))) -> Bits(n) {
+    oracle GET(h: (Integer,Bits(*))) -> Bits(n) {
         assert (T[h] != None as Bits(n));
         k <- Unwrap(T[h]);
         return k;
     }
 
-    oracle Set(h: (Integer,Bits(*)), k: Bits(n)) -> Integer {
+    oracle SET(h: (Integer,Bits(*)), k: Bits(n)) -> Integer {
         assert (T[h] == None as Bits(n));
         T[h] <- Some(k);
         return h;
