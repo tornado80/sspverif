@@ -1,5 +1,5 @@
 #[allow(dead_code)]
-#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash, PartialOrd, Ord)]
 pub enum Type {
     Empty,
     Integer,

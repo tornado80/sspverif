@@ -1,18 +1,16 @@
-extern crate pest;
-#[macro_use]
-extern crate pest_derive;
-
-use pest::Parser;
 use std::env;
 use std::fs;
 
-#[derive(Parser)]
-#[grammar = "parser/pkg.pest"]
-pub struct SspParser;
+use pest::Parser;
+
+use sspds::parser::{package::handle_pkg, Rule, SspParser};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
     let filecontent = fs::read_to_string(args[1].clone()).expect("cannot read file");
     let result = SspParser::parse(Rule::package, &filecontent);
-    println!("{:#?}", result);
+
+    for elt in result.unwrap() {
+        handle_pkg(elt);
+    }
 }

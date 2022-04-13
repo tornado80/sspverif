@@ -1,16 +1,94 @@
-WHITESPACE = _{ " " }
+WHITESPACE = _{ " " | "\r" | "\n" | "\t" }
+COMMENT = _{ "/*" ~ (!"*/" ~ ANY)* ~ "*/" }
 
-identifier = { ASCII_ALPHA+ }
+
+kw_package = _{ "package" }
+kw_params = _{ "params" }
+kw_state = _{ "state" }
+kw_import = _{ "import" }
+kw_oracles = _{ "oracles" }
+kw_oracle = _{ "oracle" }
+
+kw_composition = _{ "composition" }
+kw_const = _{ "const" }
+kw_instance = _{ "instance" }
+kw_compose = _{ "compose" }
+
+kw_return = _{ "return" }
+kw_abort = _{ "abort" }
+
+composition = { kw_composition ~ identifier ~ "{" ~ composition_spec_list ~ "}" }
+composition_spec_list = { const_decl* ~ instance_decl* ~ compose_decl? }
+
+const_decl = { kw_const ~ identifier ~ ":" ~ tipe ~ ";" }
+
+instance_decl = { kw_instance ~ identifier ~ "=" ~ identifier ~ "{" ~ instance_assign_list? ~ "}"}
+instance_assign_list = { instance_assign ~ ( "," ~ instance_assign )* ~ ","? }
+instance_assign = { identifier ~ ":" ~ identifier }
+
+compose_decl = { kw_compose ~ "{" ~ compose_assign_body_list? ~ "}" }
+compose_assign_body_list = _{ compose_assign_body ~ ( "," ~ compose_assign_body)* ~ ","? }
+compose_assign_body = { identifier ~ ":" ~ "{" ~ compose_assign_list? ~ "}" }
+compose_assign_list = _{ compose_assign ~ ( "," ~ compose_assign)* ~ ","? }
+compose_assign = { identifier ~ ":" ~ identifier }
+
+package = { kw_package ~ identifier ~ "{" ~ package_spec_list ~ "}" }
+
+package_spec_list = { package_spec* }
+
+package_spec = _{
+    params | state | import_oracles | oracle_def
+}
+
+params = { kw_params ~ ("{" ~ decl_list ~ "}" | "{" ~ "}") }
+decl_list = { decl_spec ~ ( "," ~ decl_spec)* ~ ","? }
+decl_spec = { identifier ~ ":" ~ tipe  }
+
+countspec = { identifier | num | "*" }
+
+tipe = _{ type_integer | "Integer" | "String" | "Bool" | type_bits | type_maybe | type_fn | type_tuple | type_table |type_list | type_empty }
+    type_integer = { "Integer" }
+    type_bits = { "Bits(" ~ countspec ~ ")" }
+    type_maybe = { "Maybe(" ~ tipe ~ ")" }
+    type_fn = { "fn" ~ fn_arglist ~ "->" ~ tipe }
+        fn_arglist = { fn_arg_spec ~ ( "," ~ fn_arg_spec )* }
+        fn_arg_spec = { ( identifier ~ ":" )? ~ tipe }
+    type_tuple = { "(" ~ tipe ~ ( "," ~ tipe )* ~ ")"}
+    type_empty = { "()" }
+    type_list = { "List(" ~ tipe ~ ")"}
+    type_table = { "Table(" ~ tipe ~ "," ~ tipe ~ ")" }
+
+state = { kw_state ~ "{" ~ decl_list? ~ "}"  }
+
+fn_maybe_arglist = { fn_arglist? }
+
+import_oracles = {kw_import ~ kw_oracles ~ ( "{" ~ ( oracle_sig ~ ("," ~ oracle_sig)* ~ ","? )? ~ "}" )  }
+oracle_sig = { identifier ~ "(" ~ fn_maybe_arglist ~ ")" ~ ("->" ~ tipe)? }
+
+oracle_def = { kw_oracle ~ oracle_sig ~ "{" ~ code ~ "}" }
+
+
+identifier = @{ ( ASCII_ALPHA | "_" ) ~ ( ASCII_ALPHA | "_" )* }
 num = { ASCII_DIGIT+ }
 
-tabl = { identifier ~ "[" ~ expression ~ "]" }
-location = { tabl | num | identifier }
 
-assign = { location ~ "<-" ~ location }
-block = { "{" ~ "\n"* ~ code ~  "\n"* ~ "}" ~ "\n"* }
-ite = { "if" ~ location ~ block ~ "else" ~ block }
+code = { (stmt )* }
+stmt = _{ sample | assign | return_stmt | abort | ite}
 
-stmt = { assign | ite }
-code = { stmt ~ ("\n"+ ~ stmt)* }
+ite = {"if" ~ expression ~ "{" ~ code ~ "}" ~ ( "else" ~ "{" ~ code ~ "}" )? }
 
-expression = { location ~ "+" ~ location }
+sample = { identifier ~ "<-$" ~ tipe ~ ";" }
+assign = { identifier ~ "<-" ~ expression ~ ";" }
+return_stmt = { kw_return ~ expression ~ ";" }
+abort = { kw_abort ~ ";" }
+
+expression = _{ expr_none | expr_some | expr_unwrap | expr_equals | expr_not_equals | fn_call | table_access | identifier }
+
+table_access = { identifier ~ "[" ~ expression ~ "]" }
+fn_call =  { identifier ~ "(" ~ fn_call_arglist? ~ ")" }
+fn_call_arglist = { expression ~ ( "," ~ expression)* }
+expr_equals     = { "("  ~ expression ~ ("==" ~ expression)* ~ ")" }
+expr_not_equals = { "("  ~ expression ~ ("!=" ~ expression)* ~ ")" }
+expr_none = { "None" ~ "as" ~ tipe }
+expr_some = { "Some" ~ "(" ~ expression ~ ")" }
+expr_unwrap = { "Unwrap" ~ "(" ~ expression ~ ")" }

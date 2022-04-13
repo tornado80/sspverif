@@ -5,13 +5,16 @@ package PRF {
     }
 
     state {}
-
+    
     import oracles {
         Get() -> Bits(n),
+        Set() -> Bits(n),
     }
 
     oracle Eval(msg: Bits(n)) -> Bits(n) {
-        k <- Get();
+        /* we have to put the <- directly after the k here. this might be a bug in pest.
+           TODO: construct minimum working example for bug report */
+        k <- Get(); 
         out <- f(k, msg);
         return out;
     }
