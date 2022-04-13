@@ -1,4 +1,4 @@
-package Key-top-map {
+package Key_top_map {
     params {
         n: Integer,
     }
@@ -9,15 +9,16 @@ package Key-top-map {
           }
 
     oracle Get(h: Integer) -> Bits(n) {
-        (assert T[h] != None as Bits(n));
+        assert (T[h] != None as Bits(n));
         k <- Unwrap(T[h]);
         return k;
     }
 
     oracle Set(h: Integer, k: Bits(n)) -> Integer {
-        (assert T[h] == None as Bits(n));
+        assert (T[h] == None as Bits(n));
         if (S[k] != None as Integer)
-            {hh <- S[k]}
+            {hh <- S[k];
+            }
         else {T[h] <- Some(k);
              S[k] <- Some(h);
             hh <- h;}

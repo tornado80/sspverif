@@ -10,7 +10,7 @@ package Map {
     import oracles {
         Set(h: Integer, k: Bits(n)) -> Integer,
         Eval(h: Integer, m: Bits(*)) -> (Integer,Bits(*)),
-        Get(h: (Integer,Bits(*)) -> Bits(n),
+        Get(h: (Integer,Bits(*))) -> Bits(n),
     }
 
     oracle Eval(h: Integer, m: Bits(*)) -> (Integer,Bits(*)) {
