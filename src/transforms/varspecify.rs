@@ -103,11 +103,7 @@ fn var_specify_helper(inst: &PackageInstance, block: CodeBlock, comp_name: &str)
 
 fn var_specify(inst: &PackageInstance, comp_name: &str) -> PackageInstance {
     PackageInstance {
-        name: inst.name.clone(),
-        params: inst.params.clone(),
         pkg: Package {
-            params: inst.pkg.params.clone(),
-            state: inst.pkg.state.clone(),
             oracles: inst
                 .pkg
                 .oracles
@@ -117,7 +113,9 @@ fn var_specify(inst: &PackageInstance, comp_name: &str) -> PackageInstance {
                     code: var_specify_helper(inst, def.code.clone(), comp_name),
                 })
                 .collect(),
+            ..inst.pkg.clone()
         },
+        ..inst.clone()
     }
 }
 

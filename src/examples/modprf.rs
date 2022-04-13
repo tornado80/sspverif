@@ -23,6 +23,7 @@ pub fn mod_prf(params: &HashMap<String, String>) -> PackageInstance {
                 ),
             ],
             state: vec![],
+            imports: vec![],
             oracles: vec![OracleDef {
                 sig: OracleSig {
                     name: "Eval".to_string(),

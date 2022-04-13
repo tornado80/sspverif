@@ -10,6 +10,7 @@ pub fn typecheck_pkg(pkg: &Package, scope: &mut Scope) -> Result<Package, TypeCh
         params,
         state,
         oracles,
+        ..
     } = pkg;
 
     scope.enter();

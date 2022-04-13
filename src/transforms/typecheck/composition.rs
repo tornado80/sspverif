@@ -7,6 +7,9 @@ use crate::package::{Composition, PackageInstance};
 use crate::identifier::Identifier;
 use crate::types::Type;
 
+use std::collections::{HashMap,HashSet};
+
+
 pub fn typecheck_comp(
     comp: &Composition,
     scope: &mut Scope,
@@ -18,7 +21,7 @@ pub fn typecheck_comp(
         ..
     } = comp;
 
-    // 1. check signature exists in edge destination
+    // 1a. check signature exists in edge destination
     for (_, to, sig_) in edges {
         let mut found = false;
         for sig in pkgs[*to].get_oracle_sigs() {
@@ -33,6 +36,24 @@ pub fn typecheck_comp(
             )));
         }
     }
+
+    // 1b. check signature matches in package imports
+    let mut declared_imports:HashMap<_,_> = pkgs.clone()
+        .into_iter()
+        .enumerate()
+        .map(|(i, pkg)| (i, HashSet::from(pkg.pkg.imports.into_iter().collect())))
+        .filter(|(_, v)| ! v.is_empty())
+        .collect();
+    let mut edge_imports = HashMap::new();
+
+    for (from, _, sig_) in edges {
+        edge_imports.entry(*from).or_insert(HashSet::new()).insert(sig_.clone());
+    }
+    if declared_imports != edge_imports {
+        panic!("declared: {:#?} edges: {:#?}",
+         declared_imports, edge_imports);
+    }
+
 
     // 2. check exports exists
     for (id, sig) in exports {

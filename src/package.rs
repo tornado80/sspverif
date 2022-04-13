@@ -10,7 +10,7 @@ pub struct FnSig {
     pub tipe: Type,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct OracleSig {
     pub name: String,
     pub args: Vec<(String, Type)>,
@@ -28,6 +28,7 @@ pub struct Package {
     pub params: Vec<(String, Type)>,
     pub state: Vec<(String, Type)>,
     pub oracles: Vec<OracleDef>,
+    pub imports: Vec<OracleSig>,
 }
 
 impl Package {}
