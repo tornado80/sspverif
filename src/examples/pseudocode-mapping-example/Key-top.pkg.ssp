@@ -1,4 +1,4 @@
-package Key-top {
+package Key_top {
     params {
         n: Integer,
     }
@@ -15,7 +15,7 @@ package Key-top {
 
     oracle Set(h: Integer, k: Bits(n)) -> Integer {
         assert (T[h] == None as Bits(n));
-        T[h] <- Some(k)
+        T[h] <- Some(k);
         return h;
     }
 }

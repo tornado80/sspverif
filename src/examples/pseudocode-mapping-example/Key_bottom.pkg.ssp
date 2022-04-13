@@ -1,4 +1,4 @@
-package Key-bottom {
+package Key_bottom {
     params {
         n: Integer,
     }
@@ -8,14 +8,14 @@ package Key-bottom {
     }
 
     oracle Get(h: (Integer,Bits(*))) -> Bits(n) {
-        assert T[h] != None as Bits(n);
+        assert (T[h] != None as Bits(n));
         k <- Unwrap(T[h]);
         return k;
     }
 
     oracle Set(h: (Integer,Bits(*)), k: Bits(n)) -> Integer {
-        assert T[h] = None as Bits(n);
-        T[h] <- Some(k)
+        assert (T[h] == None as Bits(n));
+        T[h] <- Some(k);
         return h;
     }
 }

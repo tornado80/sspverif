@@ -2,6 +2,8 @@
 cb: I am not using the correct syntax here yet,
 I am just writing the text and listing the items
 which I'd like to include.
+TODO:
+- discuss brackets around statements
 
 
 # Game Definitions
