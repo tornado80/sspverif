@@ -14,7 +14,7 @@ package Map {
     }
 
     oracle Eval(h: Integer, m: Bits(*)) -> (Integer,Bits(*)) {
-        assert Input_Map[h] != None as Integer
+        assert Input_Map[h] != None as Integer;
         if Output_Map[(h,m)] != None as (Integer,Bits(*))
            return unwrap(Output_Map[(h,m)])
         else hh <- EVAL(Input_Map[h],m),
@@ -31,7 +31,7 @@ package Map {
     }
 
     oracle Get(h: (Integer, m: Bits(*)) -> Bits(n) {
-        assert Output_Map[(h,k)] != None as (Integer,Bits(*)),
+        assert Output_Map[(h,k)] != None as (Integer,Bits(*));
         return Get(Output_Map[(h,k)]);
         }
 }
