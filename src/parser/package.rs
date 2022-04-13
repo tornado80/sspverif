@@ -69,6 +69,30 @@ pub fn handle_expression(
     let curry_handle_expression = |expr| handle_expression(expr, imported_oracles);
     match expr.as_rule() {
         // expr_equals | expr_not_equals | fn_call | table_access | identifier
+        Rule::expr_add => {
+            let mut inner = expr.into_inner();
+            let mut lhs = curry_handle_expression(inner.next().unwrap());
+            let mut rhs = curry_handle_expression(inner.next().unwrap());
+            Expression::Add(Box::new(lhs), Box::new(rhs))
+        }
+        Rule::expr_sub => {
+            let mut inner = expr.into_inner();
+            let mut lhs = curry_handle_expression(inner.next().unwrap());
+            let mut rhs = curry_handle_expression(inner.next().unwrap());
+            Expression::Sub(Box::new(lhs), Box::new(rhs))
+        }
+        Rule::expr_mul => {
+            let mut inner = expr.into_inner();
+            let mut lhs = curry_handle_expression(inner.next().unwrap());
+            let mut rhs = curry_handle_expression(inner.next().unwrap());
+            Expression::Mul(Box::new(lhs), Box::new(rhs))
+        }
+        Rule::expr_div => {
+            let mut inner = expr.into_inner();
+            let mut lhs = curry_handle_expression(inner.next().unwrap());
+            let mut rhs = curry_handle_expression(inner.next().unwrap());
+            Expression::Div(Box::new(lhs), Box::new(rhs))
+        }
         Rule::expr_equals => {
             Expression::Equals(expr.into_inner().map(curry_handle_expression).collect())
         }

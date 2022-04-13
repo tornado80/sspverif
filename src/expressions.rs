@@ -88,6 +88,18 @@ impl Expression {
             Expression::Equals(exprs) => {
                 Expression::Equals(exprs.iter().map(|expr| expr.map(f)).collect())
             }
+            Expression::Add(lhs, rhs) => {
+                Expression::Add(Box::new(lhs.map(f)), Box::new(rhs.map(f)))
+            }
+            Expression::Sub(lhs, rhs) => {
+                Expression::Sub(Box::new(lhs.map(f)), Box::new(rhs.map(f)))
+            }
+            Expression::Mul(lhs, rhs) => {
+                Expression::Mul(Box::new(lhs.map(f)), Box::new(rhs.map(f)))
+            }
+            Expression::Div(lhs, rhs) => {
+                Expression::Div(Box::new(lhs.map(f)), Box::new(rhs.map(f)))
+            }
             Expression::FnCall(name, exprs) => {
                 Expression::FnCall(name.clone(), exprs.iter().map(|expr| expr.map(f)).collect())
             }

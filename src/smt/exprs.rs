@@ -82,6 +82,22 @@ impl From<Expression> for SmtExpr {
 
                 SmtExpr::List(acc)
             }
+            Expression::Add(lhs, rhs) =>
+                SmtExpr::List(vec![SmtExpr::Atom("+".to_string()),
+                                   SmtExpr::from(*lhs),
+                                   SmtExpr::from(*rhs)]),
+            Expression::Sub(lhs, rhs) =>
+                SmtExpr::List(vec![SmtExpr::Atom("-".to_string()),
+                                   SmtExpr::from(*lhs),
+                                   SmtExpr::from(*rhs)]),
+            Expression::Mul(lhs, rhs) =>
+                SmtExpr::List(vec![SmtExpr::Atom("*".to_string()),
+                                   SmtExpr::from(*lhs),
+                                   SmtExpr::from(*rhs)]),
+            Expression::Div(lhs, rhs) =>
+                SmtExpr::List(vec![SmtExpr::Atom("/".to_string()),
+                                   SmtExpr::from(*lhs),
+                                   SmtExpr::from(*rhs)]),
             Expression::Not(expr) => {
                 SmtExpr::List(vec![SmtExpr::Atom("not".to_string()), (*expr).into()])
             }
