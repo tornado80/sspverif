@@ -1,5 +1,7 @@
-/target
 *~
+.#*
+/target
+\#*#
+settings.json
 test*.smt
 test*.z3out
-settings.json
