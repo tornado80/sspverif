@@ -86,13 +86,14 @@ return_stmt = { kw_return ~ expression ~ ";" }
 assert = { kw_assert ~ expression ~ ";" }
 abort = { kw_abort ~ ";" }
 
-expression = _{ expr_none | expr_some | expr_unwrap | expr_add | expr_sub | expr_mul | expr_div | expr_equals | expr_not_equals | fn_call | table_access | identifier }
+expression = _{ expr_none | expr_some | expr_unwrap | expr_add | expr_sub | expr_mul | expr_div | expr_tuple | expr_equals | expr_not_equals | fn_call | table_access | identifier }
 
 table_access = { identifier ~ "[" ~ expression ~ "]" }
 fn_call =  { identifier ~ "(" ~ fn_call_arglist? ~ ")" }
 fn_call_arglist = { expression ~ ( "," ~ expression)* }
 expr_equals     = { "("  ~ expression ~ ("==" ~ expression)* ~ ")" }
 expr_not_equals = { "("  ~ expression ~ ("!=" ~ expression)* ~ ")" }
+expr_tuple   = { "("  ~ expression ~ ("," ~ expression)* ~ ")" }
 expr_add     = { "("  ~ expression ~ "+" ~ expression ~ ")" }
 expr_sub     = { "("  ~ expression ~ "-" ~ expression ~ ")" }
 expr_mul     = { "("  ~ expression ~ "*" ~ expression ~ ")" }

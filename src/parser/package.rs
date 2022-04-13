@@ -93,6 +93,9 @@ pub fn handle_expression(
             let mut rhs = curry_handle_expression(inner.next().unwrap());
             Expression::Div(Box::new(lhs), Box::new(rhs))
         }
+        Rule::expr_tuple => {
+            Expression::Tuple(expr.into_inner().map(curry_handle_expression).collect())
+        }
         Rule::expr_equals => {
             Expression::Equals(expr.into_inner().map(curry_handle_expression).collect())
         }
