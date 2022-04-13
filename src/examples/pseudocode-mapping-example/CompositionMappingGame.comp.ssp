@@ -1,0 +1,47 @@
+CompositionMappingGame =
+ {
+const n: Integer;
+const f: fn: Bits(n),Bits(*) -> Bits(n);
+
+instance key_top =
+        Key_top_map
+          {
+          n: n,
+          }
+
+instance key_bottom =
+        Key_bottom
+          {
+          n: n
+          }
+
+instance prf
+        Prf
+          {
+          f: f
+          }
+
+instance map
+        Map
+          {
+          }
+
+
+
+compose { 
+     adversary:
+        { SET:  key_top
+          EVAL: prf
+          GET:  key_bottom
+        }
+     prf:
+        { GET:  key_top
+          SET:  key_bottom
+        }
+     map:
+        { GET:   key_top
+  	      EVAL:  prf
+  	      SET:   key_bottom
+        }
+        }
+ }

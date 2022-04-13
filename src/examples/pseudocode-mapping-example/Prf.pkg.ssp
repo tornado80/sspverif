@@ -1,0 +1,21 @@
+package Prf {
+    params {
+        fn f: (Bits(n),Bits(*)) -> Bits(n)
+    }
+
+    state {
+          }
+
+    import oracles {
+        Get(h: Integer) -> Bits(n),
+        Set(h: (Integer,Bits(*)), k: Bits(n)) -> Integer,
+    }
+
+    oracle Eval(h: Integer, m: Bits(*)) -> (Integer,Bits(*)) {
+        h <- GET(h)
+        y <- f(h,m)
+        hh <- (h,m)
+        SET(hh,y)
+        return hh;
+    }
+}
