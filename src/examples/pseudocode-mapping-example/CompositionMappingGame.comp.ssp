@@ -41,9 +41,9 @@ compose {
           SET:  key_bottom,
         },
      map:
-        { GET:   key_top,
+        { GET:   key_bottom,
   	      EVAL:  prf,
-  	      SET:   key_bottom,
+  	      SET:   key_top,
         },
         }
  }
