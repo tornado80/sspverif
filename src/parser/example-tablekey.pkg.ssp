@@ -18,9 +18,7 @@ package TableKey {
     }
 
     oracle Set(i: Integer, k_new: Bits(n)) {
-        if (k[i] != None as Bits(n)) {
-            abort;
-        }
+        assert (k[i] != None as Bits(n));
 
         k[i] <- Some(k_new);
     }
