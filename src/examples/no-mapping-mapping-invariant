@@ -27,14 +27,21 @@
            ((s-left  CompositionState-no_mapping_game) ; function input 
             (s-right CompositionState-mapping_game))
             Bool                                       ; function behaviour           
-            ( 
-            (TIKL (Array Int               Bits_n))   ;      TIKL: T in output (bottom) key package left
-            (TIKR (Array Int               Bits_n))   ;      TIKR: T in output (bottom) key package right
-            (TOKL (Array Tuple__Int_Bits_* Bits_n))   ;      TOKL: T in output (bottom) key package left
-            (TOKR (Array Tuple__Int_Bits_* Bits_n))   ;      TOKR: T in output (bottom) key package right
-            (MIR  (Array Int Int))                    ;      MIR : input- mapping table (right)
-            (MOR  (Array Tuple__Int_Bits_* 
-                         Tuple__Int_Bits_*))          ;      MOR : output- mapping table (right)
+             (
+        let  (
+            (bot (as mk-none (Maybe Bits_n)))
+            (botint (as mk-none (Maybe Int))) 
+            (botstuff (as mk-none (Maybe (Tuple2 Int Bits_*))))
+             )
+
+             ( 
+;            (TIKL (Array Int               Bits_n))   ;      TIKL: T in output (bottom) key package left
+;            (TIKR (Array Int               Bits_n))   ;      TIKR: T in output (bottom) key package right
+;            (TOKL (Array (Tuple2 Int Bits_*) Bits_n)) ;      TOKL: T in output (bottom) key package left
+;            (TOKR (Array (Tuple2 Int Bits_*) Bits_n)) ;      TOKR: T in output (bottom) key package right
+;            (MIR  (Array Int Int))                    ;      MIR : input- mapping table (right)
+;            (MOR  (Array (Tuple2 Int Bits_*) 
+;                         (Tuple2 Int Bits_*)))        ;      MOR : output- mapping table (right)
   
                 ; assignment of tables
                     let ((TIKL (state-no_mapping_game-key_pkg_top-T
@@ -57,108 +64,165 @@
                              s-right)))
                 )
                 (ite
-                (and            ;;;;; (= bot bot) below is always dummy code to be replaced
+                (and           
                 ; (LRIa)  TIKL[h] = bot => MIR[h]  = bot 
-                    (forall ((h Int)) (=> (= (TIKL h) bot) (= (MIR h) bot))) ; removed
+                    (forall ((h Int)) (=> (= (TIKL h) bot) (= (MIR h) botint))) 
                 ; (LRIa') MIR[h]  = bot => TIKL[h]    
-                    (forall ((h Int)) (=>  (= (MIR h) bot) (= (TIKR h) bot))) ; removed 
-                ; (LRIb)  MIR [h] = hh  => TIKL[h] = TIKR[h'] or hh=bot         
-                    (forall ((h Int) (hh Int)) 
-                                     (=>  (= (MIR h) hh) (or (= (TIKL h) (TIKR hh)) ; removed, undefined (= (MIR h) hh)
-                                                            (= hh bot)))) ; removed, bot still has wrong type (= hh bot)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;
-;    removed the following because sort Tuple__Int_Bits_* not yet defined
-;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+                    (forall ((h Int)) (=>  (= (MIR h) botint) (= (TIKR h) bot))) 
+                ; (LRIb)  MIR [h] = (hh Int) => TIKL[h] = TIKR[hh]         
+                    (forall ((h Int) (hh  Int)) 
+                                     (
+                                     =>  (= (MIR h) (mk-some hh))  (= (TIKL h) (TIKR hh)) 
+                                     )
+                    ) 
                 ; (LROa)  TOKL[h] = bot => MOR[h]  = bot
-                    (forall ((h Tuple__Int_Bits_*)) 
-                                      (=> (= (TOKL h) bot) (= (MIR h) bot)))
+                    (forall ((h (Tuple2 Int Bits_*))) 
+                                      (=> (= (TOKL h) bot) (= (MOR h) botstuff)))
                 ; (LROa') MOR[h]  = bot => TOKL[h]  = bot 
-                    (forall ((h Tuple__Int_Bits_*)) 
-                                      (=> (= (MOR h) bot) (= (TOKR h) bot)))            
-                ; (LROb)  MOR [h] = hh  => TOKL[h] = TOKR[h'] or hh=bot         
-                    (forall ((h Tuple__Int_Bits_*) (hh Tuple__Int_Bits_*)) 
-                                     (=> (= (MOR h) hh) (or (= (TOKL h) (TIKR hh))
-                                                            (= hh bot))))
+                    (forall ((h (Tuple2 Int Bits_*))) 
+                                      (=> (= (MOR h) botstuff) (= (TOKR h) bot)))            
+                ; (LROb)  MOR [h] = hh  => TOKL[h] = TOKR[hh]         
+                    (forall ((h (Tuple2 Int Bits_*)) (hh (Tuple2 Int Bits_*)))
+                                     (=>
+                                     (= (MOR h) (mk-some hh))                                     
+                                     (= (TOKL h) (TOKR hh))))
                 ; (RI)  (exists h s.t. MIR[h] = h') => TIKR[h'] != bot
                     (forall ((hh Int)(h Int)) 
                                      (=> 
-                                     (= bot bot) ; removed undefined (= (MIR h) hh)
-                                     (or (not (=  (TIKR hh) bot))
-                                              (= bot bot)))) ; bot still needs to be typed: (= hh bot)
+                                     (= (MIR h) (mk-some hh)) ; if MIR[h] = hh: Int (that is, not bot) 
+                                     (not (=  (TIKR hh) bot) ; then TIKR[hh] neq bot
+                                              )))
                 ; (RI') TIKR[h'] != bot => (exists h s.t. MIR[h] = h')
                     (forall ((hh Int)) 
                                      (=> 
                                      (not (=  (TIKR hh) bot))
                                      (
                                      exists ((h Int))
-                                     (= bot bot) ; MIR still undefined (= (MIR h) hh)
+                                     (= (MIR h) (mk-some hh)) 
                                      )))
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;
-;    removed the following because type Tuple__Int_Bits_* not yet defined
-;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-                ; (RO)  (exists h s.t. MOR[h] = h') => TOKR[h'] != bot
-                    (forall ((hh Tuple__Int_Bits_*)) 
+                ; (RO)  (exists h s.t. MOR[h] = hh) => exists (hhh Int) TOKR[hh] = hhh
+                    (forall ((hh (Tuple2 Int Bits_*))) 
                                      (=> 
                                      (
-                                     (exists (h Tuple__Int_Bits_*))
-                                     (= (MOR h) hh)
+                                     exists ((h (Tuple2 Int Bits_*)))
+                                     (= (MOR h) (mk-some hh))
                                      )
-                                     (or (not (=  (TOKR hh) bot)
-                                              (= hh bot)))))
-                ; (RO') TOKR[h'] != bot => (exists h s.t. MOR[h] = h')
-                    (forall ((hh Tuple__Int_Bits_*)) 
-                                     (=> 
-                                     (or (not (=  (TOKR hh) bot)
-                                              (= hh bot))))
                                      (
-                                     (exists (h Tuple__Int_Bits_*))
-                                     (= (MOR h) hh)
+                                     exists ((hhh Bits_n))
+                                     (= (TOKR hh) (mk-some hhh))
+                                     )
                                      ))
+                ; (RO') TOKR[hh] = (k Bits_n)) => (exists h s.t. MOR[h] = hh)
+                    (forall ((hh (Tuple2 Int Bits_*))(k Bits_n)) 
+                                     (=> 
+                                     (=  (TOKR hh) (mk-some k)
+                                     )
+                                     (exists ((h (Tuple2 Int Bits_*)))
+                                     (= (MOR h) (mk-some hh))
+                                     )
+                                     )
+                    )
             )
             true
             false
-            )
+            ))))
 
 
 ;;;;;;;;;; SET oracle
 ; existential quantification
 (assert (and (exists 
-               ((s-left-old  CompositionState-no_mapping_game)
+               (
+               (s-left-old CompositionState-no_mapping_game)
                (s-right-old CompositionState-mapping_game)   
-               (s-left-new  CompositionState-no_mapping_game)
-               (s-right-new CompositionState-mapping_game)
                (h Int)
-               (k Bits_n))
+               (k Bits_n)
+               )
 (and
 ; pre-condtion
-    (= (inv s-left-old s-right-old))     ; undefined stuff 
-
-(not (or
-; post-condtion
-      (= (inv s-left-new s-right-new))  ; undefined stuff 
-      (= y-left-new y-right-new )  ; undefined stuff 
-))
+    (= true (inv s-left-old s-right-old))     
 
 ; assignment after execution
-      (= left-new     oracle-key_pkg_top-Set s-left-old (h k))) ; left function on left state
-      (= s-left-new   return-key_pkg_top-Set-state left-new)
-      (= y-left-new   return-key_pkg_top-Set-value left-new)
-      (= right-new    oracle-key_pkg_top_map-Set s-right-old (h k)) ; left function on left state     
-      (= s-right-new  return-key_pkg_top_map-Set-state right-new)
-      (= y-right-new  return-key_pkg_top_map-Set-value right-new)
-)
-))
+      (let ((left-new     (oracle-key_pkg_top-Set s-left-old h k))) ; left function on left state
+      (let ((s-left-new   (return-key_pkg_top-Set-state left-new)))
+      (let ((y-left-new   (return-key_pkg_top-Set-value left-new)))
+      (let ((right-new    (oracle-key_pkg_top_map-Set s-right-old h k))) ; right function on right state     
+      (let ((s-right-new  (return-key_pkg_top_map-Set-state right-new)))
+      (let ((y-right-new  (return-key_pkg_top_map-Set-value right-new)))
 
-; manual concat
-;(assert (forall ((n Int)) (= (__sample-rand-real n) (__sample-rand-mono-prf-game n))))
+; post-condtion
+   (not (or
+      (= true (inv s-left-new s-right-new)) 
+      (= y-left-new y-right-new ) 
+))
+)
+)))
+      ))))))
+
+
+;;;;;;;;;; EVAL oracle
+; existential quantification
+(assert (and (exists 
+               (
+               (s-left-old CompositionState-no_mapping_game)
+               (s-right-old CompositionState-mapping_game)   
+               ; These two lines change from oracle to oracle
+               (h Int)
+               (m Bits_*)
+               )
+(and
+; pre-condtion
+    (= true (inv s-left-old s-right-old))     
+
+; assignment after execution
+      ;The following 6 lines changes from oracle to oracle:
+      (let ((left-new     (oracle-prf-Eval s-left-old h m))) ; left function on left state
+      (let ((s-left-new   (return-prf-Eval-state left-new)))
+      (let ((y-left-new   (return-prf-Eval-value left-new)))
+      (let ((right-new    (oracle-map_pkg-Eval s-right-old h m))) ; right function on right state     
+      (let ((s-right-new  (return-map_pkg-Eval-state right-new)))
+      (let ((y-right-new  (return-map_pkg-Eval-value right-new)))
+
+
+; post-condtion
+   (not (or
+      (= true (inv s-left-new s-right-new))  ; undefined stuff 
+      (= y-left-new y-right-new )  ; undefined stuff 
+))
+)
+)))
+      ))))))
+
+;;;;;;;;;; GET oracle
+; existential quantification
+(assert (and (exists 
+               (
+               (s-left-old CompositionState-no_mapping_game)
+               (s-right-old CompositionState-mapping_game)   
+               ; These two lines change from oracle to oracle
+               (h (Tuple2 Int Bits_*))
+               )
+(and
+; pre-condtion
+    (= true (inv s-left-old s-right-old))     
+
+; assignment after execution
+      ;The following 6 lines changes from oracle to oracle:
+      (let ((left-new     (oracle-key_pkg_bottom-Get s-left-old h))) ; left function on left state
+      (let ((s-left-new   (return-key_pkg_bottom-Get-state left-new)))
+      (let ((y-left-new   (return-key_pkg_bottom-Get-value left-new)))
+      (let ((right-new    (oracle-map_pkg-Get s-right-old h))) ; right function on right state     
+      (let ((s-right-new  (return-map_pkg-Get-state right-new)))
+      (let ((y-right-new  (return-map_pkg-Get-value right-new)))
+
+; post-condtion
+   (not (or
+      (= true (inv s-left-new s-right-new))  ; undefined stuff 
+      (= y-left-new y-right-new )  ; undefined stuff 
+))
+)
+)))
+      ))))))
+
 
 (check-sat)
-(get-model)
+;(get-model)

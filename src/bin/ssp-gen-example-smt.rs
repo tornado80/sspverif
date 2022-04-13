@@ -54,10 +54,12 @@ fn main() {
     bits_ast_smt.write_smt_to(&mut std::io::stdout()).unwrap();
     println!();
 
-    println!("(declare-const bot Bits_n)");
 
     declare_tuples(10);
     declare_par_Maybe();
+
+    println!("(declare-const bot (Maybe Bits_n))");
+
     println!("; The PRF");
     println!("(declare-fun f (Bits_n Bits_*) Bits_n)");
     println!();
