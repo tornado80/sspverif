@@ -60,6 +60,7 @@ pub fn no_mapping_game(params: &HashMap<String, String>) -> Composition {
                 "T".to_string(),
                 Type::Table(Box::new(Type::Integer), Box::new(Type::new_bits("n"))),
             )],
+            imports: vec![],
             oracles: vec![
                 OracleDef {
                     sig: OracleSig {
@@ -141,6 +142,24 @@ pub fn no_mapping_game(params: &HashMap<String, String>) -> Composition {
                 ),
             ],
             state: vec![],
+            imports: vec![
+                OracleSig {
+                    name: "Set".to_string(),
+                    args: vec![
+                        (
+                            "h".to_string(),
+                            Type::Tuple(vec![Type::Integer, Type::new_bits("*")]),
+                        ),
+                        ("k".to_string(), Type::new_bits("n")),
+                    ], /* handle (int,msg) */
+                    tipe: Type::Tuple(vec![Type::Integer, Type::new_bits("*")]),
+                },
+                OracleSig {
+                    name: "Get".to_string(),
+                    args: vec![("h".to_string(), Type::Integer)],
+                    tipe: Type::new_bits("n"),
+                },                
+            ],
             oracles: vec![OracleDef {
                 sig: OracleSig {
                     name: "Eval".to_string(),
@@ -188,6 +207,7 @@ pub fn no_mapping_game(params: &HashMap<String, String>) -> Composition {
                     Box::new(Type::new_bits("n")),
                 ),
             )],
+            imports: vec![],
             oracles: vec![
                 OracleDef {
                     sig: OracleSig {

@@ -8,7 +8,6 @@ package PRF {
     
     import oracles {
         Get() -> Bits(n),
-        Set() -> Bits(n),
     }
 
     oracle Eval(msg: Bits(n)) -> Bits(n) {

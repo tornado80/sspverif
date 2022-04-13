@@ -30,7 +30,6 @@ composition ModPRFGame {
 
         prf: {
             Get: key_top,
-            Set: key_bottom,
         }
     }
 }

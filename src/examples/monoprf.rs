@@ -23,6 +23,7 @@ pub fn mono_prf(params: &HashMap<String, String>) -> PackageInstance {
                 ),
             ],
             state: vec![("k".to_string(), Type::Maybe(Box::new(Type::new_bits("n"))))],
+            imports: vec![],
             oracles: vec![
                 OracleDef {
                     sig: OracleSig {

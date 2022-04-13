@@ -254,6 +254,7 @@ pub fn handle_pkg_spec(pkg_spec: Pair<Rule>) -> Package {
     Package {
         oracles: oracles,
         params: params.unwrap_or_default(),
+        imports: imported_oracles.iter().map(|(k,v)| v.clone()).collect(),
         state: state.unwrap_or_default(),
     }
 }
