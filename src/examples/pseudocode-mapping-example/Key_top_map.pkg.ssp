@@ -16,11 +16,11 @@ package Key-top-map {
 
     oracle Set(h: Integer, k: Bits(n)) -> Integer {
         (assert T[h] == None as Bits(n));
-        if S[k] != None as Integer
+        if (S[k] != None as Integer)
             {hh <- S[k]}
-        else {T[h] <- Some(k)
-             S[k] <- Some(h)
-            hh <- h}
+        else {T[h] <- Some(k);
+             S[k] <- Some(h);
+            hh <- h;}
         return hh;
     }
 }

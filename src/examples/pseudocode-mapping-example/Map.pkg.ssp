@@ -3,30 +3,30 @@ package Map {
            }
 
     state {
-        Input_Map:  Table(Integer,Integer)
-        Output_Map: Table((Integer,Bits(*)),(Integer,Bits(*)))   
+        Input_Map:  Table(Integer,Integer),
+        Output_Map: Table((Integer,Bits(*)),(Integer,Bits(*))),   
           }
 
     import oracles {
         Set(h: Integer, k: Bits(n)) -> Integer,
-        Eval(h: Integer, m: Bits(*)) -> (Integer,Bits(*))
+        Eval(h: Integer, m: Bits(*)) -> (Integer,Bits(*)),
         Get(h: (Integer,Bits(*)) -> Bits(n),
     }
 
     oracle Eval(h: Integer, m: Bits(*)) -> (Integer,Bits(*)) {
         assert (Input_Map[h] != None as Integer);
-        if Output_Map[(h,m)] != None as (Integer,Bits(*))
-           return unwrap(Output_Map[(h,m)])
-        else hh <- EVAL(Input_Map[h],m),
-           Output_Map[(h,m)] <-- hh,
-           return unwrap(Output_Map[(h,m)]);
+        if (Output_Map[(h,m)] != None as (Integer,Bits(*)))
+            {return unwrap(Output_Map[(h,m)]);}
+        else {hh <- EVAL(Input_Map[h],m);
+           Output_Map[(h,m)] <-- hh;
+           return unwrap(Output_Map[(h,m)]);}
     }
 
     oracle Set(h: Integer, k: Bits(n)) -> Integer {
-        hh <- Set(h,k)
+        hh <- Set(h,k);
         if (Input_Map[h] == None as Integer),
-           Input_Map[h] <- hh,
-           return hh
+           {Input_Map[h] <- hh;
+           return hh;}
         else return hh;
     }
 
