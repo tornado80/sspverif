@@ -1,7 +1,7 @@
-CompositionNoMappingGame =
+composition CompositionNoMappingGame
  {
 const n: Integer;
-const f: fn: Bits(n),Bits(*) -> Bits(n);
+const f: fn Bits(n),Bits(*) -> Bits(n);
  
 instance key_top =
         Key_top
@@ -25,13 +25,13 @@ instance prf =
 
 compose { 
      adversary:
-        { SET:  key_top
-          EVAL: prf
-          GET:  key_bottom
-        }
+        { SET:  key_top,
+          EVAL: prf,
+          GET:  key_bottom,
+        },
      prf:
-        { GET:  key_top
-          SET:  key_bottom
-        }
+        { GET:  key_top,
+          SET:  key_bottom,
+        },
         }
  }

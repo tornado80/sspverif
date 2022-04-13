@@ -5,11 +5,11 @@ package Prf {
     }
 
     import oracles {
-        Get(h: Integer) -> Bits(n),
-        Set(h: (Integer,Bits(*)), k: Bits(n)) -> Integer,
+        GET(h: Integer) -> Bits(n),
+        SET(h: (Integer,Bits(*)), k: Bits(n)) -> Integer,
     }
 
-    oracle Eval(h: Integer, m: Bits(*)) -> (Integer,Bits(*)) {
+    oracle EVAL(h: Integer, m: Bits(*)) -> (Integer,Bits(*)) {
         h <- GET(h);
         y <- f(h,m);
         hh <- (h,m);
