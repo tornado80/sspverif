@@ -8,8 +8,8 @@ edition = "2018"
 
 [dependencies]
 "thiserror" = "1.0.30"
-pest = "2.0"
-pest_derive = "2.0"
+pest = "2.1"
+pest_derive = "2.1"
 
 [lib]
 name = "sspds"

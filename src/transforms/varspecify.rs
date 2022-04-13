@@ -203,6 +203,7 @@ mod test {
                 pkg: Package{
                     params: param_t.clone(),
                     state: state.clone(),
+                    imports: vec![],
                     oracles: vec![
                         OracleDef{
                             code: c.0.clone(),
@@ -236,6 +237,7 @@ mod test {
                 pkg: Package{
                     params: param_t.clone(),
                     state: state.clone(),
+                    imports: vec![],
                     oracles: vec![
                         OracleDef{
                             code: c.0.clone(),
@@ -269,6 +271,7 @@ mod test {
                 pkg: Package{
                     params: param_t.clone(),
                     state: state.clone(),
+                    imports: vec![],
                     oracles: vec![
                         OracleDef{
                             code: c.0.clone(),
