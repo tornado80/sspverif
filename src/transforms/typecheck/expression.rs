@@ -516,7 +516,7 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
 
         Expression::OracleInvoc(name, args) => {
             if let Some(entry) = scope.lookup(&Identifier::new_scalar(name)) {
-                if let Type::Oracle(arg_types, ret_type) = entry {
+                if let Type::Oracle(arg_types, ret_type) = entry.clone() {
                     // 1. check that arg types match args
                     if args.len() != arg_types.len() {
                         return Err(TypeCheckError::TypeMismatch(
@@ -527,7 +527,7 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                                 arg_types.len()
                             ),
                             Some(expr.clone()),
-                            get_type(expr, scope)?,
+                            entry,
                             Type::Fn(arg_types, ret_type),
                         ));
                     }
