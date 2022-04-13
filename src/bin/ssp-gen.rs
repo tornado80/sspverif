@@ -69,7 +69,7 @@ fn main() {
             let mut ast = match SspParser::parse(Rule::composition, contents) {
                 Ok(ast) => ast,
                 Err(e) => {
-                    panic!("{:#?}", e);
+                    panic!("error parsing file {}: {:#?}", filename, e);
                 }
             };
 
