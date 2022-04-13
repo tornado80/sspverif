@@ -15,6 +15,7 @@ kw_instance = _{ "instance" }
 kw_compose = _{ "compose" }
 
 kw_return = _{ "return" }
+kw_assert = _{ "assert" }
 kw_abort = _{ "abort" }
 
 composition = { kw_composition ~ identifier ~ "{" ~ composition_spec_list ~ "}" }
@@ -73,7 +74,7 @@ num = { ASCII_DIGIT+ }
 
 
 code = { (stmt )* }
-stmt = _{ table_sample | table_assign | sample | assign | return_stmt | abort | ite}
+stmt = _{ table_sample | table_assign | sample | assign | return_stmt | assert | abort | ite}
 
 ite = {"if" ~ expression ~ "{" ~ code ~ "}" ~ ( "else" ~ "{" ~ code ~ "}" )? }
 
@@ -82,6 +83,7 @@ assign = { identifier ~ "<-" ~ expression ~ ";" }
 table_sample = { identifier ~ "[" ~ expression ~ "]" ~ "<-$" ~ tipe ~ ";" }
 table_assign = { identifier ~ "[" ~ expression ~ "]" ~ "<-" ~ expression ~ ";" }
 return_stmt = { kw_return ~ expression ~ ";" }
+assert = { kw_assert ~ expression ~ ";" }
 abort = { kw_abort ~ ";" }
 
 expression = _{ expr_none | expr_some | expr_unwrap | expr_add | expr_sub | expr_mul | expr_div | expr_equals | expr_not_equals | fn_call | table_access | identifier }

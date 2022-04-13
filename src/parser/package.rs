@@ -164,6 +164,11 @@ pub fn handle_code(code: Pair<Rule>, imported_oracles: &HashMap<String, OracleSi
                         };
                         Statement::Return(expr)
                     }
+                    Rule::assert => {
+                        let mut inner = stmt.into_inner();
+                        let expr = handle_expression(inner.next().unwrap(), imported_oracles);
+                        Statement::IfThenElse(expr, CodeBlock(vec![]), CodeBlock(vec![Statement::Abort]))
+                    }
                     Rule::abort => Statement::Abort,
                     Rule::sample => {
                         let mut inner = stmt.into_inner();
