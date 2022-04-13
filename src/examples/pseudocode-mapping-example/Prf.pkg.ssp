@@ -1,10 +1,8 @@
 package Prf {
     params {
-        fn f: (Bits(n),Bits(*)) -> Bits(n)
+        f: fn Bits(n),Bits(*) -> Bits(n),
+        n: Integer,
     }
-
-    state {
-          }
 
     import oracles {
         Get(h: Integer) -> Bits(n),
@@ -12,10 +10,10 @@ package Prf {
     }
 
     oracle Eval(h: Integer, m: Bits(*)) -> (Integer,Bits(*)) {
-        h <- GET(h)
-        y <- f(h,m)
-        hh <- (h,m)
-        SET(hh,y)
+        h <- GET(h);
+        y <- f(h,m);
+        hh <- (h,m);
+        _ <- SET(hh,y);
         return hh;
     }
 }

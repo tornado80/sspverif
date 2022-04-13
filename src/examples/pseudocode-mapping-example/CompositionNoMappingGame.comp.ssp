@@ -12,13 +12,14 @@ instance key_top =
 instance key_bottom =
         Key_bottom
           {
-          n: n
+          n: n,
           }
 
-instance prf
+instance prf =
         Prf
           {
-          f: f
+          f: f,
+          n: n,
           }
 
 
