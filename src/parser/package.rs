@@ -87,6 +87,12 @@ pub fn handle_expression(
             let expr = curry_handle_expression(expr.into_inner().next().unwrap());
             Expression::Unwrap(Box::new(expr))
         }
+        Rule::table_access => {
+            let mut inner = expr.into_inner();
+            let ident = inner.next().unwrap().as_str();
+            let expr = curry_handle_expression(inner.next().unwrap());
+            Expression::TableAccess(Identifier::new_scalar(ident), Box::new(expr))
+        }
         Rule::fn_call => {
             let mut inner = expr.into_inner();
             let ident = inner.next().unwrap().as_str();
@@ -146,6 +152,20 @@ pub fn handle_code(code: Pair<Rule>, imported_oracles: &HashMap<String, OracleSi
                         let ident = Identifier::new_scalar(inner.next().unwrap().as_str());
                         let expr = handle_expression(inner.next().unwrap(), imported_oracles);
                         Statement::Assign(ident, expr)
+                    }
+                    Rule::table_sample => {
+                        let mut inner = stmt.into_inner();
+                        let ident = Identifier::new_scalar(inner.next().unwrap().as_str());
+                        let index = handle_expression(inner.next().unwrap(), imported_oracles);
+                        let tipe = handle_type(inner.next().unwrap());
+                        Statement::TableAssign(ident, index, Expression::Sample(tipe))
+                    }
+                    Rule::table_assign => {
+                        let mut inner = stmt.into_inner();
+                        let ident = Identifier::new_scalar(inner.next().unwrap().as_str());
+                        let index = handle_expression(inner.next().unwrap(), imported_oracles);
+                        let expr = handle_expression(inner.next().unwrap(), imported_oracles);
+                        Statement::TableAssign(ident, index, expr)
                     }
                     _ => {
                         unreachable!("{:#?}", stmt)

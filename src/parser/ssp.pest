@@ -73,12 +73,14 @@ num = { ASCII_DIGIT+ }
 
 
 code = { (stmt )* }
-stmt = _{ sample | assign | return_stmt | abort | ite}
+stmt = _{ table_sample | table_assign | sample | assign | return_stmt | abort | ite}
 
 ite = {"if" ~ expression ~ "{" ~ code ~ "}" ~ ( "else" ~ "{" ~ code ~ "}" )? }
 
 sample = { identifier ~ "<-$" ~ tipe ~ ";" }
 assign = { identifier ~ "<-" ~ expression ~ ";" }
+table_sample = { identifier ~ "[" ~ expression ~ "]" ~ "<-$" ~ tipe ~ ";" }
+table_assign = { identifier ~ "[" ~ expression ~ "]" ~ "<-" ~ expression ~ ";" }
 return_stmt = { kw_return ~ expression ~ ";" }
 abort = { kw_abort ~ ";" }
 

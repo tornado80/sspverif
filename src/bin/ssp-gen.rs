@@ -53,6 +53,9 @@ fn main() {
 
     let mut pkgs_map = HashMap::new();
     for (_, _, _, pkg_name, pkg) in pkgs_list {
+        if pkgs_map.contains_key(&pkg_name) {
+            panic!("Package of name {} redefined", pkg_name)
+        }
         pkgs_map.insert(pkg_name, pkg);
     }
 
