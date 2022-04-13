@@ -45,7 +45,7 @@ fn main() {
     let pkgs_list: Vec<_> = pkgs_list
         .iter()
         .map(|(filename, contents)| {
-            let mut ast = SspParser::parse(Rule::package, contents).unwrap_or_else(panic!("error parsing file {}", filename));
+            let mut ast = SspParser::parse(Rule::package, contents).unwrap_or_else(|e| panic!("error parsing file {}: {:#?}", filename, e));
             let (pkg_name, pkg) = handle_pkg(ast.next().unwrap());
             (filename, contents, ast, pkg_name, pkg)
         })
