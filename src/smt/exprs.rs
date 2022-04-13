@@ -230,11 +230,11 @@ impl From<SspSmtVar> for SmtExpr {
             SspSmtVar::GlobalState => SmtExpr::Atom("__global_state".into()),
             SspSmtVar::SelfState => SmtExpr::Atom("__self_state".into()),
             SspSmtVar::ReturnValue => SmtExpr::Atom("__ret".into()),
-            SspSmtVar::OracleReturnConstructor { pkgname, oname } => {
-                SmtExpr::Atom(format!("mk-return-{}-{}", pkgname, oname))
+            SspSmtVar::OracleReturnConstructor { compname, pkgname, oname } => {
+                SmtExpr::Atom(format!("mk-return-{}-{}-{}", compname, pkgname, oname))
             }
-            SspSmtVar::OracleAbort { pkgname, oname } => {
-                SmtExpr::Atom(format!("mk-abort-{}-{}", pkgname, oname))
+            SspSmtVar::OracleAbort { compname, pkgname, oname } => {
+                SmtExpr::Atom(format!("mk-abort-{}-{}-{}", compname, pkgname, oname))
             }
         }
     }
@@ -272,6 +272,6 @@ pub enum SspSmtVar {
     GlobalState,
     SelfState,
     ReturnValue,
-    OracleReturnConstructor { pkgname: String, oname: String },
-    OracleAbort { pkgname: String, oname: String },
+    OracleReturnConstructor { compname: String, pkgname: String, oname: String },
+    OracleAbort { compname: String, pkgname: String, oname: String },
 }

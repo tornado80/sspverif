@@ -144,7 +144,7 @@ impl<'a> SmtPackageState<'a> {
     }
 
     pub fn smt_sort(&self) -> SmtExpr {
-        SmtExpr::Atom(format!("State-{}-{}", self.comp_name, self.inst_name))
+        SmtExpr::Atom(format!("State_{}_{}", self.comp_name, self.inst_name))
     }
 
     pub fn smt_accessor(&self, id: &str) -> SmtExpr {
