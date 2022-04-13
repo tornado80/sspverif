@@ -50,8 +50,11 @@ pub fn typecheck_comp(
         edge_imports.entry(*from).or_insert(HashSet::new()).insert(sig_.clone());
     }
     if declared_imports != edge_imports {
-        panic!("declared: {:#?} edges: {:#?}",
-         declared_imports, edge_imports);
+        for (i, pkg) in pkgs.clone().iter().enumerate() {
+            if declared_imports[&i] != edge_imports[&i] {
+                panic!("package: {} declared: {:?} edges: {:?}", pkg.name, declared_imports[&i], edge_imports[&i]);
+            }
+        }
     }
 
 
