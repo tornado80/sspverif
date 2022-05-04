@@ -251,24 +251,24 @@ impl<'a> CompositionSmtWriter<'a> {
                 }
                 // TODO actually use the type that we sample to know how far to advance the randomness tape
                 Statement::Sample(ident, opt_idx, tipe) => {
-                   /*
-                    *   1. get counter
-                    *   2. assign ident
-                    *   3. overwrite state
-                    *   4. continue
-                    *
-                    * let
-                    *   ident = sample(ctr)
-                    *   __global = mk-compositionState ( mk-randomndess-state (ctr + 1) ... )
-                    *
-                    *
-                    * ,
-                    *   let (ident = rand(access(counter)) (
-                    *       comp_helper.smt_set(counter, counter+1, body)
-                    * ))
-                    * )
-                    *
-                    */
+                    /*
+                     *   1. get counter
+                     *   2. assign ident
+                     *   3. overwrite state
+                     *   4. continue
+                     *
+                     * let
+                     *   ident = sample(ctr)
+                     *   __global = mk-compositionState ( mk-randomndess-state (ctr + 1) ... )
+                     *
+                     *
+                     * ,
+                     *   let (ident = rand(access(counter)) (
+                     *       comp_helper.smt_set(counter, counter+1, body)
+                     * ))
+                     * )
+                     *
+                     */
                     let ctr = self.get_state_helper("__randomness").smt_access(
                         "ctr",
                         self.comp_helper
@@ -308,73 +308,83 @@ impl<'a> CompositionSmtWriter<'a> {
                     }
                     .into()
                 }
+                Statement::InvokeOracle {
+                    target_inst_name: None,
+                    ..
+                } => {
+                    panic!("found an unresolved oracle invocation: {:#?}", stmt);
+                }
+                Statement::InvokeOracle {
+                    id,
+                    opt_idx,
+                    name,
+                    args,
+                    target_inst_name: Some(target),
+                } => {
+                    let smt_expr = SmtLet {
+                        bindings: vec![(smt_to_string(SspSmtVar::ReturnValue), {
+                            let mut cmdline = vec![
+                                SmtExpr::Atom(format!(
+                                    "oracle-{}-{}-{}",
+                                    self.comp.name, target, name
+                                )),
+                                SspSmtVar::GlobalState.into(),
+                            ];
 
-                Statement::Assign(ident, Expression::Typed(t, inner))
-                    if matches!(**inner, Expression::LowLevelOracleInvoc { .. }) =>
-                {
-                    match *inner.clone() {
-                        Expression::LowLevelOracleInvoc {
-                            name,
-                            pkgname: dst_pkgname,
-                            args,
-                        } => SmtLet {
-                            bindings: vec![(smt_to_string(SspSmtVar::ReturnValue), {
-                                let mut cmdline = vec![
-                                    SmtExpr::Atom(format!(
-                                        "oracle-{}-{}-{}",
-                                        self.comp.name, dst_pkgname, name
-                                    )),
-                                    SspSmtVar::GlobalState.into(),
-                                ];
+                            for arg in args {
+                                cmdline.push(arg.clone().into())
+                            }
 
-                                for arg in args {
-                                    cmdline.push(arg.clone().into())
-                                }
-
-                                SmtExpr::List(cmdline)
-                            })],
-                            body: SmtIte {
-                                cond: SmtIs {
-                                    con: format!(
-                                        "mk-abort-{}-{}-{}",
-                                        self.comp.name, dst_pkgname, name
-                                    ),
-                                    expr: SspSmtVar::ReturnValue,
-                                },
-                                then: SspSmtVar::OracleAbort {
-                                    compname: self.comp.name.clone(),
-                                    pkgname: pkgname.into(),
-                                    oname: sig.name.clone(),
-                                },
-                                els: SmtLet {
-                                    bindings: vec![
-                                        (
-                                            smt_to_string(SspSmtVar::GlobalState),
-                                            SmtExpr::List(vec![
-                                                SmtExpr::Atom(format!(
-                                                    "return-{}-{}-{}-state",
-                                                    self.comp.name, dst_pkgname, name
-                                                )),
-                                                SspSmtVar::ReturnValue.into(),
-                                            ]),
-                                        ),
-                                        (
-                                            ident.ident(),
-                                            SmtExpr::List(vec![
-                                                SmtExpr::Atom(format!(
-                                                    "return-{}-{}-{}-value",
-                                                    self.comp.name, dst_pkgname, name
-                                                )),
-                                                SspSmtVar::ReturnValue.into(),
-                                            ]),
-                                        ),
-                                    ],
-                                    body: result.unwrap(),
-                                },
+                            SmtExpr::List(cmdline)
+                        })],
+                        body: SmtIte {
+                            cond: SmtIs {
+                                con: format!("mk-abort-{}-{}-{}", self.comp.name, target, name),
+                                expr: SspSmtVar::ReturnValue,
                             },
-                        }
-                        .into(),
-                        _ => unreachable!(format!("{:?}", stmt)),
+                            then: SspSmtVar::OracleAbort {
+                                compname: self.comp.name.clone(),
+                                pkgname: pkgname.into(),
+                                oname: sig.name.clone(),
+                            },
+                            els: SmtLet {
+                                bindings: vec![
+                                    (
+                                        smt_to_string(SspSmtVar::GlobalState),
+                                        SmtExpr::List(vec![
+                                            SmtExpr::Atom(format!(
+                                                "return-{}-{}-{}-state",
+                                                self.comp.name, target, name
+                                            )),
+                                            SspSmtVar::ReturnValue.into(),
+                                        ]),
+                                    ),
+                                    (
+                                        id.ident(),
+                                        SmtExpr::List(vec![
+                                            SmtExpr::Atom(format!(
+                                                "return-{}-{}-{}-value",
+                                                self.comp.name, target, name
+                                            )),
+                                            SspSmtVar::ReturnValue.into(),
+                                        ]),
+                                    ),
+                                ],
+                                body: result.unwrap(),
+                            },
+                        },
+                    };
+
+                    if opt_idx.is_some() {
+                        SmtExpr::List(vec![
+                            SmtExpr::Atom("store".into()),
+                            id.to_expression().into(),
+                            opt_idx.clone().unwrap().into(),
+                            smt_expr.into(),
+                        ])
+                        .into()
+                    } else {
+                        smt_expr.into()
                     }
                 }
                 Statement::Assign(ident, expr) => {

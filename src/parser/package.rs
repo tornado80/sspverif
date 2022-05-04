@@ -62,62 +62,54 @@ pub fn handle_oracle_sig(oracle_sig: Pair<Rule>) -> OracleSig {
     }
 }
 
-pub fn handle_expression(
-    expr: Pair<Rule>,
-    imported_oracles: &HashMap<String, OracleSig>,
-) -> Expression {
-    let curry_handle_expression = |expr| handle_expression(expr, imported_oracles);
+pub fn handle_expression(expr: Pair<Rule>) -> Expression {
     match expr.as_rule() {
         // expr_equals | expr_not_equals | fn_call | table_access | identifier
         Rule::expr_add => {
             let mut inner = expr.into_inner();
-            let mut lhs = curry_handle_expression(inner.next().unwrap());
-            let mut rhs = curry_handle_expression(inner.next().unwrap());
+            let mut lhs = handle_expression(inner.next().unwrap());
+            let mut rhs = handle_expression(inner.next().unwrap());
             Expression::Add(Box::new(lhs), Box::new(rhs))
         }
         Rule::expr_sub => {
             let mut inner = expr.into_inner();
-            let mut lhs = curry_handle_expression(inner.next().unwrap());
-            let mut rhs = curry_handle_expression(inner.next().unwrap());
+            let mut lhs = handle_expression(inner.next().unwrap());
+            let mut rhs = handle_expression(inner.next().unwrap());
             Expression::Sub(Box::new(lhs), Box::new(rhs))
         }
         Rule::expr_mul => {
             let mut inner = expr.into_inner();
-            let mut lhs = curry_handle_expression(inner.next().unwrap());
-            let mut rhs = curry_handle_expression(inner.next().unwrap());
+            let mut lhs = handle_expression(inner.next().unwrap());
+            let mut rhs = handle_expression(inner.next().unwrap());
             Expression::Mul(Box::new(lhs), Box::new(rhs))
         }
         Rule::expr_div => {
             let mut inner = expr.into_inner();
-            let mut lhs = curry_handle_expression(inner.next().unwrap());
-            let mut rhs = curry_handle_expression(inner.next().unwrap());
+            let mut lhs = handle_expression(inner.next().unwrap());
+            let mut rhs = handle_expression(inner.next().unwrap());
             Expression::Div(Box::new(lhs), Box::new(rhs))
         }
-        Rule::expr_tuple => {
-            Expression::Tuple(expr.into_inner().map(curry_handle_expression).collect())
-        }
-        Rule::expr_equals => {
-            Expression::Equals(expr.into_inner().map(curry_handle_expression).collect())
-        }
+        Rule::expr_tuple => Expression::Tuple(expr.into_inner().map(handle_expression).collect()),
+        Rule::expr_equals => Expression::Equals(expr.into_inner().map(handle_expression).collect()),
         Rule::expr_not_equals => Expression::Not(Box::new(Expression::Equals(
-            expr.into_inner().map(curry_handle_expression).collect(),
+            expr.into_inner().map(handle_expression).collect(),
         ))),
         Rule::expr_none => {
             let tipe = handle_type(expr.into_inner().next().unwrap());
             Expression::None(tipe)
         }
         Rule::expr_some => {
-            let expr = curry_handle_expression(expr.into_inner().next().unwrap());
+            let expr = handle_expression(expr.into_inner().next().unwrap());
             Expression::Some(Box::new(expr))
         }
         Rule::expr_unwrap => {
-            let expr = curry_handle_expression(expr.into_inner().next().unwrap());
+            let expr = handle_expression(expr.into_inner().next().unwrap());
             Expression::Unwrap(Box::new(expr))
         }
         Rule::table_access => {
             let mut inner = expr.into_inner();
             let ident = inner.next().unwrap().as_str();
-            let expr = curry_handle_expression(inner.next().unwrap());
+            let expr = handle_expression(inner.next().unwrap());
             Expression::TableAccess(Identifier::new_scalar(ident), Box::new(expr))
         }
         Rule::fn_call => {
@@ -125,23 +117,16 @@ pub fn handle_expression(
             let ident = inner.next().unwrap().as_str();
             let args = match inner.next() {
                 None => vec![],
-                Some(inner_args) => inner_args
-                    .into_inner()
-                    .map(curry_handle_expression)
-                    .collect(),
+                Some(inner_args) => inner_args.into_inner().map(handle_expression).collect(),
             };
-            if imported_oracles.contains_key(ident) {
-                Expression::OracleInvoc(ident.to_owned(), args)
-            } else {
-                Expression::FnCall(ident.to_string(), args)
-            }
+            Expression::FnCall(ident.to_string(), args)
         }
         Rule::identifier => Identifier::new_scalar(expr.as_str()).to_expression(),
         _ => unreachable!("{:#?}", expr),
     }
 }
 
-pub fn handle_code(code: Pair<Rule>, imported_oracles: &HashMap<String, OracleSig>) -> CodeBlock {
+pub fn handle_code(code: Pair<Rule>) -> CodeBlock {
     CodeBlock(
         code.into_inner()
             .map(|stmt| {
@@ -149,12 +134,12 @@ pub fn handle_code(code: Pair<Rule>, imported_oracles: &HashMap<String, OracleSi
                     // assign | return_stmt | abort | ite
                     Rule::ite => {
                         let mut inner = stmt.into_inner();
-                        let expr = handle_expression(inner.next().unwrap(), imported_oracles);
-                        let ifcode = handle_code(inner.next().unwrap(), imported_oracles);
+                        let expr = handle_expression(inner.next().unwrap());
+                        let ifcode = handle_code(inner.next().unwrap());
                         let maybe_elsecode = inner.next();
                         let elsecode = match maybe_elsecode {
                             None => CodeBlock(vec![]),
-                            Some(c) => handle_code(c, imported_oracles),
+                            Some(c) => handle_code(c),
                         };
                         Statement::IfThenElse(expr, ifcode, elsecode)
                     }
@@ -163,13 +148,13 @@ pub fn handle_code(code: Pair<Rule>, imported_oracles: &HashMap<String, OracleSi
                         let maybe_expr = inner.next();
                         let expr = match maybe_expr {
                             None => None,
-                            Some(e) => Some(handle_expression(e, imported_oracles)),
+                            Some(e) => Some(handle_expression(e)),
                         };
                         Statement::Return(expr)
                     }
                     Rule::assert => {
                         let mut inner = stmt.into_inner();
-                        let expr = handle_expression(inner.next().unwrap(), imported_oracles);
+                        let expr = handle_expression(inner.next().unwrap());
                         Statement::IfThenElse(
                             expr,
                             CodeBlock(vec![]),
@@ -187,22 +172,53 @@ pub fn handle_code(code: Pair<Rule>, imported_oracles: &HashMap<String, OracleSi
                     Rule::assign => {
                         let mut inner = stmt.into_inner();
                         let ident = Identifier::new_scalar(inner.next().unwrap().as_str());
-                        let expr = handle_expression(inner.next().unwrap(), imported_oracles);
+                        let expr = handle_expression(inner.next().unwrap());
                         Statement::Assign(ident, expr)
                     }
                     Rule::table_sample => {
                         let mut inner = stmt.into_inner();
                         let ident = Identifier::new_scalar(inner.next().unwrap().as_str());
-                        let index = handle_expression(inner.next().unwrap(), imported_oracles);
+                        let index = handle_expression(inner.next().unwrap());
                         let tipe = handle_type(inner.next().unwrap());
                         Statement::TableAssign(ident, index, Expression::Sample(tipe))
                     }
                     Rule::table_assign => {
                         let mut inner = stmt.into_inner();
                         let ident = Identifier::new_scalar(inner.next().unwrap().as_str());
-                        let index = handle_expression(inner.next().unwrap(), imported_oracles);
-                        let expr = handle_expression(inner.next().unwrap(), imported_oracles);
+                        let index = handle_expression(inner.next().unwrap());
+                        let expr = handle_expression(inner.next().unwrap());
                         Statement::TableAssign(ident, index, expr)
+                    }
+                    Rule::invocation => {
+                        let mut inner = stmt.into_inner();
+                        let ident = Identifier::new_scalar(inner.next().unwrap().as_str());
+                        let maybe_index = inner.next().unwrap();
+                        let (opt_idx, oracle_inv) = if maybe_index.as_rule() == Rule::table_index {
+                            let mut inner_index = maybe_index.into_inner();
+                            let index = handle_expression(inner_index.next().unwrap());
+                            (Some(index), inner.next().unwrap())
+                        } else {
+                            (None, maybe_index)
+                        };
+
+                        let handle_expression = |expr| handle_expression(expr);
+
+                        let mut inner = oracle_inv.into_inner();
+                        let oracle_name = inner.next().unwrap().as_str();
+                        let args = match inner.next() {
+                            None => vec![],
+                            Some(inner_args) => {
+                                inner_args.into_inner().map(handle_expression).collect()
+                            }
+                        };
+
+                        Statement::InvokeOracle {
+                            id: ident,
+                            opt_idx,
+                            name: oracle_name.to_owned(),
+                            args,
+                            target_inst_name: None,
+                        }
                     }
                     _ => {
                         unreachable!("{:#?}", stmt)
@@ -213,13 +229,10 @@ pub fn handle_code(code: Pair<Rule>, imported_oracles: &HashMap<String, OracleSi
     )
 }
 
-pub fn handle_oracle_def(
-    oracle_def: Pair<Rule>,
-    imported_oracles: &HashMap<String, OracleSig>,
-) -> OracleDef {
+pub fn handle_oracle_def(oracle_def: Pair<Rule>) -> OracleDef {
     let mut inner = oracle_def.into_inner();
     let sig = handle_oracle_sig(inner.next().unwrap());
-    let code = handle_code(inner.next().unwrap(), imported_oracles);
+    let code = handle_code(inner.next().unwrap());
 
     OracleDef {
         sig: sig,
@@ -250,7 +263,7 @@ pub fn handle_pkg_spec(pkg_spec: Pair<Rule>) -> Package {
                 }
             }
             Rule::oracle_def => {
-                oracles.push(handle_oracle_def(spec, &imported_oracles));
+                oracles.push(handle_oracle_def(spec));
             }
             _ => unreachable!("unhandled ast node in package: {}", spec),
         }
@@ -259,7 +272,7 @@ pub fn handle_pkg_spec(pkg_spec: Pair<Rule>) -> Package {
     Package {
         oracles: oracles,
         params: params.unwrap_or_default(),
-        imports: imported_oracles.iter().map(|(k,v)| v.clone()).collect(),
+        imports: imported_oracles.iter().map(|(k, v)| v.clone()).collect(),
         state: state.unwrap_or_default(),
     }
 }

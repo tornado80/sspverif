@@ -119,20 +119,27 @@ pub fn mapping_game(params: &HashMap<String, String>) -> Composition {
                     tipe: Type::Tuple(vec![Type::Integer, Type::new_bits("*")]),
                 },
                 code: block! {
-                    Statement::Assign(Identifier::new_scalar("k"), Expression::OracleInvoc("Get".to_string(), vec![Identifier::new_scalar("h").to_expression()])),
+                    Statement::InvokeOracle{
+                        id: Identifier::new_scalar("k"),
+                        opt_idx: None,
+                        name: "Get".to_string(),
+                        args: vec![Identifier::new_scalar("h").to_expression()],
+                        target_inst_name: None
+                    },
                     Statement::Assign(Identifier::new_scalar("y"),fncall! { "f",
                                                       Identifier::new_scalar("k").to_expression(),
                                                       Identifier::new_scalar("msg").to_expression()}),
-                    Statement::Assign(Identifier::new_scalar("z"), Expression::OracleInvoc(
-                        "Set".to_string(),
-                        vec![
-                            Expression::Tuple(vec![
-                                Identifier::new_scalar("h").to_expression(),
-                                Identifier::new_scalar("msg").to_expression()
-                            ]),
-                            Identifier::new_scalar("y").to_expression()
-                        ]
-                    )),
+                    Statement::InvokeOracle{
+                        id: Identifier::new_scalar("z"),
+                        opt_idx: None,
+                        name: "Set".to_string(),
+                        args: vec![Expression::Tuple(vec![
+                            Identifier::new_scalar("h").to_expression(),
+                            Identifier::new_scalar("msg").to_expression()
+                        ]),
+                        Identifier::new_scalar("y").to_expression()],
+                        target_inst_name: None
+                    },
                     Statement::Return(Some(
                         Expression::Tuple(vec![
                             Identifier::new_scalar("h").to_expression(),

@@ -10,6 +10,7 @@ use std::fs;
 use sspds::parser::{composition::handle_composition, package::handle_pkg, Rule, SspParser};
 use sspds::smt::exprs::{SmtExpr, SmtFmt};
 use sspds::smt::writer::CompositionSmtWriter;
+use sspds::hacks;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -67,6 +68,10 @@ fn main() {
         pkgs_filenames.insert(pkg_name, filename);
     }
 
+    hacks::declare_par_Maybe();
+    println!("(declare-sort Bits_n 0)");
+    println!("(declare-fun f (Bits_n Bits_n) Bits_n)");
+
     let comp_list: Vec<_> = comp_list
         .iter()
         .map(|(filename, contents)| {
@@ -98,6 +103,8 @@ fn main() {
             line.write_smt_to(&mut std::io::stdout()).unwrap();
         }
     }
+
+    println!("(check-sat)");
 
     //println!("pkgs: {:#?}", pkgs_list);
     //println!("compositions: {:#?}", comp_list);

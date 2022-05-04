@@ -13,6 +13,13 @@ pub enum Statement {
     TableAssign(Identifier, Expression, Expression), // TableAssign(T, 2+3, g^r) <== T[2+3] <-- g^r
     IfThenElse(Expression, CodeBlock, CodeBlock),
     Sample(Identifier, Option<Expression>, Type),
+    InvokeOracle{
+        id: Identifier,
+        opt_idx: Option<Expression>,
+        name: String,
+        args: Vec<Expression>,
+        target_inst_name: Option<String>,
+    }
 }
 
 #[macro_export]

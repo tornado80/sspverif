@@ -513,63 +513,6 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
             }
         }
 
-        Expression::OracleInvoc(name, args) => {
-            if let Some(entry) = scope.lookup(&Identifier::new_scalar(name)) {
-                if let Type::Oracle(arg_types, ret_type) = entry.clone() {
-                    // 1. check that arg types match args
-                    if args.len() != arg_types.len() {
-                        return Err(TypeCheckError::TypeMismatch(
-                            ErrorLocation::Unknown,
-                            format!(
-                                "oracle invocation argument count mismatch. get {}, expected {}",
-                                args.len(),
-                                arg_types.len()
-                            ),
-                            Some(expr.clone()),
-                            entry,
-                            Type::Fn(arg_types, ret_type),
-                        ));
-                    }
-                    let mut typified_args = vec![];
-
-                    for (i, arg) in args.iter().enumerate() {
-                        let typified_arg = typify(arg, scope)?;
-                        let t_arg = get_type(&typified_arg, scope)?;
-                        if t_arg != arg_types[i] {
-                            return Err(TypeCheckError::TypeMismatch(
-                                ErrorLocation::Unknown,
-                                format!("argument type mismatch at position {} at invocation of oracle {:}", i, name),
-                                Some(arg.clone()),
-                                t_arg,
-                                arg_types[i].clone(),
-                            ));
-                        }
-
-                        typified_args.push(typified_arg);
-                    }
-
-                    // 2. return ret type
-                    Ok(Expression::Typed(
-                        *ret_type,
-                        Box::new(Expression::OracleInvoc(name.clone(), typified_args)),
-                    ))
-                } else {
-                    Err(TypeCheckError::TypeMismatchVague(
-                        ErrorLocation::Unknown,
-                        format!("name {:} resolved to non-oracle type", name),
-                        Some(expr.clone()),
-                        entry,
-                    ))
-                }
-            } else {
-                Err(TypeCheckError::Undefined(
-                    ErrorLocation::Unknown,
-                    format!("oracle not found in scope"),
-                    Identifier::new_scalar(name),
-                ))
-            }
-        }
-
         Expression::Identifier(id) => {
             if let Some(t) = scope.lookup(id) {
                 Ok(Expression::Typed(

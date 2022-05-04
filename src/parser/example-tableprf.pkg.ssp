@@ -13,7 +13,7 @@ package TablePRF {
     oracle Eval(i: Integer, msg: Bits(n)) -> Bits(n) {
         /* we have to put the <- directly after the k here. this might be a bug in pest.
            TODO: construct minimum working example for bug report */
-        k <- Get(i); 
+        k <- invoke Get(i); 
         out <- f(k, msg);
         return out;
     }

@@ -2,6 +2,7 @@ use super::errors::{ErrorLocation, TypeCheckError};
 use super::expression::{get_type, typify};
 use super::scope::Scope;
 
+use crate::identifier::Identifier;
 use crate::statement::{CodeBlock, Statement};
 use crate::types::Type;
 
@@ -96,12 +97,14 @@ impl TypedCodeBlock {
                         if let Some(idx) = opt_idx {
                             let typed_idx = typify(idx, scope)?;
                             let idx_type = get_type(&typed_idx, scope)?;
-        
                             if let Type::Table(k, v) = id_type {
                                 if *k != idx_type {
                                     return Err(TypeCheckError::TypeMismatch(
                                         ErrorLocation::Unknown,
-                                        format!("type used as index to table {:?} does not match", id),
+                                        format!(
+                                            "type used as index to table {:?} does not match",
+                                            id
+                                        ),
                                         Some(idx.clone()),
                                         idx_type,
                                         *k,
@@ -125,8 +128,6 @@ impl TypedCodeBlock {
                                     Type::Table(Box::new(idx_type), Box::new(sample_type.clone())),
                                 ));
                             }
-
-                            
                         } else {
                             if id_type != sample_type.clone() {
                                 return Err(TypeCheckError::TypeMismatch(
@@ -141,7 +142,6 @@ impl TypedCodeBlock {
                     } else {
                         scope.declare(id.clone(), sample_type.clone())?;
                     }
-                     
 
                     let opt_idx = if opt_idx.is_some() {
                         Some(typify(&opt_idx.clone().unwrap(), scope)?)
@@ -150,6 +150,131 @@ impl TypedCodeBlock {
                     };
 
                     new_block.push(Statement::Sample(id.clone(), opt_idx, sample_type.clone()));
+                }
+                Statement::InvokeOracle {
+                    id,
+                    opt_idx,
+                    name,
+                    args,
+                    target_inst_name,
+                } => {
+                    let oracle_entry = scope.lookup(&Identifier::new_scalar(name));
+                    if oracle_entry.is_none() {
+                        return Err(TypeCheckError::Undefined(
+                            ErrorLocation::Unknown,
+                            format!("no oracle with name {:} found", name),
+                            Identifier::new_scalar(name),
+                        ));
+                    }
+
+                    let oracle_entry = oracle_entry.unwrap().clone();
+
+                    let (arg_types, ret_type) =
+                        if let Type::Oracle(arg_types, ret_type) = oracle_entry.clone() {
+                            (arg_types, ret_type)
+                        } else {
+                            return Err(TypeCheckError::TypeMismatchVague(
+                                ErrorLocation::Unknown,
+                                format!("name {:} resolved to non-oracle type", name),
+                                None,
+                                oracle_entry,
+                            ));
+                        };
+
+                    // 1. check that arg types match args
+                    if args.len() != arg_types.len() {
+                        return Err(TypeCheckError::TypeMismatch(
+                            ErrorLocation::Unknown,
+                            format!(
+                                "oracle invocation argument count mismatch. get {}, expected {}",
+                                args.len(),
+                                arg_types.len()
+                            ),
+                            None,
+                            oracle_entry,
+                            Type::Fn(arg_types, ret_type),
+                        ));
+                    }
+
+                    let mut typified_args = vec![];
+                    for (i, arg) in args.iter().enumerate() {
+                        let typified_arg = typify(arg, scope)?;
+                        let t_arg = get_type(&typified_arg, scope)?;
+                        if t_arg != arg_types[i] {
+                            return Err(TypeCheckError::TypeMismatch(
+                                ErrorLocation::Unknown,
+                                format!("argument type mismatch at position {} at invocation of oracle {:}", i, name),
+                                Some(arg.clone()),
+                                t_arg,
+                                arg_types[i].clone(),
+                            ));
+                        }
+
+                        typified_args.push(typified_arg);
+                    }
+                    if let Some(id_type) = scope.lookup(id) {
+                        if let Some(idx) = opt_idx {
+                            let typed_idx = typify(idx, scope)?;
+                            let idx_type = get_type(&typed_idx, scope)?;
+                            if let Type::Table(k, v) = id_type {
+                                if *k != idx_type {
+                                    return Err(TypeCheckError::TypeMismatch(
+                                        ErrorLocation::Unknown,
+                                        format!(
+                                            "type used as index to table {:?} does not match",
+                                            id
+                                        ),
+                                        Some(idx.clone()),
+                                        idx_type,
+                                        *k,
+                                    ));
+                                }
+                                if *v != *ret_type {
+                                    return Err(TypeCheckError::TypeMismatch(
+                                        ErrorLocation::Unknown,
+                                        "value type of the table does not match".to_string(),
+                                        None,
+                                        *v,
+                                        *ret_type.clone(),
+                                    ));
+                                }
+                            } else {
+                                return Err(TypeCheckError::TypeMismatch(
+                                    ErrorLocation::Unknown,
+                                    "table access on non-table".to_string(),
+                                    None,
+                                    id_type,
+                                    Type::Table(Box::new(idx_type), Box::new(*ret_type.clone())),
+                                ));
+                            }
+                        } else {
+                            if id_type != *ret_type.clone() {
+                                return Err(TypeCheckError::TypeMismatch(
+                                    ErrorLocation::Unknown,
+                                    format!("sampling into variable {:?} of different type", id),
+                                    None,
+                                    id_type,
+                                    *ret_type.clone(),
+                                ));
+                            }
+                        }
+                    } else {
+                        scope.declare(id.clone(), *ret_type.clone())?;
+                    }
+
+                    let opt_idx = if opt_idx.is_some() {
+                        Some(typify(&opt_idx.clone().unwrap(), scope)?)
+                    } else {
+                        None
+                    };
+
+                    new_block.push(Statement::InvokeOracle {
+                        id: id.clone(),
+                        opt_idx: opt_idx.clone(),
+                        name: name.clone(),
+                        args: typified_args,
+                        target_inst_name: target_inst_name.clone(),
+                    })
                 }
                 Statement::TableAssign(id, idx, expr) => {
                     let typed_expr = typify(expr, scope)?;

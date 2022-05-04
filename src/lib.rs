@@ -10,8 +10,6 @@ pub mod types;
 pub mod smt;
 pub mod transforms;
 
-pub mod examples;
-
 pub mod hacks;
 
 pub mod parser;

@@ -1,5 +1,5 @@
 //#![feature(backtrace)]
-
+/*
 use std::collections::HashMap;
 
 use sspds::hacks::{declare_par_Maybe, declare_tuples};
@@ -101,3 +101,6 @@ fn main() {
     println!("(check-sat)");
     println!("(get-model)");
 }
+*/
+
+fn main() {}

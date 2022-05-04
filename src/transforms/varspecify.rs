@@ -99,6 +99,25 @@ fn var_specify_helper(inst: &PackageInstance, block: CodeBlock, comp_name: &str)
                         unreachable!()
                     }
                 }
+                Statement::InvokeOracle{
+                    id, opt_idx, name, args, target_inst_name
+                } => {
+                    let opt_idx = opt_idx.clone().map(|expr| expr.map(fixup));
+                    let args = args.into_iter().map(|expr| expr.map(fixup)).collect();
+                    
+                    
+                    if let Expression::Identifier(id) = fixup(id.to_expression()) {
+                        Statement::InvokeOracle{
+                            id,
+                            opt_idx,
+                            name:name.clone(),
+                            args,
+                            target_inst_name:target_inst_name.clone(),
+                        }
+                    } else {
+                        unreachable!()
+                    }
+                }
                 Statement::IfThenElse(expr, ifcode, elsecode) => Statement::IfThenElse(
                     expr.map(fixup),
                     var_specify_helper(inst, ifcode.clone(), comp_name),
