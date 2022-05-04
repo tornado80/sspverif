@@ -50,7 +50,7 @@ pub fn typecheck_comp(
         edge_imports.entry(*from).or_insert(HashSet::new()).insert(sig_.clone());
     }
     if declared_imports != edge_imports {
-        if declared_imports.keys().collect::<Vec<_>>() != edge_imports.keys().collect::<Vec<_>>() {
+        if declared_imports.keys().collect::<HashSet<_>>() != edge_imports.keys().collect::<HashSet<_>>() {
             panic!("Different set of keys with imports, declared: {:?} edges: {:?}", declared_imports.keys(), edge_imports.keys())
         }
         for (i, pkg) in pkgs.clone().iter().enumerate() {
@@ -58,7 +58,7 @@ pub fn typecheck_comp(
                 continue;
             }
             if declared_imports[&i] != edge_imports[&i] {
-                panic!("package: {} declared: {:?} edges: {:?}", pkg.name, declared_imports[&i], edge_imports[&i]);
+                panic!("package: {} declared: {:#?} edges: {:#?}", pkg.name, declared_imports[&i], edge_imports[&i]);
             }
         }
     }
