@@ -1,4 +1,4 @@
-use super::{common::*, Parser, Rule};
+use super::{common::*, Rule};
 
 use pest::iterators::{Pair, Pairs};
 use std::collections::HashMap;

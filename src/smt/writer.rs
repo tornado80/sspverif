@@ -5,7 +5,7 @@ use crate::statement::{CodeBlock, Statement};
 use crate::types::Type;
 
 use crate::smt::{
-    exprs::{smt_to_string, SmtExpr, SmtFmt, SmtIs, SmtIte, SmtLet, SspSmtVar},
+    exprs::{smt_to_string, SmtExpr, SmtIs, SmtIte, SmtLet, SspSmtVar},
     state_helpers::{SmtCompositionState, SmtPackageState},
 };
 

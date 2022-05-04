@@ -4,7 +4,6 @@ pub mod package;
 
 extern crate pest;
 
-use pest::Parser;
 
 #[derive(Parser)]
 #[grammar = "parser/ssp.pest"]

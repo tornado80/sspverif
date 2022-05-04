@@ -1,4 +1,3 @@
-use crate::types::Type;
 
 #[allow(non_snake_case)]
 pub fn declare_datatype_Maybe(t: &str) {

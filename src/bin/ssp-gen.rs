@@ -8,7 +8,7 @@ use std::env;
 use std::fs;
 
 use sspds::parser::{composition::handle_composition, package::handle_pkg, Rule, SspParser};
-use sspds::smt::exprs::{SmtExpr, SmtFmt};
+use sspds::smt::exprs::SmtFmt;
 use sspds::smt::writer::CompositionSmtWriter;
 use sspds::hacks;
 
@@ -19,7 +19,7 @@ fn main() {
     let mut pkgs_list = vec![];
     let mut comp_list = vec![];
 
-    let mut dir_list = fs::read_dir(dir_path).expect("cannot list directory");
+    let dir_list = fs::read_dir(dir_path).expect("cannot list directory");
 
     for dir_entry in dir_list {
         let dir_entry = dir_entry.unwrap();

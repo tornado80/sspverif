@@ -1,4 +1,3 @@
-use crate::expressions::Expression;
 use crate::package::{Composition, OracleDef, Package, PackageInstance};
 use crate::statement::{CodeBlock, Statement};
 
