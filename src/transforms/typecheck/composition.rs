@@ -38,7 +38,7 @@ pub fn typecheck_comp(
     }
 
     // 1b. check signature matches in package imports
-    let mut declared_imports:HashMap<_,_> = pkgs.clone()
+    let declared_imports:HashMap<_,_> = pkgs.clone()
         .into_iter()
         .enumerate()
         .map(|(i, pkg)| (i, HashSet::from_iter(pkg.pkg.imports.into_iter())))

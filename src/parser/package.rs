@@ -67,26 +67,26 @@ pub fn handle_expression(expr: Pair<Rule>) -> Expression {
         // expr_equals | expr_not_equals | fn_call | table_access | identifier
         Rule::expr_add => {
             let mut inner = expr.into_inner();
-            let mut lhs = handle_expression(inner.next().unwrap());
-            let mut rhs = handle_expression(inner.next().unwrap());
+            let lhs = handle_expression(inner.next().unwrap());
+            let rhs = handle_expression(inner.next().unwrap());
             Expression::Add(Box::new(lhs), Box::new(rhs))
         }
         Rule::expr_sub => {
             let mut inner = expr.into_inner();
-            let mut lhs = handle_expression(inner.next().unwrap());
-            let mut rhs = handle_expression(inner.next().unwrap());
+            let lhs = handle_expression(inner.next().unwrap());
+            let rhs = handle_expression(inner.next().unwrap());
             Expression::Sub(Box::new(lhs), Box::new(rhs))
         }
         Rule::expr_mul => {
             let mut inner = expr.into_inner();
-            let mut lhs = handle_expression(inner.next().unwrap());
-            let mut rhs = handle_expression(inner.next().unwrap());
+            let lhs = handle_expression(inner.next().unwrap());
+            let rhs = handle_expression(inner.next().unwrap());
             Expression::Mul(Box::new(lhs), Box::new(rhs))
         }
         Rule::expr_div => {
             let mut inner = expr.into_inner();
-            let mut lhs = handle_expression(inner.next().unwrap());
-            let mut rhs = handle_expression(inner.next().unwrap());
+            let lhs = handle_expression(inner.next().unwrap());
+            let rhs = handle_expression(inner.next().unwrap());
             Expression::Div(Box::new(lhs), Box::new(rhs))
         }
         Rule::expr_tuple => Expression::Tuple(expr.into_inner().map(handle_expression).collect()),
