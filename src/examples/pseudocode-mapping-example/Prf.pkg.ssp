@@ -6,7 +6,7 @@ package Prf {
 
     import oracles {
         GET(h: Integer) -> Bits(n),
-        SET(h: (Integer,Bits(*)), k: Bits(n)) -> Integer,
+        SET(h: (Integer,Bits(*)), k: Bits(n)) -> (Integer,Bits(*)),
     }
 
     oracle EVAL(h: Integer, m: Bits(*)) -> (Integer,Bits(*)) {
