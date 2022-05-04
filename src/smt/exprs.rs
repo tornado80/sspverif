@@ -53,10 +53,8 @@ impl SmtFmt for SmtExpr {
 impl From<Expression> for SmtExpr {
     fn from(expr: Expression) -> SmtExpr {
         match expr {
-            Expression::Typed(_t, inner) => {
-                SmtExpr::from(*inner)
-            },
-            Expression::Unwrap(inner) => {
+            Expression::Typed(_t, inner) => SmtExpr::from(*inner),
+            Expression::Unwrap(_inner) => {
                 panic!("unwrap expressions need to be on the right hand side of an assign!");
                 // TODO find a better way to present that error to the user.
             }

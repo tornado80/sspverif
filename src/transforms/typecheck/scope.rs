@@ -7,6 +7,12 @@ use std::collections::HashMap;
 #[derive(Debug, Clone)]
 pub struct Scope(Vec<HashMap<Identifier, Type>>);
 
+impl Default for Scope {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Scope {
     pub fn new() -> Scope {
         Scope(vec![])

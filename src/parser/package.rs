@@ -57,8 +57,8 @@ pub fn handle_oracle_sig(oracle_sig: Pair<Rule>) -> OracleSig {
 
     OracleSig {
         name: name.to_string(),
-        tipe: tipe,
-        args: args,
+        tipe,
+        args,
     }
 }
 
@@ -146,10 +146,7 @@ pub fn handle_code(code: Pair<Rule>) -> CodeBlock {
                     Rule::return_stmt => {
                         let mut inner = stmt.into_inner();
                         let maybe_expr = inner.next();
-                        let expr = match maybe_expr {
-                            None => None,
-                            Some(e) => Some(handle_expression(e)),
-                        };
+                        let expr = maybe_expr.map(handle_expression);
                         Statement::Return(expr)
                     }
                     Rule::assert => {
@@ -201,8 +198,6 @@ pub fn handle_code(code: Pair<Rule>) -> CodeBlock {
                             (None, maybe_index)
                         };
 
-                        let handle_expression = |expr| handle_expression(expr);
-
                         let mut inner = oracle_inv.into_inner();
                         let oracle_name = inner.next().unwrap().as_str();
                         let args = match inner.next() {
@@ -234,10 +229,7 @@ pub fn handle_oracle_def(oracle_def: Pair<Rule>) -> OracleDef {
     let sig = handle_oracle_sig(inner.next().unwrap());
     let code = handle_code(inner.next().unwrap());
 
-    OracleDef {
-        sig: sig,
-        code: code,
-    }
+    OracleDef { sig, code }
 }
 
 pub fn handle_pkg_spec(pkg_spec: Pair<Rule>) -> Package {
@@ -270,9 +262,9 @@ pub fn handle_pkg_spec(pkg_spec: Pair<Rule>) -> Package {
     }
 
     Package {
-        oracles: oracles,
+        oracles,
         params: params.unwrap_or_default(),
-        imports: imported_oracles.iter().map(|(k, v)| v.clone()).collect(),
+        imports: imported_oracles.iter().map(|(_k, v)| v.clone()).collect(),
         state: state.unwrap_or_default(),
     }
 }

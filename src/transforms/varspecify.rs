@@ -106,7 +106,7 @@ fn var_specify_helper(inst: &PackageInstance, block: CodeBlock, comp_name: &str)
                     target_inst_name,
                 } => {
                     let opt_idx = opt_idx.clone().map(|expr| expr.map(fixup));
-                    let args = args.into_iter().map(|expr| expr.map(fixup)).collect();
+                    let args = args.iter().map(|expr| expr.map(fixup)).collect();
                     if let Expression::Identifier(id) = fixup(id.to_expression()) {
                         Statement::InvokeOracle {
                             id,
@@ -156,7 +156,7 @@ fn var_specify(inst: &PackageInstance, comp_name: &str) -> PackageInstance {
 
 #[cfg(test)]
 mod test {
-    use super::{var_specify, Transformation};
+    use super::var_specify;
     use crate::block;
     use crate::expressions::Expression;
     use crate::identifier::Identifier;

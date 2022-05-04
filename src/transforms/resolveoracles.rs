@@ -49,13 +49,13 @@ fn transform_helper_outer(table: &HashMap<String, String>, block: CodeBlock) -> 
             .collect();
 
         CodeBlock(out)
-    };
+    }
 
     let mut err_stmts = vec![];
 
     let out = transform_helper(table, block, &mut err_stmts);
 
-    if err_stmts.len() > 0 {
+    if !err_stmts.is_empty() {
         Err(ResolutionError(err_stmts))
     } else {
         Ok(out)

@@ -7,7 +7,7 @@ use crate::package::{Composition, PackageInstance};
 use crate::identifier::Identifier;
 use crate::types::Type;
 
-use std::collections::{HashMap,HashSet};
+use std::collections::{HashMap, HashSet};
 use std::iter::FromIterator;
 
 pub fn typecheck_comp(
@@ -38,31 +38,43 @@ pub fn typecheck_comp(
     }
 
     // 1b. check signature matches in package imports
-    let declared_imports:HashMap<_,_> = pkgs.clone()
+    let declared_imports: HashMap<_, _> = pkgs
+        .clone()
         .into_iter()
         .enumerate()
         .map(|(i, pkg)| (i, HashSet::from_iter(pkg.pkg.imports.into_iter())))
-        .filter(|(_, v)| ! v.is_empty())
+        .filter(|(_, v)| !v.is_empty())
         .collect();
     let mut edge_imports = HashMap::new();
 
     for (from, _, sig_) in edges {
-        edge_imports.entry(*from).or_insert(HashSet::new()).insert(sig_.clone());
+        edge_imports
+            .entry(*from)
+            .or_insert_with(HashSet::new)
+            .insert(sig_.clone());
     }
     if declared_imports != edge_imports {
-        if declared_imports.keys().collect::<HashSet<_>>() != edge_imports.keys().collect::<HashSet<_>>() {
-            panic!("Different set of keys with imports, declared: {:?} edges: {:?}", declared_imports.keys(), edge_imports.keys())
+        if declared_imports.keys().collect::<HashSet<_>>()
+            != edge_imports.keys().collect::<HashSet<_>>()
+        {
+            panic!(
+                "Different set of keys with imports, declared: {:?} edges: {:?}",
+                declared_imports.keys(),
+                edge_imports.keys()
+            )
         }
         for (i, pkg) in pkgs.clone().iter().enumerate() {
             if !declared_imports.contains_key(&i) {
                 continue;
             }
             if declared_imports[&i] != edge_imports[&i] {
-                panic!("package: {} declared: {:#?} edges: {:#?}", pkg.name, declared_imports[&i], edge_imports[&i]);
+                panic!(
+                    "package: {} declared: {:#?} edges: {:#?}",
+                    pkg.name, declared_imports[&i], edge_imports[&i]
+                );
             }
         }
     }
-
 
     // 2. check exports exists
     for (id, sig) in exports {

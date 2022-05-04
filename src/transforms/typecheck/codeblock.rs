@@ -48,7 +48,7 @@ impl TypedCodeBlock {
                     if expr_type != *ret_type {
                         return Err(TypeCheckError::TypeMismatch(
                             ErrorLocation::Unknown,
-                            format!("return type does not match"),
+                            "return type does not match".to_owned(),
                             Some(expr.clone()),
                             expr_type,
                             ret_type.clone(),
@@ -128,16 +128,14 @@ impl TypedCodeBlock {
                                     Type::Table(Box::new(idx_type), Box::new(sample_type.clone())),
                                 ));
                             }
-                        } else {
-                            if id_type != sample_type.clone() {
-                                return Err(TypeCheckError::TypeMismatch(
-                                    ErrorLocation::Unknown,
-                                    format!("sampling into variable {:?} of different type", id),
-                                    None,
-                                    id_type,
-                                    sample_type.clone(),
-                                ));
-                            }
+                        } else if id_type != sample_type.clone() {
+                            return Err(TypeCheckError::TypeMismatch(
+                                ErrorLocation::Unknown,
+                                format!("sampling into variable {:?} of different type", id),
+                                None,
+                                id_type,
+                                sample_type.clone(),
+                            ));
                         }
                     } else {
                         scope.declare(id.clone(), sample_type.clone())?;
@@ -235,7 +233,7 @@ impl TypedCodeBlock {
                                         "value type of the table does not match".to_string(),
                                         None,
                                         *v,
-                                        *ret_type.clone(),
+                                        *ret_type,
                                     ));
                                 }
                             } else {
@@ -244,19 +242,17 @@ impl TypedCodeBlock {
                                     "table access on non-table".to_string(),
                                     None,
                                     id_type,
-                                    Type::Table(Box::new(idx_type), Box::new(*ret_type.clone())),
+                                    Type::Table(Box::new(idx_type), Box::new(*ret_type)),
                                 ));
                             }
-                        } else {
-                            if id_type != *ret_type.clone() {
-                                return Err(TypeCheckError::TypeMismatch(
-                                    ErrorLocation::Unknown,
-                                    format!("sampling into variable {:?} of different type", id),
-                                    None,
-                                    id_type,
-                                    *ret_type.clone(),
-                                ));
-                            }
+                        } else if id_type != *ret_type.clone() {
+                            return Err(TypeCheckError::TypeMismatch(
+                                ErrorLocation::Unknown,
+                                format!("sampling into variable {:?} of different type", id),
+                                None,
+                                id_type,
+                                *ret_type,
+                            ));
                         }
                     } else {
                         scope.declare(id.clone(), *ret_type.clone())?;

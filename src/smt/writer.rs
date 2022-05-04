@@ -54,7 +54,7 @@ impl<'a> CompositionSmtWriter<'a> {
 
         self.state_helpers
             .get(instname)
-            .expect(&format!("error looking up smt state helper: {}", instname))
+            .unwrap_or_else(|| panic!("error looking up smt state helper: {}", instname))
     }
 
     /*
@@ -154,8 +154,7 @@ impl<'a> CompositionSmtWriter<'a> {
             .pkgs
             .clone()
             .iter()
-            .map(|inst| self.smt_pkg_return(inst))
-            .flatten()
+            .flat_map(|inst| self.smt_pkg_return(inst))
             .collect()
     }
 
@@ -216,7 +215,7 @@ impl<'a> CompositionSmtWriter<'a> {
                     //SmtExpr::Atom(format!("mk-abort-{}-{}", pkgname, sig.name))
                 }
                 // TODO actually use the type that we sample to know how far to advance the randomness tape
-                Statement::Sample(ident, opt_idx, tipe) => {
+                Statement::Sample(ident, opt_idx, _tipe) => {
                     /*
                      *   1. get counter
                      *   2. assign ident
@@ -251,7 +250,7 @@ impl<'a> CompositionSmtWriter<'a> {
                             SmtExpr::Atom("store".into()),
                             ident.to_expression().into(),
                             opt_idx.clone().unwrap().into(),
-                            rand_val.clone().into(),
+                            rand_val.clone(),
                         ])
                     } else {
                         rand_val
@@ -348,7 +347,6 @@ impl<'a> CompositionSmtWriter<'a> {
                             opt_idx.clone().unwrap().into(),
                             smt_expr.into(),
                         ])
-                        .into()
                     } else {
                         smt_expr.into()
                     }
@@ -399,7 +397,7 @@ impl<'a> CompositionSmtWriter<'a> {
                         Identifier::State { name, pkgname, .. } => SmtLet {
                             bindings: vec![(
                                 smt_to_string(SspSmtVar::SelfState),
-                                self.get_state_helper(&pkgname)
+                                self.get_state_helper(pkgname)
                                     .smt_set(name, &expr.clone().into()),
                             )],
                             body: result.unwrap(),
@@ -427,7 +425,7 @@ impl<'a> CompositionSmtWriter<'a> {
                         Identifier::State { name, pkgname, .. } => SmtLet {
                             bindings: vec![(
                                 smt_to_string(SspSmtVar::SelfState),
-                                self.get_state_helper(&pkgname).smt_set(name, &new_val),
+                                self.get_state_helper(pkgname).smt_set(name, &new_val),
                             )],
                             body: result.unwrap(),
                         }
@@ -505,10 +503,7 @@ impl<'a> CompositionSmtWriter<'a> {
             self.comp.name
         ))];
         let ordered_pkgs = self.comp.ordered_pkgs();
-        let code = ordered_pkgs
-            .iter()
-            .map(|inst| self.smt_pkg_code(inst))
-            .flatten();
+        let code = ordered_pkgs.iter().flat_map(|inst| self.smt_pkg_code(inst));
 
         comment.into_iter().chain(code).collect()
     }
@@ -525,7 +520,7 @@ impl<'a> CompositionSmtWriter<'a> {
                 SmtExpr::Atom("declare-fun".into()),
                 SmtExpr::Atom(format!("__sample-rand-{}", self.comp.name)),
                 SmtExpr::List(vec![SmtExpr::Atom("Int".into())]),
-                SmtExpr::Atom(format!("Bits_n")),
+                SmtExpr::Atom("Bits_n".to_owned()),
             ]),
         ]
     }
@@ -550,6 +545,8 @@ mod tests {
 
     use std::string::FromUtf8Error;
     use thiserror::Error;
+
+    use crate::smt::exprs::SmtFmt;
 
     #[derive(Error, Debug)]
     enum TestError {

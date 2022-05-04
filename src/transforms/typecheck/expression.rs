@@ -53,7 +53,7 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
             let mut elems_ = vec![];
 
             for elem in elems {
-                let elem_ = typify(&elem, scope)?;
+                let elem_ = typify(elem, scope)?;
                 let t = get_type(&elem_, scope)?;
                 types.push(t);
                 elems_.push(elem_);
@@ -103,7 +103,7 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                 }
                 Expression::TableAccess(id, _) => {
                     if let Some(Type::Table(_, t_val)) = scope.lookup(id) {
-                        Ok(Expression::Typed(*t_val.clone(), Box::new(expr.clone())))
+                        Ok(Expression::Typed(*t_val, Box::new(expr.clone())))
                     } else {
                         Err(TypeCheckError::Undefined(
                             ErrorLocation::Unknown,
@@ -162,10 +162,10 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
         Expression::Inv(v) => {
             let t = get_type(v, scope)?;
             if matches!(t, Type::MultGroupEl(_)) {
-                return Ok(Expression::Typed(
+                Ok(Expression::Typed(
                     t,
                     Box::new(Expression::Inv(Box::new(typify(v, scope)?))),
-                ));
+                ))
             } else {
                 Err(TypeCheckError::TypeMismatchVague(
                     ErrorLocation::Unknown,
@@ -522,14 +522,14 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
             } else {
                 Err(TypeCheckError::Undefined(
                     ErrorLocation::Unknown,
-                    format!("identifier not found in scope"),
+                    "identifier not found in scope".to_owned(),
                     id.clone(),
                 ))
             }
         }
         Expression::TableAccess(id, expr) => match scope.lookup(id) {
             Some(Type::Table(t_idx, t_val)) => {
-                let expr_ = typify(&expr, scope)?;
+                let expr_ = typify(expr, scope)?;
                 let t_expr = get_type(&expr_, scope)?;
                 if *t_idx == t_expr {
                     Ok(Expression::Typed(
@@ -542,7 +542,7 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                         "unexpected index type".to_string(),
                         Some(*expr.clone()),
                         t_expr,
-                        *t_idx.clone(),
+                        *t_idx,
                     ))
                 }
             }

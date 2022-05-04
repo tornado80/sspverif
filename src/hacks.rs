@@ -1,4 +1,3 @@
-
 #[allow(non_snake_case)]
 pub fn declare_datatype_Maybe(t: &str) {
     println!(
@@ -33,8 +32,8 @@ pub fn declare_Tuple(n: usize) {
     let types: String = (1..n + 1)
         .map(|i| format!("T{}", i))
         .fold(String::new(), |acc, v| {
-            let mut acc = acc.clone();
-            acc.push_str(" ");
+            let mut acc = acc;
+            acc.push(' ');
             acc.push_str(&v);
             acc
         });
@@ -42,8 +41,8 @@ pub fn declare_Tuple(n: usize) {
         (1..n + 1)
             .map(|i| format!("(el{0} T{0})", i))
             .fold(String::new(), |acc, v| {
-                let mut acc = acc.clone();
-                acc.push_str(" ");
+                let mut acc = acc;
+                acc.push(' ');
                 acc.push_str(&v);
                 acc
             });

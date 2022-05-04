@@ -71,7 +71,7 @@ pub fn returnify(cb: &CodeBlock, none_ok: bool) -> Result<CodeBlock, Error> {
 ///     adds_if_return_with_branches, adds_else_return_with_branches
 #[cfg(test)]
 mod test {
-    use super::{returnify, Transformation};
+    use super::returnify;
     use crate::block;
     use crate::expressions::Expression;
     use crate::identifier::Identifier;
