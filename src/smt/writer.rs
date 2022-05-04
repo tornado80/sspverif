@@ -250,57 +250,25 @@ impl<'a> CompositionSmtWriter<'a> {
                     }
                 }
                 // TODO actually use the type that we sample to know how far to advance the randomness tape
-                Statement::Assign(ident, Expression::Typed(t, inner))
-                    if matches!(**inner, Expression::Sample(_)) =>
-                {
-                    let ctr = self.get_state_helper("__randomness").smt_access(
-                        "ctr",
-                        self.comp_helper
-                            .smt_access("__randomness", SspSmtVar::GlobalState.into()),
-                    );
-                    /*
-                     *   1. get counter
-                     *   2. assign ident
-                     *   3. overwrite state
-                     *   4. continue
-                     *
-                     * let
-                     *   ident = sample(ctr)
-                     *   __global = mk-compositionState ( mk-randomndess-state (ctr + 1) ... )
-                     *
-                     *
-                     * ,
-                     *   let (ident = rand(access(counter)) (
-                     *       comp_helper.smt_set(counter, counter+1, body)
-                     * ))
-                     * )
-                     *
-                     */
-                    SmtLet {
-                        bindings: vec![(
-                            ident.ident(),
-                            SmtExpr::List(vec![
-                                SmtExpr::Atom(format!("__sample-rand-{}", self.comp.name)),
-                                ctr.clone(),
-                            ]),
-                        )],
-                        body: self.comp_helper.smt_set(
-                            "__randomness",
-                            &self.get_state_helper("__randomness").smt_set(
-                                "ctr",
-                                &SmtExpr::List(vec![
-                                    SmtExpr::Atom("+".into()),
-                                    SmtExpr::Atom("1".into()),
-                                    ctr,
-                                ]),
-                            ),
-                            result.unwrap(),
-                        ),
-                    }
-                    .into()
-                }
-                // TODO actually use the type that we sample to know how far to advance the randomness tape
                 Statement::Sample(ident, opt_idx, tipe) => {
+                   /*
+                    *   1. get counter
+                    *   2. assign ident
+                    *   3. overwrite state
+                    *   4. continue
+                    *
+                    * let
+                    *   ident = sample(ctr)
+                    *   __global = mk-compositionState ( mk-randomndess-state (ctr + 1) ... )
+                    *
+                    *
+                    * ,
+                    *   let (ident = rand(access(counter)) (
+                    *       comp_helper.smt_set(counter, counter+1, body)
+                    * ))
+                    * )
+                    *
+                    */
                     let ctr = self.get_state_helper("__randomness").smt_access(
                         "ctr",
                         self.comp_helper

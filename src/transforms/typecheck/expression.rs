@@ -14,7 +14,6 @@ pub fn get_type(expr: &Expression, scope: &Scope) -> TypeResult {
 
 pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
     match expr {
-        Expression::Sample(t) => Ok(Expression::Typed(t.clone(), expr.clone().into())),
         Expression::StringLiteral(_) => Ok(Expression::Typed(Type::String, expr.clone().into())),
         Expression::IntegerLiteral(_) => Ok(Expression::Typed(Type::Integer, expr.clone().into())),
         Expression::BooleanLiteral(_) => Ok(Expression::Typed(Type::Boolean, expr.clone().into())),
