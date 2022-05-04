@@ -4,8 +4,8 @@ package Key_top_map {
     }
 
     state {
-        T: Table(Integer,Maybe(Bits(n))),
-        S: Table(Bits(n),Maybe(Integer)),
+        T: Table(Integer,Bits(n)),
+        S: Table(Bits(n),Integer),
           }
 
     oracle GET(h: Integer) -> Bits(n) {
@@ -16,12 +16,14 @@ package Key_top_map {
 
     oracle SET(h: Integer, k: Bits(n)) -> Integer {
         assert (T[h] == None as Bits(n));
+		hh <- None as Integer;
         if (S[k] != None as Integer)
             {hh <- S[k];
             }
         else {T[h] <- Some(k);
              S[k] <- Some(h);
-            hh <- h;}
-        return hh;
+            hh <- Some(h);}
+		hh_ <- Unwrap(hh);
+		return hh_;
     }
 }
