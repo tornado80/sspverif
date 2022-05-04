@@ -19,7 +19,7 @@ package Map {
         assert (Input_Map[h] != None as Integer);
         if (Output_Map[(h,m)] != None as (Integer,Bits(*)))
             {return Unwrap(Output_Map[(h,m)]);}
-        else {hh <- EVAL(Input_Map[h],m);
+        else {hh <- EVAL(Unwrap(Input_Map[h]),m);
            Output_Map[(h,m)] <- hh;
            return Unwrap(Output_Map[(h,m)]);}
     }
@@ -27,14 +27,14 @@ package Map {
     oracle SET(h: Integer, k: Bits(n)) -> Integer {
         hh <- SET(h,k);
         if (Input_Map[h] == None as Integer)
-           {Input_Map[h] <- hh;
+           {Input_Map[h] <- Some(hh);
            return hh;}
         else {return hh;}
     }
 
     oracle GET(h: Integer, m: Bits(*)) -> Bits(n) {
         assert (Output_Map[(h,k)] != None as (Integer,Bits(*)));
-        hh <- Unwrap(Get(Output_Map[(h,k)]));
-        return hh;
+        k <- GET(Unwrap(Output_Map[(h,k)]));
+        return k;
         }
 }

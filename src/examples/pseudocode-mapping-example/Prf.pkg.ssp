@@ -10,8 +10,8 @@ package Prf {
     }
 
     oracle EVAL(h: Integer, m: Bits(*)) -> (Integer,Bits(*)) {
-        h <- GET(h);
-        y <- f(h,m);
+        k <- GET(h);
+        y <- f(k,m);
         hh <- (h,m);
         _ <- SET(hh,y);
         return hh;
