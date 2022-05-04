@@ -53,25 +53,21 @@ impl SmtFmt for SmtExpr {
 impl From<Expression> for SmtExpr {
     fn from(expr: Expression) -> SmtExpr {
         match expr {
-            Expression::Typed(t, inner) => match *inner {
-                Expression::Unwrap(inner) => {
-                    panic!("unwrap expressions need to be on the right hand side of an assign!");
-                    // TODO find a better way to present that error to the user.
-                }
-                Expression::Some(inner) => {
-                    if let Type::Maybe(t_inner) = t {
-                        SmtExpr::List(vec![SmtExpr::Atom("mk-some".into()), SmtExpr::from(*inner)])
-                    } else {
-                        unreachable!()
-                    }
-                }
-                Expression::None(inner) => SmtExpr::List(vec![
-                    SmtExpr::Atom("as".into()),
-                    SmtExpr::Atom("mk-none".into()),
-                    t.into(),
-                ]),
-                _ => SmtExpr::from(*inner),
+            Expression::Typed(_t, inner) => {
+                SmtExpr::from(*inner)
             },
+            Expression::Unwrap(inner) => {
+                panic!("unwrap expressions need to be on the right hand side of an assign!");
+                // TODO find a better way to present that error to the user.
+            }
+            Expression::Some(inner) => {
+                SmtExpr::List(vec![SmtExpr::Atom("mk-some".into()), SmtExpr::from(*inner)])
+            }
+            Expression::None(inner) => SmtExpr::List(vec![
+                SmtExpr::Atom("as".into()),
+                SmtExpr::Atom("mk-none".into()),
+                inner.into(),
+            ]),
             Expression::StringLiteral(litname) => SmtExpr::Atom(format!("\"{}\"", litname)),
             Expression::BooleanLiteral(litname) => SmtExpr::Atom(litname),
             Expression::IntegerLiteral(litname) => SmtExpr::Atom(litname),
