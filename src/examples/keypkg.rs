@@ -29,8 +29,7 @@ pub fn key_pkg(params: &HashMap<String, String>) -> PackageInstance {
                                 &Expression::None(Type::new_bits("n")),
                             ]),
                             block! {
-                                Statement::Assign(Identifier::new_scalar("k_sample"),
-                                                  Expression::Sample(Type::new_bits("n")),
+                                Statement::Sample(Identifier::new_scalar("k_sample"), None, Type::new_bits("n"),
                                 ),
                                 Statement::Assign(Identifier::new_scalar("k"),
                                                   Expression::Some(Box::new(Identifier::new_scalar("k_sample").to_expression())),

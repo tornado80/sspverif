@@ -81,8 +81,7 @@ mod test {
     #[test]
     fn preserves_return_none() {
         let code = block! {
-            Statement::Assign(Identifier::new_scalar("d"),
-                              Expression::Sample(Type::Integer)),
+            Statement::Sample(Identifier::new_scalar("d"), None, Type::Integer),
             Statement::Return(None)
         };
         assert_eq!(code, returnify(&code, true).unwrap());
@@ -91,8 +90,7 @@ mod test {
     #[test]
     fn preserves_return_some() {
         let code = block! {
-            Statement::Assign(Identifier::new_scalar("d"),
-                              Expression::Sample(Type::Integer)),
+            Statement::Sample(Identifier::new_scalar("d"), None, Type::Integer),
             Statement::Return(Some(Expression::IntegerLiteral("5".to_string())))
         };
         assert_eq!(code, returnify(&code, true).unwrap());
@@ -101,8 +99,7 @@ mod test {
     #[test]
     fn preserves_abort() {
         let code = block! {
-            Statement::Assign(Identifier::new_scalar("d"),
-                              Expression::Sample(Type::Integer)),
+            Statement::Sample(Identifier::new_scalar("d"), None, Type::Integer),
             Statement::Abort
         };
         assert_eq!(code, returnify(&code, true).unwrap());
@@ -111,12 +108,10 @@ mod test {
     #[test]
     fn adds_return() {
         let before = block! {
-            Statement::Assign(Identifier::new_scalar("d"),
-                              Expression::Sample(Type::Integer))
+            Statement::Sample(Identifier::new_scalar("d"), None, Type::Integer)
         };
         let after = block! {
-            Statement::Assign(Identifier::new_scalar("d"),
-                              Expression::Sample(Type::Integer)),
+            Statement::Sample(Identifier::new_scalar("d"), None,  Type::Integer),
             Statement::Return(None)
         };
         assert_eq!(after, returnify(&before, true).unwrap());
@@ -130,12 +125,10 @@ mod test {
                 Expression::new_equals(vec![&(Identifier::new_scalar("a").to_expression()),
                                             &(Identifier::new_scalar("a").to_expression())]),
                 block!{
-                    Statement::Assign(Identifier::new_scalar("d"),
-                                      Expression::Sample(Type::Integer))
+                    Statement::Sample(Identifier::new_scalar("d"), None, Type::Integer)
                 },
                 block!{
-                    Statement::Assign(Identifier::new_scalar("e"),
-                                      Expression::Sample(Type::Integer)),
+                    Statement::Sample(Identifier::new_scalar("e"), None, Type::Integer),
                     Statement::Return(None)
                 })
         };
@@ -144,13 +137,11 @@ mod test {
                 Expression::new_equals(vec![&(Identifier::new_scalar("a").to_expression()),
                                             &(Identifier::new_scalar("a").to_expression())]),
                 block!{
-                    Statement::Assign(Identifier::new_scalar("d"),
-                                      Expression::Sample(Type::Integer)),
+                    Statement::Sample(Identifier::new_scalar("d"), None, Type::Integer),
                     Statement::Return(None)
                 },
                 block!{
-                    Statement::Assign(Identifier::new_scalar("e"),
-                                      Expression::Sample(Type::Integer)),
+                    Statement::Sample(Identifier::new_scalar("e"), None, Type::Integer),
                     Statement::Return(None)
                 })
         };
@@ -165,12 +156,10 @@ mod test {
                 Expression::new_equals(vec![&(Identifier::new_scalar("a").to_expression()),
                                             &(Identifier::new_scalar("a").to_expression())]),
                 block!{
-                    Statement::Assign(Identifier::new_scalar("d"),
-                                      Expression::Sample(Type::Integer))
+                    Statement::Sample(Identifier::new_scalar("d"), None,  Type::Integer)
                 },
                 block!{
-                    Statement::Assign(Identifier::new_scalar("e"),
-                                      Expression::Sample(Type::Integer))
+                    Statement::Sample(Identifier::new_scalar("e"), None, Type::Integer)
                 })
         };
         let after = block! {
@@ -178,13 +167,11 @@ mod test {
                 Expression::new_equals(vec![&(Identifier::new_scalar("a").to_expression()),
                                             &(Identifier::new_scalar("a").to_expression())]),
                 block!{
-                    Statement::Assign(Identifier::new_scalar("d"),
-                                      Expression::Sample(Type::Integer)),
+                    Statement::Sample(Identifier::new_scalar("d"), None, Type::Integer),
                     Statement::Return(None)
                 },
                 block!{
-                    Statement::Assign(Identifier::new_scalar("e"),
-                                      Expression::Sample(Type::Integer)),
+                    Statement::Sample(Identifier::new_scalar("e"), None, Type::Integer),
                     Statement::Return(None)
                 })
         };
