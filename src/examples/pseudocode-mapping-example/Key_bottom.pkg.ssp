@@ -4,7 +4,7 @@ package Key_bottom {
     }
 
     state {
-        T: Table((Integer,Bits(*)),Maybe(Bits(n))),
+        T: Table((Integer,Bits(*)),Bits(n)),
     }
 
     oracle GET(h: (Integer,Bits(*))) -> Bits(n) {
@@ -13,7 +13,7 @@ package Key_bottom {
         return k;
     }
 
-    oracle SET(h: (Integer,Bits(*)), k: Bits(n)) -> Integer {
+    oracle SET(h: (Integer,Bits(*)), k: Bits(n)) -> (Integer,Bits(*)) {
         assert (T[h] == None as Bits(n));
         T[h] <- Some(k);
         return h;

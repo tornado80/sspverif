@@ -25,7 +25,7 @@ package Map {
     }
 
     oracle SET(h: Integer, k: Bits(n)) -> Integer {
-        hh <- Set(h,k);
+        hh <- SET(h,k);
         if (Input_Map[h] == None as Integer)
            {Input_Map[h] <- hh;
            return hh;}
