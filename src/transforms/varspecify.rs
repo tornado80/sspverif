@@ -52,17 +52,23 @@ fn var_specify_helper(inst: &PackageInstance, block: CodeBlock, comp_name: &str)
         }
         Expression::TableAccess(Identifier::Scalar(id), expr) => {
             if state.clone().iter().any(|(id_, _)| id == *id_) {
-                Expression::TableAccess(Identifier::State {
-                    name: id,
-                    pkgname: name.clone(),
-                    compname: comp_name.into(),
-                }, expr)
+                Expression::TableAccess(
+                    Identifier::State {
+                        name: id,
+                        pkgname: name.clone(),
+                        compname: comp_name.into(),
+                    },
+                    expr,
+                )
             } else if params.clone().iter().any(|(id_, _)| id == *id_) {
-                Expression::TableAccess(Identifier::Params {
-                    name: id,
-                    pkgname: name.clone(),
-                    compname: comp_name.into(),
-                }, expr)
+                Expression::TableAccess(
+                    Identifier::Params {
+                        name: id,
+                        pkgname: name.clone(),
+                        compname: comp_name.into(),
+                    },
+                    expr,
+                )
             } else {
                 Expression::Identifier(Identifier::Local(id))
             }
@@ -80,6 +86,15 @@ fn var_specify_helper(inst: &PackageInstance, block: CodeBlock, comp_name: &str)
                 Statement::Assign(id, expr) => {
                     if let Expression::Identifier(id) = fixup(id.to_expression()) {
                         Statement::Assign(id, expr.map(fixup))
+                    } else {
+                        unreachable!()
+                    }
+                }
+                Statement::Sample(id, opt_idx, t) => {
+                    let opt_idx = opt_idx.clone().map(|expr| expr.map(fixup));
+                    
+                    if let Expression::Identifier(id) = fixup(id.to_expression()) {
+                        Statement::Sample(id, opt_idx, t.clone())
                     } else {
                         unreachable!()
                     }
@@ -119,20 +134,21 @@ fn var_specify(inst: &PackageInstance, comp_name: &str) -> PackageInstance {
     }
 }
 
-
-
 #[cfg(test)]
 mod test {
-    use super::{Transformation,var_specify};
+    use super::{var_specify, Transformation};
+    use crate::block;
     use crate::expressions::Expression;
     use crate::identifier::Identifier;
-    use crate::package::{Package,PackageInstance, OracleDef,OracleSig};
+    use crate::package::{OracleDef, OracleSig, Package, PackageInstance};
     use crate::statement::{CodeBlock, Statement};
     use crate::types::Type;
-    use crate::block;
     use std::collections::HashMap;
 
-    fn generate_code_blocks(source_id: Identifier, target_id:Identifier) -> Vec<(CodeBlock, CodeBlock)>{
+    fn generate_code_blocks(
+        source_id: Identifier,
+        target_id: Identifier,
+    ) -> Vec<(CodeBlock, CodeBlock)> {
         [
             |id:&Identifier| block!{
                 Statement::Assign(id.clone(),
@@ -188,46 +204,52 @@ mod test {
 
     #[test]
     fn variable_is_local() {
-        let params : HashMap<String, String> = HashMap::new();
+        let params: HashMap<String, String> = HashMap::new();
         let param_t: Vec<(String, Type)> = Vec::new();
-        let state  : Vec<(String, Type)> = Vec::new();
+        let state: Vec<(String, Type)> = Vec::new();
 
         let source_id = Identifier::Scalar("v".to_string());
         let target_id = Identifier::Local("v".to_string());
 
         let code = generate_code_blocks(source_id, target_id);
         code.iter().for_each(|c| {
-            let res = var_specify(&PackageInstance{
-                params: params.clone(),
-                name: "test".to_string(),
-                pkg: Package{
-                    params: param_t.clone(),
-                    state: state.clone(),
-                    imports: vec![],
-                    oracles: vec![
-                        OracleDef{
+            let res = var_specify(
+                &PackageInstance{
+                    params: params.clone(),
+                    name: "test".to_string(),
+                    pkg: Package{
+                        params: param_t.clone(),
+                        state: state.clone(),
+                        imports: vec![],
+                        oracles: vec![OracleDef{
                             code: c.0.clone(),
                             sig: OracleSig {
                                 tipe: Type::Empty,
                                 name: "test".to_string(),
-                                args: vec![]
-                            }
-                        }
-                    ]
-                }}, "test");
+                                args: vec![],
+                            },
+                        }],
+                    },
+                },
+                "test",
+            );
             assert_eq!(res.pkg.oracles[0].code, c.1)
         })
     }
 
     #[test]
     fn variable_is_state() {
-        let params : HashMap<String, String> = HashMap::new();
+        let params: HashMap<String, String> = HashMap::new();
         let param_t: Vec<(String, Type)> = Vec::new();
-        let mut state  : Vec<(String, Type)> = Vec::new();
+        let mut state: Vec<(String, Type)> = Vec::new();
         state.push(("v".to_string(), Type::Integer));
 
         let source_id = Identifier::Scalar("v".to_string());
-        let target_id = Identifier::State{name: "v".to_string(), pkgname: "testpkg".to_string(), compname: "testcomp".to_string()};
+        let target_id = Identifier::State {
+            name: "v".to_string(),
+            pkgname: "testpkg".to_string(),
+            compname: "testcomp".to_string(),
+        };
 
         let code = generate_code_blocks(source_id, target_id);
         code.iter().for_each(|c| {
@@ -244,24 +266,30 @@ mod test {
                             sig: OracleSig {
                                 tipe: Type::Empty,
                                 name: "test".to_string(),
-                                args: vec![]
-                            }
-                        }
-                    ]
-                }}, "testcomp");
+                                args: vec![],
+                            },
+                        }],
+                    },
+                },
+                "testcomp",
+            );
             assert_eq!(res.pkg.oracles[0].code, c.1)
         })
     }
 
     #[test]
     fn variable_is_param() {
-        let params : HashMap<String, String> = HashMap::new();
+        let params: HashMap<String, String> = HashMap::new();
         let mut param_t: Vec<(String, Type)> = Vec::new();
-        let state  : Vec<(String, Type)> = Vec::new();
+        let state: Vec<(String, Type)> = Vec::new();
         param_t.push(("v".to_string(), Type::Integer));
 
         let source_id = Identifier::Scalar("v".to_string());
-        let target_id = Identifier::Params{name: "v".to_string(), pkgname: "testpkg".to_string(), compname: "testcomp".to_string()};
+        let target_id = Identifier::Params {
+            name: "v".to_string(),
+            pkgname: "testpkg".to_string(),
+            compname: "testcomp".to_string(),
+        };
 
         let code = generate_code_blocks(source_id, target_id);
         code.iter().for_each(|c| {
@@ -278,11 +306,13 @@ mod test {
                             sig: OracleSig {
                                 tipe: Type::Empty,
                                 name: "test".to_string(),
-                                args: vec![]
-                            }
-                        }
-                    ]
-                }}, "testcomp");
+                                args: vec![],
+                            },
+                        }],
+                    },
+                },
+                "testcomp",
+            );
             assert_eq!(res.pkg.oracles[0].code, c.1)
         })
     }

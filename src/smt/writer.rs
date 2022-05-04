@@ -108,23 +108,35 @@ impl<'a> CompositionSmtWriter<'a> {
 
         for osig in inst.get_oracle_sigs() {
             let mut constructor = vec![
-                SmtExpr::Atom(format!("mk-return-{}-{}-{}", self.comp.name, inst.name, osig.name)),
+                SmtExpr::Atom(format!(
+                    "mk-return-{}-{}-{}",
+                    self.comp.name, inst.name, osig.name
+                )),
                 SmtExpr::List(vec![
-                    SmtExpr::Atom(format!("return-{}-{}-{}-state", self.comp.name, inst.name, osig.name)),
+                    SmtExpr::Atom(format!(
+                        "return-{}-{}-{}-state",
+                        self.comp.name, inst.name, osig.name
+                    )),
                     self.comp_helper.smt_sort(),
                 ]),
             ];
 
             if Type::Empty != osig.tipe {
                 constructor.push(SmtExpr::List(vec![
-                    SmtExpr::Atom(format!("return-{}-{}-{}-value", self.comp.name, inst.name, osig.name)),
+                    SmtExpr::Atom(format!(
+                        "return-{}-{}-{}-value",
+                        self.comp.name, inst.name, osig.name
+                    )),
                     osig.tipe.into(),
                 ]));
             }
 
             smts.push(SmtExpr::List(vec![
                 SmtExpr::Atom("declare-datatype".to_string()),
-                SmtExpr::Atom(format!("Return_{}_{}_{}", self.comp.name, inst.name, osig.name)),
+                SmtExpr::Atom(format!(
+                    "Return_{}_{}_{}",
+                    self.comp.name, inst.name, osig.name
+                )),
                 SmtExpr::List(vec![
                     SmtExpr::List(constructor),
                     SmtExpr::List(vec![SmtExpr::Atom(format!(
@@ -287,6 +299,48 @@ impl<'a> CompositionSmtWriter<'a> {
                     }
                     .into()
                 }
+                // TODO actually use the type that we sample to know how far to advance the randomness tape
+                Statement::Sample(ident, opt_idx, tipe) => {
+                    let ctr = self.get_state_helper("__randomness").smt_access(
+                        "ctr",
+                        self.comp_helper
+                            .smt_access("__randomness", SspSmtVar::GlobalState.into()),
+                    );
+
+                    let rand_val = SmtExpr::List(vec![
+                        SmtExpr::Atom(format!("__sample-rand-{}", self.comp.name)),
+                        ctr.clone(),
+                    ]);
+
+                    let new_val = if opt_idx.is_some() {
+                        SmtExpr::List(vec![
+                            SmtExpr::Atom("store".into()),
+                            ident.to_expression().into(),
+                            opt_idx.clone().unwrap().into(),
+                            rand_val.clone().into(),
+                        ])
+                    } else {
+                        rand_val
+                    };
+
+                    SmtLet {
+                        bindings: vec![(ident.ident(), new_val)],
+                        body: self.comp_helper.smt_set(
+                            "__randomness",
+                            &self.get_state_helper("__randomness").smt_set(
+                                "ctr",
+                                &SmtExpr::List(vec![
+                                    SmtExpr::Atom("+".into()),
+                                    SmtExpr::Atom("1".into()),
+                                    ctr,
+                                ]),
+                            ),
+                            result.unwrap(),
+                        ),
+                    }
+                    .into()
+                }
+
                 Statement::Assign(ident, Expression::Typed(t, inner))
                     if matches!(**inner, Expression::LowLevelOracleInvoc { .. }) =>
                 {
@@ -298,7 +352,10 @@ impl<'a> CompositionSmtWriter<'a> {
                         } => SmtLet {
                             bindings: vec![(smt_to_string(SspSmtVar::ReturnValue), {
                                 let mut cmdline = vec![
-                                    SmtExpr::Atom(format!("oracle-{}-{}-{}", self.comp.name, dst_pkgname, name)),
+                                    SmtExpr::Atom(format!(
+                                        "oracle-{}-{}-{}",
+                                        self.comp.name, dst_pkgname, name
+                                    )),
                                     SspSmtVar::GlobalState.into(),
                                 ];
 
@@ -310,7 +367,10 @@ impl<'a> CompositionSmtWriter<'a> {
                             })],
                             body: SmtIte {
                                 cond: SmtIs {
-                                    con: format!("mk-abort-{}-{}-{}", self.comp.name, dst_pkgname, name),
+                                    con: format!(
+                                        "mk-abort-{}-{}-{}",
+                                        self.comp.name, dst_pkgname, name
+                                    ),
                                     expr: SspSmtVar::ReturnValue,
                                 },
                                 then: SspSmtVar::OracleAbort {
@@ -438,9 +498,15 @@ impl<'a> CompositionSmtWriter<'a> {
 
                 SmtExpr::List(vec![
                     SmtExpr::Atom(String::from("define-fun")),
-                    SmtExpr::Atom(format!("oracle-{}-{}-{}", self.comp.name, inst.name, def.sig.name)),
+                    SmtExpr::Atom(format!(
+                        "oracle-{}-{}-{}",
+                        self.comp.name, inst.name, def.sig.name
+                    )),
                     SmtExpr::List(args),
-                    SmtExpr::Atom(format!("Return_{}_{}_{}", self.comp.name, inst.name, def.sig.name)),
+                    SmtExpr::Atom(format!(
+                        "Return_{}_{}_{}",
+                        self.comp.name, inst.name, def.sig.name
+                    )),
                     SmtLet {
                         bindings: vec![(
                             smt_to_string(SspSmtVar::SelfState),

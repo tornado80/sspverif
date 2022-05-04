@@ -170,14 +170,19 @@ pub fn handle_code(code: Pair<Rule>, imported_oracles: &HashMap<String, OracleSi
                     Rule::assert => {
                         let mut inner = stmt.into_inner();
                         let expr = handle_expression(inner.next().unwrap(), imported_oracles);
-                        Statement::IfThenElse(expr, CodeBlock(vec![]), CodeBlock(vec![Statement::Abort]))
+                        Statement::IfThenElse(
+                            expr,
+                            CodeBlock(vec![]),
+                            CodeBlock(vec![Statement::Abort]),
+                        )
                     }
                     Rule::abort => Statement::Abort,
                     Rule::sample => {
                         let mut inner = stmt.into_inner();
                         let ident = Identifier::new_scalar(inner.next().unwrap().as_str());
                         let tipe = handle_type(inner.next().unwrap());
-                        Statement::Assign(ident, Expression::Sample(tipe))
+                        Statement::Sample(ident, None, tipe)
+                        //Statement::Assign(ident, Expression::Sample(tipe))
                     }
                     Rule::assign => {
                         let mut inner = stmt.into_inner();

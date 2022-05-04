@@ -54,7 +54,6 @@ fn main() {
     bits_ast_smt.write_smt_to(&mut std::io::stdout()).unwrap();
     println!();
 
-
     declare_tuples(10);
     declare_par_Maybe();
 
