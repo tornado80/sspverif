@@ -31,7 +31,13 @@ pub fn mod_prf(params: &HashMap<String, String>) -> PackageInstance {
                     tipe: Type::new_bits("*"),
                 },
                 code: block! {
-                    Statement::Assign(Identifier::new_scalar("k"), Expression::OracleInvoc("Get".to_string(), vec![])), // TODO figure out why the macro doesn't work (and why it's a macro and not a function)
+                    Statement::InvokeOracle{
+                        id: Identifier::new_scalar("k"),
+                        opt_idx: None,
+                        name: "Get".into(),
+                        args: vec![],
+                        target_inst_name: None,
+                    },
                     Statement::Return(Some(fncall! { "f",
                                                       Identifier::new_scalar("k").to_expression(),
                                                       Identifier::new_scalar("msg").to_expression()
