@@ -10,10 +10,10 @@ package Prf {
     }
 
     oracle EVAL(h: Integer, m: Bits(*)) -> (Integer,Bits(*)) {
-        k <- GET(h);
+        k <- invoke GET(h);
         y <- f(k,m);
         hh <- (h,m);
-        _ <- SET(hh,y);
+        _ <- invoke SET(hh,y);
         return hh;
     }
 }
