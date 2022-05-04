@@ -89,6 +89,68 @@ impl TypedCodeBlock {
 
                     new_block.push(Statement::Assign(id.clone(), typed_expr));
                 }
+                Statement::Sample(id, opt_idx, sample_type) => {
+                    //println!("scope: {:?}", scope);
+
+                    if let Some(id_type) = scope.lookup(id) {
+                        if let Some(idx) = opt_idx {
+                            let typed_idx = typify(idx, scope)?;
+                            let idx_type = get_type(&typed_idx, scope)?;
+        
+                            if let Type::Table(k, v) = id_type {
+                                if *k != idx_type {
+                                    return Err(TypeCheckError::TypeMismatch(
+                                        ErrorLocation::Unknown,
+                                        format!("type used as index to table {:?} does not match", id),
+                                        Some(idx.clone()),
+                                        idx_type,
+                                        *k,
+                                    ));
+                                }
+                                if *v != *sample_type {
+                                    return Err(TypeCheckError::TypeMismatch(
+                                        ErrorLocation::Unknown,
+                                        "value type of the table does not match".to_string(),
+                                        None,
+                                        *v,
+                                        sample_type.clone(),
+                                    ));
+                                }
+                            } else {
+                                return Err(TypeCheckError::TypeMismatch(
+                                    ErrorLocation::Unknown,
+                                    "table access on non-table".to_string(),
+                                    None,
+                                    id_type,
+                                    Type::Table(Box::new(idx_type), Box::new(sample_type.clone())),
+                                ));
+                            }
+
+                            
+                        } else {
+                            if id_type != sample_type.clone() {
+                                return Err(TypeCheckError::TypeMismatch(
+                                    ErrorLocation::Unknown,
+                                    format!("sampling into variable {:?} of different type", id),
+                                    None,
+                                    id_type,
+                                    sample_type.clone(),
+                                ));
+                            }
+                        }
+                    } else {
+                        scope.declare(id.clone(), sample_type.clone())?;
+                    }
+                     
+
+                    let opt_idx = if opt_idx.is_some() {
+                        Some(typify(&opt_idx.clone().unwrap(), scope)?)
+                    } else {
+                        None
+                    };
+
+                    new_block.push(Statement::Sample(id.clone(), opt_idx, sample_type.clone()));
+                }
                 Statement::TableAssign(id, idx, expr) => {
                     let typed_expr = typify(expr, scope)?;
                     let typed_idx = typify(idx, scope)?;
@@ -112,8 +174,8 @@ impl TypedCodeBlock {
                                     ErrorLocation::Unknown,
                                     "value type of the table does not match".to_string(),
                                     Some(expr.clone()),
-                                    expr_type,
                                     *v,
+                                    expr_type,
                                 ));
                             }
                         } else {

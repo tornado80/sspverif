@@ -12,13 +12,19 @@ impl<'a> super::Transformation for Transformation<'a> {
     type Aux = ();
 
     fn transform(&self) -> Result<(Composition, ()), Error> {
-        let insts : Result<Vec<_>,_> = self.0.pkgs.iter().map(|inst| {
-            let mut newinst = inst.clone();
-            for (i, oracle) in newinst.pkg.oracles.clone().iter().enumerate() {
-                newinst.pkg.oracles[i].code = returnify(&oracle.code, oracle.sig.tipe == Type::Empty)?;
-            }
-            Ok(newinst)
-        }).collect();
+        let insts: Result<Vec<_>, _> = self
+            .0
+            .pkgs
+            .iter()
+            .map(|inst| {
+                let mut newinst = inst.clone();
+                for (i, oracle) in newinst.pkg.oracles.clone().iter().enumerate() {
+                    newinst.pkg.oracles[i].code =
+                        returnify(&oracle.code, oracle.sig.tipe == Type::Empty)?;
+                }
+                Ok(newinst)
+            })
+            .collect();
         Ok((
             Composition {
                 pkgs: insts?,
@@ -44,7 +50,9 @@ pub fn returnify(cb: &CodeBlock, none_ok: bool) -> Result<CodeBlock, Error> {
         Some(Statement::Return(_)) | Some(Statement::Abort) => Ok(cb.clone()),
         _ => {
             if !none_ok {
-                Err(Error("Missing return at end of code block with expected return value".to_string()))
+                Err(Error(
+                    "Missing return at end of code block with expected return value".to_string(),
+                ))
             } else {
                 let mut retval = cb.0.clone();
                 retval.push(Statement::Return(None));
@@ -63,16 +71,16 @@ pub fn returnify(cb: &CodeBlock, none_ok: bool) -> Result<CodeBlock, Error> {
 ///     adds_if_return_with_branches, adds_else_return_with_branches
 #[cfg(test)]
 mod test {
-    use super::{Transformation,returnify};
+    use super::{returnify, Transformation};
+    use crate::block;
     use crate::expressions::Expression;
     use crate::identifier::Identifier;
     use crate::statement::{CodeBlock, Statement};
     use crate::types::Type;
-    use crate::block;
 
     #[test]
     fn preserves_return_none() {
-        let code = block!{
+        let code = block! {
             Statement::Assign(Identifier::new_scalar("d"),
                               Expression::Sample(Type::Integer)),
             Statement::Return(None)
@@ -82,7 +90,7 @@ mod test {
 
     #[test]
     fn preserves_return_some() {
-        let code = block!{
+        let code = block! {
             Statement::Assign(Identifier::new_scalar("d"),
                               Expression::Sample(Type::Integer)),
             Statement::Return(Some(Expression::IntegerLiteral("5".to_string())))
@@ -92,7 +100,7 @@ mod test {
 
     #[test]
     fn preserves_abort() {
-        let code = block!{
+        let code = block! {
             Statement::Assign(Identifier::new_scalar("d"),
                               Expression::Sample(Type::Integer)),
             Statement::Abort
@@ -102,11 +110,11 @@ mod test {
 
     #[test]
     fn adds_return() {
-        let before = block!{
+        let before = block! {
             Statement::Assign(Identifier::new_scalar("d"),
                               Expression::Sample(Type::Integer))
         };
-        let after = block!{
+        let after = block! {
             Statement::Assign(Identifier::new_scalar("d"),
                               Expression::Sample(Type::Integer)),
             Statement::Return(None)
@@ -117,7 +125,7 @@ mod test {
 
     #[test]
     fn adds_if_return_with_branches() {
-        let before = block!{
+        let before = block! {
             Statement::IfThenElse(
                 Expression::new_equals(vec![&(Identifier::new_scalar("a").to_expression()),
                                             &(Identifier::new_scalar("a").to_expression())]),
@@ -131,7 +139,7 @@ mod test {
                     Statement::Return(None)
                 })
         };
-        let after = block!{
+        let after = block! {
             Statement::IfThenElse(
                 Expression::new_equals(vec![&(Identifier::new_scalar("a").to_expression()),
                                             &(Identifier::new_scalar("a").to_expression())]),
@@ -152,7 +160,7 @@ mod test {
 
     #[test]
     fn adds_else_return_with_branches() {
-        let before = block!{
+        let before = block! {
             Statement::IfThenElse(
                 Expression::new_equals(vec![&(Identifier::new_scalar("a").to_expression()),
                                             &(Identifier::new_scalar("a").to_expression())]),
@@ -165,7 +173,7 @@ mod test {
                                       Expression::Sample(Type::Integer))
                 })
         };
-        let after = block!{
+        let after = block! {
             Statement::IfThenElse(
                 Expression::new_equals(vec![&(Identifier::new_scalar("a").to_expression()),
                                             &(Identifier::new_scalar("a").to_expression())]),

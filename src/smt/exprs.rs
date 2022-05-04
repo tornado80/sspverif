@@ -82,22 +82,26 @@ impl From<Expression> for SmtExpr {
 
                 SmtExpr::List(acc)
             }
-            Expression::Add(lhs, rhs) =>
-                SmtExpr::List(vec![SmtExpr::Atom("+".to_string()),
-                                   SmtExpr::from(*lhs),
-                                   SmtExpr::from(*rhs)]),
-            Expression::Sub(lhs, rhs) =>
-                SmtExpr::List(vec![SmtExpr::Atom("-".to_string()),
-                                   SmtExpr::from(*lhs),
-                                   SmtExpr::from(*rhs)]),
-            Expression::Mul(lhs, rhs) =>
-                SmtExpr::List(vec![SmtExpr::Atom("*".to_string()),
-                                   SmtExpr::from(*lhs),
-                                   SmtExpr::from(*rhs)]),
-            Expression::Div(lhs, rhs) =>
-                SmtExpr::List(vec![SmtExpr::Atom("/".to_string()),
-                                   SmtExpr::from(*lhs),
-                                   SmtExpr::from(*rhs)]),
+            Expression::Add(lhs, rhs) => SmtExpr::List(vec![
+                SmtExpr::Atom("+".to_string()),
+                SmtExpr::from(*lhs),
+                SmtExpr::from(*rhs),
+            ]),
+            Expression::Sub(lhs, rhs) => SmtExpr::List(vec![
+                SmtExpr::Atom("-".to_string()),
+                SmtExpr::from(*lhs),
+                SmtExpr::from(*rhs),
+            ]),
+            Expression::Mul(lhs, rhs) => SmtExpr::List(vec![
+                SmtExpr::Atom("*".to_string()),
+                SmtExpr::from(*lhs),
+                SmtExpr::from(*rhs),
+            ]),
+            Expression::Div(lhs, rhs) => SmtExpr::List(vec![
+                SmtExpr::Atom("/".to_string()),
+                SmtExpr::from(*lhs),
+                SmtExpr::from(*rhs),
+            ]),
             Expression::Not(expr) => {
                 SmtExpr::List(vec![SmtExpr::Atom("not".to_string()), (*expr).into()])
             }
@@ -230,12 +234,16 @@ impl From<SspSmtVar> for SmtExpr {
             SspSmtVar::GlobalState => SmtExpr::Atom("__global_state".into()),
             SspSmtVar::SelfState => SmtExpr::Atom("__self_state".into()),
             SspSmtVar::ReturnValue => SmtExpr::Atom("__ret".into()),
-            SspSmtVar::OracleReturnConstructor { compname, pkgname, oname } => {
-                SmtExpr::Atom(format!("mk-return-{}-{}-{}", compname, pkgname, oname))
-            }
-            SspSmtVar::OracleAbort { compname, pkgname, oname } => {
-                SmtExpr::Atom(format!("mk-abort-{}-{}-{}", compname, pkgname, oname))
-            }
+            SspSmtVar::OracleReturnConstructor {
+                compname,
+                pkgname,
+                oname,
+            } => SmtExpr::Atom(format!("mk-return-{}-{}-{}", compname, pkgname, oname)),
+            SspSmtVar::OracleAbort {
+                compname,
+                pkgname,
+                oname,
+            } => SmtExpr::Atom(format!("mk-abort-{}-{}-{}", compname, pkgname, oname)),
         }
     }
 }
@@ -272,6 +280,14 @@ pub enum SspSmtVar {
     GlobalState,
     SelfState,
     ReturnValue,
-    OracleReturnConstructor { compname: String, pkgname: String, oname: String },
-    OracleAbort { compname: String, pkgname: String, oname: String },
+    OracleReturnConstructor {
+        compname: String,
+        pkgname: String,
+        oname: String,
+    },
+    OracleAbort {
+        compname: String,
+        pkgname: String,
+        oname: String,
+    },
 }

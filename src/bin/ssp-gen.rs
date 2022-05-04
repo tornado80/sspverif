@@ -45,7 +45,8 @@ fn main() {
     let pkgs_list: Vec<_> = pkgs_list
         .iter()
         .map(|(filename, contents)| {
-            let mut ast = SspParser::parse(Rule::package, contents).unwrap_or_else(|e| panic!("error parsing file {}: {:#?}", filename, e));
+            let mut ast = SspParser::parse(Rule::package, contents)
+                .unwrap_or_else(|e| panic!("error parsing file {}: {:#?}", filename, e));
             let (pkg_name, pkg) = handle_pkg(ast.next().unwrap());
             (filename, contents, ast, pkg_name, pkg)
         })
@@ -56,7 +57,10 @@ fn main() {
 
     for (filename, _, _, pkg_name, pkg) in pkgs_list {
         if let Some(other_filename) = pkgs_filenames.get(&pkg_name) {
-            panic!("Package {:?} redefined in {} (originally defined in {})", pkg_name, filename, other_filename)
+            panic!(
+                "Package {:?} redefined in {} (originally defined in {})",
+                pkg_name, filename, other_filename
+            )
         }
 
         pkgs_map.insert(pkg_name.clone(), pkg);
