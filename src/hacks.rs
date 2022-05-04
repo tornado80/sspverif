@@ -1,5 +1,6 @@
 use crate::types::Type;
 
+#[allow(non_snake_case)]
 pub fn declare_datatype_Maybe(t: &str) {
     println!(
         "(declare-datatype Maybe_{0} (
@@ -10,10 +11,12 @@ pub fn declare_datatype_Maybe(t: &str) {
     );
 }
 
+#[allow(non_snake_case)]
 pub fn declare_par_Maybe() {
     println!("(declare-datatypes ((Maybe 1)) ((par (T) ((mk-some (maybe-get T)) (mk-none)))))");
 }
 
+#[allow(non_snake_case)]
 pub fn declare_datatype_Tuple(ts: &[&str]) {
     let mut out = String::new();
     out.push_str(&format!("(declare-datatype Tuple__{}", ts.join("_")));
@@ -26,6 +29,7 @@ pub fn declare_datatype_Tuple(ts: &[&str]) {
     println!("{}", out);
 }
 
+#[allow(non_snake_case)]
 pub fn declare_Tuple(n: usize) {
     let types: String = (1..n + 1)
         .map(|i| format!("T{}", i))
