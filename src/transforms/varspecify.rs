@@ -92,27 +92,28 @@ fn var_specify_helper(inst: &PackageInstance, block: CodeBlock, comp_name: &str)
                 }
                 Statement::Sample(id, opt_idx, t) => {
                     let opt_idx = opt_idx.clone().map(|expr| expr.map(fixup));
-                    
                     if let Expression::Identifier(id) = fixup(id.to_expression()) {
                         Statement::Sample(id, opt_idx, t.clone())
                     } else {
                         unreachable!()
                     }
                 }
-                Statement::InvokeOracle{
-                    id, opt_idx, name, args, target_inst_name
+                Statement::InvokeOracle {
+                    id,
+                    opt_idx,
+                    name,
+                    args,
+                    target_inst_name,
                 } => {
                     let opt_idx = opt_idx.clone().map(|expr| expr.map(fixup));
                     let args = args.into_iter().map(|expr| expr.map(fixup)).collect();
-                    
-                    
                     if let Expression::Identifier(id) = fixup(id.to_expression()) {
-                        Statement::InvokeOracle{
+                        Statement::InvokeOracle {
                             id,
                             opt_idx,
-                            name:name.clone(),
+                            name: name.clone(),
                             args,
-                            target_inst_name:target_inst_name.clone(),
+                            target_inst_name: target_inst_name.clone(),
                         }
                     } else {
                         unreachable!()
@@ -170,8 +171,7 @@ mod test {
     ) -> Vec<(CodeBlock, CodeBlock)> {
         [
             |id:&Identifier| block!{
-                Statement::Assign(id.clone(),
-                                  Expression::Sample(Type::Integer))
+                Statement::Sample(id.clone(), None, Type::Integer)
             },
             |id:&Identifier| block!{
                 Statement::IfThenElse(
@@ -233,14 +233,14 @@ mod test {
         let code = generate_code_blocks(source_id, target_id);
         code.iter().for_each(|c| {
             let res = var_specify(
-                &PackageInstance{
+                &PackageInstance {
                     params: params.clone(),
                     name: "test".to_string(),
-                    pkg: Package{
+                    pkg: Package {
                         params: param_t.clone(),
                         state: state.clone(),
                         imports: vec![],
-                        oracles: vec![OracleDef{
+                        oracles: vec![OracleDef {
                             code: c.0.clone(),
                             sig: OracleSig {
                                 tipe: Type::Empty,
@@ -272,15 +272,15 @@ mod test {
 
         let code = generate_code_blocks(source_id, target_id);
         code.iter().for_each(|c| {
-            let res = var_specify(&PackageInstance{
-                params: params.clone(),
-                name: "testpkg".to_string(),
-                pkg: Package{
-                    params: param_t.clone(),
-                    state: state.clone(),
-                    imports: vec![],
-                    oracles: vec![
-                        OracleDef{
+            let res = var_specify(
+                &PackageInstance {
+                    params: params.clone(),
+                    name: "testpkg".to_string(),
+                    pkg: Package {
+                        params: param_t.clone(),
+                        state: state.clone(),
+                        imports: vec![],
+                        oracles: vec![OracleDef {
                             code: c.0.clone(),
                             sig: OracleSig {
                                 tipe: Type::Empty,
@@ -312,15 +312,15 @@ mod test {
 
         let code = generate_code_blocks(source_id, target_id);
         code.iter().for_each(|c| {
-            let res = var_specify(&PackageInstance{
-                params: params.clone(),
-                name: "testpkg".to_string(),
-                pkg: Package{
-                    params: param_t.clone(),
-                    state: state.clone(),
-                    imports: vec![],
-                    oracles: vec![
-                        OracleDef{
+            let res = var_specify(
+                &PackageInstance {
+                    params: params.clone(),
+                    name: "testpkg".to_string(),
+                    pkg: Package {
+                        params: param_t.clone(),
+                        state: state.clone(),
+                        imports: vec![],
+                        oracles: vec![OracleDef {
                             code: c.0.clone(),
                             sig: OracleSig {
                                 tipe: Type::Empty,

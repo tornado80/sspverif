@@ -18,14 +18,17 @@ package Map {
     oracle EVAL(h: Integer, m: Bits(*)) -> (Integer,Bits(*)) {
         assert (Input_Map[h] != None as Integer);
         if (Output_Map[(h,m)] != None as (Integer,Bits(*)))
-            {return Unwrap(Output_Map[(h,m)]);}
-        else {hh <- EVAL(Unwrap(Input_Map[h]),m);
+            {hhh <- Unwrap(Output_Map[(h,m)]);
+                return hhh;}
+        else {hhh <- Unwrap(Input_Map[h]);
+            hh <- invoke EVAL(hhh,m);
            Output_Map[(h,m)] <- Some(hh);
-           return Unwrap(Output_Map[(h,m)]);}
+           hhhh <- Unwrap(Output_Map[(h,m)]);
+           return hhhh;}
     }
 
     oracle SET(h: Integer, k: Bits(n)) -> Integer {
-        hh <- SET(h,k);
+        hh <- invoke SET(h,k);
         if (Input_Map[h] == None as Integer)
            {Input_Map[h] <- Some(hh);
            return hh;}
@@ -33,8 +36,9 @@ package Map {
     }
 
     oracle GET(h: Integer, m: Bits(*)) -> Bits(n) {
-        assert (Output_Map[(h,k)] != None as (Integer,Bits(*)));
-        k <- GET(Unwrap(Output_Map[(h,k)]));
+        assert (Output_Map[(h,m)] != None as (Integer,Bits(*)));
+        hh <- Unwrap(Output_Map[(h,m)]);
+        k <- invoke GET(hh);
         return k;
         }
 }

@@ -72,6 +72,7 @@ impl From<Expression> for SmtExpr {
                 ]),
                 _ => SmtExpr::from(*inner),
             },
+            Expression::StringLiteral(litname) => SmtExpr::Atom(format!("\"{}\"", litname)),
             Expression::BooleanLiteral(litname) => SmtExpr::Atom(litname),
             Expression::IntegerLiteral(litname) => SmtExpr::Atom(litname),
             Expression::Equals(exprs) => {
@@ -105,6 +106,27 @@ impl From<Expression> for SmtExpr {
             Expression::Not(expr) => {
                 SmtExpr::List(vec![SmtExpr::Atom("not".to_string()), (*expr).into()])
             }
+            Expression::And(vals) => SmtExpr::List({
+                let mut list = vec![SmtExpr::Atom("and".to_owned())];
+                for val in vals {
+                    list.push(SmtExpr::from(val))
+                }
+                list
+            }),
+            Expression::Or(vals) => SmtExpr::List({
+                let mut list = vec![SmtExpr::Atom("or".to_owned())];
+                for val in vals {
+                    list.push(SmtExpr::from(val))
+                }
+                list
+            }),
+            Expression::Xor(vals) => SmtExpr::List({
+                let mut list = vec![SmtExpr::Atom("xor".to_owned())];
+                for val in vals {
+                    list.push(SmtExpr::from(val))
+                }
+                list
+            }),
             Expression::Identifier(Identifier::Scalar(identname)) => {
                 panic! {"Found a scalar {:} which should have been removed by varspecify at this point", identname}
             }

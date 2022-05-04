@@ -215,40 +215,6 @@ impl<'a> CompositionSmtWriter<'a> {
                     .into()
                     //SmtExpr::Atom(format!("mk-abort-{}-{}", pkgname, sig.name))
                 }
-                Statement::Assign(ident, Expression::Typed(t, inner))
-                    if matches!(**inner, Expression::Unwrap(_)) =>
-                {
-                    match *inner.clone() {
-                        Expression::Unwrap(maybe) => SmtIte {
-                            cond: SmtIs {
-                                con: format!("(mk-none () {})", {
-                                    let t_smt: SmtExpr = Type::Maybe(Box::new(t.clone())).into();
-                                    smt_to_string(t_smt)
-                                }),
-                                expr: *maybe.clone(),
-                            },
-                            then: SspSmtVar::OracleAbort {
-                                compname: self.comp.name.clone(),
-                                pkgname: pkgname.into(),
-                                oname: sig.name.clone(),
-                            },
-                            els: SmtLet {
-                                bindings: vec![(
-                                    smt_to_string(ident.to_expression()),
-                                    SmtExpr::List(vec![
-                                        SmtExpr::Atom("maybe-get".into()),
-                                        SmtExpr::Atom(smt_to_string(*maybe.clone())),
-                                    ]),
-                                )],
-                                body: result.unwrap(),
-                            },
-                        }
-                        .into(),
-                        _ => {
-                            unreachable!();
-                        }
-                    }
-                }
                 // TODO actually use the type that we sample to know how far to advance the randomness tape
                 Statement::Sample(ident, opt_idx, tipe) => {
                     /*
@@ -385,6 +351,40 @@ impl<'a> CompositionSmtWriter<'a> {
                         .into()
                     } else {
                         smt_expr.into()
+                    }
+                }
+                Statement::Assign(ident, Expression::Typed(t, inner))
+                    if matches!(**inner, Expression::Unwrap(_)) =>
+                {
+                    match *inner.clone() {
+                        Expression::Unwrap(maybe) => SmtIte {
+                            cond: SmtIs {
+                                con: format!("(mk-none () {})", {
+                                    let t_smt: SmtExpr = Type::Maybe(Box::new(t.clone())).into();
+                                    smt_to_string(t_smt)
+                                }),
+                                expr: *maybe.clone(),
+                            },
+                            then: SspSmtVar::OracleAbort {
+                                compname: self.comp.name.clone(),
+                                pkgname: pkgname.into(),
+                                oname: sig.name.clone(),
+                            },
+                            els: SmtLet {
+                                bindings: vec![(
+                                    smt_to_string(ident.to_expression()),
+                                    SmtExpr::List(vec![
+                                        SmtExpr::Atom("maybe-get".into()),
+                                        SmtExpr::Atom(smt_to_string(*maybe.clone())),
+                                    ]),
+                                )],
+                                body: result.unwrap(),
+                            },
+                        }
+                        .into(),
+                        _ => {
+                            unreachable!();
+                        }
                     }
                 }
                 Statement::Assign(ident, expr) => {

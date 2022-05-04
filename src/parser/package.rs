@@ -180,7 +180,7 @@ pub fn handle_code(code: Pair<Rule>) -> CodeBlock {
                         let ident = Identifier::new_scalar(inner.next().unwrap().as_str());
                         let index = handle_expression(inner.next().unwrap());
                         let tipe = handle_type(inner.next().unwrap());
-                        Statement::TableAssign(ident, index, Expression::Sample(tipe))
+                        Statement::Sample(ident, Some(index), tipe)
                     }
                     Rule::table_assign => {
                         let mut inner = stmt.into_inner();
