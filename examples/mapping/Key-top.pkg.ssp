@@ -4,7 +4,7 @@ package Key_top {
     }
 
     state {
-        T: Table(Integer,Maybe(Bits(n))),
+        T: Table(Integer,Bits(n)),
     }
 
     oracle GET(h: Integer) -> Bits(n) {

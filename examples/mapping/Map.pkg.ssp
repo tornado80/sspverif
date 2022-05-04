@@ -20,7 +20,7 @@ package Map {
         if (Output_Map[(h,m)] != None as (Integer,Bits(*)))
             {return Unwrap(Output_Map[(h,m)]);}
         else {hh <- EVAL(Unwrap(Input_Map[h]),m);
-           Output_Map[(h,m)] <- hh;
+           Output_Map[(h,m)] <- Some(hh);
            return Unwrap(Output_Map[(h,m)]);}
     }
 
