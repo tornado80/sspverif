@@ -103,6 +103,108 @@ impl Expression {
         })
     }
 
+    pub fn mapfold<F, Ac>(&self, init: Ac, f: F) -> (Ac, Expression)
+    where
+        F: Fn(Ac, Expression) -> (Ac, Expression) + Copy,
+        Ac: Clone,
+    {
+        let (ac, ex) = match &self {
+            Expression::Bot
+            | Expression::None(_)
+            | Expression::Sample(_)
+            | Expression::StringLiteral(_)
+            | Expression::IntegerLiteral(_)
+            | Expression::BooleanLiteral(_)
+            | Expression::Identifier(_) => (init, self.clone()),
+
+            Expression::Not(expr) => {
+                let (ac, e) = expr.mapfold(init, f);
+                (ac, Expression::Not(Box::new(e)))
+            }
+            Expression::Some(expr) => {
+                let (ac, e) = expr.mapfold(init, f);
+                (ac, Expression::Some(Box::new(e)))
+            }
+            Expression::Unwrap(expr) => {
+                let (ac, e) = expr.mapfold(init, f);
+                (ac, Expression::Unwrap(Box::new(e)))
+            }
+            Expression::TableAccess(id, expr) => {
+                let (ac, e) = expr.mapfold(init, f);
+                (ac, Expression::TableAccess(id.clone(), Box::new(e)))
+            }
+            Expression::Tuple(exprs) => {
+                let mut ac = init;
+                let newexprs = exprs
+                    .iter()
+                    .map(|expr| {
+                        let (newac, e) = expr.mapfold(ac.clone(), f);
+                        ac = newac;
+                        e
+                    })
+                    .collect();
+                (ac, Expression::Tuple(newexprs))
+            }
+            Expression::Equals(exprs) => {
+                let mut ac = init;
+                let newexprs = exprs
+                    .iter()
+                    .map(|expr| {
+                        let (newac, e) = expr.mapfold(ac.clone(), f);
+                        ac = newac;
+                        e
+                    })
+                    .collect();
+                (ac, Expression::Equals(newexprs))
+            }
+            Expression::Add(lhs, rhs) => {
+                let ac = init;
+                let (ac, newlhs) = lhs.mapfold(ac, f);
+                let (ac, newrhs) = rhs.mapfold(ac, f);
+                (ac, Expression::Add(Box::new(newlhs), Box::new(newrhs)))
+            }
+            Expression::Sub(lhs, rhs) => {
+                let ac = init;
+                let (ac, newlhs) = lhs.mapfold(ac, f);
+                let (ac, newrhs) = rhs.mapfold(ac, f);
+                (ac, Expression::Sub(Box::new(newlhs), Box::new(newrhs)))
+            }
+            Expression::Mul(lhs, rhs) => {
+                let ac = init;
+                let (ac, newlhs) = lhs.mapfold(ac, f);
+                let (ac, newrhs) = rhs.mapfold(ac, f);
+                (ac, Expression::Mul(Box::new(newlhs), Box::new(newrhs)))
+            }
+            Expression::Div(lhs, rhs) => {
+                let ac = init;
+                let (ac, newlhs) = lhs.mapfold(ac, f);
+                let (ac, newrhs) = rhs.mapfold(ac, f);
+                (ac, Expression::Div(Box::new(newlhs), Box::new(newrhs)))
+            }
+            Expression::FnCall(name, exprs) => {
+                let mut ac = init;
+                let newexprs = exprs
+                    .iter()
+                    .map(|expr| {
+                        let (newac, e) = expr.mapfold(ac.clone(), f);
+                        ac = newac;
+                        e
+                    })
+                    .collect();
+
+                (ac, Expression::FnCall(name.clone(), newexprs))
+            }
+            Expression::Typed(t, inner) => {
+                let (ac, e) = inner.mapfold(init, f);
+                (ac, Expression::Typed(t.clone(), Box::new(e)))
+            }
+            _ => {
+                panic!("Expression: not implemented: {:#?}", self)
+            }
+        };
+        f(ac.clone(), ex)
+    }
+
     pub fn new_equals(exprs: Vec<&Expression>) -> Expression {
         Expression::Equals(exprs.into_iter().cloned().collect())
     }

@@ -4,6 +4,7 @@ pub mod resolveoracles;
 pub mod returnify;
 pub mod treeify;
 pub mod typecheck;
+pub mod unwrapify;
 pub mod varspecify;
 
 pub trait Transformation {
@@ -20,6 +21,9 @@ pub fn transform_all(
     <typecheck::Transform as Transformation>::Err,
 > {
     let (comp, scope) = typecheck::Transform::new_with_empty_scope(comp.clone()).transform()?;
+    let (comp, _) = unwrapify::Transformation(&comp)
+        .transform()
+        .expect("unwrapify transformation failed unexpectedly");
     let (comp, _) = treeify::Transformation(&comp)
         .transform()
         .expect("treeify transformation failed unexpectedly");
