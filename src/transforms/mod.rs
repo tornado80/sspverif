@@ -4,6 +4,7 @@ pub mod resolveoracles;
 pub mod returnify;
 pub mod treeify;
 pub mod typecheck;
+pub mod unwrapify;
 pub mod varspecify;
 
 pub trait Transformation {
