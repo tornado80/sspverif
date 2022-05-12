@@ -15,7 +15,8 @@ package Key_top {
 
     oracle SET(h: Integer, k: Bits(n)) -> Integer {
         assert (T[h] == None as Bits(n));
-        T[h] <- Some(k);
+        kk <-$ Bits(n);
+        T[h] <- Some(kk);
         return h;
     }
 }

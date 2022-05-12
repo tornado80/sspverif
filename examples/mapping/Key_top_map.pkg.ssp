@@ -17,12 +17,15 @@ package Key_top_map {
     oracle SET(h: Integer, k: Bits(n)) -> Integer {
         assert (T[h] == None as Bits(n));
 		hh <- None as Integer;
-        if (S[k] != None as Integer)
-            {hh <- S[k];
+        kk <-$ Bits(n);
+        if (S[kk] != None as Integer)
+            {hh <- S[kk];
             }
-        else {T[h] <- Some(k);
-             S[k] <- Some(h);
-            hh <- Some(h);}
+        else   {
+                 T[h]  <- Some(kk);
+                 S[kk] <- Some(h);
+                 hh    <- Some(h);
+                }
 		hh_ <- Unwrap(hh);
 		return hh_;
     }

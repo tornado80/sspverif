@@ -7,9 +7,9 @@ package Key_bottom {
         T: Table((Integer,Bits(*)),Bits(n)),
     }
 
-    oracle GET(h: (Integer,Bits(*))) -> Bits(n) {
-        assert (T[h] != None as Bits(n));
-        k <- Unwrap(T[h]);
+    oracle GET(h: Integer, m: Bits(*)) -> Bits(n) {
+        assert (T[(h,m)] != None as Bits(n));
+        k <- Unwrap(T[(h,m)]);
         return k;
     }
 
