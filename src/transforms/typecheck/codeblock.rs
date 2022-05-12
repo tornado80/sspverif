@@ -69,26 +69,73 @@ impl TypedCodeBlock {
 
                     new_block.push(stmt.clone());
                 }
-                Statement::Assign(id, expr) => {
+                Statement::Assign(id, opt_idx, expr) => {
                     //println!("scope: {:?}", scope);
 
                     let typed_expr = typify(expr, scope)?;
                     let expr_type = get_type(&typed_expr, scope)?;
                     if let Some(id_type) = scope.lookup(id) {
-                        if id_type != expr_type {
+                        if let Some(idx) = opt_idx {
+                            let typed_idx = typify(idx, scope)?;
+                            let idx_type = get_type(&typed_idx, scope)?;
+                            if let Type::Table(k, v) = id_type {
+                                if *k != idx_type {
+                                    return Err(TypeCheckError::TypeMismatch(
+                                        ErrorLocation::Unknown,
+                                        format!(
+                                            "type used as index to table {:?} does not match",
+                                            id
+                                        ),
+                                        Some(idx.clone()),
+                                        idx_type,
+                                        *k,
+                                    ));
+                                }
+                                if Type::Maybe(v.clone()) != expr_type {
+                                    return Err(TypeCheckError::TypeMismatch(
+                                        ErrorLocation::Unknown,
+                                        "value type of the table does not match".to_string(),
+                                        None,
+                                        *v,
+                                        expr_type.clone(),
+                                    ));
+                                }
+                            } else {
+                                return Err(TypeCheckError::TypeMismatch(
+                                    ErrorLocation::Unknown,
+                                    "table access on non-table".to_string(),
+                                    None,
+                                    id_type,
+                                    Type::Table(Box::new(idx_type), Box::new(expr_type.clone())),
+                                ));
+                            }
+                        } else if id_type != expr_type.clone() {
                             return Err(TypeCheckError::TypeMismatch(
                                 ErrorLocation::Unknown,
                                 format!("assigning to variable {:?} of different type", id),
                                 Some(expr.clone()),
-                                expr_type,
                                 id_type,
+                                expr_type.clone(),
                             ));
                         }
                     } else {
+                        if opt_idx.is_some() {
+                            return Err(TypeCheckError::Undefined(
+                                ErrorLocation::Unknown,
+                                "assigning to undefined table".to_string(),
+                                id.clone(),
+                            ));
+                        }
                         scope.declare(id.clone(), expr_type)?;
                     }
 
-                    new_block.push(Statement::Assign(id.clone(), typed_expr));
+                    let opt_idx = if opt_idx.is_some() {
+                        Some(typify(&opt_idx.clone().unwrap(), scope)?)
+                    } else {
+                        None
+                    };
+
+                    new_block.push(Statement::Assign(id.clone(), opt_idx, typed_expr));
                 }
                 Statement::Sample(id, opt_idx, sample_type) => {
                     //println!("scope: {:?}", scope);
@@ -227,7 +274,7 @@ impl TypedCodeBlock {
                                         *k,
                                     ));
                                 }
-                                if *v != *ret_type {
+                                if Type::Maybe(v.clone()) != *ret_type {
                                     return Err(TypeCheckError::TypeMismatch(
                                         ErrorLocation::Unknown,
                                         "value type of the table does not match".to_string(),
@@ -271,52 +318,6 @@ impl TypedCodeBlock {
                         args: typified_args,
                         target_inst_name: target_inst_name.clone(),
                     })
-                }
-                Statement::TableAssign(id, idx, expr) => {
-                    let typed_expr = typify(expr, scope)?;
-                    let typed_idx = typify(idx, scope)?;
-
-                    let expr_type = get_type(&typed_expr, scope)?;
-                    let idx_type = get_type(&typed_idx, scope)?;
-
-                    if let Some(id_type) = scope.lookup(id) {
-                        if let Type::Table(k, v) = id_type.clone() {
-                            if *k != idx_type {
-                                return Err(TypeCheckError::TypeMismatch(
-                                    ErrorLocation::Unknown,
-                                    format!("type used as index to table {:?} does not match", id),
-                                    Some(idx.clone()),
-                                    idx_type,
-                                    *k,
-                                ));
-                            }
-                            if Type::Maybe(v.clone()) != expr_type {
-                                return Err(TypeCheckError::TypeMismatch(
-                                    ErrorLocation::Unknown,
-                                    "value type of the table does not match".to_string(),
-                                    Some(expr.clone()),
-                                    *v,
-                                    expr_type,
-                                ));
-                            }
-                        } else {
-                            return Err(TypeCheckError::TypeMismatch(
-                                ErrorLocation::Unknown,
-                                "table access on non-table".to_string(),
-                                None,
-                                id_type,
-                                Type::Table(Box::new(idx_type), Box::new(expr_type)),
-                            ));
-                        }
-                    } else {
-                        return Err(TypeCheckError::Undefined(
-                            ErrorLocation::Unknown,
-                            "assigning to undefined table".to_string(),
-                            id.clone(),
-                        ));
-                    }
-
-                    new_block.push(Statement::TableAssign(id.clone(), typed_idx, typed_expr));
                 }
                 Statement::IfThenElse(expr, ifcode, elsecode) => {
                     let typed_expr = typify(expr, scope)?;
@@ -561,6 +562,7 @@ mod test {
             block: block! {
                 Statement::Assign(
                     Identifier::Local("test".to_string()),
+                    None,
                     Expression::StringLiteral("42".to_string()))
             },
             expected_return_type: Type::Empty,
@@ -582,7 +584,7 @@ mod test {
             .unwrap();
         let code = TypedCodeBlock {
             block: block! {
-                Statement::Assign(Identifier::Local("test".to_string()), Expression::IntegerLiteral("42".to_string()))
+                Statement::Assign(Identifier::Local("test".to_string()), None, Expression::IntegerLiteral("42".to_string()))
             },
             expected_return_type: Type::Empty,
         };
@@ -597,7 +599,7 @@ mod test {
         scope.enter();
         let code = TypedCodeBlock {
             block: block! {
-                Statement::Assign(Identifier::Local("test".to_string()), Expression::IntegerLiteral("42".to_string()))
+                Statement::Assign(Identifier::Local("test".to_string()), None, Expression::IntegerLiteral("42".to_string()))
             },
             expected_return_type: Type::Empty,
         };
@@ -618,13 +620,17 @@ mod test {
             .unwrap();
         let code = TypedCodeBlock {
             block: block! {
-                Statement::TableAssign(Identifier::Local("test".to_string()),
-                                       Expression::IntegerLiteral("42".to_string()),
+                Statement::Assign(Identifier::Local("test".to_string()),
+                                       Some(Expression::IntegerLiteral("42".to_string())),
                                        Expression::Some(Box::new(Expression::StringLiteral("42".to_string()))))
             },
             expected_return_type: Type::Empty,
         };
         let ret = code.typecheck(&mut scope);
+
+        if let Err(ref e) = ret {
+            println!("error: {:#?}", e);
+        }
 
         assert!(matches!(ret, Ok(_)), "Typecheck should succeed");
     }
@@ -641,8 +647,8 @@ mod test {
             .unwrap();
         let code = TypedCodeBlock {
             block: block! {
-                Statement::TableAssign(Identifier::Local("test".to_string()),
-                                       Expression::StringLiteral("42".to_string()),
+                Statement::Assign(Identifier::Local("test".to_string()),
+                                       Some(Expression::StringLiteral("42".to_string())),
                                        Expression::StringLiteral("42".to_string()))
             },
             expected_return_type: Type::Empty,
@@ -666,8 +672,8 @@ mod test {
             .unwrap();
         let code = TypedCodeBlock {
             block: block! {
-                Statement::TableAssign(Identifier::Local("test".to_string()),
-                                       Expression::IntegerLiteral("42".to_string()),
+                Statement::Assign(Identifier::Local("test".to_string()),
+                                       Some(Expression::IntegerLiteral("42".to_string())),
                                        Expression::IntegerLiteral("42".to_string()))
             },
             expected_return_type: Type::Empty,
@@ -688,8 +694,8 @@ mod test {
             .unwrap();
         let code = TypedCodeBlock {
             block: block! {
-                Statement::TableAssign(Identifier::Local("test".to_string()),
-                                       Expression::IntegerLiteral("42".to_string()),
+                Statement::Assign(Identifier::Local("test".to_string()),
+                                       Some(Expression::IntegerLiteral("42".to_string())),
                                        Expression::IntegerLiteral("42".to_string()))
             },
             expected_return_type: Type::Empty,
@@ -707,16 +713,24 @@ mod test {
         scope.enter();
         let code = TypedCodeBlock {
             block: block! {
-                Statement::TableAssign(Identifier::Local("test".to_string()),
-                                       Expression::IntegerLiteral("42".to_string()),
+                Statement::Assign(Identifier::Local("test".to_string()),
+                                       Some(Expression::IntegerLiteral("42".to_string())),
                                        Expression::IntegerLiteral("42".to_string()))
             },
             expected_return_type: Type::Empty,
         };
         let ret = code.typecheck(&mut scope);
+
+        if let Err(ref e) = ret {
+            println!("{:#?}", e);
+        }
+
+        if let Ok(_) = ret {
+            println!("no error.");
+        }
         assert!(
             matches!(ret, Err(TypeCheckError::Undefined(_, _, _))),
-            "expected to fail with a TypeCheckError::TypeMismatch"
+            "expected to fail with a TypeCheckError::Undefined"
         );
     }
 }

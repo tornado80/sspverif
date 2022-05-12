@@ -83,9 +83,16 @@ fn var_specify_helper(inst: &PackageInstance, block: CodeBlock, comp_name: &str)
                 Statement::Abort => Statement::Abort,
                 Statement::Return(None) => Statement::Return(None),
                 Statement::Return(Some(expr)) => Statement::Return(Some(expr.map(fixup))),
-                Statement::Assign(id, expr) => {
+                Statement::Assign(id, None, expr) => {
                     if let Expression::Identifier(id) = fixup(id.to_expression()) {
-                        Statement::Assign(id, expr.map(fixup))
+                        Statement::Assign(id, None, expr.map(fixup))
+                    } else {
+                        unreachable!()
+                    }
+                }
+                Statement::Assign(table, Some(index), expr) => {
+                    if let Expression::Identifier(table) = fixup(table.to_expression()) {
+                        Statement::Assign(table, Some(index.map(fixup)), expr.map(fixup))
                     } else {
                         unreachable!()
                     }
@@ -124,13 +131,6 @@ fn var_specify_helper(inst: &PackageInstance, block: CodeBlock, comp_name: &str)
                     var_specify_helper(inst, ifcode.clone(), comp_name),
                     var_specify_helper(inst, elsecode.clone(), comp_name),
                 ),
-                Statement::TableAssign(table, index, expr) => {
-                    if let Expression::Identifier(table) = fixup(table.to_expression()) {
-                        Statement::TableAssign(table, index.map(fixup), expr.map(fixup))
-                    } else {
-                        unreachable!()
-                    }
-                }
             })
             .collect(),
     )

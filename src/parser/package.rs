@@ -170,7 +170,7 @@ pub fn handle_code(code: Pair<Rule>) -> CodeBlock {
                         let mut inner = stmt.into_inner();
                         let ident = Identifier::new_scalar(inner.next().unwrap().as_str());
                         let expr = handle_expression(inner.next().unwrap());
-                        Statement::Assign(ident, expr)
+                        Statement::Assign(ident, None, expr)
                     }
                     Rule::table_sample => {
                         let mut inner = stmt.into_inner();
@@ -184,7 +184,7 @@ pub fn handle_code(code: Pair<Rule>) -> CodeBlock {
                         let ident = Identifier::new_scalar(inner.next().unwrap().as_str());
                         let index = handle_expression(inner.next().unwrap());
                         let expr = handle_expression(inner.next().unwrap());
-                        Statement::TableAssign(ident, index, expr)
+                        Statement::Assign(ident, Some(index), expr)
                     }
                     Rule::invocation => {
                         let mut inner = stmt.into_inner();

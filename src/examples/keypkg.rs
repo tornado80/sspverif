@@ -31,7 +31,7 @@ pub fn key_pkg(params: &HashMap<String, String>) -> PackageInstance {
                             block! {
                                 Statement::Sample(Identifier::new_scalar("k_sample"), None, Type::new_bits("n"),
                                 ),
-                                Statement::Assign(Identifier::new_scalar("k"),
+                                Statement::Assign(Identifier::new_scalar("k"), None,
                                                   Expression::Some(Box::new(Identifier::new_scalar("k_sample").to_expression())),
                                 )
                             },
@@ -56,7 +56,7 @@ pub fn key_pkg(params: &HashMap<String, String>) -> PackageInstance {
                             block! {Statement::Abort},
                             block! {},
                         ),
-                        Statement::Assign(Identifier::new_scalar("k_unwrapped"), Expression::Unwrap(Box::new(Identifier::new_scalar("k").to_expression()))),
+                        Statement::Assign(Identifier::new_scalar("k_unwrapped"), None, Expression::Unwrap(Box::new(Identifier::new_scalar("k").to_expression()))),
                         Statement::Return(Some(Identifier::new_scalar("k_unwrapped").to_expression()))
                     },
                 },

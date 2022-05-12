@@ -95,6 +95,7 @@ mod treeify_fn_test {
                 y.to_expression(),
                 CodeBlock(vec![Statement::Assign(
                     x.clone(),
+                    None,
                     Expression::IntegerLiteral("4".to_string()),
                 )]),
                 CodeBlock(vec![]),
@@ -105,7 +106,7 @@ mod treeify_fn_test {
         let after = CodeBlock(vec![Statement::IfThenElse(
             y.to_expression(),
             CodeBlock(vec![
-                Statement::Assign(x.clone(), Expression::IntegerLiteral("4".to_string())),
+                Statement::Assign(x.clone(), None, Expression::IntegerLiteral("4".to_string())),
                 Statement::Return(Some(x.to_expression())),
             ]),
             CodeBlock(vec![Statement::Return(Some(x.to_expression()))]),
@@ -129,6 +130,7 @@ mod treeify_fn_test {
                     z.to_expression(),
                     CodeBlock(vec![Statement::Assign(
                         x.clone(),
+                        None,
                         Expression::IntegerLiteral("42".to_string()),
                     )]),
                     CodeBlock(vec![]),
@@ -143,7 +145,11 @@ mod treeify_fn_test {
             CodeBlock(vec![Statement::IfThenElse(
                 z.to_expression(),
                 CodeBlock(vec![
-                    Statement::Assign(x.clone(), Expression::IntegerLiteral("42".to_string())),
+                    Statement::Assign(
+                        x.clone(),
+                        None,
+                        Expression::IntegerLiteral("42".to_string()),
+                    ),
                     Statement::Return(Some(x.to_expression())),
                 ]),
                 CodeBlock(vec![Statement::Return(Some(x.to_expression()))]),
@@ -167,10 +173,12 @@ mod treeify_fn_test {
                 y.to_expression(),
                 CodeBlock(vec![Statement::Assign(
                     x.clone(),
+                    None,
                     Expression::IntegerLiteral("1".to_string()),
                 )]),
                 CodeBlock(vec![Statement::Assign(
                     x.clone(),
+                    None,
                     Expression::IntegerLiteral("2".to_string()),
                 )]),
             ),
@@ -178,10 +186,12 @@ mod treeify_fn_test {
                 z.to_expression(),
                 CodeBlock(vec![Statement::Assign(
                     x.clone(),
+                    None,
                     Expression::IntegerLiteral("3".to_string()),
                 )]),
                 CodeBlock(vec![Statement::Assign(
                     x.clone(),
+                    None,
                     Expression::IntegerLiteral("4".to_string()),
                 )]),
             ),
@@ -191,29 +201,45 @@ mod treeify_fn_test {
         let after = CodeBlock(vec![Statement::IfThenElse(
             y.to_expression(),
             CodeBlock(vec![
-                Statement::Assign(x.clone(), Expression::IntegerLiteral("1".to_string())),
+                Statement::Assign(x.clone(), None, Expression::IntegerLiteral("1".to_string())),
                 Statement::IfThenElse(
                     z.to_expression(),
                     CodeBlock(vec![
-                        Statement::Assign(x.clone(), Expression::IntegerLiteral("3".to_string())),
+                        Statement::Assign(
+                            x.clone(),
+                            None,
+                            Expression::IntegerLiteral("3".to_string()),
+                        ),
                         Statement::Return(Some(x.to_expression())),
                     ]),
                     CodeBlock(vec![
-                        Statement::Assign(x.clone(), Expression::IntegerLiteral("4".to_string())),
+                        Statement::Assign(
+                            x.clone(),
+                            None,
+                            Expression::IntegerLiteral("4".to_string()),
+                        ),
                         Statement::Return(Some(x.to_expression())),
                     ]),
                 ),
             ]),
             CodeBlock(vec![
-                Statement::Assign(x.clone(), Expression::IntegerLiteral("2".to_string())),
+                Statement::Assign(x.clone(), None, Expression::IntegerLiteral("2".to_string())),
                 Statement::IfThenElse(
                     z.to_expression(),
                     CodeBlock(vec![
-                        Statement::Assign(x.clone(), Expression::IntegerLiteral("3".to_string())),
+                        Statement::Assign(
+                            x.clone(),
+                            None,
+                            Expression::IntegerLiteral("3".to_string()),
+                        ),
                         Statement::Return(Some(x.to_expression())),
                     ]),
                     CodeBlock(vec![
-                        Statement::Assign(x.clone(), Expression::IntegerLiteral("4".to_string())),
+                        Statement::Assign(
+                            x.clone(),
+                            None,
+                            Expression::IntegerLiteral("4".to_string()),
+                        ),
                         Statement::Return(Some(x.to_expression())),
                     ]),
                 ),

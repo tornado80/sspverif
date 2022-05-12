@@ -351,10 +351,10 @@ impl<'a> CompositionSmtWriter<'a> {
                         smt_expr.into()
                     }
                 }
-                Statement::Assign(ident, Expression::Typed(t, inner))
+                Statement::Assign(ident, opt_idx, Expression::Typed(t, inner))
                     if matches!(**inner, Expression::Unwrap(_)) =>
                 {
-                    match *inner.clone() {
+                    let val = match *inner.clone() {
                         Expression::Unwrap(maybe) => SmtIte {
                             cond: SmtIs {
                                 con: format!("(mk-none () {})", {
@@ -378,16 +378,26 @@ impl<'a> CompositionSmtWriter<'a> {
                                 )],
                                 body: result.unwrap(),
                             },
-                        }
-                        .into(),
+                        },
                         _ => {
                             unreachable!();
                         }
+                    };
+
+                    if opt_idx.is_some() {
+                        SmtExpr::List(vec![
+                            SmtExpr::Atom("store".into()),
+                            ident.to_expression().into(),
+                            opt_idx.clone().unwrap().into(),
+                            val.into(),
+                        ])
+                    } else {
+                        val.into()
                     }
                 }
-                Statement::Assign(ident, expr) => {
+                Statement::Assign(ident, opt_idx, expr) => {
                     // State_{name} (quote " state")
-                    match ident {
+                    let val = match ident {
                         Identifier::Scalar(name) => panic!("found a scalar {:?} which should have been removed by varspecify at this point", name),
                         Identifier::Local(name) => SmtLet {
                             bindings: vec![(name.clone(), expr.clone().into())],
@@ -401,37 +411,20 @@ impl<'a> CompositionSmtWriter<'a> {
                                     .smt_set(name, &expr.clone().into()),
                             )],
                             body: result.unwrap(),
-                        }
-                        .into(),
+                        },
 
                         _ => panic!("not implemented"),
-                    }
-                }
-                Statement::TableAssign(table, index, expr) => {
-                    let new_val = SmtExpr::List(vec![
-                        SmtExpr::Atom("store".into()),
-                        table.to_expression().into(),
-                        index.clone().into(),
-                        expr.clone().into(),
-                    ]);
+                    };
 
-                    match table {
-                        Identifier::Scalar(name) => panic!("found a scalar {:?} which should have been removed by varspecify at this point", name),
-                        Identifier::Local(name) => SmtLet {
-                            bindings: vec![(name.clone(), new_val)],
-                            body: result.unwrap(),
-                        }
-                        .into(),
-                        Identifier::State { name, pkgname, .. } => SmtLet {
-                            bindings: vec![(
-                                smt_to_string(SspSmtVar::SelfState),
-                                self.get_state_helper(pkgname).smt_set(name, &new_val),
-                            )],
-                            body: result.unwrap(),
-                        }
-                        .into(),
-
-                        _ => panic!("not implemented"),
+                    if opt_idx.is_some() {
+                        SmtExpr::List(vec![
+                            SmtExpr::Atom("store".into()),
+                            ident.to_expression().into(),
+                            opt_idx.clone().unwrap().into(),
+                            val.into(),
+                        ])
+                    } else {
+                        val.into()
                     }
                 }
             });

@@ -9,17 +9,16 @@ pub struct CodeBlock(pub Vec<Statement>);
 pub enum Statement {
     Abort,
     Return(Option<Expression>),
-    Assign(Identifier, Expression),
-    TableAssign(Identifier, Expression, Expression), // TableAssign(T, 2+3, g^r) <== T[2+3] <-- g^r
+    Assign(Identifier, Option<Expression>, Expression),
     IfThenElse(Expression, CodeBlock, CodeBlock),
     Sample(Identifier, Option<Expression>, Type),
-    InvokeOracle{
+    InvokeOracle {
         id: Identifier,
         opt_idx: Option<Expression>,
         name: String,
         args: Vec<Expression>,
         target_inst_name: Option<String>,
-    }
+    },
 }
 
 #[macro_export]
