@@ -64,7 +64,7 @@ impl From<Expression> for SmtExpr {
             Expression::None(inner) => SmtExpr::List(vec![
                 SmtExpr::Atom("as".into()),
                 SmtExpr::Atom("mk-none".into()),
-                inner.into(),
+                Type::Maybe(Box::new(inner)).into(),
             ]),
             Expression::StringLiteral(litname) => SmtExpr::Atom(format!("\"{}\"", litname)),
             Expression::BooleanLiteral(litname) => SmtExpr::Atom(litname),

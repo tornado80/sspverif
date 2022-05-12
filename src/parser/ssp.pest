@@ -48,8 +48,10 @@ decl_spec = { identifier ~ ":" ~ tipe  }
 
 countspec = { identifier | num | "*" }
 
-tipe = _{ type_integer | "Integer" | "String" | "Bool" | type_bits | type_maybe | type_fn | type_tuple | type_table |type_list | type_empty }
+tipe = _{ type_integer | type_bool | type_string | type_bits | type_maybe | type_fn | type_tuple | type_table |type_list | type_empty }
     type_integer = { "Integer" }
+    type_bool = { "Bool" }
+    type_string = { "String" }
     type_bits = { "Bits(" ~ countspec ~ ")" }
     type_maybe = { "Maybe(" ~ tipe ~ ")" }
     type_fn = { "fn" ~ fn_arglist ~ "->" ~ tipe }

@@ -7,6 +7,8 @@ use pest::iterators::Pair;
 pub fn handle_type(tipe: Pair<Rule>) -> Type {
     match tipe.as_rule() {
         Rule::type_integer => Type::Integer,
+        Rule::type_bool => Type::Boolean,
+        Rule::type_string => Type::String,
         Rule::type_maybe => Type::Maybe(Box::new(handle_type(tipe.into_inner().next().unwrap()))),
         Rule::type_bits => Type::Bits(tipe.into_inner().next().unwrap().as_str().to_string()),
         Rule::type_tuple => Type::Tuple(tipe.into_inner().map(handle_type).collect()),
