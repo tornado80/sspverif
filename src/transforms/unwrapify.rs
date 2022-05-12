@@ -39,13 +39,18 @@ impl<'a> super::Transformation for Transformation<'a> {
 fn replace_unwrap(expr: &Expression, ctr: &mut u32) -> (Expression, Vec<(Expression, String)>) {
     let ((local_ctr, result), newexpr) =
         expr.mapfold((*ctr, Vec::new()), |(map_ctr, mut ac), e| {
-            if let Expression::Unwrap(_) = e {
-                let varname: String = format!("unwrap-{}", map_ctr);
-                ac.push((e, varname.clone()));
-                (
-                    (map_ctr + 1, ac),
-                    Identifier::Scalar(varname).to_expression(),
-                )
+            let tmpe = e.clone();
+            if let Expression::Typed(t, inner) = tmpe {
+                if let Expression::Unwrap(_) = *inner {
+                    let varname: String = format!("unwrap-{}", map_ctr);
+                    ac.push((e, varname.clone()));
+                    (
+                        (map_ctr + 1, ac),
+                        Expression::Typed(t, Box::new(Identifier::Scalar(varname).to_expression())),
+                    )
+                } else {
+                    ((map_ctr, ac), e)
+                }
             } else {
                 ((map_ctr, ac), e)
             }
@@ -157,17 +162,26 @@ mod test {
     use crate::expressions::Expression;
     use crate::identifier::Identifier;
     use crate::statement::{CodeBlock, Statement};
+    use crate::types::Type;
 
     #[test]
     fn unwrap_assign() {
         let code = block! {
             Statement::Assign(Identifier::new_scalar("d"),
-                              Expression::Unwrap(Box::new(Identifier::new_scalar("e").to_expression())))
+							  Expression::Typed(Type::Integer,Box::new(
+								  Expression::Unwrap(Box::new(
+								    Expression::Typed(Type::Integer,Box::new(
+							          Identifier::new_scalar("e").to_expression())))))))
         };
         let newcode = block! {
             Statement::Assign(Identifier::new_scalar("unwrap-1"),
-                              Expression::Unwrap(Box::new(Identifier::new_scalar("e").to_expression()))),
-            Statement::Assign(Identifier::new_scalar("d"), Identifier::new_scalar("unwrap-1").to_expression())
+						      Expression::Typed(Type::Integer,Box::new(
+                                  Expression::Unwrap(Box::new(
+								    Expression::Typed(Type::Integer,Box::new(
+								      Identifier::new_scalar("e").to_expression()))))))),
+            Statement::Assign(Identifier::new_scalar("d"),
+			                  Expression::Typed(Type::Integer,Box::new(
+							      Identifier::new_scalar("unwrap-1").to_expression())))
         };
         let mut ctr = 1u32;
         assert_eq!(newcode, unwrapify(&code, &mut ctr).unwrap());
@@ -177,36 +191,86 @@ mod test {
     fn unwrap_two_statements() {
         let code = block! {
             Statement::Assign(Identifier::new_scalar("d"),
-                              Expression::Unwrap(Box::new(Identifier::new_scalar("e").to_expression()))),
+			                  Expression::Typed(Type::Integer,Box::new(
+                                Expression::Unwrap(Box::new(
+								  Expression::Typed(Type::Integer,Box::new(
+								    Identifier::new_scalar("e").to_expression()))))))),
             Statement::Assign(Identifier::new_scalar("f"),
-                              Expression::Unwrap(Box::new(Identifier::new_scalar("g").to_expression())))
+			                  Expression::Typed(Type::Integer, Box::new(
+                                Expression::Unwrap(Box::new(
+								  Expression::Typed(Type::Integer,Box::new(
+								    Identifier::new_scalar("g").to_expression())))))))
         };
         let newcode = block! {
             Statement::Assign(Identifier::new_scalar("unwrap-1"),
-                              Expression::Unwrap(Box::new(Identifier::new_scalar("e").to_expression()))),
-            Statement::Assign(Identifier::new_scalar("d"), Identifier::new_scalar("unwrap-1").to_expression()),
+                              Expression::Typed(Type::Integer,Box::new(
+							    Expression::Unwrap(Box::new(
+								  Expression::Typed(Type::Integer,Box::new(
+								    Identifier::new_scalar("e").to_expression()))))))),
+            Statement::Assign(Identifier::new_scalar("d"),
+			                  Expression::Typed(Type::Integer,Box::new(
+			                    Identifier::new_scalar("unwrap-1").to_expression()))),
             Statement::Assign(Identifier::new_scalar("unwrap-2"),
-                              Expression::Unwrap(Box::new(Identifier::new_scalar("g").to_expression()))),
-            Statement::Assign(Identifier::new_scalar("f"), Identifier::new_scalar("unwrap-2").to_expression())
+                              Expression::Typed(Type::Integer,Box::new(
+							     Expression::Unwrap(Box::new(
+								   Expression::Typed(Type::Integer,Box::new(
+								     Identifier::new_scalar("g").to_expression()))))))),
+            Statement::Assign(Identifier::new_scalar("f"),
+			                  Expression::Typed(Type::Integer,Box::new(
+							    Identifier::new_scalar("unwrap-2").to_expression())))
         };
         let mut ctr = 1u32;
         assert_eq!(newcode, unwrapify(&code, &mut ctr).unwrap());
     }
 
     #[test]
-    fn netsted_statements() {
+    fn nested_statements() {
         let code = block! {
             Statement::Assign(Identifier::new_scalar("d"),
-                              Expression::Unwrap(Box::new(Expression::Unwrap(Box::new(Identifier::new_scalar("e").to_expression())))))
+                              Expression::Typed(Type::Integer, Box::new(
+							     Expression::Unwrap(Box::new(
+								   Expression::Typed(Type::Integer,Box::new(
+								     Expression::Unwrap(Box::new(
+									   Expression::Typed(Type::Integer,Box::new(
+									     Identifier::new_scalar("e").to_expression())))))))))))
         };
         let newcode = block! {
                     Statement::Assign(Identifier::new_scalar("unwrap-1"),
-                                      Expression::Unwrap(Box::new(Identifier::new_scalar("e").to_expression()))),
+                                      Expression::Typed(Type::Integer,Box::new(
+									    Expression::Unwrap(Box::new(
+										  Expression::Typed(Type::Integer,Box::new(
+										    Identifier::new_scalar("e").to_expression()))))))),
                     Statement::Assign(Identifier::new_scalar("unwrap-2"),
-                                      Expression::Unwrap(Box::new(Identifier::new_scalar("unwrap-1").to_expression()))),
-                    Statement::Assign(Identifier::new_scalar("d"), Identifier::new_scalar("unwrap-2").to_expression())
+                                      Expression::Typed(Type::Integer,Box::new(
+									    Expression::Unwrap(Box::new(
+										Expression::Typed(Type::Integer,Box::new(
+										  Identifier::new_scalar("unwrap-1").to_expression()))))))),
+                    Statement::Assign(Identifier::new_scalar("d"),
+					                  Expression::Typed(Type::Integer,Box::new(
+									    Identifier::new_scalar("unwrap-2").to_expression())))
+        };
+        let mut ctr = 1u32;
+        assert_eq!(newcode, unwrapify(&code, &mut ctr).unwrap());
+    }
 
-
+    #[test]
+    fn unwrap_typed_assign() {
+        let code = block! {
+            Statement::Assign(Identifier::new_scalar("d"),
+                              Expression::Typed(Type::Integer,
+                              Box::new(Expression::Unwrap(Box::new(
+							    Expression::Typed(Type::Integer,Box::new(
+                                  Identifier::new_scalar("e").to_expression())))))))
+        };
+        let newcode = block! {
+            Statement::Assign(Identifier::new_scalar("unwrap-1"),
+                              Expression::Typed(Type::Integer, Box::new(
+                                  Expression::Unwrap(Box::new(
+								    Expression::Typed(Type::Integer, Box::new(
+									  Identifier::new_scalar("e").to_expression()))))))),
+            Statement::Assign(Identifier::new_scalar("d"),
+                              Expression::Typed(Type::Integer, Box::new(
+                                  Identifier::new_scalar("unwrap-1").to_expression())))
         };
         let mut ctr = 1u32;
         assert_eq!(newcode, unwrapify(&code, &mut ctr).unwrap());
