@@ -351,80 +351,85 @@ impl<'a> CompositionSmtWriter<'a> {
                         smt_expr.into()
                     }
                 }
-                Statement::Assign(ident, opt_idx, Expression::Typed(t, inner))
-                    if matches!(**inner, Expression::Unwrap(_)) =>
-                {
-                    let val = match *inner.clone() {
-                        Expression::Unwrap(maybe) => SmtIte {
+                Statement::Assign(ident, opt_idx, expr) => {
+                    let (t, expr) = if let Expression::Typed(t, inner) = expr {
+                        (t.clone(), *inner.clone())
+                    } else {
+                        unreachable!("we expect that this is typed")
+                    };
+
+                    // first build the unwrap expression, if we have to
+                    let outexpr = if let Expression::Unwrap(inner) = &expr {
+                        SmtExpr::List(vec![
+                            SmtExpr::Atom("maybe-get".into()),
+                            SmtExpr::Atom(smt_to_string(*inner.clone())),
+                        ])
+                    } else {
+                        expr.clone().into()
+                    };
+
+                    // then build the table store smt expression, in case we have to
+                    let outexpr = if let Some(idx) = opt_idx {
+                        let oldvalue = match &ident {
+                            &Identifier::State { name, pkgname, .. } => self
+                                .get_state_helper(&pkgname)
+                                .smt_access(&name, SspSmtVar::SelfState.into()),
+                            Identifier::Local(_) => ident.to_expression().into(),
+                            _ => {
+                                unreachable!("")
+                            }
+                        };
+
+                        SmtExpr::List(vec![
+                            SmtExpr::Atom("store".into()),
+                            oldvalue,
+                            idx.clone().into(),
+                            outexpr.into(),
+                        ])
+                    } else {
+                        outexpr
+                    };
+
+                    // build the actual smt assignment
+                    let smtout = match ident {
+                        Identifier::State { name, pkgname, .. } => SmtLet {
+                            bindings: vec![(
+                                smt_to_string(SspSmtVar::SelfState),
+                                self.get_state_helper(&pkgname).smt_set(&name, &outexpr),
+                            )],
+                            body: result.unwrap(),
+                        },
+
+                        Identifier::Local(name) => SmtLet {
+                            bindings: vec![(name.clone(), outexpr)],
+                            body: result.unwrap(),
+                        },
+
+                        _ => {
+                            unreachable!("can't assign to {:#?}", ident)
+                        }
+                    };
+
+                    // if it's an unwrap, also wrap it with the unwrap check.
+                    if let Expression::Unwrap(inner) = expr {
+                        SmtIte {
                             cond: SmtIs {
                                 con: format!("(mk-none () {})", {
-                                    let t_smt: SmtExpr = Type::Maybe(Box::new(t.clone())).into();
+                                    let t_smt: SmtExpr = Type::Maybe(Box::new(t)).into();
                                     smt_to_string(t_smt)
                                 }),
-                                expr: *maybe.clone(),
+                                expr: *inner.clone(),
                             },
                             then: SspSmtVar::OracleAbort {
                                 compname: self.comp.name.clone(),
                                 pkgname: pkgname.into(),
                                 oname: sig.name.clone(),
                             },
-                            els: SmtLet {
-                                bindings: vec![(
-                                    smt_to_string(ident.to_expression()),
-                                    SmtExpr::List(vec![
-                                        SmtExpr::Atom("maybe-get".into()),
-                                        SmtExpr::Atom(smt_to_string(*maybe.clone())),
-                                    ]),
-                                )],
-                                body: result.unwrap(),
-                            },
-                        },
-                        _ => {
-                            unreachable!();
+                            els: smtout,
                         }
-                    };
-
-                    if opt_idx.is_some() {
-                        SmtExpr::List(vec![
-                            SmtExpr::Atom("store".into()),
-                            ident.to_expression().into(),
-                            opt_idx.clone().unwrap().into(),
-                            val.into(),
-                        ])
+                        .into()
                     } else {
-                        val.into()
-                    }
-                }
-                Statement::Assign(ident, opt_idx, expr) => {
-                    // State_{name} (quote " state")
-                    let val = match ident {
-                        Identifier::Scalar(name) => panic!("found a scalar {:?} which should have been removed by varspecify at this point", name),
-                        Identifier::Local(name) => SmtLet {
-                            bindings: vec![(name.clone(), expr.clone().into())],
-                            body: result.unwrap(),
-                        }
-                        .into(),
-                        Identifier::State { name, pkgname, .. } => SmtLet {
-                            bindings: vec![(
-                                smt_to_string(SspSmtVar::SelfState),
-                                self.get_state_helper(pkgname)
-                                    .smt_set(name, &expr.clone().into()),
-                            )],
-                            body: result.unwrap(),
-                        },
-
-                        _ => panic!("not implemented"),
-                    };
-
-                    if opt_idx.is_some() {
-                        SmtExpr::List(vec![
-                            SmtExpr::Atom("store".into()),
-                            ident.to_expression().into(),
-                            opt_idx.clone().unwrap().into(),
-                            val.into(),
-                        ])
-                    } else {
-                        val.into()
+                        smtout.into()
                     }
                 }
             });
