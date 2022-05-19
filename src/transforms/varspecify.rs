@@ -105,6 +105,20 @@ fn var_specify_helper(inst: &PackageInstance, block: CodeBlock, comp_name: &str)
                         unreachable!()
                     }
                 }
+                Statement::Parse(idents, expr) => {
+                    let idents = idents
+                        .iter()
+                        .map(|id| {
+                            if let Expression::Identifier(id) = fixup(id.to_expression()) {
+                                id
+                            } else {
+                                unreachable!()
+                            }
+                        })
+                        .collect();
+
+                    Statement::Parse(idents, expr.map(fixup))
+                }
                 Statement::InvokeOracle {
                     id,
                     opt_idx,

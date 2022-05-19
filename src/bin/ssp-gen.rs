@@ -68,6 +68,7 @@ fn main() {
     }
 
     hacks::declare_par_Maybe();
+    hacks::declare_Tuple(2);
     println!("(declare-sort Bits_n 0)");
     println!("(declare-fun f (Bits_n Bits_n) Bits_n)");
 

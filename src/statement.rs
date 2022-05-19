@@ -10,6 +10,7 @@ pub enum Statement {
     Abort,
     Return(Option<Expression>),
     Assign(Identifier, Option<Expression>, Expression),
+    Parse(Vec<Identifier>, Expression),
     IfThenElse(Expression, CodeBlock, CodeBlock),
     Sample(Identifier, Option<Expression>, Type),
     InvokeOracle {

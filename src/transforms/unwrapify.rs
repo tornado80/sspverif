@@ -128,6 +128,12 @@ pub fn unwrapify(cb: &CodeBlock, ctr: &mut u32) -> Result<CodeBlock, Error> {
                     newcode.push(Statement::Sample(id.clone(), Some(newexpr), tipe.clone()));
                 }
             }
+            Statement::Parse(idents, expr) => {
+                let (newexpr, unwraps) = replace_unwrap(&expr, ctr);
+
+                newcode.extend(create_unwrap_stmts(unwraps));
+                newcode.push(Statement::Parse(idents, newexpr));
+            }
             Statement::InvokeOracle {
                 id,
                 opt_idx,

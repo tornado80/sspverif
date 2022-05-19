@@ -273,6 +273,33 @@ impl<'a> CompositionSmtWriter<'a> {
                     }
                     .into()
                 }
+                Statement::Parse(idents, expr) => {
+                    let bindings = idents
+                        .iter()
+                        .enumerate()
+                        .map(|(i, ident)| {
+                            let ident = if let Identifier::Local(ident) = ident {
+                                ident
+                            } else {
+                                unreachable!()
+                            };
+
+                            (
+                                ident.clone(),
+                                SmtExpr::List(vec![
+                                    SmtExpr::Atom(format!("el{}", i+1)),
+                                    expr.clone().into(),
+                                ]),
+                            )
+                        })
+                        .collect();
+
+                    SmtLet {
+                        bindings,
+                        body: result.unwrap(),
+                    }
+                    .into()
+                }
                 Statement::InvokeOracle {
                     target_inst_name: None,
                     ..

@@ -8,6 +8,7 @@ kw_state = _{ "state" }
 kw_import = _{ "import" }
 kw_oracles = _{ "oracles" }
 kw_oracle = _{ "oracle" }
+kw_parse = _{ "parse" }
 
 kw_composition = _{ "composition" }
 kw_const = _{ "const" }
@@ -77,13 +78,15 @@ num = { ASCII_DIGIT+ }
 
 
 code = { (stmt )* }
-stmt = _{ table_sample | table_assign | sample | invocation | assign | return_stmt | assert | abort | ite}
+stmt = _{ table_sample | table_assign | sample | parse | invocation | assign | return_stmt | assert | abort | ite}
 
 ite = {"if" ~ expression ~ "{" ~ code ~ "}" ~ ( "else" ~ "{" ~ code ~ "}" )? }
 
 sample = { identifier ~ "<-$" ~ tipe ~ ";" }
 assign = { identifier ~ "<-" ~ expression ~ ";" }
 invocation = { identifier ~ ( "[" ~ table_index ~ "]" )? ~ "<-" ~ kw_invoke ~ fn_call ~ ";" }
+parse = { parse_tuple ~ "<-" ~  kw_parse ~ expression ~ ";" }
+    parse_tuple = { "(" ~ identifier ~ ("," ~ identifier )* ~ ")" }
 table_sample = { identifier ~ "[" ~ expression ~ "]" ~ "<-$" ~ tipe ~ ";" }
 table_assign = { identifier ~ "[" ~ expression ~ "]" ~ "<-" ~ expression ~ ";" }
 return_stmt = { kw_return ~ expression ~ ";" }

@@ -137,6 +137,49 @@ impl TypedCodeBlock {
 
                     new_block.push(Statement::Assign(id.clone(), opt_idx, typed_expr));
                 }
+                Statement::Parse(idents, expr) => {
+                    let typed_expr = typify(expr, scope)?;
+                    let expr_type = get_type(&typed_expr, scope)?;
+
+                    if let Type::Tuple(types) = &expr_type {
+                        if idents.len() != types.len() {
+                            return Err(TypeCheckError::TypeMismatch(
+                                ErrorLocation::Unknown,
+                                format!(
+                                    "parsing tuple {:?} of length {} into {} identifiers",
+                                    expr,
+                                    types.len(),
+                                    idents.len()
+                                ),
+                                Some(expr.clone()),
+                                Type::Empty,
+                                expr_type.clone(),
+                            ));
+                        }
+
+                        for (ident, t) in idents.iter().zip(types.iter()) {
+                            if let Some(t_ident) = scope.lookup(ident) {
+                                if &t_ident != t {
+                                    return Err(TypeCheckError::TypeMismatch(
+                                        ErrorLocation::Unknown,
+                                        format!(
+                                            "identifier {:?} in tuple parse has type {:?}, value is of type {:?}",
+                                            ident,
+                                            t_ident,
+                                            t,
+                                        ),
+                                        Some(expr.clone()),
+                                        Type::Empty,
+                                        expr_type.clone(),
+                                    ));
+                                }
+                            } else {
+                                scope.declare(ident.clone(), t.clone())?;
+                            }
+                        }
+                    }
+                    new_block.push(Statement::Parse(idents.clone(), typed_expr));
+                }
                 Statement::Sample(id, opt_idx, sample_type) => {
                     //println!("scope: {:?}", scope);
 

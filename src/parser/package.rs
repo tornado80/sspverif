@@ -215,6 +215,20 @@ pub fn handle_code(code: Pair<Rule>) -> CodeBlock {
                             target_inst_name: None,
                         }
                     }
+                    Rule::parse => {
+                        let mut inner = stmt.into_inner();
+                        let list = inner.next().unwrap();
+                        let expr = inner.next().unwrap();
+
+                        let idents = list
+                            .into_inner()
+                            .map(|ident_name| Identifier::new_scalar(ident_name.as_str()))
+                            .collect();
+
+                        let expr = handle_expression(expr);
+
+                        Statement::Parse(idents, expr)
+                    }
                     _ => {
                         unreachable!("{:#?}", stmt)
                     }
