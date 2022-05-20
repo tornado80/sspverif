@@ -58,6 +58,7 @@ fn graph(args: &Graph) {
         }
         
         file.write(b"}\n").unwrap();
+        println!("Wrote {} to {}/{}.dot", name, args.output, name);
     }
 }
 
