@@ -13,5 +13,6 @@ pub mod transforms;
 pub mod hacks;
 
 pub mod parser;
+pub mod cli;
 
 pub mod examples;
