@@ -2,6 +2,7 @@ use crate::statement::CodeBlock;
 use crate::types::Type;
 
 use std::collections::HashMap;
+use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FnSig {
@@ -15,6 +16,19 @@ pub struct OracleSig {
     pub name: String,
     pub args: Vec<(String, Type)>,
     pub tipe: Type,
+}
+
+impl fmt::Display for OracleSig {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        // Use `self.number` to refer to each positional data point.
+        write!(f, "{}({}) -> {:?}",
+               self.name,
+               self.args
+                   .iter()
+                   .map(|(name, tipe)| format!("{}: {:?}", name, tipe))
+                   .collect::<Vec<_>>().connect(", "),
+               self.tipe)
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

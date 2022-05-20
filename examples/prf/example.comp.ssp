@@ -26,6 +26,7 @@ composition ModPRFGame {
         adversary: {
             Set: key_top,
             Get: key_bottom,
+			Eval: prf
         },
 
         prf: {
