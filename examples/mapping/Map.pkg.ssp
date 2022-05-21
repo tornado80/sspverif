@@ -12,7 +12,7 @@ package Map {
     import oracles {
         SET(h: Integer, k: Bits(n)) -> Integer,
         EVAL(h: Integer, m: Bits(*)) -> (Integer,Bits(*)),
-        GET(h: (Integer,Bits(*))) -> Bits(n),
+        GET(h: Integer, m: Bits(*)) -> Bits(n),
     }
 
     oracle EVAL(h: Integer, m: Bits(*)) -> (Integer,Bits(*)) {
@@ -35,10 +35,11 @@ package Map {
         else {return hh;}
     }
 
-    oracle GET(h: Integer, m: Bits(*)) -> Bits(n) {
+    oracle GET(h: Integer, m:Bits(*)) -> Bits(n) {
         assert (Output_Map[(h,m)] != None as (Integer,Bits(*)));
         hh <- Unwrap(Output_Map[(h,m)]);
-        k <- invoke GET(hh);
+        (hhh,mmm) <- parse hh;
+        k <- invoke GET(hhh,mmm);
         return k;
         }
 }
