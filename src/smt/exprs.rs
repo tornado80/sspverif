@@ -157,6 +157,61 @@ impl From<Expression> for SmtExpr {
 
                 SmtExpr::List(call)
             }
+            Expression::List(inner) => {
+                let t = if let Expression::Typed(t, _) = inner[0].clone() {
+                    Some(t)
+                } else {
+                    None
+                };
+
+                let t = t.unwrap();
+
+                let nil = SmtExpr::List(vec![
+                    SmtExpr::Atom("as".to_owned()),
+                    SmtExpr::Atom("nil".to_owned()),
+                    SmtExpr::List(vec![SmtExpr::Atom("List".to_owned()), t.into()]),
+                ]);
+
+                let mut lst = nil;
+
+                for el in inner.iter().rev() {
+                    lst =
+                        SmtExpr::List(vec![SmtExpr::Atom("insert".into()), el.clone().into(), lst])
+                }
+
+                lst
+            }
+            Expression::Set(inner) => {
+                let t = if let Expression::Typed(t, _) = inner[0].clone() {
+                    Some(t)
+                } else {
+                    None
+                };
+
+                let t = t.unwrap();
+
+                let empty_set = SmtExpr::List(vec![
+                    SmtExpr::List(vec![
+                        SmtExpr::Atom("as".to_owned()),
+                        SmtExpr::Atom("const".to_owned()),
+                        SmtExpr::List(vec![SmtExpr::Atom("Set".to_owned()), t.into()]),
+                    ]),
+                    SmtExpr::Atom("false".to_string()),
+                ]);
+
+                let mut set = empty_set;
+
+                for el in inner.iter().rev() {
+                    set = SmtExpr::List(vec![
+                        SmtExpr::Atom("store".into()),
+                        set,
+                        el.clone().into(),
+                        SmtExpr::Atom("true".to_string()),
+                    ])
+                }
+
+                set
+            }
             _ => {
                 panic!("not implemented: {:?}", expr);
             }

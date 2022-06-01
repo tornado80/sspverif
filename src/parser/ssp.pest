@@ -95,18 +95,27 @@ abort = { kw_abort ~ ";" }
 
 table_index = { expression }
 
-expression = _{ expr_none | expr_some | expr_unwrap | expr_add | expr_sub | expr_mul | expr_div | expr_tuple | expr_equals | expr_not_equals | fn_call | table_access | identifier }
+expression = _{ expr_list | expr_set | expr_none | expr_some | expr_unwrap | expr_add | expr_sub | expr_mul | expr_div | expr_tuple | expr_equals | expr_not_equals | fn_call | table_access | identifier }
 
-table_access = { identifier ~ "[" ~ expression ~ "]" }
-fn_call =  { identifier ~ "(" ~ fn_call_arglist? ~ ")" }
-fn_call_arglist = { expression ~ ( "," ~ expression)* }
 expr_equals     = { "("  ~ expression ~ ("==" ~ expression)* ~ ")" }
 expr_not_equals = { "("  ~ expression ~ ("!=" ~ expression)* ~ ")" }
-expr_tuple   = { "("  ~ expression ~ ("," ~ expression)* ~ ")" }
+
 expr_add     = { "("  ~ expression ~ "+" ~ expression ~ ")" }
 expr_sub     = { "("  ~ expression ~ "-" ~ expression ~ ")" }
 expr_mul     = { "("  ~ expression ~ "*" ~ expression ~ ")" }
 expr_div     = { "("  ~ expression ~ "/" ~ expression ~ ")" }
+
+fn_call =  { identifier ~ "(" ~ fn_call_arglist? ~ ")" }
+fn_call_arglist = { expression ~ ( "," ~ expression)* }
+
 expr_none = { "None" ~ "as" ~ tipe }
 expr_some = { "Some" ~ "(" ~ expression ~ ")" }
 expr_unwrap = { "Unwrap" ~ "(" ~ expression ~ ")" }
+
+table_access = { identifier ~ "[" ~ expression ~                       "]" }
+expr_tuple   = {              "(" ~ expression ~ ("," ~ expression)* ~ ")" }
+// TODO: in the future we might want to allow empty lists and sets,
+//       but that complicates type inference. We could probably do
+//       what we also do with None, i.e. `List() of Integer` or `Set() of Bool`
+expr_list    = { "List"     ~ "(" ~ expression ~ ("," ~ expression)* ~ ")" }
+expr_set     = { "Set"      ~ "(" ~ expression ~ ("," ~ expression)* ~ ")" }

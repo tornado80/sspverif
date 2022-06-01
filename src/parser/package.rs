@@ -89,7 +89,6 @@ pub fn handle_expression(expr: Pair<Rule>) -> Expression {
             let rhs = handle_expression(inner.next().unwrap());
             Expression::Div(Box::new(lhs), Box::new(rhs))
         }
-        Rule::expr_tuple => Expression::Tuple(expr.into_inner().map(handle_expression).collect()),
         Rule::expr_equals => Expression::Equals(expr.into_inner().map(handle_expression).collect()),
         Rule::expr_not_equals => Expression::Not(Box::new(Expression::Equals(
             expr.into_inner().map(handle_expression).collect(),
@@ -122,7 +121,10 @@ pub fn handle_expression(expr: Pair<Rule>) -> Expression {
             Expression::FnCall(ident.to_string(), args)
         }
         Rule::identifier => Identifier::new_scalar(expr.as_str()).to_expression(),
-        _ => unreachable!("{:#?}", expr),
+        Rule::expr_tuple => Expression::Tuple(expr.into_inner().map(handle_expression).collect()),
+        Rule::expr_list => Expression::List(expr.into_inner().map(handle_expression).collect()),
+        Rule::expr_set => Expression::Set(expr.into_inner().map(handle_expression).collect()),
+        _ => unreachable!("Unhandled expression {expr:#?}"),
     }
 }
 

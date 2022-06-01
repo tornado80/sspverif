@@ -14,6 +14,7 @@ pub enum Expression {
     TableAccess(Identifier, Box<Expression>),
     Tuple(Vec<Expression>),
     List(Vec<Expression>),
+    Set(Vec<Expression>),
     FnCall(String, Vec<Expression>),
     // or maybe at some point: FnCall(Box<Expression>, Vec<Expression>),
     None(Type),
@@ -97,6 +98,12 @@ impl Expression {
                 Expression::FnCall(name.clone(), exprs.iter().map(|expr| expr.map(f)).collect())
             }
             Expression::Typed(t, inner) => Expression::Typed(t.clone(), Box::new(inner.map(f))),
+            Expression::List(exprs) => {
+                Expression::List(exprs.iter().map(|expr| expr.map(f)).collect())
+            }
+            Expression::Set(exprs) => {
+                Expression::Set(exprs.iter().map(|expr| expr.map(f)).collect())
+            }
             _ => {
                 panic!("Expression: not implemented: {:#?}", self)
             }
@@ -197,6 +204,30 @@ impl Expression {
             Expression::Typed(t, inner) => {
                 let (ac, e) = inner.mapfold(init, f);
                 (ac, Expression::Typed(t.clone(), Box::new(e)))
+            }
+            Expression::List(inner) => {
+                let mut ac = init;
+                let newexprs = inner
+                    .iter()
+                    .map(|expr| {
+                        let (newac, e) = expr.mapfold(ac.clone(), f);
+                        ac = newac;
+                        e
+                    })
+                    .collect();
+                (ac, Expression::List(newexprs))
+            }
+            Expression::Set(inner) => {
+                let mut ac = init;
+                let newexprs = inner
+                    .iter()
+                    .map(|expr| {
+                        let (newac, e) = expr.mapfold(ac.clone(), f);
+                        ac = newac;
+                        e
+                    })
+                    .collect();
+                (ac, Expression::Set(newexprs))
             }
             _ => {
                 panic!("Expression: not implemented: {:#?}", self)

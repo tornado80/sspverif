@@ -558,6 +558,68 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                 id.clone(),
             )),
         },
+        Expression::List(exprs) => {
+            let outer_expr = expr;
+            let mut exprs_ = vec![];
+            let mut inner: Option<Type> = None;
+
+            for expr in exprs {
+                exprs_.push(typify(expr, scope)?);
+
+                match &inner {
+                    None => {
+                        inner = Some(get_type(expr, scope)?);
+                    }
+                    Some(t) => {
+                        let t_found = get_type(expr, scope)?;
+                        if t != &t_found {
+                            return Err(TypeCheckError::TypeMismatch(
+                                ErrorLocation::Unknown,
+                                "list contains expressions of different types".to_string(),
+                                Some(outer_expr.clone()),
+                                t_found,
+                                t.clone(),
+                            ));
+                        }
+                    }
+                }
+            }
+            Ok(Expression::Typed(
+                Type::List(Box::new(inner.unwrap())),
+                Box::new(Expression::List(exprs_)),
+            ))
+        }
+        Expression::Set(exprs) => {
+            let outer_expr = expr;
+            let mut exprs_ = vec![];
+            let mut inner: Option<Type> = None;
+
+            for expr in exprs {
+                exprs_.push(typify(expr, scope)?);
+
+                match &inner {
+                    None => {
+                        inner = Some(get_type(expr, scope)?);
+                    }
+                    Some(t) => {
+                        let t_found = get_type(expr, scope)?;
+                        if t != &t_found {
+                            return Err(TypeCheckError::TypeMismatch(
+                                ErrorLocation::Unknown,
+                                "set contains expressions of different types".to_string(),
+                                Some(outer_expr.clone()),
+                                t_found,
+                                t.clone(),
+                            ));
+                        }
+                    }
+                }
+            }
+            Ok(Expression::Typed(
+                Type::List(Box::new(inner.unwrap())),
+                Box::new(Expression::Set(exprs_)),
+            ))
+        }
         _ => {
             panic!("get_type not implemented for {:#?}", expr);
         }
