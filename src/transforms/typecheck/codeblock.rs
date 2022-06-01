@@ -97,7 +97,7 @@ impl TypedCodeBlock {
                                         "value type of the table does not match".to_string(),
                                         None,
                                         *v,
-                                        expr_type.clone(),
+                                        expr_type,
                                     ));
                                 }
                             } else {
@@ -106,7 +106,7 @@ impl TypedCodeBlock {
                                     "table access on non-table".to_string(),
                                     None,
                                     id_type,
-                                    Type::Table(Box::new(idx_type), Box::new(expr_type.clone())),
+                                    Type::Table(Box::new(idx_type), Box::new(expr_type)),
                                 ));
                             }
                         } else if id_type != expr_type.clone() {
@@ -115,7 +115,7 @@ impl TypedCodeBlock {
                                 format!("assigning to variable {:?} of different type", id),
                                 Some(expr.clone()),
                                 id_type,
-                                expr_type.clone(),
+                                expr_type,
                             ));
                         }
                     } else {

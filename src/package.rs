@@ -21,13 +21,17 @@ pub struct OracleSig {
 impl fmt::Display for OracleSig {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         // Use `self.number` to refer to each positional data point.
-        write!(f, "{}({}) -> {:?}",
-               self.name,
-               self.args
-                   .iter()
-                   .map(|(name, tipe)| format!("{}: {:?}", name, tipe))
-                   .collect::<Vec<_>>().connect(", "),
-               self.tipe)
+        write!(
+            f,
+            "{}({}) -> {:?}",
+            self.name,
+            self.args
+                .iter()
+                .map(|(name, tipe)| format!("{}: {:?}", name, tipe))
+                .collect::<Vec<_>>()
+                .join(", "),
+            self.tipe
+        )
     }
 }
 

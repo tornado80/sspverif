@@ -3,10 +3,10 @@ extern crate pest_derive;
 
 use std::env;
 
+use sspds::cli::filesystem::{parse_composition, parse_packages, read_directory};
 use sspds::hacks;
 use sspds::smt::exprs::SmtFmt;
 use sspds::smt::writer::CompositionSmtWriter;
-use sspds::cli::filesystem::{parse_packages,parse_composition,read_directory};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -15,12 +15,11 @@ fn main() {
     let (pkgs_list, comp_list) = read_directory(&dir_path);
     let (pkgs_map, _pkgs_filenames) = parse_packages(&pkgs_list);
     let comp_map = parse_composition(&comp_list, &pkgs_map);
-    
+
     hacks::declare_par_Maybe();
     hacks::declare_Tuple(2);
     println!("(declare-sort Bits_n 0)");
     println!("(declare-fun f (Bits_n Bits_n) Bits_n)");
-
 
     for (name, comp) in comp_map {
         println!("; {}", name);

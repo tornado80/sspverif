@@ -1,12 +1,10 @@
-use std::fs;
 use std::collections::HashMap;
+use std::fs;
 
-use pest::Parser;
+use crate::package::{Composition, Package};
+use crate::parser::{composition::handle_composition, package::handle_pkg, SspParser};
 
-use crate::parser::{composition::handle_composition, package::handle_pkg, Rule, SspParser};
-use crate::package::{Package,Composition};
-
-pub fn read_directory(dir_path: &str) -> (Vec<(String,String)>,Vec<(String,String)>) {
+pub fn read_directory(dir_path: &str) -> (Vec<(String, String)>, Vec<(String, String)>) {
     let mut pkgs_list = vec![];
     let mut comp_list = vec![];
 
@@ -36,12 +34,13 @@ pub fn read_directory(dir_path: &str) -> (Vec<(String,String)>,Vec<(String,Strin
     (pkgs_list, comp_list)
 }
 
-
-pub fn parse_packages(pkgs_list: &Vec<(String,String)>) -> (HashMap<String, Package>, HashMap<String, &String>){
+pub fn parse_packages(
+    pkgs_list: &[(String, String)],
+) -> (HashMap<String, Package>, HashMap<String, &String>) {
     let pkgs_list: Vec<_> = pkgs_list
         .iter()
         .map(|(filename, contents)| {
-            let mut ast = SspParser::parse(Rule::package, contents)
+            let mut ast = SspParser::parse_package(contents)
                 .unwrap_or_else(|e| panic!("error parsing file {}: {:#?}", filename, e));
             let (pkg_name, pkg) = handle_pkg(ast.next().unwrap());
             (filename, contents, ast, pkg_name, pkg)
@@ -66,11 +65,14 @@ pub fn parse_packages(pkgs_list: &Vec<(String,String)>) -> (HashMap<String, Pack
     (pkgs_map, pkgs_filenames)
 }
 
-pub fn parse_composition(comp_list: &Vec<(String,String)>, pkgs_map: &HashMap<String, Package>) -> HashMap<String,Composition> {
+pub fn parse_composition(
+    comp_list: &[(String, String)],
+    pkgs_map: &HashMap<String, Package>,
+) -> HashMap<String, Composition> {
     let comp_list: Vec<_> = comp_list
         .iter()
         .map(|(filename, contents)| {
-            let mut ast = match SspParser::parse(Rule::composition, contents) {
+            let mut ast = match SspParser::parse_package(contents) {
                 Ok(ast) => ast,
                 Err(e) => {
                     panic!("error parsing file {}: {:#?}", filename, e);
@@ -82,11 +84,11 @@ pub fn parse_composition(comp_list: &Vec<(String,String)>, pkgs_map: &HashMap<St
             (filename, contents, ast, comp_name, comp)
         })
         .collect();
-    
+
     let mut comp_map = HashMap::new();
     for (_, _, _, comp_name, comp) in comp_list {
         comp_map.insert(comp_name, comp);
     }
-    
+
     comp_map
 }

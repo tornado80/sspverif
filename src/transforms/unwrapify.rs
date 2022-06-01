@@ -85,8 +85,8 @@ pub fn unwrapify(cb: &CodeBlock, ctr: &mut u32) -> Result<CodeBlock, Error> {
                 newcode.push(stmt);
             }
             Statement::Return(Some(ref expr)) => {
-                let (newexpr, unwraps) = replace_unwrap(&expr, ctr);
-                if unwraps.len() == 0 {
+                let (newexpr, unwraps) = replace_unwrap(expr, ctr);
+                if unwraps.is_empty() {
                     newcode.push(stmt);
                 } else {
                     newcode.extend(create_unwrap_stmts(unwraps));
@@ -103,7 +103,7 @@ pub fn unwrapify(cb: &CodeBlock, ctr: &mut u32) -> Result<CodeBlock, Error> {
                 });
 
                 let (newexpr, unwraps) = replace_unwrap(expr, ctr);
-                if unwraps.len() == 0 {
+                if unwraps.is_empty() {
                     newcode.push(stmt);
                 } else {
                     newcode.extend(create_unwrap_stmts(unwraps));
@@ -120,8 +120,8 @@ pub fn unwrapify(cb: &CodeBlock, ctr: &mut u32) -> Result<CodeBlock, Error> {
                 ));
             }
             Statement::Sample(ref id, Some(ref expr), ref tipe) => {
-                let (newexpr, unwraps) = replace_unwrap(&expr, ctr);
-                if unwraps.len() == 0 {
+                let (newexpr, unwraps) = replace_unwrap(expr, ctr);
+                if unwraps.is_empty() {
                     newcode.push(stmt);
                 } else {
                     newcode.extend(create_unwrap_stmts(unwraps));
@@ -149,7 +149,7 @@ pub fn unwrapify(cb: &CodeBlock, ctr: &mut u32) -> Result<CodeBlock, Error> {
                 let args = args
                     .iter()
                     .map(|expr| {
-                        let (newexpr, unwraps) = replace_unwrap(&expr, ctr);
+                        let (newexpr, unwraps) = replace_unwrap(expr, ctr);
                         newcode.extend(create_unwrap_stmts(unwraps));
                         newexpr
                     })

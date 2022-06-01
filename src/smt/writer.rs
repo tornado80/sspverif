@@ -287,7 +287,7 @@ impl<'a> CompositionSmtWriter<'a> {
                             (
                                 ident.clone(),
                                 SmtExpr::List(vec![
-                                    SmtExpr::Atom(format!("el{}", i+1)),
+                                    SmtExpr::Atom(format!("el{}", i + 1)),
                                     expr.clone().into(),
                                 ]),
                             )
@@ -399,8 +399,8 @@ impl<'a> CompositionSmtWriter<'a> {
                     let outexpr = if let Some(idx) = opt_idx {
                         let oldvalue = match &ident {
                             &Identifier::State { name, pkgname, .. } => self
-                                .get_state_helper(&pkgname)
-                                .smt_access(&name, SspSmtVar::SelfState.into()),
+                                .get_state_helper(pkgname)
+                                .smt_access(name, SspSmtVar::SelfState.into()),
                             Identifier::Local(_) => ident.to_expression().into(),
                             _ => {
                                 unreachable!("")
@@ -411,7 +411,7 @@ impl<'a> CompositionSmtWriter<'a> {
                             SmtExpr::Atom("store".into()),
                             oldvalue,
                             idx.clone().into(),
-                            outexpr.into(),
+                            outexpr,
                         ])
                     } else {
                         outexpr
@@ -422,7 +422,7 @@ impl<'a> CompositionSmtWriter<'a> {
                         Identifier::State { name, pkgname, .. } => SmtLet {
                             bindings: vec![(
                                 smt_to_string(SspSmtVar::SelfState),
-                                self.get_state_helper(&pkgname).smt_set(&name, &outexpr),
+                                self.get_state_helper(pkgname).smt_set(name, &outexpr),
                             )],
                             body: result.unwrap(),
                         },

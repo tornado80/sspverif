@@ -202,7 +202,7 @@ impl Expression {
                 panic!("Expression: not implemented: {:#?}", self)
             }
         };
-        f(ac.clone(), ex)
+        f(ac, ex)
     }
 
     pub fn new_equals(exprs: Vec<&Expression>) -> Expression {

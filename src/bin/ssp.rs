@@ -1,6 +1,6 @@
 use clap::{Parser, Subcommand};
 
-use sspds::cli::filesystem::{parse_packages,parse_composition,read_directory};
+use sspds::cli::filesystem::{parse_composition, parse_packages, read_directory};
 use sspds::package::Composition;
 use std::fs::File;
 use std::io::Write;
@@ -28,7 +28,7 @@ enum Commands {
 struct Graph {
     dirname: String,
     #[clap(short, long)]
-    output: String
+    output: String,
 }
 
 fn graph(args: &Graph) {
@@ -38,30 +38,43 @@ fn graph(args: &Graph) {
 
     for (name, comp) in comp_map {
         let mut file = File::create(format!("{}/{}.dot", args.output, name)).unwrap();
-        writeln!(&mut file, "{}",
-            "digraph test {\n  rankdir=LR;\n  node [shape=\"box\"];\n").unwrap();
+        writeln!(
+            &mut file,
+            "digraph test {{\n  rankdir=LR;\n  node [shape=\"box\"];\n"
+        )
+        .unwrap();
 
-        let Composition{pkgs, edges, exports, name:_} = comp;
+        let Composition {
+            pkgs,
+            edges,
+            exports,
+            name: _,
+        } = comp;
         for (source, target, sig) in edges {
-            writeln!(&mut file, "  {} -> {} [label=\"{}\"]",
-                     pkgs[source].name,
-                     pkgs[target].name,
-                     format!("{}", sig).replace("\"", "\\\"")
-            ).unwrap(); 
+            writeln!(
+                &mut file,
+                "  {} -> {} [label=\"{}\"]",
+                pkgs[source].name,
+                pkgs[target].name,
+                format!("{}", sig).replace('"', "\\\"")
+            )
+            .unwrap();
         }
 
         for (target, sig) in exports {
-            writeln!(&mut file, "  adversary -> {} [label=\"{}\"]",
-                     pkgs[target].name,
-                     format!("{}", sig).replace("\"", "\\\"")
-            ).unwrap(); 
+            writeln!(
+                &mut file,
+                "  adversary -> {} [label=\"{}\"]",
+                pkgs[target].name,
+                format!("{}", sig).replace('"', "\\\"")
+            )
+            .unwrap();
         }
-        
-        file.write(b"}\n").unwrap();
+
+        writeln!(file, "}}").unwrap();
         println!("Wrote {} to {}/{}.dot", name, args.output, name);
     }
 }
-
 
 fn main() {
     let cli = Cli::parse();
@@ -69,12 +82,10 @@ fn main() {
     match &cli.command {
         Commands::Check { name } => {
             println!("'myapp add' was used, name is: {:?}", name)
-        } 
+        }
         Commands::Latex { name } => {
             println!("'myapp add' was used, name is: {:?}", name)
         }
-        Commands::Graph(args) => {
-            graph(args)
-        }
-   }
+        Commands::Graph(args) => graph(args),
+    }
 }
