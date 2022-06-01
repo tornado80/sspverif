@@ -215,7 +215,7 @@ impl<'a> CompositionSmtWriter<'a> {
                     //SmtExpr::Atom(format!("mk-abort-{}-{}", pkgname, sig.name))
                 }
                 // TODO actually use the type that we sample to know how far to advance the randomness tape
-                Statement::Sample(ident, opt_idx, _tipe) => {
+                Statement::Sample(ident, opt_idx, _sample_id, _tipe) => {
                     /*
                      *   1. get counter
                      *   2. assign ident

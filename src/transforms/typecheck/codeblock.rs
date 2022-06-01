@@ -180,7 +180,7 @@ impl TypedCodeBlock {
                     }
                     new_block.push(Statement::Parse(idents.clone(), typed_expr));
                 }
-                Statement::Sample(id, opt_idx, sample_type) => {
+                Statement::Sample(id, opt_idx, sample_id, sample_type) => {
                     //println!("scope: {:?}", scope);
 
                     if let Some(id_type) = scope.lookup(id) {
@@ -237,7 +237,12 @@ impl TypedCodeBlock {
                         None
                     };
 
-                    new_block.push(Statement::Sample(id.clone(), opt_idx, sample_type.clone()));
+                    new_block.push(Statement::Sample(
+                        id.clone(),
+                        opt_idx,
+                        *sample_id,
+                        sample_type.clone(),
+                    ));
                 }
                 Statement::InvokeOracle {
                     id,

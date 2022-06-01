@@ -165,7 +165,7 @@ pub fn handle_code(code: Pair<Rule>) -> CodeBlock {
                         let mut inner = stmt.into_inner();
                         let ident = Identifier::new_scalar(inner.next().unwrap().as_str());
                         let tipe = handle_type(inner.next().unwrap());
-                        Statement::Sample(ident, None, tipe)
+                        Statement::Sample(ident, None, None, tipe)
                         //Statement::Assign(ident, Expression::Sample(tipe))
                     }
                     Rule::assign => {
@@ -179,7 +179,7 @@ pub fn handle_code(code: Pair<Rule>) -> CodeBlock {
                         let ident = Identifier::new_scalar(inner.next().unwrap().as_str());
                         let index = handle_expression(inner.next().unwrap());
                         let tipe = handle_type(inner.next().unwrap());
-                        Statement::Sample(ident, Some(index), tipe)
+                        Statement::Sample(ident, Some(index), None, tipe)
                     }
                     Rule::table_assign => {
                         let mut inner = stmt.into_inner();
