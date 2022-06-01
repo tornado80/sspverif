@@ -88,18 +88,6 @@ impl Composition {
         self.exports.iter().map(|(_, sig)| sig.clone()).collect()
     }
 
-    fn pkg_map<F>(&self, f: F) -> Composition
-    where
-        F: Fn(&PackageInstance) -> PackageInstance,
-    {
-        Composition {
-            pkgs: self.pkgs.iter().map(f).collect(),
-            edges: self.edges.clone(),
-            exports: self.exports.clone(),
-            name: self.name.clone(),
-        }
-    }
-
     pub fn ordered_pkgs(&self) -> Vec<PackageInstance> {
         let mut result = Vec::new();
         let mut added_pkgs = vec![false; self.pkgs.len()];
