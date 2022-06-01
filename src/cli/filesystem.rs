@@ -4,6 +4,7 @@ use std::fs;
 use crate::package::{Composition, Package};
 use crate::parser::{composition::handle_composition, package::handle_pkg, SspParser};
 
+#[allow(clippy::type_complexity)]
 pub fn read_directory(dir_path: &str) -> (Vec<(String, String)>, Vec<(String, String)>) {
     let mut pkgs_list = vec![];
     let mut comp_list = vec![];
