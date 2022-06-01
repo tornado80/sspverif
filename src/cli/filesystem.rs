@@ -72,7 +72,7 @@ pub fn parse_composition(
     let comp_list: Vec<_> = comp_list
         .iter()
         .map(|(filename, contents)| {
-            let mut ast = match SspParser::parse_package(contents) {
+            let mut ast = match SspParser::parse_composition(contents) {
                 Ok(ast) => ast,
                 Err(e) => {
                     panic!("error parsing file {}: {:#?}", filename, e);
