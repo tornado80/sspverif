@@ -227,6 +227,7 @@
 (and
 ; pre-condtion
     (= true (inv s-left-old s-right-old))     
+    (forall ((n Int)) (= (__sample-rand-CompositionNoMappingGame n) (__sample-rand-CompositionMappingGame n)))    
 
 ; assignment after execution
       ;The following 6 lines changes from oracle to oracle:
@@ -260,6 +261,7 @@
 (and
 ; pre-condition
     (= true (inv s-left-old s-right-old))     
+    (forall ((n Int)) (= (__sample-rand-CompositionNoMappingGame n) (__sample-rand-CompositionMappingGame n)))    
 
 ; assignment after execution
       ;The following 6 lines changes from oracle to oracle:
@@ -281,28 +283,6 @@
 
 
 
-; invariant
-; Notation: Left: no mapping, Right: mapping
-;      TIKL: T in input  (top)    key package left
-;      TIKR: T in input  (top)    key package right
-;      TOKL: T in output (bottom) key package left
-;      TOKR: T in output (bottom) key package right
-;      MIR : input- mapping table (right)
-;      MOR : output-mapping table (right)
-;
-; Left-Right Invariant:
-; (LRIa) TIKL[h] != bot iff MIR[h] != bot 
-; (LRIb) MIR [h]  = h' != bot => TIKL[h] = TIKR[h']
-; (LROa) TOKL[h] != bot iff MOR[h] != bot 
-; (LROb) MOR [h]  = h' != bot => TOKL[h] = TOKR[h']
-;
-; Right-Right Invariant:
-; (RI) (exists h s.t. MIR[h] = h') iff TIKR[h'] != bot
-; (RO) (exists h s.t. MOR[h] = h') iff TOKR[h'] != bot
-; 
-; Post-condition:
-; called on same inputs, then output is the same and if output was not abort, then same state
-;
 
 (check-sat)
 ;(get-model)
