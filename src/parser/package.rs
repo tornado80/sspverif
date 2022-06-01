@@ -124,7 +124,7 @@ pub fn handle_expression(expr: Pair<Rule>) -> Expression {
         Rule::expr_tuple => Expression::Tuple(expr.into_inner().map(handle_expression).collect()),
         Rule::expr_list => Expression::List(expr.into_inner().map(handle_expression).collect()),
         Rule::expr_set => Expression::Set(expr.into_inner().map(handle_expression).collect()),
-        _ => unreachable!("Unhandled expression {expr:#?}"),
+        _ => unreachable!("Unhandled expression {:#?}", expr),
     }
 }
 
