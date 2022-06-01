@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand};
 
 use sspds::cli::filesystem::{parse_composition, parse_packages, read_directory};
-use sspds::package::Composition;
+use sspds::package::{Composition, Edge, Export};
 use std::fs::File;
 use std::io::Write;
 
@@ -50,7 +50,7 @@ fn graph(args: &Graph) {
             exports,
             name: _,
         } = comp;
-        for (source, target, sig) in edges {
+        for Edge(source, target, sig) in edges {
             writeln!(
                 &mut file,
                 "  {} -> {} [label=\"{}\"]",
@@ -61,7 +61,7 @@ fn graph(args: &Graph) {
             .unwrap();
         }
 
-        for (target, sig) in exports {
+        for Export(target, sig) in exports {
             writeln!(
                 &mut file,
                 "  adversary -> {} [label=\"{}\"]",

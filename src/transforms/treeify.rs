@@ -259,7 +259,7 @@ mod treeify_transform_test {
     use super::Transformation;
 
     use crate::examples::{keypkg, modprf};
-    use crate::package::Composition;
+    use crate::package::{Composition, Edge, Export};
     use std::collections::HashMap;
 
     #[test]
@@ -272,10 +272,10 @@ mod treeify_transform_test {
 
         let mod_prf_game = Composition {
             pkgs: vec![key_real_pkg.clone(), mod_prf_real_pkg.clone()],
-            edges: vec![(1, 0, key_real_pkg.pkg.clone().oracles[1].sig.clone())],
+            edges: vec![Edge(1, 0, key_real_pkg.pkg.clone().oracles[1].sig.clone())],
             exports: vec![
-                (0, key_real_pkg.pkg.clone().oracles[0].sig.clone()),
-                (1, mod_prf_real_pkg.pkg.clone().oracles[0].sig.clone()),
+                Export(0, key_real_pkg.pkg.clone().oracles[0].sig.clone()),
+                Export(1, mod_prf_real_pkg.pkg.clone().oracles[0].sig.clone()),
             ],
             name: "real".to_string(),
         };

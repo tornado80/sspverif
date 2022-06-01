@@ -2,7 +2,7 @@ use super::errors::TypeCheckError;
 use super::pkg::typecheck_pkg;
 use super::scope::Scope;
 
-use crate::package::{Composition, PackageInstance};
+use crate::package::{Composition, Edge, Export, PackageInstance};
 
 use crate::identifier::Identifier;
 use crate::types::Type;
@@ -22,7 +22,7 @@ pub fn typecheck_comp(
     } = comp;
 
     // 1a. check signature exists in edge destination
-    for (_, to, sig_) in edges {
+    for Edge(_, to, sig_) in edges {
         let mut found = false;
         for sig in pkgs[*to].get_oracle_sigs() {
             if sig == sig_.clone() {
@@ -47,7 +47,7 @@ pub fn typecheck_comp(
         .collect();
     let mut edge_imports = HashMap::new();
 
-    for (from, _, sig_) in edges {
+    for Edge(from, _, sig_) in edges {
         edge_imports
             .entry(*from)
             .or_insert_with(HashSet::new)
@@ -77,7 +77,7 @@ pub fn typecheck_comp(
     }
 
     // 2. check exports exists
-    for (id, sig) in exports {
+    for Export(id, sig) in exports {
         if !pkgs[*id].get_oracle_sigs().contains(sig) {
             return Err(TypeCheckError::TypeCheck(format!(
                 "signature {:?} is not in package {:?} with index {:}",
@@ -93,7 +93,7 @@ pub fn typecheck_comp(
     // 3. check all package instances
     for (id, pkg) in pkgs.clone().into_iter().enumerate() {
         scope.enter();
-        for (from, _, sig) in edges {
+        for Edge(from, _, sig) in edges {
             if *from == id {
                 scope.declare(
                     Identifier::new_scalar(sig.name.as_str()),

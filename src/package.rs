@@ -70,22 +70,31 @@ impl PackageInstance {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Edge(pub usize, pub usize, pub OracleSig);
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Export(pub usize, pub OracleSig);
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Composition {
     pub pkgs: Vec<PackageInstance>,
-    pub edges: Vec<(usize, usize, OracleSig)>, // (from, to, oraclesig)
+    pub edges: Vec<Edge>, // (from, to, oraclesig)
     // TODO: how do we deal with the case where we have
     // e.g. multiple key packages that we Set into?
     // Idea: Add a name to this tuple that is used by
     // the invoking package
     // contemplation: globally unique oracle identifiers vs
     // multiple shades of local uniqueness
-    pub exports: Vec<(usize, OracleSig)>,
+    pub exports: Vec<Export>,
     pub name: String,
 }
 
 impl Composition {
     pub fn get_oracle_sigs(&self) -> Vec<OracleSig> {
-        self.exports.iter().map(|(_, sig)| sig.clone()).collect()
+        self.exports
+            .iter()
+            .map(|Export(_, sig)| sig.clone())
+            .collect()
     }
 
     pub fn ordered_pkgs(&self) -> Vec<PackageInstance> {
@@ -94,7 +103,7 @@ impl Composition {
 
         while result.len() < self.pkgs.len() {
             let mut candidates = vec![true; self.pkgs.len()];
-            for (from, to, _) in &self.edges {
+            for Edge(from, to, _) in &self.edges {
                 if !added_pkgs[*to] {
                     candidates[*from] = false;
                 }

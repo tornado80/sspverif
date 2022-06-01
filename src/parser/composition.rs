@@ -4,7 +4,7 @@ use pest::iterators::{Pair, Pairs};
 use std::collections::HashMap;
 use std::iter::FromIterator;
 
-use crate::package::{Composition, OracleSig, Package, PackageInstance};
+use crate::package::{Composition, Edge, Export, Package, PackageInstance};
 use crate::types::Type;
 
 pub fn handle_const_decl(ast: Pair<Rule>) -> (String, Type) {
@@ -26,10 +26,13 @@ pub fn handle_instance_assign_list(ast: Pairs<Rule>) -> Vec<(String, String)> {
     .collect()
 }
 
+/*
+This functions parses the body of a compose block. It returns internal edges and exports.
+ */
 pub fn handle_compose_assign_body_list(
     ast: Pair<Rule>,
     instances: &HashMap<String, (usize, PackageInstance)>,
-) -> (Vec<(usize, usize, OracleSig)>, Vec<(usize, OracleSig)>) {
+) -> (Vec<Edge>, Vec<Export>) {
     let mut edges = vec![];
     let mut exports = vec![];
     for body in ast.into_inner() {
@@ -57,7 +60,7 @@ pub fn handle_compose_assign_body_list(
                     }
                     Some(def) => def.sig.clone(),
                 };
-                exports.push((*dst_offset, oracle_sig));
+                exports.push(Export(*dst_offset, oracle_sig));
             }
 
             continue;
@@ -93,7 +96,7 @@ pub fn handle_compose_assign_body_list(
                 Some(def) => def.sig.clone(),
             };
 
-            edges.push((*offset, *dst_offset, oracle_sig));
+            edges.push(Edge(*offset, *dst_offset, oracle_sig));
         }
     }
 
