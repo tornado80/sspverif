@@ -7,8 +7,7 @@ pub mod package;
 pub mod statement;
 pub mod types;
 
-pub mod smt;
-pub mod tex;
+pub mod writers;
 pub mod transforms;
 
 pub mod hacks;

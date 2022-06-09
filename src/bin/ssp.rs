@@ -1,14 +1,24 @@
-use clap::{Parser, Subcommand};
-
-use sspds::cli::filesystem::{parse_composition, parse_packages, read_directory};
-use sspds::tex::writer::{tex_write_composition};
-use sspds::package::{Composition, Edge, Export};
-use sspds::hacks;
-use sspds::smt::exprs::SmtFmt;
-use sspds::smt::writer::CompositionSmtWriter;
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
+
+use clap::{Parser, Subcommand};
+
+use sspds::{
+    cli::filesystem::{parse_composition, parse_packages, read_directory},
+    
+    package::{Composition, Edge, Export},
+
+    writers::{
+        smt::{
+            exprs::SmtFmt,
+            writer::CompositionSmtWriter
+        },
+        tex::writer::{tex_write_composition}
+    },
+    hacks,
+};
+
 
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
@@ -145,7 +155,7 @@ fn latex(args:&LaTeX) {
     for (name, comp) in comp_map {
         println!("{}", name);
         tex_write_composition(&comp, Path::new(&args.output));
-    }    
+    }
 }
 
 fn main() {

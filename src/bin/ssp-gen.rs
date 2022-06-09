@@ -5,8 +5,8 @@ use std::env;
 
 use sspds::cli::filesystem::{parse_composition, parse_packages, read_directory};
 use sspds::hacks;
-use sspds::smt::exprs::SmtFmt;
-use sspds::smt::writer::CompositionSmtWriter;
+use sspds::writers::smt::exprs::SmtFmt;
+use sspds::writers::smt::writer::CompositionSmtWriter;
 
 fn main() {
     let args: Vec<String> = env::args().collect();

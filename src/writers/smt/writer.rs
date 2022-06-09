@@ -5,7 +5,7 @@ use crate::statement::{CodeBlock, Statement};
 use crate::types::Type;
 use crate::transforms::samplify::SampleInfo;
 
-use crate::smt::{
+use crate::writers::smt::{
     exprs::{smt_to_string, SmtExpr, SmtIs, SmtIte, SmtLet, SspSmtVar},
     state_helpers::{SmtCompositionState, SmtPackageState},
 };
@@ -575,7 +575,7 @@ mod tests {
     use std::string::FromUtf8Error;
     use thiserror::Error;
 
-    use crate::smt::exprs::SmtFmt;
+    use crate::writers::smt::exprs::SmtFmt;
 
     #[derive(Error, Debug)]
     enum TestError {
