@@ -39,7 +39,7 @@ compose {
         { EVAL:  prf_right,
   	      GET:   key_bottom,
         },
-     prf:
+     prf_right:
         { GET:  key_top,
           SET:  key_bottom,
         },
