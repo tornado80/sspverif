@@ -19,14 +19,14 @@ pub fn transform_all(
     comp: &Composition,
 ) -> Result<
         (Composition,
-         <typecheck::Transform as Transformation>::Aux,
+         <typecheck::Transformation as Transformation>::Aux,
          <samplify::Transformation as Transformation>::Aux),
-    <typecheck::Transform as Transformation>::Err,
+    <typecheck::Transformation as Transformation>::Err,
 > {
-    let (comp, scope) = typecheck::Transform::new_with_empty_scope(comp.clone()).transform()?;
+    let (comp, scope) = typecheck::Transformation::new_with_empty_scope(comp.clone()).transform()?;
     let (comp, samplinginfo) = samplify::Transformation(&comp)
         .transform()
-        .expect("unwrapify transformation failed unexpectedly");
+        .expect("samplify transformation failed unexpectedly");
     let (comp, _) = unwrapify::Transformation(&comp)
         .transform()
         .expect("unwrapify transformation failed unexpectedly");
