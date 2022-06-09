@@ -248,7 +248,7 @@ pub fn handle_oracle_def(oracle_def: Pair<Rule>) -> OracleDef {
     OracleDef { sig, code }
 }
 
-pub fn handle_pkg_spec(pkg_spec: Pair<Rule>) -> Package {
+pub fn handle_pkg_spec(pkg_spec: Pair<Rule>, name: &str) -> Package {
     let mut oracles = vec![];
     let mut state = None;
     let mut params = None;
@@ -278,6 +278,7 @@ pub fn handle_pkg_spec(pkg_spec: Pair<Rule>) -> Package {
     }
 
     Package {
+        name: name.to_string(),
         oracles,
         params: params.unwrap_or_default(),
         imports: imported_oracles.iter().map(|(_k, v)| v.clone()).collect(),
@@ -289,7 +290,7 @@ pub fn handle_pkg(pkg: Pair<Rule>) -> (String, Package) {
     let mut inner = pkg.into_inner();
     let name = inner.next().unwrap().as_str();
     let spec = inner.next().unwrap();
-    let pkg = handle_pkg_spec(spec);
+    let pkg = handle_pkg_spec(spec, name);
 
     (name.to_owned(), pkg)
 }

@@ -12,6 +12,7 @@ pub fn key_pkg(params: &HashMap<String, String>) -> PackageInstance {
         name: "key".to_string(),
         params: params.clone(),
         pkg: Package {
+            name: "key".to_string(),
             params: vec![("n".to_string(), Type::new_scalar("int"))],
             state: vec![("k".to_string(), Type::Maybe(Box::new(Type::new_bits("n"))))],
             imports: vec![],

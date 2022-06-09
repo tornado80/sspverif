@@ -12,6 +12,7 @@ pub fn mod_prf(params: &HashMap<String, String>) -> PackageInstance {
         name: "mod-prf".to_string(),
         params: params.clone(),
         pkg: Package {
+            name: "mod-prf".to_string(),
             params: vec![
                 ("n".to_string(), Type::new_scalar("int")),
                 (

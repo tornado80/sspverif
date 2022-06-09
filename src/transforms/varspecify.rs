@@ -251,6 +251,7 @@ mod test {
                     params: params.clone(),
                     name: "test".to_string(),
                     pkg: Package {
+                        name: "testpkg".to_string(),
                         params: param_t.clone(),
                         state: state.clone(),
                         imports: vec![],
@@ -291,6 +292,7 @@ mod test {
                     params: params.clone(),
                     name: "testpkg".to_string(),
                     pkg: Package {
+                        name: "testpkg".to_string(),
                         params: param_t.clone(),
                         state: state.clone(),
                         imports: vec![],
@@ -331,6 +333,7 @@ mod test {
                     params: params.clone(),
                     name: "testpkg".to_string(),
                     pkg: Package {
+                        name: "testpkg".to_string(),
                         params: param_t.clone(),
                         state: state.clone(),
                         imports: vec![],
