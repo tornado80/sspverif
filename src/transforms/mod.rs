@@ -30,9 +30,6 @@ pub fn transform_all(
     let (comp, _) = unwrapify::Transformation(&comp)
         .transform()
         .expect("unwrapify transformation failed unexpectedly");
-    let (comp, _) = treeify::Transformation(&comp)
-        .transform()
-        .expect("treeify transformation failed unexpectedly");
     let (comp, _) = returnify::Transformation(&comp)
         .transform()
         .expect("returnify transformation failed unexpectedly");
@@ -42,6 +39,9 @@ pub fn transform_all(
     let (comp, _) = resolveoracles::Transformation(&comp)
         .transform()
         .expect("resolveoracles transformation failed unexpectedly");
+    let (comp, _) = treeify::Transformation(&comp)
+        .transform()
+        .expect("treeify transformation failed unexpectedly");
 
     Ok((comp, scope, samplinginfo))
 }
