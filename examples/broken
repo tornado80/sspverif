@@ -1,0 +1,5 @@
+cargo run --bin ssp-gen examples/prf-new
+
+produces the following error:
+
+thread 'main' panicked at 'instance adversary not found in compose block'
