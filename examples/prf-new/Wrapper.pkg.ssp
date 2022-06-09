@@ -4,7 +4,7 @@ package Wrapper {
     }
 
     import oracles {
-        GET(h: (Integer, Bits(*))) -> Bits(n),
+        GET(hh: (Integer, Bits(*))) -> Bits(n),
         EVAL(h: Integer, m: Bits(*)) -> (Integer,Bits(*)),
     }
 
