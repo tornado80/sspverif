@@ -115,6 +115,7 @@ impl<'a> SmtCompositionState<'a> {
  * - package instance name
  * - state variables
  */
+#[derive(Clone,Debug)]
 pub struct SmtPackageState<'a> {
     comp_name: &'a str,
     inst_name: &'a str,
@@ -176,6 +177,14 @@ impl<'a> SmtPackageState<'a> {
     }
 
     pub fn smt_set(&self, id: &str, new: &SmtExpr) -> SmtExpr {
+        self.smt_set_on(id, new, &SspSmtVar::SelfState.into())
+    }
+
+    pub fn smt_set_random(&self, id: &str, new: &SmtExpr, access: &SmtExpr) -> SmtExpr{
+        self.smt_set_on(id, new, access)
+    }
+
+    fn smt_set_on(&self, id: &str, new: &SmtExpr, target: &SmtExpr) -> SmtExpr {
         let mut tmp = vec![self.smt_constructor()];
 
         for (varname, _) in self.state.clone() {
@@ -184,11 +193,12 @@ impl<'a> SmtPackageState<'a> {
             } else {
                 tmp.push(SmtExpr::List(vec![
                     self.smt_accessor(&varname),
-                    SspSmtVar::SelfState.into(),
+                    target.clone(),
                 ]));
             }
         }
 
-        SmtExpr::List(tmp)
+        let result = SmtExpr::List(tmp);
+        result
     }
 }

@@ -25,13 +25,13 @@ fn main() {
         println!("; {}", name);
 
         //println!("{:#?}", comp);
-        let (comp, _, _) = match sspds::transforms::transform_all(&comp) {
+        let (comp, _, samp) = match sspds::transforms::transform_all(&comp) {
             Ok(x) => x,
             Err(e) => {
                 panic!("found an error in composition {}: {:?}", name, e)
             }
         };
-        let writer = CompositionSmtWriter::new(&comp);
+        let mut writer = CompositionSmtWriter::new(&comp, samp);
         for line in writer.smt_composition_all() {
             line.write_smt_to(&mut std::io::stdout()).unwrap();
         }
