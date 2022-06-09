@@ -105,13 +105,13 @@ fn smt(name:&String) {
         println!("; {}", name);
 
         //println!("{:#?}", comp);
-        let (comp, _) = match sspds::transforms::transform_all(&comp) {
+        let (comp, _, samp) = match sspds::transforms::transform_all(&comp) {
             Ok(x) => x,
             Err(e) => {
                 panic!("found an error in composition {}: {:?}", name, e)
             }
         };
-        let writer = CompositionSmtWriter::new(&comp);
+        let mut writer = CompositionSmtWriter::new(&comp, samp);
         for line in writer.smt_composition_all() {
             line.write_smt_to(&mut std::io::stdout()).unwrap();
         }
@@ -128,7 +128,7 @@ fn check(args: &String) {
     for (name, comp) in comp_map {
         println!("{}", name);
 
-        let (_comp, _) = match sspds::transforms::transform_all(&comp) {
+        let (_comp, _, _) = match sspds::transforms::transform_all(&comp) {
             Ok(x) => x,
             Err(e) => {
                 panic!("found an error in composition {}: {:?}", name, e)

@@ -3,6 +3,7 @@ use crate::identifier::Identifier;
 use crate::package::{Composition, OracleSig, PackageInstance};
 use crate::statement::{CodeBlock, Statement};
 use crate::types::Type;
+use crate::transforms::samplify::SampleInfo;
 
 use crate::smt::{
     exprs::{smt_to_string, SmtExpr, SmtIs, SmtIte, SmtLet, SspSmtVar},
@@ -12,14 +13,16 @@ use crate::smt::{
 pub struct CompositionSmtWriter<'a> {
     pub comp: &'a Composition,
 
+    sample_info: SampleInfo,
     state_helpers: std::collections::HashMap<String, SmtPackageState<'a>>,
     comp_helper: SmtCompositionState<'a>,
 }
 
 impl<'a> CompositionSmtWriter<'a> {
-    pub fn new(comp: &'a Composition) -> CompositionSmtWriter<'a> {
+    pub fn new(comp: &'a Composition, samp: SampleInfo) -> CompositionSmtWriter<'a> {
         let mut csw = CompositionSmtWriter {
             comp,
+            sample_info: samp,
             state_helpers: Default::default(),
             comp_helper: SmtCompositionState::new(
                 &comp.name,
@@ -29,15 +32,6 @@ impl<'a> CompositionSmtWriter<'a> {
                     .collect(),
             ),
         };
-
-        csw.state_helpers.insert(
-            "__randomness".into(),
-            SmtPackageState::<'a>::new(
-                &csw.comp.name,
-                "__randomness",
-                vec![("ctr".into(), Type::Integer)],
-            ),
-        );
 
         for inst in &csw.comp.pkgs {
             csw.state_helpers.insert(
@@ -215,7 +209,7 @@ impl<'a> CompositionSmtWriter<'a> {
                     //SmtExpr::Atom(format!("mk-abort-{}-{}", pkgname, sig.name))
                 }
                 // TODO actually use the type that we sample to know how far to advance the randomness tape
-                Statement::Sample(ident, opt_idx, _tipe) => {
+                Statement::Sample(ident, opt_idx, sample_id, tipe) => {
                     /*
                      *   1. get counter
                      *   2. assign ident
@@ -235,13 +229,15 @@ impl<'a> CompositionSmtWriter<'a> {
                      *
                      */
                     let ctr = self.get_state_helper("__randomness").smt_access(
-                        "ctr",
+                        &format!("ctr{}", sample_id.unwrap()),
                         self.comp_helper
                             .smt_access("__randomness", SspSmtVar::GlobalState.into()),
                     );
 
+                    let rand_tipe:SmtExpr = tipe.clone().into();
                     let rand_val = SmtExpr::List(vec![
-                        SmtExpr::Atom(format!("__sample-rand-{}", self.comp.name)),
+                        SmtExpr::Atom(format!("__sample-rand-{}-{}", self.comp.name, smt_to_string(rand_tipe.clone()))),
+                        SmtExpr::Atom(format!("{}", sample_id.unwrap())),
                         ctr.clone(),
                     ]);
 
@@ -260,16 +256,18 @@ impl<'a> CompositionSmtWriter<'a> {
                         bindings: vec![(ident.ident(), new_val)],
                         body: self.comp_helper.smt_set(
                             "__randomness",
-                            &self.get_state_helper("__randomness").smt_set(
-                                "ctr",
+                            &self.get_state_helper("__randomness").smt_set_random(
+                                &format!("ctr{}", sample_id.unwrap()),
                                 &SmtExpr::List(vec![
                                     SmtExpr::Atom("+".into()),
                                     SmtExpr::Atom("1".into()),
                                     ctr,
                                 ]),
+                                &self.comp_helper
+                                    .smt_access("__randomness", SspSmtVar::GlobalState.into())
                             ),
                             result.unwrap(),
-                        ),
+                        )
                     }
                     .into()
                 }
@@ -533,24 +531,30 @@ impl<'a> CompositionSmtWriter<'a> {
         comment.into_iter().chain(code).collect()
     }
 
-    fn smt_composition_randomness(&self) -> Vec<SmtExpr> {
-        vec![
-            SmtPackageState::new(
-                &self.comp.name,
-                "__randomness",
-                vec![("ctr".into(), Type::Integer)],
-            )
-            .smt_declare_datatype(),
+    fn smt_composition_randomness(&mut self) -> Vec<SmtExpr> {
+        let mut result:Vec<SmtExpr> = self.sample_info.tipes.iter().map(|tipe|{
+            let tipeexpr:SmtExpr = tipe.clone().into();
             SmtExpr::List(vec![
                 SmtExpr::Atom("declare-fun".into()),
-                SmtExpr::Atom(format!("__sample-rand-{}", self.comp.name)),
-                SmtExpr::List(vec![SmtExpr::Atom("Int".into())]),
-                SmtExpr::Atom("Bits_n".to_owned()),
-            ]),
-        ]
+                SmtExpr::Atom(format!("__sample-rand-{}-{}", self.comp.name, smt_to_string(tipeexpr.clone()))),
+                SmtExpr::List(vec![SmtExpr::Atom("Int".into()), SmtExpr::Atom("Int".into())]),
+                tipeexpr,
+            ])
+        }).collect();
+
+
+        let statehelper = SmtPackageState::new(
+            &self.comp.name,
+            "__randomness",
+            (1..self.sample_info.count).map(|ctr| (format!("ctr{}", ctr), Type::Integer)).collect()
+        );
+        self.state_helpers.insert("__randomness".into(), statehelper.clone());
+        result.push(statehelper.smt_declare_datatype());
+
+        return result;
     }
 
-    pub fn smt_composition_all(&self) -> Vec<SmtExpr> {
+    pub fn smt_composition_all(&mut self) -> Vec<SmtExpr> {
         let rand = self.smt_composition_randomness();
         let state = self.smt_composition_state();
         let ret = self.smt_composition_return();

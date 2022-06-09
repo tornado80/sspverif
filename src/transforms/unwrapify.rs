@@ -81,7 +81,7 @@ pub fn unwrapify(cb: &CodeBlock, ctr: &mut u32) -> Result<CodeBlock, Error> {
     let mut newcode = Vec::new();
     for stmt in cb.0.clone() {
         match stmt {
-            Statement::Abort | Statement::Sample(_, None, _) | Statement::Return(None) => {
+            Statement::Abort | Statement::Sample(_, None, _, _) | Statement::Return(None) => {
                 newcode.push(stmt);
             }
             Statement::Return(Some(ref expr)) => {
@@ -119,13 +119,18 @@ pub fn unwrapify(cb: &CodeBlock, ctr: &mut u32) -> Result<CodeBlock, Error> {
                     unwrapify(&elsecode, ctr)?,
                 ));
             }
-            Statement::Sample(ref id, Some(ref expr), ref tipe) => {
+            Statement::Sample(ref id, Some(ref expr), ref sample_id, ref tipe) => {
                 let (newexpr, unwraps) = replace_unwrap(expr, ctr);
                 if unwraps.is_empty() {
                     newcode.push(stmt);
                 } else {
                     newcode.extend(create_unwrap_stmts(unwraps));
-                    newcode.push(Statement::Sample(id.clone(), Some(newexpr), tipe.clone()));
+                    newcode.push(Statement::Sample(
+                        id.clone(),
+                        Some(newexpr),
+                        *sample_id,
+                        tipe.clone(),
+                    ));
                 }
             }
             Statement::Parse(idents, expr) => {

@@ -12,18 +12,18 @@ pub use scope::Scope;
 
 use crate::package::Composition;
 
-pub struct Transform {
+pub struct Transformation {
     scope: Scope,
     comp: Composition,
 }
 
-impl Transform {
-    pub fn new(scope: Scope, comp: Composition) -> Transform {
-        Transform { scope, comp }
+impl Transformation {
+    pub fn new(scope: Scope, comp: Composition) -> Transformation {
+        Transformation { scope, comp }
     }
 
-    pub fn new_with_empty_scope(comp: Composition) -> Transform {
-        Transform::new(Scope::new(), comp)
+    pub fn new_with_empty_scope(comp: Composition) -> Transformation {
+        Transformation::new(Scope::new(), comp)
     }
 
     pub fn scope(self) -> Scope {
@@ -31,7 +31,7 @@ impl Transform {
     }
 }
 
-impl super::Transformation for Transform {
+impl super::Transformation for Transformation {
     type Err = TypeCheckError;
     type Aux = Scope;
     fn transform(&self) -> Result<(Composition, Scope), TypeCheckError> {

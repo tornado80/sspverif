@@ -97,10 +97,10 @@ fn var_specify_helper(inst: &PackageInstance, block: CodeBlock, comp_name: &str)
                         unreachable!()
                     }
                 }
-                Statement::Sample(id, opt_idx, t) => {
+                Statement::Sample(id, opt_idx, sample_id, t) => {
                     let opt_idx = opt_idx.clone().map(|expr| expr.map(fixup));
                     if let Expression::Identifier(id) = fixup(id.to_expression()) {
-                        Statement::Sample(id, opt_idx, t.clone())
+                        Statement::Sample(id, opt_idx, *sample_id, t.clone())
                     } else {
                         unreachable!()
                     }
@@ -185,7 +185,7 @@ mod test {
     ) -> Vec<(CodeBlock, CodeBlock)> {
         [
             |id:&Identifier| block!{
-                Statement::Sample(id.clone(), None, Type::Integer)
+                Statement::Sample(id.clone(), None, None, Type::Integer)
             },
             |id:&Identifier| block!{
                 Statement::IfThenElse(
