@@ -104,13 +104,13 @@
             )))
 
 ;;;;;;;;;; Debugging
- (declare-const state-left-old  CompositionState-CompositionLeft)
- (declare-const state-right-old CompositionState-CompositionRight)
- (declare-const state-left-new  CompositionState-CompositionLeft)
- (declare-const state-right-new CompositionState-CompositionRight)
- (declare-const handle Int)
- (declare-const key-left Bits_n)
- (declare-const key-right Bits_n)
+; (declare-const state-left-old  CompositionState-CompositionLeft)
+; (declare-const state-right-old CompositionState-CompositionRight)
+; (declare-const state-left-new  CompositionState-CompositionLeft)
+; (declare-const state-right-new CompositionState-CompositionRight)
+; (declare-const handle Int)
+; (declare-const key-left Bits_n)
+; (declare-const key-right Bits_n)
 
 
 
@@ -126,14 +126,10 @@
 ;
 ;;;;;;; Debugging
 ;
-(= state-left-old s-left-old)
-(= state-right-old s-right-old)
-(= handle h)
+; (= state-left-old s-left-old)
+; (= state-right-old s-right-old)
+; (= handle h)
 ;
-; pre-condition
-    (= true (inv s-left-old s-right-old))     
-    (forall ((n Int)) (= (__sample-rand-CompositionLeft n) (__sample-rand-CompositionRight n)))    
-
 ; assignment after execution
       ;The following 6 lines changes from oracle to oracle:
       (let ((left-new     (oracle-CompositionLeft-key-GET s-left-old h))) ; left function on left state
@@ -143,27 +139,39 @@
       (let ((s-right-new  (return-CompositionRight-key-GET-state right-new)))
       (let ((y-right-new  (return-CompositionRight-key-GET-value right-new)))
 
-; pre-condition II: not both aborts
-(
-and
-(not (= mk-abort-CompositionLeft-key-GET left-new))
+; and
+(and
+
+; pre-condition
+    (= true (inv s-left-old s-right-old))     
+    (forall ((n Int)) (= (__sample-rand-CompositionLeft n) (__sample-rand-CompositionRight n)))    
+
+
+; negation
+(not (or
+
+; both abort
+(and
+(= mk-abort-CompositionLeft-key-GET   left-new)
+(= mk-abort-CompositionRight-key-GET right-new)
+)
+
+; and
+(and
+
+; none of the oracles aborts
+(not (= mk-abort-CompositionLeft-key-GET   left-new))
 (not (= mk-abort-CompositionRight-key-GET right-new))
-; post-condition
-   (not (or
-      (= true (inv s-left-new s-right-new))  
-      (= y-left-new y-right-new )  
-))
-;
-;;;;;;; Debugging
-;
-(= state-left-new s-left-new)
-(= state-right-new s-right-new)
-(= key-left y-left-new)
-(= key-right y-right-new)
-;
-)
-)
+
+; post-condition on states
+(= true (inv s-left-new s-right-new))
+
+; post-condition on outputs
+(= y-left-new y-right-new )
 )))
-      ))))
+
+)))))))))
+
+
 (check-sat)
-(get-model)
+;(get-model)

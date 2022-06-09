@@ -193,10 +193,6 @@
                (h Int)
                (m Bits_*)
                )
-(and
-; pre-condtion
-    (= true (inv s-left-old s-right-old))     
-    (forall ((n Int)) (= (__sample-rand-CompositionNoMappingGame n) (__sample-rand-CompositionMappingGame n)))    
 
 ; assignment after execution
       ;The following 6 lines changes from oracle to oracle:
@@ -207,21 +203,36 @@
       (let ((s-right-new  (return-CompositionMappingGame-map-EVAL-state right-new)))
       (let ((y-right-new  (return-CompositionMappingGame-map-EVAL-value right-new)))
 
-; not both abort
+; and
 (and
+
+; pre-condition
+    (= true (inv s-left-old s-right-old))     
+    (forall ((n Int)) (= (__sample-rand-CompositionNoMappingGame n) (__sample-rand-CompositionMappingGame n)))    
+
+; negation
+(not (or
+
+; both abort
+(and
+(= mk-abort-CompositionNoMappingGame-prf-EVAL left-new)
+(= mk-abort-CompositionMappingGame-map-EVAL right-new)
+)
+
+; and
+(and
+
+; none of the oracles aborts
 (not (= mk-abort-CompositionNoMappingGame-prf-EVAL left-new))
 (not (= mk-abort-CompositionMappingGame-map-EVAL right-new))
 
+; post-condition on states
+(= true (inv s-left-new s-right-new))
 
-; post-condtion
-   (not (or
-      (= true (inv s-left-new s-right-new)) 
-      (= y-left-new y-right-new ) 
-))
-))
+; post-condition on outputs
+(= y-left-new y-right-new )
 )))
-      ))))))
-
+))))))))))
 
 
 
