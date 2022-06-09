@@ -6,6 +6,7 @@ pub mod treeify;
 pub mod typecheck;
 pub mod unwrapify;
 pub mod varspecify;
+pub mod samplify;
 
 pub trait Transformation {
     type Err;
@@ -21,6 +22,9 @@ pub fn transform_all(
     <typecheck::Transform as Transformation>::Err,
 > {
     let (comp, scope) = typecheck::Transform::new_with_empty_scope(comp.clone()).transform()?;
+    let (comp, _) = samplify::Transformation(&comp)
+        .transform()
+        .expect("unwrapify transformation failed unexpectedly");
     let (comp, _) = unwrapify::Transformation(&comp)
         .transform()
         .expect("unwrapify transformation failed unexpectedly");
