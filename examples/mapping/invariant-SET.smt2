@@ -220,15 +220,13 @@
 (and
 (not (= mk-abort-CompositionNoMappingGame-key_top-SET left-new))
 (not (= mk-abort-CompositionMappingGame-map-SET right-new))
-)
-
 
 ; post-condtion
    (not (or
       (= true (inv s-left-new s-right-new)) 
       (= y-left-new y-right-new ) 
 ))
-)
+))
 )))
       ))))))
 
