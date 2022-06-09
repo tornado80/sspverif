@@ -71,6 +71,10 @@
 (declare-fun inv (CompositionState-CompositionNoMappingGame ; function input 
                   CompositionState-CompositionMappingGame) Bool)
 
+(declare-fun inv-post (CompositionState-CompositionNoMappingGame ; function input 
+                  CompositionState-CompositionMappingGame) Bool)
+
+
 (assert (forall 
         (
          (s-left  CompositionState-CompositionNoMappingGame) ; function input 
@@ -190,7 +194,124 @@
 ))
 
 
+(assert (forall 
+        (
+         (s-left  CompositionState-CompositionNoMappingGame) ; function input 
+         (s-right CompositionState-CompositionMappingGame)
+        )
+        (= (inv-post s-left s-right)
+             (
+        let  (
+            (bot (as mk-none (Maybe Bits_n)))
+            (botint (as mk-none (Maybe Int))) 
+            (botstuff (as mk-none (Maybe (Tuple2 Int Bits_*))))
+             )
 
+             ( 
+;            (TIKL (Array Int               Bits_n))   ;      TIKL: T in output (bottom) key package left
+;            (TIKR (Array Int               Bits_n))   ;      TIKR: T in output (bottom) key package right
+;            (TOKL (Array (Tuple2 Int Bits_*) Bits_n)) ;      TOKL: T in output (bottom) key package left
+;            (TOKR (Array (Tuple2 Int Bits_*) Bits_n)) ;      TOKR: T in output (bottom) key package right
+;            (MIR  (Array Int Int))                    ;      MIR : input- mapping table (right)
+;            (MOR  (Array (Tuple2 Int Bits_*) 
+;                         (Tuple2 Int Bits_*)))        ;      MOR : output- mapping table (right)
+  
+                ; assignment of randomness state
+                    let ((r-left (state-CompositionNoMappingGame-__randomness-ctr
+                            (composition-state-CompositionNoMappingGame-__randomness 
+                             s-left)))
+                         (r-right (state-CompositionMappingGame-__randomness-ctr
+                            (composition-state-CompositionMappingGame-__randomness 
+                             s-right)))
+
+                ; assignment of tables
+                         (TIKL (state-CompositionNoMappingGame-key_top-T
+                            (composition-state-CompositionNoMappingGame-key_top 
+                             s-left)))
+                         (TIKR (state-CompositionMappingGame-key_top-T 
+                            (composition-state-CompositionMappingGame-key_top
+                             s-right)))
+                         (TOKL (state-CompositionNoMappingGame-key_bottom-T
+                            (composition-state-CompositionNoMappingGame-key_bottom 
+                            s-left)))
+                         (TOKR (state-CompositionMappingGame-key_bottom-T
+                            (composition-state-CompositionMappingGame-key_bottom
+                            s-right)))
+                         (MIR  (state-CompositionMappingGame-map-Input_Map
+                            (composition-state-CompositionMappingGame-map
+                             s-right)))
+                         (MOR  (state-CompositionMappingGame-map-Output_Map  
+                            (composition-state-CompositionMappingGame-map
+                             s-right)))
+                )
+                (ite true
+;;                (and
+                ; randomness is the same
+;;                    (= r-left r-right)          
+                ; (LRIa)  TIKL[h] = bot => MIR[h]  = bot 
+;;                    (forall ((h Int)) (=> (= (TIKL h) bot) (= (MIR h) botint))) 
+                ; (LRIa') MIR[h]  = bot => TIKL[h]    
+;;                    (forall ((h Int)) (=>  (= (MIR h) botint) (= (TIKR h) bot))) 
+                ; (LRIb)  MIR [h] = (hh Int) => TIKL[h] = TIKR[hh]         
+;;                    (forall ((h Int) (hh  Int)) 
+;;                                     (
+;;                                     =>  (= (MIR h) (mk-some hh))  (= (TIKL h) (TIKR hh)) 
+;;                                     )
+;;                    ) 
+                ; (LROa)  TOKL[h] = bot => MOR[h]  = bot
+;;                    (forall ((h (Tuple2 Int Bits_*))) 
+;;                                      (=> (= (TOKL h) bot) (= (MOR h) botstuff)))
+                ; (LROa') MOR[h]  = bot => TOKL[h]  = bot 
+;;                    (forall ((h (Tuple2 Int Bits_*))) 
+;;                                      (=> (= (MOR h) botstuff) (= (TOKR h) bot)))            
+                ; (LROb)  MOR [h] = hh  => TOKL[h] = TOKR[hh]         
+;;                    (forall ((h (Tuple2 Int Bits_*)) (hh (Tuple2 Int Bits_*)))
+;;                                     (=>
+;;                                     (= (MOR h) (mk-some hh))                                     
+;;                                     (= (TOKL h) (TOKR hh))))
+                ; (RI)  (exists h s.t. MIR[h] = h') => TIKR[h'] != bot
+;;                    (forall ((hh Int)(h Int)) 
+;;                                     (=> 
+;;                                     (= (MIR h) (mk-some hh)) ; if MIR[h] = hh: Int (that is, not bot) 
+;;                                     (not (=  (TIKR hh) bot) ; then TIKR[hh] neq bot
+;;                                              )))
+                ; (RI') TIKR[h'] != bot => (exists h s.t. MIR[h] = h')
+;;                    (forall ((hh Int)) 
+;;                                     (=> 
+;;                                     (not (=  (TIKR hh) bot))
+;;                                     (
+;;                                     exists ((h Int))
+;;                                     (= (MIR h) (mk-some hh)) 
+;;                                     )))
+                ; (RO)  (exists h s.t. MOR[h] = hh) => exists (hhh Int) TOKR[hh] = hhh
+;;                    (forall ((hh (Tuple2 Int Bits_*))) 
+;;                                     (=> 
+;;                                     (
+;;                                     exists ((h (Tuple2 Int Bits_*)))
+;;                                     (= (MOR h) (mk-some hh))
+;;                                     )
+;;                                     (
+;;                                     exists ((hhh Bits_n))
+;;                                     (= (TOKR hh) (mk-some hhh))
+;;                                     )
+;;                                     ))
+                ; (RO') TOKR[hh] = (k Bits_n)) => (exists h s.t. MOR[h] = hh)
+;;                    (forall ((hh (Tuple2 Int Bits_*))(k Bits_n)) 
+;;                                     (=> 
+;;                                     (=  (TOKR hh) (mk-some k)
+;;                                     )
+;;                                     (exists ((h (Tuple2 Int Bits_*)))
+;;                                     (= (MOR h) (mk-some hh))
+;;                                     )
+;;                                     )
+;;                    )
+;;            )
+            true
+            false
+            )))
+     )
+))
+;;
 
 ;;;;;;;;;; GET oracle
 ; existential quantification
@@ -224,14 +345,12 @@
 
 ; post-condtion
    (not (or
-      (= true (inv s-left-new s-right-new))  ; undefined stuff 
-      (= y-left-new y-right-new )  ; undefined stuff 
+      (= true (inv-post s-left-new s-right-new)) 
+      (= y-left-new y-right-new )  
 ))
 )
 )))
       ))))))
-
-
 
 
 (check-sat)
