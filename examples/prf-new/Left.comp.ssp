@@ -19,7 +19,7 @@ instance prf_left =
 compose { 
      adversary:
         { SET:  key_top,
-          EVAL: prf,
+          EVAL: prf_left,
         },
      prf_left:
         { GET:  key_top,

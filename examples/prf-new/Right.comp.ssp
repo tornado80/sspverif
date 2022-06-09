@@ -36,7 +36,7 @@ compose {
           EVAL: wrapper,
         },
      wrapper:
-        { EVAL:  prf,
+        { EVAL:  prf_right,
   	      GET:   key_bottom,
         },
      prf:

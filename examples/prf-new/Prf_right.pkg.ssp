@@ -1,4 +1,4 @@
-package Prf {
+package Prf_right {
     params {
         f: fn Bits(n),Bits(*) -> Bits(n),
         n: Integer,
