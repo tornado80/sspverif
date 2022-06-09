@@ -1,0 +1,12 @@
+package Wrapper {
+    params {
+        n: Integer,
+    }
+
+    oracle EVAL(h: Integer, m: Bits(*)) -> Bits(n) {
+        _ <- invoke EVAL(h);
+        k <- invoke GET(h,m);
+        return k;
+    }
+
+}
