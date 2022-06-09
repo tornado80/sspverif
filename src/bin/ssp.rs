@@ -16,7 +16,7 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     /// Verifies the code of packages
-    Check { name: Option<String> },
+    Check { name: String },
     /// Generate latex (cryptocode) files
     Latex { name: Option<String> },
     /// Generate graph representation of the composition
@@ -76,13 +76,27 @@ fn graph(args: &Graph) {
     }
 }
 
+fn check(args: &String) {
+    let (pkgs_list, comp_list) = read_directory(&args);
+    let (pkgs_map, _pkgs_filenames) = parse_packages(&pkgs_list);
+    let comp_map = parse_composition(&comp_list, &pkgs_map);
+    for (name, comp) in comp_map {
+        println!("{}", name);
+
+        let (_comp, _) = match sspds::transforms::transform_all(&comp) {
+            Ok(x) => x,
+            Err(e) => {
+                panic!("found an error in composition {}: {:?}", name, e)
+            }
+        };
+    }
+}
+
 fn main() {
     let cli = Cli::parse();
 
     match &cli.command {
-        Commands::Check { name } => {
-            println!("'myapp add' was used, name is: {:?}", name)
-        }
+        Commands::Check { name } => check(name),
         Commands::Latex { name } => {
             println!("'myapp add' was used, name is: {:?}", name)
         }
