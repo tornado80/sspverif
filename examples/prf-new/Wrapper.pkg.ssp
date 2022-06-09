@@ -3,7 +3,12 @@ package Wrapper {
         n: Integer,
     }
 
-    oracle EVAL(h: Integer, m: Bits(*)) -> Bits(n) {
+    import oracles {
+        GET(h: Integer, m: Bits(*)) -> Bits(n),
+        EVAL(h: Integer, m: Bits(*)) -> (Integer,Bits(*)),
+    }
+
+    oracle EVAL(h: Integer, m: Bits(*)) -> (Integer,Bits(*)) {
         _ <- invoke EVAL(h);
         k <- invoke GET(h,m);
         return k;
