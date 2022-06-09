@@ -18,7 +18,7 @@ pub fn typecheck_comp(
         pkgs,
         edges,
         exports,
-        ..
+        name
     } = comp;
 
     // 1a. check signature exists in edge destination
@@ -58,7 +58,8 @@ pub fn typecheck_comp(
             != edge_imports.keys().collect::<HashSet<_>>()
         {
             panic!(
-                "Different set of keys with imports, declared: {:?} edges: {:?}",
+                "Composition {}: Different set of keys with imports, declared: {:?} edges: {:?}",
+                name,
                 declared_imports.keys(),
                 edge_imports.keys()
             )
@@ -69,8 +70,8 @@ pub fn typecheck_comp(
             }
             if declared_imports[&i] != edge_imports[&i] {
                 panic!(
-                    "package: {} declared: {:#?} edges: {:#?}",
-                    pkg.name, declared_imports[&i], edge_imports[&i]
+                    "Composition {}: package: {} declared: {:#?} edges: {:#?}",
+                    name, pkg.name, declared_imports[&i], edge_imports[&i]
                 );
             }
         }
