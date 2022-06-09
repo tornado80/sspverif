@@ -91,8 +91,8 @@ fn graph(args: &Graph) {
     }
 }
 
-fn smt(name:&String) {
-    let (pkgs_list, comp_list) = read_directory(&name);
+fn smt(name:&str) {
+    let (pkgs_list, comp_list) = read_directory(name);
     let (pkgs_map, _pkgs_filenames) = parse_packages(&pkgs_list);
     let comp_map = parse_composition(&comp_list, &pkgs_map);
 
@@ -121,8 +121,8 @@ fn smt(name:&String) {
 }
 
 
-fn check(args: &String) {
-    let (pkgs_list, comp_list) = read_directory(&args);
+fn check(args: &str) {
+    let (pkgs_list, comp_list) = read_directory(args);
     let (pkgs_map, _pkgs_filenames) = parse_packages(&pkgs_list);
     let comp_map = parse_composition(&comp_list, &pkgs_map);
     for (name, comp) in comp_map {

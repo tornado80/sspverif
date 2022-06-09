@@ -198,7 +198,6 @@ impl<'a> SmtPackageState<'a> {
             }
         }
 
-        let result = SmtExpr::List(tmp);
-        result
+        SmtExpr::List(tmp)
     }
 }
