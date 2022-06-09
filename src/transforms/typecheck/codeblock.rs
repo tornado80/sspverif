@@ -279,7 +279,9 @@ impl TypedCodeBlock {
                         return Err(TypeCheckError::TypeMismatch(
                             ErrorLocation::Unknown,
                             format!(
-                                "oracle invocation argument count mismatch. get {}, expected {}",
+                                "oracle {} invocation on {:?} argument count mismatch. get {}, expected {}",
+                                name,
+                                target_inst_name,
                                 args.len(),
                                 arg_types.len()
                             ),
