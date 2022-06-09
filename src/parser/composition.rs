@@ -42,7 +42,7 @@ pub fn handle_compose_assign_body_list(
             for (oracle_name, dst_inst_name) in handle_instance_assign_list(inner) {
                 let (dst_offset, dst_inst) = match instances.get(&dst_inst_name) {
                     None => {
-                        panic!("instance {} not found in compose block", dst_inst_name);
+                        panic!("instance {} not declared but used in compose block for {}", dst_inst_name, inst_name);
                     }
                     Some(inst) => inst,
                 };
@@ -76,7 +76,7 @@ pub fn handle_compose_assign_body_list(
         for (oracle_name, dst_inst_name) in handle_instance_assign_list(inner) {
             let (dst_offset, dst_inst) = match instances.get(&dst_inst_name) {
                 None => {
-                    panic!("instance {} not found in compose block", dst_inst_name);
+                    panic!("instance {} not declared but used in compose block for {}", dst_inst_name, inst_name);
                 }
                 Some(inst) => inst,
             };
