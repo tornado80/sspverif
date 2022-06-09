@@ -45,3 +45,25 @@ pub fn transform_all(
 
     Ok((comp, scope, samplinginfo))
 }
+
+pub fn transform_explain(comp: &Composition) ->Result<
+(Composition,
+ <typecheck::Transformation as Transformation>::Aux,
+ <samplify::Transformation as Transformation>::Aux),
+<typecheck::Transformation as Transformation>::Err> {
+    let (comp, scope) = typecheck::Transformation::new_with_empty_scope(comp.clone()).transform()?;
+    let (comp, samplinginfo) = samplify::Transformation(&comp)
+        .transform()
+        .expect("samplify transformation failed unexpectedly");
+    let (comp, _) = unwrapify::Transformation(&comp)
+        .transform()
+        .expect("unwrapify transformation failed unexpectedly");
+    let (comp, _) = varspecify::Transformation(&comp)
+        .transform()
+        .expect("varspecify transformation failed unexpectedly");
+    let (comp, _) = resolveoracles::Transformation(&comp)
+        .transform()
+        .expect("resolveoracles transformation failed unexpectedly");
+
+    Ok((comp, scope, samplinginfo))
+}

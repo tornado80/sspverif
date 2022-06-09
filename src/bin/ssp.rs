@@ -14,6 +14,7 @@ use sspds::{
             exprs::SmtFmt,
             writer::CompositionSmtWriter
         },
+        pseudocode::writer::Writer,
         tex::writer::{tex_write_composition}
     },
     hacks,
@@ -32,12 +33,27 @@ struct Cli {
 enum Commands {
     /// Verifies the code of packages
     Check { name: String },
+
     /// Generates SMT
     Smt { name: String },
+
     /// Generate latex (cryptocode) files
     Latex(LaTeX),
+
     /// Generate graph representation of the composition
     Graph(Graph),
+
+    /// Give information about the provided code
+    Explain(Explain)
+}
+
+
+#[derive(clap::Args)]
+#[clap(author, version, about, long_about = None)]
+struct Explain {
+    dirname: String,
+    #[clap(short, long)]
+    output: String,
 }
 
 #[derive(clap::Args)]
@@ -158,6 +174,31 @@ fn latex(args:&LaTeX) {
     }
 }
 
+fn explain(args: &Explain) {
+    let (pkgs_list, comp_list) = read_directory(&args.dirname);
+    let (pkgs_map, _pkgs_filenames) = parse_packages(&pkgs_list);
+    let comp_map = parse_composition(&comp_list, &pkgs_map);
+
+    let mut  w = Writer::new(std::io::stdout());
+
+    for (name, comp) in comp_map {
+        let (comp, _, _) = match sspds::transforms::transform_explain(&comp) {
+            Ok(x) => x,
+            Err(e) => {
+                panic!("found an error in composition {}: {:?}", name, e)
+            }
+        };
+
+        println!("{}", name);
+        for inst in comp.pkgs {
+            let pkg = inst.pkg;
+            w.write_package(&pkg).unwrap();
+        }
+
+        //tex_write_composition(&comp, Path::new(&args.output));
+    }
+}
+
 fn main() {
     let cli = Cli::parse();
 
@@ -166,5 +207,6 @@ fn main() {
         Commands::Smt { name } => smt(name),
         Commands::Latex(args) => latex(args),
         Commands::Graph(args) => graph(args),
+        Commands::Explain(args) => explain(args,)
     }
 }
