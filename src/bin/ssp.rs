@@ -1,9 +1,11 @@
 use clap::{Parser, Subcommand};
 
 use sspds::cli::filesystem::{parse_composition, parse_packages, read_directory};
+use sspds::tex::writer::{tex_write_composition};
 use sspds::package::{Composition, Edge, Export};
 use std::fs::File;
 use std::io::Write;
+use std::path::Path;
 
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
@@ -18,7 +20,7 @@ enum Commands {
     /// Verifies the code of packages
     Check { name: String },
     /// Generate latex (cryptocode) files
-    Latex { name: Option<String> },
+    Latex(LaTeX),
     /// Generate graph representation of the composition
     Graph(Graph),
 }
@@ -26,6 +28,14 @@ enum Commands {
 #[derive(clap::Args)]
 #[clap(author, version, about, long_about = None)]
 struct Graph {
+    dirname: String,
+    #[clap(short, long)]
+    output: String,
+}
+
+#[derive(clap::Args)]
+#[clap(author, version, about, long_about = None)]
+struct LaTeX {
     dirname: String,
     #[clap(short, long)]
     output: String,
@@ -92,14 +102,24 @@ fn check(args: &String) {
     }
 }
 
+
+fn latex(args:&LaTeX) {
+    let (pkgs_list, comp_list) = read_directory(&args.dirname);
+    let (pkgs_map, _pkgs_filenames) = parse_packages(&pkgs_list);
+    let comp_map = parse_composition(&comp_list, &pkgs_map);
+
+    for (name, comp) in comp_map {
+        println!("{}", name);
+        tex_write_composition(&comp, Path::new(&args.output));
+    }    
+}
+
 fn main() {
     let cli = Cli::parse();
 
     match &cli.command {
         Commands::Check { name } => check(name),
-        Commands::Latex { name } => {
-            println!("'myapp add' was used, name is: {:?}", name)
-        }
+        Commands::Latex(args) => latex(args),
         Commands::Graph(args) => graph(args),
     }
 }

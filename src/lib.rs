@@ -8,6 +8,7 @@ pub mod statement;
 pub mod types;
 
 pub mod smt;
+pub mod tex;
 pub mod transforms;
 
 pub mod hacks;
