@@ -181,45 +181,6 @@
             ))))
 
 
-;;;;;;;;;; SET oracle
-; existential quantification
-(assert (and (exists 
-               (
-               (s-left-old CompositionState-CompositionNoMappingGame)
-               (s-right-old CompositionState-CompositionMappingGame)   
-               (h Int)
-               (k Bits_n)
-               )
-(and
-; pre-condtion
-    (= true (inv s-left-old s-right-old))
-    (forall ((n Int)) (= (__sample-rand-CompositionNoMappingGame n) (__sample-rand-CompositionMappingGame n)))    
-
-; assignment after execution
-      (let ((left-new     (oracle-CompositionNoMappingGame-key_top-SET s-left-old h k))) ; left function on left state
-      (let ((s-left-new   (return-CompositionNoMappingGame-key_top-SET-state left-new)))
-      (let ((y-left-new   (return-CompositionNoMappingGame-key_top-SET-value left-new)))
-      (let ((right-new    (oracle-CompositionMappingGame-map-SET s-right-old h k))) ; right function on right state     
-      (let ((s-right-new  (return-CompositionMappingGame-map-SET-state right-new)))
-      (let ((y-right-new  (return-CompositionMappingGame-map-SET-value right-new)))
-
-
-; not both abort
-(and
-(not (= mk-abort-CompositionNoMappingGame-key_top-SET left-new))
-(not (= mk-abort-CompositionMappingGame-map-SET right-new))
-)
-
-
-; post-condtion
-   (not (or
-      (= true (inv s-left-new s-right-new)) 
-      (= y-left-new y-right-new ) 
-))
-)
-)))
-      ))))))
-
 
 
 ;;;;;;;;;; EVAL oracle
@@ -261,45 +222,6 @@
 )))
       ))))))
 
-
-;;;;;;;;;; GET oracle
-; existential quantification
-(assert (and (exists 
-               (
-               (s-left-old CompositionState-CompositionNoMappingGame)
-               (s-right-old CompositionState-CompositionMappingGame)   
-               ; These two lines change from oracle to oracle
-               (h Int) 
-               (m Bits_*)
-               )
-(and
-; pre-condition
-    (= true (inv s-left-old s-right-old))     
-    (forall ((n Int)) (= (__sample-rand-CompositionNoMappingGame n) (__sample-rand-CompositionMappingGame n)))    
-
-; assignment after execution
-      ;The following 6 lines changes from oracle to oracle:
-      (let ((left-new     (oracle-CompositionNoMappingGame-key_bottom-GET s-left-old h m))) ; left function on left state
-      (let ((s-left-new   (return-CompositionNoMappingGame-key_bottom-GET-state left-new)))
-      (let ((y-left-new   (return-CompositionNoMappingGame-key_bottom-GET-value left-new)))
-      (let ((right-new    (oracle-CompositionMappingGame-map-GET s-right-old h m))) ; right function on right state     
-      (let ((s-right-new  (return-CompositionMappingGame-map-GET-state right-new)))
-      (let ((y-right-new  (return-CompositionMappingGame-map-GET-value right-new)))
-
-; not both abort
-(and
-(not (= mk-abort-CompositionNoMappingGame-key_bottom-GET left-new))
-(not (= mk-abort-CompositionMappingGame-map-GET right-new))
-)
-
-; post-condtion
-   (not (or
-      (= true (inv s-left-new s-right-new))  ; undefined stuff 
-      (= y-left-new y-right-new )  ; undefined stuff 
-))
-)
-)))
-      ))))))
 
 
 

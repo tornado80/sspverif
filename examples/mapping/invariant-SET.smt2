@@ -1,3 +1,4 @@
+
 ; invariant
 ; Notation: Left: no mapping, Right: mapping
 ;      TIKL: T in input  (top)    key package left
@@ -65,11 +66,17 @@
 (define-fun oracle-CompositionMappingGame-map-SET ((__global_state CompositionState-CompositionMappingGame) (h Int) (k Bits_n)) Return_CompositionMappingGame_map_SET (let ((__self_state (composition-state-CompositionMappingGame-map __global_state))) (let ((__ret (oracle-CompositionMappingGame-key_top-SET __global_state h k))) (ite ((_ is mk-abort-CompositionMappingGame-key_top-SET) __ret) mk-abort-CompositionMappingGame-map-SET (let ((__global_state (return-CompositionMappingGame-key_top-SET-state __ret)) (hh (return-CompositionMappingGame-key_top-SET-value __ret))) (ite (= (select (state-CompositionMappingGame-map-Input_Map __self_state) h) (as mk-none (Maybe Int))) (let ((__self_state (mk-state-CompositionMappingGame-map (store (state-CompositionMappingGame-map-Input_Map __self_state) h (mk-some hh)) (state-CompositionMappingGame-map-Output_Map __self_state)))) (let ((__global_state (mk-composition-state-CompositionMappingGame (composition-state-CompositionMappingGame-__randomness __global_state) (composition-state-CompositionMappingGame-key_top __global_state) (composition-state-CompositionMappingGame-key_bottom __global_state) (composition-state-CompositionMappingGame-prf __global_state) __self_state))) (mk-return-CompositionMappingGame-map-SET __global_state hh))) (let ((__global_state (mk-composition-state-CompositionMappingGame (composition-state-CompositionMappingGame-__randomness __global_state) (composition-state-CompositionMappingGame-key_top __global_state) (composition-state-CompositionMappingGame-key_bottom __global_state) (composition-state-CompositionMappingGame-prf __global_state) __self_state))) (mk-return-CompositionMappingGame-map-SET __global_state hh))))))))
 (define-fun oracle-CompositionMappingGame-map-GET ((__global_state CompositionState-CompositionMappingGame) (h Int) (m Bits_*)) Return_CompositionMappingGame_map_GET (let ((__self_state (composition-state-CompositionMappingGame-map __global_state))) (ite (not (= (select (state-CompositionMappingGame-map-Output_Map __self_state) (mk-tuple2 h m)) (as mk-none (Maybe (Tuple2 Int Bits_*))))) (ite ((_ is (mk-none () (Maybe (Tuple2 Int Bits_*)))) (select (state-CompositionMappingGame-map-Output_Map __self_state) (mk-tuple2 h m))) mk-abort-CompositionMappingGame-map-GET (let ((unwrap-1 (maybe-get (select (state-CompositionMappingGame-map-Output_Map __self_state) (mk-tuple2 h m))))) (let ((hh unwrap-1)) (let ((hhh (el1 hh)) (mmm (el2 hh))) (let ((__ret (oracle-CompositionMappingGame-key_bottom-GET __global_state hhh mmm))) (ite ((_ is mk-abort-CompositionMappingGame-key_bottom-GET) __ret) mk-abort-CompositionMappingGame-map-GET (let ((__global_state (return-CompositionMappingGame-key_bottom-GET-state __ret)) (k (return-CompositionMappingGame-key_bottom-GET-value __ret))) (let ((__global_state (mk-composition-state-CompositionMappingGame (composition-state-CompositionMappingGame-__randomness __global_state) (composition-state-CompositionMappingGame-key_top __global_state) (composition-state-CompositionMappingGame-key_bottom __global_state) (composition-state-CompositionMappingGame-prf __global_state) __self_state))) (mk-return-CompositionMappingGame-map-GET __global_state k))))))))) mk-abort-CompositionMappingGame-map-GET)))
 
+
 ; define invariant on s-left,s-right
-(define-fun inv                                        ; function name 
-           ((s-left  CompositionState-CompositionNoMappingGame) ; function input 
-            (s-right CompositionState-CompositionMappingGame))
-            Bool                                       ; function behaviour           
+(declare-fun inv (CompositionState-CompositionNoMappingGame ; function input 
+                  CompositionState-CompositionMappingGame) Bool)
+
+(assert (forall 
+        (
+         (s-left  CompositionState-CompositionNoMappingGame) ; function input 
+         (s-right CompositionState-CompositionMappingGame)
+        )
+        (= (inv s-left s-right)
              (
         let  (
             (bot (as mk-none (Maybe Bits_n)))
@@ -178,7 +185,12 @@
             )
             true
             false
-            ))))
+            )))
+     )
+))
+
+
+
 
 
 ;;;;;;;;;; SET oracle
@@ -215,87 +227,6 @@
    (not (or
       (= true (inv s-left-new s-right-new)) 
       (= y-left-new y-right-new ) 
-))
-)
-)))
-      ))))))
-
-
-
-;;;;;;;;;; EVAL oracle
-; existential quantification
-(assert (and (exists 
-               (
-               (s-left-old CompositionState-CompositionNoMappingGame)
-               (s-right-old CompositionState-CompositionMappingGame)   
-               ; These two lines change from oracle to oracle
-               (h Int)
-               (m Bits_*)
-               )
-(and
-; pre-condtion
-    (= true (inv s-left-old s-right-old))     
-    (forall ((n Int)) (= (__sample-rand-CompositionNoMappingGame n) (__sample-rand-CompositionMappingGame n)))    
-
-; assignment after execution
-      ;The following 6 lines changes from oracle to oracle:
-      (let ((left-new     (oracle-CompositionNoMappingGame-prf-EVAL s-left-old h m))) ; left function on left state
-      (let ((s-left-new   (return-CompositionNoMappingGame-prf-EVAL-state left-new)))
-      (let ((y-left-new   (return-CompositionNoMappingGame-prf-EVAL-value left-new)))
-      (let ((right-new    (oracle-CompositionMappingGame-map-EVAL s-right-old h m))) ; right function on right state     
-      (let ((s-right-new  (return-CompositionMappingGame-map-EVAL-state right-new)))
-      (let ((y-right-new  (return-CompositionMappingGame-map-EVAL-value right-new)))
-
-; not both abort
-(and
-(not (= mk-abort-CompositionNoMappingGame-prf-EVAL left-new))
-(not (= mk-abort-CompositionMappingGame-map-EVAL right-new))
-)
-
-; post-condtion
-   (not (or
-      (= true (inv s-left-new s-right-new)) 
-      (= y-left-new y-right-new ) 
-))
-)
-)))
-      ))))))
-
-
-;;;;;;;;;; GET oracle
-; existential quantification
-(assert (and (exists 
-               (
-               (s-left-old CompositionState-CompositionNoMappingGame)
-               (s-right-old CompositionState-CompositionMappingGame)   
-               ; These two lines change from oracle to oracle
-               (h Int) 
-               (m Bits_*)
-               )
-(and
-; pre-condition
-    (= true (inv s-left-old s-right-old))     
-    (forall ((n Int)) (= (__sample-rand-CompositionNoMappingGame n) (__sample-rand-CompositionMappingGame n)))    
-
-; assignment after execution
-      ;The following 6 lines changes from oracle to oracle:
-      (let ((left-new     (oracle-CompositionNoMappingGame-key_bottom-GET s-left-old h m))) ; left function on left state
-      (let ((s-left-new   (return-CompositionNoMappingGame-key_bottom-GET-state left-new)))
-      (let ((y-left-new   (return-CompositionNoMappingGame-key_bottom-GET-value left-new)))
-      (let ((right-new    (oracle-CompositionMappingGame-map-GET s-right-old h m))) ; right function on right state     
-      (let ((s-right-new  (return-CompositionMappingGame-map-GET-state right-new)))
-      (let ((y-right-new  (return-CompositionMappingGame-map-GET-value right-new)))
-
-; not both abort
-(and
-(not (= mk-abort-CompositionNoMappingGame-key_bottom-GET left-new))
-(not (= mk-abort-CompositionMappingGame-map-GET right-new))
-)
-
-; post-condtion
-   (not (or
-      (= true (inv s-left-new s-right-new))  ; undefined stuff 
-      (= y-left-new y-right-new )  ; undefined stuff 
 ))
 )
 )))
