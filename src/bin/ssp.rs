@@ -105,7 +105,7 @@ fn smt(name:&String) {
         println!("; {}", name);
 
         //println!("{:#?}", comp);
-        let (comp, _) = match sspds::transforms::transform_all(&comp) {
+        let (comp, _, _) = match sspds::transforms::transform_all(&comp) {
             Ok(x) => x,
             Err(e) => {
                 panic!("found an error in composition {}: {:?}", name, e)
@@ -128,7 +128,7 @@ fn check(args: &String) {
     for (name, comp) in comp_map {
         println!("{}", name);
 
-        let (_comp, _) = match sspds::transforms::transform_all(&comp) {
+        let (_comp, _, _) = match sspds::transforms::transform_all(&comp) {
             Ok(x) => x,
             Err(e) => {
                 panic!("found an error in composition {}: {:?}", name, e)

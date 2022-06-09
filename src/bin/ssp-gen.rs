@@ -25,7 +25,7 @@ fn main() {
         println!("; {}", name);
 
         //println!("{:#?}", comp);
-        let (comp, _) = match sspds::transforms::transform_all(&comp) {
+        let (comp, _, _) = match sspds::transforms::transform_all(&comp) {
             Ok(x) => x,
             Err(e) => {
                 panic!("found an error in composition {}: {:?}", name, e)
