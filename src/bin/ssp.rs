@@ -1,14 +1,25 @@
-use clap::{Parser, Subcommand};
-
-use sspds::cli::filesystem::{parse_composition, parse_packages, read_directory};
-use sspds::tex::writer::{tex_write_composition};
-use sspds::package::{Composition, Edge, Export};
-use sspds::hacks;
-use sspds::smt::exprs::SmtFmt;
-use sspds::smt::writer::CompositionSmtWriter;
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
+
+use clap::{Parser, Subcommand};
+
+use sspds::{
+    cli::filesystem::{parse_composition, parse_packages, read_directory},
+    
+    package::{Composition, Edge, Export},
+
+    writers::{
+        smt::{
+            exprs::SmtFmt,
+            writer::CompositionSmtWriter
+        },
+        pseudocode::writer::Writer,
+        tex::writer::{tex_write_composition}
+    },
+    hacks,
+};
+
 
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
@@ -22,12 +33,27 @@ struct Cli {
 enum Commands {
     /// Verifies the code of packages
     Check { name: String },
+
     /// Generates SMT
     Smt { name: String },
+
     /// Generate latex (cryptocode) files
     Latex(LaTeX),
+
     /// Generate graph representation of the composition
     Graph(Graph),
+
+    /// Give information about the provided code
+    Explain(Explain)
+}
+
+
+#[derive(clap::Args)]
+#[clap(author, version, about, long_about = None)]
+struct Explain {
+    dirname: String,
+    #[clap(short, long)]
+    output: String,
 }
 
 #[derive(clap::Args)]
@@ -145,7 +171,32 @@ fn latex(args:&LaTeX) {
     for (name, comp) in comp_map {
         println!("{}", name);
         tex_write_composition(&comp, Path::new(&args.output));
-    }    
+    }
+}
+
+fn explain(args: &Explain) {
+    let (pkgs_list, comp_list) = read_directory(&args.dirname);
+    let (pkgs_map, _pkgs_filenames) = parse_packages(&pkgs_list);
+    let comp_map = parse_composition(&comp_list, &pkgs_map);
+
+    let mut  w = Writer::new(std::io::stdout());
+
+    for (name, comp) in comp_map {
+        let (comp, _, _) = match sspds::transforms::transform_explain(&comp) {
+            Ok(x) => x,
+            Err(e) => {
+                panic!("found an error in composition {}: {:?}", name, e)
+            }
+        };
+
+        println!("{}", name);
+        for inst in comp.pkgs {
+            let pkg = inst.pkg;
+            w.write_package(&pkg).unwrap();
+        }
+
+        //tex_write_composition(&comp, Path::new(&args.output));
+    }
 }
 
 fn main() {
@@ -156,5 +207,6 @@ fn main() {
         Commands::Smt { name } => smt(name),
         Commands::Latex(args) => latex(args),
         Commands::Graph(args) => graph(args),
+        Commands::Explain(args) => explain(args,)
     }
 }

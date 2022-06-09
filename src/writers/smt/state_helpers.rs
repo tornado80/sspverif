@@ -1,6 +1,6 @@
 use crate::types::Type;
 
-use crate::smt::exprs::{smt_to_string, SmtExpr, SmtLet, SspSmtVar};
+use crate::writers::smt::exprs::{smt_to_string, SmtExpr, SmtLet, SspSmtVar};
 
 /**
 * composition state smt gen helper type
