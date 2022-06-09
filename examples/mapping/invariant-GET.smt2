@@ -341,13 +341,13 @@
 (and
 (not (= mk-abort-CompositionNoMappingGame-key_bottom-GET left-new))
 (not (= mk-abort-CompositionMappingGame-map-GET right-new))
-)
+
 
 ; post-condtion
    (not (or
       (= true (inv-post s-left-new s-right-new)) 
       (= y-left-new y-right-new )  
-))
+)))
 )
 )))
       ))))))

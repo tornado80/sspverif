@@ -131,14 +131,6 @@
       (let ((s-right-new  (return-CompositionRight-key-SET-state right-new)))
       (let ((y-right-new  (return-CompositionRight-key-SET-value right-new)))
 
-
-; (and
-; (= guternamelinks s-left-new)
-; (= guternamerechts s-right-new)
-; (= handle h)
-; (= key k)
-
-
 ; pre-condition II: not both aborts
 
 (and
@@ -146,7 +138,7 @@
 (not (= mk-abort-CompositionRight-key-SET right-new))
 
 
-; post-condtion
+; post-condition
    (not (or
       (= true (inv s-left-new s-right-new)) 
       (= y-left-new y-right-new) 
