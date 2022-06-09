@@ -58,7 +58,7 @@ pub fn samplify(cb: &CodeBlock, ctr: &mut u32, sampletypes: &mut HashSet<Type>) 
             Statement::Sample(id, expr, None, tipe) => {
                 sampletypes.insert(tipe.clone());
                 newcode.push(Statement::Sample(id.clone(), expr, Some(*ctr), tipe.clone()));
-                *ctr = *ctr+1;
+                *ctr += 1;
             },
             _ => newcode.push(stmt)
         }
