@@ -55,7 +55,17 @@
             
 ; CompositionRight  
 (declare-datatype State_CompositionRight___randomness ((mk-state-CompositionRight-__randomness (state-CompositionRight-__randomness-ctr Int))))(declare-fun __sample-rand-CompositionRight (Int) Bits_n)(declare-datatype State_CompositionRight_key ((mk-state-CompositionRight-key (state-CompositionRight-key-T (Array Int (Maybe Bits_n))))))(declare-datatype CompositionState-CompositionRight ((mk-composition-state-CompositionRight (composition-state-CompositionRight-__randomness State_CompositionRight___randomness) (composition-state-CompositionRight-key State_CompositionRight_key))))(declare-datatype Return_CompositionRight_key_GET ((mk-return-CompositionRight-key-GET (return-CompositionRight-key-GET-state CompositionState-CompositionRight) (return-CompositionRight-key-GET-value Bits_n)) (mk-abort-CompositionRight-key-GET)))(declare-datatype Return_CompositionRight_key_SET ((mk-return-CompositionRight-key-SET (return-CompositionRight-key-SET-state CompositionState-CompositionRight) (return-CompositionRight-key-SET-value Int)) (mk-abort-CompositionRight-key-SET))); Composition of CompositionRight
-(define-fun oracle-CompositionRight-key-GET ((__global_state CompositionState-CompositionRight) (h Int)) Return_CompositionRight_key_GET (let ((__self_state (composition-state-CompositionRight-key __global_state))) (ite (not (= (select (state-CompositionRight-key-T __self_state) h) (as mk-none (Maybe Bits_n)))) (ite ((_ is (mk-none () (Maybe Bits_n))) (select (state-CompositionRight-key-T __self_state) h)) mk-abort-CompositionRight-key-GET (let ((unwrap-1 (maybe-get (select (state-CompositionRight-key-T __self_state) h)))) (let ((k unwrap-1)) (let ((__global_state (mk-composition-state-CompositionRight (composition-state-CompositionRight-__randomness __global_state) __self_state))) (mk-return-CompositionRight-key-GET __global_state k))))) mk-abort-CompositionRight-key-GET)))(define-fun oracle-CompositionRight-key-SET ((__global_state CompositionState-CompositionRight) (h Int) (k Bits_n)) Return_CompositionRight_key_SET (let ((__self_state (composition-state-CompositionRight-key __global_state))) (ite (= (select (state-CompositionRight-key-T __self_state) h) (as mk-none (Maybe Bits_n))) (let ((kk (__sample-rand-CompositionRight (state-CompositionRight-__randomness-ctr (composition-state-CompositionRight-__randomness __global_state))))) (let ((__global_state (mk-composition-state-CompositionRight (mk-state-CompositionRight-__randomness (+ 1 (state-CompositionRight-__randomness-ctr (composition-state-CompositionRight-__randomness __global_state)))) (composition-state-CompositionRight-key __global_state)))) (let ((__self_state (mk-state-CompositionRight-key (store (state-CompositionRight-key-T __self_state) h (mk-some kk))))) (let ((__global_state (mk-composition-state-CompositionRight (composition-state-CompositionRight-__randomness __global_state) __self_state))) (mk-return-CompositionRight-key-SET __global_state h))))) mk-abort-CompositionRight-key-SET)))
+(define-fun oracle-CompositionRight-key-GET 
+    ((__global_state CompositionState-CompositionRight) (h Int)) 
+        Return_CompositionRight_key_GET 
+            (let ((__self_state (composition-state-CompositionRight-key __global_state))) 
+                 (ite (not (= (select (state-CompositionRight-key-T __self_state) h) 
+                 (as mk-none (Maybe Bits_n)))) (ite ((_ is (mk-none () (Maybe Bits_n)))
+                 (select (state-CompositionRight-key-T __self_state) h)) mk-abort-CompositionRight-key-GET (let ((unwrap-1 (maybe-get (select (state-CompositionRight-key-T __self_state) h)))) 
+                 (let ((k unwrap-1)) (let ((__global_state (mk-composition-state-CompositionRight (composition-state-CompositionRight-__randomness __global_state) __self_state))) 
+                 (mk-return-CompositionRight-key-GET __global_state k))))) mk-abort-CompositionRight-key-GET)))
+
+(define-fun oracle-CompositionRight-key-SET ((__global_state CompositionState-CompositionRight) (h Int) (k Bits_n)) Return_CompositionRight_key_SET (let ((__self_state (composition-state-CompositionRight-key __global_state))) (ite (= (select (state-CompositionRight-key-T __self_state) h) (as mk-none (Maybe Bits_n))) (let ((kk (__sample-rand-CompositionRight (state-CompositionRight-__randomness-ctr (composition-state-CompositionRight-__randomness __global_state))))) (let ((__global_state (mk-composition-state-CompositionRight (mk-state-CompositionRight-__randomness (+ 1 (state-CompositionRight-__randomness-ctr (composition-state-CompositionRight-__randomness __global_state)))) (composition-state-CompositionRight-key __global_state)))) (let ((__self_state (mk-state-CompositionRight-key (store (state-CompositionRight-key-T __self_state) h (mk-some kk))))) (let ((__global_state (mk-composition-state-CompositionRight (composition-state-CompositionRight-__randomness __global_state) __self_state))) (mk-return-CompositionRight-key-SET __global_state h))))) mk-abort-CompositionRight-key-SET)))
 
 ; define invariant on s-left,s-right
 (define-fun inv                                        ; function name 
@@ -93,6 +103,17 @@
             false
             )))
 
+;;;;;;;;;; Debugging
+ (declare-const state-left-old  CompositionState-CompositionLeft)
+ (declare-const state-right-old CompositionState-CompositionRight)
+ (declare-const state-left-new  CompositionState-CompositionLeft)
+ (declare-const state-right-new CompositionState-CompositionRight)
+ (declare-const handle Int)
+ (declare-const key-left Bits_n)
+ (declare-const key-right Bits_n)
+
+
+
 ;;;;;;;;;; GET oracle
 ; existential quantification
 (assert (exists 
@@ -103,6 +124,13 @@
                (h Int)
                )
 (and
+;
+;;;;;;; Debugging
+;
+(= state-left-old s-left-old)
+(= state-right-old s-right-old)
+(= handle h)
+;
 ; pre-condition
     (= true (inv s-left-old s-right-old))     
     (forall ((n Int)) (= (__sample-rand-CompositionLeft n) (__sample-rand-CompositionRight n)))    
@@ -128,8 +156,16 @@
       (= true (inv s-left-new s-right-new))  
       (= y-left-new y-right-new )  
 ))
+;
+;;;;;;; Debugging
+;
+(= state-left-new s-left-new)
+(= state-right-new s-right-new)
+(= key-left y-left-new)
+(= key-right y-right-new)
+;
 )
 )))
       )))))
 (check-sat)
-;(get-model)
+(get-model)
