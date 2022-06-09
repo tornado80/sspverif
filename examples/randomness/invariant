@@ -97,12 +97,15 @@
 ;;;;;;;;;; SET oracle
 ; existential quantification
 
-(declare-const namederlinkenkonstante CompositionState-CompositionLeft)
-(declare-const namederrechtenkonstante CompositionState-CompositionRight)
-(declare-const guternamelinks CompositionState-CompositionLeft)
-(declare-const guternamerechts CompositionState-CompositionRight)
-(declare-const handle Int)
-(declare-const key Bits_n)
+;
+; Debugging
+;
+; (declare-const namederlinkenkonstante CompositionState-CompositionLeft)
+; (declare-const namederrechtenkonstante CompositionState-CompositionRight)
+; (declare-const guternamelinks CompositionState-CompositionLeft)
+; (declare-const guternamerechts CompositionState-CompositionRight)
+; (declare-const handle Int)
+; (declare-const key Bits_n)
 
 
 (assert (exists 
@@ -113,11 +116,12 @@
                (k Bits_n)
                )
 (and
-(= namederlinkenkonstante s-left-old)
-(= namederrechtenkonstante s-right-old)
-; pre-condtion
+;(= namederlinkenkonstante s-left-old)
+;(= namederrechtenkonstante s-right-old)
+; pre-condition I
     (= true (inv s-left-old s-right-old))
     (forall ((n Int)) (= (__sample-rand-CompositionLeft n) (__sample-rand-CompositionRight n)))    
+
 
 ; assignment after execution
       (let ((left-new     (oracle-CompositionLeft-key-SET s-left-old h k))) ; left function on left state
@@ -128,11 +132,19 @@
       (let ((y-right-new  (return-CompositionRight-key-SET-value right-new)))
 
 
+; (and
+; (= guternamelinks s-left-new)
+; (= guternamerechts s-right-new)
+; (= handle h)
+; (= key k)
+
+
+; pre-condition II: not both aborts
+
 (and
-(= guternamelinks s-left-new)
-(= guternamerechts s-right-new)
-(= handle h)
-(= key k)
+(not (= mk-abort-CompositionLeft-key-SET left-new))
+(not (= mk-abort-CompositionRight-key-SET right-new))
+
 
 ; post-condtion
    (not (or
@@ -166,6 +178,13 @@
       (let ((s-right-new  (return-CompositionRight-key-GET-state right-new)))
       (let ((y-right-new  (return-CompositionRight-key-GET-value right-new)))
 
+; pre-condition II: not both aborts
+
+(and
+(not (= mk-abort-CompositionLeft-key-GET left-new))
+(not (= mk-abort-CompositionRight-key-GET right-new))
+)
+
 ; post-condition
    (not (or
       (= true (inv s-left-new s-right-new))  
@@ -175,4 +194,4 @@
 )))
       )))))
 (check-sat)
-(get-model)
+;(get-model)
