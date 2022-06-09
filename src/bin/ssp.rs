@@ -125,15 +125,14 @@ fn check(args: &str) {
     let (pkgs_list, comp_list) = read_directory(args);
     let (pkgs_map, _pkgs_filenames) = parse_packages(&pkgs_list);
     let comp_map = parse_composition(&comp_list, &pkgs_map);
+    println!("Found {} Compositions", comp_map.len());
     for (name, comp) in comp_map {
-        println!("{}", name);
+        print!("Verifying Composition: {}", name);
 
-        let (_comp, _, _) = match sspds::transforms::transform_all(&comp) {
-            Ok(x) => x,
-            Err(e) => {
-                panic!("found an error in composition {}: {:?}", name, e)
-            }
-        };
+        match sspds::transforms::transform_all(&comp) {
+            Ok(_) => print!(": OK\n"),
+            Err(e) => print!(": FAIL {:?}", e)
+        }
     }
 }
 
