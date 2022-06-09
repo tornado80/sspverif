@@ -551,7 +551,7 @@ impl<'a> CompositionSmtWriter<'a> {
         self.state_helpers.insert("__randomness".into(), statehelper.clone());
         result.push(statehelper.smt_declare_datatype());
 
-        return result;
+        result
     }
 
     pub fn smt_composition_all(&mut self) -> Vec<SmtExpr> {
