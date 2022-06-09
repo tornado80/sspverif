@@ -1,3 +1,4 @@
+use std::iter::FromIterator;
 use crate::package::Composition;
 use crate::types::Type;
 use crate::statement::{CodeBlock, Statement};
@@ -8,11 +9,16 @@ pub struct Error(pub String);
 
 pub struct Transformation<'a>(pub &'a Composition);
 
+pub struct SampleInfo {
+    pub tipes: Vec<Type>,
+    pub count: u32
+}
+
 impl<'a> super::Transformation for Transformation<'a> {
     type Err = Error;
-    type Aux = (u32, HashSet<Type>);
+    type Aux = SampleInfo;
 
-    fn transform(&self) -> Result<(Composition, (u32, HashSet<Type>)), Error> {
+    fn transform(&self) -> Result<(Composition, SampleInfo), Error> {
         let mut ctr = 1u32;
         let mut samplings = HashSet::new();
 
@@ -33,7 +39,7 @@ impl<'a> super::Transformation for Transformation<'a> {
                 pkgs: insts?,
                 ..self.0.clone()
             },
-            (ctr, samplings),
+            SampleInfo{tipes: Vec::from_iter(samplings), count: ctr},
         ))
     }
 }
