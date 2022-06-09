@@ -211,14 +211,14 @@
 (and
 (not (= mk-abort-CompositionNoMappingGame-prf-EVAL left-new))
 (not (= mk-abort-CompositionMappingGame-map-EVAL right-new))
-)
+
 
 ; post-condtion
    (not (or
       (= true (inv s-left-new s-right-new)) 
       (= y-left-new y-right-new ) 
 ))
-)
+))
 )))
       ))))))
 

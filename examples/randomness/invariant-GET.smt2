@@ -123,7 +123,6 @@
                ; These two lines change from oracle to oracle
                (h Int)
                )
-(and
 ;
 ;;;;;;; Debugging
 ;
@@ -145,12 +144,10 @@
       (let ((y-right-new  (return-CompositionRight-key-GET-value right-new)))
 
 ; pre-condition II: not both aborts
-
-(and
+(
+and
 (not (= mk-abort-CompositionLeft-key-GET left-new))
 (not (= mk-abort-CompositionRight-key-GET right-new))
-)
-
 ; post-condition
    (not (or
       (= true (inv s-left-new s-right-new))  
@@ -165,7 +162,8 @@
 (= key-right y-right-new)
 ;
 )
+)
 )))
-      )))))
+      ))))
 (check-sat)
 (get-model)
