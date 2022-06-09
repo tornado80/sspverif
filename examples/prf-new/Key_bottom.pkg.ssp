@@ -8,8 +8,8 @@ package Key_bottom {
     }
 
     oracle GET(hh: (Integer,Bits(*))) -> Bits(n) {
-        assert (T[(h,m)] != None as Bits(n));
-        k <- Unwrap(T[(h,m)]);
+        assert (T[hh] != None as Bits(n));
+        k <- Unwrap(T[hh]);
         return k;
     }
 
