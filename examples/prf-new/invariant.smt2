@@ -4,6 +4,7 @@
   ((par (T1 T2) ((mk-tuple2 (el1 T1) (el2 T2))))))
 (declare-sort Bits_n 0)
 (declare-fun f (Bits_n Bits_n) Bits_n)
+
 ; Left
 (declare-fun __sample-rand-Left-Bits_n (Int Int) Bits_n)
 (declare-datatype
@@ -404,6 +405,119 @@
                           (composition-state-Right-prf_right __global_state)
                           __self_state)))
                     (mk-return-Right-wrapper-EVAL __global_state k)))))))))))
+
+
+; define invariant on s-left,s-right
+(define-fun inv                                        ; function name 
+           ((s-left  CompositionState-Left) ; function input 
+            (s-right CompositionState-Right))
+            Bool                                       ; function behaviour           
+             (
+        let  (
+            (bot (as mk-none (Maybe Bits_n)))
+            (botint (as mk-none (Maybe Int))) 
+            (botstuff (as mk-none (Maybe (Tuple2 Int Bits_*))))
+             )
+
+             ( 
+;            (TIKL (Array Int               Bits_n))   ;      TIKL: T in input (top) key package left
+;            (TIKR (Array Int               Bits_n))   ;      TIKR: T in input (top) key package right
+;            (TOKR (Array (Tuple2 Int Bits_*) Bits_n)) ;      TOKR: T in output (bottom) key package right
+  
+                ; assignment of randomness state
+                    let ((r-left 
+                            (composition-state-Left-__randomness 
+                             s-left))
+                    let ((r-right 
+                            (composition-state-Right-__randomness 
+                             s-right))
+;                         (r-right (state-CompositionMappingGame-__randomness-ctr
+;                            (composition-state-CompositionMappingGame-__randomness 
+;                             s-right)))
+
+                ; assignment of tables
+                         (TIKL (state-Left-key_top-T
+                            (composition-state-Left-key_top 
+                             s-left)))
+                         (TIKR (state-Right-key_top-T
+                            (composition-state-Right-key_top 
+                             s-right)))
+                         (TOKR (state-Right-key_bottom-T
+                            (composition-state-Right-key_bottom 
+                             s-right)))
+                )
+                (ite
+                (and
+                ; randomness is the same
+                    (= r-left r-right)           
+                ; (LR)  TIKL = TOKL 
+                    (= TIKL TOKL)
+                ; (R)   TOKL[(h,m)] = f(TIKL[h],m) or bot 
+                    (forall ((h Int)(m Bits_*)(hh (Tuple2 Int Bits_*)))
+                                      (=> (hh = h m) ; How does that work?
+                                      (or (= (TOKR hh) bot) (= (TOKR hh) (f (TIKR h) m))))
+                                     )
+                    )
+            )
+            true
+            false
+            ))))
+
+;;;;;;;;;; EVAL oracle
+; existential quantification
+(assert (and (exists 
+               (
+               (s-left-old CompositionState-CompositionNoMappingGame)
+               (s-right-old CompositionState-CompositionMappingGame)   
+               ; These two lines change from oracle to oracle
+               (h Int)
+               (m Bits_*)
+               )
+
+; assignment after execution
+      ;The following 6 lines changes from oracle to oracle:
+      (let ((left-new     (oracle-CompositionNoMappingGame-prf-EVAL s-left-old h m))) ; left function on left state
+      (let ((s-left-new   (return-CompositionNoMappingGame-prf-EVAL-state left-new)))
+      (let ((y-left-new   (return-CompositionNoMappingGame-prf-EVAL-value left-new)))
+      (let ((right-new    (oracle-CompositionMappingGame-map-EVAL s-right-old h m))) ; right function on right state     
+      (let ((s-right-new  (return-CompositionMappingGame-map-EVAL-state right-new)))
+      (let ((y-right-new  (return-CompositionMappingGame-map-EVAL-value right-new)))
+
+; and
+(and
+
+; pre-condition
+    (= true (inv s-left-old s-right-old))     
+    (forall ((n Int)) (= (__sample-rand-Left-Bits_n n) (__sample-rand-Right-Bits_n n)))    
+
+; negation
+(not (or
+
+; both abort
+(and
+(= mk-abort-Left-prf-EVAL left-new)
+(= mk-abort-Right-map-EVAL right-new)
+)
+
+; and
+(and
+
+; none of the oracles aborts
+(not (= mk-abort-Left-prf-EVAL left-new))
+(not (= mk-abort-Right-map-EVAL right-new))
+
+; post-condition on states
+(= true (inv s-left-new s-right-new))
+
+; post-condition on outputs
+(= y-left-new y-right-new )
+)))
+))))))))))
+
+
+
+
+(check-sat)
 
 
 
