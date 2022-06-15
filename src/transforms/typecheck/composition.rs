@@ -18,7 +18,7 @@ pub fn typecheck_comp(
         pkgs,
         edges,
         exports,
-        name
+        name,
     } = comp;
 
     // 1a. check signature exists in edge destination

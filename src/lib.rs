@@ -7,8 +7,8 @@ pub mod package;
 pub mod statement;
 pub mod types;
 
-pub mod writers;
 pub mod transforms;
+pub mod writers;
 
 pub mod hacks;
 

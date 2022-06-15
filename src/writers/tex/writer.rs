@@ -1,7 +1,7 @@
-use std::path::Path;
 use std::fs::File;
+use std::path::Path;
 
-use crate::package::{PackageInstance,Composition,OracleDef};
+use crate::package::{Composition, OracleDef, PackageInstance};
 
 pub fn tex_write_oracle(oracle: &OracleDef, pkgname: &str, target: &Path) {
     let fname = target.join(format!("{}_{}.tex", pkgname, oracle.sig.name));

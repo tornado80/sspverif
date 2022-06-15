@@ -2,11 +2,11 @@ use crate::package::Composition;
 
 pub mod resolveoracles;
 pub mod returnify;
+pub mod samplify;
 pub mod treeify;
 pub mod typecheck;
 pub mod unwrapify;
 pub mod varspecify;
-pub mod samplify;
 
 pub trait Transformation {
     type Err;
@@ -18,12 +18,15 @@ pub trait Transformation {
 pub fn transform_all(
     comp: &Composition,
 ) -> Result<
-        (Composition,
-         <typecheck::Transformation as Transformation>::Aux,
-         <samplify::Transformation as Transformation>::Aux),
+    (
+        Composition,
+        <typecheck::Transformation as Transformation>::Aux,
+        <samplify::Transformation as Transformation>::Aux,
+    ),
     <typecheck::Transformation as Transformation>::Err,
 > {
-    let (comp, scope) = typecheck::Transformation::new_with_empty_scope(comp.clone()).transform()?;
+    let (comp, scope) =
+        typecheck::Transformation::new_with_empty_scope(comp.clone()).transform()?;
     let (comp, samplinginfo) = samplify::Transformation(&comp)
         .transform()
         .expect("samplify transformation failed unexpectedly");
@@ -46,12 +49,18 @@ pub fn transform_all(
     Ok((comp, scope, samplinginfo))
 }
 
-pub fn transform_explain(comp: &Composition) ->Result<
-(Composition,
- <typecheck::Transformation as Transformation>::Aux,
- <samplify::Transformation as Transformation>::Aux),
-<typecheck::Transformation as Transformation>::Err> {
-    let (comp, scope) = typecheck::Transformation::new_with_empty_scope(comp.clone()).transform()?;
+pub fn transform_explain(
+    comp: &Composition,
+) -> Result<
+    (
+        Composition,
+        <typecheck::Transformation as Transformation>::Aux,
+        <samplify::Transformation as Transformation>::Aux,
+    ),
+    <typecheck::Transformation as Transformation>::Err,
+> {
+    let (comp, scope) =
+        typecheck::Transformation::new_with_empty_scope(comp.clone()).transform()?;
     let (comp, samplinginfo) = samplify::Transformation(&comp)
         .transform()
         .expect("samplify transformation failed unexpectedly");
