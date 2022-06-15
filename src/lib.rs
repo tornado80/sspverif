@@ -15,4 +15,4 @@ pub mod hacks;
 pub mod cli;
 pub mod parser;
 
-pub mod examples;
+pub mod testdata;
