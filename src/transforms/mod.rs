@@ -55,9 +55,6 @@ pub fn transform_explain(comp: &Composition) ->Result<
     let (comp, samplinginfo) = samplify::Transformation(&comp)
         .transform()
         .expect("samplify transformation failed unexpectedly");
-    let (comp, _) = unwrapify::Transformation(&comp)
-        .transform()
-        .expect("unwrapify transformation failed unexpectedly");
     let (comp, _) = varspecify::Transformation(&comp)
         .transform()
         .expect("varspecify transformation failed unexpectedly");
