@@ -258,7 +258,7 @@ mod treeify_transform_test {
     use super::super::Transformation as TTransformation;
     use super::Transformation;
 
-    use crate::examples::{keypkg, modprf};
+    use crate::testdata::{keypkg, modprf};
     use crate::package::{Composition, Edge, Export};
     use std::collections::HashMap;
 
