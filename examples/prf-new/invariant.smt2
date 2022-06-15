@@ -453,13 +453,13 @@
                 ; (LR)  TIKL = TOKL 
                     (= TIKL TIKR)
                 ; (R)   TOKL[(h,m)] = f(TIKL[h],m) or bot 
-                    (forall ((h Int)(m Bits_*))
-                                      (or (= (TOKR (mk-tuple2 h m)) bot) 
-                                      (and (not (= (TIKR h) bot))
-                                           (= (TOKR (mk-tuple2 h m)) (mk-some (f (maybe-get (TIKR h)) m)))
-                                      )
-                                      )
-                                      )
+;                    (forall ((h Int)(m Bits_*))
+;                                      (or (= (TOKR (mk-tuple2 h m)) bot) 
+;                                      (and (not (= (TIKR h) bot))
+;                                           (= (TOKR (mk-tuple2 h m)) (mk-some (f (maybe-get (TIKR h)) m)))
+;                                      )
+;                                      )
+;                                      )
                     )
             true
             false
@@ -505,8 +505,8 @@
 (and
 
 ; none of the oracles aborts
-;(not (= mk-abort-Left-prf_left-EVAL left-new))
-;(not (= mk-abort-Right-wrapper-EVAL right-new))
+(not (= mk-abort-Left-prf_left-EVAL left-new))
+(not (= mk-abort-Right-wrapper-EVAL right-new))
 
 ; post-condition on states
 ;(= true (inv s-left-new s-right-new))
@@ -532,3 +532,4 @@
 
 
 (check-sat)
+(get-model)
