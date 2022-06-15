@@ -408,9 +408,21 @@
                     (mk-return-Right-wrapper-EVAL __global_state k)))))))))))
 
 
+; Debugging information
+(declare-const old-left CompositionState-Left)
+(declare-const old-right CompositionState-Right)
+(declare-const return-left (Maybe Bits_n))
+(declare-const return-right (Maybe Bits_n))
+(declare-const new-left CompositionState-Left)
+(declare-const new-right CompositionState-Right)
+(declare-const message Bits_*)
+(declare-const handle Int)
+
+
+
 ; define invariant on s-left,s-right
 (define-fun inv                                        ; function name 
-           ((s-left  CompositionState-Left) ; function input 
+           ((s-left  CompositionState-Left)            ; function input 
             (s-right CompositionState-Right))
             Bool                                       ; function behaviour           
              (
@@ -525,6 +537,18 @@
                    (state-Left-__randomness-ctr1 r-left)
                    (state-Right-__randomness-ctr1 r-right)
                    ))
+;debugging information
+(= new-left  s-left-new)
+(= new-right s-right-new)
+(= old-left  s-left-old)
+(= old-right s-right-old)
+(= h handle)
+(= m message)
+;(= new-left y-left-new)
+;(= new-right y-right-new)
+
+
+
 )))
 ))))))))))
 
