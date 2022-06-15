@@ -3,7 +3,8 @@
   ((Tuple2 2))
   ((par (T1 T2) ((mk-tuple2 (el1 T1) (el2 T2))))))
 (declare-sort Bits_n 0)
-(declare-fun f (Bits_n Bits_n) Bits_n)
+(declare-sort Bits_* 0)
+(declare-fun f (Bits_n Bits_*) Bits_n)
 
 ; Left
 (declare-fun __sample-rand-Left-Bits_n (Int Int) Bits_n)
@@ -428,12 +429,9 @@
                     let ((r-left 
                             (composition-state-Left-__randomness 
                              s-left))
-                    let ((r-right 
+                         (r-right 
                             (composition-state-Right-__randomness 
                              s-right))
-;                         (r-right (state-CompositionMappingGame-__randomness-ctr
-;                            (composition-state-CompositionMappingGame-__randomness 
-;                             s-right)))
 
                 ; assignment of tables
                          (TIKL (state-Left-key_top-T
@@ -445,7 +443,6 @@
                          (TOKR (state-Right-key_bottom-T
                             (composition-state-Right-key_bottom 
                              s-right)))
-                )
                 (ite
                 (and
                 ; randomness is the same
@@ -467,8 +464,8 @@
 ; existential quantification
 (assert (and (exists 
                (
-               (s-left-old CompositionState-CompositionNoMappingGame)
-               (s-right-old CompositionState-CompositionMappingGame)   
+               (s-left-old CompositionState-Left)
+               (s-right-old CompositionState-Right)   
                ; These two lines change from oracle to oracle
                (h Int)
                (m Bits_*)
@@ -476,12 +473,12 @@
 
 ; assignment after execution
       ;The following 6 lines changes from oracle to oracle:
-      (let ((left-new     (oracle-CompositionNoMappingGame-prf-EVAL s-left-old h m))) ; left function on left state
-      (let ((s-left-new   (return-CompositionNoMappingGame-prf-EVAL-state left-new)))
-      (let ((y-left-new   (return-CompositionNoMappingGame-prf-EVAL-value left-new)))
-      (let ((right-new    (oracle-CompositionMappingGame-map-EVAL s-right-old h m))) ; right function on right state     
-      (let ((s-right-new  (return-CompositionMappingGame-map-EVAL-state right-new)))
-      (let ((y-right-new  (return-CompositionMappingGame-map-EVAL-value right-new)))
+      (let ((left-new     (oracle-Left-prf_left-EVAL s-left-old h m))) ; left function on left state
+      (let ((s-left-new   (return-Left-prf_left-EVAL-state left-new)))
+      (let ((y-left-new   (return-Left-prf_left-EVAL-value left-new)))
+      (let ((right-new    (oracle-Right-prf_right-EVAL s-right-old h m))) ; right function on right state     
+      (let ((s-right-new  (return-Right-prf_right-EVAL-state right-new)))
+      (let ((y-right-new  (return-Right-prf_right-EVAL-value right-new)))
 
 ; and
 (and
@@ -514,10 +511,6 @@
 )))
 ))))))))))
 
-
-
-
-(check-sat)
 
 
 
