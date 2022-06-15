@@ -442,23 +442,26 @@
                              s-right)))
                          (TOKR (state-Right-key_bottom-T
                             (composition-state-Right-key_bottom 
-                             s-right)))
+                             s-right))))
                 (ite
                 (and
                 ; randomness is the same
-                    (= r-left r-right)           
+                   (=
+                   (state-Left-__randomness-ctr1 r-left)
+                   (state-Right-__randomness-ctr1 r-right)
+                   )
                 ; (LR)  TIKL = TOKL 
-                    (= TIKL TOKL)
+                    (= TIKL TIKR)
                 ; (R)   TOKL[(h,m)] = f(TIKL[h],m) or bot 
                     (forall ((h Int)(m Bits_*)(hh (Tuple2 Int Bits_*)))
-                                      (=> (hh = h m) ; How does that work?
+                                      (=> (= hh (h m)) ; How does that work?
                                       (or (= (TOKR hh) bot) (= (TOKR hh) (f (TIKR h) m))))
                                      )
                     )
             )
             true
             false
-            ))))
+            )))
 
 ;;;;;;;;;; EVAL oracle
 ; existential quantification
