@@ -456,15 +456,14 @@
                     (forall ((h Int)(m Bits_*))
                                       (or (= (TOKR (mk-tuple2 h m)) bot) 
                                       (and (not (= (TIKR h) bot))
-                                           (= (TOKR (mk-tuple2 h m)) (f (unwrap-1 (TIKR h)) m))
+                                           (= (TOKR (mk-tuple2 h m)) (mk-some (f (maybe-get (TIKR h)) m)))
                                       )
                                       )
                                       )
                     )
-            )
             true
             false
-            )))
+            ))))
 
 ;;;;;;;;;; EVAL oracle
 ; existential quantification
@@ -482,38 +481,50 @@
       (let ((left-new     (oracle-Left-prf_left-EVAL s-left-old h m))) ; left function on left state
       (let ((s-left-new   (return-Left-prf_left-EVAL-state left-new)))
       (let ((y-left-new   (return-Left-prf_left-EVAL-value left-new)))
-      (let ((right-new    (oracle-Right-prf_right-EVAL s-right-old h m))) ; right function on right state     
-      (let ((s-right-new  (return-Right-prf_right-EVAL-state right-new)))
-      (let ((y-right-new  (return-Right-prf_right-EVAL-value right-new)))
+      (let ((right-new    (oracle-Right-wrapper-EVAL s-right-old h m))) ; right function on right state     
+      (let ((s-right-new  (return-Right-wrapper-EVAL-state right-new)))
+      (let ((y-right-new  (return-Right-wrapper-EVAL-value right-new)))
 
 ; and
 (and
 
 ; pre-condition
     (= true (inv s-left-old s-right-old))     
-    (forall ((n Int)) (= (__sample-rand-Left-Bits_n n) (__sample-rand-Right-Bits_n n)))    
+    (forall ((n Int)(nn Int)) (= (__sample-rand-Left-Bits_n n nn) (__sample-rand-Right-Bits_n n nn)))    
 
 ; negation
 (not (or
 
 ; both abort
 (and
-(= mk-abort-Left-prf-EVAL left-new)
-(= mk-abort-Right-map-EVAL right-new)
+(= mk-abort-Left-prf_left-EVAL left-new)
+(= mk-abort-Right-wrapper-EVAL right-new)
 )
 
 ; and
 (and
 
 ; none of the oracles aborts
-(not (= mk-abort-Left-prf-EVAL left-new))
-(not (= mk-abort-Right-map-EVAL right-new))
+;(not (= mk-abort-Left-prf_left-EVAL left-new))
+;(not (= mk-abort-Right-wrapper-EVAL right-new))
 
 ; post-condition on states
-(= true (inv s-left-new s-right-new))
+;(= true (inv s-left-new s-right-new))
 
 ; post-condition on outputs
-(= y-left-new y-right-new )
+;(= y-left-new y-right-new)
+
+; easy post-condition, only randomness
+(                    let ((r-left 
+                            (composition-state-Left-__randomness 
+                             s-left-new))
+                          (r-right 
+                            (composition-state-Right-__randomness 
+                             s-right-new)))
+                   (=
+                   (state-Left-__randomness-ctr1 r-left)
+                   (state-Right-__randomness-ctr1 r-right)
+                   ))
 )))
 ))))))))))
 
