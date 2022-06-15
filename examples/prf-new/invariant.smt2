@@ -411,12 +411,15 @@
 ; Debugging information
 (declare-const old-left CompositionState-Left)
 (declare-const old-right CompositionState-Right)
-(declare-const return-left (Maybe Bits_n))
-(declare-const return-right (Maybe Bits_n))
+(declare-const y-left (Bits_n))
+(declare-const y-right (Bits_n))
 (declare-const new-left CompositionState-Left)
 (declare-const new-right CompositionState-Right)
 (declare-const message Bits_*)
 (declare-const handle Int)
+(declare-const global-left Return_Left_prf_left_EVAL)
+(declare-const global-right Return_Right_wrapper_EVAL)
+  (declare-fun Chris-function () Bits_n)
 
 
 
@@ -465,13 +468,14 @@
                 ; (LR)  TIKL = TOKL 
                     (= TIKL TIKR)
                 ; (R)   TOKL[(h,m)] = f(TIKL[h],m) or bot 
-;                    (forall ((h Int)(m Bits_*))
+                    (forall ((h Int)(m Bits_*))
 ;                                      (or (= (TOKR (mk-tuple2 h m)) bot) 
-;                                      (and (not (= (TIKR h) bot))
-;                                           (= (TOKR (mk-tuple2 h m)) (mk-some (f (maybe-get (TIKR h)) m)))
+                                      (and (not (= (TIKR h) bot))
+                                           (= (TOKR (mk-tuple2 h m)) (mk-some (f (maybe-get (TIKR h)) m)))
+                                           (= (TOKR (mk-tuple2 h m)) (mk-some Chris-function))
+                                      )
 ;                                      )
-;                                      )
-;                                      )
+                                      )
                     )
             true
             false
@@ -537,19 +541,22 @@
                    (state-Left-__randomness-ctr1 r-left)
                    (state-Right-__randomness-ctr1 r-right)
                    ))
+)))
+
 ;debugging information
+(= global-left  left-new)
+(= global-right right-new)
 (= new-left  s-left-new)
 (= new-right s-right-new)
 (= old-left  s-left-old)
 (= old-right s-right-old)
 (= h handle)
 (= m message)
-;(= new-left y-left-new)
-;(= new-right y-right-new)
+(= y-left y-left-new)
+(= y-right y-right-new)
 
 
 
-)))
 ))))))))))
 
 
