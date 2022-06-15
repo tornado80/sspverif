@@ -453,10 +453,13 @@
                 ; (LR)  TIKL = TOKL 
                     (= TIKL TIKR)
                 ; (R)   TOKL[(h,m)] = f(TIKL[h],m) or bot 
-                    (forall ((h Int)(m Bits_*)(hh (Tuple2 Int Bits_*)))
-                                      (=> (= hh (h m)) ; How does that work?
-                                      (or (= (TOKR hh) bot) (= (TOKR hh) (f (TIKR h) m))))
-                                     )
+                    (forall ((h Int)(m Bits_*))
+                                      (or (= (TOKR (mk-tuple2 h m)) bot) 
+                                      (and (not (= (TIKR h) bot))
+                                           (= (TOKR (mk-tuple2 h m)) (f (unwrap-1 (TIKR h)) m))
+                                      )
+                                      )
+                                      )
                     )
             )
             true
