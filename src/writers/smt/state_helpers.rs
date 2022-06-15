@@ -115,7 +115,7 @@ impl<'a> SmtCompositionState<'a> {
  * - package instance name
  * - state variables
  */
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub struct SmtPackageState<'a> {
     comp_name: &'a str,
     inst_name: &'a str,
@@ -180,7 +180,7 @@ impl<'a> SmtPackageState<'a> {
         self.smt_set_on(id, new, &SspSmtVar::SelfState.into())
     }
 
-    pub fn smt_set_random(&self, id: &str, new: &SmtExpr, access: &SmtExpr) -> SmtExpr{
+    pub fn smt_set_random(&self, id: &str, new: &SmtExpr, access: &SmtExpr) -> SmtExpr {
         self.smt_set_on(id, new, access)
     }
 

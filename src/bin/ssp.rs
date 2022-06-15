@@ -5,21 +5,18 @@ use std::path::Path;
 use clap::{Parser, Subcommand};
 
 use sspds::{
-    cli::filesystem::{parse_composition, parse_packages, read_directory},
-    
-    package::{Composition, Edge, Export},
-
-    writers::{
-        smt::{
-            exprs::SmtFmt,
-            writer::CompositionSmtWriter
-        },
-        pseudocode::writer::Writer,
-        tex::writer::{tex_write_composition}
+    cli::{
+        filesystem::{find_project_root, parse_composition, parse_packages, read_directory},
+        project::Project,
     },
     hacks,
+    package::{Composition, Edge, Export},
+    writers::{
+        pseudocode::writer::Writer,
+        smt::{exprs::SmtFmt, writer::CompositionSmtWriter},
+        tex::writer::tex_write_composition,
+    },
 };
-
 
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
@@ -32,10 +29,14 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     /// Verifies the code of packages
-    Check { name: String },
+    Check {
+        name: String,
+    },
 
     /// Generates SMT
-    Smt { name: String },
+    Smt {
+        name: String,
+    },
 
     /// Generate latex (cryptocode) files
     Latex(LaTeX),
@@ -44,9 +45,32 @@ enum Commands {
     Graph(Graph),
 
     /// Give information about the provided code
-    Explain(Explain)
+    Explain(Explain),
+
+    Proof(ProofCommand),
 }
 
+//#[derive(Parser)]
+#[derive(clap::Args)]
+#[clap(author, version, about, long_about = None)]
+struct ProofCommand {
+    #[clap(subcommand)]
+    command: Proof,
+}
+
+#[derive(Subcommand)]
+enum Proof {
+    Init {
+        proofname: String,
+        compname_left: String,
+        compname_right: String,
+    },
+    Refresh,
+    Build {
+        proofname: String,
+    },
+    Prove,
+}
 
 #[derive(clap::Args)]
 #[clap(author, version, about, long_about = None)]
@@ -117,7 +141,7 @@ fn graph(args: &Graph) {
     }
 }
 
-fn smt(name:&str) {
+fn smt(name: &str) {
     let (pkgs_list, comp_list) = read_directory(name);
     let (pkgs_map, _pkgs_filenames) = parse_packages(&pkgs_list);
     let comp_map = parse_composition(&comp_list, &pkgs_map);
@@ -146,7 +170,6 @@ fn smt(name:&str) {
     println!("(check-sat)");
 }
 
-
 fn check(args: &str) {
     let (pkgs_list, comp_list) = read_directory(args);
     let (pkgs_map, _pkgs_filenames) = parse_packages(&pkgs_list);
@@ -157,13 +180,12 @@ fn check(args: &str) {
 
         match sspds::transforms::transform_all(&comp) {
             Ok(_) => print!(": OK\n"),
-            Err(e) => print!(": FAIL {:?}", e)
+            Err(e) => print!(": FAIL {:?}", e),
         }
     }
 }
 
-
-fn latex(args:&LaTeX) {
+fn latex(args: &LaTeX) {
     let (pkgs_list, comp_list) = read_directory(&args.dirname);
     let (pkgs_map, _pkgs_filenames) = parse_packages(&pkgs_list);
     let comp_map = parse_composition(&comp_list, &pkgs_map);
@@ -179,7 +201,7 @@ fn explain(args: &Explain) {
     let (pkgs_map, _pkgs_filenames) = parse_packages(&pkgs_list);
     let comp_map = parse_composition(&comp_list, &pkgs_map);
 
-    let mut  w = Writer::new(std::io::stdout());
+    let mut w = Writer::new(std::io::stdout());
 
     for (name, comp) in comp_map {
         let (comp, _, _) = match sspds::transforms::transform_explain(&comp) {
@@ -207,6 +229,32 @@ fn main() {
         Commands::Smt { name } => smt(name),
         Commands::Latex(args) => latex(args),
         Commands::Graph(args) => graph(args),
-        Commands::Explain(args) => explain(args,)
+        Commands::Explain(args) => explain(args),
+        Commands::Proof(command) => {
+            match &command.command {
+                Proof::Init {
+                    proofname,
+                    compname_left,
+                    compname_right,
+                } => {
+                    // TODO: once we have proper projects, we can first read the entire thing
+                    //       and then check that the compositions named here exist and that
+                    //       the proof directory doesn't exist yet
+                    //init_proof_dir(proofname, compname_left, compname_right).unwrap();
+                    let mut project = Project::load().unwrap();
+                    project
+                        .init_proof(proofname, compname_left, &compname_right)
+                        .unwrap();
+                }
+                Proof::Build { proofname } => {
+                    let project = Project::load().unwrap();
+                    project.build_proof(proofname).unwrap();
+                }
+
+                _ => {
+                    todo!()
+                }
+            }
+        }
     }
 }

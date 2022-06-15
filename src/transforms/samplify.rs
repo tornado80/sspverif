@@ -1,8 +1,8 @@
-use std::iter::FromIterator;
 use crate::package::Composition;
-use crate::types::Type;
 use crate::statement::{CodeBlock, Statement};
+use crate::types::Type;
 use std::collections::HashSet;
+use std::iter::FromIterator;
 
 #[derive(Debug, Clone)]
 pub struct Error(pub String);
@@ -11,7 +11,7 @@ pub struct Transformation<'a>(pub &'a Composition);
 
 pub struct SampleInfo {
     pub tipes: Vec<Type>,
-    pub count: u32
+    pub count: u32,
 }
 
 impl<'a> super::Transformation for Transformation<'a> {
@@ -39,12 +39,19 @@ impl<'a> super::Transformation for Transformation<'a> {
                 pkgs: insts?,
                 ..self.0.clone()
             },
-            SampleInfo{tipes: Vec::from_iter(samplings), count: ctr},
+            SampleInfo {
+                tipes: Vec::from_iter(samplings),
+                count: ctr,
+            },
         ))
     }
 }
 
-pub fn samplify(cb: &CodeBlock, ctr: &mut u32, sampletypes: &mut HashSet<Type>) -> Result<CodeBlock, Error> {
+pub fn samplify(
+    cb: &CodeBlock,
+    ctr: &mut u32,
+    sampletypes: &mut HashSet<Type>,
+) -> Result<CodeBlock, Error> {
     let mut newcode = Vec::new();
     for stmt in cb.0.clone() {
         match stmt {
@@ -54,13 +61,18 @@ pub fn samplify(cb: &CodeBlock, ctr: &mut u32, sampletypes: &mut HashSet<Type>) 
                     samplify(&ifcode, ctr, sampletypes)?,
                     samplify(&elsecode, ctr, sampletypes)?,
                 ));
-            },
+            }
             Statement::Sample(id, expr, None, tipe) => {
                 sampletypes.insert(tipe.clone());
-                newcode.push(Statement::Sample(id.clone(), expr, Some(*ctr), tipe.clone()));
+                newcode.push(Statement::Sample(
+                    id.clone(),
+                    expr,
+                    Some(*ctr),
+                    tipe.clone(),
+                ));
                 *ctr += 1;
-            },
-            _ => newcode.push(stmt)
+            }
+            _ => newcode.push(stmt),
         }
     }
     Ok(CodeBlock(newcode))
