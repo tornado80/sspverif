@@ -497,7 +497,7 @@
 (forall ((hh Int) (mm Bits_*))(or (and (= h hh) (= m mm))
                             (= (select (state-Right-key_bottom-T
                             (composition-state-Right-key_bottom 
-                             s-right-new)) (mk-tuple2 hh mm))
+                             s-right-new)) (mk-tuple2 hh mm)) 
                                (select (state-Right-key_bottom-T
                             (composition-state-Right-key_bottom 
                              s-right-old)) (mk-tuple2 hh mm))
@@ -519,7 +519,13 @@
                             )
 
 ; state of bottom key package is correct before the call
-(forall ((hh Int) (mm Bits_*)) (= (maybe-get
+(forall ((hh Int) (mm Bits_*)) (or
+                            (= (select (state-Right-key_bottom-T
+                            (composition-state-Right-key_bottom 
+                             s-right-old)) (mk-tuple2 hh mm)) ; read bottom table at position h m
+                              (as mk-none (Maybe Bits_n))
+                              )
+                            (= (maybe-get
                                (select (state-Right-key_bottom-T
                             (composition-state-Right-key_bottom 
                              s-right-old)) (mk-tuple2 hh mm))) ; read bottom table at position h m
@@ -530,7 +536,7 @@
                              s-right-old)) hh)) mm
                             )
                             )
-)
+))
 
 ; but, violated post-condition, states of top key packages on left and right on new state are different
 (or
@@ -545,7 +551,13 @@
 ))
 ; or some value in the lower key package is wrong after the call
 (not
-(forall ((hh Int) (mm Bits_*)) (= (maybe-get
+(forall ((hh Int) (mm Bits_*)) (or
+                            (= (select (state-Right-key_bottom-T
+                            (composition-state-Right-key_bottom 
+                             s-right-old)) (mk-tuple2 hh mm)) ; read bottom table at position h m
+                              (as mk-none (Maybe Bits_n))
+                              )
+                              (= (maybe-get
                                (select (state-Right-key_bottom-T
                             (composition-state-Right-key_bottom 
                              s-right-new)) (mk-tuple2 hh mm))) ; read bottom table at position h m
@@ -556,7 +568,7 @@
                              s-right-new)) hh)) mm
                             )
                             )
-)))
+))))
 
 
 
