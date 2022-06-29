@@ -432,43 +432,50 @@
               (= is-abort-right   (= mk-abort-Right-wrapper-EVAL return-right))))
 
 
-(define-fun key-top-eq ((s-left CompositionState-Left) (s-right CompositionState-Right)) Bool
-  (forall ((h Int)) (=  (select (state-Left-key_top-T (composition-state-Left-key_top s-left))
+(define-fun key-top-eq ((left CompositionState-Left) (right CompositionState-Right)) Bool
+  (forall ((h Int)) (=  (select (state-Left-key_top-T (composition-state-Left-key_top left))
                                 h)
-                        (select (state-Right-key_top-T (composition-state-Right-key_top s-right))
+                        (select (state-Right-key_top-T (composition-state-Right-key_top right))
                                 h))))
 
 
-(define-fun key-bottom-mostly-eq ((s-right-old CompositionState-Right) (s-right-new CompositionState-Right) (h Int) (m Bits_*)) Bool
+(define-fun key-bottom-mostly-eq ((old CompositionState-Right) (new CompositionState-Right) (h Int) (m Bits_*)) Bool
 ; state of bottom key package is the same before and after call to EVAL except for at (h m) XXX changes XXX
   (forall ((hh Int) (mm Bits_*))  (or (and  (= h hh)
                                             (= m mm))
-                                      (=  (select (state-Right-key_bottom-T (composition-state-Right-key_bottom s-right-new))
+                                      (=  (select (state-Right-key_bottom-T (composition-state-Right-key_bottom new))
                                                   (mk-tuple2 hh mm))
-                                          (select (state-Right-key_bottom-T (composition-state-Right-key_bottom s-right-old))
+                                          (select (state-Right-key_bottom-T (composition-state-Right-key_bottom old))
                                                   (mk-tuple2 hh mm))))))
 
-(define-fun key-bottom-ok-after-call ((s-right-old CompositionState-Right) (s-right-new CompositionState-Right) (h Int) (m Bits_*)) Bool 
+(define-fun key-bottom-ok-after-call ((old CompositionState-Right) (new CompositionState-Right) (h Int) (m Bits_*)) Bool 
 ; state of bottom key package on position (h m) is correct after call to EVAL XXX changes XXX
-  (=      (maybe-get (select  (state-Right-key_bottom-T (composition-state-Right-key_bottom s-right-new))
+  (=      (maybe-get (select  (state-Right-key_bottom-T (composition-state-Right-key_bottom new))
                               (mk-tuple2 h m))) ; read bottom table at position h m
-      (f  (maybe-get (select  (state-Right-key_top-T    (composition-state-Right-key_top    s-right-old))
+      (f  (maybe-get (select  (state-Right-key_top-T    (composition-state-Right-key_top    old))
                               h))
           m)))
 
-(define-fun key-bottom-ok ((s-right-old CompositionState-Right)) Bool
+(define-fun key-bottom-ok ((state CompositionState-Right)) Bool
 ; state of bottom key package is correct before the call
-  (forall ((hh Int) (mm Bits_*))
-          (=      (maybe-get  (select (state-Right-key_bottom-T (composition-state-Right-key_bottom  s-right-old))
-                                      (mk-tuple2 hh mm))) ; read bottom table at position h m
-              (f  (maybe-get  (select (state-Right-key_top-T    (composition-state-Right-key_top     s-right-old)) hh))
-                  mm))))
+  (forall   ((hh Int) (mm Bits_*))
+    (let (
+        (m-key-bottom   (select (state-Right-key_bottom-T (composition-state-Right-key_bottom  state))
+                                (mk-tuple2 hh mm)))
+        (m-key-top      (select (state-Right-key_top-T    (composition-state-Right-key_top     state))
+                                hh)))
+        
+        (or
+            (= (as mk-none (Maybe Bits_n)) m-key-bottom m-key-top)
+            (=      (maybe-get  m-key-bottom)
+                (f  (maybe-get  m-key-top)
+                    mm))))))
 
 ; should this really use the old state??
-(define-fun post-condition ((s-left-old CompositionState-Left) (s-right-old CompositionState-Right) (h Int) (m Bits_*)) Bool
-  (forall ((h Int)) (=  (select (state-Left-key_top-T (composition-state-Left-key_top s-left-old))
+(define-fun post-condition ((left CompositionState-Left) (right CompositionState-Right) (h Int) (m Bits_*)) Bool
+  (forall ((h Int)) (=  (select (state-Left-key_top-T (composition-state-Left-key_top left))
                                 h)
-                        (select (state-Right-key_top-T (composition-state-Right-key_top  s-right-old))
+                        (select (state-Right-key_top-T (composition-state-Right-key_top  right))
                                 h))))
 
 ;; make sure the precondition holds
@@ -479,7 +486,7 @@
               (key-top-eq state-left-new state-right-old)
               (key-bottom-mostly-eq state-right-old state-right-new handle message)
               (key-bottom-ok-after-call state-right-old state-right-new handle message)
-              (key-bottom-ok state-right-old)
+              ;(key-bottom-ok state-right-old)
               ))
 (check-sat)
                         
