@@ -493,7 +493,47 @@
                             )
 )
 
+; state of bottom key package is the same before and after call to EVAL except for at (h m) XXX changes XXX
+(forall ((hh Int) (mm Bits_*))(or (and (= h hh) (= m mm))
+                            (= (select (state-Right-key_bottom-T
+                            (composition-state-Right-key_bottom 
+                             s-right-new)) (mk-tuple2 h m))
+                               (select (state-Right-key_bottom-T
+                            (composition-state-Right-key_bottom 
+                             s-right-old)) (mk-tuple2 h m))
+                            ))
+)
+
+
+; state of bottom key package on position (h m) is correct after call to EVAL XXX changes XXX
+                            (= (maybe-get
+                               (select (state-Right-key_bottom-T
+                            (composition-state-Right-key_bottom 
+                             s-right-new)) (mk-tuple2 h m))) ; read bottom table at position h m
+                             (f
+                               (maybe-get
+                               (select (state-Right-key_top-T
+                            (composition-state-Right-key_top 
+                             s-right-old)) h)) m
+                            )
+                            )
+
+; state of bottom key package is correct before the call
+(forall ((hh Int) (mm Bits_*)) (= (maybe-get
+                               (select (state-Right-key_bottom-T
+                            (composition-state-Right-key_bottom 
+                             s-right-old)) (mk-tuple2 hh mm))) ; read bottom table at position h m
+                             (f
+                               (maybe-get
+                               (select (state-Right-key_top-T
+                            (composition-state-Right-key_top 
+                             s-right-old)) hh)) mm
+                            )
+                            )
+)
+
 ; but, violated post-condition, states of top key packages on left and right on new state are different
+(or
 (not
 (forall ((h Int))           (= (select (state-Left-key_top-T
                             (composition-state-Left-key_top 
@@ -503,7 +543,19 @@
                              s-right-old)) h)
                             )
 ))
-
+; or some value in the lower key package is wrong after the call
+(forall ((hh Int) (mm Bits_*)) (= (maybe-get
+                               (select (state-Right-key_bottom-T
+                            (composition-state-Right-key_bottom 
+                             s-right-new)) (mk-tuple2 hh mm))) ; read bottom table at position h m
+                             (f
+                               (maybe-get
+                               (select (state-Right-key_top-T
+                            (composition-state-Right-key_top 
+                             s-right-new)) hh)) mm
+                            )
+                            )
+))
 
 
 
