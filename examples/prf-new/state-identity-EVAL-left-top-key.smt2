@@ -464,13 +464,14 @@
 ;)
 
 ; state of top key package is the same before and after call to EVAL
-                         (= (state-Left-key_top-T
+(forall ((h Int))           (= (select (state-Left-key_top-T
                             (composition-state-Left-key_top 
-                             s-left-new))
-                            (state-Left-key_top-T
+                             s-left-new)) h)
+                               (select (state-Left-key_top-T
                             (composition-state-Left-key_top 
-                             s-left-old)))
-
+                             s-left-old)) h)
+                            )
+)
 
 
 
