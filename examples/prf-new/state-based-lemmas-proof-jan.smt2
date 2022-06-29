@@ -409,37 +409,26 @@
 
 
 
+(declare-const message Bits_*)
+(declare-const handle Int)
 (declare-const state-left-old CompositionState-Left)
 (declare-const state-right-old CompositionState-Right)
 (declare-const state-left-new CompositionState-Left)
 (declare-const state-right-new CompositionState-Right)
 (declare-const return-left Return_Left_prf_left_EVAL)
 (declare-const return-right Return_Right_wrapper_EVAL)
+(declare-const value-left (Bits_n))
+(declare-const value-right (Bits_n))
 (declare-const is-abort-left Bool)
 (declare-const is-abort-right Bool)
 
-
-; Debugging information XXX changes XXX
-(declare-const old-left CompositionState-Left)
-(declare-const old-right CompositionState-Right)
-(declare-const value-left (Bits_n))
-(declare-const value-right (Bits_n))
-(declare-const new-left CompositionState-Left)
-(declare-const new-right CompositionState-Right)
-(declare-const message Bits_*)
-(declare-const handle Int)
-(declare-const global-left Return_Left_prf_left_EVAL)
-(declare-const global-right Return_Right_wrapper_EVAL)
-;  (declare-fun Chris-function () Bits_n)
-
-
 (assert (and  (= return-left      (oracle-Left-prf_left-EVAL state-left-old handle message))
-              (= value-left       (return-Left-prf_left-EVAL-value return-left))
-              (= state-left-new   (return-Left-prf_left-EVAL-state return-left))
-              (= is-abort-left    (= mk-abort-Left-prf_left-EVAL return-left))
               (= return-right     (oracle-Right-wrapper-EVAL state-right-old handle message))
+              (= value-left       (return-Left-prf_left-EVAL-value return-left))
               (= value-right      (return-Right-wrapper-EVAL-value return-right))
+              (= state-left-new   (return-Left-prf_left-EVAL-state return-left))
               (= state-right-new  (return-Right-wrapper-EVAL-state return-right))
+              (= is-abort-left    (= mk-abort-Left-prf_left-EVAL return-left))
               (= is-abort-right   (= mk-abort-Right-wrapper-EVAL return-right))))
 
 
@@ -452,11 +441,12 @@
 
 (define-fun key-bottom-mostly-eq ((s-right-old CompositionState-Right) (s-right-new CompositionState-Right) (h Int) (m Bits_*)) Bool
 ; state of bottom key package is the same before and after call to EVAL except for at (h m) XXX changes XXX
-  (forall ((hh Int) (mm Bits_*))  (or (and (= h hh) (= m mm))
+  (forall ((hh Int) (mm Bits_*))  (or (and  (= h hh)
+                                            (= m mm))
                                       (=  (select (state-Right-key_bottom-T (composition-state-Right-key_bottom s-right-new))
-                                                  (mk-tuple2 h m))
+                                                  (mk-tuple2 hh mm))
                                           (select (state-Right-key_bottom-T (composition-state-Right-key_bottom s-right-old))
-                                                  (mk-tuple2 h m))))))
+                                                  (mk-tuple2 hh mm))))))
 
 (define-fun key-bottom-ok-after-call ((s-right-old CompositionState-Right) (s-right-new CompositionState-Right) (h Int) (m Bits_*)) Bool 
 ; state of bottom key package on position (h m) is correct after call to EVAL XXX changes XXX
@@ -474,14 +464,12 @@
               (f  (maybe-get  (select (state-Right-key_top-T    (composition-state-Right-key_top     s-right-old)) hh))
                   mm))))
 
-
 ; should this really use the old state??
 (define-fun post-condition ((s-left-old CompositionState-Left) (s-right-old CompositionState-Right) (h Int) (m Bits_*)) Bool
   (forall ((h Int)) (=  (select (state-Left-key_top-T (composition-state-Left-key_top s-left-old))
                                 h)
                         (select (state-Right-key_top-T (composition-state-Right-key_top  s-right-old))
                                 h))))
-
 
 ;; make sure the precondition holds
 (assert (and  (not is-abort-right)
@@ -506,9 +494,7 @@
               (key-bottom-ok state-right-old)
               (or
                 (not (post-condition state-left-new state-right-new handle message))
-                (not (key-bottom-ok state-right-new))
-              )
-              ))
+                (not (key-bottom-ok state-right-new)))))
 (check-sat)
 
 ;; in case of sat, return model
