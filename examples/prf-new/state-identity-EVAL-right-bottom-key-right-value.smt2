@@ -463,18 +463,18 @@
   (= mk-abort-Right-wrapper-EVAL right-new)
 ;)
 
-; state of bottom key package is the same before and after call to EVAL except for the position that was written to XXX changes XXX
-
-
-(forall ((h Int))           (= (select (state-Right-key_top-T
-                            (composition-state-Right-key_top 
-                             s-right-new)) h)
+; state of bottom key package on position (h m) is correct after call to EVAL XXX changes XXX
+                            (= (maybe-get
+                               (select (state-Right-key_bottom-T
+                            (composition-state-Right-key_bottom 
+                             s-right-new)) (mk-tuple2 h m))) ; read bottom table at position h m
+                             (f
+                               (maybe-get
                                (select (state-Right-key_top-T
                             (composition-state-Right-key_top 
-                             s-right-old)) h)
+                             s-right-old)) h)) m
                             )
-)
-
+                            )
 
 
 
