@@ -493,7 +493,7 @@
                             )
 )
 
-; state of bottom key package is the same before and after call to EVAL except for at (h m) XXX changes XXX
+; state of bottom key package is the same before and after call to EVAL except for at (h m)
 (forall ((hh Int) (mm Bits_*))(or (and (= h hh) (= m mm))
                             (= (select (state-Right-key_bottom-T
                             (composition-state-Right-key_bottom 
@@ -505,7 +505,7 @@
 )
 
 
-; state of bottom key package on position (h m) is correct after call to EVAL XXX changes XXX
+; state of bottom key package on position (h m) is correct after call to EVAL
                             (= (maybe-get
                                (select (state-Right-key_bottom-T
                             (composition-state-Right-key_bottom 
@@ -537,13 +537,14 @@
 (not
 (forall ((h Int))           (= (select (state-Left-key_top-T
                             (composition-state-Left-key_top 
-                             s-left-old)) h)
+                             s-left-new)) h)
                                (select (state-Right-key_top-T
                             (composition-state-Right-key_top 
-                             s-right-old)) h)
+                             s-right-new)) h)
                             )
 ))
 ; or some value in the lower key package is wrong after the call
+(not
 (forall ((hh Int) (mm Bits_*)) (= (maybe-get
                                (select (state-Right-key_bottom-T
                             (composition-state-Right-key_bottom 
@@ -555,7 +556,7 @@
                              s-right-new)) hh)) mm
                             )
                             )
-))
+)))
 
 
 
