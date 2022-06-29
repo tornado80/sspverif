@@ -421,6 +421,7 @@
 (declare-const value-right (Bits_n))
 (declare-const is-abort-left Bool)
 (declare-const is-abort-right Bool)
+(declare-const print-msg String)
 
 (assert (and  (= return-left      (oracle-Left-prf_left-EVAL state-left-old handle message))
               (= return-right     (oracle-Right-wrapper-EVAL state-right-old handle message))
@@ -432,10 +433,22 @@
               (= is-abort-right   (= mk-abort-Right-wrapper-EVAL return-right))))
 
 
-(define-fun key-top-eq ((left CompositionState-Left) (right CompositionState-Right)) Bool
+(define-fun key-top-lr-eq ((left CompositionState-Left) (right CompositionState-Right)) Bool
   (forall ((h Int)) (=  (select (state-Left-key_top-T (composition-state-Left-key_top left))
                                 h)
                         (select (state-Right-key_top-T (composition-state-Right-key_top right))
+                                h))))
+
+(define-fun key-top-ll-eq ((old CompositionState-Left) (new CompositionState-Left)) Bool
+  (forall ((h Int)) (=  (select (state-Left-key_top-T (composition-state-Left-key_top old))
+                                h)
+                        (select (state-Left-key_top-T (composition-state-Left-key_top new))
+                                h))))
+
+(define-fun key-top-rr-eq ((old CompositionState-Right) (new CompositionState-Right)) Bool
+  (forall ((h Int)) (=  (select (state-Right-key_top-T (composition-state-Right-key_top old))
+                                h)
+                        (select (state-Right-key_top-T (composition-state-Right-key_top new))
                                 h))))
 
 
@@ -466,10 +479,9 @@
                                 hh)))
         
         (or
-            (= (as mk-none (Maybe Bits_n)) m-key-bottom m-key-top)
+            (= (as mk-none (Maybe Bits_n)) m-key-bottom)
             (=      (maybe-get  m-key-bottom)
-                (f  (maybe-get  m-key-top)
-                    mm))))))
+                (f  (maybe-get  m-key-top) mm))))))
 
 ; should this really use the old state??
 (define-fun post-condition ((left CompositionState-Left) (right CompositionState-Right) (h Int) (m Bits_*)) Bool
@@ -478,31 +490,94 @@
                         (select (state-Right-key_top-T (composition-state-Right-key_top  right))
                                 h))))
 
-;; make sure the precondition holds
-(assert (and  (not is-abort-right)
-              (not is-abort-left)
-              (key-top-eq state-left-old state-right-old)
-              (key-top-eq state-left-old state-right-new)
-              (key-top-eq state-left-new state-right-old)
-              (key-bottom-mostly-eq state-right-old state-right-new handle message)
-              (key-bottom-ok-after-call state-right-old state-right-new handle message)
-              ;(key-bottom-ok state-right-old)
-              ))
-(check-sat)
-                        
-;; check that the post-condition follows
-(assert (and  (not is-abort-right)
-              (not is-abort-left)
-              (key-top-eq state-left-old state-right-old)
-              (key-top-eq state-left-old state-right-new)
-              (key-top-eq state-left-new state-right-old)
-              (key-bottom-mostly-eq state-right-old state-right-new handle message)
-              (key-bottom-ok-after-call state-right-old state-right-new handle message)
-              (key-bottom-ok state-right-old)
-              (or
-                (not (post-condition state-left-new state-right-new handle message))
-                (not (key-bottom-ok state-right-new)))))
+
+(declare-const precondition-holds Bool)
+(assert (= precondition-holds (and  (not is-abort-right)
+                                    (not is-abort-left)
+                                    (key-bottom-ok state-right-old)
+                                    (key-top-lr-eq state-left-old state-right-old))))
+
+;; This is just to verify that the current state is satisfiable. It definitely should be.
 (check-sat)
 
-;; in case of sat, return model
+(push 1)
+;;; prove right bottom key mostly equal lemma
+(assert (and  precondition-holds
+              (not
+                ;; proved statement starts here
+                (key-bottom-mostly-eq state-right-old state-right-new handle message))))
+(check-sat)
+(pop 1)
+
+(push 1)
+;;; prove right bottom keys wellformed after call lemma
+(assert (and  precondition-holds
+              ;; lemmata start here
+              (not (key-bottom-ok-after-call state-right-old state-right-new handle message))))
+(check-sat)
+(pop 1)
+
+
+
+(push 1)
+;; prove left-left lemma
+(assert (and  precondition-holds
+              (not
+                ;; proved statement starts here
+                (key-top-ll-eq state-left-old state-left-new))))
+(check-sat)
+(pop 1)
+;
+;; prove right-right lemma
+(push 1)
+(assert (and  precondition-holds
+              (not
+                ;; proved statement starts here
+                (key-top-rr-eq state-right-old state-right-new))))
+(check-sat)
+(pop 1)
+
+
+
+(push 1)
+; prove left-right lemma
+(assert (and    precondition-holds
+                ;; lemmata start here
+                (key-top-rr-eq state-right-old state-right-new)
+                (key-top-ll-eq state-left-old state-left-new)
+                (not
+                    ;; proved statement starts here
+                    (key-top-lr-eq state-left-new state-right-new))))
+(check-sat)
+(pop 1)
+
+
+;; check that the post-condition follows
+(push 1)
+(assert (and    precondition-holds
+                ;;; lemmata start here
+                (key-top-ll-eq state-left-old state-left-new)
+                (key-top-rr-eq state-right-old state-right-new)
+                (key-top-lr-eq state-left-new state-right-new)
+                (key-bottom-mostly-eq state-right-old state-right-new handle message)
+                (key-bottom-ok-after-call state-right-old state-right-new handle message)
+                (or
+                    (not (post-condition state-left-new state-right-new handle message))
+                    (not (key-bottom-ok state-right-new)))))
+(check-sat)
+(pop 1)
+
+; this should not be a problem.
+; the fact that this is a problem might be informative.
+(push 1)
+(assert  (key-bottom-ok state-right-old))
+(check-sat)
+(pop 1)
+
+;; this also shouldn't be a problem, but probably this problem is just caused by the above problem.
+(push 1)
+;; check that there is a valid assignment for the precondition
+(assert precondition-holds)
+(check-sat)
 (get-model)
+(pop 1)
