@@ -497,10 +497,10 @@
 (forall ((hh Int) (mm Bits_*))(or (and (= h hh) (= m mm))
                             (= (select (state-Right-key_bottom-T
                             (composition-state-Right-key_bottom 
-                             s-right-new)) (mk-tuple2 h m))
+                             s-right-new)) (mk-tuple2 hh mm))
                                (select (state-Right-key_bottom-T
                             (composition-state-Right-key_bottom 
-                             s-right-old)) (mk-tuple2 h m))
+                             s-right-old)) (mk-tuple2 hh mm))
                             ))
 )
 
