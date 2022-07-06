@@ -281,11 +281,29 @@ where
     }
 }
 
+impl<L, R> From<SmtEq2<L, R>> for SmtExpr
+where
+    L: Into<SmtExpr>,
+    R: Into<SmtExpr>,
+{
+    fn from(eq: SmtEq2<L, R>) -> Self {
+        SmtExpr::List(vec![
+            SmtExpr::Atom("=".to_string()),
+            eq.lhs.into(),
+            eq.rhs.into(),
+        ])
+    }
+}
+
 impl<B> From<SmtLet<B>> for SmtExpr
 where
     B: Into<SmtExpr>,
 {
     fn from(l: SmtLet<B>) -> SmtExpr {
+        if l.bindings.is_empty() {
+            return l.body.into();
+        }
+
         SmtExpr::List(vec![
             SmtExpr::Atom(String::from("let")),
             SmtExpr::List(
@@ -295,6 +313,16 @@ where
                     .collect(),
             ),
             l.body.into(),
+        ])
+    }
+}
+
+impl From<SmtAs> for SmtExpr {
+    fn from(smtas: SmtAs) -> Self {
+        SmtExpr::List(vec![
+            SmtExpr::Atom("as".to_string()),
+            SmtExpr::Atom(smtas.name),
+            smtas.tipe.into(),
         ])
     }
 }
@@ -325,6 +353,20 @@ where
 {
     pub bindings: Vec<(String, SmtExpr)>,
     pub body: B,
+}
+
+pub struct SmtEq2<L, R>
+where
+    L: Into<SmtExpr>,
+    R: Into<SmtExpr>,
+{
+    pub lhs: L,
+    pub rhs: R,
+}
+
+pub struct SmtAs {
+    pub name: String,
+    pub tipe: Type,
 }
 
 pub struct SmtIte<C, T, E>

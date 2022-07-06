@@ -10,6 +10,8 @@ use crate::writers::smt::{
     state_helpers::{SmtCompositionState, SmtPackageState},
 };
 
+use super::exprs::{SmtAs, SmtEq2};
+
 pub struct CompositionSmtWriter<'a> {
     pub comp: &'a Composition,
 
@@ -256,8 +258,13 @@ impl<'a> CompositionSmtWriter<'a> {
                         rand_val
                     };
 
+                    let bindings = vec![(ident.ident(), new_val)]
+                        .into_iter()
+                        .filter(|(x, _)| x != "_")
+                        .collect();
+
                     SmtLet {
-                        bindings: vec![(ident.ident(), new_val)],
+                        bindings,
                         body: self.comp_helper.smt_set(
                             "__randomness",
                             &self.get_state_helper("__randomness").smt_set_random(
@@ -279,6 +286,7 @@ impl<'a> CompositionSmtWriter<'a> {
                 Statement::Parse(idents, expr) => {
                     let bindings = idents
                         .iter()
+                        .filter(|ident| ident.ident() != "_")
                         .enumerate()
                         .map(|(i, ident)| {
                             let ident = if let Identifier::Local(ident) = ident {
@@ -333,9 +341,13 @@ impl<'a> CompositionSmtWriter<'a> {
                             SmtExpr::List(cmdline)
                         })],
                         body: SmtIte {
-                            cond: SmtIs {
-                                con: format!("mk-abort-{}-{}-{}", self.comp.name, target, name),
-                                expr: SspSmtVar::ReturnValue,
+                            cond: SmtEq2 {
+                                lhs: SspSmtVar::ReturnValue,
+                                rhs: SspSmtVar::OracleAbort {
+                                    compname: self.comp.name.clone(),
+                                    pkgname: target.clone(),
+                                    oname: name.clone(),
+                                },
                             },
                             then: SspSmtVar::OracleAbort {
                                 compname: self.comp.name.clone(),
@@ -343,8 +355,8 @@ impl<'a> CompositionSmtWriter<'a> {
                                 oname: sig.name.clone(),
                             },
                             els: SmtLet {
-                                bindings: vec![
-                                    (
+                                bindings: {
+                                    let mut bindings = vec![(
                                         smt_to_string(SspSmtVar::GlobalState),
                                         SmtExpr::List(vec![
                                             SmtExpr::Atom(format!(
@@ -353,18 +365,23 @@ impl<'a> CompositionSmtWriter<'a> {
                                             )),
                                             SspSmtVar::ReturnValue.into(),
                                         ]),
-                                    ),
-                                    (
-                                        id.ident(),
-                                        SmtExpr::List(vec![
-                                            SmtExpr::Atom(format!(
-                                                "return-{}-{}-{}-value",
-                                                self.comp.name, target, name
-                                            )),
-                                            SspSmtVar::ReturnValue.into(),
-                                        ]),
-                                    ),
-                                ],
+                                    )];
+
+                                    if id.ident() != "_" {
+                                        bindings.push((
+                                            id.ident(),
+                                            SmtExpr::List(vec![
+                                                SmtExpr::Atom(format!(
+                                                    "return-{}-{}-{}-value",
+                                                    self.comp.name, target, name
+                                                )),
+                                                SspSmtVar::ReturnValue.into(),
+                                            ]),
+                                        ));
+                                    }
+
+                                    bindings
+                                },
                                 body: result.unwrap(),
                             },
                         },
@@ -431,7 +448,10 @@ impl<'a> CompositionSmtWriter<'a> {
                         },
 
                         Identifier::Local(name) => SmtLet {
-                            bindings: vec![(name.clone(), outexpr)],
+                            bindings: vec![(name.clone(), outexpr)]
+                                .into_iter()
+                                .filter(|(name, _)| name != "_:")
+                                .collect(),
                             body: result.unwrap(),
                         },
 
@@ -443,12 +463,12 @@ impl<'a> CompositionSmtWriter<'a> {
                     // if it's an unwrap, also wrap it with the unwrap check.
                     if let Expression::Unwrap(inner) = expr {
                         SmtIte {
-                            cond: SmtIs {
-                                con: format!("(mk-none () {})", {
-                                    let t_smt: SmtExpr = Type::Maybe(Box::new(t)).into();
-                                    smt_to_string(t_smt)
-                                }),
-                                expr: *inner.clone(),
+                            cond: SmtEq2 {
+                                lhs: *inner.clone(),
+                                rhs: SmtAs {
+                                    name: "mk-none".into(),
+                                    tipe: Type::Maybe(Box::new(t)),
+                                },
                             },
                             then: SspSmtVar::OracleAbort {
                                 compname: self.comp.name.clone(),
