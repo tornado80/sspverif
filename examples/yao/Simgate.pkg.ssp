@@ -1,0 +1,35 @@
+package Simgate {
+    params {
+        n: Integer,
+        enc: Function(B(its(n),Bits(*),Bits(n)) ->Bits(*)),
+    }
+
+    state {
+    }
+
+    oracle GBLG(h: Integer, l: Integer, r: Integer, op: Function((Bool,Bool),Bool), j: Integer) -> Set) {
+        C <- emptyset;
+        EVAL(j,l,r,op);
+        Sl <- Table(Bool,Bits(n));
+        Sr <- Table(Bool,Bits(n));
+        Sj <- Table(Bool,Bits(n));
+        Sl[0] <- invoke GETAOUT(l);
+        Sl[1] <- invoke GETINAOUT(l);
+        Sr[0] <- invoke GETAOUT(r);
+        Sr[1] <- invoke GETINAOUT(r);
+        Sj[0] <- invoke GETAIN(j);
+        for (dl,dr) in (Bool,Bool):
+           kl <- Sl[dl];
+           kr <- Sr[dr];
+           if dl=dr=0:
+              kj <- Sj[0];
+           else kj <- 0^n
+           rin <-* Bits(n);
+           rout <-* Bits(n);
+           cin  <- enc(kr,kj,rin);
+           cout  <- enc(kl,cin,rout);
+           C <-- C cup {cout};
+        return C;
+    }
+
+}

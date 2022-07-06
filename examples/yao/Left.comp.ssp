@@ -1,4 +1,4 @@
-composition CompositionLeft
+composition Left
  {
 const n: Integer;
  

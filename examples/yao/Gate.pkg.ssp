@@ -1,0 +1,24 @@
+package Gate {
+    params {
+        n: Integer,
+        m: Integer,
+        enc: Function((Bits(n),Bits(n),Bits(n)) -> Bits(m))
+    }
+
+    state {
+    }
+
+    oracle GBLG(h: Integer, l: Integer, r: Integer, op: Function((Bool,Bool),Bool), j: Integer) -> Set) {
+        C <-- emptyset;
+        Z <- invoke GETKEYSOUT(j);
+        for (bl,br) in (Bool,Bool):
+           bj <- op(bl,br);
+           k0 <- Z[bj];
+           c0in  <- invoke ENC(l,bl,k0,0^n);
+           c1in  <- invoke ENC(l,bl,0^n,0^n);
+           cout  <- invoke ENC(l,bl,c0in,c1in);
+           C <-- C cup {cout};
+        return C;
+    }
+
+}
