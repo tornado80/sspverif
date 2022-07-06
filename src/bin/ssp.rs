@@ -6,7 +6,7 @@ use clap::{Parser, Subcommand};
 
 use sspds::{
     cli::{
-        filesystem::{find_project_root, parse_composition, parse_packages, read_directory},
+        filesystem::{parse_composition, parse_packages, read_directory},
         project::Project,
     },
     hacks,
@@ -114,6 +114,7 @@ fn graph(args: &Graph) {
             edges,
             exports,
             name: _,
+            ..
         } = comp;
         for Edge(source, target, sig) in edges {
             writeln!(
@@ -146,8 +147,10 @@ fn smt(name: &str) {
     let (pkgs_map, _pkgs_filenames) = parse_packages(&pkgs_list);
     let comp_map = parse_composition(&comp_list, &pkgs_map);
 
-    hacks::declare_par_Maybe();
-    hacks::declare_Tuple(2);
+    let mut w = std::io::stdout();
+
+    hacks::declare_par_Maybe(&mut w);
+    hacks::declare_Tuple(&mut w, 2);
     println!("(declare-sort Bits_n 0)");
     println!("(declare-sort Bits_* 0)");
     println!("(declare-fun f (Bits_n Bits_n) Bits_n)");

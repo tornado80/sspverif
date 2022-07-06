@@ -88,6 +88,7 @@ pub struct Composition {
     // multiple shades of local uniqueness
     pub exports: Vec<Export>,
     pub name: String,
+    pub consts: Vec<(String, Type)>,
 }
 
 impl Composition {

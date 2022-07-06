@@ -169,6 +169,7 @@ pub fn handle_comp_spec_list(
         exports,
         name: comp_name.to_owned(),
         pkgs: instances,
+        consts: Vec::from_iter(consts),
     }
 }
 

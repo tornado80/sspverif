@@ -1,3 +1,4 @@
+use std::io::{Result, Write};
 #[allow(non_snake_case)]
 pub fn declare_datatype_Maybe(t: &str) {
     println!(
@@ -10,12 +11,15 @@ pub fn declare_datatype_Maybe(t: &str) {
 }
 
 #[allow(non_snake_case)]
-pub fn declare_par_Maybe() {
-    println!("(declare-datatypes ((Maybe 1)) ((par (T) ((mk-some (maybe-get T)) (mk-none)))))");
+pub fn declare_par_Maybe<W: Write>(w: &mut W) -> Result<()> {
+    write!(
+        w,
+        "(declare-datatypes ((Maybe 1)) ((par (T) ((mk-some (maybe-get T)) (mk-none)))))"
+    )
 }
 
 #[allow(non_snake_case)]
-pub fn declare_datatype_Tuple(ts: &[&str]) {
+pub fn declare_datatype_Tuple<W: Write>(w: &mut W, ts: &[&str]) -> Result<()> {
     let mut out = String::new();
     out.push_str(&format!("(declare-datatype Tuple__{}", ts.join("_")));
     out.push_str(&format!("((mk-tuple-{}", ts.join("-")));
@@ -24,11 +28,11 @@ pub fn declare_datatype_Tuple(ts: &[&str]) {
     }
     out.push_str(")))");
 
-    println!("{}", out);
+    write!(w, "{}", out)
 }
 
 #[allow(non_snake_case)]
-pub fn declare_Tuple(n: usize) {
+pub fn declare_Tuple<W: Write>(w: &mut W, n: usize) -> Result<()> {
     let types: String = (1..n + 1)
         .map(|i| format!("T{}", i))
         .fold(String::new(), |acc, v| {
@@ -47,18 +51,19 @@ pub fn declare_Tuple(n: usize) {
                 acc
             });
 
-    let decl = format!(
+    write!(
+        w,
         "(declare-datatypes ((Tuple{0} {0})) (
         (par ({1}) ((mk-tuple{0} {2})
         ))))",
         n, types, ds
-    );
-
-    println!("{}", decl)
+    )
 }
 
-pub fn declare_tuples(n: usize) {
+pub fn declare_tuples<W: Write>(w: &mut W, n: usize) -> Result<()> {
     for i in 1..n {
-        declare_Tuple(i);
+        declare_Tuple(w, i)?;
     }
+
+    Ok(())
 }

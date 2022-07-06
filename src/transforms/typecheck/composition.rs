@@ -19,6 +19,7 @@ pub fn typecheck_comp(
         edges,
         exports,
         name,
+        ..
     } = comp;
 
     // 1a. check signature exists in edge destination
