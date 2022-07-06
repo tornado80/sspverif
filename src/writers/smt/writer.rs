@@ -132,11 +132,11 @@ impl<'a> CompositionSmtWriter<'a> {
                     self.comp.name, inst.name, osig.name
                 )),
                 SmtExpr::List(vec![
-                    SmtExpr::List(constructor),
                     SmtExpr::List(vec![SmtExpr::Atom(format!(
                         "mk-abort-{}-{}-{}",
                         self.comp.name, inst.name, osig.name
                     ))]),
+                    SmtExpr::List(constructor),
                 ]),
             ]))
         }
