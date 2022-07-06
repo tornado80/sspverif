@@ -149,6 +149,7 @@ fn smt(name: &str) {
     hacks::declare_par_Maybe();
     hacks::declare_Tuple(2);
     println!("(declare-sort Bits_n 0)");
+    println!("(declare-sort Bits_* 0)");
     println!("(declare-fun f (Bits_n Bits_n) Bits_n)");
 
     for (name, comp) in comp_map {

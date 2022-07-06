@@ -1,4 +1,5 @@
-(declare-datatypes ((Maybe 1)) ((par (T) ((mk-some (maybe-get T)) (mk-none)))))
+(set-logic ALL)
+(declare-datatypes ((Maybe 1)) ((par (T) ((mk-none) (mk-some (maybe-get T)) ))))
 (declare-datatypes
   ((Tuple2 2))
   ((par (T1 T2) ((mk-tuple2 (el1 T1) (el2 T2))))))
@@ -55,8 +56,8 @@
       (not
         (= (select (state-Left-key_top-T __self_state) h) (as mk-none (Maybe Bits_n))))
       (ite
-        (
-          (_ is (mk-none () (Maybe Bits_n)))
+        (=
+          (as mk-none (Maybe Bits_n))
           (select (state-Left-key_top-T __self_state) h))
         mk-abort-Left-key_top-GET
         (let
@@ -163,10 +164,11 @@
 (declare-datatype
   Return_Right_key_top_GET
   (
+    (mk-abort-Right-key_top-GET)
     (mk-return-Right-key_top-GET
       (return-Right-key_top-GET-state CompositionState-Right)
       (return-Right-key_top-GET-value Bits_n))
-    (mk-abort-Right-key_top-GET)))
+    ))
 (declare-datatype
   Return_Right_key_top_SET
   (
@@ -177,31 +179,35 @@
 (declare-datatype
   Return_Right_key_bottom_GET
   (
+    (mk-abort-Right-key_bottom-GET)
     (mk-return-Right-key_bottom-GET
       (return-Right-key_bottom-GET-state CompositionState-Right)
       (return-Right-key_bottom-GET-value Bits_n))
-    (mk-abort-Right-key_bottom-GET)))
+    ))
 (declare-datatype
   Return_Right_key_bottom_SET
   (
+    (mk-abort-Right-key_bottom-SET)
     (mk-return-Right-key_bottom-SET
       (return-Right-key_bottom-SET-state CompositionState-Right)
       (return-Right-key_bottom-SET-value (Tuple2 Int Bits_*)))
-    (mk-abort-Right-key_bottom-SET)))
+    ))
 (declare-datatype
   Return_Right_prf_right_EVAL
   (
+    (mk-abort-Right-prf_right-EVAL)
     (mk-return-Right-prf_right-EVAL
       (return-Right-prf_right-EVAL-state CompositionState-Right)
       (return-Right-prf_right-EVAL-value (Tuple2 Int Bits_*)))
-    (mk-abort-Right-prf_right-EVAL)))
+    ))
 (declare-datatype
   Return_Right_wrapper_EVAL
   (
+    (mk-abort-Right-wrapper-EVAL)
     (mk-return-Right-wrapper-EVAL
       (return-Right-wrapper-EVAL-state CompositionState-Right)
       (return-Right-wrapper-EVAL-value Bits_n))
-    (mk-abort-Right-wrapper-EVAL))); Composition of Right
+    )); Composition of Right
 (define-fun
   oracle-Right-key_top-GET
   ((__global_state CompositionState-Right) (h Int))
@@ -212,8 +218,8 @@
       (not
         (= (select (state-Right-key_top-T __self_state) h) (as mk-none (Maybe Bits_n))))
       (ite
-        (
-          (_ is (mk-none () (Maybe Bits_n)))
+        (=
+          (as mk-none (Maybe Bits_n))
           (select (state-Right-key_top-T __self_state) h))
         mk-abort-Right-key_top-GET
         (let
@@ -287,8 +293,8 @@
           (select (state-Right-key_bottom-T __self_state) hh)
           (as mk-none (Maybe Bits_n))))
       (ite
-        (
-          (_ is (mk-none () (Maybe Bits_n)))
+        (=
+          (as mk-none (Maybe Bits_n))
           (select (state-Right-key_bottom-T __self_state) hh))
         mk-abort-Right-key_bottom-GET
         (let
@@ -359,7 +365,7 @@
                   (let
                     (
                       (__global_state (return-Right-key_bottom-SET-state __ret))
-                      (_ (return-Right-key_bottom-SET-value __ret)))
+                      (_asd (return-Right-key_bottom-SET-value __ret)))
                     (let
                       (
                         (__global_state
@@ -384,7 +390,7 @@
         (let
           (
             (__global_state (return-Right-prf_right-EVAL-state __ret))
-            (_ (return-Right-prf_right-EVAL-value __ret)))
+            (_asd (return-Right-prf_right-EVAL-value __ret)))
           (let
             ((hh (mk-tuple2 h m)))
             (let
@@ -417,8 +423,8 @@
 (declare-const state-right-new CompositionState-Right)
 (declare-const return-left Return_Left_prf_left_EVAL)
 (declare-const return-right Return_Right_wrapper_EVAL)
-(declare-const value-left (Bits_n))
-(declare-const value-right (Bits_n))
+(declare-const value-left Bits_n)
+(declare-const value-right Bits_n)
 (declare-const is-abort-left Bool)
 (declare-const is-abort-right Bool)
 (declare-const print-msg String)
@@ -469,6 +475,28 @@
                               h))
           m)))
 
+(define-fun right-key-bottom-set-implies-top-set ((state CompositionState-Right)) Bool
+  (forall ((hh Int) (mm Bits_*))
+    (let (
+      (m-key-bottom   (select (state-Right-key_bottom-T (composition-state-Right-key_bottom  state))
+                              (mk-tuple2 hh mm)))
+      (m-key-top      (select (state-Right-key_top-T    (composition-state-Right-key_top     state))
+                              hh))
+      (bot            (as mk-none (Maybe Bits_n))))
+      (=>  (= bot m-key-bottom)
+                (= bot m-key-top)))))
+
+(define-fun right-key-top-set-implies-bottom-set ((state CompositionState-Right)) Bool
+  (forall ((hh Int) (mm Bits_*))
+    (let (
+      (m-key-bottom   (select (state-Right-key_bottom-T (composition-state-Right-key_bottom  state))
+                              (mk-tuple2 hh mm)))
+      (m-key-top      (select (state-Right-key_top-T    (composition-state-Right-key_top     state))
+                              hh))
+      (bot            (as mk-none (Maybe Bits_n))))
+      (=>  (= bot m-key-top)
+                (= bot m-key-bottom)))))
+
 (define-fun key-bottom-ok ((state CompositionState-Right)) Bool
 ; state of bottom key package is correct before the call
   (forall   ((hh Int) (mm Bits_*))
@@ -478,10 +506,24 @@
         (m-key-top      (select (state-Right-key_top-T    (composition-state-Right-key_top     state))
                                 hh)))
         
-        (or
-            (= (as mk-none (Maybe Bits_n)) m-key-bottom)
+        (or (and  (= (as mk-none (Maybe Bits_n)) m-key-bottom)
+                  (= (as mk-none (Maybe Bits_n)) m-key-top))
             (=      (maybe-get  m-key-bottom)
                 (f  (maybe-get  m-key-top) mm))))))
+
+
+(define-fun key-tables-empty ((state CompositionState-Right)) Bool
+; state of bottom key package is correct before the call
+
+  (let (
+        (t-key-bottom   (state-Right-key_bottom-T (composition-state-Right-key_bottom  state)))
+        (t-key-top      (state-Right-key_top-T    (composition-state-Right-key_top     state)))
+        (bot_bits_n     (as mk-none (Maybe Bits_n)))
+      )
+      (and  (= t-key-top    ((as const
+                                (Array Int (Maybe Bits_n))) bot_bits_n))
+            (= t-key-bottom ((as const
+                                (Array (Tuple2 Int Bits_*) (Maybe Bits_n))) bot_bits_n)))))
 
 ; should this really use the old state??
 (define-fun post-condition ((left CompositionState-Left) (right CompositionState-Right) (h Int) (m Bits_*)) Bool
@@ -570,14 +612,20 @@
 ; this should not be a problem.
 ; the fact that this is a problem might be informative.
 (push 1)
-(assert  (key-bottom-ok state-right-old))
+;(assert (key-tables-empty state-right-old))
+
+;(assert (and  (right-key-bottom-set-implies-top-set state-right-old)))
+              ;(right-key-top-set-implies-bottom-set state-right-old)))
+      
+(assert (key-bottom-ok state-right-old))
 (check-sat)
+;(get-model)
 (pop 1)
 
-;; this also shouldn't be a problem, but probably this problem is just caused by the above problem.
+;; this also shouldn't be a problem, but probably t his problem is just caused by the above problem.
 (push 1)
 ;; check that there is a valid assignment for the precondition
 (assert precondition-holds)
 (check-sat)
-(get-model)
+;(get-model)
 (pop 1)
