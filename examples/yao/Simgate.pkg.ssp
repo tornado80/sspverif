@@ -8,17 +8,14 @@ package Simgate {
     }
 
     oracle GBLG(h: Integer, l: Integer, r: Integer, op: Function((Bool,Bool),Bool), j: Integer) -> Set) {
-        C <- emptyset;
         EVAL(j,l,r,op);
-        Sl <- Table(Bool,Bits(n));
-        Sr <- Table(Bool,Bits(n));
-        Sj <- Table(Bool,Bits(n));
         Sl[0] <- invoke GETAOUT(l);
         Sl[1] <- invoke GETINAOUT(l);
         Sr[0] <- invoke GETAOUT(r);
         Sr[1] <- invoke GETINAOUT(r);
         Sj[0] <- invoke GETAIN(j);
-        for (dl,dr) in (Bool,Bool):
+        dl <- 0;
+        dr <- 0;
            kl <- Sl[dl];
            kr <- Sr[dr];
            if dl=dr=0:
@@ -28,7 +25,43 @@ package Simgate {
            rout <-* Bits(n);
            cin  <- enc(kr,kj,rin);
            cout  <- enc(kl,cin,rout);
-           C <-- C cup {cout};
+           C[cout] <-- 1;
+        dl <- 1;
+        dr <- 0;
+           kl <- Sl[dl];
+           kr <- Sr[dr];
+           if dl=dr=0:
+              kj <- Sj[0];
+           else kj <- 0^n
+           rin <-* Bits(n);
+           rout <-* Bits(n);
+           cin  <- enc(kr,kj,rin);
+           cout  <- enc(kl,cin,rout);
+           C[cout] <-- 1;
+        dl <- 0;
+        dr <- 1;
+           kl <- Sl[dl];
+           kr <- Sr[dr];
+           if dl=dr=0:
+              kj <- Sj[0];
+           else kj <- 0^n
+           rin <-* Bits(n);
+           rout <-* Bits(n);
+           cin  <- enc(kr,kj,rin);
+           cout  <- enc(kl,cin,rout);
+           C[cout] <-- 1;
+        dl <- 1;
+        dr <- 1;
+           kl <- Sl[dl];
+           kr <- Sr[dr];
+           if dl=dr=0:
+              kj <- Sj[0];
+           else kj <- 0^n
+           rin <-* Bits(n);
+           rout <-* Bits(n);
+           cin  <- enc(kr,kj,rin);
+           cout  <- enc(kl,cin,rout);
+           C[cout] <-- 1;
         return C;
     }
 

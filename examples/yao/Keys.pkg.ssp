@@ -1,0 +1,67 @@
+package Key {
+    params {
+        n: Integer,
+    }
+
+    state {
+        T: Table(Integer,Table(Bool,Bits(n))),
+        z: Table(Integer,Bits(1)),
+        aflag: Table(Integer,Bool),
+        bflag: Table(Integer,Bool),
+    }
+
+    oracle GETKEYSIN(h: Integer) -> Table(Bool,Bits(n)) {
+        assert (z[h] != None as Bits(1));
+        flag <- aflag[h]*bflag[h];
+        assert (flag = 1);
+        Z <- Unwrap(T[h]);
+        return Z;
+    }
+
+    oracle GETKEYSOUT(h: Integer) -> Table(Bool,Bits(n)) {
+        assert (z[h] != None as Bits(1));
+        flag <- aflag*bflag;
+        assert (flag = 1);
+        Z <- Unwrap(T[h]);
+        return Z;
+    }
+
+    oracle GETAOUT(h: Integer) -> Bits(n) {
+        aflag <-- 1;
+        assert (flag = 1);
+        Z <- Unwrap(T[h]);
+        z <- Unwrap(T[h]);
+        k <- Unwrap(Z[z]);
+        return k;
+    }
+
+    oracle GETINAOUT(h: Integer) -> Table(Bool,Bits(n)) {
+        aflag <-- 1;
+        assert (flag = 1);
+        Z <- Unwrap(T[h]);
+        z <- Unwrap(T[h]);
+        k <- Unwrap(Z[not z]);
+        return k;
+    }
+
+    oracle SETBIT(h: Integer, z:Bool) -> ()) {
+        assert (z[h] = None as Bits(1));
+        z[h] <-- z;
+        return ()
+    }
+
+    oracle GETBIT(h: Integer, z:Bool) -> ()) {
+        assert (z[h] != None as Bits(1));
+        z <-- z[h];
+        return z[h]
+    }
+
+
+
+    oracle SET(h: Integer, k: Bits(n)) -> Integer {
+        assert (T[h] == None as Bits(n));
+        kk <-$ Bits(n);
+        T[h] <- Some(kk);
+        return h;
+    }
+}
