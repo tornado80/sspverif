@@ -1,4 +1,5 @@
-use std::fmt;
+use std::fmt::{self, Display};
+use std::io::ErrorKind;
 
 use crate::expressions::Expression;
 use crate::identifier::Identifier;
@@ -54,6 +55,33 @@ impl From<ScopeError> for TypeCheckError {
 impl From<TypeError> for TypeCheckError {
     fn from(error: TypeError) -> Self {
         TypeCheckError::Type(error)
+    }
+}
+
+impl Display for TypeCheckError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+impl std::error::Error for TypeCheckError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        None
+    }
+
+    fn description(&self) -> &str {
+        "description() is deprecated; use Display"
+    }
+
+    fn cause(&self) -> Option<&dyn std::error::Error> {
+        self.source()
+    }
+}
+
+impl From<TypeCheckError> for std::io::Error {
+    fn from(e: TypeCheckError) -> Self {
+        // TODO is this errorkind the right one in all instances?
+        std::io::Error::new(ErrorKind::InvalidData, e)
     }
 }
 

@@ -19,6 +19,7 @@ pub enum Statement {
         name: String,
         args: Vec<Expression>,
         target_inst_name: Option<String>,
+        tipe: Option<Type>,
     },
 }
 

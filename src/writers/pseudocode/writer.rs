@@ -221,6 +221,7 @@ impl<W: Write> Writer<W> {
                 name,
                 args,
                 target_inst_name,
+                tipe: opt_tipe,
             } => {
                 self.write_identifier(id)?;
 
@@ -234,12 +235,21 @@ impl<W: Write> Writer<W> {
                 self.write_expression(&Expression::FnCall(name.clone(), args.clone()))?;
                 if let Some(target_inst_name) = target_inst_name {
                     self.write_string(&format!(
-                        "; /* with target instance name {} */\n",
+                        "; /* with target instance name {} */",
                         target_inst_name
                     ))?;
                 } else {
-                    self.write_string(&format!("; /* target instance name not assigned */\n"))?;
+                    self.write_string(&format!("; /* target instance name not assigned */"))?;
                 }
+                if let Some(tipe) = opt_tipe {
+                    self.write_string(&format!(
+                        " /* return type {:?} */",
+                        tipe
+                    ))?;
+                } else {
+                    self.write_string(&format!(" /* return type unknown */"))?;
+                }
+                self.write_string(&format!("\n"))?;
             }
             Statement::IfThenElse(cond, ifcode, elsecode) => {
                 // check if this an assert

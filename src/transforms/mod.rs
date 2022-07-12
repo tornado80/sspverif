@@ -7,6 +7,7 @@ pub mod treeify;
 pub mod typecheck;
 pub mod unwrapify;
 pub mod varspecify;
+pub mod tableinitialize;
 
 pub trait Transformation {
     type Err;
@@ -45,6 +46,9 @@ pub fn transform_all(
     let (comp, _) = treeify::Transformation(&comp)
         .transform()
         .expect("treeify transformation failed unexpectedly");
+    let (comp, _) = tableinitialize::Transformation(&comp)
+        .transform()
+        .expect("tableinitialize transformation failed unexpectedly");
 
     Ok((comp, scope, samplinginfo))
 }

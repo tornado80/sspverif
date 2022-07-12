@@ -73,7 +73,7 @@ oracle_sig = { identifier ~ "(" ~ fn_maybe_arglist ~ ")" ~ ("->" ~ tipe)? }
 oracle_def = { kw_oracle ~ oracle_sig ~ "{" ~ code ~ "}" }
 
 
-identifier = @{ ( ASCII_ALPHA | "_" ) ~ ( ASCII_ALPHA | "_" )* }
+identifier = @{ ( ASCII_ALPHA | "_" ) ~ ( ASCII_ALPHA | ASCII_DIGIT | "_" )* }
 num = { ASCII_DIGIT+ }
 
 
@@ -95,7 +95,7 @@ abort = { kw_abort ~ ";" }
 
 table_index = { expression }
 
-expression = _{ expr_list | expr_set | expr_none | expr_some | expr_unwrap | expr_add | expr_sub | expr_mul | expr_div | expr_tuple | expr_equals | expr_not_equals | fn_call | table_access | identifier }
+expression = _{ expr_list | expr_set | expr_none | expr_some | expr_unwrap | expr_add | expr_sub | expr_mul | expr_div | expr_or | expr_and | expr_xor | expr_tuple | expr_equals | expr_not_equals | fn_call | table_access | identifier }
 
 expr_equals     = { "("  ~ expression ~ ("==" ~ expression)* ~ ")" }
 expr_not_equals = { "("  ~ expression ~ ("!=" ~ expression)* ~ ")" }
@@ -104,6 +104,11 @@ expr_add     = { "("  ~ expression ~ "+" ~ expression ~ ")" }
 expr_sub     = { "("  ~ expression ~ "-" ~ expression ~ ")" }
 expr_mul     = { "("  ~ expression ~ "*" ~ expression ~ ")" }
 expr_div     = { "("  ~ expression ~ "/" ~ expression ~ ")" }
+
+expr_and     = { "("  ~ expression ~ ("and" ~ expression)* ~ ")" }
+expr_or      = { "("  ~ expression ~ ("or"  ~ expression)* ~ ")" }
+expr_xor     = { "("  ~ expression ~ ("xor" ~ expression)* ~ ")" }
+
 
 fn_call =  { identifier ~ "(" ~ fn_call_arglist? ~ ")" }
 fn_call_arglist = { expression ~ ( "," ~ expression)* }

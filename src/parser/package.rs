@@ -89,6 +89,9 @@ pub fn handle_expression(expr: Pair<Rule>) -> Expression {
             let rhs = handle_expression(inner.next().unwrap());
             Expression::Div(Box::new(lhs), Box::new(rhs))
         }
+        Rule::expr_and => Expression::And(expr.into_inner().map(handle_expression).collect()),
+        Rule::expr_or => Expression::Or(expr.into_inner().map(handle_expression).collect()),
+        Rule::expr_xor => Expression::Xor(expr.into_inner().map(handle_expression).collect()),
         Rule::expr_equals => Expression::Equals(expr.into_inner().map(handle_expression).collect()),
         Rule::expr_not_equals => Expression::Not(Box::new(Expression::Equals(
             expr.into_inner().map(handle_expression).collect(),
@@ -215,6 +218,7 @@ pub fn handle_code(code: Pair<Rule>) -> CodeBlock {
                             name: oracle_name.to_owned(),
                             args,
                             target_inst_name: None,
+                            tipe: None
                         }
                     }
                     Rule::parse => {

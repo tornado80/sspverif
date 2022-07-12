@@ -98,7 +98,7 @@ pub fn read_compositions_directory(dir_path: &str) -> Vec<(String, String)> {
     comp_list
 }
 
-pub fn read_proofs_directory(dir_path: &str) -> Vec<(String, PathBuf)> {
+pub fn read_proofs_directory(dir_path: &str) -> Vec<String> {
     let mut proof_list = vec![];
 
     let dir_list = fs::read_dir(dir_path).expect("cannot list directory");
@@ -110,15 +110,19 @@ pub fn read_proofs_directory(dir_path: &str) -> Vec<(String, PathBuf)> {
                 continue;
             }
             Some(name) => {
-                if dir_entry.metadata().unwrap().is_dir() {
-                    let proof_path = dir_entry.path();
-                    let mut proof_dir_list = fs::read_dir(&proof_path).unwrap();
-                    if proof_dir_list.any(|el| el.unwrap().file_name() == "proof.toml") {
-                        let proof_name = name.into();
-                        let proof_path = proof_path.to_str().unwrap().into();
-                        proof_list.push((proof_name, proof_path));
+                let path = dir_entry.path();
+                let is_file = dir_entry.metadata().unwrap().is_file();
+                let is_toml = is_file && "toml" == path.extension().unwrap();
+                let is_stringable = path.as_os_str().to_str().is_some();
+                if is_file && is_toml && is_stringable {
+                    let proof_name = path.file_stem().unwrap().to_str().unwrap();
+                    let mut dir_path = path.clone();
+                    dir_path.pop();
+                    dir_path.push(proof_name);
+                    if dir_path.exists() {
+                        proof_list.push(proof_name.into());
                     }
-                };
+                }
             }
         }
     }

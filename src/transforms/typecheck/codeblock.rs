@@ -119,14 +119,13 @@ impl TypedCodeBlock {
                             ));
                         }
                     } else {
-                        if opt_idx.is_some() {
-                            return Err(TypeCheckError::Undefined(
-                                ErrorLocation::Unknown,
-                                "assigning to undefined table".to_string(),
-                                id.clone(),
-                            ));
+                        if let Some(idxexpr) = opt_idx {
+                            let idx_type = get_type(&idxexpr, scope)?;
+                            let tabletipe = Type::Table(Box::new(idx_type), Box::new(expr_type));
+                            scope.declare(id.clone(), tabletipe)?;
+                        } else {
+                            scope.declare(id.clone(), expr_type)?;
                         }
-                        scope.declare(id.clone(), expr_type)?;
                     }
 
                     let opt_idx = if opt_idx.is_some() {
@@ -250,6 +249,7 @@ impl TypedCodeBlock {
                     name,
                     args,
                     target_inst_name,
+                    tipe: _,
                 } => {
                     let oracle_entry = scope.lookup(&Identifier::new_scalar(name));
                     if oracle_entry.is_none() {
@@ -367,6 +367,7 @@ impl TypedCodeBlock {
                         name: name.clone(),
                         args: typified_args,
                         target_inst_name: target_inst_name.clone(),
+                        tipe: Some(*ret_type.clone()),
                     })
                 }
                 Statement::IfThenElse(expr, ifcode, elsecode) => {

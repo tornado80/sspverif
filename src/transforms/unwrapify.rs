@@ -145,6 +145,7 @@ pub fn unwrapify(cb: &CodeBlock, ctr: &mut u32) -> Result<CodeBlock, Error> {
                 name,
                 args,
                 target_inst_name,
+                tipe,
             } => {
                 let opt_idx = opt_idx.map(|expr| {
                     let (newexpr, unwraps) = replace_unwrap(&expr, ctr);
@@ -165,6 +166,7 @@ pub fn unwrapify(cb: &CodeBlock, ctr: &mut u32) -> Result<CodeBlock, Error> {
                     name,
                     args,
                     target_inst_name,
+                    tipe,
                 });
             }
         }

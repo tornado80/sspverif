@@ -278,6 +278,7 @@ mod treeify_transform_test {
                 Export(1, mod_prf_real_pkg.pkg.clone().oracles[0].sig.clone()),
             ],
             name: "real".to_string(),
+            consts: vec![],
         };
 
         let transform = Transformation(&mod_prf_game);
