@@ -39,5 +39,9 @@ compose {
           EVAL:  ev,
           GETAOUT:  keys-bottom,
         },
+     ev:
+        { GETBIT:  keys-top,
+          SETBIT:  keys-bottom,
+        },
         }
  }

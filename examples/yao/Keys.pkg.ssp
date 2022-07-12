@@ -11,7 +11,7 @@ package Key {
     }
 
     oracle GETKEYSIN(h: Integer) -> Table(Bool,Bits(n)) {
-        assert (z[h] != None as Bits(1));
+        assert (z[h] != None as Bool);
         assert (bflag[h] and aflag[h]);
         Z <- Unwrap(T[h]);
         return Z;
@@ -28,8 +28,8 @@ package Key {
         aflag[h] <- true;
         assert (aflag[h] or bflag[h]);
         Z <- Unwrap(T[h]);
-        z <- Unwrap(T[h]);
-        k <- Unwrap(Z[z]);
+        zz <- Unwrap(z[h]);
+        k <- Unwrap(Z[zz]);
         return k;
     }
 
@@ -37,24 +37,16 @@ package Key {
         aflag[h] <- true;
         assert (aflag[h] or bflag[h]);
         Z <- Unwrap(T[h]);
-        z <- Unwrap(T[h]);
-        k <- Unwrap(Z[not z]);
+        zz <- Unwrap(z[h]);
+        k <- Unwrap(Z[not zz]);
         return k;
     }
 
-    oracle SETBIT(h: Integer, z:Bool) -> ()) {
-        assert (z[h] = None as Bits(1));
-        z[h] <-- z;
-        return ()
+    oracle GETBIT(h: Integer) -> Bool {
+        assert (z[h] != None as Bool);
+        zz <- Unwrap(z[h]);
+        return zz;
     }
-
-    oracle GETBIT(h: Integer, z:Bool) -> ()) {
-        assert (z[h] != None as Bits(1));
-        z <-- z[h];
-        return z[h]
-    }
-
-
 
     oracle SET(h: Integer, k: Bits(n)) -> Integer {
         assert (T[h] == None as Bits(n));
@@ -62,4 +54,11 @@ package Key {
         T[h] <- Some(kk);
         return h;
     }
+
+    oracle SETBIT(h: Integer, zz:Bool) -> () {
+        assert (z[h] == None as Bool);
+        z[h] <- zz;
+        return zz;
+    }
+
 }
