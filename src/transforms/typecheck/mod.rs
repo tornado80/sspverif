@@ -35,8 +35,8 @@ impl super::Transformation for Transformation {
     type Err = TypeCheckError;
     type Aux = Scope;
     fn transform(&self) -> Result<(Composition, Scope), TypeCheckError> {
-        let scope = self.scope.clone();
-        let typed_comp = typecheck_comp(&self.comp, &mut scope.clone())?;
+        let mut scope = self.scope.clone();
+        let typed_comp = typecheck_comp(&self.comp, &mut scope)?;
 
         Ok((typed_comp, scope))
     }
