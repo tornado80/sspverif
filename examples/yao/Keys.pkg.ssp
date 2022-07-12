@@ -12,7 +12,7 @@ package Key {
 
     oracle GETKEYSIN(h: Integer) -> Table(Bool,Bits(n)) {
         assert (z[h] != None as Bits(1));
-        assert bflag[h] and aflag[h];
+        assert (bflag[h] and aflag[h]);
         Z <- Unwrap(T[h]);
         return Z;
     }

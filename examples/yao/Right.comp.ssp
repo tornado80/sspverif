@@ -2,16 +2,42 @@ composition Right
  {
 const n: Integer;
  
-instance key =
-        Key
+instance keys-top =
+        Keys
+          {
+          n: n,
+          }
+
+instance keys-bottom =
+        Keys
+          {
+          n: n,
+          }
+
+instance simgate =
+        Simgate
+          {
+          n: n,
+          }
+
+instance EV =
+        Ev
           {
           n: n,
           }
 
 compose { 
      adversary:
-        { SET:  key,
-          GET:  key,
+        { GETAOUT:  keys-top,
+          SETBIT:  keys-top,
+          GBLG:  simgate,
+          GETKEYSIN: keys-bottom,
+        },
+     simgate:
+        { GETAIN:  keys-top,
+          GETINAIN:  keys-top,
+          EVAL:  ev,
+          GETAOUT:  keys-bottom,
         },
         }
  }
