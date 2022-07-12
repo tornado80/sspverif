@@ -773,15 +773,9 @@ mod test {
         let ret = code.typecheck(&mut scope);
 
         if let Err(ref e) = ret {
-            println!("{:#?}", e);
+            println!("error: {:#?}", e);
         }
 
-        if let Ok(_) = ret {
-            println!("no error.");
-        }
-        assert!(
-            matches!(ret, Err(TypeCheckError::Undefined(_, _, _))),
-            "expected to fail with a TypeCheckError::Undefined"
-        );
+        assert!(matches!(ret, Ok(_)), "Typecheck should succeed");
     }
 }
