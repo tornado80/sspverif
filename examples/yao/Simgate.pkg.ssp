@@ -3,14 +3,14 @@ package Simgate {
         n: Integer,
         m: Integer,
         p: Integer,
-        encn: fn Bits(n),Bits(n),Bits(n) ->Bits(m),
-        encm: fn Bits(n),Bits(m),Bits(n) ->Bits(p),
+        encn: fn Bits(n),Bits(n),Bits(n) -> Bits(m),
+        encm: fn Bits(n),Bits(m),Bits(n) -> Bits(p),
     }
 
     state {
     }
 
-    oracle GBLG(h: Integer, l: Integer, r: Integer, op: Function((Bool,Bool),Bool), j: Integer) -> Set) {
+    oracle GBLG(h: Integer, l: Integer, r: Integer, op: fn (Bool,Bool) -> Bool, j: Integer) -> Set) {
         EVAL(j,l,r,op);
         Sl[0] <- invoke GETAOUT(l);
         Sl[1] <- invoke GETINAOUT(l);
@@ -21,7 +21,7 @@ package Simgate {
         dr <- 0;
            kl <- Sl[dl];
            kr <- Sr[dr];
-           if dl=dr=0:
+           if ((not dl) and (not dr)):
               kj <- Sj[0];
            else kj <- 0^n
            rin <-* Bits(n);
@@ -33,7 +33,7 @@ package Simgate {
         dr <- 0;
            kl <- Sl[dl];
            kr <- Sr[dr];
-           if dl=dr=0:
+           if dl=dr=false:
               kj <- Sj[0];
            else kj <- 0^n
            rin <-* Bits(n);
