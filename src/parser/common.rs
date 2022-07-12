@@ -6,6 +6,7 @@ use pest::iterators::Pair;
 
 pub fn handle_type(tipe: Pair<Rule>) -> Type {
     match tipe.as_rule() {
+        Rule::type_empty => Type::Empty,
         Rule::type_integer => Type::Integer,
         Rule::type_bool => Type::Boolean,
         Rule::type_string => Type::String,

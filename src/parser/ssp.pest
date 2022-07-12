@@ -89,7 +89,7 @@ parse = { parse_tuple ~ "<-" ~  kw_parse ~ expression ~ ";" }
     parse_tuple = { "(" ~ identifier ~ ("," ~ identifier )* ~ ")" }
 table_sample = { identifier ~ "[" ~ expression ~ "]" ~ "<-$" ~ tipe ~ ";" }
 table_assign = { identifier ~ "[" ~ expression ~ "]" ~ "<-" ~ expression ~ ";" }
-return_stmt = { kw_return ~ expression ~ ";" }
+return_stmt = { kw_return ~ expression? ~ ";" }
 assert = { kw_assert ~ expression ~ ";" }
 abort = { kw_abort ~ ";" }
 
