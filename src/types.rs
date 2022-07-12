@@ -1,3 +1,5 @@
+use crate::expressions::Expression;
+
 #[allow(dead_code)]
 #[derive(Debug, Clone, Eq, PartialEq, Hash, PartialOrd, Ord)]
 pub enum Type {
@@ -35,5 +37,21 @@ impl Type {
 
     pub fn new_fn(args: Vec<Type>, ret: Type) -> Type {
         Type::Fn(args, Box::new(ret))
+    }
+
+    pub fn default_value(&self) -> Expression {
+        match self {
+            Type::Integer => Expression::IntegerLiteral("0".to_string()),
+            Type::String => Expression::StringLiteral("".to_string()),
+            Type::Boolean => Expression::BooleanLiteral("false".to_string()),
+            Type::List(tipe) => Expression::List(vec![]),
+            Type::Tuple(tipes) => Expression::Tuple(tipes.iter().map(|tipe| tipe.default_value()).collect()),
+            Type::Table(_,_) => Expression::EmptyTable,
+            Type::Maybe(tipe) => Expression::None(*tipe.clone()),
+            Type::Empty |
+            Type::Fn(_,_) |
+            Type::Oracle(_,_) => panic!("No default value for type {:?}", self),
+            _ => todo!("No default value for type {:?}", self),
+        }
     }
 }
