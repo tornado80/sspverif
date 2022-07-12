@@ -3,8 +3,8 @@ package Simgate {
         n: Integer,
         m: Integer,
         p: Integer,
-        encn: Function(B(its(n),Bits(*),Bits(n)) ->Bits(m)),
-        encm: Function(B(its(n),Bits(*),Bits(m)) ->Bits(p)),
+        encn: fn Bits(n),Bits(n),Bits(n) ->Bits(m),
+        encm: fn Bits(n),Bits(m),Bits(n) ->Bits(p),
     }
 
     state {

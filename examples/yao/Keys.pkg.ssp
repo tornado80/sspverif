@@ -1,4 +1,4 @@
-package Key {
+package Keys {
     params {
         n: Integer,
     }
@@ -42,17 +42,28 @@ package Key {
         return k;
     }
 
+    oracle GETAIN(h: Integer) -> Table(Bool,Bits(n)) {
+        assert aflag[h];
+        assert (aflag[h] or bflag[h]);
+        Z <- Unwrap(T[h]);
+        zz <- Unwrap(z[h]);
+        k <- Unwrap(Z[zz]);
+        return k;
+    }
+
+    oracle GETINAIN(h: Integer) -> Table(Bool,Bits(n)) {
+        assert aflag[h];
+        assert (aflag[h] or bflag[h]);
+        Z <- Unwrap(T[h]);
+        zz <- Unwrap(z[h]);
+        k <- Unwrap(Z[not zz]);
+        return k;
+    }
+
     oracle GETBIT(h: Integer) -> Bool {
         assert (z[h] != None as Bool);
         zz <- Unwrap(z[h]);
         return zz;
-    }
-
-    oracle SET(h: Integer, k: Bits(n)) -> Integer {
-        assert (T[h] == None as Bits(n));
-        kk <-$ Bits(n);
-        T[h] <- Some(kk);
-        return h;
     }
 
     oracle SETBIT(h: Integer, zz:Bool) -> () {
