@@ -323,6 +323,7 @@ impl<'a> CompositionSmtWriter<'a> {
                     name,
                     args,
                     target_inst_name: Some(target),
+                    tipe: _
                 } => {
                     let smt_expr = SmtLet {
                         bindings: vec![(smt_to_string(SspSmtVar::ReturnValue), {

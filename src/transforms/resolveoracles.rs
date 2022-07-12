@@ -24,6 +24,7 @@ fn transform_helper_outer(table: &HashMap<String, String>, block: CodeBlock) -> 
                     opt_idx,
                     name,
                     args,
+                    tipe,
                     ..
                 } => {
                     if let Some(pkgname) = table.get(name) {
@@ -32,6 +33,7 @@ fn transform_helper_outer(table: &HashMap<String, String>, block: CodeBlock) -> 
                             opt_idx: opt_idx.clone(),
                             name: name.clone(),
                             args: args.clone(),
+                            tipe: tipe.clone(),
                             target_inst_name: Some(pkgname.clone()),
                         }
                     } else {

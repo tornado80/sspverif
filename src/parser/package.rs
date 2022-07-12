@@ -215,6 +215,7 @@ pub fn handle_code(code: Pair<Rule>) -> CodeBlock {
                             name: oracle_name.to_owned(),
                             args,
                             target_inst_name: None,
+                            tipe: None
                         }
                     }
                     Rule::parse => {

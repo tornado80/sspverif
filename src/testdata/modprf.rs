@@ -38,6 +38,7 @@ pub fn mod_prf(params: &HashMap<String, String>) -> PackageInstance {
                         name: "Get".into(),
                         args: vec![],
                         target_inst_name: None,
+                        tipe: None,
                     },
                     Statement::Return(Some(fncall! { "f",
                                                       Identifier::new_scalar("k").to_expression(),

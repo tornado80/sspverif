@@ -125,6 +125,7 @@ fn var_specify_helper(inst: &PackageInstance, block: CodeBlock, comp_name: &str)
                     name,
                     args,
                     target_inst_name,
+                    tipe,
                 } => {
                     let opt_idx = opt_idx.clone().map(|expr| expr.map(fixup));
                     let args = args.iter().map(|expr| expr.map(fixup)).collect();
@@ -135,6 +136,7 @@ fn var_specify_helper(inst: &PackageInstance, block: CodeBlock, comp_name: &str)
                             name: name.clone(),
                             args,
                             target_inst_name: target_inst_name.clone(),
+                            tipe: tipe.clone(),
                         }
                     } else {
                         unreachable!()

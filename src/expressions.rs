@@ -11,6 +11,7 @@ pub enum Expression {
     IntegerLiteral(String),
     BooleanLiteral(String),
     Identifier(Identifier),
+    EmptyTable,
     TableAccess(Identifier, Box<Expression>),
     Tuple(Vec<Expression>),
     List(Vec<Expression>),
