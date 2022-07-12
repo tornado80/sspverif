@@ -73,7 +73,7 @@ oracle_sig = { identifier ~ "(" ~ fn_maybe_arglist ~ ")" ~ ("->" ~ tipe)? }
 oracle_def = { kw_oracle ~ oracle_sig ~ "{" ~ code ~ "}" }
 
 
-identifier = @{ ( ASCII_ALPHA | "_" ) ~ ( ASCII_ALPHA | "_" )* }
+identifier = @{ ( ASCII_ALPHA | "_" ) ~ ( ASCII_ALPHA | ASCII_DIGIT | "_" )* }
 num = { ASCII_DIGIT+ }
 
 
