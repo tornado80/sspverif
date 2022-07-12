@@ -6,7 +6,6 @@ pub enum Type {
     String,
     Boolean,
     Bits(String), // Bits strings of length ...
-    Scalar(String),
     AddiGroupEl(String), // name of the group
     MultGroupEl(String), // name of the group
     List(Box<Type>),
@@ -23,9 +22,6 @@ impl Type {
         Type::Bits(length.to_string())
     }
 
-    pub fn new_scalar(name: &str) -> Type {
-        Type::Scalar(name.to_string())
-    }
 
     #[allow(dead_code)]
     pub fn new_list(t: &Type) -> Type {
