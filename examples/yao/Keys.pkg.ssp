@@ -12,23 +12,21 @@ package Key {
 
     oracle GETKEYSIN(h: Integer) -> Table(Bool,Bits(n)) {
         assert (z[h] != None as Bits(1));
-        flag <- aflag[h]*bflag[h];
-        assert (flag = 1);
+        assert bflag[h] and aflag[h];
         Z <- Unwrap(T[h]);
         return Z;
     }
 
     oracle GETKEYSOUT(h: Integer) -> Table(Bool,Bits(n)) {
         assert (z[h] != None as Bits(1));
-        flag <- aflag*bflag;
-        assert (flag = 1);
+        assert (bflag[h] and aflag[h]);
         Z <- Unwrap(T[h]);
         return Z;
     }
 
     oracle GETAOUT(h: Integer) -> Bits(n) {
-        aflag <-- 1;
-        assert (flag = 1);
+        aflag[h] <- true;
+        assert (aflag[h] or bflag[h]);
         Z <- Unwrap(T[h]);
         z <- Unwrap(T[h]);
         k <- Unwrap(Z[z]);
@@ -36,8 +34,8 @@ package Key {
     }
 
     oracle GETINAOUT(h: Integer) -> Table(Bool,Bits(n)) {
-        aflag <-- 1;
-        assert (flag = 1);
+        aflag[h] <- true;
+        assert (aflag[h] or bflag[h]);
         Z <- Unwrap(T[h]);
         z <- Unwrap(T[h]);
         k <- Unwrap(Z[not z]);

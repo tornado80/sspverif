@@ -2,16 +2,39 @@ composition Left
  {
 const n: Integer;
  
-instance key =
-        Key
+instance keys-top =
+        Keys
           {
           n: n,
           }
 
+instance keys-bottom =
+        Keys
+          {
+          n: n,
+          }
+
+instance gate =
+        Gate
+          {
+          n: n,
+        0^n: Bits(n),
+          }
+
 compose { 
      adversary:
-        { SET:  key,
-          GET:  key,
+        { GETAOUT:  keys-top,
+          SETBIT:  keys-top,
+          GBLG:  gate,
+          GETKEYSIN: keys-bottom,
+        },
+     gate:
+        { ENC:  enc,
+          GETKEYSOUT: keys-bottom,
+        },
+     enc:
+        { GETBIT: key-top,
+          GETKEYSIN: key-top,
         },
         }
  }
