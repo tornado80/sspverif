@@ -108,6 +108,7 @@ expr_div     = { "("  ~ expression ~ "/" ~ expression ~ ")" }
 expr_and     = { "("  ~ expression ~ ("and" ~ expression)* ~ ")" }
 expr_or      = { "("  ~ expression ~ ("or"  ~ expression)* ~ ")" }
 expr_xor     = { "("  ~ expression ~ ("xor" ~ expression)* ~ ")" }
+expr_not     = { "not" ~ expression }
 
 
 fn_call =  { identifier ~ "(" ~ fn_call_arglist? ~ ")" }
