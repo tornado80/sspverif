@@ -208,6 +208,13 @@ fn latex(args: &LaTeX) {
     let comp_map = parse_composition(&comp_list, &pkgs_map);
 
     for (name, comp) in comp_map {
+        let (comp, _, _) = match sspds::transforms::transform_explain(&comp) {
+            Ok(x) => x,
+            Err(e) => {
+                panic!("found an error in composition {}: {:?}", name, e)
+            }
+        };
+
         println!("{}", name);
         tex_write_composition(&comp, Path::new(&args.output));
     }
