@@ -5,7 +5,7 @@ use std::io::Write;
 use crate::package::{Composition, OracleDef, PackageInstance};
 use crate::statement::{CodeBlock,Statement};
 use crate::expressions::Expression;
-
+use crate::identifier::Identifier;
 
 /// TODO: Move to struct so we can have verbose versions (e.g. writing types to expressions)
 
@@ -32,11 +32,15 @@ impl <'a> BlockWriter<'a> {
     }
 
 
+    fn ident_to_tex(&self, ident: &Identifier) -> String {
+        format!("\\n{{{}}}", ident.ident().replace("_","\\_"))
+    }
+
     fn expression_to_tex(&self, expr: &Expression) -> String {
         match expr {
             Expression::Typed(_t, new_expr) => self.expression_to_tex(new_expr),
             Expression::Bot => format!("\\bot"),
-            Expression::Identifier(ident) => ident.ident(),
+            Expression::Identifier(ident) => self.ident_to_tex(&ident),
             Expression::Add(lhs,rhs) => format!("({} + {})",
                                     self.expression_to_tex(&*lhs),
                                     self.expression_to_tex(&*rhs)),
@@ -51,7 +55,7 @@ impl <'a> BlockWriter<'a> {
             }
             Expression::FnCall(name,args) => {
                 format!(
-                    "{}({})",
+                    "\\O{{{}}}({})",
                     name,
                     args.iter().map(|expr| self.expression_to_tex(expr)).collect::<Vec<_>>().join(", ")
                 )
@@ -79,14 +83,14 @@ impl <'a> BlockWriter<'a> {
             Statement::Assign(ident, None, expr) => {
                 writeln!(self.file, "{} {} \\gets {}\\\\",
                          genindentation(indentation),
-                         ident.ident(),
+                         self.ident_to_tex(&ident),
                          self.expression_to_tex(&expr)
                 )?;
             }
             Statement::Assign(ident, Some(idxexpr), expr) => {
                 writeln!(self.file, "{} {}[{}] \\gets {}\\\\",
                          genindentation(indentation),
-                         ident.ident(),
+                         self.ident_to_tex(&ident),
                          self.expression_to_tex(&idxexpr),
                          self.expression_to_tex(&expr)
                 )?;
@@ -95,7 +99,7 @@ impl <'a> BlockWriter<'a> {
                 writeln!(self.file, "{}\\pcparse {} \\pcas {}\\\\",
                          genindentation(indentation),
                          self.expression_to_tex(&expr),
-                         ids.iter().map(|ident| ident.ident()).collect::<Vec<_>>().join(", ")
+                         ids.iter().map(|ident| self.ident_to_tex(&ident)).collect::<Vec<_>>().join(", ")
                 )?;
             }
             Statement::IfThenElse(expr, ifcode, elsecode) => {
@@ -116,7 +120,7 @@ impl <'a> BlockWriter<'a> {
 
                 writeln!(self.file, "{}{} \\stackrel{{{}}}{{\\samples}} {:?}\\\\",
                          genindentation(indentation),
-                         ident.ident(),
+                         self.ident_to_tex(&ident),
                          cnt, tipe
                 )?;
             }
@@ -125,29 +129,29 @@ impl <'a> BlockWriter<'a> {
 
                 writeln!(self.file, "{}{}[{}] \\stackrel{{{}}}{{\\samples}} {:?}\\\\",
                          genindentation(indentation),
-                         ident.ident(),
+                         self.ident_to_tex(&ident),
                          self.expression_to_tex(&idxexpr),
                          cnt, tipe
                 )?;
             }
             Statement::InvokeOracle {id: ident, opt_idx: None, name, args, target_inst_name: Some(target_inst_name),tipe:_} => {
                 writeln!(self.file,
-                         "{}{} \\stackrel{{\\gets}}{{\\mathsf{{invoke}}}} {}({}) \\pccomment{{{:?}}} \\\\",
+                         "{}{} \\stackrel{{\\gets}}{{\\mathsf{{invoke}}}} {}({}) \\pccomment{{Pkg: {}}} \\\\",
                          genindentation(indentation),
-                         ident.ident(), name,
+                         self.ident_to_tex(&ident), name,
                          args.iter().map(|expr| self.expression_to_tex(expr)).collect::<Vec<_>>().join(", "),
-                         target_inst_name
+                         target_inst_name.replace("_","\\_")
                 )?;
             }
             Statement::InvokeOracle {id: ident, opt_idx: Some(idxexpr), name, args, target_inst_name: Some(target_inst_name),tipe:_} => {
                 writeln!(self.file,
-                         "{}{}[{}] \\stackrel{{\\gets}}{{\\mathsf{{invoke}}}} {}({}) \\pccomment{{{:?}}} \\\\",
+                         "{}{}[{}] \\stackrel{{\\gets}}{{\\mathsf{{invoke}}}} {}({}) \\pccomment{{Pkg: {}}} \\\\",
                          genindentation(indentation),
-                         ident.ident(),
+                         self.ident_to_tex(&ident),
                          self.expression_to_tex(&idxexpr),
                          name,
                          args.iter().map(|expr| self.expression_to_tex(expr)).collect::<Vec<_>>().join(", "),
-                         target_inst_name
+                         target_inst_name.replace("_","\\_")
                 )?;
             }
             Statement::InvokeOracle {target_inst_name: None, ..} => {
