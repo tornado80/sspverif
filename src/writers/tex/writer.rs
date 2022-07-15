@@ -41,9 +41,15 @@ impl <'a> BlockWriter<'a> {
             Expression::Typed(_t, new_expr) => self.expression_to_tex(new_expr),
             Expression::Bot => format!("\\bot"),
             Expression::Identifier(ident) => self.ident_to_tex(&ident),
+            Expression::Not(expr) => format!("\\neg {}", self.expression_to_tex(&expr)),
+            Expression::Unwrap(expr) => format!("\\O{{unwrap}}({})", self.expression_to_tex(&expr)),
+            Expression::Some(expr) => format!("\\O{{some}}({})", self.expression_to_tex(&expr)),
             Expression::Add(lhs,rhs) => format!("({} + {})",
                                     self.expression_to_tex(&*lhs),
-                                    self.expression_to_tex(&*rhs)),
+                                                self.expression_to_tex(&*rhs)),
+            Expression::TableAccess(ident, expr) => format!("{}[{}]",
+                                                            self.ident_to_tex(ident),
+                                                            self.expression_to_tex(expr)),
             Expression::Equals(exprs) => {
                 exprs.iter().map(|expr| self.expression_to_tex(expr)).collect::<Vec<_>>().join(" = ")
             }
@@ -118,7 +124,7 @@ impl <'a> BlockWriter<'a> {
             Statement::Sample(ident, None, maybecnt, tipe) => {
                 let cnt = maybecnt.expect("Expected samplified input");
 
-                writeln!(self.file, "{}{} \\stackrel{{{}}}{{\\samples}} {:?}\\\\",
+                writeln!(self.file, "{}{} \\stackrel{{{}}}{{\\sample}} {:?}\\\\",
                          genindentation(indentation),
                          self.ident_to_tex(&ident),
                          cnt, tipe
@@ -136,7 +142,7 @@ impl <'a> BlockWriter<'a> {
             }
             Statement::InvokeOracle {id: ident, opt_idx: None, name, args, target_inst_name: Some(target_inst_name),tipe:_} => {
                 writeln!(self.file,
-                         "{}{} \\stackrel{{\\gets}}{{\\mathsf{{invoke}}}} {}({}) \\pccomment{{Pkg: {}}} \\\\",
+                         "{}{} \\stackrel{{\\gets}}{{\\mathsf{{\\tiny{{invoke}}}}}} {}({}) \\pccomment{{Pkg: {}}} \\\\",
                          genindentation(indentation),
                          self.ident_to_tex(&ident), name,
                          args.iter().map(|expr| self.expression_to_tex(expr)).collect::<Vec<_>>().join(", "),
@@ -145,7 +151,7 @@ impl <'a> BlockWriter<'a> {
             }
             Statement::InvokeOracle {id: ident, opt_idx: Some(idxexpr), name, args, target_inst_name: Some(target_inst_name),tipe:_} => {
                 writeln!(self.file,
-                         "{}{}[{}] \\stackrel{{\\gets}}{{\\mathsf{{invoke}}}} {}({}) \\pccomment{{Pkg: {}}} \\\\",
+                         "{}{}[{}] \\stackrel{{\\gets}}{{\\mathsf{{\\tiny invoke}}}} {}({}) \\pccomment{{Pkg: {}}} \\\\",
                          genindentation(indentation),
                          self.ident_to_tex(&ident),
                          self.expression_to_tex(&idxexpr),
@@ -170,9 +176,9 @@ impl <'a> BlockWriter<'a> {
 
 }
 
-pub fn tex_write_oracle(oracle: &OracleDef, pkgname: &str, target: &Path) -> std::io::Result<()> {
+pub fn tex_write_oracle(oracle: &OracleDef, pkgname: &str, target: &Path) -> std::io::Result<String> {
     let fname = target.join(format!("{}_{}.tex", pkgname, oracle.sig.name));
-    let mut file = File::create(fname)?;
+    let mut file = File::create(fname.clone())?;
     let mut writer = BlockWriter::new(&mut file);
 
     writeln!(writer.file, "\\procedure{{\\O{{{}}}({})}}{{",
@@ -184,19 +190,41 @@ pub fn tex_write_oracle(oracle: &OracleDef, pkgname: &str, target: &Path) -> std
     writer.write_codeblock(codeblock, 0)?;
 
     writeln!(writer.file, "}}")?;
-    Ok(())
+    Ok(fname.to_str().unwrap().to_string())
 }
 
-pub fn tex_write_package(package: &PackageInstance, target: &Path) -> std::io::Result<()> {
+pub fn tex_write_package(package: &PackageInstance, target: &Path) -> std::io::Result<String> {
+    let fname = target.join(format!("{}.tex", package.name));
+    let mut file = File::create(fname.clone())?;
+
+    writeln!(file, "\\begin{{pcvstack}}\\underline{{\\underline{{\\M{{{}}}}}}}\\\\\\begin{{pchstack}}", package.name.replace("_","\\_"))?;
+    
     for oracle in &package.pkg.oracles {
-        tex_write_oracle(oracle, &package.name, target)?
+        let oraclefname = tex_write_oracle(oracle, &package.name, target)?;
+        writeln!(file, "\\input{{{}}}\\pchspace", oraclefname)?;
     }
-    Ok(())
+    writeln!(file, "\\end{{pchstack}}\\end{{pcvstack}}")?;
+    
+    Ok(fname.to_str().unwrap().to_string())
 }
 
-pub fn tex_write_composition(composition: &Composition, target: &Path) -> std::io::Result<()> {
+pub fn tex_write_composition(composition: &Composition, name: &str, target: &Path) -> std::io::Result<()> {
+    let fname = target.join(format!("Composition_{}.tex", name));
+    let mut file = File::create(fname)?;
+
+    writeln!(file, "\\documentclass[a4paper]{{article}}")?;
+    writeln!(file, "\\usepackage[operators]{{cryptocode}}")?;
+    writeln!(file, "\\renewcommand\\O[1]{{\\ensuremath{{\\mathsf{{#1}}}}}}")?;
+    writeln!(file, "\\newcommand{{\\M}}[1]{{\\ensuremath{{\\text{{\\texttt{{#1}}}}}}}}")?;
+    writeln!(file, "\\newcommand{{\\n}}[1]{{\\ensuremath{{\\mathit{{#1}}}}}}")?;
+    writeln!(file, "\\begin{{document}}")?;
+
     for pkg in &composition.pkgs {
-        tex_write_package(pkg, target)?
+        let pkgfname = tex_write_package(pkg, target)?;
+        writeln!(file, "\\input{{{}}}", pkgfname)?;
     }
+
+    writeln!(file, "\\end{{document}}")?;
+    
     Ok(())
 }

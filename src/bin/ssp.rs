@@ -216,7 +216,7 @@ fn latex(args: &LaTeX) {
         };
 
         println!("{}", name);
-        tex_write_composition(&comp, Path::new(&args.output));
+        tex_write_composition(&comp, &name, Path::new(&args.output));
     }
 }
 
