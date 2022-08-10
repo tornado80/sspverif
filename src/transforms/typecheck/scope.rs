@@ -1,11 +1,14 @@
 use super::errors::ScopeError;
 use crate::identifier::Identifier;
 use crate::types::Type;
-use std::collections::HashMap;
+use std::collections::{HashMap,HashSet};
 
 // TODO
 #[derive(Debug, Clone)]
-pub struct Scope(Vec<HashMap<Identifier, Type>>);
+pub struct Scope{
+    entries: Vec<HashMap<Identifier, Type>>,
+    types: HashSet<Type>,
+}
 
 impl Default for Scope {
     fn default() -> Self {
@@ -15,30 +18,35 @@ impl Default for Scope {
 
 impl Scope {
     pub fn new() -> Scope {
-        Scope(vec![])
+        Scope{entries: vec![], types: HashSet::new()}
     }
 
     pub fn enter(&mut self) {
-        self.0.push(HashMap::new())
+        self.entries.push(HashMap::new())
     }
 
     pub fn leave(&mut self) {
-        if !self.0.is_empty() {
-            self.0.pop();
+        if !self.entries.is_empty() {
+            self.entries.pop();
         } else {
             panic!("scope leave: scope stack is empty");
         }
     }
 
+    pub fn known_types(&self) -> HashSet<Type> {
+        self.types.clone()
+    }
+    
     /* Error conditions:
      *  - No scope at all
      *  - Identifier exists somewhere in the scope tower already
      */
     pub fn declare(&mut self, id: Identifier, t: Type) -> Result<(), ScopeError> {
+        self.types.insert(t.clone());
         //let bt = Backtrace::capture();
         //println!("declaring: {:?} {:?} {}", id, t, bt);
         if self.lookup(&id) == None {
-            if let Some(last) = self.0.last_mut() {
+            if let Some(last) = self.entries.last_mut() {
                 last.insert(id, t);
                 Ok(())
             } else {
@@ -50,7 +58,7 @@ impl Scope {
     }
 
     pub fn lookup(&self, id: &Identifier) -> Option<Type> {
-        for table in self.0.clone().into_iter().rev() {
+        for table in self.entries.clone().into_iter().rev() {
             if let Some(t) = table.get(id) {
                 return Some(t.clone());
             }

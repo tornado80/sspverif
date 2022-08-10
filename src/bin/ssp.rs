@@ -1,6 +1,9 @@
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
+use std::collections::HashSet;
+
+use sspds::types::Type;
 
 use clap::{Parser, Subcommand};
 
@@ -146,25 +149,35 @@ fn smt(name: &str) {
     let (pkgs_list, comp_list) = read_directory(name);
     let (pkgs_map, _pkgs_filenames) = parse_packages(&pkgs_list);
     let comp_map = parse_composition(&comp_list, &pkgs_map);
+    let mut declared_types = HashSet::new();
 
     let mut w = std::io::stdout();
 
     hacks::declare_par_Maybe(&mut w);
     hacks::declare_Tuple(&mut w, 2);
-    println!("(declare-sort Bits_n 0)");
-    println!("(declare-sort Bits_* 0)");
     println!("(declare-fun f (Bits_n Bits_n) Bits_n)");
 
     for (name, comp) in comp_map {
         println!("; {}", name);
 
         //println!("{:#?}", comp);
-        let (comp, _, samp) = match sspds::transforms::transform_all(&comp) {
+        let (comp, scope, samp) = match sspds::transforms::transform_all(&comp) {
             Ok(x) => x,
             Err(e) => {
                 panic!("found an error in composition {}: {:?}", name, e)
             }
         };
+        for tipe in scope.known_types().difference(&declared_types) {
+            match tipe {
+                Type::Bits(len) => {
+                    println!("(declare-sort Bits_{} 0)", len);
+                    println!("(declare-const zero_bits_{} Bits_{})", len, len);
+                }
+                _ => {}
+            }
+        }
+        declared_types.extend(scope.known_types());
+
         let mut writer = CompositionSmtWriter::new(&comp, samp);
         for line in writer.smt_composition_all() {
             line.write_smt_to(&mut std::io::stdout()).unwrap();
@@ -195,8 +208,15 @@ fn latex(args: &LaTeX) {
     let comp_map = parse_composition(&comp_list, &pkgs_map);
 
     for (name, comp) in comp_map {
+        let (comp, _, _) = match sspds::transforms::transform_explain(&comp) {
+            Ok(x) => x,
+            Err(e) => {
+                panic!("found an error in composition {}: {:?}", name, e)
+            }
+        };
+
         println!("{}", name);
-        tex_write_composition(&comp, Path::new(&args.output));
+        tex_write_composition(&comp, &name, Path::new(&args.output));
     }
 }
 
