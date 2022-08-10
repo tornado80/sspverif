@@ -1,14 +1,21 @@
 composition Left
  {
 const n: Integer;
- 
-instance keys-top =
+const m: Integer;
+const p: Integer;
+const zeron: Bits(n);
+const zerom: Bits(m);
+const encn: fn Bits(n),Bits(n),Bits(n) -> Bits(m);
+const encm: fn Bits(n),Bits(m),Bits(n) -> Bits(p);
+
+
+instance keys_top =
         Keys
           {
           n: n,
           }
 
-instance keys-bottom =
+instance keys_bottom =
         Keys
           {
           n: n,
@@ -18,23 +25,38 @@ instance gate =
         Gate
           {
           n: n,
-        0^n: Bits(n),
+          m: m,
+          p: p,
+          zeron: zeron,
           }
+
+instance enc =
+        Enc0
+          {
+          n: n,
+          m: m,
+          p: p,
+          zeron: zeron,
+          zerom: zerom,
+          encn: encn,
+          encm: encm,
+          }
+
 
 compose { 
      adversary:
-        { GETAOUT:  keys-top,
-          SETBIT:  keys-top,
+        { GETAOUT:  keys_top,
+          SETBIT:  keys_top,
           GBLG:  gate,
-          GETKEYSIN: keys-bottom,
+          GETKEYSIN: keys_bottom,
         },
      gate:
         { ENC:  enc,
-          GETKEYSOUT: keys-bottom,
+          GETKEYSOUT: keys_bottom,
         },
      enc:
-        { GETBIT: key-top,
-          GETKEYSIN: key-top,
+        { GETBIT: keys_top,
+          GETKEYSIN: keys_top,
         },
         }
  }

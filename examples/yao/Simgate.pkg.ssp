@@ -24,10 +24,9 @@ package Simgate {
            kl <- Sl[dl];
            kr <- Sr[dr];
            if ((not dl) and (not dr))
-              {kj <- Sj[false]}
-           else {kj <- zeron}
-           rin <-* Bits(n);
-           rout <-* Bits(n);
+              {kj <- Sj[false];}
+           rin <-$ Bits(n);
+           rout <-$ Bits(n);
            cin  <- encn(kr,kj,rin);
            cout  <- encm(kl,cin,rout);
            C[cout] <- true;
@@ -36,34 +35,33 @@ package Simgate {
            kl <- Sl[dl];
            kr <- Sr[dr];
            if ((not dl) and (not dr))
-              {kj <- Sj[false]}
-           else {kj <- zeron}
-           rin <-* Bits(n);
-           rout <-* Bits(n);
+              {kj <- Sj[false];}
+           rin <-$ Bits(n);
+           rout <-$ Bits(n);
            cin  <- encn(kr,kj,rin);
            cout  <- encm(kl,cin,rout);
            C[cout] <- true;
-        dl <- 0;
-        dr <- 1;
+        dl <- false;
+        dr <- true;
            kl <- Sl[dl];
            kr <- Sr[dr];
            if ((not dl) and (not dr))
-              {kj <- Sj[false]}
-           else {kj <- zeron}
-           rin <-* Bits(n);
-           rout <-* Bits(n);
+              {kj <- Sj[false];}
+           else {kj <- zeron;}
+           rin <-$ Bits(n);
+           rout <-$ Bits(n);
            cin  <- encn(kr,kj,rin);
            cout  <- encm(kl,cin,rout);
            C[cout] <- true;
-        dl <- 1;
-        dr <- 1;
+        dl <- true;
+        dr <- true;
            kl <- Sl[dl];
            kr <- Sr[dr];
            if ((not dl) and (not dr))
-              {kj <- Sj[false]}
-           else {kj <- zeron}
-           rin <-* Bits(n);
-           rout <-* Bits(n);
+              {kj <- Sj[false];}
+           else {kj <- zeron;}
+           rin <-$ Bits(n);
+           rout <-$ Bits(n);
            cin  <- encn(kr,kj,rin);
            cout  <- encm(kl,cin,rout);
            C[cout] <- true;

@@ -1,0 +1,37 @@
+package EV {
+    params {
+        n: Integer,
+        m: Integer,
+        p: Integer,
+        encn: fn Bits(n),Bits(n),Bits(n) -> Bits(m),
+        encm: fn Bits(n),Bits(m),Bits(n) -> Bits(p),
+        zeron: Bits(n),
+        zerom: Bits(m),
+    }
+
+    state {
+    }
+
+    oracle ENC(d: Bool, mzero: Bits(n), mone: Bits(n)) -> Bits(m) {
+        K <- invoke GETKEYS();
+        z <- invoke GETBIT();
+        r <-$ Bits(n);
+        if (b==z)
+        {c <- encn(K[z],mzero,r);}
+        else
+        {c <- encn(K[z],mone,r);}
+        return c;
+    }
+
+    oracle ENC(d: Bool, mzero: Bits(m), mone: Bits(m)) -> Bits(p) {
+        K <- invoke GETKEYS();
+        z <- invoke GETBIT();
+        r <-$ Bits(n);
+        if (b==z)
+        {c <- encm(K[z],mzero,r);}
+        else
+        {c <- encm(K[z],mone,r);}
+        return c;
+    }
+
+}
