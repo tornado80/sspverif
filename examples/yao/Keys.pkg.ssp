@@ -12,7 +12,7 @@ package Keys {
 
     oracle GETKEYSIN(h: Integer) -> Table(Bool,Bits(n)) {
         assert (z[h] != None as Bool);
-        assert (bflag[h] and aflag[h]);
+        assert (bflag[h] or aflag[h]);
         Z <- Unwrap(T[h]);
         return Z;
     }
@@ -66,10 +66,10 @@ package Keys {
         return zz;
     }
 
-    oracle SETBIT(h: Integer, zz:Bool) -> Bool {
+    oracle SETBIT(h: Integer, zz:Bool) -> () {
         assert (z[h] == None as Bool);
         z[h] <- zz;
-        return zz;
+        return ;
     }
 
 }

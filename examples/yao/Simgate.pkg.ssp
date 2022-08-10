@@ -5,37 +5,39 @@ package Simgate {
         p: Integer,
         encn: fn Bits(n),Bits(n),Bits(n) -> Bits(m),
         encm: fn Bits(n),Bits(m),Bits(n) -> Bits(p),
+        zeron: Bits(n),
+        zerom: Bits(m),
     }
 
     state {
     }
 
-    oracle GBLG(h: Integer, l: Integer, r: Integer, op: fn (Bool,Bool) -> Bool, j: Integer) -> Set) {
-        EVAL(j,l,r,op);
-        Sl[0] <- invoke GETAOUT(l);
-        Sl[1] <- invoke GETINAOUT(l);
-        Sr[0] <- invoke GETAOUT(r);
-        Sr[1] <- invoke GETINAOUT(r);
-        Sj[0] <- invoke GETAIN(j);
-        dl <- 0;
-        dr <- 0;
+    oracle GBLG(h: Integer, l: Integer, r: Integer, op: fn (Bool,Bool) -> Bool, j: Integer) -> Table(Bits(p),Bool) {
+        _ <- invoke EVAL(j,l,r,op);
+        Sl[true] <- invoke GETAOUT(l);
+        Sl[false] <- invoke GETINAOUT(l);
+        Sr[true] <- invoke GETAOUT(r);
+        Sr[true] <- invoke GETINAOUT(r);
+        Sj[false] <- invoke GETAIN(j);
+        dl <- false;
+        dr <- false;
            kl <- Sl[dl];
            kr <- Sr[dr];
-           if ((not dl) and (not dr)):
-              kj <- Sj[0];
-           else kj <- 0^n
+           if ((not dl) and (not dr))
+              {kj <- Sj[false]}
+           else {kj <- zeron}
            rin <-* Bits(n);
            rout <-* Bits(n);
            cin  <- encn(kr,kj,rin);
            cout  <- encm(kl,cin,rout);
            C[cout] <- true;
-        dl <- 1;
-        dr <- 0;
+        dl <- true;
+        dr <- false;
            kl <- Sl[dl];
            kr <- Sr[dr];
-           if dl=dr=false:
-              kj <- Sj[0];
-           else kj <- 0^n
+           if ((not dl) and (not dr))
+              {kj <- Sj[false]}
+           else {kj <- zeron}
            rin <-* Bits(n);
            rout <-* Bits(n);
            cin  <- encn(kr,kj,rin);
@@ -45,9 +47,9 @@ package Simgate {
         dr <- 1;
            kl <- Sl[dl];
            kr <- Sr[dr];
-           if dl=dr=0:
-              kj <- Sj[0];
-           else kj <- 0^n
+           if ((not dl) and (not dr))
+              {kj <- Sj[false]}
+           else {kj <- zeron}
            rin <-* Bits(n);
            rout <-* Bits(n);
            cin  <- encn(kr,kj,rin);
@@ -57,9 +59,9 @@ package Simgate {
         dr <- 1;
            kl <- Sl[dl];
            kr <- Sr[dr];
-           if dl=dr=0:
-              kj <- Sj[0];
-           else kj <- 0^n
+           if ((not dl) and (not dr))
+              {kj <- Sj[false]}
+           else {kj <- zeron}
            rin <-* Bits(n);
            rout <-* Bits(n);
            cin  <- encn(kr,kj,rin);
