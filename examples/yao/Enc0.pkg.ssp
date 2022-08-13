@@ -12,19 +12,17 @@ package Enc0 {
     state {
     }
 
-    oracle ENC(d: Bool, mzero: Bits(n), mone: Bits(n)) -> Bits(m) {
-        K <- invoke GETKEYS();
-        z <- invoke GETBIT();
+    oracle ENCN(j: Integer,d: Bool, mzero: Bits(n), mone: Bits(n)) -> Bits(m) {
+        K <- invoke GETKEYS(j);
         r <-$ Bits(n);
-        c <- encn(K[z],mzero,r);
+        c <- encn(K[d],mzero,r);
         return c;
     }
 
-    oracle ENC(d: Bool, mzero: Bits(m), mone: Bits(m)) -> Bits(p) {
-        K <- invoke GETKEYS();
-        z <- invoke GETBIT();
+    oracle ENCM(j: Integer,d: Bool, mzero: Bits(m), mone: Bits(m)) -> Bits(p) {
+        K <- invoke GETKEYS(j);
         r <-$ Bits(n);
-        c <- encm(K[z],mzero,r);
+        c <- encm(K[d],mzero,r);
         return c;
     }
 
