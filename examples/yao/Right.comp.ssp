@@ -49,7 +49,7 @@ compose {
         { GETAIN:  keys_top,
           GETINAIN:  keys_top,
           EVAL:  ev,
-          GETAOUT:  keys-bottom,
+          GETAOUT:  keys_bottom,
         },
      ev:
         { GETBIT:  keys_top,
