@@ -219,6 +219,8 @@ pub fn tex_write_composition(composition: &Composition, name: &str, target: &Pat
     writeln!(file, "\\newcommand{{\\M}}[1]{{\\ensuremath{{\\text{{\\texttt{{#1}}}}}}}}")?;
     writeln!(file, "\\newcommand{{\\n}}[1]{{\\ensuremath{{\\mathit{{#1}}}}}}")?;
     writeln!(file, "\\begin{{document}}")?;
+    writeln!(file, "\\tikzstyle{{package}} = [inner sep=1pt,align=center,rounded corners,draw,minimum width=2cm,minimum height=1cm,font=\\small]");
+    writeln!(file, "\\tikzstyle{{onarrow}} = [inner sep=1pt,font=\\scriptsize,anchor=east,at end,xshift=-0.1mm,align=left,fill=white]");
 
 
     let mut printed = Vec::new();
@@ -235,13 +237,13 @@ pub fn tex_write_composition(composition: &Composition, name: &str, target: &Pat
             }
 
             if ! composition.edges.iter().any(|Edge(from, to, oracle)| { i == *from && ! printed.contains(to) }) {
-                writeln!(file, "\\node[draw] (node{}) at ({}, {}) {{{}}};", i, tikzx, tikzy, composition.pkgs[i].name.replace("_","\\_"))?;
+                writeln!(file, "\\node[package] (node{}) at ({}, {}) {{\\M{{{}}}}};", i, tikzx, tikzy, composition.pkgs[i].name.replace("_","\\_"))?;
                 newly.push(i);
                 tikzy -= 2;
 
                 for Edge(from, to, oracle) in &composition.edges {
                     if i == *from {
-                        writeln!(file, "\\draw[-latex,rounded corners] (node{}) -- ($(node{}.east) + (1,0)$) |- node[near end,fill=white] {{{}}} (node{});", from, from, oracle.name, to)?;
+                        writeln!(file, "\\draw[-latex,rounded corners] (node{}) -- ($(node{}.east) + (1,0)$) |- node[onarrow] {{\\O{{{}}}}} (node{});", from, from, oracle.name, to)?;
                     }
                 }
             }
