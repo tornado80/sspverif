@@ -51,12 +51,12 @@ compose {
           GETKEYSIN: keys_bottom,
         },
      gate:
-        { ENC:  enc,
+        { ENCN:  enc,
+          ENCM:  enc,
           GETKEYSOUT: keys_bottom,
         },
      enc:
-        { GETBIT: keys_top,
-          GETKEYSIN: keys_top,
+        { GETKEYSIN: keys_top,
         },
         }
  }
