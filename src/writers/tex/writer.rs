@@ -2,7 +2,7 @@ use std::fs::File;
 use std::path::Path;
 use std::io::Write;
 
-use crate::package::{Composition, OracleDef, PackageInstance};
+use crate::package::{Composition, OracleDef, PackageInstance, Edge};
 use crate::statement::{CodeBlock,Statement};
 use crate::expressions::Expression;
 use crate::identifier::Identifier;
@@ -198,13 +198,13 @@ pub fn tex_write_package(package: &PackageInstance, target: &Path) -> std::io::R
     let mut file = File::create(fname.clone())?;
 
     writeln!(file, "\\begin{{pcvstack}}\\underline{{\\underline{{\\M{{{}}}}}}}\\\\\\begin{{pchstack}}", package.name.replace("_","\\_"))?;
-    
+
     for oracle in &package.pkg.oracles {
         let oraclefname = tex_write_oracle(oracle, &package.name, target)?;
         writeln!(file, "\\input{{{}}}\\pchspace", oraclefname)?;
     }
     writeln!(file, "\\end{{pchstack}}\\end{{pcvstack}}")?;
-    
+
     Ok(fname.to_str().unwrap().to_string())
 }
 
@@ -214,17 +214,53 @@ pub fn tex_write_composition(composition: &Composition, name: &str, target: &Pat
 
     writeln!(file, "\\documentclass[a4paper]{{article}}")?;
     writeln!(file, "\\usepackage[operators]{{cryptocode}}")?;
+    writeln!(file, "\\usepackage{{tikz}}")?;
     writeln!(file, "\\renewcommand\\O[1]{{\\ensuremath{{\\mathsf{{#1}}}}}}")?;
     writeln!(file, "\\newcommand{{\\M}}[1]{{\\ensuremath{{\\text{{\\texttt{{#1}}}}}}}}")?;
     writeln!(file, "\\newcommand{{\\n}}[1]{{\\ensuremath{{\\mathit{{#1}}}}}}")?;
     writeln!(file, "\\begin{{document}}")?;
+
+
+    let mut printed = Vec::new();
+    let mut newly = Vec::new();
+
+    let mut tikzx = 0;
+    let mut tikzy = 0;
+
+    writeln!(file, "\\begin{{tikzpicture}}")?;
+    while printed.len() < composition.pkgs.len() {
+        for i in 0..composition.pkgs.len() {
+            if printed.contains(&i) {
+                continue;
+            }
+
+            if ! composition.edges.iter().any(|Edge(from, to, oracle)| { i == *from && ! printed.contains(to) }) {
+                writeln!(file, "\\node[draw] (node{}) at ({}, {}) {{{}}};", i, tikzx, tikzy, composition.pkgs[i].name.replace("_","\\_"))?;
+                newly.push(i);
+                tikzy -= 2;
+
+                for Edge(from, to, oracle) in &composition.edges {
+                    if i == *from {
+                        writeln!(file, "\\draw[-latex,rounded corners] (node{}) -- ($(node{}.east) + (1,0)$) |- node[near end,fill=white] {{{}}} (node{});", from, from, oracle.name, to)?;
+                    }
+                }
+            }
+        }
+        printed.append(&mut newly);
+        tikzx -= 5;
+        tikzy = 0;
+    }
+    writeln!(file, "\\end{{tikzpicture}}")?;
+
 
     for pkg in &composition.pkgs {
         let pkgfname = tex_write_package(pkg, target)?;
         writeln!(file, "\\input{{{}}}", pkgfname)?;
     }
 
+
+
     writeln!(file, "\\end{{document}}")?;
-    
+
     Ok(())
 }
