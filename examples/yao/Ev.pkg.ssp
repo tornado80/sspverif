@@ -7,14 +7,11 @@ package Ev {
     }
 
     oracle EVAL(j: Integer,l: Integer,r: Integer,op: fn (Bool,Bool) -> Bool) -> Bits(m) {
-        K <- invoke GETKEYS();
-        z <- invoke GETBIT();
-        r <-$ Bits(n);
-        if (b==z)
-        {c <- encn(K[z],mzero,r);}
-        else
-        {c <- encn(K[z],mone,r);}
-        return c;
+        zl <- invoke GETBIT(l);
+        zr <- invoke GETBIT(r);
+        z <- op(zl,zr);
+        _ <- invoke SETBIT(j,z);
+        return ;
     }
 
 }
