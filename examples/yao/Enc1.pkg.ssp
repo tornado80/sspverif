@@ -9,12 +9,17 @@ package Enc1 {
         zerom: Bits(m),
     }
 
+   import oracles {
+        GETKEYSIN(h: Integer) -> Table(Bool,Bits(n)),
+        GETBIT(h: Integer) -> Bool,
+    }
+
     state {
     }
 
-    oracle ENC(d: Bool, mzero: Bits(n), mone: Bits(n)) -> Bits(m) {
-        K <- invoke GETKEYS();
-        z <- invoke GETBIT();
+    oracle ENCN(j: Integer,d: Bool, mzero: Bits(n), mone: Bits(n)) -> Bits(m) {
+        K <- invoke GETKEYS(j);
+        z <- invoke GETBIT(j);
         r <-$ Bits(n);
         if (b==z)
         {c <- encn(K[z],mzero,r);}
@@ -23,9 +28,9 @@ package Enc1 {
         return c;
     }
 
-    oracle ENC(d: Bool, mzero: Bits(m), mone: Bits(m)) -> Bits(p) {
-        K <- invoke GETKEYS();
-        z <- invoke GETBIT();
+    oracle ENCM(j: Integer,d: Bool, mzero: Bits(m), mone: Bits(m)) -> Bits(p) {
+        K <- invoke GETKEYS(j);
+        z <- invoke GETBIT(j);
         r <-$ Bits(n);
         if (b==z)
         {c <- encm(K[z],mzero,r);}

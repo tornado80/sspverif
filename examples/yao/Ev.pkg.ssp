@@ -6,6 +6,12 @@ package Ev {
     state {
     }
 
+        import oracles {
+        GETBIT(h: Integer) -> Bool,
+        SETBIT(h: Integer, zz:Bool) -> (),
+    }
+
+
     oracle EVAL(j: Integer,l: Integer,r: Integer,op: fn (Bool,Bool) -> Bool) -> () {
         zl <- invoke GETBIT(l);
         zr <- invoke GETBIT(r);

@@ -12,13 +12,21 @@ package Simgate {
     state {
     }
 
+       import oracles {
+        GETAIN(h: Integer) -> Bits(n),
+        GETINAIN(h: Integer) -> Bits(n),
+        EVAL(j: Integer,l: Integer,r: Integer,op: fn (Bool,Bool) -> Bool) -> (),
+        GETAOUT(h: Integer) -> Bits(n),
+    }
+
+
     oracle GBLG(h: Integer, l: Integer, r: Integer, op: fn (Bool,Bool) -> Bool, j: Integer) -> Table(Bits(p),Bool) {
         _ <- invoke EVAL(j,l,r,op);
-        Sl[true] <- invoke GETAOUT(l);
-        Sl[false] <- invoke GETINAOUT(l);
-        Sr[true] <- invoke GETAOUT(r);
-        Sr[true] <- invoke GETINAOUT(r);
-        Sj[false] <- invoke GETAIN(j);
+        Sl[true] <- invoke GETAIN(l);
+        Sl[false] <- invoke GETINAIN(l);
+        Sr[true] <- invoke GETAIN(r);
+        Sr[true] <- invoke GETINAIN(r);
+        Sj[false] <- invoke GETAOUT(j);
         dl <- false;
         dr <- false;
            kl <- Sl[dl];

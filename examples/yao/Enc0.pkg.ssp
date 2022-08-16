@@ -9,6 +9,10 @@ package Enc0 {
         zerom: Bits(m),
     }
 
+    import oracles {
+        GETKEYSIN(h: Integer) -> Table(Bool,Bits(n)),
+    }
+
     state {
     }
 

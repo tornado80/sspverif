@@ -9,13 +9,19 @@ package Gate {
     state {
     }
 
+   import oracles {
+        GETKEYSOUT(h: Integer) -> Table(Bool,Bits(n)),
+        ENCN(j: Integer,d: Bool, mzero: Bits(n), mone: Bits(n)) -> Bits(m),
+        ENCM(j: Integer,d: Bool, mzero: Bits(m), mone: Bits(m)) -> Bits(p),
+    }
+
     oracle GBLG(h: Integer, l: Integer, r: Integer, op: fn (Bool,Bool) -> Bool, j: Integer) -> Table(Bits(p),Bool) {
         C <- emptyset;
         Z <- invoke GETKEYSOUT(j);
         bl <- false;
         br <- false;
            bj <- op(bl,br);
-           kzero <- Z[bj];
+           kzero <- Unwrap(Z[bj]);
            czeroin  <- invoke ENCN(l,bl,kzero,zeron);
            conein  <- invoke ENCN(l,bl,zeron,zeron);
            cout  <- invoke ENCM(r,br,conein,czeroin);
@@ -23,7 +29,7 @@ package Gate {
         bl <- true;
         br <- false;
            bj <- op(bl,br);
-           kzero <- Z[bj];
+           kzero <- Unwrap(Z[bj]);
            czeroin  <- invoke ENCN(l,bl,kzero,zeron);
            conein  <- invoke ENCN(l,bl,zeron,zeron);
            cout  <- invoke ENCM(r,br,conein,czeroin);
@@ -31,7 +37,7 @@ package Gate {
         bl <- false;
         br <- true;
            bj <- op(bl,br);
-           kzero <- Z[bj];
+           kzero <- Unwrap(Z[bj]);
            czeroin  <- invoke ENCN(l,bl,kzero,zeron);
            conein  <- invoke ENCN(l,bl,zeron,zeron);
            cout  <- invoke ENCM(r,br,conein,czeroin);
@@ -39,7 +45,7 @@ package Gate {
         bl <- true;
         br <- true;
            bj <- op(bl,br);
-           kzero <- Z[bj];
+           kzero <- Unwrap(Z[bj]);
            czeroin  <- invoke ENCN(l,bl,kzero,zeron);
            conein  <- invoke ENCN(l,bl,zeron,zeron);
            cout  <- invoke ENCM(r,br,conein,czeroin);
