@@ -12,7 +12,7 @@ package Ev {
     }
 
 
-    oracle EVAL(j: Integer,l: Integer,r: Integer,op: fn (Bool,Bool) -> Bool) -> () {
+    oracle EVAL(j: Integer,l: Integer,r: Integer,op: fn Bool,Bool -> Bool) -> () {
         zl <- invoke GETBIT(l);
         zr <- invoke GETBIT(r);
         z <- op(zl,zr);
