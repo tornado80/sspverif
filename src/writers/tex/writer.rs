@@ -249,8 +249,8 @@ pub fn tex_write_composition(composition: &Composition, name: &str, target: &Pat
             }
         }
         printed.append(&mut newly);
-        tikzx -= 5;
-        tikzy = 0;
+        tikzx -= 4;
+        tikzy = tikzx/4;
     }
     writeln!(file, "\\end{{tikzpicture}}")?;
 
