@@ -16,7 +16,7 @@ package Gate {
     }
 
     oracle GBLG(h: Integer, l: Integer, r: Integer, op: fn (Bool,Bool) -> Bool, j: Integer) -> Table(Bits(p),Bool) {
-        C <- emptyset;
+        C <- emptyset as Integer;
         Z <- invoke GETKEYSOUT(j);
         bl <- false;
         br <- false;

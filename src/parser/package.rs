@@ -129,6 +129,18 @@ pub fn handle_expression(expr: Pair<Rule>) -> Expression {
             Expression::FnCall(ident.to_string(), args)
         }
         Rule::identifier => Identifier::new_scalar(expr.as_str()).to_expression(),
+        Rule::literal_boolean => {
+            let litval = expr.as_str().to_string();
+            Expression::BooleanLiteral("test".to_string())
+        }
+        Rule::literal_integer => {
+            let litval = expr.as_str().to_string();
+            Expression::IntegerLiteral(litval)
+        }
+        Rule::literal_emptyset => {
+            let tipe = handle_type(expr.into_inner().next().unwrap());
+            Expression::Typed(Type::Set(Box::new(tipe)), Box::new(Expression::Set(vec![])))
+        }
         Rule::expr_tuple => Expression::Tuple(expr.into_inner().map(handle_expression).collect()),
         Rule::expr_list => Expression::List(expr.into_inner().map(handle_expression).collect()),
         Rule::expr_set => Expression::Set(expr.into_inner().map(handle_expression).collect()),
