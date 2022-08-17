@@ -14,6 +14,7 @@ pub fn get_type(expr: &Expression, scope: &Scope) -> TypeResult {
 
 pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
     match expr {
+        Expression::Typed(_, _) => Ok(expr.clone()),
         Expression::StringLiteral(_) => Ok(Expression::Typed(Type::String, expr.clone().into())),
         Expression::IntegerLiteral(_) => Ok(Expression::Typed(Type::Integer, expr.clone().into())),
         Expression::BooleanLiteral(_) => Ok(Expression::Typed(Type::Boolean, expr.clone().into())),
@@ -473,7 +474,7 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                             arg_types.len()
                         ),
                         Some(expr.clone()),
-                        get_type(expr, scope)?,
+                        Type::Fn(args.iter().map(|arg| get_type(arg, scope)).collect::<Result<Vec<_>, _>>()?, ret_type.clone()),
                         Type::Fn(arg_types, ret_type),
                     ));
                 }
@@ -482,7 +483,7 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
 
                 for (i, arg) in args.iter().enumerate() {
                     let typified_arg = typify(arg, scope)?;
-                    let arg_type = get_type(arg, scope)?;
+                    let arg_type = get_type(&typified_arg, scope)?;
                     if arg_type != arg_types[i] {
                         return Err(TypeCheckError::TypeMismatch(
                             ErrorLocation::Unknown,
