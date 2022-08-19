@@ -53,6 +53,30 @@ impl SmtFmt for SmtExpr {
 impl From<Expression> for SmtExpr {
     fn from(expr: Expression) -> SmtExpr {
         match expr {
+            Expression::Typed(t, inner) if *inner == Expression::EmptyTable => {
+                if let Type::Table(idxtipe, valtipe) = t {
+                    let idxtipe = *idxtipe;
+                    SmtExpr::List(vec![
+                        SmtExpr::List(vec![
+                            SmtExpr::Atom("as".into()),
+                            SmtExpr::Atom("const".into()),
+                            SmtExpr::List(vec![
+                                SmtExpr::Atom("Array".into()),
+                                idxtipe.into(),
+                                Type::Maybe(valtipe.clone()).into(),
+                            ]),
+                        ]),
+                        SmtExpr::List(vec![
+                            SmtExpr::Atom("as".into()),
+                            SmtExpr::Atom("mk-none".into()),
+                            Type::Maybe(valtipe).into(),
+                        ]),
+                    ])
+                }
+                else {
+                    panic!("Empty table of type {:?}", t)
+                }
+            }
             Expression::Typed(_t, inner) => SmtExpr::from(*inner),
             Expression::Unwrap(_inner) => {
                 panic!("unwrap expressions need to be on the right hand side of an assign!");
