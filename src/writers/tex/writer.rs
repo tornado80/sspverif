@@ -183,7 +183,7 @@ pub fn tex_write_oracle(oracle: &OracleDef, pkgname: &str, target: &Path) -> std
 
     writeln!(writer.file, "\\procedure{{\\O{{{}}}({})}}{{",
              oracle.sig.name,
-             oracle.sig.args.iter().map(|(a,b)| a.clone()).collect::<Vec<_>>().join(", ")
+             oracle.sig.args.iter().map(|(a,_)| a.clone()).collect::<Vec<_>>().join(", ")
     )?;
 
     let codeblock = &oracle.code;
@@ -219,8 +219,8 @@ pub fn tex_write_composition(composition: &Composition, name: &str, target: &Pat
     writeln!(file, "\\newcommand{{\\M}}[1]{{\\ensuremath{{\\text{{\\texttt{{#1}}}}}}}}")?;
     writeln!(file, "\\newcommand{{\\n}}[1]{{\\ensuremath{{\\mathit{{#1}}}}}}")?;
     writeln!(file, "\\begin{{document}}")?;
-    writeln!(file, "\\tikzstyle{{package}} = [inner sep=1pt,align=center,rounded corners,draw,minimum width=2cm,minimum height=1cm,font=\\small]");
-    writeln!(file, "\\tikzstyle{{onarrow}} = [inner sep=1pt,font=\\scriptsize,anchor=east,at end,xshift=-0.1mm,align=left,fill=white]");
+    writeln!(file, "\\tikzstyle{{package}} = [inner sep=1pt,align=center,rounded corners,draw,minimum width=2cm,minimum height=1cm,font=\\small]")?;
+    writeln!(file, "\\tikzstyle{{onarrow}} = [inner sep=1pt,font=\\scriptsize,anchor=east,at end,xshift=-0.1mm,align=left,fill=white]")?;
 
 
     let mut printed = Vec::new();
@@ -236,7 +236,7 @@ pub fn tex_write_composition(composition: &Composition, name: &str, target: &Pat
                 continue;
             }
 
-            if ! composition.edges.iter().any(|Edge(from, to, oracle)| { i == *from && ! printed.contains(to) }) {
+            if ! composition.edges.iter().any(|Edge(from, to, _oracle)| { i == *from && ! printed.contains(to) }) {
                 writeln!(file, "\\node[package] (node{}) at ({}, {}) {{\\M{{{}}}}};", i, tikzx, tikzy, composition.pkgs[i].name.replace("_","\\_"))?;
                 newly.push(i);
                 tikzy -= 2;

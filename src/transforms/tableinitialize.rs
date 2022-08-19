@@ -39,7 +39,7 @@ impl<'a> super::Transformation for Transformation<'a> {
 
 pub fn tableinitialize(cb: &CodeBlock, initialized: &[String]) -> Result<CodeBlock, Error> {
     let mut newcode = Vec::new();
-    let mut new_initialized = initialized.clone();
+    let new_initialized = initialized.clone();
     for stmt in cb.0.clone() {
         match stmt {
             Statement::IfThenElse(expr, ifcode, elsecode) => {
@@ -86,9 +86,9 @@ pub fn tableinitialize(cb: &CodeBlock, initialized: &[String]) -> Result<CodeBlo
             Statement::InvokeOracle {
                 id: Identifier::Local(ref id),
                 opt_idx: Some(ref idxexpr),
-                ref name,
-                ref args,
-                ref target_inst_name,
+                name: _,
+                args: _,
+                target_inst_name: _,
                 tipe: ref opt_tipe,
             } => {
                 let indextype = match idxexpr {

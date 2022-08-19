@@ -6,7 +6,7 @@ use crate::transforms::samplify::SampleInfo;
 use crate::types::Type;
 
 use crate::writers::smt::{
-    exprs::{smt_to_string, SmtExpr, SmtIs, SmtIte, SmtLet, SspSmtVar},
+    exprs::{smt_to_string, SmtExpr, SmtIte, SmtLet, SspSmtVar},
     state_helpers::{SmtCompositionState, SmtPackageState},
 };
 

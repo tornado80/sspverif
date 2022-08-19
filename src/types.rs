@@ -44,7 +44,7 @@ impl Type {
             Type::Integer => Expression::IntegerLiteral("0".to_string()),
             Type::String => Expression::StringLiteral("".to_string()),
             Type::Boolean => Expression::BooleanLiteral("false".to_string()),
-            Type::List(tipe) => Expression::List(vec![]),
+            Type::List(_tipe) => Expression::List(vec![]),
             Type::Tuple(tipes) => Expression::Tuple(tipes.iter().map(|tipe| tipe.default_value()).collect()),
             Type::Table(_,_) => Expression::EmptyTable,
             Type::Maybe(tipe) => Expression::None(*tipe.clone()),
