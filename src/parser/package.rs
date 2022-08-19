@@ -137,7 +137,7 @@ pub fn handle_expression(expr: Pair<Rule>) -> Expression {
         Rule::identifier => Identifier::new_scalar(expr.as_str()).to_expression(),
         Rule::literal_boolean => {
             let litval = expr.as_str().to_string();
-            Expression::BooleanLiteral("test".to_string())
+            Expression::BooleanLiteral(litval)
         }
         Rule::literal_integer => {
             let litval = expr.as_str().to_string();
