@@ -113,6 +113,12 @@ pub fn handle_expression(expr: Pair<Rule>) -> Expression {
             let expr = handle_expression(expr.into_inner().next().unwrap());
             Expression::Unwrap(Box::new(expr))
         }
+        Rule::expr_newtable => {
+            let mut inner = expr.into_inner();
+            let idxtipe = handle_type(inner.next().unwrap());
+            let valtipe = handle_type(inner.next().unwrap());
+            Expression::Typed(Type::Table(Box::new(idxtipe),Box::new(valtipe)), Box::new(Expression::EmptyTable))
+        }
         Rule::table_access => {
             let mut inner = expr.into_inner();
             let ident = inner.next().unwrap().as_str();
