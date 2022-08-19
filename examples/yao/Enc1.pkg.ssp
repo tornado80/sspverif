@@ -18,24 +18,24 @@ package Enc1 {
     }
 
     oracle ENCN(j: Integer,d: Bool, mzero: Bits(n), mone: Bits(n)) -> Bits(m) {
-        K <- invoke GETKEYS(j);
+        K <- invoke GETKEYSIN(j);
         z <- invoke GETBIT(j);
         r <-$ Bits(n);
         if (b==z)
-        {c <- encn(K[z],mzero,r);}
+        {c <- encn(Unwrap(K[z]),mzero,r);}
         else
-        {c <- encn(K[z],mone,r);}
+        {c <- encn(Unwrap(K[z]),mone,r);}
         return c;
     }
 
     oracle ENCM(j: Integer,d: Bool, mzero: Bits(m), mone: Bits(m)) -> Bits(p) {
-        K <- invoke GETKEYS(j);
+        K <- invoke GETKEYSIN(j);
         z <- invoke GETBIT(j);
         r <-$ Bits(n);
         if (b==z)
-        {c <- encm(K[z],mzero,r);}
+        {c <- encm(Unwrap(K[z]),mzero,r);}
         else
-        {c <- encm(K[z],mone,r);}
+        {c <- encm(Unwrap(K[z]),mone,r);}
         return c;
     }
 

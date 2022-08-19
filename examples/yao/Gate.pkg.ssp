@@ -11,11 +11,12 @@ package Gate {
 
    import oracles {
         GETKEYSOUT(h: Integer) -> Table(Bool,Bits(n)),
-        ENCN(j: Integer,d: Bool, mzero: Bits(n), mone: Bits(n)) -> Bits(m),
+        ENCN(j: Integer,d: Bool, nzero: Bits(n), none: Bits(n)) -> Bits(m),
         ENCM(j: Integer,d: Bool, mzero: Bits(m), mone: Bits(m)) -> Bits(p),
     }
 
     oracle GBLG(h: Integer, l: Integer, r: Integer, op: fn Bool,Bool -> Bool, j: Integer) -> Table(Bits(p),Bool) {
+        C <- new Table(Bits(p), Bool);
         Z <- invoke GETKEYSOUT(j);
         bl <- false;
         br <- false;

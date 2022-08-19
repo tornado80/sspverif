@@ -16,17 +16,17 @@ package Enc0 {
     state {
     }
 
-    oracle ENCN(j: Integer,d: Bool, mzero: Bits(n), mone: Bits(n)) -> Bits(m) {
-        K <- invoke GETKEYS(j);
+    oracle ENCN(j: Integer,d: Bool, nzero: Bits(n), none: Bits(n)) -> Bits(m) {
+        K <- invoke GETKEYSIN(j);
         r <-$ Bits(n);
-        c <- encn(K[d],mzero,r);
+        c <- encn(Unwrap(K[d]),nzero,r);
         return c;
     }
 
     oracle ENCM(j: Integer,d: Bool, mzero: Bits(m), mone: Bits(m)) -> Bits(p) {
-        K <- invoke GETKEYS(j);
+        K <- invoke GETKEYSIN(j);
         r <-$ Bits(n);
-        c <- encm(K[d],mzero,r);
+        c <- encm(Unwrap(K[d]),mzero,r);
         return c;
     }
 
