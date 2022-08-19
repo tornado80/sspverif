@@ -626,3 +626,32 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
         }
     }
 }
+
+
+
+#[cfg(test)]
+mod test {
+    use crate::types::Type;
+    use super::super::scope::Scope;
+    use crate::identifier::Identifier;
+    use crate::expressions::Expression;
+    use super::typify;
+
+    #[test]
+    fn typeifying_fncall_argumentcount_error() {
+        // Should produce an error (and not an infinite recursion)
+        let mut scope = Scope::new();
+        scope.enter();
+        scope
+            .declare(
+                Identifier::Scalar("test".to_string()),
+                Type::Fn(vec![Type::Integer, Type::Integer], Box::new(Type::Integer)),
+            )
+            .unwrap();
+        let typeify_res = typify(&Expression::FnCall("test".to_string(), vec![Expression::IntegerLiteral("12".to_string())]), &scope);
+        assert!(typeify_res.is_err());
+        // assert_matches crate?
+        // let typeerror = typeify_res.unwrap_err();
+        // assert_eq!(typeerror, TypeCheckError::TypeMissmatch(_, _, _, _, _))
+    }
+}
