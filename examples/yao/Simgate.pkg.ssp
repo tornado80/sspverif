@@ -22,16 +22,25 @@ package Simgate {
 
     oracle GBLG(h: Integer, l: Integer, r: Integer, op: fn Bool,Bool -> Bool, j: Integer) -> Table(Bits(p),Bool) {
         C <- new Table(Bits(p), Bool);
+        Sl <- new Table(Bool, Bits(n));
+        Sr <- new Table(Bool, Bits(n));
+        Sj <- new Table(Bool, Bits(n));
         _ <- invoke EVAL(j,l,r,op);
-        Sl[true] <- invoke GETAIN(l);
-        Sl[false] <- invoke GETINAIN(l);
-        Sr[true] <- invoke GETAIN(r);
-        Sr[true] <- invoke GETINAIN(r);
-        Sj[false] <- invoke GETAOUT(j);
+        temp <- invoke GETAIN(l);
+        Sl[true] <- Some(temp);
+        temp <- invoke GETINAIN(l);
+        Sl[false] <- Some(temp);
+        temp <- invoke GETAIN(r);
+        Sr[true] <- Some(temp);
+        temp <- invoke GETINAIN(r);
+        Sr[true] <- Some(temp);
+        temp <- invoke GETAOUT(j);
+        Sj[false] <- Some(temp); 
         dl <- false;
         dr <- false;
            kl <- Unwrap(Sl[dl]);
            kr <- Unwrap(Sr[dr]);
+           kj <- zeron;
            if ((not dl) and (not dr))
               {kj <- Unwrap(Sj[false]);}
            rin <-$ Bits(n);
@@ -43,6 +52,7 @@ package Simgate {
         dr <- false;
            kl <- Unwrap(Sl[dl]);
            kr <- Unwrap(Sr[dr]);
+           kj <- zeron;
            if ((not dl) and (not dr))
               {kj <- Unwrap(Sj[false]);}
            rin <-$ Bits(n);
@@ -52,11 +62,11 @@ package Simgate {
            C[cout] <- Some(true);
         dl <- false;
         dr <- true;
-           kl <- Sl[dl];
-           kr <- Sr[dr];
+           kl <- Unwrap(Sl[dl]);
+           kr <- Unwrap(Sr[dr]);
+           kj <- zeron;
            if ((not dl) and (not dr))
               {kj <- Unwrap(Sj[false]);}
-           else {kj <- zeron;}
            rin <-$ Bits(n);
            rout <-$ Bits(n);
            cin  <- encn(kr,kj,rin);
@@ -66,9 +76,9 @@ package Simgate {
         dr <- true;
            kl <- Unwrap(Sl[dl]);
            kr <- Unwrap(Sr[dr]);
+           kj <- zeron;
            if ((not dl) and (not dr))
               {kj <- Unwrap(Sj[false]);}
-           else {kj <- zeron;}
            rin <-$ Bits(n);
            rout <-$ Bits(n);
            cin  <- encn(kr,kj,rin);
