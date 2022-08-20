@@ -83,6 +83,12 @@ impl Expression {
             Expression::Equals(exprs) => {
                 Expression::Equals(exprs.iter().map(|expr| expr.map(f)).collect())
             }
+            Expression::And(exprs) => {
+                Expression::And(exprs.iter().map(|expr| expr.map(f)).collect())
+            }
+            Expression::Or(exprs) => {
+                Expression::Or(exprs.iter().map(|expr| expr.map(f)).collect())
+            }
             Expression::Add(lhs, rhs) => {
                 Expression::Add(Box::new(lhs.map(f)), Box::new(rhs.map(f)))
             }
@@ -164,6 +170,30 @@ impl Expression {
                     })
                     .collect();
                 (ac, Expression::Equals(newexprs))
+            }
+            Expression::And(exprs) => {
+                let mut ac = init;
+                let newexprs = exprs
+                    .iter()
+                    .map(|expr| {
+                        let (newac, e) = expr.mapfold(ac.clone(), f);
+                        ac = newac;
+                        e
+                    })
+                    .collect();
+                (ac, Expression::And(newexprs))
+            }
+            Expression::Or(exprs) => {
+                let mut ac = init;
+                let newexprs = exprs
+                    .iter()
+                    .map(|expr| {
+                        let (newac, e) = expr.mapfold(ac.clone(), f);
+                        ac = newac;
+                        e
+                    })
+                    .collect();
+                (ac, Expression::Or(newexprs))
             }
             Expression::Add(lhs, rhs) => {
                 let ac = init;
