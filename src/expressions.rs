@@ -64,6 +64,7 @@ impl Expression {
     {
         f(match &self {
             Expression::Bot
+            | Expression::EmptyTable
             | Expression::None(_)
             | Expression::Sample(_)
             | Expression::StringLiteral(_)
@@ -124,6 +125,7 @@ impl Expression {
     {
         let (ac, ex) = match &self {
             Expression::Bot
+            | Expression::EmptyTable
             | Expression::None(_)
             | Expression::Sample(_)
             | Expression::StringLiteral(_)
