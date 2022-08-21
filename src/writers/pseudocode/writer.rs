@@ -71,7 +71,7 @@ impl<W: Write> Writer<W> {
                 self.write_type(t_value)?;
                 self.write_string(")")
             }
-            _ => todo!(),
+            _ => todo!("{:?}", t),
         }
     }
 
