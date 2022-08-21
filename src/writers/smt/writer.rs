@@ -400,14 +400,14 @@ impl<'a> CompositionSmtWriter<'a> {
                     }
                 }
                 Statement::Assign(ident, opt_idx, expr) => {
-                    let (t, expr) = if let Expression::Typed(t, inner) = expr {
-                        (t.clone(), *inner.clone())
+                    let (t, inner) = if let Expression::Typed(t, i) = expr {
+                        (t.clone(), *i.clone())
                     } else {
                         unreachable!("we expect that this is typed")
                     };
 
                     // first build the unwrap expression, if we have to
-                    let outexpr = if let Expression::Unwrap(inner) = &expr {
+                    let outexpr = if let Expression::Unwrap(inner) = &inner {
                         SmtExpr::List(vec![
                             SmtExpr::Atom("maybe-get".into()),
                             SmtExpr::Atom(smt_to_string(*inner.clone())),

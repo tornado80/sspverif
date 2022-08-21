@@ -15,12 +15,12 @@ package Gate {
         ENCM(j: Integer,d: Bool, mzero: Bits(m), mone: Bits(m)) -> Bits(p),
     }
 
-    oracle GBLG(h: Integer, l: Integer, r: Integer, op: fn Bool,Bool -> Bool, j: Integer) -> Table(Bits(p),Bool) {
+    oracle GBLG(h: Integer, l: Integer, r: Integer, op: Table((Bool,Bool),Bool), j: Integer) -> Table(Bits(p),Bool) {
         C <- new Table(Bits(p), Bool);
         Z <- invoke GETKEYSOUT(j);
         bl <- false;
         br <- false;
-           bj <- op(bl,br);
+           bj <- Unwrap(op[(bl,br)]);
            kzero <- Unwrap(Z[bj]);
            czeroin  <- invoke ENCN(l,bl,kzero,zeron);
            conein  <- invoke ENCN(l,bl,zeron,zeron);
@@ -28,7 +28,7 @@ package Gate {
            C[cout] <- Some(true);
         bl <- true;
         br <- false;
-           bj <- op(bl,br);
+           bj <- Unwrap(op[(bl,br)]);
            kzero <- Unwrap(Z[bj]);
            czeroin  <- invoke ENCN(l,bl,kzero,zeron);
            conein  <- invoke ENCN(l,bl,zeron,zeron);
@@ -36,7 +36,7 @@ package Gate {
            C[cout] <- Some(true);
         bl <- false;
         br <- true;
-           bj <- op(bl,br);
+           bj <- Unwrap(op[(bl,br)]);
            kzero <- Unwrap(Z[bj]);
            czeroin  <- invoke ENCN(l,bl,kzero,zeron);
            conein  <- invoke ENCN(l,bl,zeron,zeron);
@@ -44,7 +44,7 @@ package Gate {
            C[cout] <- Some(true);
         bl <- true;
         br <- true;
-           bj <- op(bl,br);
+           bj <- Unwrap(op[(bl,br)]);
            kzero <- Unwrap(Z[bj]);
            czeroin  <- invoke ENCN(l,bl,kzero,zeron);
            conein  <- invoke ENCN(l,bl,zeron,zeron);

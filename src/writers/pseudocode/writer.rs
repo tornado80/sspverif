@@ -48,6 +48,7 @@ impl<W: Write> Writer<W> {
             Type::String => self.write_string("String"),
             Type::Integer => self.write_string("Integer"),
             Type::Boolean => self.write_string("Boolean"),
+            Type::Empty => self.write_string("()"),
             Type::Bits(n) => self.write_string(&format!("Bits({n})")),
             Type::Maybe(t) => {
                 self.write_string("Maybe(")?;
@@ -71,7 +72,7 @@ impl<W: Write> Writer<W> {
                 self.write_type(t_value)?;
                 self.write_string(")")
             }
-            _ => todo!(),
+            _ => todo!("{:?}", t),
         }
     }
 
@@ -129,6 +130,26 @@ impl<W: Write> Writer<W> {
 
                 self.write_expression(left)?;
                 self.write_string(" == ")?;
+                self.write_expression(right)?;
+            }
+            Expression::And(exprs) => {
+                assert_eq!(exprs.len(), 2);
+
+                let left = &exprs[0];
+                let right = &exprs[1];
+
+                self.write_expression(left)?;
+                self.write_string(" and ")?;
+                self.write_expression(right)?;
+            }
+            Expression::Or(exprs) => {
+                assert_eq!(exprs.len(), 2);
+
+                let left = &exprs[0];
+                let right = &exprs[1];
+
+                self.write_expression(left)?;
+                self.write_string(" or ")?;
                 self.write_expression(right)?;
             }
             Expression::Add(left, right) => {

@@ -15,12 +15,12 @@ package Simgate {
        import oracles {
         GETAIN(h: Integer) -> Bits(n),
         GETINAIN(h: Integer) -> Bits(n),
-        EVAL(j: Integer,l: Integer,r: Integer,op: fn Bool,Bool -> Bool) -> (),
+        EVAL(j: Integer,l: Integer,r: Integer,op: Table((Bool,Bool),Bool)) -> (),
         GETAOUT(h: Integer) -> Bits(n),
     }
 
 
-    oracle GBLG(h: Integer, l: Integer, r: Integer, op: fn Bool,Bool -> Bool, j: Integer) -> Table(Bits(p),Bool) {
+    oracle GBLG(h: Integer, l: Integer, r: Integer, op: Table((Bool,Bool),Bool), j: Integer) -> Table(Bits(p),Bool) {
         C <- new Table(Bits(p), Bool);
         Sl <- new Table(Bool, Bits(n));
         Sr <- new Table(Bool, Bits(n));
