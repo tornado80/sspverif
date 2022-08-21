@@ -131,6 +131,26 @@ impl<W: Write> Writer<W> {
                 self.write_string(" == ")?;
                 self.write_expression(right)?;
             }
+            Expression::And(exprs) => {
+                assert_eq!(exprs.len(), 2);
+
+                let left = &exprs[0];
+                let right = &exprs[1];
+
+                self.write_expression(left)?;
+                self.write_string(" and ")?;
+                self.write_expression(right)?;
+            }
+            Expression::Or(exprs) => {
+                assert_eq!(exprs.len(), 2);
+
+                let left = &exprs[0];
+                let right = &exprs[1];
+
+                self.write_expression(left)?;
+                self.write_string(" or ")?;
+                self.write_expression(right)?;
+            }
             Expression::Add(left, right) => {
                 self.write_expression(left)?;
                 self.write_string(" + ")?;
