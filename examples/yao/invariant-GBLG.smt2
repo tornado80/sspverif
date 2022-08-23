@@ -20,27 +20,27 @@
 (declare-const state-right-new CompositionState-Right)
 
 ; return value - type depends on oracle call; only GBLG is interesting, actually.
-(declare-const return-left Return_Left_gate_left_GBLG)
+(declare-const return-left Return_Left_gate_GBLG)
 (declare-const return-right Return_Right_simgate_GBLG)
 (declare-const is-abort-left Bool)
 (declare-const is-abort-right Bool)
 
 
-(assert (and  ;return-left and return-right are helper variables
-              (= return-left      (oracle-Left-prf_left-EVAL state-left-old handle message))
-              (= return-right     (oracle-Right-wrapper-EVAL state-right-old handle message))
+(assert (and  ;assignment of return (value,state)
+              (= return-left      (oracle-Left-gate-GBLG state-left-old handle l r op))
+              (= return-right     (oracle-Right-simgate-GBLG state-right-old handle l r op))
 
-              ;return values are the same on both sides
-              (= value-left       (return-Left-prf_left-EVAL-value return-left))
-              (= value-right      (return-Right-wrapper-EVAL-value return-right))
+              ;assignment of return values
+              (= value-left       (return-Left-gate-GBLG-value return-left))
+              (= value-right      (return-Right-simgate-GBLG-value return-right))
 
-              ;return both sides either abort or do not abort
-              (= is-abort-left    (= mk-abort-Left-prf_left-EVAL return-left))
-              (= is-abort-right   (= mk-abort-Right-wrapper-EVAL return-right))
+              ;assignment of abort values
+              (= is-abort-left    (= mk-abort-Left-gate-GBLG return-left))
+              (= is-abort-right   (= mk-abort-Right-simgate-GBLG return-right))
 
-              ;helper variables for new left state and new right state which will be used below
-              (= state-left-new   (return-Left-prf_left-EVAL-state return-left))
-              (= state-right-new  (return-Right-wrapper-EVAL-state return-right))))
+              ;assignment of return state
+              (= state-left-new   (return-Left-gate-GBLG-state return-left))
+              (= state-right-new  (return-Right-simgate-GBLG-state return-right))))
 
               ;Here, we need to additionally say something about sample instructions for lower Key package
 
@@ -52,54 +52,55 @@
                         (select (state-Right-key_top-T (composition-state-Right-key_top right))
                                 h))))
 
-; The state of the top key package does not change when GBLG is called on the left
+; Left: The state of the top key package does not change when GBLG is called
 (define-fun key-top-ll-eq ((old CompositionState-Left) (new CompositionState-Left)) Bool
   (forall ((h Int)) (=  (select (state-Left-key_top-T (composition-state-Left-key_top old))
                                 h)
                         (select (state-Left-key_top-T (composition-state-Left-key_top new))
                                 h))))
 
-; The state of the top key package does not change when GBLG is called on the right
+; Right: The state of the top key package does not change when GBLG is called
 (define-fun key-top-rr-eq ((old CompositionState-Right) (new CompositionState-Right)) Bool
   (forall ((h Int)) (=  (select (state-Right-key_top-T (composition-state-Right-key_top old))
                                 h)
                         (select (state-Right-key_top-T (composition-state-Right-key_top new))
                                 h))))
 
-; The state of the bottom key package on the left is mostly the same as before except at the point h that was written to
-(define-fun key-bottom-l-mostly-eq ((old CompositionState-Left) (new CompositionState-Left) (h Int)) Bool
+; Left: The state of the bottom key package is mostly the same as before except at the point h j r op that was written to
+(define-fun key-bottom-l-mostly-eq ((old CompositionState-Left) (new CompositionState-Left) 
+                                    (h Int) ) Bool
   (forall ((hh Int))  (or (= h hh)
                                       (=  (select (state-Left-key_bottom-T (composition-state-Left-key_bottom new))
-                                                  (mk-tuple2 hh))
+                                                  hh)
                                           (select (state-Left-key_bottom-T (composition-state-Left-key_bottom old))
-                                                  (mk-tuple2 hh))))))
+                                                  hh)))))
 
 
 ; The state of the bottom key package on the right is mostly the same as before except at the point h that was written to
-(define-fun key-bottom-r-mostly-eq ((old CompositionState-Right) (new CompositionState-Right) (h Int)) Bool
+(define-fun key-bottom-r-mostly-eq ((old CompositionState-Right) (new CompositionState-Right) 
+                                    (h Int)) Bool
   (forall ((hh Int))  (or (= h hh)
                                       (=  (select (state-Right-key_bottom-T (composition-state-Right-key_bottom new))
-                                                  (mk-tuple2 hh))
+                                                  hh)
                                           (select (state-Right-key_bottom-T (composition-state-Right-key_bottom old))
-                                                  (mk-tuple2 hh))))))
+                                                  hh)))))
 
-; The state of the bottom key package on the right at position h is equal to what was sampled (or was defined before).
+; Right: The state of the bottom key package at position h is equal to what was sampled (or was defined before).
 (define-fun key-bottom-r-ok-after-call ((old CompositionState-Right) (new CompositionState-Right) (h Int)) Bool 
   (=      (maybe-get (select  (state-Right-key_bottom-T (composition-state-Right-key_bottom new))
-                              (mk-tuple2 h)))
-                              ; put randomness sampling here XXX
-      (f  (maybe-get (select  (state-Right-key_top-T    (composition-state-Right-key_top    old))
                               h))
-          m)))
+                              ; put randomness sampling here XXX
+                              ; if it was none before, then it is equal to sample now
+      (XXX)))
 
 ; The state of the bottom key package on the left at position h is equal to what was sampled (or was defined before)).
-(define-fun key-bottom-r-ok-after-call ((old CompositionState-Left) (new CompositionState-Left) (h Int)) Bool 
+(define-fun key-bottom-l-ok-after-call ((old CompositionState-Left) (new CompositionState-Left) (h Int)) Bool 
   (=      (maybe-get (select  (state-Left-key_bottom-T (composition-state-Left-key_bottom new))
-                              (mk-tuple2 h)))
-                              ; put randomness sampling here XXX
-      (f  (maybe-get (select  (state-Left-key_top-T    (composition-state-Left-key_top    old))
                               h))
-          m)))
+                              ; put randomness sampling here XXX
+                              ; if it was none before, then it is equal to sample now
+                              
+      (XXX)))
 
 ; should this really use the old state?? Not here
 (define-fun post-condition ((left CompositionState-Left) (right CompositionState-Right) (h Int)) Bool
