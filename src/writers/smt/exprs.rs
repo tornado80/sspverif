@@ -157,6 +157,14 @@ impl From<Expression> for SmtExpr {
                 SmtExpr::Atom(format!("state-{}-{}-{}", compname, pkgname, identname)),
                 SspSmtVar::SelfState.into(),
             ]),
+            Expression::Identifier(Identifier::Params {
+                name: identname,
+                pkgname,
+                compname,
+            }) => SmtExpr::List(vec![
+                SmtExpr::Atom(format!("state-{}-{}-{}", compname, pkgname, identname)),
+                SspSmtVar::SelfState.into(),
+            ]),
             Expression::Bot => SmtExpr::Atom("bot".to_string()),
             Expression::TableAccess(table, index) => SmtExpr::List(vec![
                 SmtExpr::Atom("select".into()),

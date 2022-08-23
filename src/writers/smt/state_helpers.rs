@@ -67,6 +67,7 @@ impl<'a> SmtCompositionState<'a> {
                 comp_name: self.comp_name,
                 inst_name,
                 state: vec![],
+                params: vec![],
             };
             tmp.push(SmtExpr::List(vec![
                 self.smt_accessor(inst_name),
@@ -120,6 +121,7 @@ pub struct SmtPackageState<'a> {
     comp_name: &'a str,
     inst_name: &'a str,
     state: Vec<(String, Type)>,
+    params: Vec<(String, Type)>,
 }
 
 /**
@@ -132,11 +134,14 @@ impl<'a> SmtPackageState<'a> {
         comp_name: &'a str,
         inst_name: &'a str,
         state: Vec<(String, Type)>,
+        params: Vec<(String, Type)>,
     ) -> SmtPackageState<'a> {
         SmtPackageState {
             comp_name,
             inst_name,
             state,
+            // We can not use functions as values, adapting function names for parameters need to be done differently.
+            params: params.into_iter().filter(|(n,t)| if let Type::Fn(_, _) = t {false} else {true}).collect(),
         }
     }
 
@@ -163,6 +168,12 @@ impl<'a> SmtPackageState<'a> {
         let mut tmp = vec![self.smt_constructor()];
 
         for (id, tipe) in &self.state {
+            tmp.push(SmtExpr::List(vec![
+                self.smt_accessor(id),
+                tipe.clone().into(),
+            ]))
+        }
+        for (id, tipe) in &self.params {
             tmp.push(SmtExpr::List(vec![
                 self.smt_accessor(id),
                 tipe.clone().into(),

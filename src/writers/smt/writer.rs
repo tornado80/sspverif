@@ -38,7 +38,7 @@ impl<'a> CompositionSmtWriter<'a> {
         for inst in &csw.comp.pkgs {
             csw.state_helpers.insert(
                 inst.name.clone(),
-                SmtPackageState::new(&csw.comp.name, &inst.name, inst.pkg.state.clone()),
+                SmtPackageState::new(&csw.comp.name, &inst.name, inst.pkg.state.clone(), inst.pkg.params.clone()),
             );
         }
 
@@ -586,6 +586,7 @@ impl<'a> CompositionSmtWriter<'a> {
             (1..self.sample_info.count)
                 .map(|ctr| (format!("ctr{}", ctr), Type::Integer))
                 .collect(),
+            vec![],
         );
         self.state_helpers
             .insert("__randomness".into(), statehelper.clone());
