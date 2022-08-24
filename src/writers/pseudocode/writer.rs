@@ -111,8 +111,8 @@ impl<W: Write> Writer<W> {
                 }
                 self.write_string(")")?;
             }
-            Expression::FnCall(name, args) => {
-                self.write_string(name)?;
+            Expression::FnCall(id, args) => {
+                self.write_string(&id.ident())?;
                 self.write_string("(")?;
                 let mut maybe_comma = "";
                 for arg in args {
@@ -253,7 +253,10 @@ impl<W: Write> Writer<W> {
                 }
 
                 self.write_string(" <- invoke ")?;
-                self.write_expression(&Expression::FnCall(name.clone(), args.clone()))?;
+                self.write_expression(&Expression::FnCall(
+                    Identifier::Scalar(name.clone()),
+                    args.clone(),
+                ))?;
                 if let Some(target_inst_name) = target_inst_name {
                     self.write_string(&format!(
                         "; /* with target instance name {} */",

@@ -16,7 +16,7 @@ pub enum Expression {
     Tuple(Vec<Expression>),
     List(Vec<Expression>),
     Set(Vec<Expression>),
-    FnCall(String, Vec<Expression>),
+    FnCall(Identifier, Vec<Expression>),
     // or maybe at some point: FnCall(Box<Expression>, Vec<Expression>),
     None(Type),
     Some(Box<Expression>),
@@ -87,9 +87,7 @@ impl Expression {
             Expression::And(exprs) => {
                 Expression::And(exprs.iter().map(|expr| expr.map(f)).collect())
             }
-            Expression::Or(exprs) => {
-                Expression::Or(exprs.iter().map(|expr| expr.map(f)).collect())
-            }
+            Expression::Or(exprs) => Expression::Or(exprs.iter().map(|expr| expr.map(f)).collect()),
             Expression::Add(lhs, rhs) => {
                 Expression::Add(Box::new(lhs.map(f)), Box::new(rhs.map(f)))
             }
@@ -309,7 +307,7 @@ macro_rules! fncall {
     ( $name:expr, $($e:expr),* ) => {
         {
             Expression::FnCall(
-                $name.to_string(),
+                Identifier::Scalar($name.to_string()),
                 vec![ $( $e.clone(), )* ],
             )
         }

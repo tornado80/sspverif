@@ -461,9 +461,8 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
             ))
         }
 
-        Expression::FnCall(name, args) => {
-            if let Some(Type::Fn(arg_types, ret_type)) = scope.lookup(&Identifier::new_scalar(name))
-            {
+        Expression::FnCall(id, args) => {
+            if let Some(Type::Fn(arg_types, ret_type)) = scope.lookup(id) {
                 // 1. check that arg types match args
                 if args.len() != arg_types.len() {
                     return Err(TypeCheckError::TypeMismatch(
@@ -474,7 +473,12 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                             arg_types.len()
                         ),
                         Some(expr.clone()),
-                        Type::Fn(args.iter().map(|arg| get_type(arg, scope)).collect::<Result<Vec<_>, _>>()?, ret_type.clone()),
+                        Type::Fn(
+                            args.iter()
+                                .map(|arg| get_type(arg, scope))
+                                .collect::<Result<Vec<_>, _>>()?,
+                            ret_type.clone(),
+                        ),
                         Type::Fn(arg_types, ret_type),
                     ));
                 }
@@ -489,7 +493,8 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                             ErrorLocation::Unknown,
                             format!(
                                 "argument type mismatch at position {} when calling function {:}",
-                                i, name
+                                i,
+                                id.ident()
                             ),
                             Some(arg.clone()),
                             arg_type,
@@ -503,13 +508,13 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                 // 2. return ret type
                 Ok(Expression::Typed(
                     *ret_type,
-                    Box::new(Expression::FnCall(name.clone(), typified_args)),
+                    Box::new(Expression::FnCall(id.clone(), typified_args)),
                 ))
             } else {
                 Err(TypeCheckError::Undefined(
                     ErrorLocation::Unknown,
                     "function not found in scope".to_string(),
-                    Identifier::new_scalar(name),
+                    id.clone(),
                 ))
             }
         }
@@ -627,15 +632,13 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
     }
 }
 
-
-
 #[cfg(test)]
 mod test {
-    use crate::types::Type;
     use super::super::scope::Scope;
-    use crate::identifier::Identifier;
-    use crate::expressions::Expression;
     use super::typify;
+    use crate::expressions::Expression;
+    use crate::identifier::Identifier;
+    use crate::types::Type;
 
     #[test]
     fn typeifying_fncall_argumentcount_error() {
@@ -648,7 +651,13 @@ mod test {
                 Type::Fn(vec![Type::Integer, Type::Integer], Box::new(Type::Integer)),
             )
             .unwrap();
-        let typeify_res = typify(&Expression::FnCall("test".to_string(), vec![Expression::IntegerLiteral("12".to_string())]), &scope);
+        let typeify_res = typify(
+            &Expression::FnCall(
+                Identifier::Scalar("test".to_string()),
+                vec![Expression::IntegerLiteral("12".to_string())],
+            ),
+            &scope,
+        );
         assert!(typeify_res.is_err());
         // assert_matches crate?
         // let typeerror = typeify_res.unwrap_err();

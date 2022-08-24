@@ -15,6 +15,12 @@ pub enum SmtExpr {
     List(Vec<SmtExpr>),
 }
 
+impl From<Vec<SmtExpr>> for SmtExpr {
+    fn from(lst: Vec<SmtExpr>) -> Self {
+        SmtExpr::List(lst)
+    }
+}
+
 impl From<&str> for SmtExpr {
     fn from(atom: &str) -> Self {
         SmtExpr::Atom(atom.to_string())

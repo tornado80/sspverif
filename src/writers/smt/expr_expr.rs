@@ -133,8 +133,25 @@ impl From<Expression> for SmtExpr {
 
                 SmtExpr::List(l)
             }
-            Expression::FnCall(name, exprs) => {
-                let mut call = vec![SmtExpr::Atom(name)];
+            Expression::FnCall(
+                Identifier::Params {
+                    name_in_comp: name,
+                    compname,
+                    ..
+                },
+                args,
+            ) => {
+                let fn_name = format!("__func-{compname}-{name}");
+                let mut call = vec![SmtExpr::Atom(fn_name)];
+
+                for expr in args {
+                    call.push(expr.into());
+                }
+
+                SmtExpr::List(call)
+            }
+            Expression::FnCall(id, exprs) => {
+                let mut call = vec![SmtExpr::Atom(id.ident())];
 
                 for expr in exprs {
                     call.push(expr.into());

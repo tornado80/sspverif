@@ -117,7 +117,10 @@ pub fn handle_expression(expr: Pair<Rule>) -> Expression {
             let mut inner = expr.into_inner();
             let idxtipe = handle_type(inner.next().unwrap());
             let valtipe = handle_type(inner.next().unwrap());
-            Expression::Typed(Type::Table(Box::new(idxtipe),Box::new(valtipe)), Box::new(Expression::EmptyTable))
+            Expression::Typed(
+                Type::Table(Box::new(idxtipe), Box::new(valtipe)),
+                Box::new(Expression::EmptyTable),
+            )
         }
         Rule::table_access => {
             let mut inner = expr.into_inner();
@@ -132,7 +135,7 @@ pub fn handle_expression(expr: Pair<Rule>) -> Expression {
                 None => vec![],
                 Some(inner_args) => inner_args.into_inner().map(handle_expression).collect(),
             };
-            Expression::FnCall(ident.to_string(), args)
+            Expression::FnCall(Identifier::new_scalar(ident), args)
         }
         Rule::identifier => Identifier::new_scalar(expr.as_str()).to_expression(),
         Rule::literal_boolean => {
@@ -241,7 +244,7 @@ pub fn handle_code(code: Pair<Rule>) -> CodeBlock {
                             name: oracle_name.to_owned(),
                             args,
                             target_inst_name: None,
-                            tipe: None
+                            tipe: None,
                         }
                     }
                     Rule::parse => {

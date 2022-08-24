@@ -34,6 +34,31 @@ fn var_specify_helper(inst: &PackageInstance, block: CodeBlock, comp_name: &str)
     } = inst;
 
     let fixup = |expr| match expr {
+        Expression::FnCall(Identifier::Scalar(id), args) => {
+            if state.clone().iter().any(|(id_, _)| id == *id_) {
+                Expression::FnCall(
+                    Identifier::State {
+                        name: id,
+                        pkgname: name.clone(),
+                        compname: comp_name.into(),
+                    },
+                    args,
+                )
+            } else if params.clone().iter().any(|(id_, name_in_comp)| id == *id_) {
+                Expression::FnCall(
+                    Identifier::Params {
+                        name_in_pkg: id.clone(),
+                        pkgname: name.clone(),
+
+                        name_in_comp: inst_params[&id].clone(),
+                        compname: comp_name.into(),
+                    },
+                    args,
+                )
+            } else {
+                Expression::FnCall(Identifier::Local(id), args)
+            }
+        }
         Expression::Identifier(Identifier::Scalar(id)) => {
             if state.clone().iter().any(|(id_, _)| id == *id_) {
                 Expression::Identifier(Identifier::State {

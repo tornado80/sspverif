@@ -528,6 +528,43 @@ impl<'a> CompositionSmtWriter<'a> {
         comment.into_iter().chain(code).collect()
     }
 
+    fn smt_composition_paramfuncs(&self) -> Vec<SmtExpr> {
+        let fns = self
+            .comp
+            .consts
+            .iter()
+            .filter(|(_, tipe)| matches!(tipe, Type::Fn(_, _)));
+        let comp_name = &self.comp.name;
+
+        let mut funcs = vec![];
+
+        for (name, tipe) in fns {
+            let (arg_types, ret_type) = if let Type::Fn(arg_types, ret_type) = tipe {
+                (arg_types, ret_type)
+            } else {
+                unreachable!()
+            };
+
+            let arg_types: SmtExpr = arg_types
+                .iter()
+                .map(|tipe| tipe.clone().into())
+                .collect::<Vec<SmtExpr>>()
+                .into();
+
+            funcs.push(
+                (
+                    "declare-fun",
+                    format!("__func-{comp_name}-{name}"),
+                    arg_types,
+                    (**ret_type).clone(),
+                )
+                    .into(),
+            )
+        }
+
+        funcs
+    }
+
     fn smt_composition_randomness(&mut self) -> Vec<SmtExpr> {
         self.sample_info
             .tipes
@@ -552,11 +589,13 @@ impl<'a> CompositionSmtWriter<'a> {
 
     pub fn smt_composition_all(&mut self) -> Vec<SmtExpr> {
         let rand = self.smt_composition_randomness();
+        let paramfuncs = self.smt_composition_paramfuncs();
         let state = self.smt_composition_state();
         let ret = self.smt_composition_return();
         let code = self.smt_composition_code();
 
         rand.into_iter()
+            .chain(paramfuncs.into_iter())
             .chain(state.into_iter())
             .chain(ret.into_iter())
             .chain(code.into_iter())
