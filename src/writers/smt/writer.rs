@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::expressions::Expression;
 use crate::identifier::Identifier;
 use crate::package::{Composition, OracleSig, PackageInstance};
@@ -7,7 +9,7 @@ use crate::types::Type;
 
 use crate::writers::smt::{
     exprs::{smt_to_string, SmtExpr, SmtIte, SmtLet, SspSmtVar},
-    state_helpers::{SmtCompositionState, SmtPackageState},
+    state_helpers::{SmtCompositionContext, SmtPackageState},
 };
 
 use super::exprs::{SmtAs, SmtEq2};
@@ -16,8 +18,8 @@ pub struct CompositionSmtWriter<'a> {
     pub comp: &'a Composition,
 
     sample_info: SampleInfo,
-    state_helpers: std::collections::HashMap<String, SmtPackageState<'a>>,
-    comp_helper: SmtCompositionState<'a>,
+    state_helpers: HashMap<String, SmtPackageState<'a>>,
+    comp_helper: SmtCompositionContext<'a>,
 }
 
 impl<'a> CompositionSmtWriter<'a> {
@@ -26,7 +28,7 @@ impl<'a> CompositionSmtWriter<'a> {
             comp,
             sample_info: samp,
             state_helpers: Default::default(),
-            comp_helper: SmtCompositionState::new(
+            comp_helper: SmtCompositionContext::new(
                 &comp.name,
                 vec!["__randomness"]
                     .into_iter()
@@ -50,34 +52,19 @@ impl<'a> CompositionSmtWriter<'a> {
         csw
     }
 
+    // returns the state helper for the package of a given package instance
     fn get_state_helper(&'a self, instname: &str) -> &'a SmtPackageState<'a> {
-        if instname == "__randomness" {}
-
         self.state_helpers
             .get(instname)
             .unwrap_or_else(|| panic!("error looking up smt state helper: {}", instname))
     }
 
-    /*
-    Example:
-    (declare-datatype State_right-pkey (
-         (mk-state-right-pkey   (state-right-pkey-pk   (Array Int String))
-                                (state-right-pkey-sk   (Array Int String))
-                                (state-right-pkey-id   (Array String Int))
-                                (state-right-pkey-ctr  Int)
-                                (state-right-pkey-rand RandState))))
-
-    (declare-datatype State_right (
-        (mk-state-right         (state-right-pkey State_right-pkey)
-
-        )
-    ))
-
-    */
+    // builds a single (declare-datatype ...) expression for package instance `inst`
     fn smt_pkg_state(&self, inst: &PackageInstance) -> SmtExpr {
         self.get_state_helper(&inst.name).smt_declare_datatype()
     }
 
+    // build the (declare-datatype ...) expressions for all package states and the joint composition state
     pub fn smt_composition_state(&self) -> Vec<SmtExpr> {
         // 1. each package in composition
         let mut states: Vec<SmtExpr> = self
@@ -92,17 +79,6 @@ impl<'a> CompositionSmtWriter<'a> {
 
         states
     }
-
-    /*
-    example:
-    (declare-datatype Return_key_get (
-        (mk-return-key-get         (return-key-get-state State_key)
-                                    (return-key_get-value Bits_n))
-        (mk-abort-key-get)
-    ))
-
-
-    */
 
     fn smt_pkg_return(&self, inst: &PackageInstance) -> Vec<SmtExpr> {
         let mut smts = vec![];
@@ -184,7 +160,7 @@ impl<'a> CompositionSmtWriter<'a> {
                             pkgname: pkgname.clone(),
                             oname: sig.name.clone(),
                         },
-                        SspSmtVar::GlobalState,
+                        SspSmtVar::CompositionContext,
                     )
                         .into()
                 }
@@ -200,7 +176,7 @@ impl<'a> CompositionSmtWriter<'a> {
                                 oname: sig.name.clone(),
                             }
                             .into(),
-                            SspSmtVar::GlobalState.into(),
+                            SspSmtVar::CompositionContext.into(),
                             expr.clone().into(),
                         ]),
                     )
@@ -238,7 +214,7 @@ impl<'a> CompositionSmtWriter<'a> {
                     let ctr = self.get_state_helper("__randomness").smt_access(
                         &format!("ctr{}", sample_id.unwrap()),
                         self.comp_helper
-                            .smt_access("__randomness", SspSmtVar::GlobalState.into()),
+                            .smt_access("__randomness", SspSmtVar::CompositionContext.into()),
                     );
 
                     let rand_tipe: SmtExpr = tipe.clone().into();
@@ -279,9 +255,10 @@ impl<'a> CompositionSmtWriter<'a> {
                                     SmtExpr::Atom("1".into()),
                                     ctr,
                                 ]),
-                                &self
-                                    .comp_helper
-                                    .smt_access("__randomness", SspSmtVar::GlobalState.into()),
+                                &self.comp_helper.smt_access(
+                                    "__randomness",
+                                    SspSmtVar::CompositionContext.into(),
+                                ),
                             ),
                             result.unwrap(),
                         ),
@@ -337,7 +314,7 @@ impl<'a> CompositionSmtWriter<'a> {
                                     "oracle-{}-{}-{}",
                                     self.comp.name, target, name
                                 )),
-                                SspSmtVar::GlobalState.into(),
+                                SspSmtVar::CompositionContext.into(),
                             ];
 
                             for arg in args {
@@ -363,7 +340,7 @@ impl<'a> CompositionSmtWriter<'a> {
                             els: SmtLet {
                                 bindings: {
                                     let mut bindings = vec![(
-                                        smt_to_string(SspSmtVar::GlobalState),
+                                        smt_to_string(SspSmtVar::CompositionContext),
                                         SmtExpr::List(vec![
                                             SmtExpr::Atom(format!(
                                                 "return-{}-{}-{}-state",
@@ -518,7 +495,7 @@ impl<'a> CompositionSmtWriter<'a> {
             .map(|def| {
                 let code = &def.code;
                 let mut args = vec![SmtExpr::List(vec![
-                    SspSmtVar::GlobalState.into(),
+                    SspSmtVar::CompositionContext.into(),
                     self.comp_helper.smt_sort(),
                 ])];
 
@@ -541,7 +518,7 @@ impl<'a> CompositionSmtWriter<'a> {
                         bindings: vec![(
                             smt_to_string(SspSmtVar::SelfState),
                             self.comp_helper
-                                .smt_access(&inst.name, SspSmtVar::GlobalState.into()),
+                                .smt_access(&inst.name, SspSmtVar::CompositionContext.into()),
                         )],
                         body: self.code_smt_helper(code.clone(), &def.sig, inst),
                     }
@@ -621,7 +598,7 @@ mod tests {
     use std::string::FromUtf8Error;
     use thiserror::Error;
 
-    use crate::writers::smt::exprs::SmtFmt;
+    use crate::writers::smt::SmtFmt;
 
     #[derive(Error, Debug)]
     enum TestError {

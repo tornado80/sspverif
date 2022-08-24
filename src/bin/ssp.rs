@@ -1,7 +1,7 @@
+use std::collections::HashSet;
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
-use std::collections::HashSet;
 
 use sspds::types::Type;
 
@@ -16,7 +16,7 @@ use sspds::{
     package::{Composition, Edge, Export},
     writers::{
         pseudocode::writer::Writer,
-        smt::{exprs::SmtFmt, writer::CompositionSmtWriter},
+        smt::{writer::CompositionSmtWriter, SmtFmt},
         tex::writer::tex_write_composition,
     },
 };

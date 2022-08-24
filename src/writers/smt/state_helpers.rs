@@ -27,14 +27,14 @@ use crate::writers::smt::exprs::{smt_to_string, SmtExpr, SmtLet, SspSmtVar};
 *
 */
 
-pub struct SmtCompositionState<'a> {
+pub struct SmtCompositionContext<'a> {
     comp_name: &'a str,
     substate_names: Vec<&'a str>,
 }
 
-impl<'a> SmtCompositionState<'a> {
-    pub fn new(comp_name: &'a str, substate_names: Vec<&'a str>) -> SmtCompositionState<'a> {
-        SmtCompositionState {
+impl<'a> SmtCompositionContext<'a> {
+    pub fn new(comp_name: &'a str, substate_names: Vec<&'a str>) -> SmtCompositionContext<'a> {
+        SmtCompositionContext {
             comp_name,
             substate_names,
         }
@@ -44,7 +44,7 @@ impl<'a> SmtCompositionState<'a> {
     }
 
     pub fn smt_constructor(&self) -> SmtExpr {
-        SmtExpr::Atom(format!("mk-composition-state-{}", self.comp_name))
+        format!("mk-composition-state-{}", self.comp_name).into()
     }
 
     pub fn smt_accessor(&self, inst_name: &str) -> SmtExpr {
@@ -89,12 +89,15 @@ impl<'a> SmtCompositionState<'a> {
             tmp.push(if *inst_name == target {
                 new.clone()
             } else {
-                self.smt_access(inst_name, SspSmtVar::GlobalState.into())
+                self.smt_access(inst_name, SspSmtVar::CompositionContext.into())
             });
         }
 
         SmtLet {
-            bindings: vec![(smt_to_string(SspSmtVar::GlobalState), SmtExpr::List(tmp))],
+            bindings: vec![(
+                smt_to_string(SspSmtVar::CompositionContext),
+                SmtExpr::List(tmp),
+            )],
             body,
         }
         .into()
@@ -141,7 +144,10 @@ impl<'a> SmtPackageState<'a> {
             inst_name,
             state,
             // We can not use functions as values, adapting function names for parameters need to be done differently.
-            params: params.into_iter().filter(|(n,t)| if let Type::Fn(_, _) = t {false} else {true}).collect(),
+            params: params
+                .into_iter()
+                .filter(|(n, t)| if let Type::Fn(_, _) = t { false } else { true })
+                .collect(),
         }
     }
 
