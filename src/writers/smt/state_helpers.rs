@@ -101,7 +101,6 @@ impl<'a> SmtCompositionContext<'a> {
                 comp_name: self.comp_name,
                 inst_name,
                 state: vec![],
-                params: vec![],
             };
 
             tmp.push((self.smt_accessor_pkg(inst_name), pkg_state.smt_sort()).into())
@@ -221,7 +220,6 @@ pub struct SmtPackageState<'a> {
     comp_name: &'a str,
     inst_name: &'a str,
     state: Vec<(String, Type)>,
-    params: Vec<(String, Type)>,
 }
 
 /**
@@ -240,11 +238,6 @@ impl<'a> SmtPackageState<'a> {
             comp_name,
             inst_name,
             state,
-            // We can not use functions as values, adapting function names for parameters need to be done differently.
-            params: params
-                .into_iter()
-                .filter(|(n, t)| if let Type::Fn(_, _) = t { false } else { true })
-                .collect(),
         }
     }
 
