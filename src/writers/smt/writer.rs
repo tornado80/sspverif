@@ -38,7 +38,12 @@ impl<'a> CompositionSmtWriter<'a> {
         for inst in &csw.comp.pkgs {
             csw.state_helpers.insert(
                 inst.name.clone(),
-                SmtPackageState::new(&csw.comp.name, &inst.name, inst.pkg.state.clone(), inst.pkg.params.clone()),
+                SmtPackageState::new(
+                    &csw.comp.name,
+                    &inst.name,
+                    inst.pkg.state.clone(),
+                    inst.pkg.params.clone(),
+                ),
             );
         }
 
@@ -173,15 +178,15 @@ impl<'a> CompositionSmtWriter<'a> {
                 .into(),
                 Statement::Return(None) => {
                     // (mk-return-{name} statevarname)
-                    SmtExpr::List(vec![
+                    (
                         SspSmtVar::OracleReturnConstructor {
                             compname: self.comp.name.clone(),
                             pkgname: pkgname.clone(),
                             oname: sig.name.clone(),
-                        }
-                        .into(),
-                        SspSmtVar::GlobalState.into(),
-                    ])
+                        },
+                        SspSmtVar::GlobalState,
+                    )
+                        .into()
                 }
                 Statement::Return(Some(expr)) => {
                     // (mk-return-{name} statevarname expr)
@@ -323,7 +328,7 @@ impl<'a> CompositionSmtWriter<'a> {
                     name,
                     args,
                     target_inst_name: Some(target),
-                    tipe: _
+                    tipe: _,
                 } => {
                     let smt_expr = SmtLet {
                         bindings: vec![(smt_to_string(SspSmtVar::ReturnValue), {

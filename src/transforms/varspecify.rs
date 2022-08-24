@@ -29,6 +29,7 @@ fn var_specify_helper(inst: &PackageInstance, block: CodeBlock, comp_name: &str)
     let PackageInstance {
         name,
         pkg: Package { state, params, .. },
+        params: inst_params,
         ..
     } = inst;
 
@@ -40,10 +41,12 @@ fn var_specify_helper(inst: &PackageInstance, block: CodeBlock, comp_name: &str)
                     pkgname: name.clone(),
                     compname: comp_name.into(),
                 })
-            } else if params.clone().iter().any(|(id_, _)| id == *id_) {
+            } else if params.clone().iter().any(|(id_, name_in_comp)| id == *id_) {
                 Expression::Identifier(Identifier::Params {
-                    name: id,
+                    name_in_pkg: id.clone(),
                     pkgname: name.clone(),
+
+                    name_in_comp: inst_params[&id].clone(),
                     compname: comp_name.into(),
                 })
             } else {
@@ -63,8 +66,10 @@ fn var_specify_helper(inst: &PackageInstance, block: CodeBlock, comp_name: &str)
             } else if params.clone().iter().any(|(id_, _)| id == *id_) {
                 Expression::TableAccess(
                     Identifier::Params {
-                        name: id,
+                        name_in_pkg: id.clone(),
                         pkgname: name.clone(),
+
+                        name_in_comp: inst_params[&id].clone(),
                         compname: comp_name.into(),
                     },
                     expr,
@@ -180,6 +185,7 @@ mod test {
     use crate::statement::{CodeBlock, Statement};
     use crate::types::Type;
     use std::collections::HashMap;
+    use std::iter::FromIterator;
 
     fn generate_code_blocks(
         source_id: Identifier,
@@ -316,15 +322,18 @@ mod test {
 
     #[test]
     fn variable_is_param() {
-        let params: HashMap<String, String> = HashMap::new();
+        let params: HashMap<String, String> =
+            HashMap::from_iter(vec![("v".to_string(), "v".to_string())]);
         let mut param_t: Vec<(String, Type)> = Vec::new();
         let state: Vec<(String, Type)> = Vec::new();
         param_t.push(("v".to_string(), Type::Integer));
 
         let source_id = Identifier::Scalar("v".to_string());
         let target_id = Identifier::Params {
-            name: "v".to_string(),
+            name_in_pkg: "v".to_string(),
             pkgname: "testpkg".to_string(),
+
+            name_in_comp: "v".to_string(),
             compname: "testcomp".to_string(),
         };
 

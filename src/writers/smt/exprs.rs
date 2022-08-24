@@ -28,6 +28,26 @@ pub enum SmtExpr {
     List(Vec<SmtExpr>),
 }
 
+impl From<&str> for SmtExpr {
+    fn from(atom: &str) -> Self {
+        SmtExpr::Atom(atom.to_string())
+    }
+}
+
+impl<T1: Into<SmtExpr>, T2: Into<SmtExpr>> From<(T1, T2)> for SmtExpr {
+    fn from(lst: (T1, T2)) -> SmtExpr {
+        let (v1, v2) = lst;
+        SmtExpr::List(vec![v1.into(), v2.into()])
+    }
+}
+
+impl<T1: Into<SmtExpr>, T2: Into<SmtExpr>, T3: Into<SmtExpr>> From<(T1, T2, T3)> for SmtExpr {
+    fn from(lst: (T1, T2, T3)) -> SmtExpr {
+        let (v1, v2, v3) = lst;
+        SmtExpr::List(vec![v1.into(), v2.into(), v3.into()])
+    }
+}
+
 impl SmtFmt for SmtExpr {
     fn write_smt_to<T: Write>(&self, write: &mut T) -> Result<()> {
         match self {
@@ -72,8 +92,7 @@ impl From<Expression> for SmtExpr {
                             Type::Maybe(valtipe).into(),
                         ]),
                     ])
-                }
-                else {
+                } else {
                     panic!("Empty table of type {:?}", t)
                 }
             }
@@ -158,9 +177,10 @@ impl From<Expression> for SmtExpr {
                 SspSmtVar::SelfState.into(),
             ]),
             Expression::Identifier(Identifier::Params {
-                name: identname,
+                name_in_pkg: identname,
                 pkgname,
                 compname,
+                ..
             }) => SmtExpr::List(vec![
                 SmtExpr::Atom(format!("state-{}-{}-{}", compname, pkgname, identname)),
                 SspSmtVar::SelfState.into(),
@@ -362,7 +382,7 @@ impl From<SmtAs> for SmtExpr {
 impl From<SspSmtVar> for SmtExpr {
     fn from(v: SspSmtVar) -> SmtExpr {
         match v {
-            SspSmtVar::GlobalState => SmtExpr::Atom("__global_state".into()),
+            SspSmtVar::GlobalState => "__global_state".into(),
             SspSmtVar::SelfState => SmtExpr::Atom("__self_state".into()),
             SspSmtVar::ReturnValue => SmtExpr::Atom("__ret".into()),
             SspSmtVar::OracleReturnConstructor {

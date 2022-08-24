@@ -31,8 +31,8 @@ impl<W: Write> Writer<W> {
                 self.write_string(x)?;
                 self.write_string(" /* local identifier */ ")?;
             }
-            Identifier::Params { name, .. } => {
-                self.write_string(name)?;
+            Identifier::Params { name_in_pkg, .. } => {
+                self.write_string(name_in_pkg)?;
                 self.write_string(&format!(" /* param identifier */ "))?;
             }
             Identifier::State { name, .. } => {
@@ -263,10 +263,7 @@ impl<W: Write> Writer<W> {
                     self.write_string(&format!("; /* target instance name not assigned */"))?;
                 }
                 if let Some(tipe) = opt_tipe {
-                    self.write_string(&format!(
-                        " /* return type {:?} */",
-                        tipe
-                    ))?;
+                    self.write_string(&format!(" /* return type {:?} */", tipe))?;
                 } else {
                     self.write_string(&format!(" /* return type unknown */"))?;
                 }

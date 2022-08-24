@@ -9,8 +9,10 @@ pub enum Identifier {
         compname: String,
     },
     Params {
-        name: String,
+        name_in_pkg: String,
         pkgname: String,
+
+        name_in_comp: String,
         compname: String,
     },
     Local(String),
@@ -32,7 +34,7 @@ impl Identifier {
             Identifier::Scalar(ident) => ident.clone(),
             Identifier::Local(ident) => ident.clone(),
             Identifier::State { name, .. } => name.clone(),
-            Identifier::Params { name, .. } => name.clone(),
+            Identifier::Params { name_in_pkg, .. } => name_in_pkg.clone(),
         }
     }
 }
