@@ -229,7 +229,7 @@ impl Project {
 
         for comp in [left_comp, right_comp] {
             let (comp, _, samp) = crate::transforms::transform_all(&comp)?;
-            let mut writer = CompositionSmtWriter::new(&comp, samp);
+            let mut writer = CompositionSmtWriter::new(&comp, &samp);
             for line in writer.smt_composition_all() {
                 line.write_smt_to(&mut dst_file)?;
             }

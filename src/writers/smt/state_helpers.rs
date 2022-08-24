@@ -1,3 +1,4 @@
+use crate::transforms::samplify::SampleInfo;
 use crate::types::Type;
 
 use crate::writers::smt::exprs::{smt_to_string, SmtExpr, SmtLet, SspSmtVar};
@@ -29,68 +30,164 @@ use crate::writers::smt::exprs::{smt_to_string, SmtExpr, SmtLet, SspSmtVar};
 
 pub struct SmtCompositionContext<'a> {
     comp_name: &'a str,
-    substate_names: Vec<&'a str>,
+    pkg_names: Vec<&'a str>,
+    params: Vec<(&'a String, &'a Type)>,
+    sample_info: &'a SampleInfo,
 }
 
 impl<'a> SmtCompositionContext<'a> {
-    pub fn new(comp_name: &'a str, substate_names: Vec<&'a str>) -> SmtCompositionContext<'a> {
+    pub fn new(
+        comp_name: &'a str,
+        substate_names: Vec<&'a str>,
+        params: &'a [(String, Type)],
+        sample_info: &'a SampleInfo,
+    ) -> SmtCompositionContext<'a> {
+        // skip functions
+
+        let params: Vec<(&String, &Type)> = params
+            .iter()
+            .filter(|(_, tipe)| !matches!(tipe, Type::Fn(..)))
+            .map(|(a, b)| (a, b))
+            .collect();
+
         SmtCompositionContext {
             comp_name,
-            substate_names,
+            pkg_names: substate_names,
+            params: params,
+            sample_info,
         }
     }
+
     pub fn smt_sort(&self) -> SmtExpr {
-        SmtExpr::Atom(format!("CompositionState-{}", self.comp_name))
+        format!("CompositionState-{}", self.comp_name).into()
     }
 
     pub fn smt_constructor(&self) -> SmtExpr {
         format!("mk-composition-state-{}", self.comp_name).into()
     }
 
-    pub fn smt_accessor(&self, inst_name: &str) -> SmtExpr {
+    pub fn smt_accessor_pkg(&self, inst_name: &str) -> SmtExpr {
         // TODO should we check that inst_name is in inst_names? same for SmtPackageState
-        SmtExpr::Atom(format!(
-            "composition-state-{}-{}",
-            self.comp_name, inst_name
-        ))
+        format!("composition-pkgstate-{}-{}", self.comp_name, inst_name).into()
     }
 
-    pub fn smt_access(&self, inst_name: &str, term: SmtExpr) -> SmtExpr {
-        SmtExpr::List(vec![self.smt_accessor(inst_name), term])
+    pub fn smt_access_pkg(&self, inst_name: &str, term: SmtExpr) -> SmtExpr {
+        (self.smt_accessor_pkg(inst_name), term).into()
+    }
+
+    pub fn smt_accessor_param(&self, param_name: &str) -> SmtExpr {
+        // TODO check that param exists
+        format!("composition-param-{}-{}", self.comp_name, param_name).into()
+    }
+    pub fn smt_access_param(&self, param_name: &str, term: SmtExpr) -> SmtExpr {
+        (self.smt_accessor_param(param_name), term).into()
+    }
+
+    pub fn smt_accessor_rand(&self, sample_id: u32) -> SmtExpr {
+        // TODO check that sample id is in bounds
+        format!("composition-rand-{}-{}", self.comp_name, sample_id).into()
+    }
+    pub fn smt_access_rand(&self, sample_id: u32, term: SmtExpr) -> SmtExpr {
+        (self.smt_accessor_rand(sample_id), term).into()
     }
 
     pub fn smt_declare_datatype(&self) -> SmtExpr {
+        // initialize list with constructor name
         let mut tmp = vec![self.smt_constructor()];
 
-        for inst_name in &self.substate_names {
+        // add accessors for the package states
+        for inst_name in &self.pkg_names {
             let pkg_state = SmtPackageState {
                 comp_name: self.comp_name,
                 inst_name,
                 state: vec![],
                 params: vec![],
             };
-            tmp.push(SmtExpr::List(vec![
-                self.smt_accessor(inst_name),
-                pkg_state.smt_sort(),
-            ]))
+
+            tmp.push((self.smt_accessor_pkg(inst_name), pkg_state.smt_sort()).into())
         }
 
-        SmtExpr::List(vec![
-            SmtExpr::Atom("declare-datatype".to_string()),
+        // add accessors for parameters/consts
+        for (param_name, param_type) in &self.params {
+            tmp.push(
+                (
+                    self.smt_accessor_param(param_name),
+                    (*param_type).to_owned(),
+                )
+                    .into(),
+            )
+        }
+
+        // add accessors for randomness sample counters
+        for sample_id in 0..(self.sample_info.count) {
+            tmp.push((self.smt_accessor_rand(sample_id), Type::Integer).into())
+        }
+
+        // build the actual declare-datatype expression
+        (
+            "declare-datatype",
             self.smt_sort(),
             SmtExpr::List(vec![SmtExpr::List(tmp)]),
-        ])
+        )
+            .into()
     }
 
-    pub fn smt_set(&self, target: &str, new: &SmtExpr, body: SmtExpr) -> SmtExpr {
+    pub fn smt_set_pkg_state(&self, target: &str, new: &SmtExpr, body: SmtExpr) -> SmtExpr {
+        // initialize list with constructor name
         let mut tmp = vec![self.smt_constructor()];
 
-        for inst_name in &self.substate_names {
+        // add values for the package states, replacing target
+        for inst_name in &self.pkg_names {
             tmp.push(if *inst_name == target {
                 new.clone()
             } else {
-                self.smt_access(inst_name, SspSmtVar::CompositionContext.into())
+                self.smt_access_pkg(inst_name, SspSmtVar::CompositionContext.into())
             });
+        }
+
+        // copy values for parameters/consts
+        for (param_name, _) in &self.params {
+            tmp.push(self.smt_access_param(param_name, SspSmtVar::CompositionContext.into()));
+        }
+
+        // copy values for randomness sample counters
+        for sample_id in 0..(self.sample_info.count) {
+            tmp.push(self.smt_access_rand(sample_id, SspSmtVar::CompositionContext.into()));
+        }
+
+        SmtLet {
+            bindings: vec![(
+                smt_to_string(SspSmtVar::CompositionContext),
+                SmtExpr::List(tmp),
+            )],
+            body,
+        }
+        .into()
+    }
+
+    pub fn smt_set_rand_ctr(&self, target_sample_id: u32, new: &SmtExpr, body: SmtExpr) -> SmtExpr {
+        // initialize list with constructor name
+        let mut tmp = vec![self.smt_constructor()];
+
+        // copy values for the package states
+        for inst_name in &self.pkg_names {
+            tmp.push(self.smt_access_pkg(inst_name, SspSmtVar::CompositionContext.into()));
+        }
+
+        // copy values for parameters/consts
+        for (param_name, _) in &self.params {
+            tmp.push(self.smt_access_param(param_name, SspSmtVar::CompositionContext.into()));
+        }
+
+        // add values for randomness sample counters, but replace target_sample_id
+        for sample_id in 0..(self.sample_info.count) {
+            let new = if sample_id == target_sample_id {
+                new.clone()
+            } else {
+                self.smt_access_rand(sample_id, SspSmtVar::CompositionContext.into())
+            };
+
+            tmp.push(new);
         }
 
         SmtLet {
@@ -179,12 +276,14 @@ impl<'a> SmtPackageState<'a> {
                 tipe.clone().into(),
             ]))
         }
+        /*
         for (id, tipe) in &self.params {
             tmp.push(SmtExpr::List(vec![
                 self.smt_accessor(id),
                 tipe.clone().into(),
             ]))
         }
+        */
 
         SmtExpr::List(vec![
             SmtExpr::Atom("declare-datatype".to_string()),

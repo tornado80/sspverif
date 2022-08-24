@@ -178,7 +178,7 @@ fn smt(name: &str) {
         }
         declared_types.extend(scope.known_types());
 
-        let mut writer = CompositionSmtWriter::new(&comp, samp);
+        let mut writer = CompositionSmtWriter::new(&comp, &samp);
         for line in writer.smt_composition_all() {
             line.write_smt_to(&mut std::io::stdout()).unwrap();
         }

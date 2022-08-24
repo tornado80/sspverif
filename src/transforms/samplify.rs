@@ -9,6 +9,7 @@ pub struct Error(pub String);
 
 pub struct Transformation<'a>(pub &'a Composition);
 
+#[derive(Clone)]
 pub struct SampleInfo {
     pub tipes: Vec<Type>,
     pub count: u32,

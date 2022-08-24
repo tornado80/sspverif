@@ -41,6 +41,15 @@ impl<T1: Into<SmtExpr>, T2: Into<SmtExpr>, T3: Into<SmtExpr>> From<(T1, T2, T3)>
     }
 }
 
+impl<T1: Into<SmtExpr>, T2: Into<SmtExpr>, T3: Into<SmtExpr>, T4: Into<SmtExpr>>
+    From<(T1, T2, T3, T4)> for SmtExpr
+{
+    fn from(lst: (T1, T2, T3, T4)) -> SmtExpr {
+        let (v1, v2, v3, v4) = lst;
+        SmtExpr::List(vec![v1.into(), v2.into(), v3.into(), v4.into()])
+    }
+}
+
 impl SmtFmt for SmtExpr {
     fn write_smt_to<T: Write>(&self, write: &mut T) -> Result<()> {
         match self {
