@@ -39,12 +39,7 @@ impl<'a> CompositionSmtWriter<'a> {
         for inst in &csw.comp.pkgs {
             csw.state_helpers.insert(
                 inst.name.clone(),
-                SmtPackageState::new(
-                    &csw.comp.name,
-                    &inst.name,
-                    inst.pkg.state.clone(),
-                    inst.pkg.params.clone(),
-                ),
+                SmtPackageState::new(&csw.comp.name, &inst.name, inst.pkg.state.clone()),
             );
         }
 
@@ -534,8 +529,7 @@ impl<'a> CompositionSmtWriter<'a> {
     }
 
     fn smt_composition_randomness(&mut self) -> Vec<SmtExpr> {
-        let mut result: Vec<SmtExpr> = self
-            .sample_info
+        self.sample_info
             .tipes
             .iter()
             .map(|tipe| {
@@ -553,33 +547,17 @@ impl<'a> CompositionSmtWriter<'a> {
                 )
                     .into()
             })
-            .collect();
-
-        let statehelper = SmtPackageState::new(
-            &self.comp.name,
-            "__randomness",
-            (1..self.sample_info.count)
-                .map(|ctr| (format!("ctr{}", ctr), Type::Integer))
-                .collect(),
-            vec![],
-        );
-        self.state_helpers
-            .insert("__randomness".into(), statehelper.clone());
-        result.push(statehelper.smt_declare_datatype());
-
-        result
+            .collect()
     }
 
     pub fn smt_composition_all(&mut self) -> Vec<SmtExpr> {
-        //let rand = self.smt_composition_randomness();
+        let rand = self.smt_composition_randomness();
         let state = self.smt_composition_state();
         let ret = self.smt_composition_return();
         let code = self.smt_composition_code();
 
-        //rand.into_iter()
-        //    .chain(state.into_iter())
-        state
-            .into_iter()
+        rand.into_iter()
+            .chain(state.into_iter())
             .chain(ret.into_iter())
             .chain(code.into_iter())
             .collect()

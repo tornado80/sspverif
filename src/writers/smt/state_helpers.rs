@@ -232,7 +232,6 @@ impl<'a> SmtPackageState<'a> {
         comp_name: &'a str,
         inst_name: &'a str,
         state: Vec<(String, Type)>,
-        params: Vec<(String, Type)>,
     ) -> SmtPackageState<'a> {
         SmtPackageState {
             comp_name,
