@@ -66,11 +66,11 @@
 \usepackage{rotating}
 \usepackage{thm-restate}
 
-\makeatletter
-\let\claim\@undefined
-\let\endclaim\@undefined
-\makeatother
-\spnewtheorem{claim}[theorem]{Claim}{\bfseries}{\itshape}
+%\makeatletter
+%\let\claim\@undefined
+%\let\endclaim\@undefined
+%\makeatother
+%\spnewtheorem{claim}[theorem]{Claim}{\bfseries}{\itshape}
 
 % include code in verbatim
 \usepackage{listings}
@@ -154,76 +154,20 @@ def}}}{=}}}
 \newcommand\gray{\textcolor{gray}{gray}}
 
 \begin{abstract}
-The TLS 1.3 Handshake protocol includes features
-such as agility, session resumption as well as aggregation of
-key material. Due to the complexity which these features introduce
-to the key derivations, Brzuska, Delignat-Lavaud, Egger, Fournet, Kohbrok
-and Kohlweiss (BDEFKK, ePrint 2021) recently analyzed the TLS 1.3 Key Schedule
-using the novel state-separating proof technique (Asiacrypt 2018), capturing
-all details of the key schedule. In follow-up work, Brzuska, Cornelissen
-and Kohbrok analyzed the MLS key schedule (Security \& Privacy 2022).
-
-Key schedule analysis is appealing, because analyzing a cryptographic
-\emph{primitive} is easier than analyzing an interactive protocol. But
-does an analysis of the key schedule indeed imply the security of the
-overall key exchange protocol?
-
-We answer this question in the affirmative for TLS 1.3. We prove that the 
-security of the key exchange reduces to the key schedule via verbose but 
-conceptually simple code equivalence steps. As two further conceptual
-contributions, we provide a security model for the TLS 1.3 handshake
-which supports agility and resumption in a lean way, and we clarify the
-properties which the top-level key exchange needs to satisfy, captured
-by our class of \emph{TLS-like} key exchange protocols. The concepts
-underlying each of the three contributions are applicable to any other
-key-schedule based key exchange protocol and thus constitute methodology
-that is likely to be useful for the current key exchange design trends.
-%
-%Naturally, the BDEFKK key schedule analysis begs the question whether key schedule
-%security indeed translates into key exchange security of the full protocol. However,
-%on paper, such a proof seems infeasible, since capturing all details of TLS 1.3
-%seems impossible.%
-%
-%In this article, we overcome this obstacle by introducing and analysing a class
-%of TLS-like key exchange protocols, which, in particular, contain TLS 1.3 as a
-%particular instance. We show that the BDEFKK key indistinguishability and key uniqueness
-%guarantees carry over to the key exchange, including agility, session resumption
-%and aggregation of key material. These features, to date, have not been studied in a
-%computational model of security. We sketch how our results compose with
-%signature-based authentication and leave composition with ciphersuite negotiation 
-%security for further work.
-%  Very concrete
+Very concrete.
 \end{abstract}
 
 %\tableofcontents
 
-\input{intro}
+\input{introduction}
 
-\input{technical-overview}
+%\input{technical-overview}
 
-\input{notation}
-\input{key-exchange-syntax}
-\input{key-schedule-syntax}
-
-
-\input{theorem-main}
-\section{Proof of Main Theorem~\ref{thm:main}}
-\label{sec:proof:main}
-\begin{proof}
-\input{proofofmain}
-\end{proof}
-
-\input{theorem-signature}
-\input{theorem-datastructure}
-\input{theorem-handles}
-\newcommand\assertToGlobal\relax
-\newcommand\toAssert\relax
+%\input{notation}
+%\input{key-exchange-syntax}
+%\input{key-schedule-syntax}
 
 
-\FloatBarrier
-
-\input{theorem-check-intro}
-\input{theorem-reduction}
 
 
 %{\footnotesize
@@ -233,37 +177,10 @@ that is likely to be useful for the current key exchange design trends.
 %}
 %\clearpage
 
-\begin{center}
-\LARGE
----End of submission---\\
----Supplementary material---
-\end{center}
-%\begin{figure}[htp]
-%  \centering
-%  \input{prooftree}
-%  \caption{Proof Structure}
-%  \label{fig:prooftree}
-%\end{figure}
 
 \tableofcontents
 
 \clearpage
 
 \appendix
-
-\input{appendix-bilder}
-\FloatBarrier
-\input{appendix-code}
-\FloatBarrier
-%\input{appendix-check}
-%\input{appendix-properties}
-\input{appendix-datastructure}
-\input{appendix-handles}
-%\input{appendix-modularization}
-%\input{appendix-pinkblue}
-\input{appendix-checkintro}
-
-%\input{proofofmain}
-\input{appendix-key-schedule}
-
 \end{document}
