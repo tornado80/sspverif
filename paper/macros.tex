@@ -1,0 +1,362 @@
+\newcommand{\ADM}{\text{\textrm{\upshape ADM}}}
+\newcommand{\StyleModel}[1]{\V{{#1}}}
+\newcommand{\StyleKey}[1]{\ensuremath{\mathit{#1}}}
+
+\renewcommand{\lll}{\text{left}}
+\newcommand{\rrr}{\text{right}}
+\newcommand{\mmm}{\text{middle}}
+\newcommand{\XPN}{\n{XPN}}
+\newcommand{\XTN}{\n{XTN}}
+
+
+\newcommand{\hon}{\V{{hon}}}
+\newcommand\admid{\n{admid}}
+\newcommand\idx{\O{idx}}
+\newcommand\ctr{\n{ctr}}
+\newcommand\ks{\n{ks}}
+
+\newcommand{\ksc}{\mathsf{ksc}}
+\renewcommand{\vec}[1]{\textbf{#1}}
+
+\newcommand{\outputof}{\mathsf{output}}
+\newcommand{\vecgets}{\stackrel{\textbf{vec}}{\gets}}
+\newcommand{\choosegets}{\stackrel{\text{choose}}{\gets}}
+\newcommand{\cequiv}{\stackrel{\textbf{code}}{\equiv}}
+\newcommand{\vecequal}{\stackrel{\textbf{vec}}{=}}
+
+
+\newcommand{\GKG}{\M{GKG}}
+\newcommand{\cnt}{\textsf{cnt}}
+\renewcommand{\H}{\textsf{H}}
+\newcommand{\RO}{\textsf{RO}}
+\newcommand{\RPO}{\textsf{RPO}}
+\newcommand{\E}{\textsf{E}}
+\newcommand{\ininterface}[1]{{[\M{#1}\rightarrow]}} %{I^{in}_{#1}}
+\newcommand{\outinterface}[1]{{[\rightarrow\M{#1}]}} %{I^{out}_{#1}}
+\newcommand{\V}[1]{\ensuremath{\mathit{#1}}}
+
+\newcommand{\args}{\StyleModel{args}}
+\newcommand{\history}{\StyleModel{history}}
+\newcommand{\Handles}{\vec h}
+\newcommand{\Keys}{\vec k}
+\renewcommand{\hash}{\O{hash}}
+\newcommand{\xtr}{\O{xtr}}
+\renewcommand{\dh}{\O{dh}}
+\newcommand{\hmac}{\O{xtr}}
+\renewcommand{\prf}{\hmac}
+\newcommand{\xpd}{\O{xpd}}
+\newcommand{\hkdf}{\O{xpd}}
+\newcommand{\dkdf}{\O{kdf}}
+\newcommand{\kdf}{\hkdf}
+\newcommand{\gendh}{\O{gendh}}
+\newcommand{\honest}{\mathsf{honest}}
+\newcommand{\honestShares}{\mathsf{honestShares}}
+
+\newcommand{\ReturnHandles}{\StyleModel{ReturnHandles}}
+\newcommand{\CompHand}{\O{CompHand}}
+\newcommand{\CompInput}{\O{CompInput}}
+\newcommand{\CompKey}{\O{CompKey}}
+\newcommand{\compK}[1]{\mathsf{nextKeys}(#1)}
+\newcommand{\CompKeys}{\CompKey}
+\newcommand{\lastShares}{\mathsf{shares}}
+\newcommand{\lastPsk}{\mathsf{psk}}
+\newcommand{\level}{\mathsf{level}}
+\newcommand{\sort}{\mathsf{sort}}
+\newcommand{\length}{\mathsf{len}}
+\newcommand{\outlen}{\length}
+\newcommand{\keylen}{\length}
+\newcommand{\esalt}{\StyleModel{esalt}}
+\newcommand{\share}{\StyleModel{share}}
+\newcommand{\localshare}{X}% or \share_\local
+\newcommand{\peershare}{Y}% or \share_\peer
+\newcommand{\exponent}{\StyleModel{exp}}
+\newcommand{\shares}{\StyleModel{shares}}
+\renewcommand{\th}{\StyleModel{th}}
+%\renewcommand{\dh}{\StyleModel{dh}}
+\newcommand{\hs}{\StyleModel{hs}}
+\newcommand{\bind}{\StyleModel{bind}}
+\newcommand{\eem}{\StyleModel{eem}}
+\newcommand{\es}{\StyleModel{es}}
+\newcommand{\cet}{\StyleModel{cet}}
+\newcommand{\cekey}{\StyleModel{cekey}}
+\newcommand{\ceiv}{\StyleModel{ceiv}}
+\newcommand{\Label}{\lbl{label}}
+\newcommand{\ctx}{\V{ctx}}
+\newcommand{\isres}{\StyleModel{is}\_\StyleModel{res}}
+
+\newcommand{\stack}[1]{{\scriptsize\begin{array}{l} #1 \end{array}}}
+\newcommand*{\stacktwo}[2]{\genfrac{}{}{0pt}{}{#1}{#2}}
+
+%\newcommand{\name}{\O{name}}
+\newcommand{\type}{\mathsf{type}}
+\newcommand{\OutIndexes}{Fin \cup Out}
+
+\newcommand{\pcvar}[1]{\ensuremath{\mathit{#1}}}
+
+
+
+\newcommand{\GNACR}{\M{GCR}}
+\newcommand{\GCR}{\M{GCR}}
+\newcommand{\GCRLIB}{\M{GACR}}
+\newcommand{\dual}[1]{#1^{\dagger}}
+\newcommand{\falgo}{\V{f}}
+\newcommand{\family}{\V{afun}}
+\newcommand{\sha}{\O{sha}}
+\newcommand{\dash}{\text{-}}
+
+\newcommand{\GPR}{\M{GPR}}
+\newcommand{\GPI}{\M{GPI}}
+\newcommand{\DKDF}{\M{DKDF}}
+\newcommand{\DPRF}{\M{DPRF}}
+\newcommand{\TKDF}{\M{TKDF}}
+\newcommand{\GDKDF}{\M{GDKDF}}
+\newcommand{\GMAC}{\M{GMAC}}
+\newcommand{\GXPD}{\M{GXPD}}
+\newcommand{\GKDF}{\M{GXPD}}
+\newcommand{\GSODH}{\M{GSODH}}
+\newcommand{\GMOSODH}{\M{GSODH2}}
+\newcommand{\GMOSODHT}{\M{GSODH3}}
+
+\newcommand{\XPD}{\M{XPD}}
+
+
+
+\newcommand{\KS}{\M{KS}}
+\newcommand{\GKS}{\M{GKS}}
+\newcommand{\GMAIN}{\M{GMAIN}}
+\newcommand{\GCORE}{\M{GCORE}}
+\newcommand{\RDDF}{\V{RD,DF,DD}}
+
+
+\newcommand{\CORE}{\M{CORE}}
+\newcommand{\CONTROL}{\M{CONTROL}}
+\newcommand{\eph}{\StyleModel{eph}}
+\newcommand{\stat}{\StyleModel{stat}}
+\newcommand{\kgen}{\StyleModel{kgen}}
+\newcommand{\m}{\StyleModel{m}}
+\renewcommand{\mac}{\O{mac}}
+\newcommand{\dprf}{\StyleModel{dprf}}
+\renewcommand{\enc}{\StyleModel{enc}}
+\renewcommand{\dec}{\StyleModel{dec}}
+\newcommand{\send}{\StyleModel{send}}
+\newcommand{\rec}{\StyleModel{rec}}
+\renewcommand{\verify}{\StyleModel{verify}}
+\newcommand{\se}{\StyleModel{se}}
+\newcommand{\ch}{\StyleModel{ch}}
+\renewcommand{\O}[1]{\ensuremath{\mathsf{#1}}}
+\newcommand{\M}[1]{\ensuremath{\text{\textrm{\upshape#1}}}}
+\newcommand{\G}{\M{G}}
+\newcommand{\unfcma}{\M{UNF-CMA}}
+\newcommand{\indcca}{\M{IND-CCA}}
+\newcommand{\indcpa}{\M{IND-CPA}}
+\newcommand{\dollarindcpa}{\M{\$-IND-CPA}}
+\newcommand{\dollarindcca}{\M{\$-IND-CCA}}
+\newcommand{\pcassert}{\mathbf{assert}\;}
+\newcommand{\pcand}{\mathbf{and}\;}
+\newcommand{\pcwhere}{\mathbf{where}\;}
+\renewcommand{\ae}{\M{AE}}
+\newcommand{\dollarae}{\M{\$-AE}}
+\newcommand{\pctwo}[2]{\frac{#1}{#2}}
+\newcommand{\advantage}{\text{Adv}}
+\newcommand{\eps}{\mathsf{Adv}}
+\newcommand{\seq}{\circ}
+\newcommand{\sequiv}{\stackrel{s}{\approx}}
+%\newcommand{\cequiv}{\stackrel{\text{code}}{\equiv}}
+\newcommand{\oequiv}{\stackrel{o}{\approx}}
+\newcommand{\pctwoh}[2]{\left(#1 \middle| #2\right)}
+\newcommand{\ID}{\M{ID}}
+\newcommand{\KEY}{\M{KEY}}
+\newcommand{\SKEY}{\M{K}\xspace}
+\newcommand{\LOG}{\M{LOG}\xspace}
+\newcommand{\SLOG}{\M{L}\xspace}
+\newcommand{\pat}{\V{pat}}
+\newcommand{\TRANS}{\M{TRANS}}
+\newcommand{\XPR}{\V{XPR}}
+%\newcommand{\keylen}{\lambda} %\StyleModel{keylen}}
+\newcommand{\GEN}{\O{GEN}}
+\newcommand{\SET}{\O{SET}}
+\newcommand{\CSET}{\O{CSET}}
+\newcommand{\GET}{\O{GET}}
+\newcommand{\HON}{\O{HON}}
+\newcommand{\UNQ}{\O{UNQ}}
+\newcommand{\HASH}{\O{HASH}}
+\newcommand{\mi}[1]{\prod_{i=1}^{n} #1[i]}
+\newcommand{\miminus}[1]{\prod_{i=1}^{n} #1[i-]}
+\newcommand{\mij}[1]{\prod_{j=1}^{n} #1[j]}
+\newcommand{\mijNoSub}[1]{\prod_{j=1}^{n} {#1}}
+\newcommand{\miSpecific}[3]{\prod_{i=#2}^{#3} #1[i]}
+\newcommand{\miSpecificj}[3]{\prod_{j=#2}^{#3} #1[j]}
+\newcommand{\pk}{\StyleKey{pk}}
+\newcommand{\ppk}{\StyleKey{ppk}}
+\newcommand{\sk}{\StyleKey{sk}}
+\newcommand{\running}{\StyleModel{running}}
+\newcommand{\rejected}{\StyleModel{rejected}}
+\newcommand{\initiator}{\StyleModel{initiator}}
+\newcommand{\responder}{\StyleModel{responder}}
+\newcommand{\accepted}{\StyleModel{accepted}}
+\newcommand{\sid}{\StyleModel{sid}}
+\newcommand{\master}{\StyleModel{master}}
+\newcommand{\Out}{\StyleModel{Out}}
+\newcommand{\static}{\mathsf{static}}
+
+% Superscripts for relational proofs
+\renewcommand{\r}[1]{#1^{\mathit{r}}}
+\renewcommand{\l}[1]{#1^{\mathit{l}}}
+\newcommand{\lpar}[1]{(#1)^{\mathit{l}}}
+\newcommand{\rpar}[1]{(#1)^{\mathit{r}}}
+
+\newcommand{\corrupted}{\StyleModel{corrupted}}
+\newcommand{\run}{\StyleModel{run}}
+\newcommand{\state}{\StyleModel{state}}
+
+\newcommand{\A}{\mathcal{A}}
+
+\newcommand{\dom}{\mathop{dom}}
+\newcommand{\pcabortwith}[1]{\textbf{throw }\constn{#1}}
+\newcommand{\pcmemorize}{\textbf{memorize}}
+\newcommand{\pconce}{\textbf{once per handle}}
+
+% See examples below for usage.
+% Please suggest better macro names!
+\newcommand{\name}{\O{name}}
+\newcommand{\fullname}{\O{fullname}}
+\newcommand{\n}[1]{\V{#1}}
+\newcommand{\constn}[1]{\mathtt{#1}}
+\newcommand{\nname}{\n{n}}
+\newcommand{\nem}{\n{eam}}
+\renewcommand{\index}{{\n{n}}}
+\newcommand{\pindex}{{{\n{n}\text{-}}}}
+\newcommand{\h}[1]{h_{\n{#1}}}
+\renewcommand{\k}[1]{k_{\n{#1}}}
+\newcommand{\trs}[1]{\mathit{t}_{\n{#1}}}
+\newcommand{\dig}[1]{\mathit{d}_{\n{#1}}}
+\newcommand{\lbl}[1]{{\mbox{\texttt{#1}}}}% omit the quotes?
+\newcommand{\node}[2]{\mathsf{#1}\langle{#2}\rangle} % constructor, parent name, other args
+\newcommand{\expandtr}[2]{\node{xpd}{\h{#1},\lbl{#2},\trs{#1}}}
+\newcommand{\expand}[2]{\node{xpd}{\h{#1},\lbl{#2}, []}} %\lbl{},
+\newcommand{\extract}[1]{\node{xtr}{\node{noSALT}{\alg{\h{#1}}},\h{#1}}}
+\newcommand{\extractdh}[2]{\node{xtr}{\h{#1},#2}}
+\newcommand{\extracta}[1]{\node{xtr}{\h{#1},\node{noIKM}{\alg{\h{#1}}}}}
+\newcommand{\nodeCTL}[3]{\mathsf{#1}_\n{#2,\level(\h{#2})}({#3})} % constructor, parent name, other args
+\newcommand{\expandtrCTL}[2]{\O{EXPAND}_\n{#1,\level(\h{#1})}(\h{#1},\lbl{#2},\trs{#1})}
+\newcommand{\expandCTL}[2]{\O{EXPAND}_\n{#1,\level(\h{#1})}( \h{#1},\lbl{#2}, [] )} %\lbl{},
+\newcommand{\extractCTL}[1]{\O{EXTRACT}_\n{#1,\level(\h{#1})}(\node{noSALT}{\alg{\h{#1}}},\h{#1}))}
+\newcommand{\extractdhCTL}[2]{\O{EXTRACT}_\n{#1,\level(\h{#1})}(\h{#1},#2)}
+\newcommand{\extractaCTL}[1]{\O{EXTRACT}_\n{#1,\level(\h{#1})}(\h{#1},\node{noIKM}{\alg{\h{#1}}})}
+\newcommand{\KDF}[3]{\mathsf{xpd}(\k{#1},\lbl{#2},#3)} %used to be hkdf
+\newcommand{\compH}[1]{\mathsf{nextHandle}(#1)}
+\newcommand{\compCTL}[1]{\mathsf{DERIVE}(#1)}
+\newcommand{\local}{\V{local}}
+\newcommand{\peer}{\V{peer}}
+
+\newcommand{\tagkey}[2]{\O{tag}_{#2}(#1)}
+\newcommand{\untagkey}[2]{\O{untag}(#1)} %removed _{#2}
+\newcommand{\cbuntagkey}[1]{\O{untag}(#1)} %cb: a macro that drops one argument is terrible, defined my own...
+\newcommand{\alg}[1]{\O{alg}(#1)}
+\newcommand{\algo}{\V{alg}}
+\newcommand{\leng}{\V{len}}
+\newcommand{\len}{\O{len}}
+\newcommand{\hashAlgs}{{\cal H}}
+\newcommand{\format}[1]{\O{format}(#1)}
+\newcommand{\Formats}{\V{Formats}}
+\newcommand{\Groups}{\mathcal{G}}
+\newcommand{\generator}{\O{gentor}}
+\newcommand{\gen}{\O{gen}}
+\newcommand{\group}{\O{grp}}
+\newcommand{\grp}{\V{grp}}
+\newcommand{\order}{\O{ord}}
+
+
+\newcommand{\lev}[1]{\O{level}(#1)}
+\newcommand{\res}[1]{\O{res}(#1)}
+\newcommand{\key}[1]{\O{key(#1)}}
+\newcommand{\truncate}{\O{truncate}}
+\newcommand{\binderTag}{\O{binderTag}}
+\newcommand{\binderHandle}{\O{binderHandle}}
+
+\newcommand{\isresflag}{\V{r}}
+\newcommand{\mactag}{\V{mac}}
+
+\newcommand{\lname}{\n{ln}}
+\newcommand{\rname}{\n{rn}}
+\newcommand{\oname}{\n{on}}
+\newcommand{\poname}{\n{on}\text{-}}
+\newcommand{\pOnames}{\n{M}\text{-}}
+\newcommand{\Onames}{\n{M}}
+\newcommand{\iname}{\n{in}}
+\newcommand{\sname}{\n{sn}}
+
+\newcommand{\mname}{\n{m}}
+\newcommand{\ESet}{M\cup N}
+\newcommand{\event}{e}
+\newcommand{\rdvMul}{\adv_{\V{c}}}
+\newcommand{\rdvMaxi}{\adv_{\V{i}}}
+\newcommand{\map}{\V{map}}
+\newcommand{\hyb}{\M{HYB}}
+\newcommand{\hpr}{\M{HPR}}
+\newcommand{\hkg}{\M{HKG}}
+
+\newcommand{\GDPRF}{\M{GDPRF}}
+\newcommand{\GDPRFpr}{\M{GDPRF-LPR}}
+\newcommand{\GDPRFrpr}{\M{GDPRF-RPR}}
+\newcommand{\GDPRFkg}{\M{GDPRF-LKG}}
+\newcommand{\GDPRFrkg}{\M{GDPRF-RKG}}
+\newcommand{\GPRLib}{\M{GPRLIB}}
+\newcommand{\GKGLib}{\M{GKGLIB}}
+
+\newcommand{\GPRL}{\M{GPRLIB}_\lname}
+\newcommand{\GPRR}{\M{GPRLIB}_\rname}
+\newcommand{\GKGL}{\M{GKGLIB}_\lname}
+\newcommand{\GKGR}{\M{GKGLIB}_\rname}
+\newcommand{\EVALL}{\O{EVAL}_\lname}
+\newcommand{\EVALR}{\O{EVAL}_\rname}
+
+\newcommand{\compose}{\text{\textemdash}}
+
+\newcommand*{\pcthree}[3]{%
+  \begin{array}{@{\,}c@{\,}}%
+    #1\\
+    \hline
+    #2\\
+    \hline
+    #3%
+  \end{array}%
+}
+
+\newcommand*{\pcfour}[4]{%
+  \begin{array}{@{\,}c@{\,}}%
+    #1\\
+    \hline
+    #2\\
+    \hline
+    #3\\
+    \hline
+    #4%
+  \end{array}%
+}
+
+
+\newcommand*{\pcfive}[5]{%
+  \begin{array}{@{\,}c@{\,}}%
+    #1\\
+    \hline
+    #2\\
+    \hline
+    #3\\
+    \hline
+    #4\\
+    \hline
+    #5%
+  \end{array}%
+}
+
+
+\newcommand\CND[2]{\ensuremath{\mathit{(#1}\text-\mathit{#2)}}}
+\newcommand\Package[1]{\hyperref[code:#1]{$\M{#1}$}}
+
+% \mathsf{KDF}(\h{#1}.alg,
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End:
