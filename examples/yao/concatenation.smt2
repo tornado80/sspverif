@@ -2,6 +2,7 @@
 (declare-datatypes
   ((Tuple2 2))
   ((par (T1 T2) ((mk-tuple2 (el1 T1) (el2 T2))))))
+(declare-fun f (Bits_n Bits_n) Bits_n)
 ; Left
 (declare-sort Bits_n 0)
 (declare-const zero_bits_n Bits_n)
@@ -4749,9 +4750,9 @@
 (declare-const bit Bool)
 
 ; possible input for GBLG     oracle GBLG(h: Integer, l: Integer, r: Integer, op: fn Bool,Bool -> Bool, j: Integer) -> Table(Bits(p),Bool) {
-(declare-const l Integer)
-(declare-const r Integer)
-(declare-const op fun (Bool Bool) Bool)
+(declare-const l Int)
+(declare-const r Int)
+(declare-fun op (Bool Bool) Bool)
 
 ; possible state
 (declare-const state-left-old CompositionState-Left)
@@ -4864,7 +4865,7 @@
 (assert (and  precondition-holds
               (not
                 ;; proved statement starts here
-                (key-bottom-mostly-eq state-right-old state-right-new handle message))))
+                (key-bottom-mostly-eq state-right-old state-right-new handle l r op))))
 (check-sat)
 (pop 1)
 
@@ -4872,7 +4873,7 @@
 ;;; prove right bottom keys wellformed after call lemma
 (assert (and  precondition-holds
               ;; lemmata start here
-              (not (key-bottom-ok-after-call state-right-old state-right-new handle message))))
+              (not (key-bottom-ok-after-call state-right-old state-right-new handle l r op))))
 (check-sat)
 (pop 1)
 
@@ -4918,10 +4919,10 @@
                 (key-top-ll-eq state-left-old state-left-new)
                 (key-top-rr-eq state-right-old state-right-new)
                 (key-top-lr-eq state-left-new state-right-new)
-                (key-bottom-mostly-eq state-right-old state-right-new handle message)
-                (key-bottom-ok-after-call state-right-old state-right-new handle message)
+                (key-bottom-mostly-eq state-right-old state-right-new handle l r op)
+                (key-bottom-ok-after-call state-right-old state-right-new handle l r op)
                 (or
-                    (not (post-condition state-left-new state-right-new handle message))
+                    (not (post-condition state-left-new state-right-new handle l r op))
                     (not (key-bottom-ok state-right-new)))))
 (check-sat)
 (pop 1)
