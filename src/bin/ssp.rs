@@ -155,7 +155,6 @@ fn smt(name: &str) {
 
     hacks::declare_par_Maybe(&mut w);
     hacks::declare_Tuple(&mut w, 2);
-    println!("(declare-fun f (Bits_n Bits_n) Bits_n)");
 
     for (name, comp) in comp_map {
         println!("; {}", name);
