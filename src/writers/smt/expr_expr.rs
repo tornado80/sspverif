@@ -116,7 +116,7 @@ impl From<Expression> for SmtExpr {
             }) => SmtExpr::List(vec![
                 // Note: when changing this, make sure you also change state_helpers!
                 SmtExpr::Atom(format!("composition-param-{}-{}", compname, name_in_comp)),
-                SspSmtVar::SelfState.into(),
+                SspSmtVar::CompositionContext.into(),
             ]),
             Expression::Bot => SmtExpr::Atom("bot".to_string()),
             Expression::TableAccess(table, index) => SmtExpr::List(vec![
