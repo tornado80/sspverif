@@ -77,6 +77,7 @@ impl<'a> SmtCompositionContext<'a> {
 
     pub fn smt_accessor_param(&self, param_name: &str) -> SmtExpr {
         // TODO check that param exists
+        // Note: when changing this, make sure you also change expr_exprs!
         format!("composition-param-{}-{}", self.comp_name, param_name).into()
     }
     pub fn smt_access_param(&self, param_name: &str, term: SmtExpr) -> SmtExpr {

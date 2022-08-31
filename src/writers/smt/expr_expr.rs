@@ -110,12 +110,12 @@ impl From<Expression> for SmtExpr {
                 SspSmtVar::SelfState.into(),
             ]),
             Expression::Identifier(Identifier::Params {
-                name_in_pkg: identname,
-                pkgname,
+                name_in_comp,
                 compname,
                 ..
             }) => SmtExpr::List(vec![
-                SmtExpr::Atom(format!("state-{}-{}-{}", compname, pkgname, identname)),
+                // Note: when changing this, make sure you also change state_helpers!
+                SmtExpr::Atom(format!("composition-param-{}-{}", compname, name_in_comp)),
                 SspSmtVar::SelfState.into(),
             ]),
             Expression::Bot => SmtExpr::Atom("bot".to_string()),
