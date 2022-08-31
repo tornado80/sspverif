@@ -100,7 +100,7 @@ fn var_specify_helper(inst: &PackageInstance, block: CodeBlock, comp_name: &str)
                     expr,
                 )
             } else {
-                Expression::Identifier(Identifier::Local(id))
+                Expression::TableAccess(Identifier::Local(id), expr)
             }
         }
         _ => expr,
