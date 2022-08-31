@@ -13,6 +13,7 @@ pub fn get_type(expr: &Expression, scope: &Scope) -> TypeResult {
 }
 
 pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
+    //eprintln!("DEBUG typify {expr:?}");
     match expr {
         Expression::Typed(_, _) => Ok(expr.clone()),
         Expression::StringLiteral(_) => Ok(Expression::Typed(Type::String, expr.clone().into())),
@@ -74,6 +75,8 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
             Box::new(Expression::None(t.clone())),
         )),
         Expression::Unwrap(v) => {
+            //eprintln!("DEBUG typify Unwrap({v:?})");
+
             match &**v {
                 Expression::Some(inner) => Ok(Expression::Typed(
                     get_type(inner, scope)?,
@@ -82,6 +85,7 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                 Expression::None(t) => Ok(Expression::Typed(t.clone(), Box::new(expr.clone()))),
                 Expression::Identifier(id) => {
                     if let Some(t) = scope.lookup(id) {
+                        //eprintln!("DEBUG typify Unwrap Identifier {id:?}, found type {t:?}");
                         if let Type::Maybe(inner_t) = t {
                             Ok(Expression::Typed(*inner_t, Box::new(expr.clone())))
                         } else {
@@ -104,6 +108,7 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                 }
                 Expression::TableAccess(id, _) => {
                     if let Some(Type::Table(_, t_val)) = scope.lookup(id) {
+                        //eprintln!("DEBUG typify Unwrap of TableAccess on Identifier({id:?}) that maps to {t_val:?}");
                         Ok(Expression::Typed(*t_val, Box::new(expr.clone())))
                     } else {
                         Err(TypeCheckError::Undefined(

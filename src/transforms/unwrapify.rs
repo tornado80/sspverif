@@ -41,6 +41,8 @@ fn replace_unwrap(expr: &Expression, ctr: &mut u32) -> (Expression, Vec<(Express
         expr.mapfold((*ctr, Vec::new()), |(map_ctr, mut ac), e| {
             let tmpe = e.clone();
             if let Expression::Typed(t, inner) = tmpe {
+                //eprintln!("DEBUG replace_unwrap unwrap-{map_ctr} {e:?} {t:?}");
+
                 if let Expression::Unwrap(_) = *inner {
                     let varname: String = format!("unwrap-{}", map_ctr);
                     ac.push((e, varname.clone()));

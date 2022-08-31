@@ -1,11 +1,11 @@
 use super::errors::ScopeError;
 use crate::identifier::Identifier;
 use crate::types::Type;
-use std::collections::{HashMap,HashSet};
+use std::collections::{HashMap, HashSet};
 
 // TODO
 #[derive(Debug, Clone)]
-pub struct Scope{
+pub struct Scope {
     entries: Vec<HashMap<Identifier, Type>>,
     types: HashSet<Type>,
 }
@@ -18,7 +18,10 @@ impl Default for Scope {
 
 impl Scope {
     pub fn new() -> Scope {
-        Scope{entries: vec![], types: HashSet::new()}
+        Scope {
+            entries: vec![],
+            types: HashSet::new(),
+        }
     }
 
     pub fn enter(&mut self) {
@@ -36,12 +39,30 @@ impl Scope {
     pub fn known_types(&self) -> HashSet<Type> {
         self.types.clone()
     }
-    
+
     /* Error conditions:
      *  - No scope at all
      *  - Identifier exists somewhere in the scope tower already
      */
     pub fn declare(&mut self, id: Identifier, t: Type) -> Result<(), ScopeError> {
+        /* Only needed for debug printing
+        match &id {
+            Identifier::Local(name)
+            | Identifier::Scalar(name)
+            | Identifier::State { name, .. }
+            | Identifier::Params {
+                name_in_pkg: name, ..
+            } => {
+                let print_names: Vec<&str> = vec![];
+                let do_print = print_names.iter().any(|print_name| name == print_name);
+
+                if do_print {
+                    eprintln!("DEBUG Scope declare {id:?} {t:?}");
+                }
+            }
+        }
+        */
+
         self.types.insert(t.clone());
         //let bt = Backtrace::capture();
         //println!("declaring: {:?} {:?} {}", id, t, bt);
@@ -58,6 +79,24 @@ impl Scope {
     }
 
     pub fn lookup(&self, id: &Identifier) -> Option<Type> {
+        /* Only needed for debug printing
+        match &id {
+            Identifier::Local(name)
+            | Identifier::Scalar(name)
+            | Identifier::State { name, .. }
+            | Identifier::Params {
+                name_in_pkg: name, ..
+            } => {
+                let print_names: Vec<&str> = vec![];
+                let do_print = print_names.iter().any(|print_name| name == print_name);
+
+                if do_print {
+                    eprintln!("DEBUG Scope lookup {id:?}");
+                }
+            }
+        }
+        */
+
         for table in self.entries.clone().into_iter().rev() {
             if let Some(t) = table.get(id) {
                 return Some(t.clone());
