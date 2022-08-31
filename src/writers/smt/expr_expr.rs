@@ -5,7 +5,7 @@ use crate::types::Type;
 
 impl From<Expression> for SmtExpr {
     fn from(expr: Expression) -> SmtExpr {
-        eprintln!("DEBUG expr->smt: {expr:?}");
+        //eprintln!("DEBUG expr->smt: {expr:?}");
         match expr {
             Expression::Typed(t, inner) if *inner == Expression::EmptyTable => {
                 if let Type::Table(idxtipe, valtipe) = t {
