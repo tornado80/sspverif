@@ -11,7 +11,9 @@
 ; possible input for GBLG     oracle GBLG(h: Integer, l: Integer, r: Integer, op: fn Bool,Bool -> Bool, j: Integer) -> Table(Bits(p),Bool) {
 (declare-const l Int)
 (declare-const r Int)
-(declare-fun op (Bool Bool) Bool)
+(declare-const op (Array (Tuple2 Bool Bool) (Maybe Bool)))
+(declare-const j Int)
+
 
 ; possible state
 (declare-const state-left-old CompositionState-Left)
@@ -24,11 +26,15 @@
 (declare-const return-right Return_Right_simgate_GBLG)
 (declare-const is-abort-left Bool)
 (declare-const is-abort-right Bool)
+(declare-const value-left (Array Bits_p (Maybe Bool)))
+(declare-const value-right (Array Bits_p (Maybe Bool)))
+
+
 
 
 (assert (and  ;assignment of return (value,state)
-              (= return-left      (oracle-Left-gate-GBLG state-left-old handle l r op))
-              (= return-right     (oracle-Right-simgate-GBLG state-right-old handle l r op))
+              (= return-left      (oracle-Left-gate-GBLG state-left-old handle l r op j))
+              (= return-right     (oracle-Right-simgate-GBLG state-right-old handle l r op j))
 
               ;assignment of return values
               (= value-left       (return-Left-gate-GBLG-value return-left))
@@ -47,32 +53,32 @@
 
 ; The 2 top key packages should have the same state on the left and the right.
 (define-fun key-top-lr-eq ((left CompositionState-Left) (right CompositionState-Right)) Bool
-  (forall ((h Int)) (=  (select (state-Left-key_top-T (composition-state-Left-key_top left))
+  (forall ((h Int)) (=  (select (state-Left-keys_top-T (composition-pkgstate-Left-keys_top left))
                                 h)
-                        (select (state-Right-key_top-T (composition-state-Right-key_top right))
+                        (select (state-Right-keys_top-T (composition-pkgstate-Right-keys_top right))
                                 h))))
 
 ; Left: The state of the top key package does not change when GBLG is called
 (define-fun key-top-ll-eq ((old CompositionState-Left) (new CompositionState-Left)) Bool
-  (forall ((h Int)) (=  (select (state-Left-key_top-T (composition-state-Left-key_top old))
+  (forall ((h Int)) (=  (select (state-Left-keys_top-T (composition-pkgstate-Left-keys_top old))
                                 h)
-                        (select (state-Left-key_top-T (composition-state-Left-key_top new))
+                        (select (state-Left-keys_top-T (composition-pkgstate-Left-keys_top new))
                                 h))))
 
 ; Right: The state of the top key package does not change when GBLG is called
 (define-fun key-top-rr-eq ((old CompositionState-Right) (new CompositionState-Right)) Bool
-  (forall ((h Int)) (=  (select (state-Right-key_top-T (composition-state-Right-key_top old))
+  (forall ((h Int)) (=  (select (state-Right-keys_top-T (composition-pkgstate-Right-keys_top old))
                                 h)
-                        (select (state-Right-key_top-T (composition-state-Right-key_top new))
+                        (select (state-Right-keys_top-T (composition-pkgstate-Right-keys_top new))
                                 h))))
 
 ; Left: The state of the bottom key package is mostly the same as before except at the point h j r op that was written to
 (define-fun key-bottom-l-mostly-eq ((old CompositionState-Left) (new CompositionState-Left) 
                                     (h Int) ) Bool
   (forall ((hh Int))  (or (= h hh)
-                                      (=  (select (state-Left-key_bottom-T (composition-state-Left-key_bottom new))
+                                      (=  (select (state-Left-keys_bottom-T (composition-pkgstate-Left-keys_bottom new))
                                                   hh)
-                                          (select (state-Left-key_bottom-T (composition-state-Left-key_bottom old))
+                                          (select (state-Left-keys_bottom-T (composition-pkgstate-Left-keys_bottom old))
                                                   hh)))))
 
 
@@ -80,14 +86,14 @@
 (define-fun key-bottom-r-mostly-eq ((old CompositionState-Right) (new CompositionState-Right) 
                                     (h Int)) Bool
   (forall ((hh Int))  (or (= h hh)
-                                      (=  (select (state-Right-key_bottom-T (composition-state-Right-key_bottom new))
+                                      (=  (select (state-Right-keys_bottom-T (composition-pkgstate-Right-keys_bottom new))
                                                   hh)
-                                          (select (state-Right-key_bottom-T (composition-state-Right-key_bottom old))
+                                          (select (state-Right-keys_bottom-T (composition-pkgstate-Right-keys_bottom old))
                                                   hh)))))
 
 ; Right: The state of the bottom key package at position h is equal to what was sampled (or was defined before).
 (define-fun key-bottom-r-ok-after-call ((old CompositionState-Right) (new CompositionState-Right) (h Int)) Bool 
-  (=      (maybe-get (select  (state-Right-key_bottom-T (composition-state-Right-key_bottom new))
+  (=      (maybe-get (select  (state-Right-keys_bottom-T (composition-pkgstate-Right-keys_bottom new))
                               h))
                               ; put randomness sampling here XXX
                               ; if it was none before, then it is equal to sample now
@@ -95,7 +101,7 @@
 
 ; The state of the bottom key package on the left at position h is equal to what was sampled (or was defined before)).
 (define-fun key-bottom-l-ok-after-call ((old CompositionState-Left) (new CompositionState-Left) (h Int)) Bool 
-  (=      (maybe-get (select  (state-Left-key_bottom-T (composition-state-Left-key_bottom new))
+  (=      (maybe-get (select  (state-Left-keys_bottom-T (composition-pkgstate-Left-keys_bottom new))
                               h))
                               ; put randomness sampling here XXX
                               ; if it was none before, then it is equal to sample now
@@ -104,9 +110,9 @@
 
 ; should this really use the old state?? Not here
 (define-fun post-condition ((left CompositionState-Left) (right CompositionState-Right) (h Int)) Bool
-  (forall ((h Int)) (=  (select (state-Left-key_top-T (composition-state-Left-key_top left))
+  (forall ((h Int)) (=  (select (state-Left-keys_top-T (composition-pkgstate-Left-keys_top left))
                                 h)
-                        (select (state-Right-key_top-T (composition-state-Right-key_top  right))
+                        (select (state-Right-keys_top-T (composition-pkgstate-Right-keys_top  right))
                                 h))))
 
 

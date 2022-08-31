@@ -18,8 +18,11 @@ package Keys {
     }
 
     oracle GETKEYSOUT(h: Integer) -> Table(Bool,Bits(n)) {
-        assert (z[h] != None as Bool);
-        assert ((aflag[h]==Some(true)) and (bflag[h]==Some(true)));
+        aflag[h]<- Some(true);
+        if T[h] = None as Table(Bool,Bits(n))
+           {Z[true] <-$ Bits(n);
+           Z[false] <-$ Bits(n);
+           T[h] <- Some(Z);}
         Z <- Unwrap(T[h]);
         return Z;
     }
