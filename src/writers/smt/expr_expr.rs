@@ -5,26 +5,19 @@ use crate::types::Type;
 
 impl From<Expression> for SmtExpr {
     fn from(expr: Expression) -> SmtExpr {
+        eprintln!("DEBUG expr->smt: {expr:?}");
         match expr {
             Expression::Typed(t, inner) if *inner == Expression::EmptyTable => {
                 if let Type::Table(idxtipe, valtipe) = t {
-                    let idxtipe = *idxtipe;
-                    SmtExpr::List(vec![
-                        SmtExpr::List(vec![
-                            SmtExpr::Atom("as".into()),
-                            SmtExpr::Atom("const".into()),
-                            SmtExpr::List(vec![
-                                SmtExpr::Atom("Array".into()),
-                                idxtipe.into(),
-                                Type::Maybe(valtipe.clone()).into(),
-                            ]),
-                        ]),
-                        SmtExpr::List(vec![
-                            SmtExpr::Atom("as".into()),
-                            SmtExpr::Atom("mk-none".into()),
-                            Type::Maybe(valtipe).into(),
-                        ]),
-                    ])
+                    (
+                        (
+                            "as",
+                            "const",
+                            ("Array", *idxtipe, Type::Maybe(valtipe.clone())),
+                        ),
+                        ("as", "mk-none", Type::Maybe(valtipe)),
+                    )
+                        .into()
                 } else {
                     panic!("Empty table of type {:?}", t)
                 }
@@ -110,13 +103,13 @@ impl From<Expression> for SmtExpr {
                 SspSmtVar::SelfState.into(),
             ]),
             Expression::Identifier(Identifier::Params {
-                name_in_pkg: identname,
-                pkgname,
+                name_in_comp,
                 compname,
                 ..
             }) => SmtExpr::List(vec![
-                SmtExpr::Atom(format!("state-{}-{}-{}", compname, pkgname, identname)),
-                SspSmtVar::SelfState.into(),
+                // Note: when changing this, make sure you also change state_helpers!
+                SmtExpr::Atom(format!("composition-param-{}-{}", compname, name_in_comp)),
+                SspSmtVar::CompositionContext.into(),
             ]),
             Expression::Bot => SmtExpr::Atom("bot".to_string()),
             Expression::TableAccess(table, index) => SmtExpr::List(vec![

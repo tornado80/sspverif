@@ -144,6 +144,11 @@ impl<'a> CompositionSmtWriter<'a> {
         inst: &PackageInstance,
     ) -> SmtExpr {
         let PackageInstance { name: pkgname, .. } = inst;
+        let OracleSig {
+            name: oracle_name, ..
+        } = sig;
+
+        //eprintln!("DEBUG code_smt_helper start {pkgname}.{oracle_name}");
 
         let mut result = None;
         for stmt in block.0.iter().rev() {
@@ -377,6 +382,8 @@ impl<'a> CompositionSmtWriter<'a> {
                         unreachable!("we expect that this is typed")
                     };
 
+                    //eprintln!(r#"DEBUG code_smt_helper Assign {expr:?} to identifier {ident:?}")"#);
+
                     // first build the unwrap expression, if we have to
                     let outexpr = if let Expression::Unwrap(inner) = &inner {
                         SmtExpr::List(vec![
@@ -384,7 +391,7 @@ impl<'a> CompositionSmtWriter<'a> {
                             SmtExpr::Atom(smt_to_string(*inner.clone())),
                         ])
                     } else {
-                        expr.clone().into()
+                        expr.clone().into() // TODO maybe this should be inner??
                     };
 
                     // then build the table store smt expression, in case we have to
@@ -433,6 +440,9 @@ impl<'a> CompositionSmtWriter<'a> {
                     };
 
                     // if it's an unwrap, also wrap it with the unwrap check.
+                    // TODO: are we sure we don't want to deconstruct `inner` here?
+                    // it seems impossible to me that expr ever matches here,
+                    // because above we make sure it's an Expression::Typed.
                     if let Expression::Unwrap(inner) = expr {
                         SmtIte {
                             cond: SmtEq2 {

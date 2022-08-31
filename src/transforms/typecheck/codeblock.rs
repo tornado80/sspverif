@@ -24,7 +24,7 @@ impl TypedCodeBlock {
         let mut new_block = vec![];
 
         for (i, stmt) in block.iter().enumerate() {
-            //println!("looking at {:} - {:?}", i, stmt);
+            //eprintln!("DEBUG typecheck_codeblock.for; {i}, {stmt:?}");
             match &*stmt {
                 Statement::Abort => {
                     if i < block.len() - 1 {
@@ -119,6 +119,7 @@ impl TypedCodeBlock {
                             ));
                         }
                     } else {
+                        //eprintln!("DEBUG optidx is {opt_idx:?}; expr_type is {expr_type:?}");
                         if let Some(idxexpr) = opt_idx {
                             let idx_type = get_type(&idxexpr, scope)?;
                             let tabletipe = Type::Table(Box::new(idx_type), Box::new(expr_type));
