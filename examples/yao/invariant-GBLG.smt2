@@ -30,6 +30,12 @@
 (declare-const value-right (Array Bits_p (Maybe Bool)))
 
 
+; composition-rand-Right-3 global-old-composition-state - this is the counter
+; pre-condition composition-rand-Left-3 old-state-l = composition-rand-Right-5 old-state-r 
+;   __sample-rand-Right-Bits_n (3, composition-rand-Left-3 global-old-composition-state)
+; = __sample-rand-Right-Bits_n (5, composition-rand-Right-5 global-old-composition-state)
+;   __sample-rand-Right-Bits_n (composition-rand-Left-3 global-old-composition-state)
+
 
 
 (assert (and  ;assignment of return (value,state)
