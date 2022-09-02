@@ -31,9 +31,13 @@
 
 
 ; composition-rand-Right-3 global-old-composition-state - this is the counter
-; pre-condition composition-rand-Left-3 old-state-l = composition-rand-Right-5 old-state-r 
-;   __sample-rand-Right-Bits_n (3, composition-rand-Left-3 global-old-composition-state)
-; = __sample-rand-Right-Bits_n (5, composition-rand-Right-5 global-old-composition-state)
+; Die counter sind zufällig die gleichen
+; pre-condition composition-rand-Left-3 old-state-l = composition-rand-Right-3 old-state-r 
+; pre-condition composition-rand-Left-4 old-state-l = composition-rand-Right-4 old-state-r ;
+;   __sample-rand-Left-Bits_n 3 composition-rand-Left-3 global-old-composition-state
+; = __sample-rand-Right-Bits_n 3 composition-rand-Right-3 global-old-composition-state
+;   __sample-rand-Left-Bits_n 3 composition-rand-Left-3 global-old-composition-state
+; = __sample-rand-Right-Bits_n 3 composition-rand-Right-3 global-old-composition-state
 ;   __sample-rand-Right-Bits_n (composition-rand-Left-3 global-old-composition-state)
 
 
@@ -52,9 +56,19 @@
 
               ;assignment of return state
               (= state-left-new   (return-Left-gate-GBLG-state return-left))
-              (= state-right-new  (return-Right-simgate-GBLG-state return-right))))
+              (= state-right-new  (return-Right-simgate-GBLG-state return-right))
 
-              ;Here, we need to additionally say something about sample instructions for lower Key package
+              ;assignment of the two sample instructions for the lower Key package XXX todo XXX
+              (= state-left-new   (return-Left-gate-GBLG-state return-left))
+              (= state-right-new  (return-Right-simgate-GBLG-state return-right))
+              (= is-abort-left    (= mk-abort-Left-gate-GBLG return-left))
+              (= is-abort-right   (= mk-abort-Right-simgate-GBLG return-right))))
+
+
+
+; pre-condition composition-rand-Left-3 old-state-l = composition-rand-Right-3 old-state-r 
+; pre-condition composition-rand-Left-4 old-state-l = composition-rand-Right-4 old-state-r ;
+
 
 
 ; The 2 top key packages should have the same state on the left and the right.
