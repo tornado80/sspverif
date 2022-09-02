@@ -80,7 +80,7 @@ enum Proof {
 struct Explain {
     dirname: String,
     #[clap(short, long)]
-    output: String,
+    output: Option<String>,
 }
 
 #[derive(clap::Args)]
