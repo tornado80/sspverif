@@ -84,7 +84,21 @@ impl<W: Write> Writer<W> {
         match expr {
             Expression::Typed(t, bexp) => {
                 let expr = &**bexp;
-                self.write_expression(&expr)?;
+                match expr {
+                    Expression::EmptyTable => {
+                        let (t_k, t_v) = if let Type::Table(t_k, t_v) = t {
+                            (*t_k.clone(), *t_v.clone())
+                        } else {
+                            panic!("found table with non-table type {:?}", t);
+                        };
+                        self.write_string("new Table(")?;
+                        self.write_type(&t_k)?;
+                        self.write_string(", ")?;
+                        self.write_type(&t_v)?;
+                        self.write_string(")")?;
+                    }
+                    _ => self.write_expression(&expr)?,
+                }
                 self.write_string(" /* of type ")?;
                 self.write_type(t)?;
                 self.write_string(" */ ")?;
