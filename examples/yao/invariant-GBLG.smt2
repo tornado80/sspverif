@@ -29,6 +29,19 @@
 (declare-const value-left (Array Bits_p (Maybe Bool)))
 (declare-const value-right (Array Bits_p (Maybe Bool)))
 
+; sampled value Z and associated values
+(declare-const Z-left  (Array Bool (Maybe Bits_n)))
+(declare-const Z-right (Array Bool (Maybe Bits_n)))
+(declare-const ctr-r-left Int)
+(declare-const ctr-r-right Int)
+(declare-const ctr-rr-left Int)
+(declare-const ctr-rr-right Int)
+(declare-const r-left Bits_n)
+(declare-const r-right Bits_n)
+(declare-const rr-left Bits_n)
+(declare-const rr-right Bits_n)
+
+
 
 ; composition-rand-Right-3 global-old-composition-state - this is the counter
 ; Die counter sind zufällig die gleichen
@@ -58,16 +71,38 @@
               (= state-left-new   (return-Left-gate-GBLG-state return-left))
               (= state-right-new  (return-Right-simgate-GBLG-state return-right))
 
-              ;assignment of the two sample instructions for the lower Key package XXX todo XXX
-              (= state-left-new   (return-Left-gate-GBLG-state return-left))
-              (= state-right-new  (return-Right-simgate-GBLG-state return-right))
-              (= is-abort-left    (= mk-abort-Left-gate-GBLG return-left))
-              (= is-abort-right   (= mk-abort-Right-simgate-GBLG return-right))))
+              ;assignment of the ctr of the sample instructions for the lower Key package
+              (= ctr-r-left   (composition-rand-Left-3  state-left-old))
+              (= ctr-r-right  (composition-rand-Right-3 state-right-old))
+              (= ctr-rr-left  (composition-rand-Left-4  state-left-old))
+              (= ctr-rr-right (composition-rand-Right-4 state-right-old))
+
+              ;assignment of the sampled values for the lower Key package
+              (= r-left   (__sample-rand-Left-Bits_n 3 ctr-r-left))
+              (= r-right  (__sample-rand-Right-Bits_n 3 ctr-r-right))
+              (= rr-left  (__sample-rand-Left-Bits_n 4 ctr-rr-left))
+              (= rr-right (__sample-rand-Right-Bits_n 4 ctr-rr-left))
+
+              ;assignment of the sampled values for the lower Key package as a table
+              (=  r-left  (maybe-get (select Z-left    true)))
+              (= rr-left  (maybe-get  (select Z-left  false)))
+              (= r-right  (maybe-get  (select Z-right  true)))
+              (= rr-right (maybe-get (select Z-right  false)))
+
+              ;equality of ctr/values of the sample instructions for the lower Key package
+              (= ctr-r-left ctr-r-right)
+              (= ctr-rr-left ctr-rr-right)
+              (= r-left r-right)
+              (= rr-left rr-right)
+
+
+))
 
 
 
-; pre-condition composition-rand-Left-3 old-state-l = composition-rand-Right-3 old-state-r 
-; pre-condition composition-rand-Left-4 old-state-l = composition-rand-Right-4 old-state-r ;
+
+
+
 
 
 
@@ -113,20 +148,29 @@
 
 ; Right: The state of the bottom key package at position h is equal to what was sampled (or was defined before).
 (define-fun key-bottom-r-ok-after-call ((old CompositionState-Right) (new CompositionState-Right) (h Int)) Bool 
+  (or
+  (=  (select (state-Right-keys_bottom-T (composition-pkgstate-Right-keys_bottom new))
+                                                  h)
+                                          (select (state-Right-keys_bottom-T (composition-pkgstate-Right-keys_bottom old))
+                                                  h))
   (=      (maybe-get (select  (state-Right-keys_bottom-T (composition-pkgstate-Right-keys_bottom new))
                               h))
                               ; put randomness sampling here XXX
                               ; if it was none before, then it is equal to sample now
-      (XXX)))
+          Z-right)))
 
 ; The state of the bottom key package on the left at position h is equal to what was sampled (or was defined before)).
 (define-fun key-bottom-l-ok-after-call ((old CompositionState-Left) (new CompositionState-Left) (h Int)) Bool 
-  (=      (maybe-get (select  (state-Left-keys_bottom-T (composition-pkgstate-Left-keys_bottom new))
-                              h))
-                              ; put randomness sampling here XXX
+  (or
+  (=  (select (state-Left-keys_bottom-T (composition-pkgstate-Left-keys_bottom new))
+                                                  h)
+                                          (select (state-Left-keys_bottom-T (composition-pkgstate-Left-keys_bottom old))
+                                                  h))                              ; put randomness sampling here
                               ; if it was none before, then it is equal to sample now
+  (=  (maybe-get(select (state-Left-keys_bottom-T (composition-pkgstate-Left-keys_bottom new))
+                                                  h))
                               
-      (XXX)))
+      Z-left)))
 
 ; should this really use the old state?? Not here
 (define-fun post-condition ((left CompositionState-Left) (right CompositionState-Right) (h Int)) Bool
@@ -139,7 +183,7 @@
 (declare-const precondition-holds Bool)
 (assert (= precondition-holds (and  (not is-abort-right)
                                     (not is-abort-left)
-                                    (key-bottom-ok state-right-old)
+                                    ;(key-bottom-ok state-right-old)
                                     (key-top-lr-eq state-left-old state-right-old))))
 
 ;; This is just to verify that the current state is satisfiable. It definitely should be.
@@ -150,7 +194,7 @@
 (assert (and  precondition-holds
               (not
                 ;; proved statement starts here
-                (key-bottom-mostly-eq state-right-old state-right-new handle l r op))))
+                (key-bottom-r-mostly-eq state-right-old state-right-new handle l r op))))
 (check-sat)
 (pop 1)
 
@@ -158,10 +202,26 @@
 ;;; prove right bottom keys wellformed after call lemma
 (assert (and  precondition-holds
               ;; lemmata start here
-              (not (key-bottom-ok-after-call state-right-old state-right-new handle l r op))))
+              (not (key-bottom-r-ok-after-call state-right-old state-right-new handle l r op))))
 (check-sat)
 (pop 1)
 
+(push 1)
+;;; prove right bottom key mostly equal lemma
+(assert (and  precondition-holds
+              (not
+                ;; proved statement starts here
+                (key-bottom-l-mostly-eq state-left-old state-left-new handle l r op))))
+(check-sat)
+(pop 1)
+
+(push 1)
+;;; prove right bottom keys wellformed after call lemma
+(assert (and  precondition-holds
+              ;; lemmata start here
+              (not (key-bottom-l-ok-after-call state-left-old state-left-new handle l r op))))
+(check-sat)
+(pop 1)
 
 
 (push 1)
