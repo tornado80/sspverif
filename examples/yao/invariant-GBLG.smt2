@@ -111,7 +111,7 @@
     (or
     ; either undefined
         (
-        (= (select (T h)) (as mk-none (Maybe (Array Int (Maybe (Array Bool (Maybe Bits_n))))))))
+        (= (select T h) (as mk-none (Maybe (Array Int (Maybe (Array Bool (Maybe Bits_n))))))))
     ; or total
     (forall ((b Bool))
         (not
