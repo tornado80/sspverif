@@ -3,7 +3,7 @@
             (and
             (= is-abort-right is-abort-left)
             (or 
-            (is-abort-left)
+            is-abort-left
             (= value-left value-right)
             )
             )

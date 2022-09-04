@@ -5570,7 +5570,8 @@
     (or
     ; either undefined
         (
-        (= (select (T h)) (as mk-none (Maybe Array Int (Maybe (Array Bool (Maybe Bits_n)))))))
+        (= (select (T h)) (as mk-none (Maybe (Array Int (Maybe (Array Bool (Maybe Bits_n))))))))
+    ; or total
     (forall ((b Bool))
         (not
         (= (select (select T h) b) (as mk-none (Maybe Bits_n))))
@@ -5660,7 +5661,7 @@
             (and
             (= is-abort-right is-abort-left)
             (or 
-            (is-abort-left)
+            is-abort-left
             (= value-left value-right)
             )
             )
@@ -5673,10 +5674,10 @@
 
 (push 1)
 ;pre-condition => lemmas
-(assert (and (precondition-holds
+(assert (and precondition-holds
              (not is-abort-right)
              (not is-abort-left)
-             (not lemmas-hold))))
+             (not lemmas-hold)))
 
 (check-sat)
 (pop 1)
@@ -5684,11 +5685,11 @@
 (push 1)
 
 ;pre-condition + lemmas => post-condition
-(assert (and (precondition-holds) 
-             (lemmas-hold) 
+(assert (and precondition-holds
+             lemmas-hold
              (not is-abort-right)
              (not is-abort-left)
-             (not post-condition-holds)))
+             (not postcondition-holds)))
 
 (check-sat)
 (pop 1)
@@ -5696,8 +5697,8 @@
 (push 1)
 
 ;pre-condition + lemmas => standard post-condition
-(assert (and (precondition-holds) 
-             (lemmas-hold)
-             (not standard-post-condition-holds)))
+(assert (and precondition-holds 
+             lemmas-hold
+             (not standard-postcondition-holds)))
 (check-sat)
 (pop 1)
