@@ -129,7 +129,7 @@
 
 ; Left: The state of the bottom key package is mostly the same as before except at the point h j r op that was written to
 (define-fun key-bottom-l-mostly-eq ((old CompositionState-Left) (new CompositionState-Left) 
-                                    (h Int) ) Bool
+                                    (h Int) (l Int) (r Int) (op (Array (Tuple2 Bool Bool) (Maybe Bool)))) Bool
   (forall ((hh Int))  (or (= h hh)
                                       (=  (select (state-Left-keys_bottom-T (composition-pkgstate-Left-keys_bottom new))
                                                   hh)
@@ -139,7 +139,7 @@
 
 ; The state of the bottom key package on the right is mostly the same as before except at the point h that was written to
 (define-fun key-bottom-r-mostly-eq ((old CompositionState-Right) (new CompositionState-Right) 
-                                    (h Int)) Bool
+                                    (h Int) (l Int) (r Int) (op (Array (Tuple2 Bool Bool) (Maybe Bool)))) Bool
   (forall ((hh Int))  (or (= h hh)
                                       (=  (select (state-Right-keys_bottom-T (composition-pkgstate-Right-keys_bottom new))
                                                   hh)
@@ -147,7 +147,7 @@
                                                   hh)))))
 
 ; Right: The state of the bottom key package at position h is equal to what was sampled (or was defined before).
-(define-fun key-bottom-r-ok-after-call ((old CompositionState-Right) (new CompositionState-Right) (h Int)) Bool 
+(define-fun key-bottom-r-ok-after-call ((old CompositionState-Right) (new CompositionState-Right) (h Int) (l Int) (r Int) (op (Array (Tuple2 Bool Bool) (Maybe Bool)))) Bool 
   (or
   (=  (select (state-Right-keys_bottom-T (composition-pkgstate-Right-keys_bottom new))
                                                   h)
@@ -160,7 +160,7 @@
           Z-right)))
 
 ; The state of the bottom key package on the left at position h is equal to what was sampled (or was defined before)).
-(define-fun key-bottom-l-ok-after-call ((old CompositionState-Left) (new CompositionState-Left) (h Int)) Bool 
+(define-fun key-bottom-l-ok-after-call ((old CompositionState-Left) (new CompositionState-Left) (h Int) (l Int) (r Int) (op (Array (Tuple2 Bool Bool) (Maybe Bool)))) Bool 
   (or
   (=  (select (state-Left-keys_bottom-T (composition-pkgstate-Left-keys_bottom new))
                                                   h)
@@ -173,7 +173,7 @@
       Z-left)))
 
 ; should this really use the old state?? Not here
-(define-fun post-condition ((left CompositionState-Left) (right CompositionState-Right) (h Int)) Bool
+(define-fun post-condition ((left CompositionState-Left) (right CompositionState-Right) (h Int) (l Int) (r Int) (op (Array (Tuple2 Bool Bool) (Maybe Bool)))) Bool
   (forall ((h Int)) (=  (select (state-Left-keys_top-T (composition-pkgstate-Left-keys_top left))
                                 h)
                         (select (state-Right-keys_top-T (composition-pkgstate-Right-keys_top  right))
@@ -259,16 +259,21 @@
 
 ;; check that the post-condition follows
 (push 1)
-(assert (and    precondition-holds
+(assert (and    ;precondition-holds
                 ;;; lemmata start here
                 (key-top-ll-eq state-left-old state-left-new)
                 (key-top-rr-eq state-right-old state-right-new)
                 (key-top-lr-eq state-left-new state-right-new)
-                (key-bottom-mostly-eq state-right-old state-right-new handle l r op)
-                (key-bottom-ok-after-call state-right-old state-right-new handle l r op)
+                (key-bottom-l-mostly-eq state-left-old state-left-new handle l r op)
+                (key-bottom-r-mostly-eq state-right-old state-right-new handle l r op)
+                (key-bottom-l-ok-after-call state-left-old state-left-new handle l r op)
+                (key-bottom-r-ok-after-call state-right-old state-right-new handle l r op)
                 (or
+                ;one of the post-conditions fail
                     (not (post-condition state-left-new state-right-new handle l r op))
-                    (not (key-bottom-ok state-right-new)))))
+                    (not (key-bottom-l-ok state-left-new))
+                    (not (key-bottom-r-ok state-right-new))                    
+                    )))
 (check-sat)
 (pop 1)
 
@@ -280,7 +285,13 @@
 ;(assert (and  (right-key-bottom-set-implies-top-set state-right-old)))
               ;(right-key-top-set-implies-bottom-set state-right-old)))
       
-(assert (key-bottom-ok state-right-old))
+(assert (key-bottom-r-ok state-right-old))
+(check-sat)
+;(get-model)
+(pop 1)
+
+(push 1)
+(assert (key-bottom-l-ok state-left-old))
 (check-sat)
 ;(get-model)
 (pop 1)
