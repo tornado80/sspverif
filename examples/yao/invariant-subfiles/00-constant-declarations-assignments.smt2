@@ -31,10 +31,24 @@
 (declare-const ctr-r-right Int)
 (declare-const ctr-rr-left Int)
 (declare-const ctr-rr-right Int)
+(declare-const ctr-r-left-new Int)
+(declare-const ctr-r-right-new Int)
+(declare-const ctr-rr-left-new Int)
+(declare-const ctr-rr-right-new Int)
 (declare-const r-left Bits_n)
 (declare-const r-right Bits_n)
 (declare-const rr-left Bits_n)
 (declare-const rr-right Bits_n)
+
+(declare-const table-top-left-old     (Array Int (Maybe (Array Bool (Maybe Bits_n)))))
+(declare-const table-top-left-new     (Array Int (Maybe (Array Bool (Maybe Bits_n)))))
+(declare-const table-bottom-left-old  (Array Int (Maybe (Array Bool (Maybe Bits_n)))))
+(declare-const table-bottom-left-new  (Array Int (Maybe (Array Bool (Maybe Bits_n)))))
+(declare-const table-top-right-old    (Array Int (Maybe (Array Bool (Maybe Bits_n)))))
+(declare-const table-top-right-new    (Array Int (Maybe (Array Bool (Maybe Bits_n)))))
+(declare-const table-bottom-right-old (Array Int (Maybe (Array Bool (Maybe Bits_n)))))
+(declare-const table-bottom-right-new (Array Int (Maybe (Array Bool (Maybe Bits_n)))))
+
 
 (assert (and  ;assignment of return (value,state)
               (= return-left      (oracle-Left-gate-GBLG state-left-old handle l r op j))
@@ -58,6 +72,12 @@
               (= ctr-rr-left  (composition-rand-Left-4  state-left-old))
               (= ctr-rr-right (composition-rand-Right-4 state-right-old))
 
+              ;assignment of the ctr of the sample instructions for the lower Key package on new state
+              (= ctr-r-left-new   (composition-rand-Left-3  state-left-new))
+              (= ctr-r-right-new  (composition-rand-Right-3 state-right-new))
+              (= ctr-rr-left-new  (composition-rand-Left-4  state-left-new))
+              (= ctr-rr-right-new (composition-rand-Right-4 state-right-new))
+
               ;assignment of the sampled values for the lower Key package
               (= r-left   (__sample-rand-Left-Bits_n 3 ctr-r-left))
               (= r-right  (__sample-rand-Right-Bits_n 3 ctr-r-right))
@@ -69,12 +89,6 @@
               (= rr-left  (maybe-get  (select Z-left  false)))
               (= r-right  (maybe-get  (select Z-right  true)))
               (= rr-right (maybe-get (select Z-right  false)))
-
-              ;equality of ctr/values of the sample instructions for the lower Key package
-              (= ctr-r-left ctr-r-right)
-              (= ctr-rr-left ctr-rr-right)
-              (= r-left r-right)
-              (= rr-left rr-right)
 
               ;variable for the state of the upper/lower key package left/right before/after call
               (= table-top-left-old   (state-Left-keys_top-T    (composition-pkgstate-Left-keys_top state-left-new)))
