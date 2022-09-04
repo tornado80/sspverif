@@ -5,6 +5,7 @@
     ; either undefined
         (
         (= (select (T h)) (as mk-none (Maybe (Array Int (Maybe (Array Bool (Maybe Bits_n))))))))
+    ; or total
     (forall ((b Bool))
         (not
         (= (select (select T h) b) (as mk-none (Maybe Bits_n))))
