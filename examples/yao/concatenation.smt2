@@ -5613,18 +5613,36 @@
 (not (= (select op (mk-tuple2 false false))(as mk-none (Maybe Bool))))
 
 )))
+
 (declare-const lemmas-hold Bool)
+(declare-const lemma1 Bool)
+(declare-const lemma2 Bool)
+(declare-const lemma3 Bool)
+(declare-const lemma4 Bool)
+(declare-const lemma5 Bool)
+
 (assert (= lemmas-hold (and
+lemma1
+lemma2
+lemma3
+lemma4
+lemma5)))
+
+(assert (= lemma1 (and
 ;;;; Lemma on key tables
 (well-defined table-top-left-new)
 (well-defined table-top-right-new)
 (well-defined table-bottom-left-new)
 (well-defined table-bottom-right-new)
+)))
 
+(assert (= lemma2 (and
 ; top tables remain the same
 (= table-top-left-old table-top-left-new)
 (= table-top-right-old table-top-right-new)
+)))
 
+(assert (= lemma3 (and
 ; left: bottom tables are mostly equal and where they are not equal, there is Z
 (forall ((hh Int))
 (ite
@@ -5632,7 +5650,9 @@
 (= (maybe-get (select table-bottom-left-new hh)) Z-left)
 (= (select table-bottom-left-old hh) (select table-bottom-left-new hh))
 ))
+)))
 
+(assert (= lemma4 (and
 ; right: bottom tables are mostly equal and where they are not equal, there is Z
 (forall ((hh Int))
 (ite
@@ -5640,7 +5660,8 @@
 (= (maybe-get (select table-bottom-right-new hh)) Z-right)
 (= (select table-bottom-right-old hh) (select table-bottom-right-new hh))
 ))
- 
+)))
+
 (declare-const postcondition-holds Bool)
 (assert (= postcondition-holds (and
 
@@ -5658,7 +5679,9 @@
 (= ctr-r-left-new ctr-r-right-new)
 (= ctr-rr-left-new ctr-rr-right-new)
 
-)))(declare-const standard-postcondition-holds Bool)
+)))
+
+(declare-const standard-postcondition-holds Bool)
 (assert (= standard-postcondition-holds 
             (and
             (= is-abort-right is-abort-left)
@@ -5669,8 +5692,67 @@
             )
         )
 )
+
+(push 1)
+
+(check-sat) ;this is the second one
+
+(pop 1)
+
+(push 1)
+;;;;;;;;;;;;; temp
+
+(assert (and precondition-holds
+             (not is-abort-right)
+             (not is-abort-left)
+             (not lemma1)))
+(pop 1)
+
+(check-sat)
+
+(push 1)
+
+(assert (and precondition-holds
+             (not is-abort-right)
+             (not is-abort-left)
+             (not lemma2)))
+(pop 1)
+
+(check-sat)
+
+(push 1)
+
+(assert (and precondition-holds
+             (not is-abort-right)
+             (not is-abort-left)
+             (not lemma3)))
+(pop 1)
+
+(check-sat)
+
+(push 1)
+
+(assert (and precondition-holds
+             (not is-abort-right)
+             (not is-abort-left)
+             (not lemma4)))
+(pop 1)
+
+(check-sat)
+
+(push 1)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; end of temp
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
 ;missing:
 ;precondition holds on starting state
+(pop 1)
 
 (check-sat)
 
