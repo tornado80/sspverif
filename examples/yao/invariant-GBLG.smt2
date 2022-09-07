@@ -108,15 +108,16 @@
 ; At each entry, the table is either none or a total table
 (define-fun well-defined ((T (Array Int (Maybe (Array Bool (Maybe Bits_n)))))) Bool
   (forall ((h Int))
-    (or
-    ; either undefined
-        (
-        (= (select T h) (as mk-none (Maybe (Array Int (Maybe (Array Bool (Maybe Bits_n))))))))
-    ; or total
-    (forall ((b Bool))
+    (ite
+      (not
+        (= (select T h) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
+      )
+      (forall ((b Bool))
         (not
-        (= (select (select T h) b) (as mk-none (Maybe Bits_n))))
+          (= (select (maybe-get (select T h)) b) (as mk-none (Maybe Bits_n)))
         )
+      )
+      true
     )
   )
 )(declare-const precondition-holds Bool)
@@ -146,7 +147,11 @@
 ;;;;;; Pre-condition "Glue" 
 
 ;op is a total table.
-(not (= none op true true))
+;op is a total table.
+(not (= (select op (mk-tuple2 true  true ))(as mk-none (Maybe Bool))))
+(not (= (select op (mk-tuple2 true  false))(as mk-none (Maybe Bool))))
+(not (= (select op (mk-tuple2 false true ))(as mk-none (Maybe Bool))))
+(not (= (select op (mk-tuple2 false false))(as mk-none (Maybe Bool))))
 
 )))
 (declare-const lemmas-hold Bool)
@@ -162,23 +167,20 @@
 (= table-top-right-old table-top-right-new)
 
 ; left: bottom tables are mostly equal and where they are not equal, there is Z
-(forall hh
-(or
+(forall ((hh Int))
+(ite
+(= handle hh)
+(= (maybe-get (select table-bottom-left-new hh)) Z-left)
 (= (select table-bottom-left-old hh) (select table-bottom-left-new hh))
-(and
-(= h hh)
-(= (select table-bottom-left-new hh) Z)
-)))
+))
 
 ; right: bottom tables are mostly equal and where they are not equal, there is Z
-(forall hh
-(or
+(forall ((hh Int))
+(ite
+(= handle hh)
+(= (maybe-get (select table-bottom-right-new hh)) Z-right)
 (= (select table-bottom-right-old hh) (select table-bottom-right-new hh))
-(and
-(= h hh)
-(= (select table-bottom-right-new hh) Z)
-)))
-)))
+))
  
 (declare-const postcondition-holds Bool)
 (assert (= postcondition-holds (and

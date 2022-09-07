@@ -25,6 +25,10 @@
 ;;;;;; Pre-condition "Glue" 
 
 ;op is a total table.
-(not (= none op true true))
+;op is a total table.
+(not (= (select op (mk-tuple2 true  true ))(as mk-none (Maybe Bool))))
+(not (= (select op (mk-tuple2 true  false))(as mk-none (Maybe Bool))))
+(not (= (select op (mk-tuple2 false true ))(as mk-none (Maybe Bool))))
+(not (= (select op (mk-tuple2 false false))(as mk-none (Maybe Bool))))
 
 )))
