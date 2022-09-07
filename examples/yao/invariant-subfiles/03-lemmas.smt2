@@ -29,8 +29,8 @@ lemma5)))
 (and
 (= (well-defined table-top-left-new) debug-top-left)
 (= (well-defined table-top-right-new) debug-top-right)
-(= (well-defined table-bottom-left-new) debug-bottom-left)
-(= (well-defined table-bottom-right-new) debug-bottom-right)
+(= (well-defined-ish table-bottom-left-new hhh) debug-bottom-left)
+(= (well-defined-ish table-bottom-right-new hhh) debug-bottom-right)
 ))
 
 
