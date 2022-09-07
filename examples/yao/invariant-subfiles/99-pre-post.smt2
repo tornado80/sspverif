@@ -1,60 +1,55 @@
-(push 1)
-
-(check-sat) 
-
-(pop 1)
 
 ;;;;;;;;;;;;; temp
-
-(assert precondition-holds)
-
 (push 1)
 
-(check-sat)
+(assert precondition-holds)
+(check-sat) ;8
 
 (pop 1)
+
+(push 1)
 
 (assert (and precondition-holds
              (not is-abort-right)
              (not is-abort-left)
              (not lemma4)))
+(check-sat) ;9
+;(get-model)
+(pop 1)
+
+
+
+
 
 (push 1)
-
-(check-sat)
-(get-model)
-
-(pop 1)
 
 (assert (and precondition-holds
              (not is-abort-right)
              (not is-abort-left)
              (not lemma3)))
-(push 1)
-
-(check-sat)
-
+(check-sat) ;10
+;(get-model)
 (pop 1)
 
+(push 1)
 (assert (and precondition-holds
              (not is-abort-right)
              (not is-abort-left)
              (not lemma2)))
-(push 1)
-
-(check-sat)
-
+(check-sat) ;11
+;(get-model)
 (pop 1)
 
+(push 1)
 (assert (and precondition-holds
              (not is-abort-right)
              (not is-abort-left)
              (not lemma1)))
-(push 1)
-
-(check-sat)
-
+(check-sat) ;12
+(get-model)
 (pop 1)
+
+(push 1)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -66,11 +61,6 @@
 
 ;missing:
 ;precondition holds on starting state
-(push 1)
-
-(check-sat)
-
-(pop 1)
 ;pre-condition => lemmas
 (assert (and precondition-holds
              (not is-abort-right)
@@ -78,12 +68,11 @@
              (not lemmas-hold)))
 
 
-(push 1)
-
-(check-sat)
+(check-sat) ;13
 ;(get-model)
-
 (pop 1)
+
+(push 1)
 
 ;pre-condition + lemmas => post-condition
 (assert (and precondition-holds
@@ -92,15 +81,18 @@
              (not is-abort-left)
              (not postcondition-holds)))
 
+(check-sat) ;14
 ;(get-model)
+(pop 1)
+
+(push 1)
 
 ;pre-condition + lemmas => standard post-condition
 (assert (and precondition-holds 
              lemmas-hold
              (not standard-postcondition-holds)))
-(push 1)
-
-(check-sat)
+(check-sat) ;15
 ;(get-model)
-
 (pop 1)
+
+(push 1)

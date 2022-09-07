@@ -33,4 +33,4 @@
 
 )))
 
-(check-sat)
+(check-sat) ;4

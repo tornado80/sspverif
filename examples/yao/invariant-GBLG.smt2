@@ -91,19 +91,19 @@
               (= rr-right (maybe-get (select Z-right  false)))
 
               ;variable for the state of the upper/lower key package left/right before/after call
-              (= table-top-left-old   (state-Left-keys_top-T    (composition-pkgstate-Left-keys_top     state-left-new)))
-              (= table-top-right-old (state-Right-keys_top-T    (composition-pkgstate-Right-keys_top    state-right-new)))
-              (= table-top-left-new   (state-Left-keys_bottom-T (composition-pkgstate-Left-keys_bottom  state-left-new)))
-              (= table-top-right-new (state-Right-keys_bottom-T (composition-pkgstate-Right-keys_bottom state-right-new)))
+              (= table-top-left-new   (state-Left-keys_top-T    (composition-pkgstate-Left-keys_top     state-left-new)))
+              (= table-top-right-new (state-Right-keys_top-T    (composition-pkgstate-Right-keys_top    state-right-new)))
+              (= table-bottom-left-new   (state-Left-keys_bottom-T (composition-pkgstate-Left-keys_bottom  state-left-new)))
+              (= table-bottom-right-new (state-Right-keys_bottom-T (composition-pkgstate-Right-keys_bottom state-right-new)))
               (= table-top-left-old   (state-Left-keys_top-T    (composition-pkgstate-Left-keys_top     state-left-old)))
               (= table-top-right-old (state-Right-keys_top-T    (composition-pkgstate-Right-keys_top    state-right-old)))
-              (= table-top-left-new   (state-Left-keys_bottom-T (composition-pkgstate-Left-keys_bottom  state-left-old)))
-              (= table-top-right-new (state-Right-keys_bottom-T (composition-pkgstate-Right-keys_bottom state-right-old)))
+              (= table-bottom-left-old   (state-Left-keys_bottom-T (composition-pkgstate-Left-keys_bottom  state-left-old)))
+              (= table-bottom-right-old (state-Right-keys_bottom-T (composition-pkgstate-Right-keys_bottom state-right-old)))
 
 
 ))
 
-(check-sat)
+(check-sat) ;2
 ; At each entry, the table is either none or a total table
 (define-fun well-defined ((T (Array Int (Maybe (Array Bool (Maybe Bits_n)))))) Bool
   (forall ((h Int))
@@ -121,7 +121,24 @@
   )
 )
 
-(check-sat)(declare-const precondition-holds Bool)
+(declare-const hhh Int)
+(define-fun well-defined-ish ((T (Array Int (Maybe (Array Bool (Maybe Bits_n)))))(hhh Int)) Bool
+    (ite
+      (not
+        (= (select T hhh) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
+      )
+      (forall ((b Bool))
+        (not
+          (= (select (maybe-get (select T hhh)) b) (as mk-none (Maybe Bits_n)))
+        )
+      )
+      true
+    )
+  )
+
+
+(check-sat) ;3
+(declare-const precondition-holds Bool)
 (assert (= precondition-holds (and
 
 ;;;;;;Pre-condition (part of the invariant):
@@ -156,7 +173,8 @@
 
 )))
 
-(check-sat)(declare-const lemmas-hold Bool)
+(check-sat) ;4
+(declare-const lemmas-hold Bool)
 (declare-const lemma1 Bool)
 (declare-const lemma2 Bool)
 (declare-const lemma3 Bool)
@@ -174,9 +192,26 @@ lemma5)))
 ;;;; Lemma on key tables
 (well-defined table-top-left-new)
 (well-defined table-top-right-new)
-(well-defined table-bottom-left-new)
-(well-defined table-bottom-right-new)
+(well-defined-ish table-bottom-left-new hhh)
+(well-defined-ish table-bottom-right-new hhh)
 )))
+
+(declare-const debug-top-left Bool)
+(declare-const debug-top-right Bool)
+(declare-const debug-bottom-left Bool)
+(declare-const debug-bottom-right Bool)
+
+(assert 
+(and
+(= (well-defined table-top-left-new) debug-top-left)
+(= (well-defined table-top-right-new) debug-top-right)
+(= (well-defined table-bottom-left-new) debug-bottom-left)
+(= (well-defined table-bottom-right-new) debug-bottom-right)
+))
+
+
+
+
 
 (assert (= lemma2 (and
 ; top tables remain the same
@@ -194,20 +229,21 @@ lemma5)))
 ))
 )))
 
-(declare-const hhh Int)
+;(declare-const hhh Int)
 
 (assert (= lemma4 (and
 ; right: bottom tables are mostly equal and where they are not equal, there is Z
-;(forall ((hh Int))
+(forall ((hh Int))
 (ite
-(= handle hhh)
-(= (maybe-get (select table-bottom-right-new hhh)) Z-right)
-(= (select table-bottom-right-old hhh) (select table-bottom-right-new hhh))
+(= handle hh)
+(= (maybe-get (select table-bottom-right-new hh)) Z-right)
+(= (select table-bottom-right-old hh) (select table-bottom-right-new hh))
 ))
 ))
-;)
+)
 
-;(check-sat)
+(check-sat) ;5
+
 (declare-const postcondition-holds Bool)
 (assert (= postcondition-holds (and
 
@@ -227,7 +263,8 @@ lemma5)))
 
 )))
 
-(check-sat)(declare-const standard-postcondition-holds Bool)
+(check-sat) ;6
+(declare-const standard-postcondition-holds Bool)
 (assert (= standard-postcondition-holds 
             (and
             (= is-abort-right is-abort-left)
@@ -239,63 +276,59 @@ lemma5)))
         )
 )
 
-(check-sat)(push 1)
-
-(check-sat) 
-
-(pop 1)
+(check-sat) ;7
 
 ;;;;;;;;;;;;; temp
-
-(assert precondition-holds)
-
 (push 1)
 
-(check-sat)
+(assert precondition-holds)
+(check-sat) ;8
 
 (pop 1)
+
+(push 1)
 
 (assert (and precondition-holds
              (not is-abort-right)
              (not is-abort-left)
              (not lemma4)))
+(check-sat) ;9
+;(get-model)
+(pop 1)
+
+
+
+
 
 (push 1)
-
-(check-sat)
-(get-model)
-
-(pop 1)
 
 (assert (and precondition-holds
              (not is-abort-right)
              (not is-abort-left)
              (not lemma3)))
-(push 1)
-
-(check-sat)
-
+(check-sat) ;10
+;(get-model)
 (pop 1)
 
+(push 1)
 (assert (and precondition-holds
              (not is-abort-right)
              (not is-abort-left)
              (not lemma2)))
-(push 1)
-
-(check-sat)
-
+(check-sat) ;11
+;(get-model)
 (pop 1)
 
+(push 1)
 (assert (and precondition-holds
              (not is-abort-right)
              (not is-abort-left)
              (not lemma1)))
-(push 1)
-
-(check-sat)
-
+(check-sat) ;12
+(get-model)
 (pop 1)
+
+(push 1)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -307,11 +340,6 @@ lemma5)))
 
 ;missing:
 ;precondition holds on starting state
-(push 1)
-
-(check-sat)
-
-(pop 1)
 ;pre-condition => lemmas
 (assert (and precondition-holds
              (not is-abort-right)
@@ -319,12 +347,11 @@ lemma5)))
              (not lemmas-hold)))
 
 
-(push 1)
-
-(check-sat)
+(check-sat) ;13
 ;(get-model)
-
 (pop 1)
+
+(push 1)
 
 ;pre-condition + lemmas => post-condition
 (assert (and precondition-holds
@@ -333,15 +360,18 @@ lemma5)))
              (not is-abort-left)
              (not postcondition-holds)))
 
+(check-sat) ;14
 ;(get-model)
+(pop 1)
+
+(push 1)
 
 ;pre-condition + lemmas => standard post-condition
 (assert (and precondition-holds 
              lemmas-hold
              (not standard-postcondition-holds)))
-(push 1)
-
-(check-sat)
+(check-sat) ;15
 ;(get-model)
-
 (pop 1)
+
+(push 1)

@@ -17,4 +17,4 @@
 
 )))
 
-(check-sat)
+(check-sat) ;6

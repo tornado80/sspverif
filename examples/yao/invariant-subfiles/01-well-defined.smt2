@@ -15,4 +15,20 @@
   )
 )
 
-(check-sat)
+(declare-const hhh Int)
+(define-fun well-defined-ish ((T (Array Int (Maybe (Array Bool (Maybe Bits_n)))))(hhh Int)) Bool
+    (ite
+      (not
+        (= (select T hhh) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
+      )
+      (forall ((b Bool))
+        (not
+          (= (select (maybe-get (select T hhh)) b) (as mk-none (Maybe Bits_n)))
+        )
+      )
+      true
+    )
+  )
+
+
+(check-sat) ;3

@@ -16,9 +16,26 @@ lemma5)))
 ;;;; Lemma on key tables
 (well-defined table-top-left-new)
 (well-defined table-top-right-new)
-(well-defined table-bottom-left-new)
-(well-defined table-bottom-right-new)
+(well-defined-ish table-bottom-left-new hhh)
+(well-defined-ish table-bottom-right-new hhh)
 )))
+
+(declare-const debug-top-left Bool)
+(declare-const debug-top-right Bool)
+(declare-const debug-bottom-left Bool)
+(declare-const debug-bottom-right Bool)
+
+(assert 
+(and
+(= (well-defined table-top-left-new) debug-top-left)
+(= (well-defined table-top-right-new) debug-top-right)
+(= (well-defined table-bottom-left-new) debug-bottom-left)
+(= (well-defined table-bottom-right-new) debug-bottom-right)
+))
+
+
+
+
 
 (assert (= lemma2 (and
 ; top tables remain the same
@@ -36,17 +53,18 @@ lemma5)))
 ))
 )))
 
-(declare-const hhh Int)
+;(declare-const hhh Int)
 
 (assert (= lemma4 (and
 ; right: bottom tables are mostly equal and where they are not equal, there is Z
-;(forall ((hh Int))
+(forall ((hh Int))
 (ite
-(= handle hhh)
-(= (maybe-get (select table-bottom-right-new hhh)) Z-right)
-(= (select table-bottom-right-old hhh) (select table-bottom-right-new hhh))
+(= handle hh)
+(= (maybe-get (select table-bottom-right-new hh)) Z-right)
+(= (select table-bottom-right-old hh) (select table-bottom-right-new hh))
 ))
 ))
-;)
+)
 
-;(check-sat)
+(check-sat) ;5
+
