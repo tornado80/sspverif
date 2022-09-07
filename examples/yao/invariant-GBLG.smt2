@@ -91,13 +91,13 @@
               (= rr-right (maybe-get (select Z-right  false)))
 
               ;variable for the state of the upper/lower key package left/right before/after call
-              (= table-top-left-old   (state-Left-keys_top-T    (composition-pkgstate-Left-keys_top state-left-new)))
-              (= table-top-right-old (state-Right-keys_top-T    (composition-pkgstate-Right-keys_top state-right-new)))
-              (= table-top-left-new   (state-Left-keys_bottom-T (composition-pkgstate-Left-keys_bottom state-left-new)))
+              (= table-top-left-old   (state-Left-keys_top-T    (composition-pkgstate-Left-keys_top     state-left-new)))
+              (= table-top-right-old (state-Right-keys_top-T    (composition-pkgstate-Right-keys_top    state-right-new)))
+              (= table-top-left-new   (state-Left-keys_bottom-T (composition-pkgstate-Left-keys_bottom  state-left-new)))
               (= table-top-right-new (state-Right-keys_bottom-T (composition-pkgstate-Right-keys_bottom state-right-new)))
-              (= table-top-left-old   (state-Left-keys_top-T    (composition-pkgstate-Left-keys_top state-left-old)))
-              (= table-top-right-old (state-Right-keys_top-T    (composition-pkgstate-Right-keys_top state-right-old)))
-              (= table-top-left-new   (state-Left-keys_bottom-T (composition-pkgstate-Left-keys_bottom state-left-old)))
+              (= table-top-left-old   (state-Left-keys_top-T    (composition-pkgstate-Left-keys_top     state-left-old)))
+              (= table-top-right-old (state-Right-keys_top-T    (composition-pkgstate-Right-keys_top    state-right-old)))
+              (= table-top-left-new   (state-Left-keys_bottom-T (composition-pkgstate-Left-keys_bottom  state-left-old)))
               (= table-top-right-new (state-Right-keys_bottom-T (composition-pkgstate-Right-keys_bottom state-right-old)))
 
 
@@ -194,17 +194,20 @@ lemma5)))
 ))
 )))
 
+(declare-const hhh Int)
+
 (assert (= lemma4 (and
 ; right: bottom tables are mostly equal and where they are not equal, there is Z
-(forall ((hh Int))
+;(forall ((hh Int))
 (ite
-(= handle hh)
-(= (maybe-get (select table-bottom-right-new hh)) Z-right)
-(= (select table-bottom-right-old hh) (select table-bottom-right-new hh))
+(= handle hhh)
+(= (maybe-get (select table-bottom-right-new hhh)) Z-right)
+(= (select table-bottom-right-old hhh) (select table-bottom-right-new hhh))
 ))
-)))
+))
+;)
 
-(check-sat)
+;(check-sat)
 (declare-const postcondition-holds Bool)
 (assert (= postcondition-holds (and
 
@@ -260,6 +263,7 @@ lemma5)))
 (push 1)
 
 (check-sat)
+(get-model)
 
 (pop 1)
 

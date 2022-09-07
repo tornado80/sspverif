@@ -36,14 +36,17 @@ lemma5)))
 ))
 )))
 
+(declare-const hhh Int)
+
 (assert (= lemma4 (and
 ; right: bottom tables are mostly equal and where they are not equal, there is Z
-(forall ((hh Int))
+;(forall ((hh Int))
 (ite
-(= handle hh)
-(= (maybe-get (select table-bottom-right-new hh)) Z-right)
-(= (select table-bottom-right-old hh) (select table-bottom-right-new hh))
+(= handle hhh)
+(= (maybe-get (select table-bottom-right-new hhh)) Z-right)
+(= (select table-bottom-right-old hhh) (select table-bottom-right-new hhh))
 ))
-)))
+))
+;)
 
-(check-sat)
+;(check-sat)

@@ -22,6 +22,7 @@
 (push 1)
 
 (check-sat)
+(get-model)
 
 (pop 1)
 
