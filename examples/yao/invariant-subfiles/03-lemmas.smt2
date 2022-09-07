@@ -46,3 +46,4 @@ lemma5)))
 ))
 )))
 
+(check-sat)

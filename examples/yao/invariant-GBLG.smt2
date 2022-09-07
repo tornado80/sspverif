@@ -103,8 +103,7 @@
 
 ))
 
-
-
+(check-sat)
 ; At each entry, the table is either none or a total table
 (define-fun well-defined ((T (Array Int (Maybe (Array Bool (Maybe Bits_n)))))) Bool
   (forall ((h Int))
@@ -120,7 +119,9 @@
       true
     )
   )
-)(declare-const precondition-holds Bool)
+)
+
+(check-sat)(declare-const precondition-holds Bool)
 (assert (= precondition-holds (and
 
 ;;;;;;Pre-condition (part of the invariant):
@@ -155,7 +156,7 @@
 
 )))
 
-(declare-const lemmas-hold Bool)
+(check-sat)(declare-const lemmas-hold Bool)
 (declare-const lemma1 Bool)
 (declare-const lemma2 Bool)
 (declare-const lemma3 Bool)
@@ -203,6 +204,7 @@ lemma5)))
 ))
 )))
 
+(check-sat)
 (declare-const postcondition-holds Bool)
 (assert (= postcondition-holds (and
 
@@ -222,7 +224,7 @@ lemma5)))
 
 )))
 
-(declare-const standard-postcondition-holds Bool)
+(check-sat)(declare-const standard-postcondition-holds Bool)
 (assert (= standard-postcondition-holds 
             (and
             (= is-abort-right is-abort-left)
@@ -234,54 +236,62 @@ lemma5)))
         )
 )
 
-(push 1)
+(check-sat)(push 1)
 
-(check-sat) ;this is the second one
+(check-sat) 
 
 (pop 1)
 
-(push 1)
 ;;;;;;;;;;;;; temp
 
-(assert (and precondition-holds
-             (not is-abort-right)
-             (not is-abort-left)
-             (not lemma1)))
-(pop 1)
-
-(check-sat)
+(assert precondition-holds)
 
 (push 1)
 
-(assert (and precondition-holds
-             (not is-abort-right)
-             (not is-abort-left)
-             (not lemma2)))
-(pop 1)
-
 (check-sat)
 
-(push 1)
-
-(assert (and precondition-holds
-             (not is-abort-right)
-             (not is-abort-left)
-             (not lemma3)))
 (pop 1)
-
-(check-sat)
-
-(push 1)
 
 (assert (and precondition-holds
              (not is-abort-right)
              (not is-abort-left)
              (not lemma4)))
-(pop 1)
+
+(push 1)
 
 (check-sat)
 
+(pop 1)
+
+(assert (and precondition-holds
+             (not is-abort-right)
+             (not is-abort-left)
+             (not lemma3)))
 (push 1)
+
+(check-sat)
+
+(pop 1)
+
+(assert (and precondition-holds
+             (not is-abort-right)
+             (not is-abort-left)
+             (not lemma2)))
+(push 1)
+
+(check-sat)
+
+(pop 1)
+
+(assert (and precondition-holds
+             (not is-abort-right)
+             (not is-abort-left)
+             (not lemma1)))
+(push 1)
+
+(check-sat)
+
+(pop 1)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -293,21 +303,24 @@ lemma5)))
 
 ;missing:
 ;precondition holds on starting state
-(pop 1)
+(push 1)
 
 (check-sat)
 
-(push 1)
+(pop 1)
 ;pre-condition => lemmas
 (assert (and precondition-holds
              (not is-abort-right)
              (not is-abort-left)
              (not lemmas-hold)))
 
-(check-sat)
-(pop 1)
 
 (push 1)
+
+(check-sat)
+;(get-model)
+
+(pop 1)
 
 ;pre-condition + lemmas => post-condition
 (assert (and precondition-holds
@@ -316,14 +329,15 @@ lemma5)))
              (not is-abort-left)
              (not postcondition-holds)))
 
-(check-sat)
-(pop 1)
-
-(push 1)
+;(get-model)
 
 ;pre-condition + lemmas => standard post-condition
 (assert (and precondition-holds 
              lemmas-hold
              (not standard-postcondition-holds)))
+(push 1)
+
 (check-sat)
+;(get-model)
+
 (pop 1)
