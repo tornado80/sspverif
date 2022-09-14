@@ -223,7 +223,7 @@ lemma5)))
 ; left: bottom tables are mostly equal and where they are not equal, there is Z
 (forall ((hh Int))
 (ite
-(= handle hh)
+(= j hh)
 (= (maybe-get (select table-bottom-left-new hh)) Z-left)
 (= (select table-bottom-left-old hh) (select table-bottom-left-new hh))
 ))
@@ -235,7 +235,7 @@ lemma5)))
 ; right: bottom tables are mostly equal and where they are not equal, there is Z
 (forall ((hh Int))
 (ite
-(= handle hh)
+(= j hh)
 (= (maybe-get (select table-bottom-right-new hh)) Z-right)
 (= (select table-bottom-right-old hh) (select table-bottom-right-new hh))
 ))
