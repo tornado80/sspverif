@@ -85,10 +85,10 @@
               (= rr-right (__sample-rand-Right-Bits_n 4 ctr-rr-left))
 
               ;assignment of the sampled values for the lower Key package as a table
-              (=  r-left  (maybe-get (select Z-left    true)))
-              (= rr-left  (maybe-get  (select Z-left  false)))
-              (= r-right  (maybe-get  (select Z-right  true)))
-              (= rr-right (maybe-get (select Z-right  false)))
+              (= (mk-some  r-left)  (select Z-left   true))
+              (= (mk-some rr-left)  (select Z-left  false))
+              (= (mk-some  r-right) (select Z-right  true))
+              (= (mk-some rr-right) (select Z-right false))
 
               ;variable for the state of the upper/lower key package left/right before/after call
               (= table-top-left-new   (state-Left-keys_top-T    (composition-pkgstate-Left-keys_top     state-left-new)))

@@ -10,4 +10,4 @@
         )
 )
 
-(check-sat) ;7
+(check-sat) ;6
