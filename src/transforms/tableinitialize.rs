@@ -21,7 +21,7 @@ impl<'a> super::Transformation for Transformation<'a> {
             .map(|inst| {
                 let mut newinst = inst.clone();
                 for (i, oracle) in newinst.pkg.oracles.clone().iter().enumerate() {
-                    newinst.pkg.oracles[i].code = tableinitialize(&oracle.code, &[])?;
+                    newinst.pkg.oracles[i].code = tableinitialize(&oracle.code, &vec![])?;
                 }
                 Ok(newinst)
             })
@@ -36,9 +36,9 @@ impl<'a> super::Transformation for Transformation<'a> {
     }
 }
 
-pub fn tableinitialize(cb: &CodeBlock, initialized: &[String]) -> Result<CodeBlock, Error> {
+pub fn tableinitialize(cb: &CodeBlock, initialized: &Vec<String>) -> Result<CodeBlock, Error> {
     let mut newcode = Vec::new();
-    let new_initialized = initialized.clone();
+    let mut new_initialized = initialized.clone();
     for stmt in cb.0.clone() {
         match stmt {
             Statement::IfThenElse(expr, ifcode, elsecode) => {
@@ -61,6 +61,7 @@ pub fn tableinitialize(cb: &CodeBlock, initialized: &[String]) -> Result<CodeBlo
                     Type::Table(Box::new(indextype.clone()), Box::new(valuetype.clone()));
 
                 if !new_initialized.contains(&id) {
+                    new_initialized.push(id.clone());
                     newcode.push(Statement::Assign(
                         Identifier::Local(id.clone()),
                         None,
@@ -77,6 +78,7 @@ pub fn tableinitialize(cb: &CodeBlock, initialized: &[String]) -> Result<CodeBlo
                 let tabletype = Type::Table(Box::new(indextype.clone()), Box::new(tipe.clone()));
 
                 if !new_initialized.contains(&id) {
+                    new_initialized.push(id.clone());
                     newcode.push(Statement::Assign(
                         Identifier::Local(id.clone()),
                         None,
@@ -105,6 +107,7 @@ pub fn tableinitialize(cb: &CodeBlock, initialized: &[String]) -> Result<CodeBlo
                     Type::Table(Box::new(indextype.clone()), Box::new(valuetype.clone()));
 
                 if !new_initialized.contains(&id) {
+                    new_initialized.push(id.clone());
                     newcode.push(Statement::Assign(
                         Identifier::Local(id.clone()),
                         None,
