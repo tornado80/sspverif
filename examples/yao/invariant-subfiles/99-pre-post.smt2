@@ -14,7 +14,7 @@
              (not is-abort-left)
              (not lemma4)))
 (check-sat) ;9
-;(get-model)
+(get-model)
 (pop 1)
 
 
@@ -46,7 +46,7 @@
              (not is-abort-left)
              (not lemma1)))
 (check-sat) ;12
-(get-model)
+;(get-model)
 (pop 1)
 
 (push 1)

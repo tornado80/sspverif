@@ -6,19 +6,18 @@ package Keys {
     state {
         T: Table(Integer,Table(Bool,Bits(n))),
         z: Table(Integer,Bool),
-        aflag: Table(Integer,Bool),
-        bflag: Table(Integer,Bool),
+        flag: Table(Integer,Bool),
     }
 
     oracle GETKEYSIN(h: Integer) -> Table(Bool,Bits(n)) {
         assert (z[h] != None as Bool);
-        assert ((aflag[h]==Some(true)) or (bflag[h]==Some(true)));
+        assert (flag[h]==Some(true));
         Z <- Unwrap(T[h]);
         return Z;
     }
 
     oracle GETKEYSOUT(h: Integer) -> Table(Bool,Bits(n)) {
-        aflag[h]<- Some(true);
+        flag[h]<- Some(true);
         Z <- new Table(Bool,Bits(n));
         if (T[h] == None as Table(Bool,Bits(n)))
            {r <-$ Bits(n);
@@ -31,8 +30,8 @@ package Keys {
     }
 
     oracle GETAOUT(h: Integer) -> Bits(n) {
-        aflag[h] <- Some(true);
-        assert ((aflag[h]==Some(true)) or (bflag[h]==Some(true)));
+        flag[h] <- Some(true);
+        assert (flag[h]==Some(true));
         Z <- Unwrap(T[h]);
         zz <- Unwrap(z[h]);
         k <- Unwrap(Z[zz]);
@@ -40,8 +39,8 @@ package Keys {
     }
 
     oracle GETINAOUT(h: Integer) -> Bits(n) {
-        aflag[h] <- Some(true);
-        assert ((aflag[h]==Some(true)) or (bflag[h]==Some(true)));
+        flag[h] <- Some(true);
+        assert (flag[h]==Some(true));
         Z <- Unwrap(T[h]);
         zz <- Unwrap(z[h]);
         k <- Unwrap(Z[not zz]);
@@ -49,8 +48,8 @@ package Keys {
     }
 
     oracle GETAIN(h: Integer) -> Bits(n) {
-        assert (aflag[h]==Some(true));
-        assert ((aflag[h]==Some(true)) or (bflag[h]==Some(true)));
+        assert (flag[h]==Some(true));
+        assert (flag[h]==Some(true));
         Z <- Unwrap(T[h]);
         zz <- Unwrap(z[h]);
         k <- Unwrap(Z[zz]);
@@ -58,8 +57,7 @@ package Keys {
     }
 
     oracle GETINAIN(h: Integer) -> Bits(n) {
-        assert (aflag[h] == Some(true));
-        assert ((aflag[h]==Some(true)) or (bflag[h]==Some(true)));
+        assert (flag[h] == Some(true));
         Z <- Unwrap(T[h]);
         zz <- Unwrap(z[h]);
         k <- Unwrap(Z[not zz]);

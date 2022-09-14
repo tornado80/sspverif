@@ -17,9 +17,20 @@
 ; after in k!26707
     (ite (= x!0 109)
       (mk-some (store ((as const (Array Bool (Maybe Bits_n)))
-                        (as mk-none (Maybe Bits_n))) ;Das ist ein store, was auf einem all-bot table gecallt wird?
-                      false                          ;Warum schreibt er nur bei false etwas hin?
-                      (mk-some Bits_n!val!0)))
+                        (as mk-none (Maybe Bits_n))) ; Das ist ein store, was auf einem all-bot table gecallt wird?
+                      false                          ; Warum schreibt er nur bei false etwas hin?
+                      (mk-some Bits_n!val!0)))       ; Bei true sollte eigentlich Bits_n!val!11 stehen.
+
+; sampled values for the entry at true
+      (define-fun r-left () Bits_n Bits_n!val!11)
+      (define-fun r-right () Bits_n Bits_n!val!11)
+
+; sampled values for the entry at false
+  (define-fun rr-right () Bits_n
+    Bits_n!val!0)
+
+      (define-fun rr-left () Bits_n
+    Bits_n!val!0)
 
 ;sampled on the right
   (define-fun Z-right () (Array Bool (Maybe Bits_n))
@@ -38,17 +49,7 @@
        (mk-some Bits_n!val!11)))
 
     
-      (define-fun r-left () Bits_n
-    Bits_n!val!11)
-    
-      (define-fun r-right () Bits_n
-    Bits_n!val!11)
 
-  (define-fun rr-right () Bits_n
-    Bits_n!val!0)
-
-      (define-fun rr-left () Bits_n
-    Bits_n!val!0)
 
 ; 
  (define-fun k!26712 ((x!0 Int)) (Maybe (Array Bool (Maybe Bits_n)))

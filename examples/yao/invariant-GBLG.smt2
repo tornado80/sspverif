@@ -224,7 +224,7 @@ lemma5)))
 (forall ((hh Int))
 (ite
 (= j hh)
-(= (maybe-get (select table-bottom-left-new hh)) Z-left)
+(= (select table-bottom-left-new hh) (mk-some Z-left))
 (= (select table-bottom-left-old hh) (select table-bottom-left-new hh))
 ))
 )))
@@ -236,7 +236,7 @@ lemma5)))
 (forall ((hh Int))
 (ite
 (= j hh)
-(= (maybe-get (select table-bottom-right-new hh)) Z-right)
+(= (select table-bottom-right-new hh) (mk-some Z-right))
 (= (select table-bottom-right-old hh) (select table-bottom-right-new hh))
 ))
 ))
@@ -293,7 +293,7 @@ lemma5)))
              (not is-abort-left)
              (not lemma4)))
 (check-sat) ;9
-;(get-model)
+(get-model)
 (pop 1)
 
 
@@ -325,7 +325,7 @@ lemma5)))
              (not is-abort-left)
              (not lemma1)))
 (check-sat) ;12
-(get-model)
+;(get-model)
 (pop 1)
 
 (push 1)
