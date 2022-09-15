@@ -24,7 +24,7 @@
 (push 1)
 
 (assert (and precondition-holds
-             (lemma1)
+             lemma1
              (not is-abort-right)
              (not is-abort-left)
              (not lemma2)))
@@ -34,8 +34,8 @@
 
 (push 1)
 (assert (and precondition-holds
-             (lemma1)
-             (lemma2)
+             lemma1
+             lemma2
              (not is-abort-right)
              (not is-abort-left)
              (not lemma3)))
@@ -45,9 +45,9 @@
 
 (push 1)
 (assert (and precondition-holds
-             (lemma1)
-             (lemma2)
-             (lemma3)
+             lemma1
+             lemma2
+             lemma3
              (not is-abort-right)
              (not is-abort-left)
              (not lemma4)))
@@ -96,9 +96,10 @@
 ;pre-condition + lemmas => standard post-condition
 (assert (and precondition-holds 
              lemmas-hold
+             postcondition-holds
              (not standard-postcondition-holds)))
 (check-sat) ;13
-;(get-model)
+(get-model)
 (pop 1)
 
 (push 1)

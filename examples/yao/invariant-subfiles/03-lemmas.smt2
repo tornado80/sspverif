@@ -16,8 +16,8 @@ lemma5)))
 ;;;; Lemma on key tables
 (well-defined table-top-left-new)
 (well-defined table-top-right-new)
-(well-defined-ish table-bottom-left-new hhh)
-(well-defined-ish table-bottom-right-new hhh)
+(well-defined table-bottom-left-new)
+(well-defined table-bottom-right-new)
 )))
 
 (declare-const debug-top-left Bool)
@@ -47,7 +47,7 @@ lemma5)))
 ; left: bottom tables are mostly equal and where they are not equal, there is Z
 (forall ((hh Int))
 (ite
-(= j hh)
+(and (= j hh) (= (select table-bottom-left-old hh) (as mk-none (Maybe (Array Bool (Maybe Bits_n))))))
 (= (select table-bottom-left-new hh) (mk-some Z-left))
 (= (select table-bottom-left-old hh) (select table-bottom-left-new hh))
 ))
@@ -59,7 +59,7 @@ lemma5)))
 ; right: bottom tables are mostly equal and where they are not equal, there is Z
 (forall ((hh Int))
 (ite
-(= j hh)
+(and (= j hh) (= (select table-bottom-right-old hh) (as mk-none (Maybe (Array Bool (Maybe Bits_n))))))
 (= (select table-bottom-right-new hh) (mk-some Z-right))
 (= (select table-bottom-right-old hh) (select table-bottom-right-new hh))
 ))
