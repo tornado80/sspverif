@@ -12,6 +12,35 @@
 ;top/bottom key packages left and right are equal (before the call)
 (= table-top-left-old table-top-right-old)
 (= table-bottom-left-old table-bottom-right-old)
+(= table-z-top-left-old table-z-top-right-old)
+(= table-z-bottom-left-old table-z-bottom-right-old)
+(= table-flag-top-left-old table-flag-top-right-old)
+(= table-flag-bottom-left-old table-flag-bottom-right-old)
+
+(forall ((hhh Int)) (ite (= (mk-some true)    (select table-flag-top-left-old hhh)) 
+                (or (=  (mk-some true)  (select table-z-top-left-old hhh))
+                    (=  (mk-some false) (select table-z-top-left-old hhh)))
+                    true
+                    ))
+
+(forall ((hhh Int)) (ite (= (mk-some true)    (select table-flag-bottom-left-old hhh)) 
+                (or (=  (mk-some true)  (select table-z-bottom-left-old hhh))
+                    (=  (mk-some false) (select table-z-bottom-left-old hhh)))
+                    true
+                    ))
+
+(forall ((hhh Int)) (ite (= (mk-some true)    (select table-flag-top-right-old hhh)) 
+                (or (=  (mk-some true)  (select table-z-top-right-old hhh))
+                    (=  (mk-some false) (select table-z-top-right-old hhh)))
+                    true
+                    ))
+
+(forall ((hhh Int)) (ite (= (mk-some true)    (select table-flag-bottom-right-old hhh)) 
+                (or (=  (mk-some true)  (select table-z-bottom-right-old hhh))
+                    (=  (mk-some false) (select table-z-bottom-right-old hhh)))
+                    true
+                    ))
+
 
 ;The randomness ctr left and right are equal (before the call)
 (= ctr-r-left ctr-r-right)

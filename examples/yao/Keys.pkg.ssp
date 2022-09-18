@@ -31,7 +31,6 @@ package Keys {
 
     oracle GETAOUT(h: Integer) -> Bits(n) {
         flag[h] <- Some(true);
-        assert (flag[h]==Some(true));
         Z <- Unwrap(T[h]);
         zz <- Unwrap(z[h]);
         k <- Unwrap(Z[zz]);
@@ -40,7 +39,6 @@ package Keys {
 
     oracle GETINAOUT(h: Integer) -> Bits(n) {
         flag[h] <- Some(true);
-        assert (flag[h]==Some(true));
         Z <- Unwrap(T[h]);
         zz <- Unwrap(z[h]);
         k <- Unwrap(Z[not zz]);
@@ -48,7 +46,6 @@ package Keys {
     }
 
     oracle GETAIN(h: Integer) -> Bits(n) {
-        assert (flag[h]==Some(true));
         assert (flag[h]==Some(true));
         Z <- Unwrap(T[h]);
         zz <- Unwrap(z[h]);

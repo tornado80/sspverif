@@ -49,6 +49,25 @@
 (declare-const table-bottom-right-old (Array Int (Maybe (Array Bool (Maybe Bits_n)))))
 (declare-const table-bottom-right-new (Array Int (Maybe (Array Bool (Maybe Bits_n)))))
 
+(declare-const table-z-top-left-old     (Array Int (Maybe Bool)))
+(declare-const table-z-top-left-new     (Array Int (Maybe Bool)))
+(declare-const table-z-bottom-left-old  (Array Int (Maybe Bool)))
+(declare-const table-z-bottom-left-new  (Array Int (Maybe Bool)))
+(declare-const table-z-top-right-old    (Array Int (Maybe Bool)))
+(declare-const table-z-top-right-new    (Array Int (Maybe Bool)))
+(declare-const table-z-bottom-right-old (Array Int (Maybe Bool)))
+(declare-const table-z-bottom-right-new (Array Int (Maybe Bool)))
+
+(declare-const table-flag-top-left-old     (Array Int (Maybe Bool)))
+(declare-const table-flag-top-left-new     (Array Int (Maybe Bool)))
+(declare-const table-flag-bottom-left-old  (Array Int (Maybe Bool)))
+(declare-const table-flag-bottom-left-new  (Array Int (Maybe Bool)))
+(declare-const table-flag-top-right-old    (Array Int (Maybe Bool)))
+(declare-const table-flag-top-right-new    (Array Int (Maybe Bool)))
+(declare-const table-flag-bottom-right-old (Array Int (Maybe Bool)))
+(declare-const table-flag-bottom-right-new (Array Int (Maybe Bool)))
+
+
 
 (assert (and  ;assignment of return (value,state)
               (= return-left      (oracle-Left-gate-GBLG state-left-old handle l r op j))
@@ -99,6 +118,26 @@
               (= table-top-right-old (state-Right-keys_top-T    (composition-pkgstate-Right-keys_top    state-right-old)))
               (= table-bottom-left-old   (state-Left-keys_bottom-T (composition-pkgstate-Left-keys_bottom  state-left-old)))
               (= table-bottom-right-old (state-Right-keys_bottom-T (composition-pkgstate-Right-keys_bottom state-right-old)))
+
+              ;variable for the bit state of the upper/lower key package left/right before/after call
+              (= table-z-top-left-new   (state-Left-keys_top-z    (composition-pkgstate-Left-keys_top     state-left-new)))
+              (= table-z-top-right-new (state-Right-keys_top-z    (composition-pkgstate-Right-keys_top    state-right-new)))
+              (= table-z-bottom-left-new   (state-Left-keys_bottom-z (composition-pkgstate-Left-keys_bottom  state-left-new)))
+              (= table-z-bottom-right-new (state-Right-keys_bottom-z (composition-pkgstate-Right-keys_bottom state-right-new)))
+              (= table-z-top-left-old   (state-Left-keys_top-z    (composition-pkgstate-Left-keys_top     state-left-old)))
+              (= table-z-top-right-old (state-Right-keys_top-z    (composition-pkgstate-Right-keys_top    state-right-old)))
+              (= table-z-bottom-left-old   (state-Left-keys_bottom-z (composition-pkgstate-Left-keys_bottom  state-left-old)))
+              (= table-z-bottom-right-old (state-Right-keys_bottom-z (composition-pkgstate-Right-keys_bottom state-right-old)))
+
+             ;variable for the flag state of the upper/lower key package left/right before/after call
+              (= table-flag-top-left-new   (state-Left-keys_top-flag    (composition-pkgstate-Left-keys_top     state-left-new)))
+              (= table-flag-top-right-new (state-Right-keys_top-flag    (composition-pkgstate-Right-keys_top    state-right-new)))
+              (= table-flag-bottom-left-new   (state-Left-keys_bottom-flag (composition-pkgstate-Left-keys_bottom  state-left-new)))
+              (= table-flag-bottom-right-new (state-Right-keys_bottom-flag (composition-pkgstate-Right-keys_bottom state-right-new)))
+              (= table-flag-top-left-old   (state-Left-keys_top-flag    (composition-pkgstate-Left-keys_top     state-left-old)))
+              (= table-flag-top-right-old (state-Right-keys_top-flag    (composition-pkgstate-Right-keys_top    state-right-old)))
+              (= table-flag-bottom-left-old   (state-Left-keys_bottom-flag (composition-pkgstate-Left-keys_bottom  state-left-old)))
+              (= table-flag-bottom-right-old (state-Right-keys_bottom-flag (composition-pkgstate-Right-keys_bottom state-right-old)))
 
 
 ))
