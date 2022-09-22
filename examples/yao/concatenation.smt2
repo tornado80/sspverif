@@ -5485,7 +5485,7 @@
   )
 
 
-(check-sat) ;3
+;(check-sat) ;3
 (declare-const precondition-holds Bool)
 (assert (= precondition-holds (and
 
@@ -5565,7 +5565,7 @@
                        (as mk-none (Maybe Bool)))
                     (or
                     (= (select table-bottom-left-old hhh) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
-                    (= (select (maybe-get (select table-bottom-left-old hhh)) true) (as mk-none (Maybe Bits_n)))))
+                    (= (select (maybe-get (select table-bottom-left-old hhh)) true) (as mk-none (Maybe Bits_n))))))
 
 
 

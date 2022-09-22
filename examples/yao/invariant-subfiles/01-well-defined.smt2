@@ -31,4 +31,4 @@
   )
 
 
-(check-sat) ;3
+;(check-sat) ;3
