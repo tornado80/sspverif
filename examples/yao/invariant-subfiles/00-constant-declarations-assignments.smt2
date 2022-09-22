@@ -142,4 +142,4 @@
 
 ))
 
-(check-sat) ;2
+;(check-sat) ;2
