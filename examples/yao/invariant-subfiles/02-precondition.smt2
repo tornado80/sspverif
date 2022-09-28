@@ -90,9 +90,20 @@
 (= r-left r-right)
 (= rr-left rr-right)
 
+;compatibility of the counter values
+(= ctr-rin-left (* 4 ctr-rin-oo-right))
+(= ctr-rout-left (* 4 ctr-rout-oo-right))
+
+
+;equality of values of the sample instructions for the encryptions
+(forall ((b1 Bool) (b2 Bool))
+(and
+(= (rin-left b1 b2) (rin-right (xor b1 z1) (xor b2 z2)))
+(= (rin-left b1 b2) (rout-right (xor b1 z1) (xor b2 z2)))
+))
+
 ;;;;;; Pre-condition "Glue" 
 
-;op is a total table.
 ;op is a total table.
 (not (= (select op (mk-tuple2 true  true ))(as mk-none (Maybe Bool))))
 (not (= (select op (mk-tuple2 true  false))(as mk-none (Maybe Bool))))
@@ -101,4 +112,9 @@
 
 )))
 
-(check-sat) ;4
+;(push 1)
+
+;(assert true)
+;(check-sat) ;4
+
+;(pop 1)

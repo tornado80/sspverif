@@ -10,4 +10,9 @@
         )
 )
 
-(check-sat) ;6
+;(push 1)
+
+;(assert true)
+;(check-sat) ;6
+
+;(pop 1)

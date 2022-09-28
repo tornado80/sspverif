@@ -1,11 +1,11 @@
 
 ;;;;;;;;;;;;; temp
-(push 1)
+;(push 1)
 
-(assert precondition-holds)
-(check-sat) ;7
+;(assert precondition-holds)
+;(check-sat) ;7
 
-(pop 1)
+;(pop 1)
 
 (push 1)
 
@@ -13,7 +13,7 @@
              (not is-abort-right)
              (not is-abort-left)
              (not lemma1)))
-(check-sat) ;8
+(check-sat) ;4 ;8
 ;(get-model)
 (pop 1)
 
@@ -28,7 +28,7 @@
              (not is-abort-right)
              (not is-abort-left)
              (not lemma2)))
-(check-sat) ;9
+(check-sat) ;5 ;9
 ;(get-model)
 (pop 1)
 
@@ -39,7 +39,7 @@
              (not is-abort-right)
              (not is-abort-left)
              (not lemma3)))
-(check-sat) ;10
+(check-sat) ;6 ;10
 ;(get-model)
 (pop 1)
 
@@ -51,7 +51,7 @@
              (not is-abort-right)
              (not is-abort-left)
              (not lemma4)))
-(check-sat) ;11
+(check-sat) ;7 ;11
 ;(get-model)
 (pop 1)
 
@@ -87,7 +87,7 @@
              (not is-abort-left)
              (not postcondition-holds)))
 
-(check-sat) ;12
+(check-sat) ;8 ;12
 ;(get-model)
 (pop 1)
 
@@ -98,7 +98,7 @@
              lemmas-hold
              postcondition-holds
              (not standard-postcondition-holds)))
-(check-sat) ;13
+(check-sat) ;9 ;13
 (get-model)
 (pop 1)
 

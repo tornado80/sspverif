@@ -66,5 +66,10 @@ lemma5)))
 ))
 )
 
-(check-sat) ;5
+;(push 1)
+
+;(assert true)
+;(check-sat) ;5
+
+;(pop 1)
 

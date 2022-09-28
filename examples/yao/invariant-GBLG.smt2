@@ -67,6 +67,27 @@
 (declare-const table-flag-bottom-right-old (Array Int (Maybe Bool)))
 (declare-const table-flag-bottom-right-new (Array Int (Maybe Bool)))
 
+;randomness for encryption
+(declare-fun rin-right (Bool Bool) Bits_n)
+(declare-fun rin-left (Bool Bool) Bits_n)
+(declare-fun rout-right (Bool Bool) Bits_n)
+(declare-fun rout-left (Bool Bool) Bits_n)
+
+(declare-const ctr-rin-left Int)
+(declare-const ctr-rout-left Int)
+(declare-const ctr-rin-oo-right  Int)
+(declare-const ctr-rout-oo-right Int)
+(declare-const ctr-rin-io-right  Int)
+(declare-const ctr-rout-io-right Int)
+(declare-const ctr-rin-oi-right  Int)
+(declare-const ctr-rout-oi-right Int)
+(declare-const ctr-rin-ii-right  Int)
+(declare-const ctr-rout-ii-right Int)
+
+;active bits
+(declare-const z1  Bool)
+(declare-const z2 Bool)
+
 
 
 (assert (and  ;assignment of return (value,state)
@@ -87,21 +108,21 @@
 
               ;assignment of the ctr of the sample instructions for the lower Key package
               (= ctr-r-left   (composition-rand-Left-3  state-left-old))
-              (= ctr-r-right  (composition-rand-Right-3 state-right-old))
+              (= ctr-r-right  (composition-rand-Right-1 state-right-old))
               (= ctr-rr-left  (composition-rand-Left-4  state-left-old))
-              (= ctr-rr-right (composition-rand-Right-4 state-right-old))
+              (= ctr-rr-right (composition-rand-Right-2 state-right-old))
 
               ;assignment of the ctr of the sample instructions for the lower Key package on new state
               (= ctr-r-left-new   (composition-rand-Left-3  state-left-new))
-              (= ctr-r-right-new  (composition-rand-Right-3 state-right-new))
+              (= ctr-r-right-new  (composition-rand-Right-1 state-right-new))
               (= ctr-rr-left-new  (composition-rand-Left-4  state-left-new))
-              (= ctr-rr-right-new (composition-rand-Right-4 state-right-new))
+              (= ctr-rr-right-new (composition-rand-Right-2 state-right-new))
 
               ;assignment of the sampled values for the lower Key package
               (= r-left   (__sample-rand-Left-Bits_n 3 ctr-r-left))
-              (= r-right  (__sample-rand-Right-Bits_n 3 ctr-r-right))
+              (= r-right  (__sample-rand-Right-Bits_n 1 ctr-r-right))
               (= rr-left  (__sample-rand-Left-Bits_n 4 ctr-rr-left))
-              (= rr-right (__sample-rand-Right-Bits_n 4 ctr-rr-left))
+              (= rr-right (__sample-rand-Right-Bits_n 2 ctr-rr-left))
 
               ;assignment of the sampled values for the lower Key package as a table
               (= (mk-some  r-left)  (select Z-left   true))
@@ -139,10 +160,53 @@
               (= table-flag-bottom-left-old   (state-Left-keys_bottom-flag (composition-pkgstate-Left-keys_bottom  state-left-old)))
               (= table-flag-bottom-right-old (state-Right-keys_bottom-flag (composition-pkgstate-Right-keys_bottom state-right-old)))
 
+              ;assignment of the ctr of the sample instructions for the 8 encryptions on the left
+              (= ctr-rin-left  (composition-rand-Left-9  state-left-old))
+              (= ctr-rout-left (composition-rand-Left-11 state-left-old))
+              ; Note that the counter is increased 4 times
+
+              ;assignment of the sampled values for the 8 encryptions on the left
+              (= (rin-left false false)    (__sample-rand-Left-Bits_n 9  ctr-r-left))
+              (= (rin-left true false)     (__sample-rand-Left-Bits_n 9  (+ 1 ctr-r-left)))
+              (= (rin-left false true)     (__sample-rand-Left-Bits_n 9  (+ 2 ctr-r-left)))
+              (= (rin-left true true)      (__sample-rand-Left-Bits_n 9  (+ 3 ctr-r-left)))
+              (= (rout-left false false)   (__sample-rand-Left-Bits_n 11 ctr-r-left))
+              (= (rout-left true false)    (__sample-rand-Left-Bits_n 11 (+ 1 ctr-r-left)))
+              (= (rout-left false true)    (__sample-rand-Left-Bits_n 11 (+ 2 ctr-r-left)))
+              (= (rout-left true true)     (__sample-rand-Left-Bits_n 11 (+ 3 ctr-r-left)))
+
+              ;assignment of the ctr of the sample instructions for the 8 encryptions on the right
+              (= ctr-rin-oo-right  (composition-rand-Right-9  state-right-old))
+              (= ctr-rout-oo-right (composition-rand-Right-10 state-right-old))
+              (= ctr-rin-io-right  (composition-rand-Right-11 state-right-old))
+              (= ctr-rout-io-right (composition-rand-Right-12 state-right-old))
+              (= ctr-rin-oi-right  (composition-rand-Right-13 state-right-old))
+              (= ctr-rout-oi-right (composition-rand-Right-14 state-right-old))
+              (= ctr-rin-ii-right  (composition-rand-Right-15 state-right-old))
+              (= ctr-rout-ii-right (composition-rand-Right-16 state-right-old))
+
+              ;assignment of the sampled values for the 8 encryptions on the right
+              (= (rin-right  false false)  (__sample-rand-Right-Bits_n 9  ctr-rin-oo-right))
+              (= (rout-right false false)  (__sample-rand-Right-Bits_n 10 ctr-rout-oo-right))
+              (= (rin-right  true false)   (__sample-rand-Right-Bits_n 11 ctr-rin-io-right))
+              (= (rout-right true false)   (__sample-rand-Right-Bits_n 12 ctr-rout-io-right))
+              (= (rin-right  false true)   (__sample-rand-Right-Bits_n 13 ctr-rin-oi-right))
+              (= (rout-right false true)   (__sample-rand-Right-Bits_n 14 ctr-rout-oi-right))
+              (= (rin-right  true true)    (__sample-rand-Right-Bits_n 15 ctr-rin-ii-right))
+              (= (rout-right true true)    (__sample-rand-Right-Bits_n 16 ctr-rout-ii-right))
+
+              ;assignment of the active bit on the right
+              (= (mk-some z1) (select table-z-top-right-old l))
+              (= (mk-some z2) (select table-z-top-right-old r))
 
 ))
 
-;(check-sat) ;2
+(push 1)
+
+(assert true)
+(check-sat) ;2
+
+(pop 1)
 ; At each entry, the table is either none or a total table
 (define-fun well-defined ((T (Array Int (Maybe (Array Bool (Maybe Bits_n)))))) Bool
   (forall ((h Int))
@@ -176,7 +240,12 @@
   )
 
 
-;(check-sat) ;3
+(push 1)
+
+(assert true)
+(check-sat) ;3
+
+(pop 1)
 (declare-const precondition-holds Bool)
 (assert (= precondition-holds (and
 
@@ -269,9 +338,20 @@
 (= r-left r-right)
 (= rr-left rr-right)
 
+;compatibility of the counter values
+(= ctr-rin-left (* 4 ctr-rin-oo-right))
+(= ctr-rout-left (* 4 ctr-rout-oo-right))
+
+
+;equality of values of the sample instructions for the encryptions
+(forall ((b1 Bool) (b2 Bool))
+(and
+(= (rin-left b1 b2) (rin-right (xor b1 z1) (xor b2 z2)))
+(= (rin-left b1 b2) (rout-right (xor b1 z1) (xor b2 z2)))
+))
+
 ;;;;;; Pre-condition "Glue" 
 
-;op is a total table.
 ;op is a total table.
 (not (= (select op (mk-tuple2 true  true ))(as mk-none (Maybe Bool))))
 (not (= (select op (mk-tuple2 true  false))(as mk-none (Maybe Bool))))
@@ -280,7 +360,12 @@
 
 )))
 
-(check-sat) ;4
+;(push 1)
+
+;(assert true)
+;(check-sat) ;4
+
+;(pop 1)
 (declare-const lemmas-hold Bool)
 (declare-const lemma1 Bool)
 (declare-const lemma2 Bool)
@@ -349,7 +434,12 @@ lemma5)))
 ))
 )
 
-(check-sat) ;5
+;(push 1)
+
+;(assert true)
+;(check-sat) ;5
+
+;(pop 1)
 
 (declare-const postcondition-holds Bool)
 (assert (= postcondition-holds (and
@@ -360,13 +450,76 @@ lemma5)))
 (well-defined table-bottom-left-new)
 (well-defined table-bottom-right-new)
 
-;top/bottom key packages left and right are equal (after the call)
+;top/bottom key package tables left and right are equal (before the call)
 (= table-top-left-new table-top-right-new)
 (= table-bottom-left-new table-bottom-right-new)
+
+;top key z/flag tables left and right are equal (before the call)
 (= table-z-top-left-new table-z-top-right-new)
-(= table-z-bottom-left-new table-z-bottom-right-new)
 (= table-flag-top-left-new table-flag-top-right-new)
-(= table-flag-bottom-left-new table-flag-bottom-right-new)
+
+;lower key z/flag table left are completely undefined 
+(forall ((hhh Int))
+(= (select table-z-bottom-left-new hhh) (as mk-none (Maybe Bool))))
+
+; top Key package and bottom key package right
+; flag has been set => bit has been set
+; key has been set => flag has been set
+
+(forall ((hhh Int)) (ite (=  (mk-some true)  (select table-flag-top-left-new hhh))  
+                (or (=  (mk-some true)  (select table-z-top-left-new hhh))
+                    (=  (mk-some false) (select table-z-top-left-new hhh)))
+                    true
+                    ))
+
+(forall ((hhh Int)) (ite (=  (mk-some true) (select table-flag-top-right-new hhh))  
+                (or (=  (mk-some true)  (select table-z-top-right-new hhh))
+                    (=  (mk-some false) (select table-z-top-right-new hhh)))
+                    true
+                    ))
+
+(forall ((hhh Int)) (ite (=  (mk-some true)  (select table-flag-bottom-right-new hhh))  
+                (or (=  (mk-some true)  (select table-z-bottom-right-new hhh))
+                    (=  (mk-some false) (select table-z-bottom-right-new hhh)))
+                    true
+                    ))
+
+(forall ((hhh Int)) (ite
+                    (or
+                    (= (select table-top-left-new hhh) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
+                    (= (select (maybe-get (select table-top-left-new hhh)) true) (as mk-none (Maybe Bits_n))))
+                    (= (select table-flag-top-left-new hhh) (as mk-none (Maybe Bool)))
+                    true
+                    ))
+
+(forall ((hhh Int)) (ite
+                    (or
+                    (= (select table-top-right-new hhh) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
+                    (= (select (maybe-get (select table-top-right-new hhh)) true) (as mk-none (Maybe Bits_n))))
+                    (= (select table-flag-top-right-new hhh) (as mk-none (Maybe Bool)))
+                    true
+                    ))
+
+(forall ((hhh Int)) (ite
+                    (or
+                    (= (select table-bottom-right-new hhh) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
+                    (= (select (maybe-get (select table-bottom-right-new hhh)) true) (as mk-none (Maybe Bits_n))))
+                    (= (select table-flag-bottom-right-new hhh) (as mk-none (Maybe Bool)))
+                    true
+                    ))
+
+
+
+; Bottom Key package
+; key has been set <=> flag has been set
+
+(forall ((hhh Int)) (=
+                    (= (select table-flag-bottom-left-new hhh)
+                       (as mk-none (Maybe Bool)))
+                    (or
+                    (= (select table-bottom-left-new hhh) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
+                    (= (select (maybe-get (select table-bottom-left-new hhh)) true) (as mk-none (Maybe Bits_n))))))
+
 
 
 ;The randomness ctr left and right are equal (before the call)
@@ -374,8 +527,6 @@ lemma5)))
 (= ctr-rr-left-new ctr-rr-right-new)
 
 )))
-
-;(check-sat) ;6
 (declare-const standard-postcondition-holds Bool)
 (assert (= standard-postcondition-holds 
             (and
@@ -388,15 +539,20 @@ lemma5)))
         )
 )
 
-(check-sat) ;6
+;(push 1)
+
+;(assert true)
+;(check-sat) ;6
+
+;(pop 1)
 
 ;;;;;;;;;;;;; temp
-(push 1)
+;(push 1)
 
-(assert precondition-holds)
-(check-sat) ;7
+;(assert precondition-holds)
+;(check-sat) ;7
 
-(pop 1)
+;(pop 1)
 
 (push 1)
 
@@ -404,7 +560,7 @@ lemma5)))
              (not is-abort-right)
              (not is-abort-left)
              (not lemma1)))
-(check-sat) ;8
+(check-sat) ;4 ;8
 ;(get-model)
 (pop 1)
 
@@ -419,7 +575,7 @@ lemma5)))
              (not is-abort-right)
              (not is-abort-left)
              (not lemma2)))
-(check-sat) ;9
+(check-sat) ;5 ;9
 ;(get-model)
 (pop 1)
 
@@ -430,7 +586,7 @@ lemma5)))
              (not is-abort-right)
              (not is-abort-left)
              (not lemma3)))
-(check-sat) ;10
+(check-sat) ;6 ;10
 ;(get-model)
 (pop 1)
 
@@ -442,7 +598,7 @@ lemma5)))
              (not is-abort-right)
              (not is-abort-left)
              (not lemma4)))
-(check-sat) ;11
+(check-sat) ;7 ;11
 ;(get-model)
 (pop 1)
 
@@ -478,7 +634,7 @@ lemma5)))
              (not is-abort-left)
              (not postcondition-holds)))
 
-(check-sat) ;12
+(check-sat) ;8 ;12
 ;(get-model)
 (pop 1)
 
@@ -489,7 +645,7 @@ lemma5)))
              lemmas-hold
              postcondition-holds
              (not standard-postcondition-holds)))
-(check-sat) ;13
+(check-sat) ;9 ;13
 (get-model)
 (pop 1)
 

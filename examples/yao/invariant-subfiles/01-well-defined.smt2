@@ -31,4 +31,9 @@
   )
 
 
-;(check-sat) ;3
+(push 1)
+
+(assert true)
+(check-sat) ;3
+
+(pop 1)

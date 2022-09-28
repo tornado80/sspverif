@@ -2,13 +2,15 @@
 (declare-datatypes
   ((Tuple2 2))
   ((par (T1 T2) ((mk-tuple2 (el1 T1) (el2 T2)))))); Left
+(declare-sort Bits_p 0)
+(declare-const zero_bits_p Bits_p)
 (declare-sort Bits_n 0)
 (declare-const zero_bits_n Bits_n)
 (declare-sort Bits_m 0)
 (declare-const zero_bits_m Bits_m)
-(declare-sort Bits_p 0)
-(declare-const zero_bits_p Bits_p)
 (declare-fun __sample-rand-Left-Bits_n (Int Int) Bits_n)
+(declare-fun __sample-rand-Left-Bits_m (Int Int) Bits_m)
+(declare-fun __sample-rand-Left-Bits_p (Int Int) Bits_p)
 (declare-fun __func-Left-encn (Bits_n Bits_n Bits_n) Bits_m)
 (declare-fun __func-Left-encm (Bits_n Bits_m Bits_n) Bits_p)
 (declare-datatype
@@ -35,18 +37,24 @@
       (composition-pkgstate-Left-keys_bottom State_Left_keys_bottom)
       (composition-pkgstate-Left-gate State_Left_gate)
       (composition-pkgstate-Left-enc State_Left_enc)
+      (composition-param-Left-m Int)
       (composition-param-Left-n Int)
       (composition-param-Left-zeron Bits_n)
       (composition-param-Left-zerom Bits_m)
       (composition-param-Left-p Int)
-      (composition-param-Left-m Int)
       (composition-rand-Left-0 Int)
       (composition-rand-Left-1 Int)
       (composition-rand-Left-2 Int)
       (composition-rand-Left-3 Int)
       (composition-rand-Left-4 Int)
       (composition-rand-Left-5 Int)
-      (composition-rand-Left-6 Int))))
+      (composition-rand-Left-6 Int)
+      (composition-rand-Left-7 Int)
+      (composition-rand-Left-8 Int)
+      (composition-rand-Left-9 Int)
+      (composition-rand-Left-10 Int)
+      (composition-rand-Left-11 Int)
+      (composition-rand-Left-12 Int))))
 (declare-datatype
   Return_Left_keys_top_GETKEYSIN
   (
@@ -54,27 +62,6 @@
     (mk-return-Left-keys_top-GETKEYSIN
       (return-Left-keys_top-GETKEYSIN-state CompositionState-Left)
       (return-Left-keys_top-GETKEYSIN-value (Array Bool (Maybe Bits_n))))))
-(declare-datatype
-  Return_Left_keys_top_GETKEYSOUT
-  (
-    (mk-abort-Left-keys_top-GETKEYSOUT)
-    (mk-return-Left-keys_top-GETKEYSOUT
-      (return-Left-keys_top-GETKEYSOUT-state CompositionState-Left)
-      (return-Left-keys_top-GETKEYSOUT-value (Array Bool (Maybe Bits_n))))))
-(declare-datatype
-  Return_Left_keys_top_GETAOUT
-  (
-    (mk-abort-Left-keys_top-GETAOUT)
-    (mk-return-Left-keys_top-GETAOUT
-      (return-Left-keys_top-GETAOUT-state CompositionState-Left)
-      (return-Left-keys_top-GETAOUT-value Bits_n))))
-(declare-datatype
-  Return_Left_keys_top_GETINAOUT
-  (
-    (mk-abort-Left-keys_top-GETINAOUT)
-    (mk-return-Left-keys_top-GETINAOUT
-      (return-Left-keys_top-GETINAOUT-state CompositionState-Left)
-      (return-Left-keys_top-GETINAOUT-value Bits_n))))
 (declare-datatype
   Return_Left_keys_top_GETAIN
   (
@@ -89,6 +76,20 @@
     (mk-return-Left-keys_top-GETINAIN
       (return-Left-keys_top-GETINAIN-state CompositionState-Left)
       (return-Left-keys_top-GETINAIN-value Bits_n))))
+(declare-datatype
+  Return_Left_keys_top_GETAOUT
+  (
+    (mk-abort-Left-keys_top-GETAOUT)
+    (mk-return-Left-keys_top-GETAOUT
+      (return-Left-keys_top-GETAOUT-state CompositionState-Left)
+      (return-Left-keys_top-GETAOUT-value Bits_n))))
+(declare-datatype
+  Return_Left_keys_top_GETKEYSOUT
+  (
+    (mk-abort-Left-keys_top-GETKEYSOUT)
+    (mk-return-Left-keys_top-GETKEYSOUT
+      (return-Left-keys_top-GETKEYSOUT-state CompositionState-Left)
+      (return-Left-keys_top-GETKEYSOUT-value (Array Bool (Maybe Bits_n))))))
 (declare-datatype
   Return_Left_keys_top_GETBIT
   (
@@ -110,27 +111,6 @@
       (return-Left-keys_bottom-GETKEYSIN-state CompositionState-Left)
       (return-Left-keys_bottom-GETKEYSIN-value (Array Bool (Maybe Bits_n))))))
 (declare-datatype
-  Return_Left_keys_bottom_GETKEYSOUT
-  (
-    (mk-abort-Left-keys_bottom-GETKEYSOUT)
-    (mk-return-Left-keys_bottom-GETKEYSOUT
-      (return-Left-keys_bottom-GETKEYSOUT-state CompositionState-Left)
-      (return-Left-keys_bottom-GETKEYSOUT-value (Array Bool (Maybe Bits_n))))))
-(declare-datatype
-  Return_Left_keys_bottom_GETAOUT
-  (
-    (mk-abort-Left-keys_bottom-GETAOUT)
-    (mk-return-Left-keys_bottom-GETAOUT
-      (return-Left-keys_bottom-GETAOUT-state CompositionState-Left)
-      (return-Left-keys_bottom-GETAOUT-value Bits_n))))
-(declare-datatype
-  Return_Left_keys_bottom_GETINAOUT
-  (
-    (mk-abort-Left-keys_bottom-GETINAOUT)
-    (mk-return-Left-keys_bottom-GETINAOUT
-      (return-Left-keys_bottom-GETINAOUT-state CompositionState-Left)
-      (return-Left-keys_bottom-GETINAOUT-value Bits_n))))
-(declare-datatype
   Return_Left_keys_bottom_GETAIN
   (
     (mk-abort-Left-keys_bottom-GETAIN)
@@ -144,6 +124,20 @@
     (mk-return-Left-keys_bottom-GETINAIN
       (return-Left-keys_bottom-GETINAIN-state CompositionState-Left)
       (return-Left-keys_bottom-GETINAIN-value Bits_n))))
+(declare-datatype
+  Return_Left_keys_bottom_GETAOUT
+  (
+    (mk-abort-Left-keys_bottom-GETAOUT)
+    (mk-return-Left-keys_bottom-GETAOUT
+      (return-Left-keys_bottom-GETAOUT-state CompositionState-Left)
+      (return-Left-keys_bottom-GETAOUT-value Bits_n))))
+(declare-datatype
+  Return_Left_keys_bottom_GETKEYSOUT
+  (
+    (mk-abort-Left-keys_bottom-GETKEYSOUT)
+    (mk-return-Left-keys_bottom-GETKEYSOUT
+      (return-Left-keys_bottom-GETKEYSOUT-state CompositionState-Left)
+      (return-Left-keys_bottom-GETKEYSOUT-value (Array Bool (Maybe Bits_n))))))
 (declare-datatype
   Return_Left_keys_bottom_GETBIT
   (
@@ -185,261 +179,39 @@
   (let
     ((__self_state (composition-pkgstate-Left-keys_top __global_state)))
     (ite
-      (not
-        (= (select (state-Left-keys_top-z __self_state) h) (as mk-none (Maybe Bool))))
-      (ite
-        (= (select (state-Left-keys_top-flag __self_state) h) (mk-some true))
-        (let
-          ((unwrap-1 (maybe-get (select (state-Left-keys_top-T __self_state) h))))
-          (let
-            ((Z unwrap-1))
-            (let
-              (
-                (__global_state
-                  (mk-composition-state-Left
-                    __self_state
-                    (composition-pkgstate-Left-keys_bottom __global_state)
-                    (composition-pkgstate-Left-gate __global_state)
-                    (composition-pkgstate-Left-enc __global_state)
-                    (composition-param-Left-n __global_state)
-                    (composition-param-Left-zeron __global_state)
-                    (composition-param-Left-zerom __global_state)
-                    (composition-param-Left-p __global_state)
-                    (composition-param-Left-m __global_state)
-                    (composition-rand-Left-0 __global_state)
-                    (composition-rand-Left-1 __global_state)
-                    (composition-rand-Left-2 __global_state)
-                    (composition-rand-Left-3 __global_state)
-                    (composition-rand-Left-4 __global_state)
-                    (composition-rand-Left-5 __global_state)
-                    (composition-rand-Left-6 __global_state))))
-              (mk-return-Left-keys_top-GETKEYSIN __global_state Z))))
-        mk-abort-Left-keys_top-GETKEYSIN)
-      mk-abort-Left-keys_top-GETKEYSIN)))
-(define-fun
-  oracle-Left-keys_top-GETKEYSOUT
-  ((__global_state CompositionState-Left) (h Int))
-  Return_Left_keys_top_GETKEYSOUT
-  (let
-    ((__self_state (composition-pkgstate-Left-keys_top __global_state)))
-    (let
-      (
-        (__self_state
-          (mk-state-Left-keys_top
-            (state-Left-keys_top-T __self_state)
-            (state-Left-keys_top-z __self_state)
-            (store (state-Left-keys_top-flag __self_state) h (mk-some true)))))
+      (= (select (state-Left-keys_top-flag __self_state) h) (mk-some true))
       (let
-        ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
-        (ite
-          (=
-            (select (state-Left-keys_top-T __self_state) h)
-            (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
-          (let
-            ((r (__sample-rand-Left-Bits_n 1 (composition-rand-Left-1 __global_state))))
-            (let
-              (
-                (__global_state
-                  (mk-composition-state-Left
-                    (composition-pkgstate-Left-keys_top __global_state)
-                    (composition-pkgstate-Left-keys_bottom __global_state)
-                    (composition-pkgstate-Left-gate __global_state)
-                    (composition-pkgstate-Left-enc __global_state)
-                    (composition-param-Left-n __global_state)
-                    (composition-param-Left-zeron __global_state)
-                    (composition-param-Left-zerom __global_state)
-                    (composition-param-Left-p __global_state)
-                    (composition-param-Left-m __global_state)
-                    (composition-rand-Left-0 __global_state)
-                    (+ 1 (composition-rand-Left-1 __global_state))
-                    (composition-rand-Left-2 __global_state)
-                    (composition-rand-Left-3 __global_state)
-                    (composition-rand-Left-4 __global_state)
-                    (composition-rand-Left-5 __global_state)
-                    (composition-rand-Left-6 __global_state))))
-              (let
-                ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
-                (let
-                  ((Z (store Z true (mk-some r))))
-                  (let
-                    ((rr (__sample-rand-Left-Bits_n 2 (composition-rand-Left-2 __global_state))))
-                    (let
-                      (
-                        (__global_state
-                          (mk-composition-state-Left
-                            (composition-pkgstate-Left-keys_top __global_state)
-                            (composition-pkgstate-Left-keys_bottom __global_state)
-                            (composition-pkgstate-Left-gate __global_state)
-                            (composition-pkgstate-Left-enc __global_state)
-                            (composition-param-Left-n __global_state)
-                            (composition-param-Left-zeron __global_state)
-                            (composition-param-Left-zerom __global_state)
-                            (composition-param-Left-p __global_state)
-                            (composition-param-Left-m __global_state)
-                            (composition-rand-Left-0 __global_state)
-                            (composition-rand-Left-1 __global_state)
-                            (+ 1 (composition-rand-Left-2 __global_state))
-                            (composition-rand-Left-3 __global_state)
-                            (composition-rand-Left-4 __global_state)
-                            (composition-rand-Left-5 __global_state)
-                            (composition-rand-Left-6 __global_state))))
-                      (let
-                        ((Z (store Z false (mk-some rr))))
-                        (let
-                          (
-                            (__self_state
-                              (mk-state-Left-keys_top
-                                (store (state-Left-keys_top-T __self_state) h (mk-some Z))
-                                (state-Left-keys_top-z __self_state)
-                                (state-Left-keys_top-flag __self_state))))
-                          (let
-                            ((unwrap-1 (maybe-get (select (state-Left-keys_top-T __self_state) h))))
-                            (let
-                              ((Z unwrap-1))
-                              (let
-                                (
-                                  (__global_state
-                                    (mk-composition-state-Left
-                                      __self_state
-                                      (composition-pkgstate-Left-keys_bottom __global_state)
-                                      (composition-pkgstate-Left-gate __global_state)
-                                      (composition-pkgstate-Left-enc __global_state)
-                                      (composition-param-Left-n __global_state)
-                                      (composition-param-Left-zeron __global_state)
-                                      (composition-param-Left-zerom __global_state)
-                                      (composition-param-Left-p __global_state)
-                                      (composition-param-Left-m __global_state)
-                                      (composition-rand-Left-0 __global_state)
-                                      (composition-rand-Left-1 __global_state)
-                                      (composition-rand-Left-2 __global_state)
-                                      (composition-rand-Left-3 __global_state)
-                                      (composition-rand-Left-4 __global_state)
-                                      (composition-rand-Left-5 __global_state)
-                                      (composition-rand-Left-6 __global_state))))
-                                (mk-return-Left-keys_top-GETKEYSOUT __global_state Z))))))))))))
-          (let
-            ((unwrap-1 (maybe-get (select (state-Left-keys_top-T __self_state) h))))
-            (let
-              ((Z unwrap-1))
-              (let
-                (
-                  (__global_state
-                    (mk-composition-state-Left
-                      __self_state
-                      (composition-pkgstate-Left-keys_bottom __global_state)
-                      (composition-pkgstate-Left-gate __global_state)
-                      (composition-pkgstate-Left-enc __global_state)
-                      (composition-param-Left-n __global_state)
-                      (composition-param-Left-zeron __global_state)
-                      (composition-param-Left-zerom __global_state)
-                      (composition-param-Left-p __global_state)
-                      (composition-param-Left-m __global_state)
-                      (composition-rand-Left-0 __global_state)
-                      (composition-rand-Left-1 __global_state)
-                      (composition-rand-Left-2 __global_state)
-                      (composition-rand-Left-3 __global_state)
-                      (composition-rand-Left-4 __global_state)
-                      (composition-rand-Left-5 __global_state)
-                      (composition-rand-Left-6 __global_state))))
-                (mk-return-Left-keys_top-GETKEYSOUT __global_state Z)))))))))
-(define-fun
-  oracle-Left-keys_top-GETAOUT
-  ((__global_state CompositionState-Left) (h Int))
-  Return_Left_keys_top_GETAOUT
-  (let
-    ((__self_state (composition-pkgstate-Left-keys_top __global_state)))
-    (let
-      (
-        (__self_state
-          (mk-state-Left-keys_top
-            (state-Left-keys_top-T __self_state)
-            (state-Left-keys_top-z __self_state)
-            (store (state-Left-keys_top-flag __self_state) h (mk-some true)))))
-      (ite
-        (= (select (state-Left-keys_top-flag __self_state) h) (mk-some true))
+        ((unwrap-1 (maybe-get (select (state-Left-keys_top-T __self_state) h))))
         (let
-          ((unwrap-1 (maybe-get (select (state-Left-keys_top-T __self_state) h))))
+          ((Z unwrap-1))
           (let
-            ((Z unwrap-1))
-            (let
-              ((unwrap-2 (maybe-get (select (state-Left-keys_top-z __self_state) h))))
-              (let
-                ((zz unwrap-2))
-                (let
-                  ((unwrap-3 (maybe-get (select Z zz))))
-                  (let
-                    ((k unwrap-3))
-                    (let
-                      (
-                        (__global_state
-                          (mk-composition-state-Left
-                            __self_state
-                            (composition-pkgstate-Left-keys_bottom __global_state)
-                            (composition-pkgstate-Left-gate __global_state)
-                            (composition-pkgstate-Left-enc __global_state)
-                            (composition-param-Left-n __global_state)
-                            (composition-param-Left-zeron __global_state)
-                            (composition-param-Left-zerom __global_state)
-                            (composition-param-Left-p __global_state)
-                            (composition-param-Left-m __global_state)
-                            (composition-rand-Left-0 __global_state)
-                            (composition-rand-Left-1 __global_state)
-                            (composition-rand-Left-2 __global_state)
-                            (composition-rand-Left-3 __global_state)
-                            (composition-rand-Left-4 __global_state)
-                            (composition-rand-Left-5 __global_state)
-                            (composition-rand-Left-6 __global_state))))
-                      (mk-return-Left-keys_top-GETAOUT __global_state k))))))))
-        mk-abort-Left-keys_top-GETAOUT))))
-(define-fun
-  oracle-Left-keys_top-GETINAOUT
-  ((__global_state CompositionState-Left) (h Int))
-  Return_Left_keys_top_GETINAOUT
-  (let
-    ((__self_state (composition-pkgstate-Left-keys_top __global_state)))
-    (let
-      (
-        (__self_state
-          (mk-state-Left-keys_top
-            (state-Left-keys_top-T __self_state)
-            (state-Left-keys_top-z __self_state)
-            (store (state-Left-keys_top-flag __self_state) h (mk-some true)))))
-      (ite
-        (= (select (state-Left-keys_top-flag __self_state) h) (mk-some true))
-        (let
-          ((unwrap-1 (maybe-get (select (state-Left-keys_top-T __self_state) h))))
-          (let
-            ((Z unwrap-1))
-            (let
-              ((unwrap-2 (maybe-get (select (state-Left-keys_top-z __self_state) h))))
-              (let
-                ((zz unwrap-2))
-                (let
-                  ((unwrap-3 (maybe-get (select Z (not zz)))))
-                  (let
-                    ((k unwrap-3))
-                    (let
-                      (
-                        (__global_state
-                          (mk-composition-state-Left
-                            __self_state
-                            (composition-pkgstate-Left-keys_bottom __global_state)
-                            (composition-pkgstate-Left-gate __global_state)
-                            (composition-pkgstate-Left-enc __global_state)
-                            (composition-param-Left-n __global_state)
-                            (composition-param-Left-zeron __global_state)
-                            (composition-param-Left-zerom __global_state)
-                            (composition-param-Left-p __global_state)
-                            (composition-param-Left-m __global_state)
-                            (composition-rand-Left-0 __global_state)
-                            (composition-rand-Left-1 __global_state)
-                            (composition-rand-Left-2 __global_state)
-                            (composition-rand-Left-3 __global_state)
-                            (composition-rand-Left-4 __global_state)
-                            (composition-rand-Left-5 __global_state)
-                            (composition-rand-Left-6 __global_state))))
-                      (mk-return-Left-keys_top-GETINAOUT __global_state k))))))))
-        mk-abort-Left-keys_top-GETINAOUT))))
+            (
+              (__global_state
+                (mk-composition-state-Left
+                  __self_state
+                  (composition-pkgstate-Left-keys_bottom __global_state)
+                  (composition-pkgstate-Left-gate __global_state)
+                  (composition-pkgstate-Left-enc __global_state)
+                  (composition-param-Left-m __global_state)
+                  (composition-param-Left-n __global_state)
+                  (composition-param-Left-zeron __global_state)
+                  (composition-param-Left-zerom __global_state)
+                  (composition-param-Left-p __global_state)
+                  (composition-rand-Left-0 __global_state)
+                  (composition-rand-Left-1 __global_state)
+                  (composition-rand-Left-2 __global_state)
+                  (composition-rand-Left-3 __global_state)
+                  (composition-rand-Left-4 __global_state)
+                  (composition-rand-Left-5 __global_state)
+                  (composition-rand-Left-6 __global_state)
+                  (composition-rand-Left-7 __global_state)
+                  (composition-rand-Left-8 __global_state)
+                  (composition-rand-Left-9 __global_state)
+                  (composition-rand-Left-10 __global_state)
+                  (composition-rand-Left-11 __global_state)
+                  (composition-rand-Left-12 __global_state))))
+            (mk-return-Left-keys_top-GETKEYSIN __global_state Z))))
+      mk-abort-Left-keys_top-GETKEYSIN)))
 (define-fun
   oracle-Left-keys_top-GETAIN
   ((__global_state CompositionState-Left) (h Int))
@@ -448,42 +220,45 @@
     ((__self_state (composition-pkgstate-Left-keys_top __global_state)))
     (ite
       (= (select (state-Left-keys_top-flag __self_state) h) (mk-some true))
-      (ite
-        (= (select (state-Left-keys_top-flag __self_state) h) (mk-some true))
+      (let
+        ((unwrap-1 (maybe-get (select (state-Left-keys_top-T __self_state) h))))
         (let
-          ((unwrap-1 (maybe-get (select (state-Left-keys_top-T __self_state) h))))
+          ((Z unwrap-1))
           (let
-            ((Z unwrap-1))
+            ((unwrap-2 (maybe-get (select (state-Left-keys_top-z __self_state) h))))
             (let
-              ((unwrap-2 (maybe-get (select (state-Left-keys_top-z __self_state) h))))
+              ((zz unwrap-2))
               (let
-                ((zz unwrap-2))
+                ((unwrap-3 (maybe-get (select Z zz))))
                 (let
-                  ((unwrap-3 (maybe-get (select Z zz))))
+                  ((k unwrap-3))
                   (let
-                    ((k unwrap-3))
-                    (let
-                      (
-                        (__global_state
-                          (mk-composition-state-Left
-                            __self_state
-                            (composition-pkgstate-Left-keys_bottom __global_state)
-                            (composition-pkgstate-Left-gate __global_state)
-                            (composition-pkgstate-Left-enc __global_state)
-                            (composition-param-Left-n __global_state)
-                            (composition-param-Left-zeron __global_state)
-                            (composition-param-Left-zerom __global_state)
-                            (composition-param-Left-p __global_state)
-                            (composition-param-Left-m __global_state)
-                            (composition-rand-Left-0 __global_state)
-                            (composition-rand-Left-1 __global_state)
-                            (composition-rand-Left-2 __global_state)
-                            (composition-rand-Left-3 __global_state)
-                            (composition-rand-Left-4 __global_state)
-                            (composition-rand-Left-5 __global_state)
-                            (composition-rand-Left-6 __global_state))))
-                      (mk-return-Left-keys_top-GETAIN __global_state k))))))))
-        mk-abort-Left-keys_top-GETAIN)
+                    (
+                      (__global_state
+                        (mk-composition-state-Left
+                          __self_state
+                          (composition-pkgstate-Left-keys_bottom __global_state)
+                          (composition-pkgstate-Left-gate __global_state)
+                          (composition-pkgstate-Left-enc __global_state)
+                          (composition-param-Left-m __global_state)
+                          (composition-param-Left-n __global_state)
+                          (composition-param-Left-zeron __global_state)
+                          (composition-param-Left-zerom __global_state)
+                          (composition-param-Left-p __global_state)
+                          (composition-rand-Left-0 __global_state)
+                          (composition-rand-Left-1 __global_state)
+                          (composition-rand-Left-2 __global_state)
+                          (composition-rand-Left-3 __global_state)
+                          (composition-rand-Left-4 __global_state)
+                          (composition-rand-Left-5 __global_state)
+                          (composition-rand-Left-6 __global_state)
+                          (composition-rand-Left-7 __global_state)
+                          (composition-rand-Left-8 __global_state)
+                          (composition-rand-Left-9 __global_state)
+                          (composition-rand-Left-10 __global_state)
+                          (composition-rand-Left-11 __global_state)
+                          (composition-rand-Left-12 __global_state))))
+                    (mk-return-Left-keys_top-GETAIN __global_state k))))))))
       mk-abort-Left-keys_top-GETAIN)))
 (define-fun
   oracle-Left-keys_top-GETINAIN
@@ -513,20 +288,345 @@
                           (composition-pkgstate-Left-keys_bottom __global_state)
                           (composition-pkgstate-Left-gate __global_state)
                           (composition-pkgstate-Left-enc __global_state)
+                          (composition-param-Left-m __global_state)
                           (composition-param-Left-n __global_state)
                           (composition-param-Left-zeron __global_state)
                           (composition-param-Left-zerom __global_state)
                           (composition-param-Left-p __global_state)
-                          (composition-param-Left-m __global_state)
                           (composition-rand-Left-0 __global_state)
                           (composition-rand-Left-1 __global_state)
                           (composition-rand-Left-2 __global_state)
                           (composition-rand-Left-3 __global_state)
                           (composition-rand-Left-4 __global_state)
                           (composition-rand-Left-5 __global_state)
-                          (composition-rand-Left-6 __global_state))))
+                          (composition-rand-Left-6 __global_state)
+                          (composition-rand-Left-7 __global_state)
+                          (composition-rand-Left-8 __global_state)
+                          (composition-rand-Left-9 __global_state)
+                          (composition-rand-Left-10 __global_state)
+                          (composition-rand-Left-11 __global_state)
+                          (composition-rand-Left-12 __global_state))))
                     (mk-return-Left-keys_top-GETINAIN __global_state k))))))))
       mk-abort-Left-keys_top-GETINAIN)))
+(define-fun
+  oracle-Left-keys_top-GETAOUT
+  ((__global_state CompositionState-Left) (h Int))
+  Return_Left_keys_top_GETAOUT
+  (let
+    ((__self_state (composition-pkgstate-Left-keys_top __global_state)))
+    (ite
+      (= (select (state-Left-keys_top-z __self_state) h) (mk-some true))
+      (let
+        (
+          (__self_state
+            (mk-state-Left-keys_top
+              (state-Left-keys_top-T __self_state)
+              (state-Left-keys_top-z __self_state)
+              (store (state-Left-keys_top-flag __self_state) h (mk-some true)))))
+        (let
+          ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
+          (ite
+            (=
+              (select (state-Left-keys_top-T __self_state) h)
+              (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
+            (let
+              ((r (__sample-rand-Left-Bits_n 1 (composition-rand-Left-1 __global_state))))
+              (let
+                (
+                  (__global_state
+                    (mk-composition-state-Left
+                      (composition-pkgstate-Left-keys_top __global_state)
+                      (composition-pkgstate-Left-keys_bottom __global_state)
+                      (composition-pkgstate-Left-gate __global_state)
+                      (composition-pkgstate-Left-enc __global_state)
+                      (composition-param-Left-m __global_state)
+                      (composition-param-Left-n __global_state)
+                      (composition-param-Left-zeron __global_state)
+                      (composition-param-Left-zerom __global_state)
+                      (composition-param-Left-p __global_state)
+                      (composition-rand-Left-0 __global_state)
+                      (+ 1 (composition-rand-Left-1 __global_state))
+                      (composition-rand-Left-2 __global_state)
+                      (composition-rand-Left-3 __global_state)
+                      (composition-rand-Left-4 __global_state)
+                      (composition-rand-Left-5 __global_state)
+                      (composition-rand-Left-6 __global_state)
+                      (composition-rand-Left-7 __global_state)
+                      (composition-rand-Left-8 __global_state)
+                      (composition-rand-Left-9 __global_state)
+                      (composition-rand-Left-10 __global_state)
+                      (composition-rand-Left-11 __global_state)
+                      (composition-rand-Left-12 __global_state))))
+                (let
+                  ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
+                  (let
+                    ((Z (store Z true (mk-some r))))
+                    (let
+                      ((rr (__sample-rand-Left-Bits_n 2 (composition-rand-Left-2 __global_state))))
+                      (let
+                        (
+                          (__global_state
+                            (mk-composition-state-Left
+                              (composition-pkgstate-Left-keys_top __global_state)
+                              (composition-pkgstate-Left-keys_bottom __global_state)
+                              (composition-pkgstate-Left-gate __global_state)
+                              (composition-pkgstate-Left-enc __global_state)
+                              (composition-param-Left-m __global_state)
+                              (composition-param-Left-n __global_state)
+                              (composition-param-Left-zeron __global_state)
+                              (composition-param-Left-zerom __global_state)
+                              (composition-param-Left-p __global_state)
+                              (composition-rand-Left-0 __global_state)
+                              (composition-rand-Left-1 __global_state)
+                              (+ 1 (composition-rand-Left-2 __global_state))
+                              (composition-rand-Left-3 __global_state)
+                              (composition-rand-Left-4 __global_state)
+                              (composition-rand-Left-5 __global_state)
+                              (composition-rand-Left-6 __global_state)
+                              (composition-rand-Left-7 __global_state)
+                              (composition-rand-Left-8 __global_state)
+                              (composition-rand-Left-9 __global_state)
+                              (composition-rand-Left-10 __global_state)
+                              (composition-rand-Left-11 __global_state)
+                              (composition-rand-Left-12 __global_state))))
+                        (let
+                          ((Z (store Z false (mk-some rr))))
+                          (let
+                            (
+                              (__self_state
+                                (mk-state-Left-keys_top
+                                  (store (state-Left-keys_top-T __self_state) h (mk-some Z))
+                                  (state-Left-keys_top-z __self_state)
+                                  (state-Left-keys_top-flag __self_state))))
+                            (let
+                              ((unwrap-1 (maybe-get (select (state-Left-keys_top-T __self_state) h))))
+                              (let
+                                ((Z unwrap-1))
+                                (let
+                                  ((unwrap-2 (maybe-get (select (state-Left-keys_top-z __self_state) h))))
+                                  (let
+                                    ((zz unwrap-2))
+                                    (let
+                                      ((unwrap-3 (maybe-get (select Z zz))))
+                                      (let
+                                        ((k unwrap-3))
+                                        (let
+                                          (
+                                            (__global_state
+                                              (mk-composition-state-Left
+                                                __self_state
+                                                (composition-pkgstate-Left-keys_bottom __global_state)
+                                                (composition-pkgstate-Left-gate __global_state)
+                                                (composition-pkgstate-Left-enc __global_state)
+                                                (composition-param-Left-m __global_state)
+                                                (composition-param-Left-n __global_state)
+                                                (composition-param-Left-zeron __global_state)
+                                                (composition-param-Left-zerom __global_state)
+                                                (composition-param-Left-p __global_state)
+                                                (composition-rand-Left-0 __global_state)
+                                                (composition-rand-Left-1 __global_state)
+                                                (composition-rand-Left-2 __global_state)
+                                                (composition-rand-Left-3 __global_state)
+                                                (composition-rand-Left-4 __global_state)
+                                                (composition-rand-Left-5 __global_state)
+                                                (composition-rand-Left-6 __global_state)
+                                                (composition-rand-Left-7 __global_state)
+                                                (composition-rand-Left-8 __global_state)
+                                                (composition-rand-Left-9 __global_state)
+                                                (composition-rand-Left-10 __global_state)
+                                                (composition-rand-Left-11 __global_state)
+                                                (composition-rand-Left-12 __global_state))))
+                                          (mk-return-Left-keys_top-GETAOUT __global_state k))))))))))))))))
+            (let
+              ((unwrap-1 (maybe-get (select (state-Left-keys_top-T __self_state) h))))
+              (let
+                ((Z unwrap-1))
+                (let
+                  ((unwrap-2 (maybe-get (select (state-Left-keys_top-z __self_state) h))))
+                  (let
+                    ((zz unwrap-2))
+                    (let
+                      ((unwrap-3 (maybe-get (select Z zz))))
+                      (let
+                        ((k unwrap-3))
+                        (let
+                          (
+                            (__global_state
+                              (mk-composition-state-Left
+                                __self_state
+                                (composition-pkgstate-Left-keys_bottom __global_state)
+                                (composition-pkgstate-Left-gate __global_state)
+                                (composition-pkgstate-Left-enc __global_state)
+                                (composition-param-Left-m __global_state)
+                                (composition-param-Left-n __global_state)
+                                (composition-param-Left-zeron __global_state)
+                                (composition-param-Left-zerom __global_state)
+                                (composition-param-Left-p __global_state)
+                                (composition-rand-Left-0 __global_state)
+                                (composition-rand-Left-1 __global_state)
+                                (composition-rand-Left-2 __global_state)
+                                (composition-rand-Left-3 __global_state)
+                                (composition-rand-Left-4 __global_state)
+                                (composition-rand-Left-5 __global_state)
+                                (composition-rand-Left-6 __global_state)
+                                (composition-rand-Left-7 __global_state)
+                                (composition-rand-Left-8 __global_state)
+                                (composition-rand-Left-9 __global_state)
+                                (composition-rand-Left-10 __global_state)
+                                (composition-rand-Left-11 __global_state)
+                                (composition-rand-Left-12 __global_state))))
+                          (mk-return-Left-keys_top-GETAOUT __global_state k)))))))))))
+      mk-abort-Left-keys_top-GETAOUT)))
+(define-fun
+  oracle-Left-keys_top-GETKEYSOUT
+  ((__global_state CompositionState-Left) (h Int))
+  Return_Left_keys_top_GETKEYSOUT
+  (let
+    ((__self_state (composition-pkgstate-Left-keys_top __global_state)))
+    (let
+      (
+        (__self_state
+          (mk-state-Left-keys_top
+            (state-Left-keys_top-T __self_state)
+            (state-Left-keys_top-z __self_state)
+            (store (state-Left-keys_top-flag __self_state) h (mk-some true)))))
+      (let
+        ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
+        (ite
+          (=
+            (select (state-Left-keys_top-T __self_state) h)
+            (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
+          (let
+            ((r (__sample-rand-Left-Bits_n 3 (composition-rand-Left-3 __global_state))))
+            (let
+              (
+                (__global_state
+                  (mk-composition-state-Left
+                    (composition-pkgstate-Left-keys_top __global_state)
+                    (composition-pkgstate-Left-keys_bottom __global_state)
+                    (composition-pkgstate-Left-gate __global_state)
+                    (composition-pkgstate-Left-enc __global_state)
+                    (composition-param-Left-m __global_state)
+                    (composition-param-Left-n __global_state)
+                    (composition-param-Left-zeron __global_state)
+                    (composition-param-Left-zerom __global_state)
+                    (composition-param-Left-p __global_state)
+                    (composition-rand-Left-0 __global_state)
+                    (composition-rand-Left-1 __global_state)
+                    (composition-rand-Left-2 __global_state)
+                    (+ 1 (composition-rand-Left-3 __global_state))
+                    (composition-rand-Left-4 __global_state)
+                    (composition-rand-Left-5 __global_state)
+                    (composition-rand-Left-6 __global_state)
+                    (composition-rand-Left-7 __global_state)
+                    (composition-rand-Left-8 __global_state)
+                    (composition-rand-Left-9 __global_state)
+                    (composition-rand-Left-10 __global_state)
+                    (composition-rand-Left-11 __global_state)
+                    (composition-rand-Left-12 __global_state))))
+              (let
+                ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
+                (let
+                  ((Z (store Z true (mk-some r))))
+                  (let
+                    ((rr (__sample-rand-Left-Bits_n 4 (composition-rand-Left-4 __global_state))))
+                    (let
+                      (
+                        (__global_state
+                          (mk-composition-state-Left
+                            (composition-pkgstate-Left-keys_top __global_state)
+                            (composition-pkgstate-Left-keys_bottom __global_state)
+                            (composition-pkgstate-Left-gate __global_state)
+                            (composition-pkgstate-Left-enc __global_state)
+                            (composition-param-Left-m __global_state)
+                            (composition-param-Left-n __global_state)
+                            (composition-param-Left-zeron __global_state)
+                            (composition-param-Left-zerom __global_state)
+                            (composition-param-Left-p __global_state)
+                            (composition-rand-Left-0 __global_state)
+                            (composition-rand-Left-1 __global_state)
+                            (composition-rand-Left-2 __global_state)
+                            (composition-rand-Left-3 __global_state)
+                            (+ 1 (composition-rand-Left-4 __global_state))
+                            (composition-rand-Left-5 __global_state)
+                            (composition-rand-Left-6 __global_state)
+                            (composition-rand-Left-7 __global_state)
+                            (composition-rand-Left-8 __global_state)
+                            (composition-rand-Left-9 __global_state)
+                            (composition-rand-Left-10 __global_state)
+                            (composition-rand-Left-11 __global_state)
+                            (composition-rand-Left-12 __global_state))))
+                      (let
+                        ((Z (store Z false (mk-some rr))))
+                        (let
+                          (
+                            (__self_state
+                              (mk-state-Left-keys_top
+                                (store (state-Left-keys_top-T __self_state) h (mk-some Z))
+                                (state-Left-keys_top-z __self_state)
+                                (state-Left-keys_top-flag __self_state))))
+                          (let
+                            ((unwrap-1 (maybe-get (select (state-Left-keys_top-T __self_state) h))))
+                            (let
+                              ((Z unwrap-1))
+                              (let
+                                (
+                                  (__global_state
+                                    (mk-composition-state-Left
+                                      __self_state
+                                      (composition-pkgstate-Left-keys_bottom __global_state)
+                                      (composition-pkgstate-Left-gate __global_state)
+                                      (composition-pkgstate-Left-enc __global_state)
+                                      (composition-param-Left-m __global_state)
+                                      (composition-param-Left-n __global_state)
+                                      (composition-param-Left-zeron __global_state)
+                                      (composition-param-Left-zerom __global_state)
+                                      (composition-param-Left-p __global_state)
+                                      (composition-rand-Left-0 __global_state)
+                                      (composition-rand-Left-1 __global_state)
+                                      (composition-rand-Left-2 __global_state)
+                                      (composition-rand-Left-3 __global_state)
+                                      (composition-rand-Left-4 __global_state)
+                                      (composition-rand-Left-5 __global_state)
+                                      (composition-rand-Left-6 __global_state)
+                                      (composition-rand-Left-7 __global_state)
+                                      (composition-rand-Left-8 __global_state)
+                                      (composition-rand-Left-9 __global_state)
+                                      (composition-rand-Left-10 __global_state)
+                                      (composition-rand-Left-11 __global_state)
+                                      (composition-rand-Left-12 __global_state))))
+                                (mk-return-Left-keys_top-GETKEYSOUT __global_state Z))))))))))))
+          (let
+            ((unwrap-1 (maybe-get (select (state-Left-keys_top-T __self_state) h))))
+            (let
+              ((Z unwrap-1))
+              (let
+                (
+                  (__global_state
+                    (mk-composition-state-Left
+                      __self_state
+                      (composition-pkgstate-Left-keys_bottom __global_state)
+                      (composition-pkgstate-Left-gate __global_state)
+                      (composition-pkgstate-Left-enc __global_state)
+                      (composition-param-Left-m __global_state)
+                      (composition-param-Left-n __global_state)
+                      (composition-param-Left-zeron __global_state)
+                      (composition-param-Left-zerom __global_state)
+                      (composition-param-Left-p __global_state)
+                      (composition-rand-Left-0 __global_state)
+                      (composition-rand-Left-1 __global_state)
+                      (composition-rand-Left-2 __global_state)
+                      (composition-rand-Left-3 __global_state)
+                      (composition-rand-Left-4 __global_state)
+                      (composition-rand-Left-5 __global_state)
+                      (composition-rand-Left-6 __global_state)
+                      (composition-rand-Left-7 __global_state)
+                      (composition-rand-Left-8 __global_state)
+                      (composition-rand-Left-9 __global_state)
+                      (composition-rand-Left-10 __global_state)
+                      (composition-rand-Left-11 __global_state)
+                      (composition-rand-Left-12 __global_state))))
+                (mk-return-Left-keys_top-GETKEYSOUT __global_state Z)))))))))
 (define-fun
   oracle-Left-keys_top-GETBIT
   ((__global_state CompositionState-Left) (h Int))
@@ -548,18 +648,24 @@
                   (composition-pkgstate-Left-keys_bottom __global_state)
                   (composition-pkgstate-Left-gate __global_state)
                   (composition-pkgstate-Left-enc __global_state)
+                  (composition-param-Left-m __global_state)
                   (composition-param-Left-n __global_state)
                   (composition-param-Left-zeron __global_state)
                   (composition-param-Left-zerom __global_state)
                   (composition-param-Left-p __global_state)
-                  (composition-param-Left-m __global_state)
                   (composition-rand-Left-0 __global_state)
                   (composition-rand-Left-1 __global_state)
                   (composition-rand-Left-2 __global_state)
                   (composition-rand-Left-3 __global_state)
                   (composition-rand-Left-4 __global_state)
                   (composition-rand-Left-5 __global_state)
-                  (composition-rand-Left-6 __global_state))))
+                  (composition-rand-Left-6 __global_state)
+                  (composition-rand-Left-7 __global_state)
+                  (composition-rand-Left-8 __global_state)
+                  (composition-rand-Left-9 __global_state)
+                  (composition-rand-Left-10 __global_state)
+                  (composition-rand-Left-11 __global_state)
+                  (composition-rand-Left-12 __global_state))))
             (mk-return-Left-keys_top-GETBIT __global_state zz))))
       mk-abort-Left-keys_top-GETBIT)))
 (define-fun
@@ -586,263 +692,39 @@
   (let
     ((__self_state (composition-pkgstate-Left-keys_bottom __global_state)))
     (ite
-      (not
-        (=
-          (select (state-Left-keys_bottom-z __self_state) h)
-          (as mk-none (Maybe Bool))))
-      (ite
-        (= (select (state-Left-keys_bottom-flag __self_state) h) (mk-some true))
-        (let
-          ((unwrap-1 (maybe-get (select (state-Left-keys_bottom-T __self_state) h))))
-          (let
-            ((Z unwrap-1))
-            (let
-              (
-                (__global_state
-                  (mk-composition-state-Left
-                    (composition-pkgstate-Left-keys_top __global_state)
-                    __self_state
-                    (composition-pkgstate-Left-gate __global_state)
-                    (composition-pkgstate-Left-enc __global_state)
-                    (composition-param-Left-n __global_state)
-                    (composition-param-Left-zeron __global_state)
-                    (composition-param-Left-zerom __global_state)
-                    (composition-param-Left-p __global_state)
-                    (composition-param-Left-m __global_state)
-                    (composition-rand-Left-0 __global_state)
-                    (composition-rand-Left-1 __global_state)
-                    (composition-rand-Left-2 __global_state)
-                    (composition-rand-Left-3 __global_state)
-                    (composition-rand-Left-4 __global_state)
-                    (composition-rand-Left-5 __global_state)
-                    (composition-rand-Left-6 __global_state))))
-              (mk-return-Left-keys_bottom-GETKEYSIN __global_state Z))))
-        mk-abort-Left-keys_bottom-GETKEYSIN)
-      mk-abort-Left-keys_bottom-GETKEYSIN)))
-(define-fun
-  oracle-Left-keys_bottom-GETKEYSOUT
-  ((__global_state CompositionState-Left) (h Int))
-  Return_Left_keys_bottom_GETKEYSOUT
-  (let
-    ((__self_state (composition-pkgstate-Left-keys_bottom __global_state)))
-    (let
-      (
-        (__self_state
-          (mk-state-Left-keys_bottom
-            (state-Left-keys_bottom-T __self_state)
-            (state-Left-keys_bottom-z __self_state)
-            (store (state-Left-keys_bottom-flag __self_state) h (mk-some true)))))
+      (= (select (state-Left-keys_bottom-flag __self_state) h) (mk-some true))
       (let
-        ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
-        (ite
-          (=
-            (select (state-Left-keys_bottom-T __self_state) h)
-            (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
-          (let
-            ((r (__sample-rand-Left-Bits_n 3 (composition-rand-Left-3 __global_state))))
-            (let
-              (
-                (__global_state
-                  (mk-composition-state-Left
-                    (composition-pkgstate-Left-keys_top __global_state)
-                    (composition-pkgstate-Left-keys_bottom __global_state)
-                    (composition-pkgstate-Left-gate __global_state)
-                    (composition-pkgstate-Left-enc __global_state)
-                    (composition-param-Left-n __global_state)
-                    (composition-param-Left-zeron __global_state)
-                    (composition-param-Left-zerom __global_state)
-                    (composition-param-Left-p __global_state)
-                    (composition-param-Left-m __global_state)
-                    (composition-rand-Left-0 __global_state)
-                    (composition-rand-Left-1 __global_state)
-                    (composition-rand-Left-2 __global_state)
-                    (+ 1 (composition-rand-Left-3 __global_state))
-                    (composition-rand-Left-4 __global_state)
-                    (composition-rand-Left-5 __global_state)
-                    (composition-rand-Left-6 __global_state))))
-              (let
-                ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
-                (let
-                  ((Z (store Z true (mk-some r))))
-                  (let
-                    ((rr (__sample-rand-Left-Bits_n 4 (composition-rand-Left-4 __global_state))))
-                    (let
-                      (
-                        (__global_state
-                          (mk-composition-state-Left
-                            (composition-pkgstate-Left-keys_top __global_state)
-                            (composition-pkgstate-Left-keys_bottom __global_state)
-                            (composition-pkgstate-Left-gate __global_state)
-                            (composition-pkgstate-Left-enc __global_state)
-                            (composition-param-Left-n __global_state)
-                            (composition-param-Left-zeron __global_state)
-                            (composition-param-Left-zerom __global_state)
-                            (composition-param-Left-p __global_state)
-                            (composition-param-Left-m __global_state)
-                            (composition-rand-Left-0 __global_state)
-                            (composition-rand-Left-1 __global_state)
-                            (composition-rand-Left-2 __global_state)
-                            (composition-rand-Left-3 __global_state)
-                            (+ 1 (composition-rand-Left-4 __global_state))
-                            (composition-rand-Left-5 __global_state)
-                            (composition-rand-Left-6 __global_state))))
-                      (let
-                        ((Z (store Z false (mk-some rr))))
-                        (let
-                          (
-                            (__self_state
-                              (mk-state-Left-keys_bottom
-                                (store (state-Left-keys_bottom-T __self_state) h (mk-some Z))
-                                (state-Left-keys_bottom-z __self_state)
-                                (state-Left-keys_bottom-flag __self_state))))
-                          (let
-                            ((unwrap-1 (maybe-get (select (state-Left-keys_bottom-T __self_state) h))))
-                            (let
-                              ((Z unwrap-1))
-                              (let
-                                (
-                                  (__global_state
-                                    (mk-composition-state-Left
-                                      (composition-pkgstate-Left-keys_top __global_state)
-                                      __self_state
-                                      (composition-pkgstate-Left-gate __global_state)
-                                      (composition-pkgstate-Left-enc __global_state)
-                                      (composition-param-Left-n __global_state)
-                                      (composition-param-Left-zeron __global_state)
-                                      (composition-param-Left-zerom __global_state)
-                                      (composition-param-Left-p __global_state)
-                                      (composition-param-Left-m __global_state)
-                                      (composition-rand-Left-0 __global_state)
-                                      (composition-rand-Left-1 __global_state)
-                                      (composition-rand-Left-2 __global_state)
-                                      (composition-rand-Left-3 __global_state)
-                                      (composition-rand-Left-4 __global_state)
-                                      (composition-rand-Left-5 __global_state)
-                                      (composition-rand-Left-6 __global_state))))
-                                (mk-return-Left-keys_bottom-GETKEYSOUT __global_state Z))))))))))))
-          (let
-            ((unwrap-1 (maybe-get (select (state-Left-keys_bottom-T __self_state) h))))
-            (let
-              ((Z unwrap-1))
-              (let
-                (
-                  (__global_state
-                    (mk-composition-state-Left
-                      (composition-pkgstate-Left-keys_top __global_state)
-                      __self_state
-                      (composition-pkgstate-Left-gate __global_state)
-                      (composition-pkgstate-Left-enc __global_state)
-                      (composition-param-Left-n __global_state)
-                      (composition-param-Left-zeron __global_state)
-                      (composition-param-Left-zerom __global_state)
-                      (composition-param-Left-p __global_state)
-                      (composition-param-Left-m __global_state)
-                      (composition-rand-Left-0 __global_state)
-                      (composition-rand-Left-1 __global_state)
-                      (composition-rand-Left-2 __global_state)
-                      (composition-rand-Left-3 __global_state)
-                      (composition-rand-Left-4 __global_state)
-                      (composition-rand-Left-5 __global_state)
-                      (composition-rand-Left-6 __global_state))))
-                (mk-return-Left-keys_bottom-GETKEYSOUT __global_state Z)))))))))
-(define-fun
-  oracle-Left-keys_bottom-GETAOUT
-  ((__global_state CompositionState-Left) (h Int))
-  Return_Left_keys_bottom_GETAOUT
-  (let
-    ((__self_state (composition-pkgstate-Left-keys_bottom __global_state)))
-    (let
-      (
-        (__self_state
-          (mk-state-Left-keys_bottom
-            (state-Left-keys_bottom-T __self_state)
-            (state-Left-keys_bottom-z __self_state)
-            (store (state-Left-keys_bottom-flag __self_state) h (mk-some true)))))
-      (ite
-        (= (select (state-Left-keys_bottom-flag __self_state) h) (mk-some true))
+        ((unwrap-1 (maybe-get (select (state-Left-keys_bottom-T __self_state) h))))
         (let
-          ((unwrap-1 (maybe-get (select (state-Left-keys_bottom-T __self_state) h))))
+          ((Z unwrap-1))
           (let
-            ((Z unwrap-1))
-            (let
-              ((unwrap-2 (maybe-get (select (state-Left-keys_bottom-z __self_state) h))))
-              (let
-                ((zz unwrap-2))
-                (let
-                  ((unwrap-3 (maybe-get (select Z zz))))
-                  (let
-                    ((k unwrap-3))
-                    (let
-                      (
-                        (__global_state
-                          (mk-composition-state-Left
-                            (composition-pkgstate-Left-keys_top __global_state)
-                            __self_state
-                            (composition-pkgstate-Left-gate __global_state)
-                            (composition-pkgstate-Left-enc __global_state)
-                            (composition-param-Left-n __global_state)
-                            (composition-param-Left-zeron __global_state)
-                            (composition-param-Left-zerom __global_state)
-                            (composition-param-Left-p __global_state)
-                            (composition-param-Left-m __global_state)
-                            (composition-rand-Left-0 __global_state)
-                            (composition-rand-Left-1 __global_state)
-                            (composition-rand-Left-2 __global_state)
-                            (composition-rand-Left-3 __global_state)
-                            (composition-rand-Left-4 __global_state)
-                            (composition-rand-Left-5 __global_state)
-                            (composition-rand-Left-6 __global_state))))
-                      (mk-return-Left-keys_bottom-GETAOUT __global_state k))))))))
-        mk-abort-Left-keys_bottom-GETAOUT))))
-(define-fun
-  oracle-Left-keys_bottom-GETINAOUT
-  ((__global_state CompositionState-Left) (h Int))
-  Return_Left_keys_bottom_GETINAOUT
-  (let
-    ((__self_state (composition-pkgstate-Left-keys_bottom __global_state)))
-    (let
-      (
-        (__self_state
-          (mk-state-Left-keys_bottom
-            (state-Left-keys_bottom-T __self_state)
-            (state-Left-keys_bottom-z __self_state)
-            (store (state-Left-keys_bottom-flag __self_state) h (mk-some true)))))
-      (ite
-        (= (select (state-Left-keys_bottom-flag __self_state) h) (mk-some true))
-        (let
-          ((unwrap-1 (maybe-get (select (state-Left-keys_bottom-T __self_state) h))))
-          (let
-            ((Z unwrap-1))
-            (let
-              ((unwrap-2 (maybe-get (select (state-Left-keys_bottom-z __self_state) h))))
-              (let
-                ((zz unwrap-2))
-                (let
-                  ((unwrap-3 (maybe-get (select Z (not zz)))))
-                  (let
-                    ((k unwrap-3))
-                    (let
-                      (
-                        (__global_state
-                          (mk-composition-state-Left
-                            (composition-pkgstate-Left-keys_top __global_state)
-                            __self_state
-                            (composition-pkgstate-Left-gate __global_state)
-                            (composition-pkgstate-Left-enc __global_state)
-                            (composition-param-Left-n __global_state)
-                            (composition-param-Left-zeron __global_state)
-                            (composition-param-Left-zerom __global_state)
-                            (composition-param-Left-p __global_state)
-                            (composition-param-Left-m __global_state)
-                            (composition-rand-Left-0 __global_state)
-                            (composition-rand-Left-1 __global_state)
-                            (composition-rand-Left-2 __global_state)
-                            (composition-rand-Left-3 __global_state)
-                            (composition-rand-Left-4 __global_state)
-                            (composition-rand-Left-5 __global_state)
-                            (composition-rand-Left-6 __global_state))))
-                      (mk-return-Left-keys_bottom-GETINAOUT __global_state k))))))))
-        mk-abort-Left-keys_bottom-GETINAOUT))))
+            (
+              (__global_state
+                (mk-composition-state-Left
+                  (composition-pkgstate-Left-keys_top __global_state)
+                  __self_state
+                  (composition-pkgstate-Left-gate __global_state)
+                  (composition-pkgstate-Left-enc __global_state)
+                  (composition-param-Left-m __global_state)
+                  (composition-param-Left-n __global_state)
+                  (composition-param-Left-zeron __global_state)
+                  (composition-param-Left-zerom __global_state)
+                  (composition-param-Left-p __global_state)
+                  (composition-rand-Left-0 __global_state)
+                  (composition-rand-Left-1 __global_state)
+                  (composition-rand-Left-2 __global_state)
+                  (composition-rand-Left-3 __global_state)
+                  (composition-rand-Left-4 __global_state)
+                  (composition-rand-Left-5 __global_state)
+                  (composition-rand-Left-6 __global_state)
+                  (composition-rand-Left-7 __global_state)
+                  (composition-rand-Left-8 __global_state)
+                  (composition-rand-Left-9 __global_state)
+                  (composition-rand-Left-10 __global_state)
+                  (composition-rand-Left-11 __global_state)
+                  (composition-rand-Left-12 __global_state))))
+            (mk-return-Left-keys_bottom-GETKEYSIN __global_state Z))))
+      mk-abort-Left-keys_bottom-GETKEYSIN)))
 (define-fun
   oracle-Left-keys_bottom-GETAIN
   ((__global_state CompositionState-Left) (h Int))
@@ -851,42 +733,45 @@
     ((__self_state (composition-pkgstate-Left-keys_bottom __global_state)))
     (ite
       (= (select (state-Left-keys_bottom-flag __self_state) h) (mk-some true))
-      (ite
-        (= (select (state-Left-keys_bottom-flag __self_state) h) (mk-some true))
+      (let
+        ((unwrap-1 (maybe-get (select (state-Left-keys_bottom-T __self_state) h))))
         (let
-          ((unwrap-1 (maybe-get (select (state-Left-keys_bottom-T __self_state) h))))
+          ((Z unwrap-1))
           (let
-            ((Z unwrap-1))
+            ((unwrap-2 (maybe-get (select (state-Left-keys_bottom-z __self_state) h))))
             (let
-              ((unwrap-2 (maybe-get (select (state-Left-keys_bottom-z __self_state) h))))
+              ((zz unwrap-2))
               (let
-                ((zz unwrap-2))
+                ((unwrap-3 (maybe-get (select Z zz))))
                 (let
-                  ((unwrap-3 (maybe-get (select Z zz))))
+                  ((k unwrap-3))
                   (let
-                    ((k unwrap-3))
-                    (let
-                      (
-                        (__global_state
-                          (mk-composition-state-Left
-                            (composition-pkgstate-Left-keys_top __global_state)
-                            __self_state
-                            (composition-pkgstate-Left-gate __global_state)
-                            (composition-pkgstate-Left-enc __global_state)
-                            (composition-param-Left-n __global_state)
-                            (composition-param-Left-zeron __global_state)
-                            (composition-param-Left-zerom __global_state)
-                            (composition-param-Left-p __global_state)
-                            (composition-param-Left-m __global_state)
-                            (composition-rand-Left-0 __global_state)
-                            (composition-rand-Left-1 __global_state)
-                            (composition-rand-Left-2 __global_state)
-                            (composition-rand-Left-3 __global_state)
-                            (composition-rand-Left-4 __global_state)
-                            (composition-rand-Left-5 __global_state)
-                            (composition-rand-Left-6 __global_state))))
-                      (mk-return-Left-keys_bottom-GETAIN __global_state k))))))))
-        mk-abort-Left-keys_bottom-GETAIN)
+                    (
+                      (__global_state
+                        (mk-composition-state-Left
+                          (composition-pkgstate-Left-keys_top __global_state)
+                          __self_state
+                          (composition-pkgstate-Left-gate __global_state)
+                          (composition-pkgstate-Left-enc __global_state)
+                          (composition-param-Left-m __global_state)
+                          (composition-param-Left-n __global_state)
+                          (composition-param-Left-zeron __global_state)
+                          (composition-param-Left-zerom __global_state)
+                          (composition-param-Left-p __global_state)
+                          (composition-rand-Left-0 __global_state)
+                          (composition-rand-Left-1 __global_state)
+                          (composition-rand-Left-2 __global_state)
+                          (composition-rand-Left-3 __global_state)
+                          (composition-rand-Left-4 __global_state)
+                          (composition-rand-Left-5 __global_state)
+                          (composition-rand-Left-6 __global_state)
+                          (composition-rand-Left-7 __global_state)
+                          (composition-rand-Left-8 __global_state)
+                          (composition-rand-Left-9 __global_state)
+                          (composition-rand-Left-10 __global_state)
+                          (composition-rand-Left-11 __global_state)
+                          (composition-rand-Left-12 __global_state))))
+                    (mk-return-Left-keys_bottom-GETAIN __global_state k))))))))
       mk-abort-Left-keys_bottom-GETAIN)))
 (define-fun
   oracle-Left-keys_bottom-GETINAIN
@@ -916,20 +801,345 @@
                           __self_state
                           (composition-pkgstate-Left-gate __global_state)
                           (composition-pkgstate-Left-enc __global_state)
+                          (composition-param-Left-m __global_state)
                           (composition-param-Left-n __global_state)
                           (composition-param-Left-zeron __global_state)
                           (composition-param-Left-zerom __global_state)
                           (composition-param-Left-p __global_state)
-                          (composition-param-Left-m __global_state)
                           (composition-rand-Left-0 __global_state)
                           (composition-rand-Left-1 __global_state)
                           (composition-rand-Left-2 __global_state)
                           (composition-rand-Left-3 __global_state)
                           (composition-rand-Left-4 __global_state)
                           (composition-rand-Left-5 __global_state)
-                          (composition-rand-Left-6 __global_state))))
+                          (composition-rand-Left-6 __global_state)
+                          (composition-rand-Left-7 __global_state)
+                          (composition-rand-Left-8 __global_state)
+                          (composition-rand-Left-9 __global_state)
+                          (composition-rand-Left-10 __global_state)
+                          (composition-rand-Left-11 __global_state)
+                          (composition-rand-Left-12 __global_state))))
                     (mk-return-Left-keys_bottom-GETINAIN __global_state k))))))))
       mk-abort-Left-keys_bottom-GETINAIN)))
+(define-fun
+  oracle-Left-keys_bottom-GETAOUT
+  ((__global_state CompositionState-Left) (h Int))
+  Return_Left_keys_bottom_GETAOUT
+  (let
+    ((__self_state (composition-pkgstate-Left-keys_bottom __global_state)))
+    (ite
+      (= (select (state-Left-keys_bottom-z __self_state) h) (mk-some true))
+      (let
+        (
+          (__self_state
+            (mk-state-Left-keys_bottom
+              (state-Left-keys_bottom-T __self_state)
+              (state-Left-keys_bottom-z __self_state)
+              (store (state-Left-keys_bottom-flag __self_state) h (mk-some true)))))
+        (let
+          ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
+          (ite
+            (=
+              (select (state-Left-keys_bottom-T __self_state) h)
+              (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
+            (let
+              ((r (__sample-rand-Left-Bits_n 5 (composition-rand-Left-5 __global_state))))
+              (let
+                (
+                  (__global_state
+                    (mk-composition-state-Left
+                      (composition-pkgstate-Left-keys_top __global_state)
+                      (composition-pkgstate-Left-keys_bottom __global_state)
+                      (composition-pkgstate-Left-gate __global_state)
+                      (composition-pkgstate-Left-enc __global_state)
+                      (composition-param-Left-m __global_state)
+                      (composition-param-Left-n __global_state)
+                      (composition-param-Left-zeron __global_state)
+                      (composition-param-Left-zerom __global_state)
+                      (composition-param-Left-p __global_state)
+                      (composition-rand-Left-0 __global_state)
+                      (composition-rand-Left-1 __global_state)
+                      (composition-rand-Left-2 __global_state)
+                      (composition-rand-Left-3 __global_state)
+                      (composition-rand-Left-4 __global_state)
+                      (+ 1 (composition-rand-Left-5 __global_state))
+                      (composition-rand-Left-6 __global_state)
+                      (composition-rand-Left-7 __global_state)
+                      (composition-rand-Left-8 __global_state)
+                      (composition-rand-Left-9 __global_state)
+                      (composition-rand-Left-10 __global_state)
+                      (composition-rand-Left-11 __global_state)
+                      (composition-rand-Left-12 __global_state))))
+                (let
+                  ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
+                  (let
+                    ((Z (store Z true (mk-some r))))
+                    (let
+                      ((rr (__sample-rand-Left-Bits_n 6 (composition-rand-Left-6 __global_state))))
+                      (let
+                        (
+                          (__global_state
+                            (mk-composition-state-Left
+                              (composition-pkgstate-Left-keys_top __global_state)
+                              (composition-pkgstate-Left-keys_bottom __global_state)
+                              (composition-pkgstate-Left-gate __global_state)
+                              (composition-pkgstate-Left-enc __global_state)
+                              (composition-param-Left-m __global_state)
+                              (composition-param-Left-n __global_state)
+                              (composition-param-Left-zeron __global_state)
+                              (composition-param-Left-zerom __global_state)
+                              (composition-param-Left-p __global_state)
+                              (composition-rand-Left-0 __global_state)
+                              (composition-rand-Left-1 __global_state)
+                              (composition-rand-Left-2 __global_state)
+                              (composition-rand-Left-3 __global_state)
+                              (composition-rand-Left-4 __global_state)
+                              (composition-rand-Left-5 __global_state)
+                              (+ 1 (composition-rand-Left-6 __global_state))
+                              (composition-rand-Left-7 __global_state)
+                              (composition-rand-Left-8 __global_state)
+                              (composition-rand-Left-9 __global_state)
+                              (composition-rand-Left-10 __global_state)
+                              (composition-rand-Left-11 __global_state)
+                              (composition-rand-Left-12 __global_state))))
+                        (let
+                          ((Z (store Z false (mk-some rr))))
+                          (let
+                            (
+                              (__self_state
+                                (mk-state-Left-keys_bottom
+                                  (store (state-Left-keys_bottom-T __self_state) h (mk-some Z))
+                                  (state-Left-keys_bottom-z __self_state)
+                                  (state-Left-keys_bottom-flag __self_state))))
+                            (let
+                              ((unwrap-1 (maybe-get (select (state-Left-keys_bottom-T __self_state) h))))
+                              (let
+                                ((Z unwrap-1))
+                                (let
+                                  ((unwrap-2 (maybe-get (select (state-Left-keys_bottom-z __self_state) h))))
+                                  (let
+                                    ((zz unwrap-2))
+                                    (let
+                                      ((unwrap-3 (maybe-get (select Z zz))))
+                                      (let
+                                        ((k unwrap-3))
+                                        (let
+                                          (
+                                            (__global_state
+                                              (mk-composition-state-Left
+                                                (composition-pkgstate-Left-keys_top __global_state)
+                                                __self_state
+                                                (composition-pkgstate-Left-gate __global_state)
+                                                (composition-pkgstate-Left-enc __global_state)
+                                                (composition-param-Left-m __global_state)
+                                                (composition-param-Left-n __global_state)
+                                                (composition-param-Left-zeron __global_state)
+                                                (composition-param-Left-zerom __global_state)
+                                                (composition-param-Left-p __global_state)
+                                                (composition-rand-Left-0 __global_state)
+                                                (composition-rand-Left-1 __global_state)
+                                                (composition-rand-Left-2 __global_state)
+                                                (composition-rand-Left-3 __global_state)
+                                                (composition-rand-Left-4 __global_state)
+                                                (composition-rand-Left-5 __global_state)
+                                                (composition-rand-Left-6 __global_state)
+                                                (composition-rand-Left-7 __global_state)
+                                                (composition-rand-Left-8 __global_state)
+                                                (composition-rand-Left-9 __global_state)
+                                                (composition-rand-Left-10 __global_state)
+                                                (composition-rand-Left-11 __global_state)
+                                                (composition-rand-Left-12 __global_state))))
+                                          (mk-return-Left-keys_bottom-GETAOUT __global_state k))))))))))))))))
+            (let
+              ((unwrap-1 (maybe-get (select (state-Left-keys_bottom-T __self_state) h))))
+              (let
+                ((Z unwrap-1))
+                (let
+                  ((unwrap-2 (maybe-get (select (state-Left-keys_bottom-z __self_state) h))))
+                  (let
+                    ((zz unwrap-2))
+                    (let
+                      ((unwrap-3 (maybe-get (select Z zz))))
+                      (let
+                        ((k unwrap-3))
+                        (let
+                          (
+                            (__global_state
+                              (mk-composition-state-Left
+                                (composition-pkgstate-Left-keys_top __global_state)
+                                __self_state
+                                (composition-pkgstate-Left-gate __global_state)
+                                (composition-pkgstate-Left-enc __global_state)
+                                (composition-param-Left-m __global_state)
+                                (composition-param-Left-n __global_state)
+                                (composition-param-Left-zeron __global_state)
+                                (composition-param-Left-zerom __global_state)
+                                (composition-param-Left-p __global_state)
+                                (composition-rand-Left-0 __global_state)
+                                (composition-rand-Left-1 __global_state)
+                                (composition-rand-Left-2 __global_state)
+                                (composition-rand-Left-3 __global_state)
+                                (composition-rand-Left-4 __global_state)
+                                (composition-rand-Left-5 __global_state)
+                                (composition-rand-Left-6 __global_state)
+                                (composition-rand-Left-7 __global_state)
+                                (composition-rand-Left-8 __global_state)
+                                (composition-rand-Left-9 __global_state)
+                                (composition-rand-Left-10 __global_state)
+                                (composition-rand-Left-11 __global_state)
+                                (composition-rand-Left-12 __global_state))))
+                          (mk-return-Left-keys_bottom-GETAOUT __global_state k)))))))))))
+      mk-abort-Left-keys_bottom-GETAOUT)))
+(define-fun
+  oracle-Left-keys_bottom-GETKEYSOUT
+  ((__global_state CompositionState-Left) (h Int))
+  Return_Left_keys_bottom_GETKEYSOUT
+  (let
+    ((__self_state (composition-pkgstate-Left-keys_bottom __global_state)))
+    (let
+      (
+        (__self_state
+          (mk-state-Left-keys_bottom
+            (state-Left-keys_bottom-T __self_state)
+            (state-Left-keys_bottom-z __self_state)
+            (store (state-Left-keys_bottom-flag __self_state) h (mk-some true)))))
+      (let
+        ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
+        (ite
+          (=
+            (select (state-Left-keys_bottom-T __self_state) h)
+            (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
+          (let
+            ((r (__sample-rand-Left-Bits_n 7 (composition-rand-Left-7 __global_state))))
+            (let
+              (
+                (__global_state
+                  (mk-composition-state-Left
+                    (composition-pkgstate-Left-keys_top __global_state)
+                    (composition-pkgstate-Left-keys_bottom __global_state)
+                    (composition-pkgstate-Left-gate __global_state)
+                    (composition-pkgstate-Left-enc __global_state)
+                    (composition-param-Left-m __global_state)
+                    (composition-param-Left-n __global_state)
+                    (composition-param-Left-zeron __global_state)
+                    (composition-param-Left-zerom __global_state)
+                    (composition-param-Left-p __global_state)
+                    (composition-rand-Left-0 __global_state)
+                    (composition-rand-Left-1 __global_state)
+                    (composition-rand-Left-2 __global_state)
+                    (composition-rand-Left-3 __global_state)
+                    (composition-rand-Left-4 __global_state)
+                    (composition-rand-Left-5 __global_state)
+                    (composition-rand-Left-6 __global_state)
+                    (+ 1 (composition-rand-Left-7 __global_state))
+                    (composition-rand-Left-8 __global_state)
+                    (composition-rand-Left-9 __global_state)
+                    (composition-rand-Left-10 __global_state)
+                    (composition-rand-Left-11 __global_state)
+                    (composition-rand-Left-12 __global_state))))
+              (let
+                ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
+                (let
+                  ((Z (store Z true (mk-some r))))
+                  (let
+                    ((rr (__sample-rand-Left-Bits_n 8 (composition-rand-Left-8 __global_state))))
+                    (let
+                      (
+                        (__global_state
+                          (mk-composition-state-Left
+                            (composition-pkgstate-Left-keys_top __global_state)
+                            (composition-pkgstate-Left-keys_bottom __global_state)
+                            (composition-pkgstate-Left-gate __global_state)
+                            (composition-pkgstate-Left-enc __global_state)
+                            (composition-param-Left-m __global_state)
+                            (composition-param-Left-n __global_state)
+                            (composition-param-Left-zeron __global_state)
+                            (composition-param-Left-zerom __global_state)
+                            (composition-param-Left-p __global_state)
+                            (composition-rand-Left-0 __global_state)
+                            (composition-rand-Left-1 __global_state)
+                            (composition-rand-Left-2 __global_state)
+                            (composition-rand-Left-3 __global_state)
+                            (composition-rand-Left-4 __global_state)
+                            (composition-rand-Left-5 __global_state)
+                            (composition-rand-Left-6 __global_state)
+                            (composition-rand-Left-7 __global_state)
+                            (+ 1 (composition-rand-Left-8 __global_state))
+                            (composition-rand-Left-9 __global_state)
+                            (composition-rand-Left-10 __global_state)
+                            (composition-rand-Left-11 __global_state)
+                            (composition-rand-Left-12 __global_state))))
+                      (let
+                        ((Z (store Z false (mk-some rr))))
+                        (let
+                          (
+                            (__self_state
+                              (mk-state-Left-keys_bottom
+                                (store (state-Left-keys_bottom-T __self_state) h (mk-some Z))
+                                (state-Left-keys_bottom-z __self_state)
+                                (state-Left-keys_bottom-flag __self_state))))
+                          (let
+                            ((unwrap-1 (maybe-get (select (state-Left-keys_bottom-T __self_state) h))))
+                            (let
+                              ((Z unwrap-1))
+                              (let
+                                (
+                                  (__global_state
+                                    (mk-composition-state-Left
+                                      (composition-pkgstate-Left-keys_top __global_state)
+                                      __self_state
+                                      (composition-pkgstate-Left-gate __global_state)
+                                      (composition-pkgstate-Left-enc __global_state)
+                                      (composition-param-Left-m __global_state)
+                                      (composition-param-Left-n __global_state)
+                                      (composition-param-Left-zeron __global_state)
+                                      (composition-param-Left-zerom __global_state)
+                                      (composition-param-Left-p __global_state)
+                                      (composition-rand-Left-0 __global_state)
+                                      (composition-rand-Left-1 __global_state)
+                                      (composition-rand-Left-2 __global_state)
+                                      (composition-rand-Left-3 __global_state)
+                                      (composition-rand-Left-4 __global_state)
+                                      (composition-rand-Left-5 __global_state)
+                                      (composition-rand-Left-6 __global_state)
+                                      (composition-rand-Left-7 __global_state)
+                                      (composition-rand-Left-8 __global_state)
+                                      (composition-rand-Left-9 __global_state)
+                                      (composition-rand-Left-10 __global_state)
+                                      (composition-rand-Left-11 __global_state)
+                                      (composition-rand-Left-12 __global_state))))
+                                (mk-return-Left-keys_bottom-GETKEYSOUT __global_state Z))))))))))))
+          (let
+            ((unwrap-1 (maybe-get (select (state-Left-keys_bottom-T __self_state) h))))
+            (let
+              ((Z unwrap-1))
+              (let
+                (
+                  (__global_state
+                    (mk-composition-state-Left
+                      (composition-pkgstate-Left-keys_top __global_state)
+                      __self_state
+                      (composition-pkgstate-Left-gate __global_state)
+                      (composition-pkgstate-Left-enc __global_state)
+                      (composition-param-Left-m __global_state)
+                      (composition-param-Left-n __global_state)
+                      (composition-param-Left-zeron __global_state)
+                      (composition-param-Left-zerom __global_state)
+                      (composition-param-Left-p __global_state)
+                      (composition-rand-Left-0 __global_state)
+                      (composition-rand-Left-1 __global_state)
+                      (composition-rand-Left-2 __global_state)
+                      (composition-rand-Left-3 __global_state)
+                      (composition-rand-Left-4 __global_state)
+                      (composition-rand-Left-5 __global_state)
+                      (composition-rand-Left-6 __global_state)
+                      (composition-rand-Left-7 __global_state)
+                      (composition-rand-Left-8 __global_state)
+                      (composition-rand-Left-9 __global_state)
+                      (composition-rand-Left-10 __global_state)
+                      (composition-rand-Left-11 __global_state)
+                      (composition-rand-Left-12 __global_state))))
+                (mk-return-Left-keys_bottom-GETKEYSOUT __global_state Z)))))))))
 (define-fun
   oracle-Left-keys_bottom-GETBIT
   ((__global_state CompositionState-Left) (h Int))
@@ -953,18 +1163,24 @@
                   __self_state
                   (composition-pkgstate-Left-gate __global_state)
                   (composition-pkgstate-Left-enc __global_state)
+                  (composition-param-Left-m __global_state)
                   (composition-param-Left-n __global_state)
                   (composition-param-Left-zeron __global_state)
                   (composition-param-Left-zerom __global_state)
                   (composition-param-Left-p __global_state)
-                  (composition-param-Left-m __global_state)
                   (composition-rand-Left-0 __global_state)
                   (composition-rand-Left-1 __global_state)
                   (composition-rand-Left-2 __global_state)
                   (composition-rand-Left-3 __global_state)
                   (composition-rand-Left-4 __global_state)
                   (composition-rand-Left-5 __global_state)
-                  (composition-rand-Left-6 __global_state))))
+                  (composition-rand-Left-6 __global_state)
+                  (composition-rand-Left-7 __global_state)
+                  (composition-rand-Left-8 __global_state)
+                  (composition-rand-Left-9 __global_state)
+                  (composition-rand-Left-10 __global_state)
+                  (composition-rand-Left-11 __global_state)
+                  (composition-rand-Left-12 __global_state))))
             (mk-return-Left-keys_bottom-GETBIT __global_state zz))))
       mk-abort-Left-keys_bottom-GETBIT)))
 (define-fun
@@ -1007,31 +1223,16 @@
             (__global_state (return-Left-keys_top-GETKEYSIN-state __ret))
             (K (return-Left-keys_top-GETKEYSIN-value __ret)))
           (let
-            ((r (__sample-rand-Left-Bits_n 5 (composition-rand-Left-5 __global_state))))
-            (let
-              (
-                (__global_state
-                  (mk-composition-state-Left
-                    (composition-pkgstate-Left-keys_top __global_state)
-                    (composition-pkgstate-Left-keys_bottom __global_state)
-                    (composition-pkgstate-Left-gate __global_state)
-                    (composition-pkgstate-Left-enc __global_state)
-                    (composition-param-Left-n __global_state)
-                    (composition-param-Left-zeron __global_state)
-                    (composition-param-Left-zerom __global_state)
-                    (composition-param-Left-p __global_state)
-                    (composition-param-Left-m __global_state)
-                    (composition-rand-Left-0 __global_state)
-                    (composition-rand-Left-1 __global_state)
-                    (composition-rand-Left-2 __global_state)
-                    (composition-rand-Left-3 __global_state)
-                    (composition-rand-Left-4 __global_state)
-                    (+ 1 (composition-rand-Left-5 __global_state))
-                    (composition-rand-Left-6 __global_state))))
+            ((__ret (oracle-Left-keys_top-GETBIT __global_state j)))
+            (ite
+              (= __ret mk-abort-Left-keys_top-GETBIT)
+              mk-abort-Left-enc-ENCN
               (let
-                ((unwrap-1 (maybe-get (select K d))))
+                (
+                  (__global_state (return-Left-keys_top-GETBIT-state __ret))
+                  (z (return-Left-keys_top-GETBIT-value __ret)))
                 (let
-                  ((c (__func-Left-encn unwrap-1 nzero r)))
+                  ((r (__sample-rand-Left-Bits_n 9 (composition-rand-Left-9 __global_state))))
                   (let
                     (
                       (__global_state
@@ -1039,20 +1240,117 @@
                           (composition-pkgstate-Left-keys_top __global_state)
                           (composition-pkgstate-Left-keys_bottom __global_state)
                           (composition-pkgstate-Left-gate __global_state)
-                          __self_state
+                          (composition-pkgstate-Left-enc __global_state)
+                          (composition-param-Left-m __global_state)
                           (composition-param-Left-n __global_state)
                           (composition-param-Left-zeron __global_state)
                           (composition-param-Left-zerom __global_state)
                           (composition-param-Left-p __global_state)
-                          (composition-param-Left-m __global_state)
                           (composition-rand-Left-0 __global_state)
                           (composition-rand-Left-1 __global_state)
                           (composition-rand-Left-2 __global_state)
                           (composition-rand-Left-3 __global_state)
                           (composition-rand-Left-4 __global_state)
                           (composition-rand-Left-5 __global_state)
-                          (composition-rand-Left-6 __global_state))))
-                    (mk-return-Left-enc-ENCN __global_state c)))))))))))
+                          (composition-rand-Left-6 __global_state)
+                          (composition-rand-Left-7 __global_state)
+                          (composition-rand-Left-8 __global_state)
+                          (+ 1 (composition-rand-Left-9 __global_state))
+                          (composition-rand-Left-10 __global_state)
+                          (composition-rand-Left-11 __global_state)
+                          (composition-rand-Left-12 __global_state))))
+                    (let
+                      ((c (__sample-rand-Left-Bits_m 10 (composition-rand-Left-10 __global_state))))
+                      (let
+                        (
+                          (__global_state
+                            (mk-composition-state-Left
+                              (composition-pkgstate-Left-keys_top __global_state)
+                              (composition-pkgstate-Left-keys_bottom __global_state)
+                              (composition-pkgstate-Left-gate __global_state)
+                              (composition-pkgstate-Left-enc __global_state)
+                              (composition-param-Left-m __global_state)
+                              (composition-param-Left-n __global_state)
+                              (composition-param-Left-zeron __global_state)
+                              (composition-param-Left-zerom __global_state)
+                              (composition-param-Left-p __global_state)
+                              (composition-rand-Left-0 __global_state)
+                              (composition-rand-Left-1 __global_state)
+                              (composition-rand-Left-2 __global_state)
+                              (composition-rand-Left-3 __global_state)
+                              (composition-rand-Left-4 __global_state)
+                              (composition-rand-Left-5 __global_state)
+                              (composition-rand-Left-6 __global_state)
+                              (composition-rand-Left-7 __global_state)
+                              (composition-rand-Left-8 __global_state)
+                              (composition-rand-Left-9 __global_state)
+                              (+ 1 (composition-rand-Left-10 __global_state))
+                              (composition-rand-Left-11 __global_state)
+                              (composition-rand-Left-12 __global_state))))
+                        (ite
+                          (= d z)
+                          (let
+                            ((unwrap-1 (maybe-get (select K z))))
+                            (let
+                              ((c (__func-Left-encn unwrap-1 nzero r)))
+                              (let
+                                (
+                                  (__global_state
+                                    (mk-composition-state-Left
+                                      (composition-pkgstate-Left-keys_top __global_state)
+                                      (composition-pkgstate-Left-keys_bottom __global_state)
+                                      (composition-pkgstate-Left-gate __global_state)
+                                      __self_state
+                                      (composition-param-Left-m __global_state)
+                                      (composition-param-Left-n __global_state)
+                                      (composition-param-Left-zeron __global_state)
+                                      (composition-param-Left-zerom __global_state)
+                                      (composition-param-Left-p __global_state)
+                                      (composition-rand-Left-0 __global_state)
+                                      (composition-rand-Left-1 __global_state)
+                                      (composition-rand-Left-2 __global_state)
+                                      (composition-rand-Left-3 __global_state)
+                                      (composition-rand-Left-4 __global_state)
+                                      (composition-rand-Left-5 __global_state)
+                                      (composition-rand-Left-6 __global_state)
+                                      (composition-rand-Left-7 __global_state)
+                                      (composition-rand-Left-8 __global_state)
+                                      (composition-rand-Left-9 __global_state)
+                                      (composition-rand-Left-10 __global_state)
+                                      (composition-rand-Left-11 __global_state)
+                                      (composition-rand-Left-12 __global_state))))
+                                (mk-return-Left-enc-ENCN __global_state c))))
+                          (let
+                            ((unwrap-2 (maybe-get (select K z))))
+                            (let
+                              ((c (__func-Left-encn unwrap-2 none r)))
+                              (let
+                                (
+                                  (__global_state
+                                    (mk-composition-state-Left
+                                      (composition-pkgstate-Left-keys_top __global_state)
+                                      (composition-pkgstate-Left-keys_bottom __global_state)
+                                      (composition-pkgstate-Left-gate __global_state)
+                                      __self_state
+                                      (composition-param-Left-m __global_state)
+                                      (composition-param-Left-n __global_state)
+                                      (composition-param-Left-zeron __global_state)
+                                      (composition-param-Left-zerom __global_state)
+                                      (composition-param-Left-p __global_state)
+                                      (composition-rand-Left-0 __global_state)
+                                      (composition-rand-Left-1 __global_state)
+                                      (composition-rand-Left-2 __global_state)
+                                      (composition-rand-Left-3 __global_state)
+                                      (composition-rand-Left-4 __global_state)
+                                      (composition-rand-Left-5 __global_state)
+                                      (composition-rand-Left-6 __global_state)
+                                      (composition-rand-Left-7 __global_state)
+                                      (composition-rand-Left-8 __global_state)
+                                      (composition-rand-Left-9 __global_state)
+                                      (composition-rand-Left-10 __global_state)
+                                      (composition-rand-Left-11 __global_state)
+                                      (composition-rand-Left-12 __global_state))))
+                                (mk-return-Left-enc-ENCN __global_state c)))))))))))))))))
 (define-fun
   oracle-Left-enc-ENCM
   (
@@ -1074,31 +1372,16 @@
             (__global_state (return-Left-keys_top-GETKEYSIN-state __ret))
             (K (return-Left-keys_top-GETKEYSIN-value __ret)))
           (let
-            ((r (__sample-rand-Left-Bits_n 6 (composition-rand-Left-6 __global_state))))
-            (let
-              (
-                (__global_state
-                  (mk-composition-state-Left
-                    (composition-pkgstate-Left-keys_top __global_state)
-                    (composition-pkgstate-Left-keys_bottom __global_state)
-                    (composition-pkgstate-Left-gate __global_state)
-                    (composition-pkgstate-Left-enc __global_state)
-                    (composition-param-Left-n __global_state)
-                    (composition-param-Left-zeron __global_state)
-                    (composition-param-Left-zerom __global_state)
-                    (composition-param-Left-p __global_state)
-                    (composition-param-Left-m __global_state)
-                    (composition-rand-Left-0 __global_state)
-                    (composition-rand-Left-1 __global_state)
-                    (composition-rand-Left-2 __global_state)
-                    (composition-rand-Left-3 __global_state)
-                    (composition-rand-Left-4 __global_state)
-                    (composition-rand-Left-5 __global_state)
-                    (+ 1 (composition-rand-Left-6 __global_state)))))
+            ((__ret (oracle-Left-keys_top-GETBIT __global_state j)))
+            (ite
+              (= __ret mk-abort-Left-keys_top-GETBIT)
+              mk-abort-Left-enc-ENCM
               (let
-                ((unwrap-1 (maybe-get (select K d))))
+                (
+                  (__global_state (return-Left-keys_top-GETBIT-state __ret))
+                  (z (return-Left-keys_top-GETBIT-value __ret)))
                 (let
-                  ((c (__func-Left-encm unwrap-1 mzero r)))
+                  ((r (__sample-rand-Left-Bits_n 11 (composition-rand-Left-11 __global_state))))
                   (let
                     (
                       (__global_state
@@ -1106,20 +1389,117 @@
                           (composition-pkgstate-Left-keys_top __global_state)
                           (composition-pkgstate-Left-keys_bottom __global_state)
                           (composition-pkgstate-Left-gate __global_state)
-                          __self_state
+                          (composition-pkgstate-Left-enc __global_state)
+                          (composition-param-Left-m __global_state)
                           (composition-param-Left-n __global_state)
                           (composition-param-Left-zeron __global_state)
                           (composition-param-Left-zerom __global_state)
                           (composition-param-Left-p __global_state)
-                          (composition-param-Left-m __global_state)
                           (composition-rand-Left-0 __global_state)
                           (composition-rand-Left-1 __global_state)
                           (composition-rand-Left-2 __global_state)
                           (composition-rand-Left-3 __global_state)
                           (composition-rand-Left-4 __global_state)
                           (composition-rand-Left-5 __global_state)
-                          (composition-rand-Left-6 __global_state))))
-                    (mk-return-Left-enc-ENCM __global_state c)))))))))))
+                          (composition-rand-Left-6 __global_state)
+                          (composition-rand-Left-7 __global_state)
+                          (composition-rand-Left-8 __global_state)
+                          (composition-rand-Left-9 __global_state)
+                          (composition-rand-Left-10 __global_state)
+                          (+ 1 (composition-rand-Left-11 __global_state))
+                          (composition-rand-Left-12 __global_state))))
+                    (let
+                      ((c (__sample-rand-Left-Bits_p 12 (composition-rand-Left-12 __global_state))))
+                      (let
+                        (
+                          (__global_state
+                            (mk-composition-state-Left
+                              (composition-pkgstate-Left-keys_top __global_state)
+                              (composition-pkgstate-Left-keys_bottom __global_state)
+                              (composition-pkgstate-Left-gate __global_state)
+                              (composition-pkgstate-Left-enc __global_state)
+                              (composition-param-Left-m __global_state)
+                              (composition-param-Left-n __global_state)
+                              (composition-param-Left-zeron __global_state)
+                              (composition-param-Left-zerom __global_state)
+                              (composition-param-Left-p __global_state)
+                              (composition-rand-Left-0 __global_state)
+                              (composition-rand-Left-1 __global_state)
+                              (composition-rand-Left-2 __global_state)
+                              (composition-rand-Left-3 __global_state)
+                              (composition-rand-Left-4 __global_state)
+                              (composition-rand-Left-5 __global_state)
+                              (composition-rand-Left-6 __global_state)
+                              (composition-rand-Left-7 __global_state)
+                              (composition-rand-Left-8 __global_state)
+                              (composition-rand-Left-9 __global_state)
+                              (composition-rand-Left-10 __global_state)
+                              (composition-rand-Left-11 __global_state)
+                              (+ 1 (composition-rand-Left-12 __global_state)))))
+                        (ite
+                          (= d z)
+                          (let
+                            ((unwrap-1 (maybe-get (select K z))))
+                            (let
+                              ((c (__func-Left-encm unwrap-1 mzero r)))
+                              (let
+                                (
+                                  (__global_state
+                                    (mk-composition-state-Left
+                                      (composition-pkgstate-Left-keys_top __global_state)
+                                      (composition-pkgstate-Left-keys_bottom __global_state)
+                                      (composition-pkgstate-Left-gate __global_state)
+                                      __self_state
+                                      (composition-param-Left-m __global_state)
+                                      (composition-param-Left-n __global_state)
+                                      (composition-param-Left-zeron __global_state)
+                                      (composition-param-Left-zerom __global_state)
+                                      (composition-param-Left-p __global_state)
+                                      (composition-rand-Left-0 __global_state)
+                                      (composition-rand-Left-1 __global_state)
+                                      (composition-rand-Left-2 __global_state)
+                                      (composition-rand-Left-3 __global_state)
+                                      (composition-rand-Left-4 __global_state)
+                                      (composition-rand-Left-5 __global_state)
+                                      (composition-rand-Left-6 __global_state)
+                                      (composition-rand-Left-7 __global_state)
+                                      (composition-rand-Left-8 __global_state)
+                                      (composition-rand-Left-9 __global_state)
+                                      (composition-rand-Left-10 __global_state)
+                                      (composition-rand-Left-11 __global_state)
+                                      (composition-rand-Left-12 __global_state))))
+                                (mk-return-Left-enc-ENCM __global_state c))))
+                          (let
+                            ((unwrap-2 (maybe-get (select K z))))
+                            (let
+                              ((c (__func-Left-encm unwrap-2 mone r)))
+                              (let
+                                (
+                                  (__global_state
+                                    (mk-composition-state-Left
+                                      (composition-pkgstate-Left-keys_top __global_state)
+                                      (composition-pkgstate-Left-keys_bottom __global_state)
+                                      (composition-pkgstate-Left-gate __global_state)
+                                      __self_state
+                                      (composition-param-Left-m __global_state)
+                                      (composition-param-Left-n __global_state)
+                                      (composition-param-Left-zeron __global_state)
+                                      (composition-param-Left-zerom __global_state)
+                                      (composition-param-Left-p __global_state)
+                                      (composition-rand-Left-0 __global_state)
+                                      (composition-rand-Left-1 __global_state)
+                                      (composition-rand-Left-2 __global_state)
+                                      (composition-rand-Left-3 __global_state)
+                                      (composition-rand-Left-4 __global_state)
+                                      (composition-rand-Left-5 __global_state)
+                                      (composition-rand-Left-6 __global_state)
+                                      (composition-rand-Left-7 __global_state)
+                                      (composition-rand-Left-8 __global_state)
+                                      (composition-rand-Left-9 __global_state)
+                                      (composition-rand-Left-10 __global_state)
+                                      (composition-rand-Left-11 __global_state)
+                                      (composition-rand-Left-12 __global_state))))
+                                (mk-return-Left-enc-ENCM __global_state c)))))))))))))))))
 (define-fun
   oracle-Left-gate-GBLG
   (
@@ -1373,18 +1753,24 @@
                                                                                                                                                       (composition-pkgstate-Left-keys_bottom __global_state)
                                                                                                                                                       __self_state
                                                                                                                                                       (composition-pkgstate-Left-enc __global_state)
+                                                                                                                                                      (composition-param-Left-m __global_state)
                                                                                                                                                       (composition-param-Left-n __global_state)
                                                                                                                                                       (composition-param-Left-zeron __global_state)
                                                                                                                                                       (composition-param-Left-zerom __global_state)
                                                                                                                                                       (composition-param-Left-p __global_state)
-                                                                                                                                                      (composition-param-Left-m __global_state)
                                                                                                                                                       (composition-rand-Left-0 __global_state)
                                                                                                                                                       (composition-rand-Left-1 __global_state)
                                                                                                                                                       (composition-rand-Left-2 __global_state)
                                                                                                                                                       (composition-rand-Left-3 __global_state)
                                                                                                                                                       (composition-rand-Left-4 __global_state)
                                                                                                                                                       (composition-rand-Left-5 __global_state)
-                                                                                                                                                      (composition-rand-Left-6 __global_state))))
+                                                                                                                                                      (composition-rand-Left-6 __global_state)
+                                                                                                                                                      (composition-rand-Left-7 __global_state)
+                                                                                                                                                      (composition-rand-Left-8 __global_state)
+                                                                                                                                                      (composition-rand-Left-9 __global_state)
+                                                                                                                                                      (composition-rand-Left-10 __global_state)
+                                                                                                                                                      (composition-rand-Left-11 __global_state)
+                                                                                                                                                      (composition-rand-Left-12 __global_state))))
                                                                                                                                                 (mk-return-Left-gate-GBLG __global_state C))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))); Right
 (declare-fun __sample-rand-Right-Bits_n (Int Int) Bits_n)
 (declare-fun __func-Right-encn (Bits_n Bits_n Bits_n) Bits_m)
@@ -1414,10 +1800,10 @@
       (composition-pkgstate-Right-simgate State_Right_simgate)
       (composition-pkgstate-Right-ev State_Right_ev)
       (composition-param-Right-m Int)
+      (composition-param-Right-n Int)
+      (composition-param-Right-zeron Bits_n)
       (composition-param-Right-zerom Bits_m)
       (composition-param-Right-p Int)
-      (composition-param-Right-zeron Bits_n)
-      (composition-param-Right-n Int)
       (composition-rand-Right-0 Int)
       (composition-rand-Right-1 Int)
       (composition-rand-Right-2 Int)
@@ -1430,7 +1816,11 @@
       (composition-rand-Right-9 Int)
       (composition-rand-Right-10 Int)
       (composition-rand-Right-11 Int)
-      (composition-rand-Right-12 Int))))
+      (composition-rand-Right-12 Int)
+      (composition-rand-Right-13 Int)
+      (composition-rand-Right-14 Int)
+      (composition-rand-Right-15 Int)
+      (composition-rand-Right-16 Int))))
 (declare-datatype
   Return_Right_keys_top_GETKEYSIN
   (
@@ -1438,27 +1828,6 @@
     (mk-return-Right-keys_top-GETKEYSIN
       (return-Right-keys_top-GETKEYSIN-state CompositionState-Right)
       (return-Right-keys_top-GETKEYSIN-value (Array Bool (Maybe Bits_n))))))
-(declare-datatype
-  Return_Right_keys_top_GETKEYSOUT
-  (
-    (mk-abort-Right-keys_top-GETKEYSOUT)
-    (mk-return-Right-keys_top-GETKEYSOUT
-      (return-Right-keys_top-GETKEYSOUT-state CompositionState-Right)
-      (return-Right-keys_top-GETKEYSOUT-value (Array Bool (Maybe Bits_n))))))
-(declare-datatype
-  Return_Right_keys_top_GETAOUT
-  (
-    (mk-abort-Right-keys_top-GETAOUT)
-    (mk-return-Right-keys_top-GETAOUT
-      (return-Right-keys_top-GETAOUT-state CompositionState-Right)
-      (return-Right-keys_top-GETAOUT-value Bits_n))))
-(declare-datatype
-  Return_Right_keys_top_GETINAOUT
-  (
-    (mk-abort-Right-keys_top-GETINAOUT)
-    (mk-return-Right-keys_top-GETINAOUT
-      (return-Right-keys_top-GETINAOUT-state CompositionState-Right)
-      (return-Right-keys_top-GETINAOUT-value Bits_n))))
 (declare-datatype
   Return_Right_keys_top_GETAIN
   (
@@ -1473,6 +1842,20 @@
     (mk-return-Right-keys_top-GETINAIN
       (return-Right-keys_top-GETINAIN-state CompositionState-Right)
       (return-Right-keys_top-GETINAIN-value Bits_n))))
+(declare-datatype
+  Return_Right_keys_top_GETAOUT
+  (
+    (mk-abort-Right-keys_top-GETAOUT)
+    (mk-return-Right-keys_top-GETAOUT
+      (return-Right-keys_top-GETAOUT-state CompositionState-Right)
+      (return-Right-keys_top-GETAOUT-value Bits_n))))
+(declare-datatype
+  Return_Right_keys_top_GETKEYSOUT
+  (
+    (mk-abort-Right-keys_top-GETKEYSOUT)
+    (mk-return-Right-keys_top-GETKEYSOUT
+      (return-Right-keys_top-GETKEYSOUT-state CompositionState-Right)
+      (return-Right-keys_top-GETKEYSOUT-value (Array Bool (Maybe Bits_n))))))
 (declare-datatype
   Return_Right_keys_top_GETBIT
   (
@@ -1494,27 +1877,6 @@
       (return-Right-keys_bottom-GETKEYSIN-state CompositionState-Right)
       (return-Right-keys_bottom-GETKEYSIN-value (Array Bool (Maybe Bits_n))))))
 (declare-datatype
-  Return_Right_keys_bottom_GETKEYSOUT
-  (
-    (mk-abort-Right-keys_bottom-GETKEYSOUT)
-    (mk-return-Right-keys_bottom-GETKEYSOUT
-      (return-Right-keys_bottom-GETKEYSOUT-state CompositionState-Right)
-      (return-Right-keys_bottom-GETKEYSOUT-value (Array Bool (Maybe Bits_n))))))
-(declare-datatype
-  Return_Right_keys_bottom_GETAOUT
-  (
-    (mk-abort-Right-keys_bottom-GETAOUT)
-    (mk-return-Right-keys_bottom-GETAOUT
-      (return-Right-keys_bottom-GETAOUT-state CompositionState-Right)
-      (return-Right-keys_bottom-GETAOUT-value Bits_n))))
-(declare-datatype
-  Return_Right_keys_bottom_GETINAOUT
-  (
-    (mk-abort-Right-keys_bottom-GETINAOUT)
-    (mk-return-Right-keys_bottom-GETINAOUT
-      (return-Right-keys_bottom-GETINAOUT-state CompositionState-Right)
-      (return-Right-keys_bottom-GETINAOUT-value Bits_n))))
-(declare-datatype
   Return_Right_keys_bottom_GETAIN
   (
     (mk-abort-Right-keys_bottom-GETAIN)
@@ -1528,6 +1890,20 @@
     (mk-return-Right-keys_bottom-GETINAIN
       (return-Right-keys_bottom-GETINAIN-state CompositionState-Right)
       (return-Right-keys_bottom-GETINAIN-value Bits_n))))
+(declare-datatype
+  Return_Right_keys_bottom_GETAOUT
+  (
+    (mk-abort-Right-keys_bottom-GETAOUT)
+    (mk-return-Right-keys_bottom-GETAOUT
+      (return-Right-keys_bottom-GETAOUT-state CompositionState-Right)
+      (return-Right-keys_bottom-GETAOUT-value Bits_n))))
+(declare-datatype
+  Return_Right_keys_bottom_GETKEYSOUT
+  (
+    (mk-abort-Right-keys_bottom-GETKEYSOUT)
+    (mk-return-Right-keys_bottom-GETKEYSOUT
+      (return-Right-keys_bottom-GETKEYSOUT-state CompositionState-Right)
+      (return-Right-keys_bottom-GETKEYSOUT-value (Array Bool (Maybe Bits_n))))))
 (declare-datatype
   Return_Right_keys_bottom_GETBIT
   (
@@ -1560,303 +1936,43 @@
   (let
     ((__self_state (composition-pkgstate-Right-keys_top __global_state)))
     (ite
-      (not
-        (= (select (state-Right-keys_top-z __self_state) h) (as mk-none (Maybe Bool))))
-      (ite
-        (= (select (state-Right-keys_top-flag __self_state) h) (mk-some true))
-        (let
-          ((unwrap-1 (maybe-get (select (state-Right-keys_top-T __self_state) h))))
-          (let
-            ((Z unwrap-1))
-            (let
-              (
-                (__global_state
-                  (mk-composition-state-Right
-                    __self_state
-                    (composition-pkgstate-Right-keys_bottom __global_state)
-                    (composition-pkgstate-Right-simgate __global_state)
-                    (composition-pkgstate-Right-ev __global_state)
-                    (composition-param-Right-m __global_state)
-                    (composition-param-Right-zerom __global_state)
-                    (composition-param-Right-p __global_state)
-                    (composition-param-Right-zeron __global_state)
-                    (composition-param-Right-n __global_state)
-                    (composition-rand-Right-0 __global_state)
-                    (composition-rand-Right-1 __global_state)
-                    (composition-rand-Right-2 __global_state)
-                    (composition-rand-Right-3 __global_state)
-                    (composition-rand-Right-4 __global_state)
-                    (composition-rand-Right-5 __global_state)
-                    (composition-rand-Right-6 __global_state)
-                    (composition-rand-Right-7 __global_state)
-                    (composition-rand-Right-8 __global_state)
-                    (composition-rand-Right-9 __global_state)
-                    (composition-rand-Right-10 __global_state)
-                    (composition-rand-Right-11 __global_state)
-                    (composition-rand-Right-12 __global_state))))
-              (mk-return-Right-keys_top-GETKEYSIN __global_state Z))))
-        mk-abort-Right-keys_top-GETKEYSIN)
-      mk-abort-Right-keys_top-GETKEYSIN)))
-(define-fun
-  oracle-Right-keys_top-GETKEYSOUT
-  ((__global_state CompositionState-Right) (h Int))
-  Return_Right_keys_top_GETKEYSOUT
-  (let
-    ((__self_state (composition-pkgstate-Right-keys_top __global_state)))
-    (let
-      (
-        (__self_state
-          (mk-state-Right-keys_top
-            (state-Right-keys_top-T __self_state)
-            (state-Right-keys_top-z __self_state)
-            (store (state-Right-keys_top-flag __self_state) h (mk-some true)))))
+      (= (select (state-Right-keys_top-flag __self_state) h) (mk-some true))
       (let
-        ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
-        (ite
-          (=
-            (select (state-Right-keys_top-T __self_state) h)
-            (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
-          (let
-            ((r (__sample-rand-Right-Bits_n 1 (composition-rand-Right-1 __global_state))))
-            (let
-              (
-                (__global_state
-                  (mk-composition-state-Right
-                    (composition-pkgstate-Right-keys_top __global_state)
-                    (composition-pkgstate-Right-keys_bottom __global_state)
-                    (composition-pkgstate-Right-simgate __global_state)
-                    (composition-pkgstate-Right-ev __global_state)
-                    (composition-param-Right-m __global_state)
-                    (composition-param-Right-zerom __global_state)
-                    (composition-param-Right-p __global_state)
-                    (composition-param-Right-zeron __global_state)
-                    (composition-param-Right-n __global_state)
-                    (composition-rand-Right-0 __global_state)
-                    (+ 1 (composition-rand-Right-1 __global_state))
-                    (composition-rand-Right-2 __global_state)
-                    (composition-rand-Right-3 __global_state)
-                    (composition-rand-Right-4 __global_state)
-                    (composition-rand-Right-5 __global_state)
-                    (composition-rand-Right-6 __global_state)
-                    (composition-rand-Right-7 __global_state)
-                    (composition-rand-Right-8 __global_state)
-                    (composition-rand-Right-9 __global_state)
-                    (composition-rand-Right-10 __global_state)
-                    (composition-rand-Right-11 __global_state)
-                    (composition-rand-Right-12 __global_state))))
-              (let
-                ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
-                (let
-                  ((Z (store Z true (mk-some r))))
-                  (let
-                    ((rr (__sample-rand-Right-Bits_n 2 (composition-rand-Right-2 __global_state))))
-                    (let
-                      (
-                        (__global_state
-                          (mk-composition-state-Right
-                            (composition-pkgstate-Right-keys_top __global_state)
-                            (composition-pkgstate-Right-keys_bottom __global_state)
-                            (composition-pkgstate-Right-simgate __global_state)
-                            (composition-pkgstate-Right-ev __global_state)
-                            (composition-param-Right-m __global_state)
-                            (composition-param-Right-zerom __global_state)
-                            (composition-param-Right-p __global_state)
-                            (composition-param-Right-zeron __global_state)
-                            (composition-param-Right-n __global_state)
-                            (composition-rand-Right-0 __global_state)
-                            (composition-rand-Right-1 __global_state)
-                            (+ 1 (composition-rand-Right-2 __global_state))
-                            (composition-rand-Right-3 __global_state)
-                            (composition-rand-Right-4 __global_state)
-                            (composition-rand-Right-5 __global_state)
-                            (composition-rand-Right-6 __global_state)
-                            (composition-rand-Right-7 __global_state)
-                            (composition-rand-Right-8 __global_state)
-                            (composition-rand-Right-9 __global_state)
-                            (composition-rand-Right-10 __global_state)
-                            (composition-rand-Right-11 __global_state)
-                            (composition-rand-Right-12 __global_state))))
-                      (let
-                        ((Z (store Z false (mk-some rr))))
-                        (let
-                          (
-                            (__self_state
-                              (mk-state-Right-keys_top
-                                (store (state-Right-keys_top-T __self_state) h (mk-some Z))
-                                (state-Right-keys_top-z __self_state)
-                                (state-Right-keys_top-flag __self_state))))
-                          (let
-                            ((unwrap-1 (maybe-get (select (state-Right-keys_top-T __self_state) h))))
-                            (let
-                              ((Z unwrap-1))
-                              (let
-                                (
-                                  (__global_state
-                                    (mk-composition-state-Right
-                                      __self_state
-                                      (composition-pkgstate-Right-keys_bottom __global_state)
-                                      (composition-pkgstate-Right-simgate __global_state)
-                                      (composition-pkgstate-Right-ev __global_state)
-                                      (composition-param-Right-m __global_state)
-                                      (composition-param-Right-zerom __global_state)
-                                      (composition-param-Right-p __global_state)
-                                      (composition-param-Right-zeron __global_state)
-                                      (composition-param-Right-n __global_state)
-                                      (composition-rand-Right-0 __global_state)
-                                      (composition-rand-Right-1 __global_state)
-                                      (composition-rand-Right-2 __global_state)
-                                      (composition-rand-Right-3 __global_state)
-                                      (composition-rand-Right-4 __global_state)
-                                      (composition-rand-Right-5 __global_state)
-                                      (composition-rand-Right-6 __global_state)
-                                      (composition-rand-Right-7 __global_state)
-                                      (composition-rand-Right-8 __global_state)
-                                      (composition-rand-Right-9 __global_state)
-                                      (composition-rand-Right-10 __global_state)
-                                      (composition-rand-Right-11 __global_state)
-                                      (composition-rand-Right-12 __global_state))))
-                                (mk-return-Right-keys_top-GETKEYSOUT __global_state Z))))))))))))
-          (let
-            ((unwrap-1 (maybe-get (select (state-Right-keys_top-T __self_state) h))))
-            (let
-              ((Z unwrap-1))
-              (let
-                (
-                  (__global_state
-                    (mk-composition-state-Right
-                      __self_state
-                      (composition-pkgstate-Right-keys_bottom __global_state)
-                      (composition-pkgstate-Right-simgate __global_state)
-                      (composition-pkgstate-Right-ev __global_state)
-                      (composition-param-Right-m __global_state)
-                      (composition-param-Right-zerom __global_state)
-                      (composition-param-Right-p __global_state)
-                      (composition-param-Right-zeron __global_state)
-                      (composition-param-Right-n __global_state)
-                      (composition-rand-Right-0 __global_state)
-                      (composition-rand-Right-1 __global_state)
-                      (composition-rand-Right-2 __global_state)
-                      (composition-rand-Right-3 __global_state)
-                      (composition-rand-Right-4 __global_state)
-                      (composition-rand-Right-5 __global_state)
-                      (composition-rand-Right-6 __global_state)
-                      (composition-rand-Right-7 __global_state)
-                      (composition-rand-Right-8 __global_state)
-                      (composition-rand-Right-9 __global_state)
-                      (composition-rand-Right-10 __global_state)
-                      (composition-rand-Right-11 __global_state)
-                      (composition-rand-Right-12 __global_state))))
-                (mk-return-Right-keys_top-GETKEYSOUT __global_state Z)))))))))
-(define-fun
-  oracle-Right-keys_top-GETAOUT
-  ((__global_state CompositionState-Right) (h Int))
-  Return_Right_keys_top_GETAOUT
-  (let
-    ((__self_state (composition-pkgstate-Right-keys_top __global_state)))
-    (let
-      (
-        (__self_state
-          (mk-state-Right-keys_top
-            (state-Right-keys_top-T __self_state)
-            (state-Right-keys_top-z __self_state)
-            (store (state-Right-keys_top-flag __self_state) h (mk-some true)))))
-      (ite
-        (= (select (state-Right-keys_top-flag __self_state) h) (mk-some true))
+        ((unwrap-1 (maybe-get (select (state-Right-keys_top-T __self_state) h))))
         (let
-          ((unwrap-1 (maybe-get (select (state-Right-keys_top-T __self_state) h))))
+          ((Z unwrap-1))
           (let
-            ((Z unwrap-1))
-            (let
-              ((unwrap-2 (maybe-get (select (state-Right-keys_top-z __self_state) h))))
-              (let
-                ((zz unwrap-2))
-                (let
-                  ((unwrap-3 (maybe-get (select Z zz))))
-                  (let
-                    ((k unwrap-3))
-                    (let
-                      (
-                        (__global_state
-                          (mk-composition-state-Right
-                            __self_state
-                            (composition-pkgstate-Right-keys_bottom __global_state)
-                            (composition-pkgstate-Right-simgate __global_state)
-                            (composition-pkgstate-Right-ev __global_state)
-                            (composition-param-Right-m __global_state)
-                            (composition-param-Right-zerom __global_state)
-                            (composition-param-Right-p __global_state)
-                            (composition-param-Right-zeron __global_state)
-                            (composition-param-Right-n __global_state)
-                            (composition-rand-Right-0 __global_state)
-                            (composition-rand-Right-1 __global_state)
-                            (composition-rand-Right-2 __global_state)
-                            (composition-rand-Right-3 __global_state)
-                            (composition-rand-Right-4 __global_state)
-                            (composition-rand-Right-5 __global_state)
-                            (composition-rand-Right-6 __global_state)
-                            (composition-rand-Right-7 __global_state)
-                            (composition-rand-Right-8 __global_state)
-                            (composition-rand-Right-9 __global_state)
-                            (composition-rand-Right-10 __global_state)
-                            (composition-rand-Right-11 __global_state)
-                            (composition-rand-Right-12 __global_state))))
-                      (mk-return-Right-keys_top-GETAOUT __global_state k))))))))
-        mk-abort-Right-keys_top-GETAOUT))))
-(define-fun
-  oracle-Right-keys_top-GETINAOUT
-  ((__global_state CompositionState-Right) (h Int))
-  Return_Right_keys_top_GETINAOUT
-  (let
-    ((__self_state (composition-pkgstate-Right-keys_top __global_state)))
-    (let
-      (
-        (__self_state
-          (mk-state-Right-keys_top
-            (state-Right-keys_top-T __self_state)
-            (state-Right-keys_top-z __self_state)
-            (store (state-Right-keys_top-flag __self_state) h (mk-some true)))))
-      (ite
-        (= (select (state-Right-keys_top-flag __self_state) h) (mk-some true))
-        (let
-          ((unwrap-1 (maybe-get (select (state-Right-keys_top-T __self_state) h))))
-          (let
-            ((Z unwrap-1))
-            (let
-              ((unwrap-2 (maybe-get (select (state-Right-keys_top-z __self_state) h))))
-              (let
-                ((zz unwrap-2))
-                (let
-                  ((unwrap-3 (maybe-get (select Z (not zz)))))
-                  (let
-                    ((k unwrap-3))
-                    (let
-                      (
-                        (__global_state
-                          (mk-composition-state-Right
-                            __self_state
-                            (composition-pkgstate-Right-keys_bottom __global_state)
-                            (composition-pkgstate-Right-simgate __global_state)
-                            (composition-pkgstate-Right-ev __global_state)
-                            (composition-param-Right-m __global_state)
-                            (composition-param-Right-zerom __global_state)
-                            (composition-param-Right-p __global_state)
-                            (composition-param-Right-zeron __global_state)
-                            (composition-param-Right-n __global_state)
-                            (composition-rand-Right-0 __global_state)
-                            (composition-rand-Right-1 __global_state)
-                            (composition-rand-Right-2 __global_state)
-                            (composition-rand-Right-3 __global_state)
-                            (composition-rand-Right-4 __global_state)
-                            (composition-rand-Right-5 __global_state)
-                            (composition-rand-Right-6 __global_state)
-                            (composition-rand-Right-7 __global_state)
-                            (composition-rand-Right-8 __global_state)
-                            (composition-rand-Right-9 __global_state)
-                            (composition-rand-Right-10 __global_state)
-                            (composition-rand-Right-11 __global_state)
-                            (composition-rand-Right-12 __global_state))))
-                      (mk-return-Right-keys_top-GETINAOUT __global_state k))))))))
-        mk-abort-Right-keys_top-GETINAOUT))))
+            (
+              (__global_state
+                (mk-composition-state-Right
+                  __self_state
+                  (composition-pkgstate-Right-keys_bottom __global_state)
+                  (composition-pkgstate-Right-simgate __global_state)
+                  (composition-pkgstate-Right-ev __global_state)
+                  (composition-param-Right-m __global_state)
+                  (composition-param-Right-n __global_state)
+                  (composition-param-Right-zeron __global_state)
+                  (composition-param-Right-zerom __global_state)
+                  (composition-param-Right-p __global_state)
+                  (composition-rand-Right-0 __global_state)
+                  (composition-rand-Right-1 __global_state)
+                  (composition-rand-Right-2 __global_state)
+                  (composition-rand-Right-3 __global_state)
+                  (composition-rand-Right-4 __global_state)
+                  (composition-rand-Right-5 __global_state)
+                  (composition-rand-Right-6 __global_state)
+                  (composition-rand-Right-7 __global_state)
+                  (composition-rand-Right-8 __global_state)
+                  (composition-rand-Right-9 __global_state)
+                  (composition-rand-Right-10 __global_state)
+                  (composition-rand-Right-11 __global_state)
+                  (composition-rand-Right-12 __global_state)
+                  (composition-rand-Right-13 __global_state)
+                  (composition-rand-Right-14 __global_state)
+                  (composition-rand-Right-15 __global_state)
+                  (composition-rand-Right-16 __global_state))))
+            (mk-return-Right-keys_top-GETKEYSIN __global_state Z))))
+      mk-abort-Right-keys_top-GETKEYSIN)))
 (define-fun
   oracle-Right-keys_top-GETAIN
   ((__global_state CompositionState-Right) (h Int))
@@ -1865,48 +1981,49 @@
     ((__self_state (composition-pkgstate-Right-keys_top __global_state)))
     (ite
       (= (select (state-Right-keys_top-flag __self_state) h) (mk-some true))
-      (ite
-        (= (select (state-Right-keys_top-flag __self_state) h) (mk-some true))
+      (let
+        ((unwrap-1 (maybe-get (select (state-Right-keys_top-T __self_state) h))))
         (let
-          ((unwrap-1 (maybe-get (select (state-Right-keys_top-T __self_state) h))))
+          ((Z unwrap-1))
           (let
-            ((Z unwrap-1))
+            ((unwrap-2 (maybe-get (select (state-Right-keys_top-z __self_state) h))))
             (let
-              ((unwrap-2 (maybe-get (select (state-Right-keys_top-z __self_state) h))))
+              ((zz unwrap-2))
               (let
-                ((zz unwrap-2))
+                ((unwrap-3 (maybe-get (select Z zz))))
                 (let
-                  ((unwrap-3 (maybe-get (select Z zz))))
+                  ((k unwrap-3))
                   (let
-                    ((k unwrap-3))
-                    (let
-                      (
-                        (__global_state
-                          (mk-composition-state-Right
-                            __self_state
-                            (composition-pkgstate-Right-keys_bottom __global_state)
-                            (composition-pkgstate-Right-simgate __global_state)
-                            (composition-pkgstate-Right-ev __global_state)
-                            (composition-param-Right-m __global_state)
-                            (composition-param-Right-zerom __global_state)
-                            (composition-param-Right-p __global_state)
-                            (composition-param-Right-zeron __global_state)
-                            (composition-param-Right-n __global_state)
-                            (composition-rand-Right-0 __global_state)
-                            (composition-rand-Right-1 __global_state)
-                            (composition-rand-Right-2 __global_state)
-                            (composition-rand-Right-3 __global_state)
-                            (composition-rand-Right-4 __global_state)
-                            (composition-rand-Right-5 __global_state)
-                            (composition-rand-Right-6 __global_state)
-                            (composition-rand-Right-7 __global_state)
-                            (composition-rand-Right-8 __global_state)
-                            (composition-rand-Right-9 __global_state)
-                            (composition-rand-Right-10 __global_state)
-                            (composition-rand-Right-11 __global_state)
-                            (composition-rand-Right-12 __global_state))))
-                      (mk-return-Right-keys_top-GETAIN __global_state k))))))))
-        mk-abort-Right-keys_top-GETAIN)
+                    (
+                      (__global_state
+                        (mk-composition-state-Right
+                          __self_state
+                          (composition-pkgstate-Right-keys_bottom __global_state)
+                          (composition-pkgstate-Right-simgate __global_state)
+                          (composition-pkgstate-Right-ev __global_state)
+                          (composition-param-Right-m __global_state)
+                          (composition-param-Right-n __global_state)
+                          (composition-param-Right-zeron __global_state)
+                          (composition-param-Right-zerom __global_state)
+                          (composition-param-Right-p __global_state)
+                          (composition-rand-Right-0 __global_state)
+                          (composition-rand-Right-1 __global_state)
+                          (composition-rand-Right-2 __global_state)
+                          (composition-rand-Right-3 __global_state)
+                          (composition-rand-Right-4 __global_state)
+                          (composition-rand-Right-5 __global_state)
+                          (composition-rand-Right-6 __global_state)
+                          (composition-rand-Right-7 __global_state)
+                          (composition-rand-Right-8 __global_state)
+                          (composition-rand-Right-9 __global_state)
+                          (composition-rand-Right-10 __global_state)
+                          (composition-rand-Right-11 __global_state)
+                          (composition-rand-Right-12 __global_state)
+                          (composition-rand-Right-13 __global_state)
+                          (composition-rand-Right-14 __global_state)
+                          (composition-rand-Right-15 __global_state)
+                          (composition-rand-Right-16 __global_state))))
+                    (mk-return-Right-keys_top-GETAIN __global_state k))))))))
       mk-abort-Right-keys_top-GETAIN)))
 (define-fun
   oracle-Right-keys_top-GETINAIN
@@ -1937,10 +2054,10 @@
                           (composition-pkgstate-Right-simgate __global_state)
                           (composition-pkgstate-Right-ev __global_state)
                           (composition-param-Right-m __global_state)
+                          (composition-param-Right-n __global_state)
+                          (composition-param-Right-zeron __global_state)
                           (composition-param-Right-zerom __global_state)
                           (composition-param-Right-p __global_state)
-                          (composition-param-Right-zeron __global_state)
-                          (composition-param-Right-n __global_state)
                           (composition-rand-Right-0 __global_state)
                           (composition-rand-Right-1 __global_state)
                           (composition-rand-Right-2 __global_state)
@@ -1953,9 +2070,364 @@
                           (composition-rand-Right-9 __global_state)
                           (composition-rand-Right-10 __global_state)
                           (composition-rand-Right-11 __global_state)
-                          (composition-rand-Right-12 __global_state))))
+                          (composition-rand-Right-12 __global_state)
+                          (composition-rand-Right-13 __global_state)
+                          (composition-rand-Right-14 __global_state)
+                          (composition-rand-Right-15 __global_state)
+                          (composition-rand-Right-16 __global_state))))
                     (mk-return-Right-keys_top-GETINAIN __global_state k))))))))
       mk-abort-Right-keys_top-GETINAIN)))
+(define-fun
+  oracle-Right-keys_top-GETAOUT
+  ((__global_state CompositionState-Right) (h Int))
+  Return_Right_keys_top_GETAOUT
+  (let
+    ((__self_state (composition-pkgstate-Right-keys_top __global_state)))
+    (ite
+      (= (select (state-Right-keys_top-z __self_state) h) (mk-some true))
+      (let
+        (
+          (__self_state
+            (mk-state-Right-keys_top
+              (state-Right-keys_top-T __self_state)
+              (state-Right-keys_top-z __self_state)
+              (store (state-Right-keys_top-flag __self_state) h (mk-some true)))))
+        (let
+          ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
+          (ite
+            (=
+              (select (state-Right-keys_top-T __self_state) h)
+              (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
+            (let
+              ((r (__sample-rand-Right-Bits_n 1 (composition-rand-Right-1 __global_state))))
+              (let
+                (
+                  (__global_state
+                    (mk-composition-state-Right
+                      (composition-pkgstate-Right-keys_top __global_state)
+                      (composition-pkgstate-Right-keys_bottom __global_state)
+                      (composition-pkgstate-Right-simgate __global_state)
+                      (composition-pkgstate-Right-ev __global_state)
+                      (composition-param-Right-m __global_state)
+                      (composition-param-Right-n __global_state)
+                      (composition-param-Right-zeron __global_state)
+                      (composition-param-Right-zerom __global_state)
+                      (composition-param-Right-p __global_state)
+                      (composition-rand-Right-0 __global_state)
+                      (+ 1 (composition-rand-Right-1 __global_state))
+                      (composition-rand-Right-2 __global_state)
+                      (composition-rand-Right-3 __global_state)
+                      (composition-rand-Right-4 __global_state)
+                      (composition-rand-Right-5 __global_state)
+                      (composition-rand-Right-6 __global_state)
+                      (composition-rand-Right-7 __global_state)
+                      (composition-rand-Right-8 __global_state)
+                      (composition-rand-Right-9 __global_state)
+                      (composition-rand-Right-10 __global_state)
+                      (composition-rand-Right-11 __global_state)
+                      (composition-rand-Right-12 __global_state)
+                      (composition-rand-Right-13 __global_state)
+                      (composition-rand-Right-14 __global_state)
+                      (composition-rand-Right-15 __global_state)
+                      (composition-rand-Right-16 __global_state))))
+                (let
+                  ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
+                  (let
+                    ((Z (store Z true (mk-some r))))
+                    (let
+                      ((rr (__sample-rand-Right-Bits_n 2 (composition-rand-Right-2 __global_state))))
+                      (let
+                        (
+                          (__global_state
+                            (mk-composition-state-Right
+                              (composition-pkgstate-Right-keys_top __global_state)
+                              (composition-pkgstate-Right-keys_bottom __global_state)
+                              (composition-pkgstate-Right-simgate __global_state)
+                              (composition-pkgstate-Right-ev __global_state)
+                              (composition-param-Right-m __global_state)
+                              (composition-param-Right-n __global_state)
+                              (composition-param-Right-zeron __global_state)
+                              (composition-param-Right-zerom __global_state)
+                              (composition-param-Right-p __global_state)
+                              (composition-rand-Right-0 __global_state)
+                              (composition-rand-Right-1 __global_state)
+                              (+ 1 (composition-rand-Right-2 __global_state))
+                              (composition-rand-Right-3 __global_state)
+                              (composition-rand-Right-4 __global_state)
+                              (composition-rand-Right-5 __global_state)
+                              (composition-rand-Right-6 __global_state)
+                              (composition-rand-Right-7 __global_state)
+                              (composition-rand-Right-8 __global_state)
+                              (composition-rand-Right-9 __global_state)
+                              (composition-rand-Right-10 __global_state)
+                              (composition-rand-Right-11 __global_state)
+                              (composition-rand-Right-12 __global_state)
+                              (composition-rand-Right-13 __global_state)
+                              (composition-rand-Right-14 __global_state)
+                              (composition-rand-Right-15 __global_state)
+                              (composition-rand-Right-16 __global_state))))
+                        (let
+                          ((Z (store Z false (mk-some rr))))
+                          (let
+                            (
+                              (__self_state
+                                (mk-state-Right-keys_top
+                                  (store (state-Right-keys_top-T __self_state) h (mk-some Z))
+                                  (state-Right-keys_top-z __self_state)
+                                  (state-Right-keys_top-flag __self_state))))
+                            (let
+                              ((unwrap-1 (maybe-get (select (state-Right-keys_top-T __self_state) h))))
+                              (let
+                                ((Z unwrap-1))
+                                (let
+                                  ((unwrap-2 (maybe-get (select (state-Right-keys_top-z __self_state) h))))
+                                  (let
+                                    ((zz unwrap-2))
+                                    (let
+                                      ((unwrap-3 (maybe-get (select Z zz))))
+                                      (let
+                                        ((k unwrap-3))
+                                        (let
+                                          (
+                                            (__global_state
+                                              (mk-composition-state-Right
+                                                __self_state
+                                                (composition-pkgstate-Right-keys_bottom __global_state)
+                                                (composition-pkgstate-Right-simgate __global_state)
+                                                (composition-pkgstate-Right-ev __global_state)
+                                                (composition-param-Right-m __global_state)
+                                                (composition-param-Right-n __global_state)
+                                                (composition-param-Right-zeron __global_state)
+                                                (composition-param-Right-zerom __global_state)
+                                                (composition-param-Right-p __global_state)
+                                                (composition-rand-Right-0 __global_state)
+                                                (composition-rand-Right-1 __global_state)
+                                                (composition-rand-Right-2 __global_state)
+                                                (composition-rand-Right-3 __global_state)
+                                                (composition-rand-Right-4 __global_state)
+                                                (composition-rand-Right-5 __global_state)
+                                                (composition-rand-Right-6 __global_state)
+                                                (composition-rand-Right-7 __global_state)
+                                                (composition-rand-Right-8 __global_state)
+                                                (composition-rand-Right-9 __global_state)
+                                                (composition-rand-Right-10 __global_state)
+                                                (composition-rand-Right-11 __global_state)
+                                                (composition-rand-Right-12 __global_state)
+                                                (composition-rand-Right-13 __global_state)
+                                                (composition-rand-Right-14 __global_state)
+                                                (composition-rand-Right-15 __global_state)
+                                                (composition-rand-Right-16 __global_state))))
+                                          (mk-return-Right-keys_top-GETAOUT __global_state k))))))))))))))))
+            (let
+              ((unwrap-1 (maybe-get (select (state-Right-keys_top-T __self_state) h))))
+              (let
+                ((Z unwrap-1))
+                (let
+                  ((unwrap-2 (maybe-get (select (state-Right-keys_top-z __self_state) h))))
+                  (let
+                    ((zz unwrap-2))
+                    (let
+                      ((unwrap-3 (maybe-get (select Z zz))))
+                      (let
+                        ((k unwrap-3))
+                        (let
+                          (
+                            (__global_state
+                              (mk-composition-state-Right
+                                __self_state
+                                (composition-pkgstate-Right-keys_bottom __global_state)
+                                (composition-pkgstate-Right-simgate __global_state)
+                                (composition-pkgstate-Right-ev __global_state)
+                                (composition-param-Right-m __global_state)
+                                (composition-param-Right-n __global_state)
+                                (composition-param-Right-zeron __global_state)
+                                (composition-param-Right-zerom __global_state)
+                                (composition-param-Right-p __global_state)
+                                (composition-rand-Right-0 __global_state)
+                                (composition-rand-Right-1 __global_state)
+                                (composition-rand-Right-2 __global_state)
+                                (composition-rand-Right-3 __global_state)
+                                (composition-rand-Right-4 __global_state)
+                                (composition-rand-Right-5 __global_state)
+                                (composition-rand-Right-6 __global_state)
+                                (composition-rand-Right-7 __global_state)
+                                (composition-rand-Right-8 __global_state)
+                                (composition-rand-Right-9 __global_state)
+                                (composition-rand-Right-10 __global_state)
+                                (composition-rand-Right-11 __global_state)
+                                (composition-rand-Right-12 __global_state)
+                                (composition-rand-Right-13 __global_state)
+                                (composition-rand-Right-14 __global_state)
+                                (composition-rand-Right-15 __global_state)
+                                (composition-rand-Right-16 __global_state))))
+                          (mk-return-Right-keys_top-GETAOUT __global_state k)))))))))))
+      mk-abort-Right-keys_top-GETAOUT)))
+(define-fun
+  oracle-Right-keys_top-GETKEYSOUT
+  ((__global_state CompositionState-Right) (h Int))
+  Return_Right_keys_top_GETKEYSOUT
+  (let
+    ((__self_state (composition-pkgstate-Right-keys_top __global_state)))
+    (let
+      (
+        (__self_state
+          (mk-state-Right-keys_top
+            (state-Right-keys_top-T __self_state)
+            (state-Right-keys_top-z __self_state)
+            (store (state-Right-keys_top-flag __self_state) h (mk-some true)))))
+      (let
+        ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
+        (ite
+          (=
+            (select (state-Right-keys_top-T __self_state) h)
+            (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
+          (let
+            ((r (__sample-rand-Right-Bits_n 3 (composition-rand-Right-3 __global_state))))
+            (let
+              (
+                (__global_state
+                  (mk-composition-state-Right
+                    (composition-pkgstate-Right-keys_top __global_state)
+                    (composition-pkgstate-Right-keys_bottom __global_state)
+                    (composition-pkgstate-Right-simgate __global_state)
+                    (composition-pkgstate-Right-ev __global_state)
+                    (composition-param-Right-m __global_state)
+                    (composition-param-Right-n __global_state)
+                    (composition-param-Right-zeron __global_state)
+                    (composition-param-Right-zerom __global_state)
+                    (composition-param-Right-p __global_state)
+                    (composition-rand-Right-0 __global_state)
+                    (composition-rand-Right-1 __global_state)
+                    (composition-rand-Right-2 __global_state)
+                    (+ 1 (composition-rand-Right-3 __global_state))
+                    (composition-rand-Right-4 __global_state)
+                    (composition-rand-Right-5 __global_state)
+                    (composition-rand-Right-6 __global_state)
+                    (composition-rand-Right-7 __global_state)
+                    (composition-rand-Right-8 __global_state)
+                    (composition-rand-Right-9 __global_state)
+                    (composition-rand-Right-10 __global_state)
+                    (composition-rand-Right-11 __global_state)
+                    (composition-rand-Right-12 __global_state)
+                    (composition-rand-Right-13 __global_state)
+                    (composition-rand-Right-14 __global_state)
+                    (composition-rand-Right-15 __global_state)
+                    (composition-rand-Right-16 __global_state))))
+              (let
+                ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
+                (let
+                  ((Z (store Z true (mk-some r))))
+                  (let
+                    ((rr (__sample-rand-Right-Bits_n 4 (composition-rand-Right-4 __global_state))))
+                    (let
+                      (
+                        (__global_state
+                          (mk-composition-state-Right
+                            (composition-pkgstate-Right-keys_top __global_state)
+                            (composition-pkgstate-Right-keys_bottom __global_state)
+                            (composition-pkgstate-Right-simgate __global_state)
+                            (composition-pkgstate-Right-ev __global_state)
+                            (composition-param-Right-m __global_state)
+                            (composition-param-Right-n __global_state)
+                            (composition-param-Right-zeron __global_state)
+                            (composition-param-Right-zerom __global_state)
+                            (composition-param-Right-p __global_state)
+                            (composition-rand-Right-0 __global_state)
+                            (composition-rand-Right-1 __global_state)
+                            (composition-rand-Right-2 __global_state)
+                            (composition-rand-Right-3 __global_state)
+                            (+ 1 (composition-rand-Right-4 __global_state))
+                            (composition-rand-Right-5 __global_state)
+                            (composition-rand-Right-6 __global_state)
+                            (composition-rand-Right-7 __global_state)
+                            (composition-rand-Right-8 __global_state)
+                            (composition-rand-Right-9 __global_state)
+                            (composition-rand-Right-10 __global_state)
+                            (composition-rand-Right-11 __global_state)
+                            (composition-rand-Right-12 __global_state)
+                            (composition-rand-Right-13 __global_state)
+                            (composition-rand-Right-14 __global_state)
+                            (composition-rand-Right-15 __global_state)
+                            (composition-rand-Right-16 __global_state))))
+                      (let
+                        ((Z (store Z false (mk-some rr))))
+                        (let
+                          (
+                            (__self_state
+                              (mk-state-Right-keys_top
+                                (store (state-Right-keys_top-T __self_state) h (mk-some Z))
+                                (state-Right-keys_top-z __self_state)
+                                (state-Right-keys_top-flag __self_state))))
+                          (let
+                            ((unwrap-1 (maybe-get (select (state-Right-keys_top-T __self_state) h))))
+                            (let
+                              ((Z unwrap-1))
+                              (let
+                                (
+                                  (__global_state
+                                    (mk-composition-state-Right
+                                      __self_state
+                                      (composition-pkgstate-Right-keys_bottom __global_state)
+                                      (composition-pkgstate-Right-simgate __global_state)
+                                      (composition-pkgstate-Right-ev __global_state)
+                                      (composition-param-Right-m __global_state)
+                                      (composition-param-Right-n __global_state)
+                                      (composition-param-Right-zeron __global_state)
+                                      (composition-param-Right-zerom __global_state)
+                                      (composition-param-Right-p __global_state)
+                                      (composition-rand-Right-0 __global_state)
+                                      (composition-rand-Right-1 __global_state)
+                                      (composition-rand-Right-2 __global_state)
+                                      (composition-rand-Right-3 __global_state)
+                                      (composition-rand-Right-4 __global_state)
+                                      (composition-rand-Right-5 __global_state)
+                                      (composition-rand-Right-6 __global_state)
+                                      (composition-rand-Right-7 __global_state)
+                                      (composition-rand-Right-8 __global_state)
+                                      (composition-rand-Right-9 __global_state)
+                                      (composition-rand-Right-10 __global_state)
+                                      (composition-rand-Right-11 __global_state)
+                                      (composition-rand-Right-12 __global_state)
+                                      (composition-rand-Right-13 __global_state)
+                                      (composition-rand-Right-14 __global_state)
+                                      (composition-rand-Right-15 __global_state)
+                                      (composition-rand-Right-16 __global_state))))
+                                (mk-return-Right-keys_top-GETKEYSOUT __global_state Z))))))))))))
+          (let
+            ((unwrap-1 (maybe-get (select (state-Right-keys_top-T __self_state) h))))
+            (let
+              ((Z unwrap-1))
+              (let
+                (
+                  (__global_state
+                    (mk-composition-state-Right
+                      __self_state
+                      (composition-pkgstate-Right-keys_bottom __global_state)
+                      (composition-pkgstate-Right-simgate __global_state)
+                      (composition-pkgstate-Right-ev __global_state)
+                      (composition-param-Right-m __global_state)
+                      (composition-param-Right-n __global_state)
+                      (composition-param-Right-zeron __global_state)
+                      (composition-param-Right-zerom __global_state)
+                      (composition-param-Right-p __global_state)
+                      (composition-rand-Right-0 __global_state)
+                      (composition-rand-Right-1 __global_state)
+                      (composition-rand-Right-2 __global_state)
+                      (composition-rand-Right-3 __global_state)
+                      (composition-rand-Right-4 __global_state)
+                      (composition-rand-Right-5 __global_state)
+                      (composition-rand-Right-6 __global_state)
+                      (composition-rand-Right-7 __global_state)
+                      (composition-rand-Right-8 __global_state)
+                      (composition-rand-Right-9 __global_state)
+                      (composition-rand-Right-10 __global_state)
+                      (composition-rand-Right-11 __global_state)
+                      (composition-rand-Right-12 __global_state)
+                      (composition-rand-Right-13 __global_state)
+                      (composition-rand-Right-14 __global_state)
+                      (composition-rand-Right-15 __global_state)
+                      (composition-rand-Right-16 __global_state))))
+                (mk-return-Right-keys_top-GETKEYSOUT __global_state Z)))))))))
 (define-fun
   oracle-Right-keys_top-GETBIT
   ((__global_state CompositionState-Right) (h Int))
@@ -1978,10 +2450,10 @@
                   (composition-pkgstate-Right-simgate __global_state)
                   (composition-pkgstate-Right-ev __global_state)
                   (composition-param-Right-m __global_state)
+                  (composition-param-Right-n __global_state)
+                  (composition-param-Right-zeron __global_state)
                   (composition-param-Right-zerom __global_state)
                   (composition-param-Right-p __global_state)
-                  (composition-param-Right-zeron __global_state)
-                  (composition-param-Right-n __global_state)
                   (composition-rand-Right-0 __global_state)
                   (composition-rand-Right-1 __global_state)
                   (composition-rand-Right-2 __global_state)
@@ -1994,7 +2466,11 @@
                   (composition-rand-Right-9 __global_state)
                   (composition-rand-Right-10 __global_state)
                   (composition-rand-Right-11 __global_state)
-                  (composition-rand-Right-12 __global_state))))
+                  (composition-rand-Right-12 __global_state)
+                  (composition-rand-Right-13 __global_state)
+                  (composition-rand-Right-14 __global_state)
+                  (composition-rand-Right-15 __global_state)
+                  (composition-rand-Right-16 __global_state))))
             (mk-return-Right-keys_top-GETBIT __global_state zz))))
       mk-abort-Right-keys_top-GETBIT)))
 (define-fun
@@ -2021,305 +2497,43 @@
   (let
     ((__self_state (composition-pkgstate-Right-keys_bottom __global_state)))
     (ite
-      (not
-        (=
-          (select (state-Right-keys_bottom-z __self_state) h)
-          (as mk-none (Maybe Bool))))
-      (ite
-        (= (select (state-Right-keys_bottom-flag __self_state) h) (mk-some true))
-        (let
-          ((unwrap-1 (maybe-get (select (state-Right-keys_bottom-T __self_state) h))))
-          (let
-            ((Z unwrap-1))
-            (let
-              (
-                (__global_state
-                  (mk-composition-state-Right
-                    (composition-pkgstate-Right-keys_top __global_state)
-                    __self_state
-                    (composition-pkgstate-Right-simgate __global_state)
-                    (composition-pkgstate-Right-ev __global_state)
-                    (composition-param-Right-m __global_state)
-                    (composition-param-Right-zerom __global_state)
-                    (composition-param-Right-p __global_state)
-                    (composition-param-Right-zeron __global_state)
-                    (composition-param-Right-n __global_state)
-                    (composition-rand-Right-0 __global_state)
-                    (composition-rand-Right-1 __global_state)
-                    (composition-rand-Right-2 __global_state)
-                    (composition-rand-Right-3 __global_state)
-                    (composition-rand-Right-4 __global_state)
-                    (composition-rand-Right-5 __global_state)
-                    (composition-rand-Right-6 __global_state)
-                    (composition-rand-Right-7 __global_state)
-                    (composition-rand-Right-8 __global_state)
-                    (composition-rand-Right-9 __global_state)
-                    (composition-rand-Right-10 __global_state)
-                    (composition-rand-Right-11 __global_state)
-                    (composition-rand-Right-12 __global_state))))
-              (mk-return-Right-keys_bottom-GETKEYSIN __global_state Z))))
-        mk-abort-Right-keys_bottom-GETKEYSIN)
-      mk-abort-Right-keys_bottom-GETKEYSIN)))
-(define-fun
-  oracle-Right-keys_bottom-GETKEYSOUT
-  ((__global_state CompositionState-Right) (h Int))
-  Return_Right_keys_bottom_GETKEYSOUT
-  (let
-    ((__self_state (composition-pkgstate-Right-keys_bottom __global_state)))
-    (let
-      (
-        (__self_state
-          (mk-state-Right-keys_bottom
-            (state-Right-keys_bottom-T __self_state)
-            (state-Right-keys_bottom-z __self_state)
-            (store (state-Right-keys_bottom-flag __self_state) h (mk-some true)))))
+      (= (select (state-Right-keys_bottom-flag __self_state) h) (mk-some true))
       (let
-        ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
-        (ite
-          (=
-            (select (state-Right-keys_bottom-T __self_state) h)
-            (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
-          (let
-            ((r (__sample-rand-Right-Bits_n 3 (composition-rand-Right-3 __global_state))))
-            (let
-              (
-                (__global_state
-                  (mk-composition-state-Right
-                    (composition-pkgstate-Right-keys_top __global_state)
-                    (composition-pkgstate-Right-keys_bottom __global_state)
-                    (composition-pkgstate-Right-simgate __global_state)
-                    (composition-pkgstate-Right-ev __global_state)
-                    (composition-param-Right-m __global_state)
-                    (composition-param-Right-zerom __global_state)
-                    (composition-param-Right-p __global_state)
-                    (composition-param-Right-zeron __global_state)
-                    (composition-param-Right-n __global_state)
-                    (composition-rand-Right-0 __global_state)
-                    (composition-rand-Right-1 __global_state)
-                    (composition-rand-Right-2 __global_state)
-                    (+ 1 (composition-rand-Right-3 __global_state))
-                    (composition-rand-Right-4 __global_state)
-                    (composition-rand-Right-5 __global_state)
-                    (composition-rand-Right-6 __global_state)
-                    (composition-rand-Right-7 __global_state)
-                    (composition-rand-Right-8 __global_state)
-                    (composition-rand-Right-9 __global_state)
-                    (composition-rand-Right-10 __global_state)
-                    (composition-rand-Right-11 __global_state)
-                    (composition-rand-Right-12 __global_state))))
-              (let
-                ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
-                (let
-                  ((Z (store Z true (mk-some r))))
-                  (let
-                    ((rr (__sample-rand-Right-Bits_n 4 (composition-rand-Right-4 __global_state))))
-                    (let
-                      (
-                        (__global_state
-                          (mk-composition-state-Right
-                            (composition-pkgstate-Right-keys_top __global_state)
-                            (composition-pkgstate-Right-keys_bottom __global_state)
-                            (composition-pkgstate-Right-simgate __global_state)
-                            (composition-pkgstate-Right-ev __global_state)
-                            (composition-param-Right-m __global_state)
-                            (composition-param-Right-zerom __global_state)
-                            (composition-param-Right-p __global_state)
-                            (composition-param-Right-zeron __global_state)
-                            (composition-param-Right-n __global_state)
-                            (composition-rand-Right-0 __global_state)
-                            (composition-rand-Right-1 __global_state)
-                            (composition-rand-Right-2 __global_state)
-                            (composition-rand-Right-3 __global_state)
-                            (+ 1 (composition-rand-Right-4 __global_state))
-                            (composition-rand-Right-5 __global_state)
-                            (composition-rand-Right-6 __global_state)
-                            (composition-rand-Right-7 __global_state)
-                            (composition-rand-Right-8 __global_state)
-                            (composition-rand-Right-9 __global_state)
-                            (composition-rand-Right-10 __global_state)
-                            (composition-rand-Right-11 __global_state)
-                            (composition-rand-Right-12 __global_state))))
-                      (let
-                        ((Z (store Z false (mk-some rr))))
-                        (let
-                          (
-                            (__self_state
-                              (mk-state-Right-keys_bottom
-                                (store (state-Right-keys_bottom-T __self_state) h (mk-some Z))
-                                (state-Right-keys_bottom-z __self_state)
-                                (state-Right-keys_bottom-flag __self_state))))
-                          (let
-                            ((unwrap-1 (maybe-get (select (state-Right-keys_bottom-T __self_state) h))))
-                            (let
-                              ((Z unwrap-1))
-                              (let
-                                (
-                                  (__global_state
-                                    (mk-composition-state-Right
-                                      (composition-pkgstate-Right-keys_top __global_state)
-                                      __self_state
-                                      (composition-pkgstate-Right-simgate __global_state)
-                                      (composition-pkgstate-Right-ev __global_state)
-                                      (composition-param-Right-m __global_state)
-                                      (composition-param-Right-zerom __global_state)
-                                      (composition-param-Right-p __global_state)
-                                      (composition-param-Right-zeron __global_state)
-                                      (composition-param-Right-n __global_state)
-                                      (composition-rand-Right-0 __global_state)
-                                      (composition-rand-Right-1 __global_state)
-                                      (composition-rand-Right-2 __global_state)
-                                      (composition-rand-Right-3 __global_state)
-                                      (composition-rand-Right-4 __global_state)
-                                      (composition-rand-Right-5 __global_state)
-                                      (composition-rand-Right-6 __global_state)
-                                      (composition-rand-Right-7 __global_state)
-                                      (composition-rand-Right-8 __global_state)
-                                      (composition-rand-Right-9 __global_state)
-                                      (composition-rand-Right-10 __global_state)
-                                      (composition-rand-Right-11 __global_state)
-                                      (composition-rand-Right-12 __global_state))))
-                                (mk-return-Right-keys_bottom-GETKEYSOUT __global_state Z))))))))))))
-          (let
-            ((unwrap-1 (maybe-get (select (state-Right-keys_bottom-T __self_state) h))))
-            (let
-              ((Z unwrap-1))
-              (let
-                (
-                  (__global_state
-                    (mk-composition-state-Right
-                      (composition-pkgstate-Right-keys_top __global_state)
-                      __self_state
-                      (composition-pkgstate-Right-simgate __global_state)
-                      (composition-pkgstate-Right-ev __global_state)
-                      (composition-param-Right-m __global_state)
-                      (composition-param-Right-zerom __global_state)
-                      (composition-param-Right-p __global_state)
-                      (composition-param-Right-zeron __global_state)
-                      (composition-param-Right-n __global_state)
-                      (composition-rand-Right-0 __global_state)
-                      (composition-rand-Right-1 __global_state)
-                      (composition-rand-Right-2 __global_state)
-                      (composition-rand-Right-3 __global_state)
-                      (composition-rand-Right-4 __global_state)
-                      (composition-rand-Right-5 __global_state)
-                      (composition-rand-Right-6 __global_state)
-                      (composition-rand-Right-7 __global_state)
-                      (composition-rand-Right-8 __global_state)
-                      (composition-rand-Right-9 __global_state)
-                      (composition-rand-Right-10 __global_state)
-                      (composition-rand-Right-11 __global_state)
-                      (composition-rand-Right-12 __global_state))))
-                (mk-return-Right-keys_bottom-GETKEYSOUT __global_state Z)))))))))
-(define-fun
-  oracle-Right-keys_bottom-GETAOUT
-  ((__global_state CompositionState-Right) (h Int))
-  Return_Right_keys_bottom_GETAOUT
-  (let
-    ((__self_state (composition-pkgstate-Right-keys_bottom __global_state)))
-    (let
-      (
-        (__self_state
-          (mk-state-Right-keys_bottom
-            (state-Right-keys_bottom-T __self_state)
-            (state-Right-keys_bottom-z __self_state)
-            (store (state-Right-keys_bottom-flag __self_state) h (mk-some true)))))
-      (ite
-        (= (select (state-Right-keys_bottom-flag __self_state) h) (mk-some true))
+        ((unwrap-1 (maybe-get (select (state-Right-keys_bottom-T __self_state) h))))
         (let
-          ((unwrap-1 (maybe-get (select (state-Right-keys_bottom-T __self_state) h))))
+          ((Z unwrap-1))
           (let
-            ((Z unwrap-1))
-            (let
-              ((unwrap-2 (maybe-get (select (state-Right-keys_bottom-z __self_state) h))))
-              (let
-                ((zz unwrap-2))
-                (let
-                  ((unwrap-3 (maybe-get (select Z zz))))
-                  (let
-                    ((k unwrap-3))
-                    (let
-                      (
-                        (__global_state
-                          (mk-composition-state-Right
-                            (composition-pkgstate-Right-keys_top __global_state)
-                            __self_state
-                            (composition-pkgstate-Right-simgate __global_state)
-                            (composition-pkgstate-Right-ev __global_state)
-                            (composition-param-Right-m __global_state)
-                            (composition-param-Right-zerom __global_state)
-                            (composition-param-Right-p __global_state)
-                            (composition-param-Right-zeron __global_state)
-                            (composition-param-Right-n __global_state)
-                            (composition-rand-Right-0 __global_state)
-                            (composition-rand-Right-1 __global_state)
-                            (composition-rand-Right-2 __global_state)
-                            (composition-rand-Right-3 __global_state)
-                            (composition-rand-Right-4 __global_state)
-                            (composition-rand-Right-5 __global_state)
-                            (composition-rand-Right-6 __global_state)
-                            (composition-rand-Right-7 __global_state)
-                            (composition-rand-Right-8 __global_state)
-                            (composition-rand-Right-9 __global_state)
-                            (composition-rand-Right-10 __global_state)
-                            (composition-rand-Right-11 __global_state)
-                            (composition-rand-Right-12 __global_state))))
-                      (mk-return-Right-keys_bottom-GETAOUT __global_state k))))))))
-        mk-abort-Right-keys_bottom-GETAOUT))))
-(define-fun
-  oracle-Right-keys_bottom-GETINAOUT
-  ((__global_state CompositionState-Right) (h Int))
-  Return_Right_keys_bottom_GETINAOUT
-  (let
-    ((__self_state (composition-pkgstate-Right-keys_bottom __global_state)))
-    (let
-      (
-        (__self_state
-          (mk-state-Right-keys_bottom
-            (state-Right-keys_bottom-T __self_state)
-            (state-Right-keys_bottom-z __self_state)
-            (store (state-Right-keys_bottom-flag __self_state) h (mk-some true)))))
-      (ite
-        (= (select (state-Right-keys_bottom-flag __self_state) h) (mk-some true))
-        (let
-          ((unwrap-1 (maybe-get (select (state-Right-keys_bottom-T __self_state) h))))
-          (let
-            ((Z unwrap-1))
-            (let
-              ((unwrap-2 (maybe-get (select (state-Right-keys_bottom-z __self_state) h))))
-              (let
-                ((zz unwrap-2))
-                (let
-                  ((unwrap-3 (maybe-get (select Z (not zz)))))
-                  (let
-                    ((k unwrap-3))
-                    (let
-                      (
-                        (__global_state
-                          (mk-composition-state-Right
-                            (composition-pkgstate-Right-keys_top __global_state)
-                            __self_state
-                            (composition-pkgstate-Right-simgate __global_state)
-                            (composition-pkgstate-Right-ev __global_state)
-                            (composition-param-Right-m __global_state)
-                            (composition-param-Right-zerom __global_state)
-                            (composition-param-Right-p __global_state)
-                            (composition-param-Right-zeron __global_state)
-                            (composition-param-Right-n __global_state)
-                            (composition-rand-Right-0 __global_state)
-                            (composition-rand-Right-1 __global_state)
-                            (composition-rand-Right-2 __global_state)
-                            (composition-rand-Right-3 __global_state)
-                            (composition-rand-Right-4 __global_state)
-                            (composition-rand-Right-5 __global_state)
-                            (composition-rand-Right-6 __global_state)
-                            (composition-rand-Right-7 __global_state)
-                            (composition-rand-Right-8 __global_state)
-                            (composition-rand-Right-9 __global_state)
-                            (composition-rand-Right-10 __global_state)
-                            (composition-rand-Right-11 __global_state)
-                            (composition-rand-Right-12 __global_state))))
-                      (mk-return-Right-keys_bottom-GETINAOUT __global_state k))))))))
-        mk-abort-Right-keys_bottom-GETINAOUT))))
+            (
+              (__global_state
+                (mk-composition-state-Right
+                  (composition-pkgstate-Right-keys_top __global_state)
+                  __self_state
+                  (composition-pkgstate-Right-simgate __global_state)
+                  (composition-pkgstate-Right-ev __global_state)
+                  (composition-param-Right-m __global_state)
+                  (composition-param-Right-n __global_state)
+                  (composition-param-Right-zeron __global_state)
+                  (composition-param-Right-zerom __global_state)
+                  (composition-param-Right-p __global_state)
+                  (composition-rand-Right-0 __global_state)
+                  (composition-rand-Right-1 __global_state)
+                  (composition-rand-Right-2 __global_state)
+                  (composition-rand-Right-3 __global_state)
+                  (composition-rand-Right-4 __global_state)
+                  (composition-rand-Right-5 __global_state)
+                  (composition-rand-Right-6 __global_state)
+                  (composition-rand-Right-7 __global_state)
+                  (composition-rand-Right-8 __global_state)
+                  (composition-rand-Right-9 __global_state)
+                  (composition-rand-Right-10 __global_state)
+                  (composition-rand-Right-11 __global_state)
+                  (composition-rand-Right-12 __global_state)
+                  (composition-rand-Right-13 __global_state)
+                  (composition-rand-Right-14 __global_state)
+                  (composition-rand-Right-15 __global_state)
+                  (composition-rand-Right-16 __global_state))))
+            (mk-return-Right-keys_bottom-GETKEYSIN __global_state Z))))
+      mk-abort-Right-keys_bottom-GETKEYSIN)))
 (define-fun
   oracle-Right-keys_bottom-GETAIN
   ((__global_state CompositionState-Right) (h Int))
@@ -2328,48 +2542,49 @@
     ((__self_state (composition-pkgstate-Right-keys_bottom __global_state)))
     (ite
       (= (select (state-Right-keys_bottom-flag __self_state) h) (mk-some true))
-      (ite
-        (= (select (state-Right-keys_bottom-flag __self_state) h) (mk-some true))
+      (let
+        ((unwrap-1 (maybe-get (select (state-Right-keys_bottom-T __self_state) h))))
         (let
-          ((unwrap-1 (maybe-get (select (state-Right-keys_bottom-T __self_state) h))))
+          ((Z unwrap-1))
           (let
-            ((Z unwrap-1))
+            ((unwrap-2 (maybe-get (select (state-Right-keys_bottom-z __self_state) h))))
             (let
-              ((unwrap-2 (maybe-get (select (state-Right-keys_bottom-z __self_state) h))))
+              ((zz unwrap-2))
               (let
-                ((zz unwrap-2))
+                ((unwrap-3 (maybe-get (select Z zz))))
                 (let
-                  ((unwrap-3 (maybe-get (select Z zz))))
+                  ((k unwrap-3))
                   (let
-                    ((k unwrap-3))
-                    (let
-                      (
-                        (__global_state
-                          (mk-composition-state-Right
-                            (composition-pkgstate-Right-keys_top __global_state)
-                            __self_state
-                            (composition-pkgstate-Right-simgate __global_state)
-                            (composition-pkgstate-Right-ev __global_state)
-                            (composition-param-Right-m __global_state)
-                            (composition-param-Right-zerom __global_state)
-                            (composition-param-Right-p __global_state)
-                            (composition-param-Right-zeron __global_state)
-                            (composition-param-Right-n __global_state)
-                            (composition-rand-Right-0 __global_state)
-                            (composition-rand-Right-1 __global_state)
-                            (composition-rand-Right-2 __global_state)
-                            (composition-rand-Right-3 __global_state)
-                            (composition-rand-Right-4 __global_state)
-                            (composition-rand-Right-5 __global_state)
-                            (composition-rand-Right-6 __global_state)
-                            (composition-rand-Right-7 __global_state)
-                            (composition-rand-Right-8 __global_state)
-                            (composition-rand-Right-9 __global_state)
-                            (composition-rand-Right-10 __global_state)
-                            (composition-rand-Right-11 __global_state)
-                            (composition-rand-Right-12 __global_state))))
-                      (mk-return-Right-keys_bottom-GETAIN __global_state k))))))))
-        mk-abort-Right-keys_bottom-GETAIN)
+                    (
+                      (__global_state
+                        (mk-composition-state-Right
+                          (composition-pkgstate-Right-keys_top __global_state)
+                          __self_state
+                          (composition-pkgstate-Right-simgate __global_state)
+                          (composition-pkgstate-Right-ev __global_state)
+                          (composition-param-Right-m __global_state)
+                          (composition-param-Right-n __global_state)
+                          (composition-param-Right-zeron __global_state)
+                          (composition-param-Right-zerom __global_state)
+                          (composition-param-Right-p __global_state)
+                          (composition-rand-Right-0 __global_state)
+                          (composition-rand-Right-1 __global_state)
+                          (composition-rand-Right-2 __global_state)
+                          (composition-rand-Right-3 __global_state)
+                          (composition-rand-Right-4 __global_state)
+                          (composition-rand-Right-5 __global_state)
+                          (composition-rand-Right-6 __global_state)
+                          (composition-rand-Right-7 __global_state)
+                          (composition-rand-Right-8 __global_state)
+                          (composition-rand-Right-9 __global_state)
+                          (composition-rand-Right-10 __global_state)
+                          (composition-rand-Right-11 __global_state)
+                          (composition-rand-Right-12 __global_state)
+                          (composition-rand-Right-13 __global_state)
+                          (composition-rand-Right-14 __global_state)
+                          (composition-rand-Right-15 __global_state)
+                          (composition-rand-Right-16 __global_state))))
+                    (mk-return-Right-keys_bottom-GETAIN __global_state k))))))))
       mk-abort-Right-keys_bottom-GETAIN)))
 (define-fun
   oracle-Right-keys_bottom-GETINAIN
@@ -2400,10 +2615,10 @@
                           (composition-pkgstate-Right-simgate __global_state)
                           (composition-pkgstate-Right-ev __global_state)
                           (composition-param-Right-m __global_state)
+                          (composition-param-Right-n __global_state)
+                          (composition-param-Right-zeron __global_state)
                           (composition-param-Right-zerom __global_state)
                           (composition-param-Right-p __global_state)
-                          (composition-param-Right-zeron __global_state)
-                          (composition-param-Right-n __global_state)
                           (composition-rand-Right-0 __global_state)
                           (composition-rand-Right-1 __global_state)
                           (composition-rand-Right-2 __global_state)
@@ -2416,9 +2631,364 @@
                           (composition-rand-Right-9 __global_state)
                           (composition-rand-Right-10 __global_state)
                           (composition-rand-Right-11 __global_state)
-                          (composition-rand-Right-12 __global_state))))
+                          (composition-rand-Right-12 __global_state)
+                          (composition-rand-Right-13 __global_state)
+                          (composition-rand-Right-14 __global_state)
+                          (composition-rand-Right-15 __global_state)
+                          (composition-rand-Right-16 __global_state))))
                     (mk-return-Right-keys_bottom-GETINAIN __global_state k))))))))
       mk-abort-Right-keys_bottom-GETINAIN)))
+(define-fun
+  oracle-Right-keys_bottom-GETAOUT
+  ((__global_state CompositionState-Right) (h Int))
+  Return_Right_keys_bottom_GETAOUT
+  (let
+    ((__self_state (composition-pkgstate-Right-keys_bottom __global_state)))
+    (ite
+      (= (select (state-Right-keys_bottom-z __self_state) h) (mk-some true))
+      (let
+        (
+          (__self_state
+            (mk-state-Right-keys_bottom
+              (state-Right-keys_bottom-T __self_state)
+              (state-Right-keys_bottom-z __self_state)
+              (store (state-Right-keys_bottom-flag __self_state) h (mk-some true)))))
+        (let
+          ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
+          (ite
+            (=
+              (select (state-Right-keys_bottom-T __self_state) h)
+              (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
+            (let
+              ((r (__sample-rand-Right-Bits_n 5 (composition-rand-Right-5 __global_state))))
+              (let
+                (
+                  (__global_state
+                    (mk-composition-state-Right
+                      (composition-pkgstate-Right-keys_top __global_state)
+                      (composition-pkgstate-Right-keys_bottom __global_state)
+                      (composition-pkgstate-Right-simgate __global_state)
+                      (composition-pkgstate-Right-ev __global_state)
+                      (composition-param-Right-m __global_state)
+                      (composition-param-Right-n __global_state)
+                      (composition-param-Right-zeron __global_state)
+                      (composition-param-Right-zerom __global_state)
+                      (composition-param-Right-p __global_state)
+                      (composition-rand-Right-0 __global_state)
+                      (composition-rand-Right-1 __global_state)
+                      (composition-rand-Right-2 __global_state)
+                      (composition-rand-Right-3 __global_state)
+                      (composition-rand-Right-4 __global_state)
+                      (+ 1 (composition-rand-Right-5 __global_state))
+                      (composition-rand-Right-6 __global_state)
+                      (composition-rand-Right-7 __global_state)
+                      (composition-rand-Right-8 __global_state)
+                      (composition-rand-Right-9 __global_state)
+                      (composition-rand-Right-10 __global_state)
+                      (composition-rand-Right-11 __global_state)
+                      (composition-rand-Right-12 __global_state)
+                      (composition-rand-Right-13 __global_state)
+                      (composition-rand-Right-14 __global_state)
+                      (composition-rand-Right-15 __global_state)
+                      (composition-rand-Right-16 __global_state))))
+                (let
+                  ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
+                  (let
+                    ((Z (store Z true (mk-some r))))
+                    (let
+                      ((rr (__sample-rand-Right-Bits_n 6 (composition-rand-Right-6 __global_state))))
+                      (let
+                        (
+                          (__global_state
+                            (mk-composition-state-Right
+                              (composition-pkgstate-Right-keys_top __global_state)
+                              (composition-pkgstate-Right-keys_bottom __global_state)
+                              (composition-pkgstate-Right-simgate __global_state)
+                              (composition-pkgstate-Right-ev __global_state)
+                              (composition-param-Right-m __global_state)
+                              (composition-param-Right-n __global_state)
+                              (composition-param-Right-zeron __global_state)
+                              (composition-param-Right-zerom __global_state)
+                              (composition-param-Right-p __global_state)
+                              (composition-rand-Right-0 __global_state)
+                              (composition-rand-Right-1 __global_state)
+                              (composition-rand-Right-2 __global_state)
+                              (composition-rand-Right-3 __global_state)
+                              (composition-rand-Right-4 __global_state)
+                              (composition-rand-Right-5 __global_state)
+                              (+ 1 (composition-rand-Right-6 __global_state))
+                              (composition-rand-Right-7 __global_state)
+                              (composition-rand-Right-8 __global_state)
+                              (composition-rand-Right-9 __global_state)
+                              (composition-rand-Right-10 __global_state)
+                              (composition-rand-Right-11 __global_state)
+                              (composition-rand-Right-12 __global_state)
+                              (composition-rand-Right-13 __global_state)
+                              (composition-rand-Right-14 __global_state)
+                              (composition-rand-Right-15 __global_state)
+                              (composition-rand-Right-16 __global_state))))
+                        (let
+                          ((Z (store Z false (mk-some rr))))
+                          (let
+                            (
+                              (__self_state
+                                (mk-state-Right-keys_bottom
+                                  (store (state-Right-keys_bottom-T __self_state) h (mk-some Z))
+                                  (state-Right-keys_bottom-z __self_state)
+                                  (state-Right-keys_bottom-flag __self_state))))
+                            (let
+                              ((unwrap-1 (maybe-get (select (state-Right-keys_bottom-T __self_state) h))))
+                              (let
+                                ((Z unwrap-1))
+                                (let
+                                  ((unwrap-2 (maybe-get (select (state-Right-keys_bottom-z __self_state) h))))
+                                  (let
+                                    ((zz unwrap-2))
+                                    (let
+                                      ((unwrap-3 (maybe-get (select Z zz))))
+                                      (let
+                                        ((k unwrap-3))
+                                        (let
+                                          (
+                                            (__global_state
+                                              (mk-composition-state-Right
+                                                (composition-pkgstate-Right-keys_top __global_state)
+                                                __self_state
+                                                (composition-pkgstate-Right-simgate __global_state)
+                                                (composition-pkgstate-Right-ev __global_state)
+                                                (composition-param-Right-m __global_state)
+                                                (composition-param-Right-n __global_state)
+                                                (composition-param-Right-zeron __global_state)
+                                                (composition-param-Right-zerom __global_state)
+                                                (composition-param-Right-p __global_state)
+                                                (composition-rand-Right-0 __global_state)
+                                                (composition-rand-Right-1 __global_state)
+                                                (composition-rand-Right-2 __global_state)
+                                                (composition-rand-Right-3 __global_state)
+                                                (composition-rand-Right-4 __global_state)
+                                                (composition-rand-Right-5 __global_state)
+                                                (composition-rand-Right-6 __global_state)
+                                                (composition-rand-Right-7 __global_state)
+                                                (composition-rand-Right-8 __global_state)
+                                                (composition-rand-Right-9 __global_state)
+                                                (composition-rand-Right-10 __global_state)
+                                                (composition-rand-Right-11 __global_state)
+                                                (composition-rand-Right-12 __global_state)
+                                                (composition-rand-Right-13 __global_state)
+                                                (composition-rand-Right-14 __global_state)
+                                                (composition-rand-Right-15 __global_state)
+                                                (composition-rand-Right-16 __global_state))))
+                                          (mk-return-Right-keys_bottom-GETAOUT __global_state k))))))))))))))))
+            (let
+              ((unwrap-1 (maybe-get (select (state-Right-keys_bottom-T __self_state) h))))
+              (let
+                ((Z unwrap-1))
+                (let
+                  ((unwrap-2 (maybe-get (select (state-Right-keys_bottom-z __self_state) h))))
+                  (let
+                    ((zz unwrap-2))
+                    (let
+                      ((unwrap-3 (maybe-get (select Z zz))))
+                      (let
+                        ((k unwrap-3))
+                        (let
+                          (
+                            (__global_state
+                              (mk-composition-state-Right
+                                (composition-pkgstate-Right-keys_top __global_state)
+                                __self_state
+                                (composition-pkgstate-Right-simgate __global_state)
+                                (composition-pkgstate-Right-ev __global_state)
+                                (composition-param-Right-m __global_state)
+                                (composition-param-Right-n __global_state)
+                                (composition-param-Right-zeron __global_state)
+                                (composition-param-Right-zerom __global_state)
+                                (composition-param-Right-p __global_state)
+                                (composition-rand-Right-0 __global_state)
+                                (composition-rand-Right-1 __global_state)
+                                (composition-rand-Right-2 __global_state)
+                                (composition-rand-Right-3 __global_state)
+                                (composition-rand-Right-4 __global_state)
+                                (composition-rand-Right-5 __global_state)
+                                (composition-rand-Right-6 __global_state)
+                                (composition-rand-Right-7 __global_state)
+                                (composition-rand-Right-8 __global_state)
+                                (composition-rand-Right-9 __global_state)
+                                (composition-rand-Right-10 __global_state)
+                                (composition-rand-Right-11 __global_state)
+                                (composition-rand-Right-12 __global_state)
+                                (composition-rand-Right-13 __global_state)
+                                (composition-rand-Right-14 __global_state)
+                                (composition-rand-Right-15 __global_state)
+                                (composition-rand-Right-16 __global_state))))
+                          (mk-return-Right-keys_bottom-GETAOUT __global_state k)))))))))))
+      mk-abort-Right-keys_bottom-GETAOUT)))
+(define-fun
+  oracle-Right-keys_bottom-GETKEYSOUT
+  ((__global_state CompositionState-Right) (h Int))
+  Return_Right_keys_bottom_GETKEYSOUT
+  (let
+    ((__self_state (composition-pkgstate-Right-keys_bottom __global_state)))
+    (let
+      (
+        (__self_state
+          (mk-state-Right-keys_bottom
+            (state-Right-keys_bottom-T __self_state)
+            (state-Right-keys_bottom-z __self_state)
+            (store (state-Right-keys_bottom-flag __self_state) h (mk-some true)))))
+      (let
+        ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
+        (ite
+          (=
+            (select (state-Right-keys_bottom-T __self_state) h)
+            (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
+          (let
+            ((r (__sample-rand-Right-Bits_n 7 (composition-rand-Right-7 __global_state))))
+            (let
+              (
+                (__global_state
+                  (mk-composition-state-Right
+                    (composition-pkgstate-Right-keys_top __global_state)
+                    (composition-pkgstate-Right-keys_bottom __global_state)
+                    (composition-pkgstate-Right-simgate __global_state)
+                    (composition-pkgstate-Right-ev __global_state)
+                    (composition-param-Right-m __global_state)
+                    (composition-param-Right-n __global_state)
+                    (composition-param-Right-zeron __global_state)
+                    (composition-param-Right-zerom __global_state)
+                    (composition-param-Right-p __global_state)
+                    (composition-rand-Right-0 __global_state)
+                    (composition-rand-Right-1 __global_state)
+                    (composition-rand-Right-2 __global_state)
+                    (composition-rand-Right-3 __global_state)
+                    (composition-rand-Right-4 __global_state)
+                    (composition-rand-Right-5 __global_state)
+                    (composition-rand-Right-6 __global_state)
+                    (+ 1 (composition-rand-Right-7 __global_state))
+                    (composition-rand-Right-8 __global_state)
+                    (composition-rand-Right-9 __global_state)
+                    (composition-rand-Right-10 __global_state)
+                    (composition-rand-Right-11 __global_state)
+                    (composition-rand-Right-12 __global_state)
+                    (composition-rand-Right-13 __global_state)
+                    (composition-rand-Right-14 __global_state)
+                    (composition-rand-Right-15 __global_state)
+                    (composition-rand-Right-16 __global_state))))
+              (let
+                ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
+                (let
+                  ((Z (store Z true (mk-some r))))
+                  (let
+                    ((rr (__sample-rand-Right-Bits_n 8 (composition-rand-Right-8 __global_state))))
+                    (let
+                      (
+                        (__global_state
+                          (mk-composition-state-Right
+                            (composition-pkgstate-Right-keys_top __global_state)
+                            (composition-pkgstate-Right-keys_bottom __global_state)
+                            (composition-pkgstate-Right-simgate __global_state)
+                            (composition-pkgstate-Right-ev __global_state)
+                            (composition-param-Right-m __global_state)
+                            (composition-param-Right-n __global_state)
+                            (composition-param-Right-zeron __global_state)
+                            (composition-param-Right-zerom __global_state)
+                            (composition-param-Right-p __global_state)
+                            (composition-rand-Right-0 __global_state)
+                            (composition-rand-Right-1 __global_state)
+                            (composition-rand-Right-2 __global_state)
+                            (composition-rand-Right-3 __global_state)
+                            (composition-rand-Right-4 __global_state)
+                            (composition-rand-Right-5 __global_state)
+                            (composition-rand-Right-6 __global_state)
+                            (composition-rand-Right-7 __global_state)
+                            (+ 1 (composition-rand-Right-8 __global_state))
+                            (composition-rand-Right-9 __global_state)
+                            (composition-rand-Right-10 __global_state)
+                            (composition-rand-Right-11 __global_state)
+                            (composition-rand-Right-12 __global_state)
+                            (composition-rand-Right-13 __global_state)
+                            (composition-rand-Right-14 __global_state)
+                            (composition-rand-Right-15 __global_state)
+                            (composition-rand-Right-16 __global_state))))
+                      (let
+                        ((Z (store Z false (mk-some rr))))
+                        (let
+                          (
+                            (__self_state
+                              (mk-state-Right-keys_bottom
+                                (store (state-Right-keys_bottom-T __self_state) h (mk-some Z))
+                                (state-Right-keys_bottom-z __self_state)
+                                (state-Right-keys_bottom-flag __self_state))))
+                          (let
+                            ((unwrap-1 (maybe-get (select (state-Right-keys_bottom-T __self_state) h))))
+                            (let
+                              ((Z unwrap-1))
+                              (let
+                                (
+                                  (__global_state
+                                    (mk-composition-state-Right
+                                      (composition-pkgstate-Right-keys_top __global_state)
+                                      __self_state
+                                      (composition-pkgstate-Right-simgate __global_state)
+                                      (composition-pkgstate-Right-ev __global_state)
+                                      (composition-param-Right-m __global_state)
+                                      (composition-param-Right-n __global_state)
+                                      (composition-param-Right-zeron __global_state)
+                                      (composition-param-Right-zerom __global_state)
+                                      (composition-param-Right-p __global_state)
+                                      (composition-rand-Right-0 __global_state)
+                                      (composition-rand-Right-1 __global_state)
+                                      (composition-rand-Right-2 __global_state)
+                                      (composition-rand-Right-3 __global_state)
+                                      (composition-rand-Right-4 __global_state)
+                                      (composition-rand-Right-5 __global_state)
+                                      (composition-rand-Right-6 __global_state)
+                                      (composition-rand-Right-7 __global_state)
+                                      (composition-rand-Right-8 __global_state)
+                                      (composition-rand-Right-9 __global_state)
+                                      (composition-rand-Right-10 __global_state)
+                                      (composition-rand-Right-11 __global_state)
+                                      (composition-rand-Right-12 __global_state)
+                                      (composition-rand-Right-13 __global_state)
+                                      (composition-rand-Right-14 __global_state)
+                                      (composition-rand-Right-15 __global_state)
+                                      (composition-rand-Right-16 __global_state))))
+                                (mk-return-Right-keys_bottom-GETKEYSOUT __global_state Z))))))))))))
+          (let
+            ((unwrap-1 (maybe-get (select (state-Right-keys_bottom-T __self_state) h))))
+            (let
+              ((Z unwrap-1))
+              (let
+                (
+                  (__global_state
+                    (mk-composition-state-Right
+                      (composition-pkgstate-Right-keys_top __global_state)
+                      __self_state
+                      (composition-pkgstate-Right-simgate __global_state)
+                      (composition-pkgstate-Right-ev __global_state)
+                      (composition-param-Right-m __global_state)
+                      (composition-param-Right-n __global_state)
+                      (composition-param-Right-zeron __global_state)
+                      (composition-param-Right-zerom __global_state)
+                      (composition-param-Right-p __global_state)
+                      (composition-rand-Right-0 __global_state)
+                      (composition-rand-Right-1 __global_state)
+                      (composition-rand-Right-2 __global_state)
+                      (composition-rand-Right-3 __global_state)
+                      (composition-rand-Right-4 __global_state)
+                      (composition-rand-Right-5 __global_state)
+                      (composition-rand-Right-6 __global_state)
+                      (composition-rand-Right-7 __global_state)
+                      (composition-rand-Right-8 __global_state)
+                      (composition-rand-Right-9 __global_state)
+                      (composition-rand-Right-10 __global_state)
+                      (composition-rand-Right-11 __global_state)
+                      (composition-rand-Right-12 __global_state)
+                      (composition-rand-Right-13 __global_state)
+                      (composition-rand-Right-14 __global_state)
+                      (composition-rand-Right-15 __global_state)
+                      (composition-rand-Right-16 __global_state))))
+                (mk-return-Right-keys_bottom-GETKEYSOUT __global_state Z)))))))))
 (define-fun
   oracle-Right-keys_bottom-GETBIT
   ((__global_state CompositionState-Right) (h Int))
@@ -2443,10 +3013,10 @@
                   (composition-pkgstate-Right-simgate __global_state)
                   (composition-pkgstate-Right-ev __global_state)
                   (composition-param-Right-m __global_state)
+                  (composition-param-Right-n __global_state)
+                  (composition-param-Right-zeron __global_state)
                   (composition-param-Right-zerom __global_state)
                   (composition-param-Right-p __global_state)
-                  (composition-param-Right-zeron __global_state)
-                  (composition-param-Right-n __global_state)
                   (composition-rand-Right-0 __global_state)
                   (composition-rand-Right-1 __global_state)
                   (composition-rand-Right-2 __global_state)
@@ -2459,7 +3029,11 @@
                   (composition-rand-Right-9 __global_state)
                   (composition-rand-Right-10 __global_state)
                   (composition-rand-Right-11 __global_state)
-                  (composition-rand-Right-12 __global_state))))
+                  (composition-rand-Right-12 __global_state)
+                  (composition-rand-Right-13 __global_state)
+                  (composition-rand-Right-14 __global_state)
+                  (composition-rand-Right-15 __global_state)
+                  (composition-rand-Right-16 __global_state))))
             (mk-return-Right-keys_bottom-GETBIT __global_state zz))))
       mk-abort-Right-keys_bottom-GETBIT)))
 (define-fun
@@ -2632,7 +3206,7 @@
                                                                                     ((kj unwrap-3))
                                                                                     (let
                                                                                       (
-                                                                                        (rin (__sample-rand-Right-Bits_n 5 (composition-rand-Right-5 __global_state))))
+                                                                                        (rin (__sample-rand-Right-Bits_n 9 (composition-rand-Right-9 __global_state))))
                                                                                       (let
                                                                                         (
                                                                                           (__global_state
@@ -2642,26 +3216,31 @@
                                                                                               (composition-pkgstate-Right-simgate __global_state)
                                                                                               (composition-pkgstate-Right-ev __global_state)
                                                                                               (composition-param-Right-m __global_state)
+                                                                                              (composition-param-Right-n __global_state)
+                                                                                              (composition-param-Right-zeron __global_state)
                                                                                               (composition-param-Right-zerom __global_state)
                                                                                               (composition-param-Right-p __global_state)
-                                                                                              (composition-param-Right-zeron __global_state)
-                                                                                              (composition-param-Right-n __global_state)
                                                                                               (composition-rand-Right-0 __global_state)
                                                                                               (composition-rand-Right-1 __global_state)
                                                                                               (composition-rand-Right-2 __global_state)
                                                                                               (composition-rand-Right-3 __global_state)
                                                                                               (composition-rand-Right-4 __global_state)
-                                                                                              (+ 1 (composition-rand-Right-5 __global_state))
+                                                                                              (composition-rand-Right-5 __global_state)
                                                                                               (composition-rand-Right-6 __global_state)
                                                                                               (composition-rand-Right-7 __global_state)
                                                                                               (composition-rand-Right-8 __global_state)
-                                                                                              (composition-rand-Right-9 __global_state)
+                                                                                              (+ 1 (composition-rand-Right-9 __global_state))
                                                                                               (composition-rand-Right-10 __global_state)
                                                                                               (composition-rand-Right-11 __global_state)
-                                                                                              (composition-rand-Right-12 __global_state))))
+                                                                                              (composition-rand-Right-12 __global_state)
+                                                                                              (composition-rand-Right-13 __global_state)
+                                                                                              (composition-rand-Right-14 __global_state)
+                                                                                              (composition-rand-Right-15 __global_state)
+                                                                                              (composition-rand-Right-16 __global_state))))
                                                                                         (let
                                                                                           (
-                                                                                            (rout (__sample-rand-Right-Bits_n 6 (composition-rand-Right-6 __global_state))))
+                                                                                            (rout
+                                                                                              (__sample-rand-Right-Bits_n 10 (composition-rand-Right-10 __global_state))))
                                                                                           (let
                                                                                             (
                                                                                               (__global_state
@@ -2671,23 +3250,27 @@
                                                                                                   (composition-pkgstate-Right-simgate __global_state)
                                                                                                   (composition-pkgstate-Right-ev __global_state)
                                                                                                   (composition-param-Right-m __global_state)
+                                                                                                  (composition-param-Right-n __global_state)
+                                                                                                  (composition-param-Right-zeron __global_state)
                                                                                                   (composition-param-Right-zerom __global_state)
                                                                                                   (composition-param-Right-p __global_state)
-                                                                                                  (composition-param-Right-zeron __global_state)
-                                                                                                  (composition-param-Right-n __global_state)
                                                                                                   (composition-rand-Right-0 __global_state)
                                                                                                   (composition-rand-Right-1 __global_state)
                                                                                                   (composition-rand-Right-2 __global_state)
                                                                                                   (composition-rand-Right-3 __global_state)
                                                                                                   (composition-rand-Right-4 __global_state)
                                                                                                   (composition-rand-Right-5 __global_state)
-                                                                                                  (+ 1 (composition-rand-Right-6 __global_state))
+                                                                                                  (composition-rand-Right-6 __global_state)
                                                                                                   (composition-rand-Right-7 __global_state)
                                                                                                   (composition-rand-Right-8 __global_state)
                                                                                                   (composition-rand-Right-9 __global_state)
-                                                                                                  (composition-rand-Right-10 __global_state)
+                                                                                                  (+ 1 (composition-rand-Right-10 __global_state))
                                                                                                   (composition-rand-Right-11 __global_state)
-                                                                                                  (composition-rand-Right-12 __global_state))))
+                                                                                                  (composition-rand-Right-12 __global_state)
+                                                                                                  (composition-rand-Right-13 __global_state)
+                                                                                                  (composition-rand-Right-14 __global_state)
+                                                                                                  (composition-rand-Right-15 __global_state)
+                                                                                                  (composition-rand-Right-16 __global_state))))
                                                                                             (let
                                                                                               ((cin (__func-Right-encn kr kj rin)))
                                                                                               (let
@@ -2718,7 +3301,8 @@
                                                                                                                         ((kj unwrap-6))
                                                                                                                         (let
                                                                                                                           (
-                                                                                                                            (rin (__sample-rand-Right-Bits_n 7 (composition-rand-Right-7 __global_state))))
+                                                                                                                            (rin
+                                                                                                                              (__sample-rand-Right-Bits_n 11 (composition-rand-Right-11 __global_state))))
                                                                                                                           (let
                                                                                                                             (
                                                                                                                               (__global_state
@@ -2728,10 +3312,10 @@
                                                                                                                                   (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                   (composition-pkgstate-Right-ev __global_state)
                                                                                                                                   (composition-param-Right-m __global_state)
+                                                                                                                                  (composition-param-Right-n __global_state)
+                                                                                                                                  (composition-param-Right-zeron __global_state)
                                                                                                                                   (composition-param-Right-zerom __global_state)
                                                                                                                                   (composition-param-Right-p __global_state)
-                                                                                                                                  (composition-param-Right-zeron __global_state)
-                                                                                                                                  (composition-param-Right-n __global_state)
                                                                                                                                   (composition-rand-Right-0 __global_state)
                                                                                                                                   (composition-rand-Right-1 __global_state)
                                                                                                                                   (composition-rand-Right-2 __global_state)
@@ -2739,15 +3323,20 @@
                                                                                                                                   (composition-rand-Right-4 __global_state)
                                                                                                                                   (composition-rand-Right-5 __global_state)
                                                                                                                                   (composition-rand-Right-6 __global_state)
-                                                                                                                                  (+ 1 (composition-rand-Right-7 __global_state))
+                                                                                                                                  (composition-rand-Right-7 __global_state)
                                                                                                                                   (composition-rand-Right-8 __global_state)
                                                                                                                                   (composition-rand-Right-9 __global_state)
                                                                                                                                   (composition-rand-Right-10 __global_state)
-                                                                                                                                  (composition-rand-Right-11 __global_state)
-                                                                                                                                  (composition-rand-Right-12 __global_state))))
+                                                                                                                                  (+ 1 (composition-rand-Right-11 __global_state))
+                                                                                                                                  (composition-rand-Right-12 __global_state)
+                                                                                                                                  (composition-rand-Right-13 __global_state)
+                                                                                                                                  (composition-rand-Right-14 __global_state)
+                                                                                                                                  (composition-rand-Right-15 __global_state)
+                                                                                                                                  (composition-rand-Right-16 __global_state))))
                                                                                                                             (let
                                                                                                                               (
-                                                                                                                                (rout (__sample-rand-Right-Bits_n 8 (composition-rand-Right-8 __global_state))))
+                                                                                                                                (rout
+                                                                                                                                  (__sample-rand-Right-Bits_n 12 (composition-rand-Right-12 __global_state))))
                                                                                                                               (let
                                                                                                                                 (
                                                                                                                                   (__global_state
@@ -2757,10 +3346,10 @@
                                                                                                                                       (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                       (composition-pkgstate-Right-ev __global_state)
                                                                                                                                       (composition-param-Right-m __global_state)
+                                                                                                                                      (composition-param-Right-n __global_state)
+                                                                                                                                      (composition-param-Right-zeron __global_state)
                                                                                                                                       (composition-param-Right-zerom __global_state)
                                                                                                                                       (composition-param-Right-p __global_state)
-                                                                                                                                      (composition-param-Right-zeron __global_state)
-                                                                                                                                      (composition-param-Right-n __global_state)
                                                                                                                                       (composition-rand-Right-0 __global_state)
                                                                                                                                       (composition-rand-Right-1 __global_state)
                                                                                                                                       (composition-rand-Right-2 __global_state)
@@ -2769,11 +3358,15 @@
                                                                                                                                       (composition-rand-Right-5 __global_state)
                                                                                                                                       (composition-rand-Right-6 __global_state)
                                                                                                                                       (composition-rand-Right-7 __global_state)
-                                                                                                                                      (+ 1 (composition-rand-Right-8 __global_state))
+                                                                                                                                      (composition-rand-Right-8 __global_state)
                                                                                                                                       (composition-rand-Right-9 __global_state)
                                                                                                                                       (composition-rand-Right-10 __global_state)
                                                                                                                                       (composition-rand-Right-11 __global_state)
-                                                                                                                                      (composition-rand-Right-12 __global_state))))
+                                                                                                                                      (+ 1 (composition-rand-Right-12 __global_state))
+                                                                                                                                      (composition-rand-Right-13 __global_state)
+                                                                                                                                      (composition-rand-Right-14 __global_state)
+                                                                                                                                      (composition-rand-Right-15 __global_state)
+                                                                                                                                      (composition-rand-Right-16 __global_state))))
                                                                                                                                 (let
                                                                                                                                   ((cin (__func-Right-encn kr kj rin)))
                                                                                                                                   (let
@@ -2802,7 +3395,8 @@
                                                                                                                                                           ((kj unwrap-9))
                                                                                                                                                           (let
                                                                                                                                                             (
-                                                                                                                                                              (rin (__sample-rand-Right-Bits_n 9 (composition-rand-Right-9 __global_state))))
+                                                                                                                                                              (rin
+                                                                                                                                                                (__sample-rand-Right-Bits_n 13 (composition-rand-Right-13 __global_state))))
                                                                                                                                                             (let
                                                                                                                                                               (
                                                                                                                                                                 (__global_state
@@ -2812,10 +3406,10 @@
                                                                                                                                                                     (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                     (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                     (composition-param-Right-m __global_state)
+                                                                                                                                                                    (composition-param-Right-n __global_state)
+                                                                                                                                                                    (composition-param-Right-zeron __global_state)
                                                                                                                                                                     (composition-param-Right-zerom __global_state)
                                                                                                                                                                     (composition-param-Right-p __global_state)
-                                                                                                                                                                    (composition-param-Right-zeron __global_state)
-                                                                                                                                                                    (composition-param-Right-n __global_state)
                                                                                                                                                                     (composition-rand-Right-0 __global_state)
                                                                                                                                                                     (composition-rand-Right-1 __global_state)
                                                                                                                                                                     (composition-rand-Right-2 __global_state)
@@ -2825,14 +3419,18 @@
                                                                                                                                                                     (composition-rand-Right-6 __global_state)
                                                                                                                                                                     (composition-rand-Right-7 __global_state)
                                                                                                                                                                     (composition-rand-Right-8 __global_state)
-                                                                                                                                                                    (+ 1 (composition-rand-Right-9 __global_state))
+                                                                                                                                                                    (composition-rand-Right-9 __global_state)
                                                                                                                                                                     (composition-rand-Right-10 __global_state)
                                                                                                                                                                     (composition-rand-Right-11 __global_state)
-                                                                                                                                                                    (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                    (composition-rand-Right-12 __global_state)
+                                                                                                                                                                    (+ 1 (composition-rand-Right-13 __global_state))
+                                                                                                                                                                    (composition-rand-Right-14 __global_state)
+                                                                                                                                                                    (composition-rand-Right-15 __global_state)
+                                                                                                                                                                    (composition-rand-Right-16 __global_state))))
                                                                                                                                                               (let
                                                                                                                                                                 (
                                                                                                                                                                   (rout
-                                                                                                                                                                    (__sample-rand-Right-Bits_n 10 (composition-rand-Right-10 __global_state))))
+                                                                                                                                                                    (__sample-rand-Right-Bits_n 14 (composition-rand-Right-14 __global_state))))
                                                                                                                                                                 (let
                                                                                                                                                                   (
                                                                                                                                                                     (__global_state
@@ -2842,10 +3440,10 @@
                                                                                                                                                                         (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                         (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                         (composition-param-Right-m __global_state)
+                                                                                                                                                                        (composition-param-Right-n __global_state)
+                                                                                                                                                                        (composition-param-Right-zeron __global_state)
                                                                                                                                                                         (composition-param-Right-zerom __global_state)
                                                                                                                                                                         (composition-param-Right-p __global_state)
-                                                                                                                                                                        (composition-param-Right-zeron __global_state)
-                                                                                                                                                                        (composition-param-Right-n __global_state)
                                                                                                                                                                         (composition-rand-Right-0 __global_state)
                                                                                                                                                                         (composition-rand-Right-1 __global_state)
                                                                                                                                                                         (composition-rand-Right-2 __global_state)
@@ -2856,9 +3454,13 @@
                                                                                                                                                                         (composition-rand-Right-7 __global_state)
                                                                                                                                                                         (composition-rand-Right-8 __global_state)
                                                                                                                                                                         (composition-rand-Right-9 __global_state)
-                                                                                                                                                                        (+ 1 (composition-rand-Right-10 __global_state))
+                                                                                                                                                                        (composition-rand-Right-10 __global_state)
                                                                                                                                                                         (composition-rand-Right-11 __global_state)
-                                                                                                                                                                        (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                        (composition-rand-Right-12 __global_state)
+                                                                                                                                                                        (composition-rand-Right-13 __global_state)
+                                                                                                                                                                        (+ 1 (composition-rand-Right-14 __global_state))
+                                                                                                                                                                        (composition-rand-Right-15 __global_state)
+                                                                                                                                                                        (composition-rand-Right-16 __global_state))))
                                                                                                                                                                   (let
                                                                                                                                                                     ((cin (__func-Right-encn kr kj rin)))
                                                                                                                                                                     (let
@@ -2888,7 +3490,7 @@
                                                                                                                                                                                             (let
                                                                                                                                                                                               (
                                                                                                                                                                                                 (rin
-                                                                                                                                                                                                  (__sample-rand-Right-Bits_n 11 (composition-rand-Right-11 __global_state))))
+                                                                                                                                                                                                  (__sample-rand-Right-Bits_n 15 (composition-rand-Right-15 __global_state))))
                                                                                                                                                                                               (let
                                                                                                                                                                                                 (
                                                                                                                                                                                                   (__global_state
@@ -2898,10 +3500,10 @@
                                                                                                                                                                                                       (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                                                       (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                                       (composition-param-Right-m __global_state)
+                                                                                                                                                                                                      (composition-param-Right-n __global_state)
+                                                                                                                                                                                                      (composition-param-Right-zeron __global_state)
                                                                                                                                                                                                       (composition-param-Right-zerom __global_state)
                                                                                                                                                                                                       (composition-param-Right-p __global_state)
-                                                                                                                                                                                                      (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                                      (composition-param-Right-n __global_state)
                                                                                                                                                                                                       (composition-rand-Right-0 __global_state)
                                                                                                                                                                                                       (composition-rand-Right-1 __global_state)
                                                                                                                                                                                                       (composition-rand-Right-2 __global_state)
@@ -2913,12 +3515,16 @@
                                                                                                                                                                                                       (composition-rand-Right-8 __global_state)
                                                                                                                                                                                                       (composition-rand-Right-9 __global_state)
                                                                                                                                                                                                       (composition-rand-Right-10 __global_state)
-                                                                                                                                                                                                      (+ 1 (composition-rand-Right-11 __global_state))
-                                                                                                                                                                                                      (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                                      (composition-rand-Right-11 __global_state)
+                                                                                                                                                                                                      (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                                      (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                                      (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                                      (+ 1 (composition-rand-Right-15 __global_state))
+                                                                                                                                                                                                      (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                                 (let
                                                                                                                                                                                                   (
                                                                                                                                                                                                     (rout
-                                                                                                                                                                                                      (__sample-rand-Right-Bits_n 12 (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                                      (__sample-rand-Right-Bits_n 16 (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                                   (let
                                                                                                                                                                                                     (
                                                                                                                                                                                                       (__global_state
@@ -2928,10 +3534,10 @@
                                                                                                                                                                                                           (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                                                           (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                                           (composition-param-Right-m __global_state)
+                                                                                                                                                                                                          (composition-param-Right-n __global_state)
+                                                                                                                                                                                                          (composition-param-Right-zeron __global_state)
                                                                                                                                                                                                           (composition-param-Right-zerom __global_state)
                                                                                                                                                                                                           (composition-param-Right-p __global_state)
-                                                                                                                                                                                                          (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                                          (composition-param-Right-n __global_state)
                                                                                                                                                                                                           (composition-rand-Right-0 __global_state)
                                                                                                                                                                                                           (composition-rand-Right-1 __global_state)
                                                                                                                                                                                                           (composition-rand-Right-2 __global_state)
@@ -2944,7 +3550,11 @@
                                                                                                                                                                                                           (composition-rand-Right-9 __global_state)
                                                                                                                                                                                                           (composition-rand-Right-10 __global_state)
                                                                                                                                                                                                           (composition-rand-Right-11 __global_state)
-                                                                                                                                                                                                          (+ 1 (composition-rand-Right-12 __global_state)))))
+                                                                                                                                                                                                          (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                                          (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                                          (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                                          (composition-rand-Right-15 __global_state)
+                                                                                                                                                                                                          (+ 1 (composition-rand-Right-16 __global_state)))))
                                                                                                                                                                                                     (let
                                                                                                                                                                                                       ((cin (__func-Right-encn kr kj rin)))
                                                                                                                                                                                                       (let
@@ -2960,10 +3570,10 @@
                                                                                                                                                                                                                   __self_state
                                                                                                                                                                                                                   (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                                                   (composition-param-Right-m __global_state)
+                                                                                                                                                                                                                  (composition-param-Right-n __global_state)
+                                                                                                                                                                                                                  (composition-param-Right-zeron __global_state)
                                                                                                                                                                                                                   (composition-param-Right-zerom __global_state)
                                                                                                                                                                                                                   (composition-param-Right-p __global_state)
-                                                                                                                                                                                                                  (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                                                  (composition-param-Right-n __global_state)
                                                                                                                                                                                                                   (composition-rand-Right-0 __global_state)
                                                                                                                                                                                                                   (composition-rand-Right-1 __global_state)
                                                                                                                                                                                                                   (composition-rand-Right-2 __global_state)
@@ -2976,12 +3586,16 @@
                                                                                                                                                                                                                   (composition-rand-Right-9 __global_state)
                                                                                                                                                                                                                   (composition-rand-Right-10 __global_state)
                                                                                                                                                                                                                   (composition-rand-Right-11 __global_state)
-                                                                                                                                                                                                                  (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                                                  (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                                                  (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                                                  (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                                                  (composition-rand-Right-15 __global_state)
+                                                                                                                                                                                                                  (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                                             (mk-return-Right-simgate-GBLG __global_state C)))))))))))
                                                                                                                                                                                         (let
                                                                                                                                                                                           (
                                                                                                                                                                                             (rin
-                                                                                                                                                                                              (__sample-rand-Right-Bits_n 11 (composition-rand-Right-11 __global_state))))
+                                                                                                                                                                                              (__sample-rand-Right-Bits_n 15 (composition-rand-Right-15 __global_state))))
                                                                                                                                                                                           (let
                                                                                                                                                                                             (
                                                                                                                                                                                               (__global_state
@@ -2991,10 +3605,10 @@
                                                                                                                                                                                                   (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                                                   (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                                   (composition-param-Right-m __global_state)
+                                                                                                                                                                                                  (composition-param-Right-n __global_state)
+                                                                                                                                                                                                  (composition-param-Right-zeron __global_state)
                                                                                                                                                                                                   (composition-param-Right-zerom __global_state)
                                                                                                                                                                                                   (composition-param-Right-p __global_state)
-                                                                                                                                                                                                  (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                                  (composition-param-Right-n __global_state)
                                                                                                                                                                                                   (composition-rand-Right-0 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-1 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-2 __global_state)
@@ -3006,12 +3620,16 @@
                                                                                                                                                                                                   (composition-rand-Right-8 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-9 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-10 __global_state)
-                                                                                                                                                                                                  (+ 1 (composition-rand-Right-11 __global_state))
-                                                                                                                                                                                                  (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                                  (composition-rand-Right-11 __global_state)
+                                                                                                                                                                                                  (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                                  (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                                  (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                                  (+ 1 (composition-rand-Right-15 __global_state))
+                                                                                                                                                                                                  (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                             (let
                                                                                                                                                                                               (
                                                                                                                                                                                                 (rout
-                                                                                                                                                                                                  (__sample-rand-Right-Bits_n 12 (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                                  (__sample-rand-Right-Bits_n 16 (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                               (let
                                                                                                                                                                                                 (
                                                                                                                                                                                                   (__global_state
@@ -3021,10 +3639,10 @@
                                                                                                                                                                                                       (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                                                       (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                                       (composition-param-Right-m __global_state)
+                                                                                                                                                                                                      (composition-param-Right-n __global_state)
+                                                                                                                                                                                                      (composition-param-Right-zeron __global_state)
                                                                                                                                                                                                       (composition-param-Right-zerom __global_state)
                                                                                                                                                                                                       (composition-param-Right-p __global_state)
-                                                                                                                                                                                                      (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                                      (composition-param-Right-n __global_state)
                                                                                                                                                                                                       (composition-rand-Right-0 __global_state)
                                                                                                                                                                                                       (composition-rand-Right-1 __global_state)
                                                                                                                                                                                                       (composition-rand-Right-2 __global_state)
@@ -3037,7 +3655,11 @@
                                                                                                                                                                                                       (composition-rand-Right-9 __global_state)
                                                                                                                                                                                                       (composition-rand-Right-10 __global_state)
                                                                                                                                                                                                       (composition-rand-Right-11 __global_state)
-                                                                                                                                                                                                      (+ 1 (composition-rand-Right-12 __global_state)))))
+                                                                                                                                                                                                      (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                                      (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                                      (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                                      (composition-rand-Right-15 __global_state)
+                                                                                                                                                                                                      (+ 1 (composition-rand-Right-16 __global_state)))))
                                                                                                                                                                                                 (let
                                                                                                                                                                                                   ((cin (__func-Right-encn kr kj rin)))
                                                                                                                                                                                                   (let
@@ -3053,10 +3675,10 @@
                                                                                                                                                                                                               __self_state
                                                                                                                                                                                                               (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                                               (composition-param-Right-m __global_state)
+                                                                                                                                                                                                              (composition-param-Right-n __global_state)
+                                                                                                                                                                                                              (composition-param-Right-zeron __global_state)
                                                                                                                                                                                                               (composition-param-Right-zerom __global_state)
                                                                                                                                                                                                               (composition-param-Right-p __global_state)
-                                                                                                                                                                                                              (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                                              (composition-param-Right-n __global_state)
                                                                                                                                                                                                               (composition-rand-Right-0 __global_state)
                                                                                                                                                                                                               (composition-rand-Right-1 __global_state)
                                                                                                                                                                                                               (composition-rand-Right-2 __global_state)
@@ -3069,11 +3691,16 @@
                                                                                                                                                                                                               (composition-rand-Right-9 __global_state)
                                                                                                                                                                                                               (composition-rand-Right-10 __global_state)
                                                                                                                                                                                                               (composition-rand-Right-11 __global_state)
-                                                                                                                                                                                                              (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                                              (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                                              (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                                              (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                                              (composition-rand-Right-15 __global_state)
+                                                                                                                                                                                                              (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                                         (mk-return-Right-simgate-GBLG __global_state C))))))))))))))))))))))))))
                                                                                                                                                       (let
                                                                                                                                                         (
-                                                                                                                                                          (rin (__sample-rand-Right-Bits_n 9 (composition-rand-Right-9 __global_state))))
+                                                                                                                                                          (rin
+                                                                                                                                                            (__sample-rand-Right-Bits_n 13 (composition-rand-Right-13 __global_state))))
                                                                                                                                                         (let
                                                                                                                                                           (
                                                                                                                                                             (__global_state
@@ -3083,10 +3710,10 @@
                                                                                                                                                                 (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                 (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                 (composition-param-Right-m __global_state)
+                                                                                                                                                                (composition-param-Right-n __global_state)
+                                                                                                                                                                (composition-param-Right-zeron __global_state)
                                                                                                                                                                 (composition-param-Right-zerom __global_state)
                                                                                                                                                                 (composition-param-Right-p __global_state)
-                                                                                                                                                                (composition-param-Right-zeron __global_state)
-                                                                                                                                                                (composition-param-Right-n __global_state)
                                                                                                                                                                 (composition-rand-Right-0 __global_state)
                                                                                                                                                                 (composition-rand-Right-1 __global_state)
                                                                                                                                                                 (composition-rand-Right-2 __global_state)
@@ -3096,14 +3723,18 @@
                                                                                                                                                                 (composition-rand-Right-6 __global_state)
                                                                                                                                                                 (composition-rand-Right-7 __global_state)
                                                                                                                                                                 (composition-rand-Right-8 __global_state)
-                                                                                                                                                                (+ 1 (composition-rand-Right-9 __global_state))
+                                                                                                                                                                (composition-rand-Right-9 __global_state)
                                                                                                                                                                 (composition-rand-Right-10 __global_state)
                                                                                                                                                                 (composition-rand-Right-11 __global_state)
-                                                                                                                                                                (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                (composition-rand-Right-12 __global_state)
+                                                                                                                                                                (+ 1 (composition-rand-Right-13 __global_state))
+                                                                                                                                                                (composition-rand-Right-14 __global_state)
+                                                                                                                                                                (composition-rand-Right-15 __global_state)
+                                                                                                                                                                (composition-rand-Right-16 __global_state))))
                                                                                                                                                           (let
                                                                                                                                                             (
                                                                                                                                                               (rout
-                                                                                                                                                                (__sample-rand-Right-Bits_n 10 (composition-rand-Right-10 __global_state))))
+                                                                                                                                                                (__sample-rand-Right-Bits_n 14 (composition-rand-Right-14 __global_state))))
                                                                                                                                                             (let
                                                                                                                                                               (
                                                                                                                                                                 (__global_state
@@ -3113,10 +3744,10 @@
                                                                                                                                                                     (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                     (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                     (composition-param-Right-m __global_state)
+                                                                                                                                                                    (composition-param-Right-n __global_state)
+                                                                                                                                                                    (composition-param-Right-zeron __global_state)
                                                                                                                                                                     (composition-param-Right-zerom __global_state)
                                                                                                                                                                     (composition-param-Right-p __global_state)
-                                                                                                                                                                    (composition-param-Right-zeron __global_state)
-                                                                                                                                                                    (composition-param-Right-n __global_state)
                                                                                                                                                                     (composition-rand-Right-0 __global_state)
                                                                                                                                                                     (composition-rand-Right-1 __global_state)
                                                                                                                                                                     (composition-rand-Right-2 __global_state)
@@ -3127,9 +3758,13 @@
                                                                                                                                                                     (composition-rand-Right-7 __global_state)
                                                                                                                                                                     (composition-rand-Right-8 __global_state)
                                                                                                                                                                     (composition-rand-Right-9 __global_state)
-                                                                                                                                                                    (+ 1 (composition-rand-Right-10 __global_state))
+                                                                                                                                                                    (composition-rand-Right-10 __global_state)
                                                                                                                                                                     (composition-rand-Right-11 __global_state)
-                                                                                                                                                                    (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                    (composition-rand-Right-12 __global_state)
+                                                                                                                                                                    (composition-rand-Right-13 __global_state)
+                                                                                                                                                                    (+ 1 (composition-rand-Right-14 __global_state))
+                                                                                                                                                                    (composition-rand-Right-15 __global_state)
+                                                                                                                                                                    (composition-rand-Right-16 __global_state))))
                                                                                                                                                               (let
                                                                                                                                                                 ((cin (__func-Right-encn kr kj rin)))
                                                                                                                                                                 (let
@@ -3159,7 +3794,7 @@
                                                                                                                                                                                         (let
                                                                                                                                                                                           (
                                                                                                                                                                                             (rin
-                                                                                                                                                                                              (__sample-rand-Right-Bits_n 11 (composition-rand-Right-11 __global_state))))
+                                                                                                                                                                                              (__sample-rand-Right-Bits_n 15 (composition-rand-Right-15 __global_state))))
                                                                                                                                                                                           (let
                                                                                                                                                                                             (
                                                                                                                                                                                               (__global_state
@@ -3169,10 +3804,10 @@
                                                                                                                                                                                                   (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                                                   (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                                   (composition-param-Right-m __global_state)
+                                                                                                                                                                                                  (composition-param-Right-n __global_state)
+                                                                                                                                                                                                  (composition-param-Right-zeron __global_state)
                                                                                                                                                                                                   (composition-param-Right-zerom __global_state)
                                                                                                                                                                                                   (composition-param-Right-p __global_state)
-                                                                                                                                                                                                  (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                                  (composition-param-Right-n __global_state)
                                                                                                                                                                                                   (composition-rand-Right-0 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-1 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-2 __global_state)
@@ -3184,12 +3819,16 @@
                                                                                                                                                                                                   (composition-rand-Right-8 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-9 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-10 __global_state)
-                                                                                                                                                                                                  (+ 1 (composition-rand-Right-11 __global_state))
-                                                                                                                                                                                                  (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                                  (composition-rand-Right-11 __global_state)
+                                                                                                                                                                                                  (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                                  (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                                  (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                                  (+ 1 (composition-rand-Right-15 __global_state))
+                                                                                                                                                                                                  (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                             (let
                                                                                                                                                                                               (
                                                                                                                                                                                                 (rout
-                                                                                                                                                                                                  (__sample-rand-Right-Bits_n 12 (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                                  (__sample-rand-Right-Bits_n 16 (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                               (let
                                                                                                                                                                                                 (
                                                                                                                                                                                                   (__global_state
@@ -3199,10 +3838,10 @@
                                                                                                                                                                                                       (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                                                       (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                                       (composition-param-Right-m __global_state)
+                                                                                                                                                                                                      (composition-param-Right-n __global_state)
+                                                                                                                                                                                                      (composition-param-Right-zeron __global_state)
                                                                                                                                                                                                       (composition-param-Right-zerom __global_state)
                                                                                                                                                                                                       (composition-param-Right-p __global_state)
-                                                                                                                                                                                                      (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                                      (composition-param-Right-n __global_state)
                                                                                                                                                                                                       (composition-rand-Right-0 __global_state)
                                                                                                                                                                                                       (composition-rand-Right-1 __global_state)
                                                                                                                                                                                                       (composition-rand-Right-2 __global_state)
@@ -3215,7 +3854,11 @@
                                                                                                                                                                                                       (composition-rand-Right-9 __global_state)
                                                                                                                                                                                                       (composition-rand-Right-10 __global_state)
                                                                                                                                                                                                       (composition-rand-Right-11 __global_state)
-                                                                                                                                                                                                      (+ 1 (composition-rand-Right-12 __global_state)))))
+                                                                                                                                                                                                      (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                                      (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                                      (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                                      (composition-rand-Right-15 __global_state)
+                                                                                                                                                                                                      (+ 1 (composition-rand-Right-16 __global_state)))))
                                                                                                                                                                                                 (let
                                                                                                                                                                                                   ((cin (__func-Right-encn kr kj rin)))
                                                                                                                                                                                                   (let
@@ -3231,10 +3874,10 @@
                                                                                                                                                                                                               __self_state
                                                                                                                                                                                                               (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                                               (composition-param-Right-m __global_state)
+                                                                                                                                                                                                              (composition-param-Right-n __global_state)
+                                                                                                                                                                                                              (composition-param-Right-zeron __global_state)
                                                                                                                                                                                                               (composition-param-Right-zerom __global_state)
                                                                                                                                                                                                               (composition-param-Right-p __global_state)
-                                                                                                                                                                                                              (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                                              (composition-param-Right-n __global_state)
                                                                                                                                                                                                               (composition-rand-Right-0 __global_state)
                                                                                                                                                                                                               (composition-rand-Right-1 __global_state)
                                                                                                                                                                                                               (composition-rand-Right-2 __global_state)
@@ -3247,12 +3890,16 @@
                                                                                                                                                                                                               (composition-rand-Right-9 __global_state)
                                                                                                                                                                                                               (composition-rand-Right-10 __global_state)
                                                                                                                                                                                                               (composition-rand-Right-11 __global_state)
-                                                                                                                                                                                                              (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                                              (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                                              (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                                              (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                                              (composition-rand-Right-15 __global_state)
+                                                                                                                                                                                                              (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                                         (mk-return-Right-simgate-GBLG __global_state C)))))))))))
                                                                                                                                                                                     (let
                                                                                                                                                                                       (
                                                                                                                                                                                         (rin
-                                                                                                                                                                                          (__sample-rand-Right-Bits_n 11 (composition-rand-Right-11 __global_state))))
+                                                                                                                                                                                          (__sample-rand-Right-Bits_n 15 (composition-rand-Right-15 __global_state))))
                                                                                                                                                                                       (let
                                                                                                                                                                                         (
                                                                                                                                                                                           (__global_state
@@ -3262,10 +3909,10 @@
                                                                                                                                                                                               (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                                               (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                               (composition-param-Right-m __global_state)
+                                                                                                                                                                                              (composition-param-Right-n __global_state)
+                                                                                                                                                                                              (composition-param-Right-zeron __global_state)
                                                                                                                                                                                               (composition-param-Right-zerom __global_state)
                                                                                                                                                                                               (composition-param-Right-p __global_state)
-                                                                                                                                                                                              (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                              (composition-param-Right-n __global_state)
                                                                                                                                                                                               (composition-rand-Right-0 __global_state)
                                                                                                                                                                                               (composition-rand-Right-1 __global_state)
                                                                                                                                                                                               (composition-rand-Right-2 __global_state)
@@ -3277,12 +3924,16 @@
                                                                                                                                                                                               (composition-rand-Right-8 __global_state)
                                                                                                                                                                                               (composition-rand-Right-9 __global_state)
                                                                                                                                                                                               (composition-rand-Right-10 __global_state)
-                                                                                                                                                                                              (+ 1 (composition-rand-Right-11 __global_state))
-                                                                                                                                                                                              (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                              (composition-rand-Right-11 __global_state)
+                                                                                                                                                                                              (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                              (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                              (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                              (+ 1 (composition-rand-Right-15 __global_state))
+                                                                                                                                                                                              (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                         (let
                                                                                                                                                                                           (
                                                                                                                                                                                             (rout
-                                                                                                                                                                                              (__sample-rand-Right-Bits_n 12 (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                              (__sample-rand-Right-Bits_n 16 (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                           (let
                                                                                                                                                                                             (
                                                                                                                                                                                               (__global_state
@@ -3292,10 +3943,10 @@
                                                                                                                                                                                                   (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                                                   (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                                   (composition-param-Right-m __global_state)
+                                                                                                                                                                                                  (composition-param-Right-n __global_state)
+                                                                                                                                                                                                  (composition-param-Right-zeron __global_state)
                                                                                                                                                                                                   (composition-param-Right-zerom __global_state)
                                                                                                                                                                                                   (composition-param-Right-p __global_state)
-                                                                                                                                                                                                  (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                                  (composition-param-Right-n __global_state)
                                                                                                                                                                                                   (composition-rand-Right-0 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-1 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-2 __global_state)
@@ -3308,7 +3959,11 @@
                                                                                                                                                                                                   (composition-rand-Right-9 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-10 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-11 __global_state)
-                                                                                                                                                                                                  (+ 1 (composition-rand-Right-12 __global_state)))))
+                                                                                                                                                                                                  (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                                  (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                                  (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                                  (composition-rand-Right-15 __global_state)
+                                                                                                                                                                                                  (+ 1 (composition-rand-Right-16 __global_state)))))
                                                                                                                                                                                             (let
                                                                                                                                                                                               ((cin (__func-Right-encn kr kj rin)))
                                                                                                                                                                                               (let
@@ -3324,10 +3979,10 @@
                                                                                                                                                                                                           __self_state
                                                                                                                                                                                                           (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                                           (composition-param-Right-m __global_state)
+                                                                                                                                                                                                          (composition-param-Right-n __global_state)
+                                                                                                                                                                                                          (composition-param-Right-zeron __global_state)
                                                                                                                                                                                                           (composition-param-Right-zerom __global_state)
                                                                                                                                                                                                           (composition-param-Right-p __global_state)
-                                                                                                                                                                                                          (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                                          (composition-param-Right-n __global_state)
                                                                                                                                                                                                           (composition-rand-Right-0 __global_state)
                                                                                                                                                                                                           (composition-rand-Right-1 __global_state)
                                                                                                                                                                                                           (composition-rand-Right-2 __global_state)
@@ -3340,11 +3995,16 @@
                                                                                                                                                                                                           (composition-rand-Right-9 __global_state)
                                                                                                                                                                                                           (composition-rand-Right-10 __global_state)
                                                                                                                                                                                                           (composition-rand-Right-11 __global_state)
-                                                                                                                                                                                                          (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                                          (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                                          (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                                          (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                                          (composition-rand-Right-15 __global_state)
+                                                                                                                                                                                                          (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                                     (mk-return-Right-simgate-GBLG __global_state C)))))))))))))))))))))))))))))))))))))))))
                                                                                                                     (let
                                                                                                                       (
-                                                                                                                        (rin (__sample-rand-Right-Bits_n 7 (composition-rand-Right-7 __global_state))))
+                                                                                                                        (rin
+                                                                                                                          (__sample-rand-Right-Bits_n 11 (composition-rand-Right-11 __global_state))))
                                                                                                                       (let
                                                                                                                         (
                                                                                                                           (__global_state
@@ -3354,10 +4014,10 @@
                                                                                                                               (composition-pkgstate-Right-simgate __global_state)
                                                                                                                               (composition-pkgstate-Right-ev __global_state)
                                                                                                                               (composition-param-Right-m __global_state)
+                                                                                                                              (composition-param-Right-n __global_state)
+                                                                                                                              (composition-param-Right-zeron __global_state)
                                                                                                                               (composition-param-Right-zerom __global_state)
                                                                                                                               (composition-param-Right-p __global_state)
-                                                                                                                              (composition-param-Right-zeron __global_state)
-                                                                                                                              (composition-param-Right-n __global_state)
                                                                                                                               (composition-rand-Right-0 __global_state)
                                                                                                                               (composition-rand-Right-1 __global_state)
                                                                                                                               (composition-rand-Right-2 __global_state)
@@ -3365,15 +4025,20 @@
                                                                                                                               (composition-rand-Right-4 __global_state)
                                                                                                                               (composition-rand-Right-5 __global_state)
                                                                                                                               (composition-rand-Right-6 __global_state)
-                                                                                                                              (+ 1 (composition-rand-Right-7 __global_state))
+                                                                                                                              (composition-rand-Right-7 __global_state)
                                                                                                                               (composition-rand-Right-8 __global_state)
                                                                                                                               (composition-rand-Right-9 __global_state)
                                                                                                                               (composition-rand-Right-10 __global_state)
-                                                                                                                              (composition-rand-Right-11 __global_state)
-                                                                                                                              (composition-rand-Right-12 __global_state))))
+                                                                                                                              (+ 1 (composition-rand-Right-11 __global_state))
+                                                                                                                              (composition-rand-Right-12 __global_state)
+                                                                                                                              (composition-rand-Right-13 __global_state)
+                                                                                                                              (composition-rand-Right-14 __global_state)
+                                                                                                                              (composition-rand-Right-15 __global_state)
+                                                                                                                              (composition-rand-Right-16 __global_state))))
                                                                                                                         (let
                                                                                                                           (
-                                                                                                                            (rout (__sample-rand-Right-Bits_n 8 (composition-rand-Right-8 __global_state))))
+                                                                                                                            (rout
+                                                                                                                              (__sample-rand-Right-Bits_n 12 (composition-rand-Right-12 __global_state))))
                                                                                                                           (let
                                                                                                                             (
                                                                                                                               (__global_state
@@ -3383,10 +4048,10 @@
                                                                                                                                   (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                   (composition-pkgstate-Right-ev __global_state)
                                                                                                                                   (composition-param-Right-m __global_state)
+                                                                                                                                  (composition-param-Right-n __global_state)
+                                                                                                                                  (composition-param-Right-zeron __global_state)
                                                                                                                                   (composition-param-Right-zerom __global_state)
                                                                                                                                   (composition-param-Right-p __global_state)
-                                                                                                                                  (composition-param-Right-zeron __global_state)
-                                                                                                                                  (composition-param-Right-n __global_state)
                                                                                                                                   (composition-rand-Right-0 __global_state)
                                                                                                                                   (composition-rand-Right-1 __global_state)
                                                                                                                                   (composition-rand-Right-2 __global_state)
@@ -3395,11 +4060,15 @@
                                                                                                                                   (composition-rand-Right-5 __global_state)
                                                                                                                                   (composition-rand-Right-6 __global_state)
                                                                                                                                   (composition-rand-Right-7 __global_state)
-                                                                                                                                  (+ 1 (composition-rand-Right-8 __global_state))
+                                                                                                                                  (composition-rand-Right-8 __global_state)
                                                                                                                                   (composition-rand-Right-9 __global_state)
                                                                                                                                   (composition-rand-Right-10 __global_state)
                                                                                                                                   (composition-rand-Right-11 __global_state)
-                                                                                                                                  (composition-rand-Right-12 __global_state))))
+                                                                                                                                  (+ 1 (composition-rand-Right-12 __global_state))
+                                                                                                                                  (composition-rand-Right-13 __global_state)
+                                                                                                                                  (composition-rand-Right-14 __global_state)
+                                                                                                                                  (composition-rand-Right-15 __global_state)
+                                                                                                                                  (composition-rand-Right-16 __global_state))))
                                                                                                                             (let
                                                                                                                               ((cin (__func-Right-encn kr kj rin)))
                                                                                                                               (let
@@ -3428,7 +4097,8 @@
                                                                                                                                                       ((kj unwrap-9))
                                                                                                                                                       (let
                                                                                                                                                         (
-                                                                                                                                                          (rin (__sample-rand-Right-Bits_n 9 (composition-rand-Right-9 __global_state))))
+                                                                                                                                                          (rin
+                                                                                                                                                            (__sample-rand-Right-Bits_n 13 (composition-rand-Right-13 __global_state))))
                                                                                                                                                         (let
                                                                                                                                                           (
                                                                                                                                                             (__global_state
@@ -3438,10 +4108,10 @@
                                                                                                                                                                 (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                 (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                 (composition-param-Right-m __global_state)
+                                                                                                                                                                (composition-param-Right-n __global_state)
+                                                                                                                                                                (composition-param-Right-zeron __global_state)
                                                                                                                                                                 (composition-param-Right-zerom __global_state)
                                                                                                                                                                 (composition-param-Right-p __global_state)
-                                                                                                                                                                (composition-param-Right-zeron __global_state)
-                                                                                                                                                                (composition-param-Right-n __global_state)
                                                                                                                                                                 (composition-rand-Right-0 __global_state)
                                                                                                                                                                 (composition-rand-Right-1 __global_state)
                                                                                                                                                                 (composition-rand-Right-2 __global_state)
@@ -3451,14 +4121,18 @@
                                                                                                                                                                 (composition-rand-Right-6 __global_state)
                                                                                                                                                                 (composition-rand-Right-7 __global_state)
                                                                                                                                                                 (composition-rand-Right-8 __global_state)
-                                                                                                                                                                (+ 1 (composition-rand-Right-9 __global_state))
+                                                                                                                                                                (composition-rand-Right-9 __global_state)
                                                                                                                                                                 (composition-rand-Right-10 __global_state)
                                                                                                                                                                 (composition-rand-Right-11 __global_state)
-                                                                                                                                                                (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                (composition-rand-Right-12 __global_state)
+                                                                                                                                                                (+ 1 (composition-rand-Right-13 __global_state))
+                                                                                                                                                                (composition-rand-Right-14 __global_state)
+                                                                                                                                                                (composition-rand-Right-15 __global_state)
+                                                                                                                                                                (composition-rand-Right-16 __global_state))))
                                                                                                                                                           (let
                                                                                                                                                             (
                                                                                                                                                               (rout
-                                                                                                                                                                (__sample-rand-Right-Bits_n 10 (composition-rand-Right-10 __global_state))))
+                                                                                                                                                                (__sample-rand-Right-Bits_n 14 (composition-rand-Right-14 __global_state))))
                                                                                                                                                             (let
                                                                                                                                                               (
                                                                                                                                                                 (__global_state
@@ -3468,10 +4142,10 @@
                                                                                                                                                                     (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                     (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                     (composition-param-Right-m __global_state)
+                                                                                                                                                                    (composition-param-Right-n __global_state)
+                                                                                                                                                                    (composition-param-Right-zeron __global_state)
                                                                                                                                                                     (composition-param-Right-zerom __global_state)
                                                                                                                                                                     (composition-param-Right-p __global_state)
-                                                                                                                                                                    (composition-param-Right-zeron __global_state)
-                                                                                                                                                                    (composition-param-Right-n __global_state)
                                                                                                                                                                     (composition-rand-Right-0 __global_state)
                                                                                                                                                                     (composition-rand-Right-1 __global_state)
                                                                                                                                                                     (composition-rand-Right-2 __global_state)
@@ -3482,9 +4156,13 @@
                                                                                                                                                                     (composition-rand-Right-7 __global_state)
                                                                                                                                                                     (composition-rand-Right-8 __global_state)
                                                                                                                                                                     (composition-rand-Right-9 __global_state)
-                                                                                                                                                                    (+ 1 (composition-rand-Right-10 __global_state))
+                                                                                                                                                                    (composition-rand-Right-10 __global_state)
                                                                                                                                                                     (composition-rand-Right-11 __global_state)
-                                                                                                                                                                    (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                    (composition-rand-Right-12 __global_state)
+                                                                                                                                                                    (composition-rand-Right-13 __global_state)
+                                                                                                                                                                    (+ 1 (composition-rand-Right-14 __global_state))
+                                                                                                                                                                    (composition-rand-Right-15 __global_state)
+                                                                                                                                                                    (composition-rand-Right-16 __global_state))))
                                                                                                                                                               (let
                                                                                                                                                                 ((cin (__func-Right-encn kr kj rin)))
                                                                                                                                                                 (let
@@ -3514,7 +4192,7 @@
                                                                                                                                                                                         (let
                                                                                                                                                                                           (
                                                                                                                                                                                             (rin
-                                                                                                                                                                                              (__sample-rand-Right-Bits_n 11 (composition-rand-Right-11 __global_state))))
+                                                                                                                                                                                              (__sample-rand-Right-Bits_n 15 (composition-rand-Right-15 __global_state))))
                                                                                                                                                                                           (let
                                                                                                                                                                                             (
                                                                                                                                                                                               (__global_state
@@ -3524,10 +4202,10 @@
                                                                                                                                                                                                   (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                                                   (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                                   (composition-param-Right-m __global_state)
+                                                                                                                                                                                                  (composition-param-Right-n __global_state)
+                                                                                                                                                                                                  (composition-param-Right-zeron __global_state)
                                                                                                                                                                                                   (composition-param-Right-zerom __global_state)
                                                                                                                                                                                                   (composition-param-Right-p __global_state)
-                                                                                                                                                                                                  (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                                  (composition-param-Right-n __global_state)
                                                                                                                                                                                                   (composition-rand-Right-0 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-1 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-2 __global_state)
@@ -3539,12 +4217,16 @@
                                                                                                                                                                                                   (composition-rand-Right-8 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-9 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-10 __global_state)
-                                                                                                                                                                                                  (+ 1 (composition-rand-Right-11 __global_state))
-                                                                                                                                                                                                  (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                                  (composition-rand-Right-11 __global_state)
+                                                                                                                                                                                                  (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                                  (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                                  (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                                  (+ 1 (composition-rand-Right-15 __global_state))
+                                                                                                                                                                                                  (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                             (let
                                                                                                                                                                                               (
                                                                                                                                                                                                 (rout
-                                                                                                                                                                                                  (__sample-rand-Right-Bits_n 12 (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                                  (__sample-rand-Right-Bits_n 16 (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                               (let
                                                                                                                                                                                                 (
                                                                                                                                                                                                   (__global_state
@@ -3554,10 +4236,10 @@
                                                                                                                                                                                                       (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                                                       (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                                       (composition-param-Right-m __global_state)
+                                                                                                                                                                                                      (composition-param-Right-n __global_state)
+                                                                                                                                                                                                      (composition-param-Right-zeron __global_state)
                                                                                                                                                                                                       (composition-param-Right-zerom __global_state)
                                                                                                                                                                                                       (composition-param-Right-p __global_state)
-                                                                                                                                                                                                      (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                                      (composition-param-Right-n __global_state)
                                                                                                                                                                                                       (composition-rand-Right-0 __global_state)
                                                                                                                                                                                                       (composition-rand-Right-1 __global_state)
                                                                                                                                                                                                       (composition-rand-Right-2 __global_state)
@@ -3570,7 +4252,11 @@
                                                                                                                                                                                                       (composition-rand-Right-9 __global_state)
                                                                                                                                                                                                       (composition-rand-Right-10 __global_state)
                                                                                                                                                                                                       (composition-rand-Right-11 __global_state)
-                                                                                                                                                                                                      (+ 1 (composition-rand-Right-12 __global_state)))))
+                                                                                                                                                                                                      (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                                      (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                                      (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                                      (composition-rand-Right-15 __global_state)
+                                                                                                                                                                                                      (+ 1 (composition-rand-Right-16 __global_state)))))
                                                                                                                                                                                                 (let
                                                                                                                                                                                                   ((cin (__func-Right-encn kr kj rin)))
                                                                                                                                                                                                   (let
@@ -3586,10 +4272,10 @@
                                                                                                                                                                                                               __self_state
                                                                                                                                                                                                               (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                                               (composition-param-Right-m __global_state)
+                                                                                                                                                                                                              (composition-param-Right-n __global_state)
+                                                                                                                                                                                                              (composition-param-Right-zeron __global_state)
                                                                                                                                                                                                               (composition-param-Right-zerom __global_state)
                                                                                                                                                                                                               (composition-param-Right-p __global_state)
-                                                                                                                                                                                                              (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                                              (composition-param-Right-n __global_state)
                                                                                                                                                                                                               (composition-rand-Right-0 __global_state)
                                                                                                                                                                                                               (composition-rand-Right-1 __global_state)
                                                                                                                                                                                                               (composition-rand-Right-2 __global_state)
@@ -3602,12 +4288,16 @@
                                                                                                                                                                                                               (composition-rand-Right-9 __global_state)
                                                                                                                                                                                                               (composition-rand-Right-10 __global_state)
                                                                                                                                                                                                               (composition-rand-Right-11 __global_state)
-                                                                                                                                                                                                              (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                                              (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                                              (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                                              (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                                              (composition-rand-Right-15 __global_state)
+                                                                                                                                                                                                              (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                                         (mk-return-Right-simgate-GBLG __global_state C)))))))))))
                                                                                                                                                                                     (let
                                                                                                                                                                                       (
                                                                                                                                                                                         (rin
-                                                                                                                                                                                          (__sample-rand-Right-Bits_n 11 (composition-rand-Right-11 __global_state))))
+                                                                                                                                                                                          (__sample-rand-Right-Bits_n 15 (composition-rand-Right-15 __global_state))))
                                                                                                                                                                                       (let
                                                                                                                                                                                         (
                                                                                                                                                                                           (__global_state
@@ -3617,10 +4307,10 @@
                                                                                                                                                                                               (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                                               (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                               (composition-param-Right-m __global_state)
+                                                                                                                                                                                              (composition-param-Right-n __global_state)
+                                                                                                                                                                                              (composition-param-Right-zeron __global_state)
                                                                                                                                                                                               (composition-param-Right-zerom __global_state)
                                                                                                                                                                                               (composition-param-Right-p __global_state)
-                                                                                                                                                                                              (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                              (composition-param-Right-n __global_state)
                                                                                                                                                                                               (composition-rand-Right-0 __global_state)
                                                                                                                                                                                               (composition-rand-Right-1 __global_state)
                                                                                                                                                                                               (composition-rand-Right-2 __global_state)
@@ -3632,12 +4322,16 @@
                                                                                                                                                                                               (composition-rand-Right-8 __global_state)
                                                                                                                                                                                               (composition-rand-Right-9 __global_state)
                                                                                                                                                                                               (composition-rand-Right-10 __global_state)
-                                                                                                                                                                                              (+ 1 (composition-rand-Right-11 __global_state))
-                                                                                                                                                                                              (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                              (composition-rand-Right-11 __global_state)
+                                                                                                                                                                                              (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                              (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                              (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                              (+ 1 (composition-rand-Right-15 __global_state))
+                                                                                                                                                                                              (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                         (let
                                                                                                                                                                                           (
                                                                                                                                                                                             (rout
-                                                                                                                                                                                              (__sample-rand-Right-Bits_n 12 (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                              (__sample-rand-Right-Bits_n 16 (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                           (let
                                                                                                                                                                                             (
                                                                                                                                                                                               (__global_state
@@ -3647,10 +4341,10 @@
                                                                                                                                                                                                   (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                                                   (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                                   (composition-param-Right-m __global_state)
+                                                                                                                                                                                                  (composition-param-Right-n __global_state)
+                                                                                                                                                                                                  (composition-param-Right-zeron __global_state)
                                                                                                                                                                                                   (composition-param-Right-zerom __global_state)
                                                                                                                                                                                                   (composition-param-Right-p __global_state)
-                                                                                                                                                                                                  (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                                  (composition-param-Right-n __global_state)
                                                                                                                                                                                                   (composition-rand-Right-0 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-1 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-2 __global_state)
@@ -3663,7 +4357,11 @@
                                                                                                                                                                                                   (composition-rand-Right-9 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-10 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-11 __global_state)
-                                                                                                                                                                                                  (+ 1 (composition-rand-Right-12 __global_state)))))
+                                                                                                                                                                                                  (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                                  (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                                  (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                                  (composition-rand-Right-15 __global_state)
+                                                                                                                                                                                                  (+ 1 (composition-rand-Right-16 __global_state)))))
                                                                                                                                                                                             (let
                                                                                                                                                                                               ((cin (__func-Right-encn kr kj rin)))
                                                                                                                                                                                               (let
@@ -3679,10 +4377,10 @@
                                                                                                                                                                                                           __self_state
                                                                                                                                                                                                           (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                                           (composition-param-Right-m __global_state)
+                                                                                                                                                                                                          (composition-param-Right-n __global_state)
+                                                                                                                                                                                                          (composition-param-Right-zeron __global_state)
                                                                                                                                                                                                           (composition-param-Right-zerom __global_state)
                                                                                                                                                                                                           (composition-param-Right-p __global_state)
-                                                                                                                                                                                                          (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                                          (composition-param-Right-n __global_state)
                                                                                                                                                                                                           (composition-rand-Right-0 __global_state)
                                                                                                                                                                                                           (composition-rand-Right-1 __global_state)
                                                                                                                                                                                                           (composition-rand-Right-2 __global_state)
@@ -3695,11 +4393,16 @@
                                                                                                                                                                                                           (composition-rand-Right-9 __global_state)
                                                                                                                                                                                                           (composition-rand-Right-10 __global_state)
                                                                                                                                                                                                           (composition-rand-Right-11 __global_state)
-                                                                                                                                                                                                          (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                                          (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                                          (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                                          (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                                          (composition-rand-Right-15 __global_state)
+                                                                                                                                                                                                          (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                                     (mk-return-Right-simgate-GBLG __global_state C))))))))))))))))))))))))))
                                                                                                                                                   (let
                                                                                                                                                     (
-                                                                                                                                                      (rin (__sample-rand-Right-Bits_n 9 (composition-rand-Right-9 __global_state))))
+                                                                                                                                                      (rin
+                                                                                                                                                        (__sample-rand-Right-Bits_n 13 (composition-rand-Right-13 __global_state))))
                                                                                                                                                     (let
                                                                                                                                                       (
                                                                                                                                                         (__global_state
@@ -3709,10 +4412,10 @@
                                                                                                                                                             (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                             (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                             (composition-param-Right-m __global_state)
+                                                                                                                                                            (composition-param-Right-n __global_state)
+                                                                                                                                                            (composition-param-Right-zeron __global_state)
                                                                                                                                                             (composition-param-Right-zerom __global_state)
                                                                                                                                                             (composition-param-Right-p __global_state)
-                                                                                                                                                            (composition-param-Right-zeron __global_state)
-                                                                                                                                                            (composition-param-Right-n __global_state)
                                                                                                                                                             (composition-rand-Right-0 __global_state)
                                                                                                                                                             (composition-rand-Right-1 __global_state)
                                                                                                                                                             (composition-rand-Right-2 __global_state)
@@ -3722,14 +4425,18 @@
                                                                                                                                                             (composition-rand-Right-6 __global_state)
                                                                                                                                                             (composition-rand-Right-7 __global_state)
                                                                                                                                                             (composition-rand-Right-8 __global_state)
-                                                                                                                                                            (+ 1 (composition-rand-Right-9 __global_state))
+                                                                                                                                                            (composition-rand-Right-9 __global_state)
                                                                                                                                                             (composition-rand-Right-10 __global_state)
                                                                                                                                                             (composition-rand-Right-11 __global_state)
-                                                                                                                                                            (composition-rand-Right-12 __global_state))))
+                                                                                                                                                            (composition-rand-Right-12 __global_state)
+                                                                                                                                                            (+ 1 (composition-rand-Right-13 __global_state))
+                                                                                                                                                            (composition-rand-Right-14 __global_state)
+                                                                                                                                                            (composition-rand-Right-15 __global_state)
+                                                                                                                                                            (composition-rand-Right-16 __global_state))))
                                                                                                                                                       (let
                                                                                                                                                         (
                                                                                                                                                           (rout
-                                                                                                                                                            (__sample-rand-Right-Bits_n 10 (composition-rand-Right-10 __global_state))))
+                                                                                                                                                            (__sample-rand-Right-Bits_n 14 (composition-rand-Right-14 __global_state))))
                                                                                                                                                         (let
                                                                                                                                                           (
                                                                                                                                                             (__global_state
@@ -3739,10 +4446,10 @@
                                                                                                                                                                 (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                 (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                 (composition-param-Right-m __global_state)
+                                                                                                                                                                (composition-param-Right-n __global_state)
+                                                                                                                                                                (composition-param-Right-zeron __global_state)
                                                                                                                                                                 (composition-param-Right-zerom __global_state)
                                                                                                                                                                 (composition-param-Right-p __global_state)
-                                                                                                                                                                (composition-param-Right-zeron __global_state)
-                                                                                                                                                                (composition-param-Right-n __global_state)
                                                                                                                                                                 (composition-rand-Right-0 __global_state)
                                                                                                                                                                 (composition-rand-Right-1 __global_state)
                                                                                                                                                                 (composition-rand-Right-2 __global_state)
@@ -3753,9 +4460,13 @@
                                                                                                                                                                 (composition-rand-Right-7 __global_state)
                                                                                                                                                                 (composition-rand-Right-8 __global_state)
                                                                                                                                                                 (composition-rand-Right-9 __global_state)
-                                                                                                                                                                (+ 1 (composition-rand-Right-10 __global_state))
+                                                                                                                                                                (composition-rand-Right-10 __global_state)
                                                                                                                                                                 (composition-rand-Right-11 __global_state)
-                                                                                                                                                                (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                (composition-rand-Right-12 __global_state)
+                                                                                                                                                                (composition-rand-Right-13 __global_state)
+                                                                                                                                                                (+ 1 (composition-rand-Right-14 __global_state))
+                                                                                                                                                                (composition-rand-Right-15 __global_state)
+                                                                                                                                                                (composition-rand-Right-16 __global_state))))
                                                                                                                                                           (let
                                                                                                                                                             ((cin (__func-Right-encn kr kj rin)))
                                                                                                                                                             (let
@@ -3785,7 +4496,7 @@
                                                                                                                                                                                     (let
                                                                                                                                                                                       (
                                                                                                                                                                                         (rin
-                                                                                                                                                                                          (__sample-rand-Right-Bits_n 11 (composition-rand-Right-11 __global_state))))
+                                                                                                                                                                                          (__sample-rand-Right-Bits_n 15 (composition-rand-Right-15 __global_state))))
                                                                                                                                                                                       (let
                                                                                                                                                                                         (
                                                                                                                                                                                           (__global_state
@@ -3795,10 +4506,10 @@
                                                                                                                                                                                               (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                                               (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                               (composition-param-Right-m __global_state)
+                                                                                                                                                                                              (composition-param-Right-n __global_state)
+                                                                                                                                                                                              (composition-param-Right-zeron __global_state)
                                                                                                                                                                                               (composition-param-Right-zerom __global_state)
                                                                                                                                                                                               (composition-param-Right-p __global_state)
-                                                                                                                                                                                              (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                              (composition-param-Right-n __global_state)
                                                                                                                                                                                               (composition-rand-Right-0 __global_state)
                                                                                                                                                                                               (composition-rand-Right-1 __global_state)
                                                                                                                                                                                               (composition-rand-Right-2 __global_state)
@@ -3810,12 +4521,16 @@
                                                                                                                                                                                               (composition-rand-Right-8 __global_state)
                                                                                                                                                                                               (composition-rand-Right-9 __global_state)
                                                                                                                                                                                               (composition-rand-Right-10 __global_state)
-                                                                                                                                                                                              (+ 1 (composition-rand-Right-11 __global_state))
-                                                                                                                                                                                              (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                              (composition-rand-Right-11 __global_state)
+                                                                                                                                                                                              (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                              (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                              (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                              (+ 1 (composition-rand-Right-15 __global_state))
+                                                                                                                                                                                              (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                         (let
                                                                                                                                                                                           (
                                                                                                                                                                                             (rout
-                                                                                                                                                                                              (__sample-rand-Right-Bits_n 12 (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                              (__sample-rand-Right-Bits_n 16 (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                           (let
                                                                                                                                                                                             (
                                                                                                                                                                                               (__global_state
@@ -3825,10 +4540,10 @@
                                                                                                                                                                                                   (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                                                   (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                                   (composition-param-Right-m __global_state)
+                                                                                                                                                                                                  (composition-param-Right-n __global_state)
+                                                                                                                                                                                                  (composition-param-Right-zeron __global_state)
                                                                                                                                                                                                   (composition-param-Right-zerom __global_state)
                                                                                                                                                                                                   (composition-param-Right-p __global_state)
-                                                                                                                                                                                                  (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                                  (composition-param-Right-n __global_state)
                                                                                                                                                                                                   (composition-rand-Right-0 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-1 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-2 __global_state)
@@ -3841,7 +4556,11 @@
                                                                                                                                                                                                   (composition-rand-Right-9 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-10 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-11 __global_state)
-                                                                                                                                                                                                  (+ 1 (composition-rand-Right-12 __global_state)))))
+                                                                                                                                                                                                  (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                                  (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                                  (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                                  (composition-rand-Right-15 __global_state)
+                                                                                                                                                                                                  (+ 1 (composition-rand-Right-16 __global_state)))))
                                                                                                                                                                                             (let
                                                                                                                                                                                               ((cin (__func-Right-encn kr kj rin)))
                                                                                                                                                                                               (let
@@ -3857,10 +4576,10 @@
                                                                                                                                                                                                           __self_state
                                                                                                                                                                                                           (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                                           (composition-param-Right-m __global_state)
+                                                                                                                                                                                                          (composition-param-Right-n __global_state)
+                                                                                                                                                                                                          (composition-param-Right-zeron __global_state)
                                                                                                                                                                                                           (composition-param-Right-zerom __global_state)
                                                                                                                                                                                                           (composition-param-Right-p __global_state)
-                                                                                                                                                                                                          (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                                          (composition-param-Right-n __global_state)
                                                                                                                                                                                                           (composition-rand-Right-0 __global_state)
                                                                                                                                                                                                           (composition-rand-Right-1 __global_state)
                                                                                                                                                                                                           (composition-rand-Right-2 __global_state)
@@ -3873,12 +4592,16 @@
                                                                                                                                                                                                           (composition-rand-Right-9 __global_state)
                                                                                                                                                                                                           (composition-rand-Right-10 __global_state)
                                                                                                                                                                                                           (composition-rand-Right-11 __global_state)
-                                                                                                                                                                                                          (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                                          (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                                          (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                                          (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                                          (composition-rand-Right-15 __global_state)
+                                                                                                                                                                                                          (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                                     (mk-return-Right-simgate-GBLG __global_state C)))))))))))
                                                                                                                                                                                 (let
                                                                                                                                                                                   (
                                                                                                                                                                                     (rin
-                                                                                                                                                                                      (__sample-rand-Right-Bits_n 11 (composition-rand-Right-11 __global_state))))
+                                                                                                                                                                                      (__sample-rand-Right-Bits_n 15 (composition-rand-Right-15 __global_state))))
                                                                                                                                                                                   (let
                                                                                                                                                                                     (
                                                                                                                                                                                       (__global_state
@@ -3888,10 +4611,10 @@
                                                                                                                                                                                           (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                                           (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                           (composition-param-Right-m __global_state)
+                                                                                                                                                                                          (composition-param-Right-n __global_state)
+                                                                                                                                                                                          (composition-param-Right-zeron __global_state)
                                                                                                                                                                                           (composition-param-Right-zerom __global_state)
                                                                                                                                                                                           (composition-param-Right-p __global_state)
-                                                                                                                                                                                          (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                          (composition-param-Right-n __global_state)
                                                                                                                                                                                           (composition-rand-Right-0 __global_state)
                                                                                                                                                                                           (composition-rand-Right-1 __global_state)
                                                                                                                                                                                           (composition-rand-Right-2 __global_state)
@@ -3903,12 +4626,16 @@
                                                                                                                                                                                           (composition-rand-Right-8 __global_state)
                                                                                                                                                                                           (composition-rand-Right-9 __global_state)
                                                                                                                                                                                           (composition-rand-Right-10 __global_state)
-                                                                                                                                                                                          (+ 1 (composition-rand-Right-11 __global_state))
-                                                                                                                                                                                          (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                          (composition-rand-Right-11 __global_state)
+                                                                                                                                                                                          (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                          (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                          (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                          (+ 1 (composition-rand-Right-15 __global_state))
+                                                                                                                                                                                          (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                     (let
                                                                                                                                                                                       (
                                                                                                                                                                                         (rout
-                                                                                                                                                                                          (__sample-rand-Right-Bits_n 12 (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                          (__sample-rand-Right-Bits_n 16 (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                       (let
                                                                                                                                                                                         (
                                                                                                                                                                                           (__global_state
@@ -3918,10 +4645,10 @@
                                                                                                                                                                                               (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                                               (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                               (composition-param-Right-m __global_state)
+                                                                                                                                                                                              (composition-param-Right-n __global_state)
+                                                                                                                                                                                              (composition-param-Right-zeron __global_state)
                                                                                                                                                                                               (composition-param-Right-zerom __global_state)
                                                                                                                                                                                               (composition-param-Right-p __global_state)
-                                                                                                                                                                                              (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                              (composition-param-Right-n __global_state)
                                                                                                                                                                                               (composition-rand-Right-0 __global_state)
                                                                                                                                                                                               (composition-rand-Right-1 __global_state)
                                                                                                                                                                                               (composition-rand-Right-2 __global_state)
@@ -3934,7 +4661,11 @@
                                                                                                                                                                                               (composition-rand-Right-9 __global_state)
                                                                                                                                                                                               (composition-rand-Right-10 __global_state)
                                                                                                                                                                                               (composition-rand-Right-11 __global_state)
-                                                                                                                                                                                              (+ 1 (composition-rand-Right-12 __global_state)))))
+                                                                                                                                                                                              (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                              (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                              (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                              (composition-rand-Right-15 __global_state)
+                                                                                                                                                                                              (+ 1 (composition-rand-Right-16 __global_state)))))
                                                                                                                                                                                         (let
                                                                                                                                                                                           ((cin (__func-Right-encn kr kj rin)))
                                                                                                                                                                                           (let
@@ -3950,10 +4681,10 @@
                                                                                                                                                                                                       __self_state
                                                                                                                                                                                                       (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                                       (composition-param-Right-m __global_state)
+                                                                                                                                                                                                      (composition-param-Right-n __global_state)
+                                                                                                                                                                                                      (composition-param-Right-zeron __global_state)
                                                                                                                                                                                                       (composition-param-Right-zerom __global_state)
                                                                                                                                                                                                       (composition-param-Right-p __global_state)
-                                                                                                                                                                                                      (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                                      (composition-param-Right-n __global_state)
                                                                                                                                                                                                       (composition-rand-Right-0 __global_state)
                                                                                                                                                                                                       (composition-rand-Right-1 __global_state)
                                                                                                                                                                                                       (composition-rand-Right-2 __global_state)
@@ -3966,11 +4697,15 @@
                                                                                                                                                                                                       (composition-rand-Right-9 __global_state)
                                                                                                                                                                                                       (composition-rand-Right-10 __global_state)
                                                                                                                                                                                                       (composition-rand-Right-11 __global_state)
-                                                                                                                                                                                                      (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                                      (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                                      (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                                      (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                                      (composition-rand-Right-15 __global_state)
+                                                                                                                                                                                                      (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                                 (mk-return-Right-simgate-GBLG __global_state C)))))))))))))))))))))))))))))))))))))))))))))))))))))))))
                                                                                 (let
                                                                                   (
-                                                                                    (rin (__sample-rand-Right-Bits_n 5 (composition-rand-Right-5 __global_state))))
+                                                                                    (rin (__sample-rand-Right-Bits_n 9 (composition-rand-Right-9 __global_state))))
                                                                                   (let
                                                                                     (
                                                                                       (__global_state
@@ -3980,26 +4715,31 @@
                                                                                           (composition-pkgstate-Right-simgate __global_state)
                                                                                           (composition-pkgstate-Right-ev __global_state)
                                                                                           (composition-param-Right-m __global_state)
+                                                                                          (composition-param-Right-n __global_state)
+                                                                                          (composition-param-Right-zeron __global_state)
                                                                                           (composition-param-Right-zerom __global_state)
                                                                                           (composition-param-Right-p __global_state)
-                                                                                          (composition-param-Right-zeron __global_state)
-                                                                                          (composition-param-Right-n __global_state)
                                                                                           (composition-rand-Right-0 __global_state)
                                                                                           (composition-rand-Right-1 __global_state)
                                                                                           (composition-rand-Right-2 __global_state)
                                                                                           (composition-rand-Right-3 __global_state)
                                                                                           (composition-rand-Right-4 __global_state)
-                                                                                          (+ 1 (composition-rand-Right-5 __global_state))
+                                                                                          (composition-rand-Right-5 __global_state)
                                                                                           (composition-rand-Right-6 __global_state)
                                                                                           (composition-rand-Right-7 __global_state)
                                                                                           (composition-rand-Right-8 __global_state)
-                                                                                          (composition-rand-Right-9 __global_state)
+                                                                                          (+ 1 (composition-rand-Right-9 __global_state))
                                                                                           (composition-rand-Right-10 __global_state)
                                                                                           (composition-rand-Right-11 __global_state)
-                                                                                          (composition-rand-Right-12 __global_state))))
+                                                                                          (composition-rand-Right-12 __global_state)
+                                                                                          (composition-rand-Right-13 __global_state)
+                                                                                          (composition-rand-Right-14 __global_state)
+                                                                                          (composition-rand-Right-15 __global_state)
+                                                                                          (composition-rand-Right-16 __global_state))))
                                                                                     (let
                                                                                       (
-                                                                                        (rout (__sample-rand-Right-Bits_n 6 (composition-rand-Right-6 __global_state))))
+                                                                                        (rout
+                                                                                          (__sample-rand-Right-Bits_n 10 (composition-rand-Right-10 __global_state))))
                                                                                       (let
                                                                                         (
                                                                                           (__global_state
@@ -4009,23 +4749,27 @@
                                                                                               (composition-pkgstate-Right-simgate __global_state)
                                                                                               (composition-pkgstate-Right-ev __global_state)
                                                                                               (composition-param-Right-m __global_state)
+                                                                                              (composition-param-Right-n __global_state)
+                                                                                              (composition-param-Right-zeron __global_state)
                                                                                               (composition-param-Right-zerom __global_state)
                                                                                               (composition-param-Right-p __global_state)
-                                                                                              (composition-param-Right-zeron __global_state)
-                                                                                              (composition-param-Right-n __global_state)
                                                                                               (composition-rand-Right-0 __global_state)
                                                                                               (composition-rand-Right-1 __global_state)
                                                                                               (composition-rand-Right-2 __global_state)
                                                                                               (composition-rand-Right-3 __global_state)
                                                                                               (composition-rand-Right-4 __global_state)
                                                                                               (composition-rand-Right-5 __global_state)
-                                                                                              (+ 1 (composition-rand-Right-6 __global_state))
+                                                                                              (composition-rand-Right-6 __global_state)
                                                                                               (composition-rand-Right-7 __global_state)
                                                                                               (composition-rand-Right-8 __global_state)
                                                                                               (composition-rand-Right-9 __global_state)
-                                                                                              (composition-rand-Right-10 __global_state)
+                                                                                              (+ 1 (composition-rand-Right-10 __global_state))
                                                                                               (composition-rand-Right-11 __global_state)
-                                                                                              (composition-rand-Right-12 __global_state))))
+                                                                                              (composition-rand-Right-12 __global_state)
+                                                                                              (composition-rand-Right-13 __global_state)
+                                                                                              (composition-rand-Right-14 __global_state)
+                                                                                              (composition-rand-Right-15 __global_state)
+                                                                                              (composition-rand-Right-16 __global_state))))
                                                                                         (let
                                                                                           ((cin (__func-Right-encn kr kj rin)))
                                                                                           (let
@@ -4056,7 +4800,8 @@
                                                                                                                     ((kj unwrap-6))
                                                                                                                     (let
                                                                                                                       (
-                                                                                                                        (rin (__sample-rand-Right-Bits_n 7 (composition-rand-Right-7 __global_state))))
+                                                                                                                        (rin
+                                                                                                                          (__sample-rand-Right-Bits_n 11 (composition-rand-Right-11 __global_state))))
                                                                                                                       (let
                                                                                                                         (
                                                                                                                           (__global_state
@@ -4066,10 +4811,10 @@
                                                                                                                               (composition-pkgstate-Right-simgate __global_state)
                                                                                                                               (composition-pkgstate-Right-ev __global_state)
                                                                                                                               (composition-param-Right-m __global_state)
+                                                                                                                              (composition-param-Right-n __global_state)
+                                                                                                                              (composition-param-Right-zeron __global_state)
                                                                                                                               (composition-param-Right-zerom __global_state)
                                                                                                                               (composition-param-Right-p __global_state)
-                                                                                                                              (composition-param-Right-zeron __global_state)
-                                                                                                                              (composition-param-Right-n __global_state)
                                                                                                                               (composition-rand-Right-0 __global_state)
                                                                                                                               (composition-rand-Right-1 __global_state)
                                                                                                                               (composition-rand-Right-2 __global_state)
@@ -4077,15 +4822,20 @@
                                                                                                                               (composition-rand-Right-4 __global_state)
                                                                                                                               (composition-rand-Right-5 __global_state)
                                                                                                                               (composition-rand-Right-6 __global_state)
-                                                                                                                              (+ 1 (composition-rand-Right-7 __global_state))
+                                                                                                                              (composition-rand-Right-7 __global_state)
                                                                                                                               (composition-rand-Right-8 __global_state)
                                                                                                                               (composition-rand-Right-9 __global_state)
                                                                                                                               (composition-rand-Right-10 __global_state)
-                                                                                                                              (composition-rand-Right-11 __global_state)
-                                                                                                                              (composition-rand-Right-12 __global_state))))
+                                                                                                                              (+ 1 (composition-rand-Right-11 __global_state))
+                                                                                                                              (composition-rand-Right-12 __global_state)
+                                                                                                                              (composition-rand-Right-13 __global_state)
+                                                                                                                              (composition-rand-Right-14 __global_state)
+                                                                                                                              (composition-rand-Right-15 __global_state)
+                                                                                                                              (composition-rand-Right-16 __global_state))))
                                                                                                                         (let
                                                                                                                           (
-                                                                                                                            (rout (__sample-rand-Right-Bits_n 8 (composition-rand-Right-8 __global_state))))
+                                                                                                                            (rout
+                                                                                                                              (__sample-rand-Right-Bits_n 12 (composition-rand-Right-12 __global_state))))
                                                                                                                           (let
                                                                                                                             (
                                                                                                                               (__global_state
@@ -4095,10 +4845,10 @@
                                                                                                                                   (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                   (composition-pkgstate-Right-ev __global_state)
                                                                                                                                   (composition-param-Right-m __global_state)
+                                                                                                                                  (composition-param-Right-n __global_state)
+                                                                                                                                  (composition-param-Right-zeron __global_state)
                                                                                                                                   (composition-param-Right-zerom __global_state)
                                                                                                                                   (composition-param-Right-p __global_state)
-                                                                                                                                  (composition-param-Right-zeron __global_state)
-                                                                                                                                  (composition-param-Right-n __global_state)
                                                                                                                                   (composition-rand-Right-0 __global_state)
                                                                                                                                   (composition-rand-Right-1 __global_state)
                                                                                                                                   (composition-rand-Right-2 __global_state)
@@ -4107,11 +4857,15 @@
                                                                                                                                   (composition-rand-Right-5 __global_state)
                                                                                                                                   (composition-rand-Right-6 __global_state)
                                                                                                                                   (composition-rand-Right-7 __global_state)
-                                                                                                                                  (+ 1 (composition-rand-Right-8 __global_state))
+                                                                                                                                  (composition-rand-Right-8 __global_state)
                                                                                                                                   (composition-rand-Right-9 __global_state)
                                                                                                                                   (composition-rand-Right-10 __global_state)
                                                                                                                                   (composition-rand-Right-11 __global_state)
-                                                                                                                                  (composition-rand-Right-12 __global_state))))
+                                                                                                                                  (+ 1 (composition-rand-Right-12 __global_state))
+                                                                                                                                  (composition-rand-Right-13 __global_state)
+                                                                                                                                  (composition-rand-Right-14 __global_state)
+                                                                                                                                  (composition-rand-Right-15 __global_state)
+                                                                                                                                  (composition-rand-Right-16 __global_state))))
                                                                                                                             (let
                                                                                                                               ((cin (__func-Right-encn kr kj rin)))
                                                                                                                               (let
@@ -4140,7 +4894,8 @@
                                                                                                                                                       ((kj unwrap-9))
                                                                                                                                                       (let
                                                                                                                                                         (
-                                                                                                                                                          (rin (__sample-rand-Right-Bits_n 9 (composition-rand-Right-9 __global_state))))
+                                                                                                                                                          (rin
+                                                                                                                                                            (__sample-rand-Right-Bits_n 13 (composition-rand-Right-13 __global_state))))
                                                                                                                                                         (let
                                                                                                                                                           (
                                                                                                                                                             (__global_state
@@ -4150,10 +4905,10 @@
                                                                                                                                                                 (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                 (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                 (composition-param-Right-m __global_state)
+                                                                                                                                                                (composition-param-Right-n __global_state)
+                                                                                                                                                                (composition-param-Right-zeron __global_state)
                                                                                                                                                                 (composition-param-Right-zerom __global_state)
                                                                                                                                                                 (composition-param-Right-p __global_state)
-                                                                                                                                                                (composition-param-Right-zeron __global_state)
-                                                                                                                                                                (composition-param-Right-n __global_state)
                                                                                                                                                                 (composition-rand-Right-0 __global_state)
                                                                                                                                                                 (composition-rand-Right-1 __global_state)
                                                                                                                                                                 (composition-rand-Right-2 __global_state)
@@ -4163,14 +4918,18 @@
                                                                                                                                                                 (composition-rand-Right-6 __global_state)
                                                                                                                                                                 (composition-rand-Right-7 __global_state)
                                                                                                                                                                 (composition-rand-Right-8 __global_state)
-                                                                                                                                                                (+ 1 (composition-rand-Right-9 __global_state))
+                                                                                                                                                                (composition-rand-Right-9 __global_state)
                                                                                                                                                                 (composition-rand-Right-10 __global_state)
                                                                                                                                                                 (composition-rand-Right-11 __global_state)
-                                                                                                                                                                (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                (composition-rand-Right-12 __global_state)
+                                                                                                                                                                (+ 1 (composition-rand-Right-13 __global_state))
+                                                                                                                                                                (composition-rand-Right-14 __global_state)
+                                                                                                                                                                (composition-rand-Right-15 __global_state)
+                                                                                                                                                                (composition-rand-Right-16 __global_state))))
                                                                                                                                                           (let
                                                                                                                                                             (
                                                                                                                                                               (rout
-                                                                                                                                                                (__sample-rand-Right-Bits_n 10 (composition-rand-Right-10 __global_state))))
+                                                                                                                                                                (__sample-rand-Right-Bits_n 14 (composition-rand-Right-14 __global_state))))
                                                                                                                                                             (let
                                                                                                                                                               (
                                                                                                                                                                 (__global_state
@@ -4180,10 +4939,10 @@
                                                                                                                                                                     (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                     (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                     (composition-param-Right-m __global_state)
+                                                                                                                                                                    (composition-param-Right-n __global_state)
+                                                                                                                                                                    (composition-param-Right-zeron __global_state)
                                                                                                                                                                     (composition-param-Right-zerom __global_state)
                                                                                                                                                                     (composition-param-Right-p __global_state)
-                                                                                                                                                                    (composition-param-Right-zeron __global_state)
-                                                                                                                                                                    (composition-param-Right-n __global_state)
                                                                                                                                                                     (composition-rand-Right-0 __global_state)
                                                                                                                                                                     (composition-rand-Right-1 __global_state)
                                                                                                                                                                     (composition-rand-Right-2 __global_state)
@@ -4194,9 +4953,13 @@
                                                                                                                                                                     (composition-rand-Right-7 __global_state)
                                                                                                                                                                     (composition-rand-Right-8 __global_state)
                                                                                                                                                                     (composition-rand-Right-9 __global_state)
-                                                                                                                                                                    (+ 1 (composition-rand-Right-10 __global_state))
+                                                                                                                                                                    (composition-rand-Right-10 __global_state)
                                                                                                                                                                     (composition-rand-Right-11 __global_state)
-                                                                                                                                                                    (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                    (composition-rand-Right-12 __global_state)
+                                                                                                                                                                    (composition-rand-Right-13 __global_state)
+                                                                                                                                                                    (+ 1 (composition-rand-Right-14 __global_state))
+                                                                                                                                                                    (composition-rand-Right-15 __global_state)
+                                                                                                                                                                    (composition-rand-Right-16 __global_state))))
                                                                                                                                                               (let
                                                                                                                                                                 ((cin (__func-Right-encn kr kj rin)))
                                                                                                                                                                 (let
@@ -4226,7 +4989,7 @@
                                                                                                                                                                                         (let
                                                                                                                                                                                           (
                                                                                                                                                                                             (rin
-                                                                                                                                                                                              (__sample-rand-Right-Bits_n 11 (composition-rand-Right-11 __global_state))))
+                                                                                                                                                                                              (__sample-rand-Right-Bits_n 15 (composition-rand-Right-15 __global_state))))
                                                                                                                                                                                           (let
                                                                                                                                                                                             (
                                                                                                                                                                                               (__global_state
@@ -4236,10 +4999,10 @@
                                                                                                                                                                                                   (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                                                   (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                                   (composition-param-Right-m __global_state)
+                                                                                                                                                                                                  (composition-param-Right-n __global_state)
+                                                                                                                                                                                                  (composition-param-Right-zeron __global_state)
                                                                                                                                                                                                   (composition-param-Right-zerom __global_state)
                                                                                                                                                                                                   (composition-param-Right-p __global_state)
-                                                                                                                                                                                                  (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                                  (composition-param-Right-n __global_state)
                                                                                                                                                                                                   (composition-rand-Right-0 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-1 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-2 __global_state)
@@ -4251,12 +5014,16 @@
                                                                                                                                                                                                   (composition-rand-Right-8 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-9 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-10 __global_state)
-                                                                                                                                                                                                  (+ 1 (composition-rand-Right-11 __global_state))
-                                                                                                                                                                                                  (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                                  (composition-rand-Right-11 __global_state)
+                                                                                                                                                                                                  (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                                  (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                                  (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                                  (+ 1 (composition-rand-Right-15 __global_state))
+                                                                                                                                                                                                  (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                             (let
                                                                                                                                                                                               (
                                                                                                                                                                                                 (rout
-                                                                                                                                                                                                  (__sample-rand-Right-Bits_n 12 (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                                  (__sample-rand-Right-Bits_n 16 (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                               (let
                                                                                                                                                                                                 (
                                                                                                                                                                                                   (__global_state
@@ -4266,10 +5033,10 @@
                                                                                                                                                                                                       (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                                                       (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                                       (composition-param-Right-m __global_state)
+                                                                                                                                                                                                      (composition-param-Right-n __global_state)
+                                                                                                                                                                                                      (composition-param-Right-zeron __global_state)
                                                                                                                                                                                                       (composition-param-Right-zerom __global_state)
                                                                                                                                                                                                       (composition-param-Right-p __global_state)
-                                                                                                                                                                                                      (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                                      (composition-param-Right-n __global_state)
                                                                                                                                                                                                       (composition-rand-Right-0 __global_state)
                                                                                                                                                                                                       (composition-rand-Right-1 __global_state)
                                                                                                                                                                                                       (composition-rand-Right-2 __global_state)
@@ -4282,7 +5049,11 @@
                                                                                                                                                                                                       (composition-rand-Right-9 __global_state)
                                                                                                                                                                                                       (composition-rand-Right-10 __global_state)
                                                                                                                                                                                                       (composition-rand-Right-11 __global_state)
-                                                                                                                                                                                                      (+ 1 (composition-rand-Right-12 __global_state)))))
+                                                                                                                                                                                                      (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                                      (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                                      (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                                      (composition-rand-Right-15 __global_state)
+                                                                                                                                                                                                      (+ 1 (composition-rand-Right-16 __global_state)))))
                                                                                                                                                                                                 (let
                                                                                                                                                                                                   ((cin (__func-Right-encn kr kj rin)))
                                                                                                                                                                                                   (let
@@ -4298,10 +5069,10 @@
                                                                                                                                                                                                               __self_state
                                                                                                                                                                                                               (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                                               (composition-param-Right-m __global_state)
+                                                                                                                                                                                                              (composition-param-Right-n __global_state)
+                                                                                                                                                                                                              (composition-param-Right-zeron __global_state)
                                                                                                                                                                                                               (composition-param-Right-zerom __global_state)
                                                                                                                                                                                                               (composition-param-Right-p __global_state)
-                                                                                                                                                                                                              (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                                              (composition-param-Right-n __global_state)
                                                                                                                                                                                                               (composition-rand-Right-0 __global_state)
                                                                                                                                                                                                               (composition-rand-Right-1 __global_state)
                                                                                                                                                                                                               (composition-rand-Right-2 __global_state)
@@ -4314,12 +5085,16 @@
                                                                                                                                                                                                               (composition-rand-Right-9 __global_state)
                                                                                                                                                                                                               (composition-rand-Right-10 __global_state)
                                                                                                                                                                                                               (composition-rand-Right-11 __global_state)
-                                                                                                                                                                                                              (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                                              (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                                              (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                                              (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                                              (composition-rand-Right-15 __global_state)
+                                                                                                                                                                                                              (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                                         (mk-return-Right-simgate-GBLG __global_state C)))))))))))
                                                                                                                                                                                     (let
                                                                                                                                                                                       (
                                                                                                                                                                                         (rin
-                                                                                                                                                                                          (__sample-rand-Right-Bits_n 11 (composition-rand-Right-11 __global_state))))
+                                                                                                                                                                                          (__sample-rand-Right-Bits_n 15 (composition-rand-Right-15 __global_state))))
                                                                                                                                                                                       (let
                                                                                                                                                                                         (
                                                                                                                                                                                           (__global_state
@@ -4329,10 +5104,10 @@
                                                                                                                                                                                               (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                                               (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                               (composition-param-Right-m __global_state)
+                                                                                                                                                                                              (composition-param-Right-n __global_state)
+                                                                                                                                                                                              (composition-param-Right-zeron __global_state)
                                                                                                                                                                                               (composition-param-Right-zerom __global_state)
                                                                                                                                                                                               (composition-param-Right-p __global_state)
-                                                                                                                                                                                              (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                              (composition-param-Right-n __global_state)
                                                                                                                                                                                               (composition-rand-Right-0 __global_state)
                                                                                                                                                                                               (composition-rand-Right-1 __global_state)
                                                                                                                                                                                               (composition-rand-Right-2 __global_state)
@@ -4344,12 +5119,16 @@
                                                                                                                                                                                               (composition-rand-Right-8 __global_state)
                                                                                                                                                                                               (composition-rand-Right-9 __global_state)
                                                                                                                                                                                               (composition-rand-Right-10 __global_state)
-                                                                                                                                                                                              (+ 1 (composition-rand-Right-11 __global_state))
-                                                                                                                                                                                              (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                              (composition-rand-Right-11 __global_state)
+                                                                                                                                                                                              (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                              (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                              (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                              (+ 1 (composition-rand-Right-15 __global_state))
+                                                                                                                                                                                              (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                         (let
                                                                                                                                                                                           (
                                                                                                                                                                                             (rout
-                                                                                                                                                                                              (__sample-rand-Right-Bits_n 12 (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                              (__sample-rand-Right-Bits_n 16 (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                           (let
                                                                                                                                                                                             (
                                                                                                                                                                                               (__global_state
@@ -4359,10 +5138,10 @@
                                                                                                                                                                                                   (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                                                   (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                                   (composition-param-Right-m __global_state)
+                                                                                                                                                                                                  (composition-param-Right-n __global_state)
+                                                                                                                                                                                                  (composition-param-Right-zeron __global_state)
                                                                                                                                                                                                   (composition-param-Right-zerom __global_state)
                                                                                                                                                                                                   (composition-param-Right-p __global_state)
-                                                                                                                                                                                                  (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                                  (composition-param-Right-n __global_state)
                                                                                                                                                                                                   (composition-rand-Right-0 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-1 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-2 __global_state)
@@ -4375,7 +5154,11 @@
                                                                                                                                                                                                   (composition-rand-Right-9 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-10 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-11 __global_state)
-                                                                                                                                                                                                  (+ 1 (composition-rand-Right-12 __global_state)))))
+                                                                                                                                                                                                  (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                                  (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                                  (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                                  (composition-rand-Right-15 __global_state)
+                                                                                                                                                                                                  (+ 1 (composition-rand-Right-16 __global_state)))))
                                                                                                                                                                                             (let
                                                                                                                                                                                               ((cin (__func-Right-encn kr kj rin)))
                                                                                                                                                                                               (let
@@ -4391,10 +5174,10 @@
                                                                                                                                                                                                           __self_state
                                                                                                                                                                                                           (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                                           (composition-param-Right-m __global_state)
+                                                                                                                                                                                                          (composition-param-Right-n __global_state)
+                                                                                                                                                                                                          (composition-param-Right-zeron __global_state)
                                                                                                                                                                                                           (composition-param-Right-zerom __global_state)
                                                                                                                                                                                                           (composition-param-Right-p __global_state)
-                                                                                                                                                                                                          (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                                          (composition-param-Right-n __global_state)
                                                                                                                                                                                                           (composition-rand-Right-0 __global_state)
                                                                                                                                                                                                           (composition-rand-Right-1 __global_state)
                                                                                                                                                                                                           (composition-rand-Right-2 __global_state)
@@ -4407,11 +5190,16 @@
                                                                                                                                                                                                           (composition-rand-Right-9 __global_state)
                                                                                                                                                                                                           (composition-rand-Right-10 __global_state)
                                                                                                                                                                                                           (composition-rand-Right-11 __global_state)
-                                                                                                                                                                                                          (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                                          (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                                          (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                                          (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                                          (composition-rand-Right-15 __global_state)
+                                                                                                                                                                                                          (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                                     (mk-return-Right-simgate-GBLG __global_state C))))))))))))))))))))))))))
                                                                                                                                                   (let
                                                                                                                                                     (
-                                                                                                                                                      (rin (__sample-rand-Right-Bits_n 9 (composition-rand-Right-9 __global_state))))
+                                                                                                                                                      (rin
+                                                                                                                                                        (__sample-rand-Right-Bits_n 13 (composition-rand-Right-13 __global_state))))
                                                                                                                                                     (let
                                                                                                                                                       (
                                                                                                                                                         (__global_state
@@ -4421,10 +5209,10 @@
                                                                                                                                                             (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                             (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                             (composition-param-Right-m __global_state)
+                                                                                                                                                            (composition-param-Right-n __global_state)
+                                                                                                                                                            (composition-param-Right-zeron __global_state)
                                                                                                                                                             (composition-param-Right-zerom __global_state)
                                                                                                                                                             (composition-param-Right-p __global_state)
-                                                                                                                                                            (composition-param-Right-zeron __global_state)
-                                                                                                                                                            (composition-param-Right-n __global_state)
                                                                                                                                                             (composition-rand-Right-0 __global_state)
                                                                                                                                                             (composition-rand-Right-1 __global_state)
                                                                                                                                                             (composition-rand-Right-2 __global_state)
@@ -4434,14 +5222,18 @@
                                                                                                                                                             (composition-rand-Right-6 __global_state)
                                                                                                                                                             (composition-rand-Right-7 __global_state)
                                                                                                                                                             (composition-rand-Right-8 __global_state)
-                                                                                                                                                            (+ 1 (composition-rand-Right-9 __global_state))
+                                                                                                                                                            (composition-rand-Right-9 __global_state)
                                                                                                                                                             (composition-rand-Right-10 __global_state)
                                                                                                                                                             (composition-rand-Right-11 __global_state)
-                                                                                                                                                            (composition-rand-Right-12 __global_state))))
+                                                                                                                                                            (composition-rand-Right-12 __global_state)
+                                                                                                                                                            (+ 1 (composition-rand-Right-13 __global_state))
+                                                                                                                                                            (composition-rand-Right-14 __global_state)
+                                                                                                                                                            (composition-rand-Right-15 __global_state)
+                                                                                                                                                            (composition-rand-Right-16 __global_state))))
                                                                                                                                                       (let
                                                                                                                                                         (
                                                                                                                                                           (rout
-                                                                                                                                                            (__sample-rand-Right-Bits_n 10 (composition-rand-Right-10 __global_state))))
+                                                                                                                                                            (__sample-rand-Right-Bits_n 14 (composition-rand-Right-14 __global_state))))
                                                                                                                                                         (let
                                                                                                                                                           (
                                                                                                                                                             (__global_state
@@ -4451,10 +5243,10 @@
                                                                                                                                                                 (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                 (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                 (composition-param-Right-m __global_state)
+                                                                                                                                                                (composition-param-Right-n __global_state)
+                                                                                                                                                                (composition-param-Right-zeron __global_state)
                                                                                                                                                                 (composition-param-Right-zerom __global_state)
                                                                                                                                                                 (composition-param-Right-p __global_state)
-                                                                                                                                                                (composition-param-Right-zeron __global_state)
-                                                                                                                                                                (composition-param-Right-n __global_state)
                                                                                                                                                                 (composition-rand-Right-0 __global_state)
                                                                                                                                                                 (composition-rand-Right-1 __global_state)
                                                                                                                                                                 (composition-rand-Right-2 __global_state)
@@ -4465,9 +5257,13 @@
                                                                                                                                                                 (composition-rand-Right-7 __global_state)
                                                                                                                                                                 (composition-rand-Right-8 __global_state)
                                                                                                                                                                 (composition-rand-Right-9 __global_state)
-                                                                                                                                                                (+ 1 (composition-rand-Right-10 __global_state))
+                                                                                                                                                                (composition-rand-Right-10 __global_state)
                                                                                                                                                                 (composition-rand-Right-11 __global_state)
-                                                                                                                                                                (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                (composition-rand-Right-12 __global_state)
+                                                                                                                                                                (composition-rand-Right-13 __global_state)
+                                                                                                                                                                (+ 1 (composition-rand-Right-14 __global_state))
+                                                                                                                                                                (composition-rand-Right-15 __global_state)
+                                                                                                                                                                (composition-rand-Right-16 __global_state))))
                                                                                                                                                           (let
                                                                                                                                                             ((cin (__func-Right-encn kr kj rin)))
                                                                                                                                                             (let
@@ -4497,7 +5293,7 @@
                                                                                                                                                                                     (let
                                                                                                                                                                                       (
                                                                                                                                                                                         (rin
-                                                                                                                                                                                          (__sample-rand-Right-Bits_n 11 (composition-rand-Right-11 __global_state))))
+                                                                                                                                                                                          (__sample-rand-Right-Bits_n 15 (composition-rand-Right-15 __global_state))))
                                                                                                                                                                                       (let
                                                                                                                                                                                         (
                                                                                                                                                                                           (__global_state
@@ -4507,10 +5303,10 @@
                                                                                                                                                                                               (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                                               (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                               (composition-param-Right-m __global_state)
+                                                                                                                                                                                              (composition-param-Right-n __global_state)
+                                                                                                                                                                                              (composition-param-Right-zeron __global_state)
                                                                                                                                                                                               (composition-param-Right-zerom __global_state)
                                                                                                                                                                                               (composition-param-Right-p __global_state)
-                                                                                                                                                                                              (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                              (composition-param-Right-n __global_state)
                                                                                                                                                                                               (composition-rand-Right-0 __global_state)
                                                                                                                                                                                               (composition-rand-Right-1 __global_state)
                                                                                                                                                                                               (composition-rand-Right-2 __global_state)
@@ -4522,12 +5318,16 @@
                                                                                                                                                                                               (composition-rand-Right-8 __global_state)
                                                                                                                                                                                               (composition-rand-Right-9 __global_state)
                                                                                                                                                                                               (composition-rand-Right-10 __global_state)
-                                                                                                                                                                                              (+ 1 (composition-rand-Right-11 __global_state))
-                                                                                                                                                                                              (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                              (composition-rand-Right-11 __global_state)
+                                                                                                                                                                                              (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                              (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                              (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                              (+ 1 (composition-rand-Right-15 __global_state))
+                                                                                                                                                                                              (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                         (let
                                                                                                                                                                                           (
                                                                                                                                                                                             (rout
-                                                                                                                                                                                              (__sample-rand-Right-Bits_n 12 (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                              (__sample-rand-Right-Bits_n 16 (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                           (let
                                                                                                                                                                                             (
                                                                                                                                                                                               (__global_state
@@ -4537,10 +5337,10 @@
                                                                                                                                                                                                   (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                                                   (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                                   (composition-param-Right-m __global_state)
+                                                                                                                                                                                                  (composition-param-Right-n __global_state)
+                                                                                                                                                                                                  (composition-param-Right-zeron __global_state)
                                                                                                                                                                                                   (composition-param-Right-zerom __global_state)
                                                                                                                                                                                                   (composition-param-Right-p __global_state)
-                                                                                                                                                                                                  (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                                  (composition-param-Right-n __global_state)
                                                                                                                                                                                                   (composition-rand-Right-0 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-1 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-2 __global_state)
@@ -4553,7 +5353,11 @@
                                                                                                                                                                                                   (composition-rand-Right-9 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-10 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-11 __global_state)
-                                                                                                                                                                                                  (+ 1 (composition-rand-Right-12 __global_state)))))
+                                                                                                                                                                                                  (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                                  (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                                  (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                                  (composition-rand-Right-15 __global_state)
+                                                                                                                                                                                                  (+ 1 (composition-rand-Right-16 __global_state)))))
                                                                                                                                                                                             (let
                                                                                                                                                                                               ((cin (__func-Right-encn kr kj rin)))
                                                                                                                                                                                               (let
@@ -4569,10 +5373,10 @@
                                                                                                                                                                                                           __self_state
                                                                                                                                                                                                           (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                                           (composition-param-Right-m __global_state)
+                                                                                                                                                                                                          (composition-param-Right-n __global_state)
+                                                                                                                                                                                                          (composition-param-Right-zeron __global_state)
                                                                                                                                                                                                           (composition-param-Right-zerom __global_state)
                                                                                                                                                                                                           (composition-param-Right-p __global_state)
-                                                                                                                                                                                                          (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                                          (composition-param-Right-n __global_state)
                                                                                                                                                                                                           (composition-rand-Right-0 __global_state)
                                                                                                                                                                                                           (composition-rand-Right-1 __global_state)
                                                                                                                                                                                                           (composition-rand-Right-2 __global_state)
@@ -4585,12 +5389,16 @@
                                                                                                                                                                                                           (composition-rand-Right-9 __global_state)
                                                                                                                                                                                                           (composition-rand-Right-10 __global_state)
                                                                                                                                                                                                           (composition-rand-Right-11 __global_state)
-                                                                                                                                                                                                          (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                                          (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                                          (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                                          (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                                          (composition-rand-Right-15 __global_state)
+                                                                                                                                                                                                          (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                                     (mk-return-Right-simgate-GBLG __global_state C)))))))))))
                                                                                                                                                                                 (let
                                                                                                                                                                                   (
                                                                                                                                                                                     (rin
-                                                                                                                                                                                      (__sample-rand-Right-Bits_n 11 (composition-rand-Right-11 __global_state))))
+                                                                                                                                                                                      (__sample-rand-Right-Bits_n 15 (composition-rand-Right-15 __global_state))))
                                                                                                                                                                                   (let
                                                                                                                                                                                     (
                                                                                                                                                                                       (__global_state
@@ -4600,10 +5408,10 @@
                                                                                                                                                                                           (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                                           (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                           (composition-param-Right-m __global_state)
+                                                                                                                                                                                          (composition-param-Right-n __global_state)
+                                                                                                                                                                                          (composition-param-Right-zeron __global_state)
                                                                                                                                                                                           (composition-param-Right-zerom __global_state)
                                                                                                                                                                                           (composition-param-Right-p __global_state)
-                                                                                                                                                                                          (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                          (composition-param-Right-n __global_state)
                                                                                                                                                                                           (composition-rand-Right-0 __global_state)
                                                                                                                                                                                           (composition-rand-Right-1 __global_state)
                                                                                                                                                                                           (composition-rand-Right-2 __global_state)
@@ -4615,12 +5423,16 @@
                                                                                                                                                                                           (composition-rand-Right-8 __global_state)
                                                                                                                                                                                           (composition-rand-Right-9 __global_state)
                                                                                                                                                                                           (composition-rand-Right-10 __global_state)
-                                                                                                                                                                                          (+ 1 (composition-rand-Right-11 __global_state))
-                                                                                                                                                                                          (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                          (composition-rand-Right-11 __global_state)
+                                                                                                                                                                                          (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                          (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                          (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                          (+ 1 (composition-rand-Right-15 __global_state))
+                                                                                                                                                                                          (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                     (let
                                                                                                                                                                                       (
                                                                                                                                                                                         (rout
-                                                                                                                                                                                          (__sample-rand-Right-Bits_n 12 (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                          (__sample-rand-Right-Bits_n 16 (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                       (let
                                                                                                                                                                                         (
                                                                                                                                                                                           (__global_state
@@ -4630,10 +5442,10 @@
                                                                                                                                                                                               (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                                               (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                               (composition-param-Right-m __global_state)
+                                                                                                                                                                                              (composition-param-Right-n __global_state)
+                                                                                                                                                                                              (composition-param-Right-zeron __global_state)
                                                                                                                                                                                               (composition-param-Right-zerom __global_state)
                                                                                                                                                                                               (composition-param-Right-p __global_state)
-                                                                                                                                                                                              (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                              (composition-param-Right-n __global_state)
                                                                                                                                                                                               (composition-rand-Right-0 __global_state)
                                                                                                                                                                                               (composition-rand-Right-1 __global_state)
                                                                                                                                                                                               (composition-rand-Right-2 __global_state)
@@ -4646,7 +5458,11 @@
                                                                                                                                                                                               (composition-rand-Right-9 __global_state)
                                                                                                                                                                                               (composition-rand-Right-10 __global_state)
                                                                                                                                                                                               (composition-rand-Right-11 __global_state)
-                                                                                                                                                                                              (+ 1 (composition-rand-Right-12 __global_state)))))
+                                                                                                                                                                                              (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                              (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                              (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                              (composition-rand-Right-15 __global_state)
+                                                                                                                                                                                              (+ 1 (composition-rand-Right-16 __global_state)))))
                                                                                                                                                                                         (let
                                                                                                                                                                                           ((cin (__func-Right-encn kr kj rin)))
                                                                                                                                                                                           (let
@@ -4662,10 +5478,10 @@
                                                                                                                                                                                                       __self_state
                                                                                                                                                                                                       (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                                       (composition-param-Right-m __global_state)
+                                                                                                                                                                                                      (composition-param-Right-n __global_state)
+                                                                                                                                                                                                      (composition-param-Right-zeron __global_state)
                                                                                                                                                                                                       (composition-param-Right-zerom __global_state)
                                                                                                                                                                                                       (composition-param-Right-p __global_state)
-                                                                                                                                                                                                      (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                                      (composition-param-Right-n __global_state)
                                                                                                                                                                                                       (composition-rand-Right-0 __global_state)
                                                                                                                                                                                                       (composition-rand-Right-1 __global_state)
                                                                                                                                                                                                       (composition-rand-Right-2 __global_state)
@@ -4678,11 +5494,16 @@
                                                                                                                                                                                                       (composition-rand-Right-9 __global_state)
                                                                                                                                                                                                       (composition-rand-Right-10 __global_state)
                                                                                                                                                                                                       (composition-rand-Right-11 __global_state)
-                                                                                                                                                                                                      (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                                      (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                                      (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                                      (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                                      (composition-rand-Right-15 __global_state)
+                                                                                                                                                                                                      (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                                 (mk-return-Right-simgate-GBLG __global_state C)))))))))))))))))))))))))))))))))))))))))
                                                                                                                 (let
                                                                                                                   (
-                                                                                                                    (rin (__sample-rand-Right-Bits_n 7 (composition-rand-Right-7 __global_state))))
+                                                                                                                    (rin
+                                                                                                                      (__sample-rand-Right-Bits_n 11 (composition-rand-Right-11 __global_state))))
                                                                                                                   (let
                                                                                                                     (
                                                                                                                       (__global_state
@@ -4692,10 +5513,10 @@
                                                                                                                           (composition-pkgstate-Right-simgate __global_state)
                                                                                                                           (composition-pkgstate-Right-ev __global_state)
                                                                                                                           (composition-param-Right-m __global_state)
+                                                                                                                          (composition-param-Right-n __global_state)
+                                                                                                                          (composition-param-Right-zeron __global_state)
                                                                                                                           (composition-param-Right-zerom __global_state)
                                                                                                                           (composition-param-Right-p __global_state)
-                                                                                                                          (composition-param-Right-zeron __global_state)
-                                                                                                                          (composition-param-Right-n __global_state)
                                                                                                                           (composition-rand-Right-0 __global_state)
                                                                                                                           (composition-rand-Right-1 __global_state)
                                                                                                                           (composition-rand-Right-2 __global_state)
@@ -4703,15 +5524,20 @@
                                                                                                                           (composition-rand-Right-4 __global_state)
                                                                                                                           (composition-rand-Right-5 __global_state)
                                                                                                                           (composition-rand-Right-6 __global_state)
-                                                                                                                          (+ 1 (composition-rand-Right-7 __global_state))
+                                                                                                                          (composition-rand-Right-7 __global_state)
                                                                                                                           (composition-rand-Right-8 __global_state)
                                                                                                                           (composition-rand-Right-9 __global_state)
                                                                                                                           (composition-rand-Right-10 __global_state)
-                                                                                                                          (composition-rand-Right-11 __global_state)
-                                                                                                                          (composition-rand-Right-12 __global_state))))
+                                                                                                                          (+ 1 (composition-rand-Right-11 __global_state))
+                                                                                                                          (composition-rand-Right-12 __global_state)
+                                                                                                                          (composition-rand-Right-13 __global_state)
+                                                                                                                          (composition-rand-Right-14 __global_state)
+                                                                                                                          (composition-rand-Right-15 __global_state)
+                                                                                                                          (composition-rand-Right-16 __global_state))))
                                                                                                                     (let
                                                                                                                       (
-                                                                                                                        (rout (__sample-rand-Right-Bits_n 8 (composition-rand-Right-8 __global_state))))
+                                                                                                                        (rout
+                                                                                                                          (__sample-rand-Right-Bits_n 12 (composition-rand-Right-12 __global_state))))
                                                                                                                       (let
                                                                                                                         (
                                                                                                                           (__global_state
@@ -4721,10 +5547,10 @@
                                                                                                                               (composition-pkgstate-Right-simgate __global_state)
                                                                                                                               (composition-pkgstate-Right-ev __global_state)
                                                                                                                               (composition-param-Right-m __global_state)
+                                                                                                                              (composition-param-Right-n __global_state)
+                                                                                                                              (composition-param-Right-zeron __global_state)
                                                                                                                               (composition-param-Right-zerom __global_state)
                                                                                                                               (composition-param-Right-p __global_state)
-                                                                                                                              (composition-param-Right-zeron __global_state)
-                                                                                                                              (composition-param-Right-n __global_state)
                                                                                                                               (composition-rand-Right-0 __global_state)
                                                                                                                               (composition-rand-Right-1 __global_state)
                                                                                                                               (composition-rand-Right-2 __global_state)
@@ -4733,11 +5559,15 @@
                                                                                                                               (composition-rand-Right-5 __global_state)
                                                                                                                               (composition-rand-Right-6 __global_state)
                                                                                                                               (composition-rand-Right-7 __global_state)
-                                                                                                                              (+ 1 (composition-rand-Right-8 __global_state))
+                                                                                                                              (composition-rand-Right-8 __global_state)
                                                                                                                               (composition-rand-Right-9 __global_state)
                                                                                                                               (composition-rand-Right-10 __global_state)
                                                                                                                               (composition-rand-Right-11 __global_state)
-                                                                                                                              (composition-rand-Right-12 __global_state))))
+                                                                                                                              (+ 1 (composition-rand-Right-12 __global_state))
+                                                                                                                              (composition-rand-Right-13 __global_state)
+                                                                                                                              (composition-rand-Right-14 __global_state)
+                                                                                                                              (composition-rand-Right-15 __global_state)
+                                                                                                                              (composition-rand-Right-16 __global_state))))
                                                                                                                         (let
                                                                                                                           ((cin (__func-Right-encn kr kj rin)))
                                                                                                                           (let
@@ -4766,7 +5596,8 @@
                                                                                                                                                   ((kj unwrap-9))
                                                                                                                                                   (let
                                                                                                                                                     (
-                                                                                                                                                      (rin (__sample-rand-Right-Bits_n 9 (composition-rand-Right-9 __global_state))))
+                                                                                                                                                      (rin
+                                                                                                                                                        (__sample-rand-Right-Bits_n 13 (composition-rand-Right-13 __global_state))))
                                                                                                                                                     (let
                                                                                                                                                       (
                                                                                                                                                         (__global_state
@@ -4776,10 +5607,10 @@
                                                                                                                                                             (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                             (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                             (composition-param-Right-m __global_state)
+                                                                                                                                                            (composition-param-Right-n __global_state)
+                                                                                                                                                            (composition-param-Right-zeron __global_state)
                                                                                                                                                             (composition-param-Right-zerom __global_state)
                                                                                                                                                             (composition-param-Right-p __global_state)
-                                                                                                                                                            (composition-param-Right-zeron __global_state)
-                                                                                                                                                            (composition-param-Right-n __global_state)
                                                                                                                                                             (composition-rand-Right-0 __global_state)
                                                                                                                                                             (composition-rand-Right-1 __global_state)
                                                                                                                                                             (composition-rand-Right-2 __global_state)
@@ -4789,14 +5620,18 @@
                                                                                                                                                             (composition-rand-Right-6 __global_state)
                                                                                                                                                             (composition-rand-Right-7 __global_state)
                                                                                                                                                             (composition-rand-Right-8 __global_state)
-                                                                                                                                                            (+ 1 (composition-rand-Right-9 __global_state))
+                                                                                                                                                            (composition-rand-Right-9 __global_state)
                                                                                                                                                             (composition-rand-Right-10 __global_state)
                                                                                                                                                             (composition-rand-Right-11 __global_state)
-                                                                                                                                                            (composition-rand-Right-12 __global_state))))
+                                                                                                                                                            (composition-rand-Right-12 __global_state)
+                                                                                                                                                            (+ 1 (composition-rand-Right-13 __global_state))
+                                                                                                                                                            (composition-rand-Right-14 __global_state)
+                                                                                                                                                            (composition-rand-Right-15 __global_state)
+                                                                                                                                                            (composition-rand-Right-16 __global_state))))
                                                                                                                                                       (let
                                                                                                                                                         (
                                                                                                                                                           (rout
-                                                                                                                                                            (__sample-rand-Right-Bits_n 10 (composition-rand-Right-10 __global_state))))
+                                                                                                                                                            (__sample-rand-Right-Bits_n 14 (composition-rand-Right-14 __global_state))))
                                                                                                                                                         (let
                                                                                                                                                           (
                                                                                                                                                             (__global_state
@@ -4806,10 +5641,10 @@
                                                                                                                                                                 (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                 (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                 (composition-param-Right-m __global_state)
+                                                                                                                                                                (composition-param-Right-n __global_state)
+                                                                                                                                                                (composition-param-Right-zeron __global_state)
                                                                                                                                                                 (composition-param-Right-zerom __global_state)
                                                                                                                                                                 (composition-param-Right-p __global_state)
-                                                                                                                                                                (composition-param-Right-zeron __global_state)
-                                                                                                                                                                (composition-param-Right-n __global_state)
                                                                                                                                                                 (composition-rand-Right-0 __global_state)
                                                                                                                                                                 (composition-rand-Right-1 __global_state)
                                                                                                                                                                 (composition-rand-Right-2 __global_state)
@@ -4820,9 +5655,13 @@
                                                                                                                                                                 (composition-rand-Right-7 __global_state)
                                                                                                                                                                 (composition-rand-Right-8 __global_state)
                                                                                                                                                                 (composition-rand-Right-9 __global_state)
-                                                                                                                                                                (+ 1 (composition-rand-Right-10 __global_state))
+                                                                                                                                                                (composition-rand-Right-10 __global_state)
                                                                                                                                                                 (composition-rand-Right-11 __global_state)
-                                                                                                                                                                (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                (composition-rand-Right-12 __global_state)
+                                                                                                                                                                (composition-rand-Right-13 __global_state)
+                                                                                                                                                                (+ 1 (composition-rand-Right-14 __global_state))
+                                                                                                                                                                (composition-rand-Right-15 __global_state)
+                                                                                                                                                                (composition-rand-Right-16 __global_state))))
                                                                                                                                                           (let
                                                                                                                                                             ((cin (__func-Right-encn kr kj rin)))
                                                                                                                                                             (let
@@ -4852,7 +5691,7 @@
                                                                                                                                                                                     (let
                                                                                                                                                                                       (
                                                                                                                                                                                         (rin
-                                                                                                                                                                                          (__sample-rand-Right-Bits_n 11 (composition-rand-Right-11 __global_state))))
+                                                                                                                                                                                          (__sample-rand-Right-Bits_n 15 (composition-rand-Right-15 __global_state))))
                                                                                                                                                                                       (let
                                                                                                                                                                                         (
                                                                                                                                                                                           (__global_state
@@ -4862,10 +5701,10 @@
                                                                                                                                                                                               (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                                               (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                               (composition-param-Right-m __global_state)
+                                                                                                                                                                                              (composition-param-Right-n __global_state)
+                                                                                                                                                                                              (composition-param-Right-zeron __global_state)
                                                                                                                                                                                               (composition-param-Right-zerom __global_state)
                                                                                                                                                                                               (composition-param-Right-p __global_state)
-                                                                                                                                                                                              (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                              (composition-param-Right-n __global_state)
                                                                                                                                                                                               (composition-rand-Right-0 __global_state)
                                                                                                                                                                                               (composition-rand-Right-1 __global_state)
                                                                                                                                                                                               (composition-rand-Right-2 __global_state)
@@ -4877,12 +5716,16 @@
                                                                                                                                                                                               (composition-rand-Right-8 __global_state)
                                                                                                                                                                                               (composition-rand-Right-9 __global_state)
                                                                                                                                                                                               (composition-rand-Right-10 __global_state)
-                                                                                                                                                                                              (+ 1 (composition-rand-Right-11 __global_state))
-                                                                                                                                                                                              (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                              (composition-rand-Right-11 __global_state)
+                                                                                                                                                                                              (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                              (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                              (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                              (+ 1 (composition-rand-Right-15 __global_state))
+                                                                                                                                                                                              (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                         (let
                                                                                                                                                                                           (
                                                                                                                                                                                             (rout
-                                                                                                                                                                                              (__sample-rand-Right-Bits_n 12 (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                              (__sample-rand-Right-Bits_n 16 (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                           (let
                                                                                                                                                                                             (
                                                                                                                                                                                               (__global_state
@@ -4892,10 +5735,10 @@
                                                                                                                                                                                                   (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                                                   (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                                   (composition-param-Right-m __global_state)
+                                                                                                                                                                                                  (composition-param-Right-n __global_state)
+                                                                                                                                                                                                  (composition-param-Right-zeron __global_state)
                                                                                                                                                                                                   (composition-param-Right-zerom __global_state)
                                                                                                                                                                                                   (composition-param-Right-p __global_state)
-                                                                                                                                                                                                  (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                                  (composition-param-Right-n __global_state)
                                                                                                                                                                                                   (composition-rand-Right-0 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-1 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-2 __global_state)
@@ -4908,7 +5751,11 @@
                                                                                                                                                                                                   (composition-rand-Right-9 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-10 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-11 __global_state)
-                                                                                                                                                                                                  (+ 1 (composition-rand-Right-12 __global_state)))))
+                                                                                                                                                                                                  (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                                  (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                                  (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                                  (composition-rand-Right-15 __global_state)
+                                                                                                                                                                                                  (+ 1 (composition-rand-Right-16 __global_state)))))
                                                                                                                                                                                             (let
                                                                                                                                                                                               ((cin (__func-Right-encn kr kj rin)))
                                                                                                                                                                                               (let
@@ -4924,10 +5771,10 @@
                                                                                                                                                                                                           __self_state
                                                                                                                                                                                                           (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                                           (composition-param-Right-m __global_state)
+                                                                                                                                                                                                          (composition-param-Right-n __global_state)
+                                                                                                                                                                                                          (composition-param-Right-zeron __global_state)
                                                                                                                                                                                                           (composition-param-Right-zerom __global_state)
                                                                                                                                                                                                           (composition-param-Right-p __global_state)
-                                                                                                                                                                                                          (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                                          (composition-param-Right-n __global_state)
                                                                                                                                                                                                           (composition-rand-Right-0 __global_state)
                                                                                                                                                                                                           (composition-rand-Right-1 __global_state)
                                                                                                                                                                                                           (composition-rand-Right-2 __global_state)
@@ -4940,12 +5787,16 @@
                                                                                                                                                                                                           (composition-rand-Right-9 __global_state)
                                                                                                                                                                                                           (composition-rand-Right-10 __global_state)
                                                                                                                                                                                                           (composition-rand-Right-11 __global_state)
-                                                                                                                                                                                                          (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                                          (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                                          (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                                          (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                                          (composition-rand-Right-15 __global_state)
+                                                                                                                                                                                                          (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                                     (mk-return-Right-simgate-GBLG __global_state C)))))))))))
                                                                                                                                                                                 (let
                                                                                                                                                                                   (
                                                                                                                                                                                     (rin
-                                                                                                                                                                                      (__sample-rand-Right-Bits_n 11 (composition-rand-Right-11 __global_state))))
+                                                                                                                                                                                      (__sample-rand-Right-Bits_n 15 (composition-rand-Right-15 __global_state))))
                                                                                                                                                                                   (let
                                                                                                                                                                                     (
                                                                                                                                                                                       (__global_state
@@ -4955,10 +5806,10 @@
                                                                                                                                                                                           (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                                           (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                           (composition-param-Right-m __global_state)
+                                                                                                                                                                                          (composition-param-Right-n __global_state)
+                                                                                                                                                                                          (composition-param-Right-zeron __global_state)
                                                                                                                                                                                           (composition-param-Right-zerom __global_state)
                                                                                                                                                                                           (composition-param-Right-p __global_state)
-                                                                                                                                                                                          (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                          (composition-param-Right-n __global_state)
                                                                                                                                                                                           (composition-rand-Right-0 __global_state)
                                                                                                                                                                                           (composition-rand-Right-1 __global_state)
                                                                                                                                                                                           (composition-rand-Right-2 __global_state)
@@ -4970,12 +5821,16 @@
                                                                                                                                                                                           (composition-rand-Right-8 __global_state)
                                                                                                                                                                                           (composition-rand-Right-9 __global_state)
                                                                                                                                                                                           (composition-rand-Right-10 __global_state)
-                                                                                                                                                                                          (+ 1 (composition-rand-Right-11 __global_state))
-                                                                                                                                                                                          (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                          (composition-rand-Right-11 __global_state)
+                                                                                                                                                                                          (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                          (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                          (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                          (+ 1 (composition-rand-Right-15 __global_state))
+                                                                                                                                                                                          (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                     (let
                                                                                                                                                                                       (
                                                                                                                                                                                         (rout
-                                                                                                                                                                                          (__sample-rand-Right-Bits_n 12 (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                          (__sample-rand-Right-Bits_n 16 (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                       (let
                                                                                                                                                                                         (
                                                                                                                                                                                           (__global_state
@@ -4985,10 +5840,10 @@
                                                                                                                                                                                               (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                                               (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                               (composition-param-Right-m __global_state)
+                                                                                                                                                                                              (composition-param-Right-n __global_state)
+                                                                                                                                                                                              (composition-param-Right-zeron __global_state)
                                                                                                                                                                                               (composition-param-Right-zerom __global_state)
                                                                                                                                                                                               (composition-param-Right-p __global_state)
-                                                                                                                                                                                              (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                              (composition-param-Right-n __global_state)
                                                                                                                                                                                               (composition-rand-Right-0 __global_state)
                                                                                                                                                                                               (composition-rand-Right-1 __global_state)
                                                                                                                                                                                               (composition-rand-Right-2 __global_state)
@@ -5001,7 +5856,11 @@
                                                                                                                                                                                               (composition-rand-Right-9 __global_state)
                                                                                                                                                                                               (composition-rand-Right-10 __global_state)
                                                                                                                                                                                               (composition-rand-Right-11 __global_state)
-                                                                                                                                                                                              (+ 1 (composition-rand-Right-12 __global_state)))))
+                                                                                                                                                                                              (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                              (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                              (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                              (composition-rand-Right-15 __global_state)
+                                                                                                                                                                                              (+ 1 (composition-rand-Right-16 __global_state)))))
                                                                                                                                                                                         (let
                                                                                                                                                                                           ((cin (__func-Right-encn kr kj rin)))
                                                                                                                                                                                           (let
@@ -5017,10 +5876,10 @@
                                                                                                                                                                                                       __self_state
                                                                                                                                                                                                       (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                                       (composition-param-Right-m __global_state)
+                                                                                                                                                                                                      (composition-param-Right-n __global_state)
+                                                                                                                                                                                                      (composition-param-Right-zeron __global_state)
                                                                                                                                                                                                       (composition-param-Right-zerom __global_state)
                                                                                                                                                                                                       (composition-param-Right-p __global_state)
-                                                                                                                                                                                                      (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                                      (composition-param-Right-n __global_state)
                                                                                                                                                                                                       (composition-rand-Right-0 __global_state)
                                                                                                                                                                                                       (composition-rand-Right-1 __global_state)
                                                                                                                                                                                                       (composition-rand-Right-2 __global_state)
@@ -5033,11 +5892,16 @@
                                                                                                                                                                                                       (composition-rand-Right-9 __global_state)
                                                                                                                                                                                                       (composition-rand-Right-10 __global_state)
                                                                                                                                                                                                       (composition-rand-Right-11 __global_state)
-                                                                                                                                                                                                      (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                                      (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                                      (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                                      (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                                      (composition-rand-Right-15 __global_state)
+                                                                                                                                                                                                      (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                                 (mk-return-Right-simgate-GBLG __global_state C))))))))))))))))))))))))))
                                                                                                                                               (let
                                                                                                                                                 (
-                                                                                                                                                  (rin (__sample-rand-Right-Bits_n 9 (composition-rand-Right-9 __global_state))))
+                                                                                                                                                  (rin
+                                                                                                                                                    (__sample-rand-Right-Bits_n 13 (composition-rand-Right-13 __global_state))))
                                                                                                                                                 (let
                                                                                                                                                   (
                                                                                                                                                     (__global_state
@@ -5047,10 +5911,10 @@
                                                                                                                                                         (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                         (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                         (composition-param-Right-m __global_state)
+                                                                                                                                                        (composition-param-Right-n __global_state)
+                                                                                                                                                        (composition-param-Right-zeron __global_state)
                                                                                                                                                         (composition-param-Right-zerom __global_state)
                                                                                                                                                         (composition-param-Right-p __global_state)
-                                                                                                                                                        (composition-param-Right-zeron __global_state)
-                                                                                                                                                        (composition-param-Right-n __global_state)
                                                                                                                                                         (composition-rand-Right-0 __global_state)
                                                                                                                                                         (composition-rand-Right-1 __global_state)
                                                                                                                                                         (composition-rand-Right-2 __global_state)
@@ -5060,14 +5924,18 @@
                                                                                                                                                         (composition-rand-Right-6 __global_state)
                                                                                                                                                         (composition-rand-Right-7 __global_state)
                                                                                                                                                         (composition-rand-Right-8 __global_state)
-                                                                                                                                                        (+ 1 (composition-rand-Right-9 __global_state))
+                                                                                                                                                        (composition-rand-Right-9 __global_state)
                                                                                                                                                         (composition-rand-Right-10 __global_state)
                                                                                                                                                         (composition-rand-Right-11 __global_state)
-                                                                                                                                                        (composition-rand-Right-12 __global_state))))
+                                                                                                                                                        (composition-rand-Right-12 __global_state)
+                                                                                                                                                        (+ 1 (composition-rand-Right-13 __global_state))
+                                                                                                                                                        (composition-rand-Right-14 __global_state)
+                                                                                                                                                        (composition-rand-Right-15 __global_state)
+                                                                                                                                                        (composition-rand-Right-16 __global_state))))
                                                                                                                                                   (let
                                                                                                                                                     (
                                                                                                                                                       (rout
-                                                                                                                                                        (__sample-rand-Right-Bits_n 10 (composition-rand-Right-10 __global_state))))
+                                                                                                                                                        (__sample-rand-Right-Bits_n 14 (composition-rand-Right-14 __global_state))))
                                                                                                                                                     (let
                                                                                                                                                       (
                                                                                                                                                         (__global_state
@@ -5077,10 +5945,10 @@
                                                                                                                                                             (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                             (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                             (composition-param-Right-m __global_state)
+                                                                                                                                                            (composition-param-Right-n __global_state)
+                                                                                                                                                            (composition-param-Right-zeron __global_state)
                                                                                                                                                             (composition-param-Right-zerom __global_state)
                                                                                                                                                             (composition-param-Right-p __global_state)
-                                                                                                                                                            (composition-param-Right-zeron __global_state)
-                                                                                                                                                            (composition-param-Right-n __global_state)
                                                                                                                                                             (composition-rand-Right-0 __global_state)
                                                                                                                                                             (composition-rand-Right-1 __global_state)
                                                                                                                                                             (composition-rand-Right-2 __global_state)
@@ -5091,9 +5959,13 @@
                                                                                                                                                             (composition-rand-Right-7 __global_state)
                                                                                                                                                             (composition-rand-Right-8 __global_state)
                                                                                                                                                             (composition-rand-Right-9 __global_state)
-                                                                                                                                                            (+ 1 (composition-rand-Right-10 __global_state))
+                                                                                                                                                            (composition-rand-Right-10 __global_state)
                                                                                                                                                             (composition-rand-Right-11 __global_state)
-                                                                                                                                                            (composition-rand-Right-12 __global_state))))
+                                                                                                                                                            (composition-rand-Right-12 __global_state)
+                                                                                                                                                            (composition-rand-Right-13 __global_state)
+                                                                                                                                                            (+ 1 (composition-rand-Right-14 __global_state))
+                                                                                                                                                            (composition-rand-Right-15 __global_state)
+                                                                                                                                                            (composition-rand-Right-16 __global_state))))
                                                                                                                                                       (let
                                                                                                                                                         ((cin (__func-Right-encn kr kj rin)))
                                                                                                                                                         (let
@@ -5123,7 +5995,7 @@
                                                                                                                                                                                 (let
                                                                                                                                                                                   (
                                                                                                                                                                                     (rin
-                                                                                                                                                                                      (__sample-rand-Right-Bits_n 11 (composition-rand-Right-11 __global_state))))
+                                                                                                                                                                                      (__sample-rand-Right-Bits_n 15 (composition-rand-Right-15 __global_state))))
                                                                                                                                                                                   (let
                                                                                                                                                                                     (
                                                                                                                                                                                       (__global_state
@@ -5133,10 +6005,10 @@
                                                                                                                                                                                           (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                                           (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                           (composition-param-Right-m __global_state)
+                                                                                                                                                                                          (composition-param-Right-n __global_state)
+                                                                                                                                                                                          (composition-param-Right-zeron __global_state)
                                                                                                                                                                                           (composition-param-Right-zerom __global_state)
                                                                                                                                                                                           (composition-param-Right-p __global_state)
-                                                                                                                                                                                          (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                          (composition-param-Right-n __global_state)
                                                                                                                                                                                           (composition-rand-Right-0 __global_state)
                                                                                                                                                                                           (composition-rand-Right-1 __global_state)
                                                                                                                                                                                           (composition-rand-Right-2 __global_state)
@@ -5148,12 +6020,16 @@
                                                                                                                                                                                           (composition-rand-Right-8 __global_state)
                                                                                                                                                                                           (composition-rand-Right-9 __global_state)
                                                                                                                                                                                           (composition-rand-Right-10 __global_state)
-                                                                                                                                                                                          (+ 1 (composition-rand-Right-11 __global_state))
-                                                                                                                                                                                          (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                          (composition-rand-Right-11 __global_state)
+                                                                                                                                                                                          (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                          (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                          (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                          (+ 1 (composition-rand-Right-15 __global_state))
+                                                                                                                                                                                          (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                     (let
                                                                                                                                                                                       (
                                                                                                                                                                                         (rout
-                                                                                                                                                                                          (__sample-rand-Right-Bits_n 12 (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                          (__sample-rand-Right-Bits_n 16 (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                       (let
                                                                                                                                                                                         (
                                                                                                                                                                                           (__global_state
@@ -5163,10 +6039,10 @@
                                                                                                                                                                                               (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                                               (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                               (composition-param-Right-m __global_state)
+                                                                                                                                                                                              (composition-param-Right-n __global_state)
+                                                                                                                                                                                              (composition-param-Right-zeron __global_state)
                                                                                                                                                                                               (composition-param-Right-zerom __global_state)
                                                                                                                                                                                               (composition-param-Right-p __global_state)
-                                                                                                                                                                                              (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                              (composition-param-Right-n __global_state)
                                                                                                                                                                                               (composition-rand-Right-0 __global_state)
                                                                                                                                                                                               (composition-rand-Right-1 __global_state)
                                                                                                                                                                                               (composition-rand-Right-2 __global_state)
@@ -5179,7 +6055,11 @@
                                                                                                                                                                                               (composition-rand-Right-9 __global_state)
                                                                                                                                                                                               (composition-rand-Right-10 __global_state)
                                                                                                                                                                                               (composition-rand-Right-11 __global_state)
-                                                                                                                                                                                              (+ 1 (composition-rand-Right-12 __global_state)))))
+                                                                                                                                                                                              (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                              (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                              (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                              (composition-rand-Right-15 __global_state)
+                                                                                                                                                                                              (+ 1 (composition-rand-Right-16 __global_state)))))
                                                                                                                                                                                         (let
                                                                                                                                                                                           ((cin (__func-Right-encn kr kj rin)))
                                                                                                                                                                                           (let
@@ -5195,10 +6075,10 @@
                                                                                                                                                                                                       __self_state
                                                                                                                                                                                                       (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                                       (composition-param-Right-m __global_state)
+                                                                                                                                                                                                      (composition-param-Right-n __global_state)
+                                                                                                                                                                                                      (composition-param-Right-zeron __global_state)
                                                                                                                                                                                                       (composition-param-Right-zerom __global_state)
                                                                                                                                                                                                       (composition-param-Right-p __global_state)
-                                                                                                                                                                                                      (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                                      (composition-param-Right-n __global_state)
                                                                                                                                                                                                       (composition-rand-Right-0 __global_state)
                                                                                                                                                                                                       (composition-rand-Right-1 __global_state)
                                                                                                                                                                                                       (composition-rand-Right-2 __global_state)
@@ -5211,12 +6091,16 @@
                                                                                                                                                                                                       (composition-rand-Right-9 __global_state)
                                                                                                                                                                                                       (composition-rand-Right-10 __global_state)
                                                                                                                                                                                                       (composition-rand-Right-11 __global_state)
-                                                                                                                                                                                                      (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                                      (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                                      (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                                      (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                                      (composition-rand-Right-15 __global_state)
+                                                                                                                                                                                                      (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                                 (mk-return-Right-simgate-GBLG __global_state C)))))))))))
                                                                                                                                                                             (let
                                                                                                                                                                               (
                                                                                                                                                                                 (rin
-                                                                                                                                                                                  (__sample-rand-Right-Bits_n 11 (composition-rand-Right-11 __global_state))))
+                                                                                                                                                                                  (__sample-rand-Right-Bits_n 15 (composition-rand-Right-15 __global_state))))
                                                                                                                                                                               (let
                                                                                                                                                                                 (
                                                                                                                                                                                   (__global_state
@@ -5226,10 +6110,10 @@
                                                                                                                                                                                       (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                                       (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                       (composition-param-Right-m __global_state)
+                                                                                                                                                                                      (composition-param-Right-n __global_state)
+                                                                                                                                                                                      (composition-param-Right-zeron __global_state)
                                                                                                                                                                                       (composition-param-Right-zerom __global_state)
                                                                                                                                                                                       (composition-param-Right-p __global_state)
-                                                                                                                                                                                      (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                      (composition-param-Right-n __global_state)
                                                                                                                                                                                       (composition-rand-Right-0 __global_state)
                                                                                                                                                                                       (composition-rand-Right-1 __global_state)
                                                                                                                                                                                       (composition-rand-Right-2 __global_state)
@@ -5241,12 +6125,16 @@
                                                                                                                                                                                       (composition-rand-Right-8 __global_state)
                                                                                                                                                                                       (composition-rand-Right-9 __global_state)
                                                                                                                                                                                       (composition-rand-Right-10 __global_state)
-                                                                                                                                                                                      (+ 1 (composition-rand-Right-11 __global_state))
-                                                                                                                                                                                      (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                      (composition-rand-Right-11 __global_state)
+                                                                                                                                                                                      (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                      (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                      (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                      (+ 1 (composition-rand-Right-15 __global_state))
+                                                                                                                                                                                      (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                 (let
                                                                                                                                                                                   (
                                                                                                                                                                                     (rout
-                                                                                                                                                                                      (__sample-rand-Right-Bits_n 12 (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                      (__sample-rand-Right-Bits_n 16 (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                   (let
                                                                                                                                                                                     (
                                                                                                                                                                                       (__global_state
@@ -5256,10 +6144,10 @@
                                                                                                                                                                                           (composition-pkgstate-Right-simgate __global_state)
                                                                                                                                                                                           (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                           (composition-param-Right-m __global_state)
+                                                                                                                                                                                          (composition-param-Right-n __global_state)
+                                                                                                                                                                                          (composition-param-Right-zeron __global_state)
                                                                                                                                                                                           (composition-param-Right-zerom __global_state)
                                                                                                                                                                                           (composition-param-Right-p __global_state)
-                                                                                                                                                                                          (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                          (composition-param-Right-n __global_state)
                                                                                                                                                                                           (composition-rand-Right-0 __global_state)
                                                                                                                                                                                           (composition-rand-Right-1 __global_state)
                                                                                                                                                                                           (composition-rand-Right-2 __global_state)
@@ -5272,7 +6160,11 @@
                                                                                                                                                                                           (composition-rand-Right-9 __global_state)
                                                                                                                                                                                           (composition-rand-Right-10 __global_state)
                                                                                                                                                                                           (composition-rand-Right-11 __global_state)
-                                                                                                                                                                                          (+ 1 (composition-rand-Right-12 __global_state)))))
+                                                                                                                                                                                          (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                          (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                          (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                          (composition-rand-Right-15 __global_state)
+                                                                                                                                                                                          (+ 1 (composition-rand-Right-16 __global_state)))))
                                                                                                                                                                                     (let
                                                                                                                                                                                       ((cin (__func-Right-encn kr kj rin)))
                                                                                                                                                                                       (let
@@ -5288,10 +6180,10 @@
                                                                                                                                                                                                   __self_state
                                                                                                                                                                                                   (composition-pkgstate-Right-ev __global_state)
                                                                                                                                                                                                   (composition-param-Right-m __global_state)
+                                                                                                                                                                                                  (composition-param-Right-n __global_state)
+                                                                                                                                                                                                  (composition-param-Right-zeron __global_state)
                                                                                                                                                                                                   (composition-param-Right-zerom __global_state)
                                                                                                                                                                                                   (composition-param-Right-p __global_state)
-                                                                                                                                                                                                  (composition-param-Right-zeron __global_state)
-                                                                                                                                                                                                  (composition-param-Right-n __global_state)
                                                                                                                                                                                                   (composition-rand-Right-0 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-1 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-2 __global_state)
@@ -5304,6 +6196,10 @@
                                                                                                                                                                                                   (composition-rand-Right-9 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-10 __global_state)
                                                                                                                                                                                                   (composition-rand-Right-11 __global_state)
-                                                                                                                                                                                                  (composition-rand-Right-12 __global_state))))
+                                                                                                                                                                                                  (composition-rand-Right-12 __global_state)
+                                                                                                                                                                                                  (composition-rand-Right-13 __global_state)
+                                                                                                                                                                                                  (composition-rand-Right-14 __global_state)
+                                                                                                                                                                                                  (composition-rand-Right-15 __global_state)
+                                                                                                                                                                                                  (composition-rand-Right-16 __global_state))))
                                                                                                                                                                                             (mk-return-Right-simgate-GBLG __global_state C)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
 (check-sat)
