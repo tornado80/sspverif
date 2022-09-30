@@ -6290,7 +6290,7 @@
 (declare-const ctr-rout-ii-right Int)
 
 ;active bits
-(declare-const z1  Bool)
+(declare-const z1 Bool)
 (declare-const z2 Bool)
 
 
@@ -6401,7 +6401,7 @@
               (= (rout-right true true)    (__sample-rand-Right-Bits_n 16 ctr-rout-ii-right))
 
               ;assignment of the active bit on the right
-              (= (mk-some z1) (select table-z-top-right-old l))
+              (= (mk-some z1) (select table-z-top-right-old l)) ;is this a cheat?
               (= (mk-some z2) (select table-z-top-right-old r))
 
 ))
@@ -6734,15 +6734,23 @@ lemma5)))
 )))
 (declare-const standard-postcondition-holds Bool)
 (assert (= standard-postcondition-holds 
+            (ite
             (and
             (= is-abort-right is-abort-left)
-            (or 
-            is-abort-left
-            (= value-left value-right)
+            (= is-abort-right false)
             )
+            (= value-left value-right)
+            true
             )
         )
 )
+
+(declare-const identical-aborts Bool)
+(assert (= identical-aborts 
+            (= is-abort-right is-abort-left)
+            )
+)
+
 
 ;(push 1)
 
@@ -6855,3 +6863,10 @@ lemma5)))
 (pop 1)
 
 (push 1)
+
+
+(assert (and precondition-holds 
+        (not identical-aborts)))
+(check-sat)
+(get-model)
+(pop 1)

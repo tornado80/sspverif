@@ -103,3 +103,10 @@
 (pop 1)
 
 (push 1)
+
+
+(assert (and precondition-holds 
+        (not identical-aborts)))
+(check-sat)
+(get-model)
+(pop 1)
