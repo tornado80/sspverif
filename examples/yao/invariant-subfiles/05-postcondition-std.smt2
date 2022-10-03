@@ -1,21 +1,13 @@
-(declare-const standard-postcondition-holds Bool)
-(assert (= standard-postcondition-holds 
-            (ite
-            (and
-            (= is-abort-right is-abort-left)
-            (= is-abort-right false)
-            )
-            (= value-left value-right)
-            true
-            )
-        )
-)
+;(declare-const standard-postcondition-holds Bool)
+;(assert (= standard-postcondition-holds 
+;            (= value-left value-right))
+;)
 
-(declare-const identical-aborts Bool)
-(assert (= identical-aborts 
-            (= is-abort-right is-abort-left)
-            )
-)
+;(declare-const identical-aborts Bool)
+;(assert (= identical-aborts 
+;            (= is-abort-right is-abort-left)
+;            )
+;)
 
 
 ;(push 1)

@@ -527,24 +527,16 @@ lemma5)))
 (= ctr-rr-left-new ctr-rr-right-new)
 
 )))
-(declare-const standard-postcondition-holds Bool)
-(assert (= standard-postcondition-holds 
-            (ite
-            (and
-            (= is-abort-right is-abort-left)
-            (= is-abort-right false)
-            )
-            (= value-left value-right)
-            true
-            )
-        )
-)
+;(declare-const standard-postcondition-holds Bool)
+;(assert (= standard-postcondition-holds 
+;            (= value-left value-right))
+;)
 
-(declare-const identical-aborts Bool)
-(assert (= identical-aborts 
-            (= is-abort-right is-abort-left)
-            )
-)
+;(declare-const identical-aborts Bool)
+;(assert (= identical-aborts 
+;            (= is-abort-right is-abort-left)
+;            )
+;)
 
 
 ;(push 1)
@@ -613,28 +605,6 @@ lemma5)))
 (push 1)
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; end of temp
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-;missing:
-;precondition holds on starting state
-;pre-condition => lemmas
-;(assert (and precondition-holds
-;             (not is-abort-right)
-;             (not is-abort-left)
-;             (not lemmas-hold)))
-;
-;
-;(check-sat) ;13
-;;(get-model)
-;(pop 1)
-;
-;(push 1)
-
 ;pre-condition + lemmas => post-condition
 (assert (and precondition-holds
              lemmas-hold
@@ -652,16 +622,27 @@ lemma5)))
 (assert (and precondition-holds 
              lemmas-hold
              postcondition-holds
-             (not standard-postcondition-holds)))
+             (not is-abort-right)
+             (not is-abort-left)
+             (not (= value-left value-right))))
 (check-sat) ;9 ;13
 (get-model)
 (pop 1)
 
 (push 1)
+(assert (and precondition-holds
+        (or
+        (not (ite is-abort-right is-abort-left true))))
+)
+(check-sat)
+(get-model)
+(pop 1)
 
-
-(assert (and precondition-holds 
-        (not identical-aborts)))
+(push 1)
+(assert (and precondition-holds
+        (or
+        (not (ite is-abort-left is-abort-right true))))
+)
 (check-sat)
 (get-model)
 (pop 1)
