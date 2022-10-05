@@ -13,7 +13,7 @@
              (not is-abort-right)
              (not is-abort-left)
              (not lemma1)))
-(check-sat) ;4 ;8
+(check-sat) ;2 ;4 ;8
 ;(get-model)
 (pop 1)
 
@@ -28,7 +28,7 @@
              (not is-abort-right)
              (not is-abort-left)
              (not lemma2)))
-(check-sat) ;5 ;9
+(check-sat) ;3 ;5 ;9
 ;(get-model)
 (pop 1)
 
@@ -39,7 +39,7 @@
              (not is-abort-right)
              (not is-abort-left)
              (not lemma3)))
-(check-sat) ;6 ;10
+(check-sat) ;4 ;6 ;10
 ;(get-model)
 (pop 1)
 
@@ -51,7 +51,7 @@
              (not is-abort-right)
              (not is-abort-left)
              (not lemma4)))
-(check-sat) ;7 ;11
+(check-sat) ;5 ;7 ;11
 ;(get-model)
 (pop 1)
 
@@ -65,7 +65,7 @@
              (not is-abort-left)
              (not postcondition-holds)))
 
-(check-sat) ;8 ;12
+(check-sat) ;6  ;12
 ;(get-model)
 (pop 1)
 
@@ -78,17 +78,7 @@
              (not is-abort-right)
              (not is-abort-left)
              (not (= value-left value-right))))
-(check-sat) ;9 ;13
-(get-model)
-(pop 1)
-
-(push 1)
-(assert (and precondition-holds
-        (or
-        (not (ite is-abort-right is-abort-left true))))
-)
-(check-sat)
-(get-model)
+(check-sat) ;7  ;13
 (pop 1)
 
 (push 1)
@@ -96,6 +86,16 @@
         (or
         (not (ite is-abort-left is-abort-right true))))
 )
-(check-sat)
+(check-sat) ;8
+;(get-model)
+(pop 1)
+
+(push 1)
+(assert (and precondition-holds
+        (or
+        (not (ite is-abort-right is-abort-left true))))
+)
+(check-sat) ;9
 (get-model)
 (pop 1)
+

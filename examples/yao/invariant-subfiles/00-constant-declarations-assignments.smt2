@@ -201,9 +201,9 @@
 
 ))
 
-(push 1)
+;(push 1)
 
-(assert true)
-(check-sat) ;2
+;(assert true)
+;(check-sat) ;2
 
-(pop 1)
+;(pop 1)

@@ -201,12 +201,12 @@
 
 ))
 
-(push 1)
+;(push 1)
 
-(assert true)
-(check-sat) ;2
+;(assert true)
+;(check-sat) ;2
 
-(pop 1)
+;(pop 1)
 ; At each entry, the table is either none or a total table
 (define-fun well-defined ((T (Array Int (Maybe (Array Bool (Maybe Bits_n)))))) Bool
   (forall ((h Int))
@@ -240,12 +240,12 @@
   )
 
 
-(push 1)
-
-(assert true)
-(check-sat) ;3
-
-(pop 1)
+;(push 1)
+;
+;(assert true)
+;(check-sat) ;3
+;
+;(pop 1)
 (declare-const precondition-holds Bool)
 (assert (= precondition-holds (and
 
@@ -265,7 +265,31 @@
 (= table-z-top-left-old table-z-top-right-old)
 (= table-flag-top-left-old table-flag-top-right-old)
 
-;lower key z/flag table left are completely undefined 
+;top key package: flag is set => bit is set
+(forall ((hhh Int))
+(ite
+(= (select table-flag-top-left-old hhh) (mk-some true))
+(or
+(= (select table-z-top-left-old hhh) (mk-some true))
+(= (select table-z-top-left-old hhh) (mk-some true))
+)
+true
+))
+
+;lower key package: flag has been set on left <=> bit has been set on right
+(forall ((hhh Int))
+(=
+(= (select table-flag-bottom-left-old hhh) (mk-some true))
+(= 
+   (or
+   (= (select table-z-bottom-right-old hhh) (mk-some true))
+   (= (select table-z-bottom-right-old hhh) (mk-some false))
+    )
+))
+)
+
+
+;lower key z table left are completely undefined 
 (forall ((hhh Int))
 (= (select table-z-bottom-left-old hhh) (as mk-none (Maybe Bool))))
 
@@ -458,7 +482,29 @@ lemma5)))
 (= table-z-top-left-new table-z-top-right-new)
 (= table-flag-top-left-new table-flag-top-right-new)
 
-;lower key z/flag table left are completely undefined 
+(forall ((hhh Int))
+(ite
+(= (select table-flag-top-left-new hhh) (mk-some true))
+(or
+(= (select table-z-top-left-new hhh) (mk-some true))
+(= (select table-z-top-left-new hhh) (mk-some true))
+)
+true
+))
+
+;lower key package: flag has been set on left <=> bit has been set on right
+(forall ((hhh Int))
+(=
+(= (select table-flag-bottom-left-new hhh) (mk-some true))
+(= 
+   (or
+   (= (select table-z-bottom-right-new hhh) (mk-some true))
+   (= (select table-z-bottom-right-new hhh) (mk-some false))
+    )
+))
+)
+
+;lower key z table left are completely undefined 
 (forall ((hhh Int))
 (= (select table-z-bottom-left-new hhh) (as mk-none (Maybe Bool))))
 
@@ -560,7 +606,7 @@ lemma5)))
              (not is-abort-right)
              (not is-abort-left)
              (not lemma1)))
-(check-sat) ;4 ;8
+(check-sat) ;2 ;4 ;8
 ;(get-model)
 (pop 1)
 
@@ -575,7 +621,7 @@ lemma5)))
              (not is-abort-right)
              (not is-abort-left)
              (not lemma2)))
-(check-sat) ;5 ;9
+(check-sat) ;3 ;5 ;9
 ;(get-model)
 (pop 1)
 
@@ -586,7 +632,7 @@ lemma5)))
              (not is-abort-right)
              (not is-abort-left)
              (not lemma3)))
-(check-sat) ;6 ;10
+(check-sat) ;4 ;6 ;10
 ;(get-model)
 (pop 1)
 
@@ -598,7 +644,7 @@ lemma5)))
              (not is-abort-right)
              (not is-abort-left)
              (not lemma4)))
-(check-sat) ;7 ;11
+(check-sat) ;5 ;7 ;11
 ;(get-model)
 (pop 1)
 
@@ -612,7 +658,7 @@ lemma5)))
              (not is-abort-left)
              (not postcondition-holds)))
 
-(check-sat) ;8 ;12
+(check-sat) ;6  ;12
 ;(get-model)
 (pop 1)
 
@@ -625,17 +671,7 @@ lemma5)))
              (not is-abort-right)
              (not is-abort-left)
              (not (= value-left value-right))))
-(check-sat) ;9 ;13
-(get-model)
-(pop 1)
-
-(push 1)
-(assert (and precondition-holds
-        (or
-        (not (ite is-abort-right is-abort-left true))))
-)
-(check-sat)
-(get-model)
+(check-sat) ;7  ;13
 (pop 1)
 
 (push 1)
@@ -643,6 +679,16 @@ lemma5)))
         (or
         (not (ite is-abort-left is-abort-right true))))
 )
-(check-sat)
+(check-sat) ;8
+;(get-model)
+(pop 1)
+
+(push 1)
+(assert (and precondition-holds
+        (or
+        (not (ite is-abort-right is-abort-left true))))
+)
+(check-sat) ;9
 (get-model)
 (pop 1)
+

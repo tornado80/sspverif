@@ -17,7 +17,30 @@
 (= table-z-top-left-old table-z-top-right-old)
 (= table-flag-top-left-old table-flag-top-right-old)
 
-;lower key z/flag table left are completely undefined 
+;top key package: flag is set => bit is set
+(forall ((hhh Int))
+(ite
+(= (select table-flag-top-left-old hhh) (mk-some true))
+(or
+(= (select table-z-top-left-old hhh) (mk-some true))
+(= (select table-z-top-left-old hhh) (mk-some true))
+)
+true
+))
+
+;lower key package: flag has been set on left <=> bit has been set on right
+(forall ((hhh Int))
+(=
+(= (select table-flag-bottom-left-old hhh) (mk-some true))
+   (or
+   (= (select table-z-bottom-right-old hhh) (mk-some true))
+   (= (select table-z-bottom-right-old hhh) (mk-some false))
+   )
+)
+)
+
+
+;lower key z table left are completely undefined 
 (forall ((hhh Int))
 (= (select table-z-bottom-left-old hhh) (as mk-none (Maybe Bool))))
 

@@ -6,9 +6,6 @@ package Gate {
         zeron: Bits(n),
     }
 
-    state {
-    }
-
    import oracles {
         GETKEYSOUT(h: Integer) -> Table(Bool,Bits(n)),
         ENCN(j: Integer,d: Bool, nzero: Bits(n), none: Bits(n)) -> Bits(m),
