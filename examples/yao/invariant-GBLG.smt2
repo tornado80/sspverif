@@ -16,6 +16,18 @@
 (declare-const state-left-new CompositionState-Left)
 (declare-const state-right-new CompositionState-Right)
 
+; possible state arrays
+(declare-const array-state-left-old (Array Int CompositionState-Left))
+(declare-const length-state-left-old Int)
+(declare-const array-state-right-old (Array Int CompositionState-Right))
+(declare-const length-state-right-old Int)
+(declare-const array-state-left-new (Array Int CompositionState-Left))
+(declare-const length-state-left-new Int)
+(declare-const array-state-right-new (Array Int CompositionState-Right))
+(declare-const length-state-right-new Int)
+
+
+
 ; return value for GBLG call
 (declare-const return-left Return_Left_gate_GBLG)
 (declare-const return-right Return_Right_simgate_GBLG)
@@ -91,8 +103,8 @@
 
 
 (assert (and  ;assignment of return (value,state)
-              (= return-left      (oracle-Left-gate-GBLG state-left-old handle l r op j))
-              (= return-right     (oracle-Right-simgate-GBLG state-right-old handle l r op j))
+              (= return-left      (oracle-Left-gate-GBLG array-state-left-old length-state-left-old handle l r op j))
+              (= return-right     (oracle-Right-simgate-GBLG array-state-right-old length-state-right-old handle l r op j))
 
               ;assignment of return values
               (= value-left       (return-Left-gate-GBLG-value return-left))
@@ -103,8 +115,22 @@
               (= is-abort-right   (= mk-abort-Right-simgate-GBLG return-right))
 
               ;assignment of return state
-              (= state-left-new   (return-Left-gate-GBLG-state return-left))
-              (= state-right-new  (return-Right-simgate-GBLG-state return-right))
+              (= array-state-left-new   (return-Left-gate-GBLG-state return-left))
+              (= array-state-right-new  (return-Right-simgate-GBLG-state return-right))
+
+              ;assignment of return length
+              (= length-state-left-new   (return-Left-gate-GBLG-state-length return-left))
+              (= length-state-right-new  (return-Right-simgate-GBLG-state-length return-right))
+
+              ;initial state list contains only one state
+              (= length-state-left-old 1)
+              (= length-state-right-old 1)
+
+              ;retrieving return state from the list
+              (= (select array-state-left-old 1) state-left-old)
+              (= (select array-state-right-old 1) state-right-old)
+              (= (select array-state-left-new length-state-left-new) state-left-new)
+              (= (select array-state-right-new length-state-right-new) state-right-new)
 
               ;assignment of the ctr of the sample instructions for the lower Key package
               (= ctr-r-left   (composition-rand-Left-3  state-left-old))
@@ -589,7 +615,11 @@ true
 ;(check-sat) ;6
 
 ;(pop 1)
-;;;;;;;;;;;; temp
+;;;;;;;;;;;; High-level goal
+; pre-condition => (1) left-abort <=> right-abort
+;                  (2) if no abort =>
+;                               (a) pre-condition as post-condition
+;                               (b) y-left = y-right
 ;(push 1)
 ;(assert precondition-holds)
 ;(check-sat) ;7
@@ -715,6 +745,7 @@ true
 (pop 1)
 
 (push 1)
+
 (assert (and precondition-holds
         (not  (or
  (= (select table-flag-top-right-old l) (as mk-none (Maybe Bool)))
@@ -727,7 +758,7 @@ true
  (= (select table-z-bottom-right-old j) (mk-some false))
         ))
              is-abort-right
-       )
+        )
 )
 
 (check-sat) ;11

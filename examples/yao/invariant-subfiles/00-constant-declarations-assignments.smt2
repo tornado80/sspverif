@@ -119,8 +119,8 @@
               (= array-state-right-new  (return-Right-simgate-GBLG-state return-right))
 
               ;assignment of return length
-              (= length-state-left-new   (return-Left-gate-GBLG-length return-left))
-              (= length-state-right-new  (return-Right-simgate-GBLG-length return-right))
+              (= length-state-left-new   (return-Left-gate-GBLG-state-length return-left))
+              (= length-state-right-new  (return-Right-simgate-GBLG-state-length return-right))
 
               ;initial state list contains only one state
               (= length-state-left-old 1)
