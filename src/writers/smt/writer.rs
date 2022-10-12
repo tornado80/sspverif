@@ -56,7 +56,11 @@ impl<'a> CompositionSmtWriter<'a> {
     fn get_randomness(&self, sample_id: u32) -> SmtExpr {
         (
             self.comp_helper.smt_accessor_rand(sample_id),
-            SspSmtVar::CompositionContext,
+            SmtExpr::List(vec![
+                SmtExpr::Atom("select".into()),
+                SspSmtVar::CompositionContext.into(),
+                SmtExpr::Atom("__state_length".into())
+            ])
         )
             .into()
     }
@@ -96,7 +100,18 @@ impl<'a> CompositionSmtWriter<'a> {
                         "return-{}-{}-{}-state",
                         self.comp.name, inst.name, osig.name
                     )),
-                    self.comp_helper.smt_sort(),
+                    SmtExpr::List(vec![
+                        SmtExpr::Atom("Array".into()),
+                        SmtExpr::Atom("Int".into()),
+                        self.comp_helper.smt_sort(),
+                    ])
+                ]),
+                SmtExpr::List(vec![
+                    SmtExpr::Atom(format!(
+                        "return-{}-{}-{}-state-length",
+                        self.comp.name, inst.name, osig.name
+                    )),
+                    SmtExpr::Atom("Int".into()),
                 ]),
             ];
 
@@ -160,16 +175,21 @@ impl<'a> CompositionSmtWriter<'a> {
                 }
                 .into(),
                 Statement::Return(None) => {
-                    // (mk-return-{name} statevarname)
-                    (
-                        SspSmtVar::OracleReturnConstructor {
-                            compname: self.comp.name.clone(),
-                            pkgname: pkgname.clone(),
-                            oname: sig.name.clone(),
-                        },
-                        SspSmtVar::CompositionContext,
+                    // (mk-return-{name} statevarname expr)
+                    self.comp_helper.smt_set_pkg_state(
+                        &inst.name,
+                        &SspSmtVar::SelfState.into(),
+                        SmtExpr::List(vec![
+                            SspSmtVar::OracleReturnConstructor {
+                                compname: self.comp.name.clone(),
+                                pkgname: pkgname.clone(),
+                                oname: sig.name.clone(),
+                            }
+                            .into(),
+                            SspSmtVar::CompositionContext.into(),
+                            SmtExpr::Atom("__state_length".into()),
+                        ]),
                     )
-                        .into()
                 }
                 Statement::Return(Some(expr)) => {
                     // (mk-return-{name} statevarname expr)
@@ -184,6 +204,7 @@ impl<'a> CompositionSmtWriter<'a> {
                             }
                             .into(),
                             SspSmtVar::CompositionContext.into(),
+                            SmtExpr::Atom("__state_length".into()),
                             expr.clone().into(),
                         ]),
                     )
@@ -309,6 +330,7 @@ impl<'a> CompositionSmtWriter<'a> {
                                     self.comp.name, target, name
                                 )),
                                 SspSmtVar::CompositionContext.into(),
+                                SmtExpr::Atom("__state_length".into()),
                             ];
 
                             for arg in args {
@@ -342,7 +364,19 @@ impl<'a> CompositionSmtWriter<'a> {
                                             )),
                                             SspSmtVar::ReturnValue.into(),
                                         ]),
-                                    )];
+                                    ),
+
+                                    (
+                                        "__state_length".into(),
+                                        SmtExpr::List(vec![
+                                            SmtExpr::Atom(format!(
+                                                "return-{}-{}-{}-state-length",
+                                                self.comp.name, target, name
+                                            )),
+                                            SspSmtVar::ReturnValue.into(),
+                                        ]),
+                                    ),
+                                    ];
 
                                     if id.ident() != "_" {
                                         bindings.push((
@@ -495,8 +529,17 @@ impl<'a> CompositionSmtWriter<'a> {
                 let code = &def.code;
                 let mut args = vec![SmtExpr::List(vec![
                     SspSmtVar::CompositionContext.into(),
-                    self.comp_helper.smt_sort(),
-                ])];
+                    SmtExpr::List(vec![
+                        SmtExpr::Atom("Array".into()),
+                        SmtExpr::Atom("Int".into()),
+                        self.comp_helper.smt_sort(),
+                    ]),
+                ]),
+                SmtExpr::List(vec![
+                    SmtExpr::Atom("__state_length".into()),
+                    SmtExpr::Atom("Int".into()),
+                ]),
+                ];
 
                 for (name, tipe) in def.sig.args.clone() {
                     args.push(SmtExpr::List(vec![SmtExpr::Atom(name), tipe.into()]))
@@ -517,7 +560,13 @@ impl<'a> CompositionSmtWriter<'a> {
                         bindings: vec![(
                             smt_to_string(SspSmtVar::SelfState),
                             self.comp_helper
-                                .smt_access_pkg(&inst.name, SspSmtVar::CompositionContext.into()),
+                                .smt_access_pkg(&inst.name,
+                                                SmtExpr::List(vec![
+                                                    SmtExpr::Atom("select".into()),
+                                                    SspSmtVar::CompositionContext.into(),
+                                                    SmtExpr::Atom("__state_length".into())
+                                                ])
+                                ),
                         )],
                         body: self.code_smt_helper(code.clone(), &def.sig, inst),
                     }

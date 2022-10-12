@@ -135,31 +135,43 @@ impl<'a> SmtCompositionContext<'a> {
     pub fn smt_set_pkg_state(&self, target: &str, new: &SmtExpr, body: SmtExpr) -> SmtExpr {
         // initialize list with constructor name
         let mut tmp = vec![self.smt_constructor()];
+        let latest_state = SmtExpr::List(vec![SmtExpr::Atom("select".into()),
+                                              SspSmtVar::CompositionContext.into(),
+                                              SmtExpr::Atom("__state_length".into()),
+        ]);
 
         // add values for the package states, replacing target
         for inst_name in &self.pkg_names {
             tmp.push(if *inst_name == target {
                 new.clone()
             } else {
-                self.smt_access_pkg(inst_name, SspSmtVar::CompositionContext.into())
+                self.smt_access_pkg(inst_name, latest_state.clone())
             });
         }
 
         // copy values for parameters/consts
         for (param_name, _) in &self.params {
-            tmp.push(self.smt_access_param(param_name, SspSmtVar::CompositionContext.into()));
+            tmp.push(self.smt_access_param(param_name, latest_state.clone()));
         }
 
         // copy values for randomness sample counters
         for sample_id in 0..(self.sample_info.count) {
-            tmp.push(self.smt_access_rand(sample_id, SspSmtVar::CompositionContext.into()));
+            tmp.push(self.smt_access_rand(sample_id, latest_state.clone()));
         }
 
         SmtLet {
             bindings: vec![(
                 smt_to_string(SspSmtVar::CompositionContext),
-                SmtExpr::List(tmp),
-            )],
+                SmtExpr::List(vec![
+                    SmtExpr::Atom("store".into()),
+                    SspSmtVar::CompositionContext.into(),
+                    SmtExpr::List(vec![SmtExpr::Atom("+".into()),SmtExpr::Atom("1".into()),SmtExpr::Atom("__state_length".into())]),
+                    SmtExpr::List(tmp),
+                ])
+            ),(
+                "__state_length".into(), SmtExpr::List(vec![SmtExpr::Atom("+".into()),SmtExpr::Atom("1".into()),SmtExpr::Atom("__state_length".into())])
+            )
+            ],
             body,
         }
         .into()
@@ -168,15 +180,19 @@ impl<'a> SmtCompositionContext<'a> {
     pub fn smt_set_rand_ctr(&self, target_sample_id: u32, new: &SmtExpr, body: SmtExpr) -> SmtExpr {
         // initialize list with constructor name
         let mut tmp = vec![self.smt_constructor()];
+        let latest_state = SmtExpr::List(vec![SmtExpr::Atom("select".into()),
+                                              SspSmtVar::CompositionContext.into(),
+                                              SmtExpr::Atom("__state_length".into()),
+        ]);
 
         // copy values for the package states
         for inst_name in &self.pkg_names {
-            tmp.push(self.smt_access_pkg(inst_name, SspSmtVar::CompositionContext.into()));
+            tmp.push(self.smt_access_pkg(inst_name, latest_state.clone()));
         }
 
         // copy values for parameters/consts
         for (param_name, _) in &self.params {
-            tmp.push(self.smt_access_param(param_name, SspSmtVar::CompositionContext.into()));
+            tmp.push(self.smt_access_param(param_name, latest_state.clone()));
         }
 
         // add values for randomness sample counters, but replace target_sample_id
@@ -184,7 +200,7 @@ impl<'a> SmtCompositionContext<'a> {
             let new = if sample_id == target_sample_id {
                 new.clone()
             } else {
-                self.smt_access_rand(sample_id, SspSmtVar::CompositionContext.into())
+                self.smt_access_rand(sample_id, latest_state.clone())
             };
 
             tmp.push(new);
@@ -193,7 +209,12 @@ impl<'a> SmtCompositionContext<'a> {
         SmtLet {
             bindings: vec![(
                 smt_to_string(SspSmtVar::CompositionContext),
-                SmtExpr::List(tmp),
+                SmtExpr::List(vec![
+                    SmtExpr::Atom("store".into()),
+                    SspSmtVar::CompositionContext.into(),
+                    SmtExpr::Atom("__state_length".into()),
+                    SmtExpr::List(tmp),
+                ])
             )],
             body,
         }
