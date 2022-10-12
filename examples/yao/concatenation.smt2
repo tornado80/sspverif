@@ -6500,7 +6500,7 @@ true
    (or
    (= (select table-z-bottom-right-old hhh) (mk-some true))
    (= (select table-z-bottom-right-old hhh) (mk-some false))
-    )
+   )
 )
 )
 
@@ -6711,11 +6711,11 @@ true
 ;lower key package: flag has been set on left <=> bit has been set on right
 (forall ((hhh Int))
 (=
-(= (select table-flag-bottom-left-new hhh) (mk-some true)) 
-(or
+(= (select table-flag-bottom-left-new hhh) (mk-some true))
+   (or
    (= (select table-z-bottom-right-new hhh) (mk-some true))
    (= (select table-z-bottom-right-new hhh) (mk-some false))
-)
+    )
 )
 )
 
@@ -6806,15 +6806,11 @@ true
 ;(check-sat) ;6
 
 ;(pop 1)
-
-;;;;;;;;;;;;; temp
+;;;;;;;;;;;; temp
 ;(push 1)
-
 ;(assert precondition-holds)
 ;(check-sat) ;7
-
 ;(pop 1)
-
 (push 1)
 
 (assert (and precondition-holds
@@ -6891,19 +6887,84 @@ true
 
 (push 1)
 (assert (and precondition-holds
-        (or
-        (not (ite is-abort-left is-abort-right true))))
+             is-abort-left
+        (not is-abort-right))
 )
+
+
 (check-sat) ;8
 ;(get-model)
 (pop 1)
 
 (push 1)
 (assert (and precondition-holds
-        (or
-        (not (ite is-abort-right is-abort-left true))))
+             (or
+ (= (select table-flag-top-right-old l) (as mk-none (Maybe Bool)))
+ (= (select table-flag-top-right-old l) (mk-some false))
+ (= (select table-flag-top-right-old r) (as mk-none (Maybe Bool)))
+ (= (select table-flag-top-right-old r) (mk-some false))
+             )
+        (not is-abort-left))
 )
+
 (check-sat) ;9
+;(get-model)
+(pop 1)
+
+(push 1)
+(assert (and precondition-holds
+        (not  (or
+ (= (select table-flag-top-right-old l) (as mk-none (Maybe Bool)))
+ (= (select table-flag-top-right-old l) (mk-some false))
+ (= (select table-flag-top-right-old r) (as mk-none (Maybe Bool)))
+ (= (select table-flag-top-right-old r) (mk-some false))
+             ))
+(or
+ (= (select table-z-bottom-right-old j) (mk-some true))
+ (= (select table-z-bottom-right-old j) (mk-some false))
+)
+             is-abort-right
+        (not is-abort-left))
+)
+
+(check-sat) ;10
+;(get-model)
+(pop 1)
+
+(push 1)
+(assert (and precondition-holds
+        (not  (or
+ (= (select table-flag-top-right-old l) (as mk-none (Maybe Bool)))
+ (= (select table-flag-top-right-old l) (mk-some false))
+ (= (select table-z-top-right-old l) (as mk-none (Maybe Bool)))
+ (= (select table-flag-top-right-old r) (as mk-none (Maybe Bool)))
+ (= (select table-flag-top-right-old r) (mk-some false))
+ (= (select table-z-top-right-old r) (as mk-none (Maybe Bool)))
+ (= (select table-z-bottom-right-old j) (mk-some true))
+ (= (select table-z-bottom-right-old j) (mk-some false))
+        ))
+             is-abort-right
+       )
+)
+
+(check-sat) ;11
 (get-model)
 (pop 1)
 
+(push 1)
+(assert (and precondition-holds
+        (not  (or
+ (= (select table-flag-top-right-old l) (as mk-none (Maybe Bool)))
+ (= (select table-flag-top-right-old l) (mk-some false))
+ (= (select table-flag-top-right-old r) (as mk-none (Maybe Bool)))
+ (= (select table-flag-top-right-old r) (mk-some false))
+ (= (select table-z-bottom-right-old j) (mk-some true))
+ (= (select table-z-bottom-right-old j) (mk-some false))
+        ))
+             is-abort-right
+        (not is-abort-left))
+)
+
+(check-sat) ;12
+(get-model)
+(pop 1)
