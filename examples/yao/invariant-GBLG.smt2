@@ -13,6 +13,7 @@
 ; possible state
 (declare-const state-left-old CompositionState-Left)
 (declare-const state-right-old CompositionState-Right)
+(declare-const state-right-after-EVAL CompositionState-Right)
 (declare-const state-left-new CompositionState-Left)
 (declare-const state-right-new CompositionState-Right)
 
@@ -68,6 +69,7 @@
 (declare-const table-z-top-right-old    (Array Int (Maybe Bool)))
 (declare-const table-z-top-right-new    (Array Int (Maybe Bool)))
 (declare-const table-z-bottom-right-old (Array Int (Maybe Bool)))
+(declare-const table-z-bottom-right-after-EVAL (Array Int (Maybe Bool)))
 (declare-const table-z-bottom-right-new (Array Int (Maybe Bool)))
 
 (declare-const table-flag-top-left-old     (Array Int (Maybe Bool)))
@@ -132,6 +134,9 @@
               (= (select array-state-left-new length-state-left-new) state-left-new)
               (= (select array-state-right-new length-state-right-new) state-right-new)
 
+              (= (select array-state-right-new 5) state-right-after-EVAL)
+
+
               ;assignment of the ctr of the sample instructions for the lower Key package
               (= ctr-r-left   (composition-rand-Left-3  state-left-old))
               (= ctr-r-right  (composition-rand-Right-1 state-right-old))
@@ -170,6 +175,7 @@
               (= table-z-top-left-new   (state-Left-keys_top-z    (composition-pkgstate-Left-keys_top     state-left-new)))
               (= table-z-top-right-new (state-Right-keys_top-z    (composition-pkgstate-Right-keys_top    state-right-new)))
               (= table-z-bottom-left-new   (state-Left-keys_bottom-z (composition-pkgstate-Left-keys_bottom  state-left-new)))
+              (= table-z-bottom-right-after-EVAL (state-Right-keys_bottom-z (composition-pkgstate-Right-keys_bottom state-right-after-EVAL)))
               (= table-z-bottom-right-new (state-Right-keys_bottom-z (composition-pkgstate-Right-keys_bottom state-right-new)))
               (= table-z-top-left-old   (state-Left-keys_top-z    (composition-pkgstate-Left-keys_top     state-left-old)))
               (= table-z-top-right-old (state-Right-keys_top-z    (composition-pkgstate-Right-keys_top    state-right-old)))
@@ -757,13 +763,38 @@ true
  (= (select table-z-bottom-right-old j) (mk-some true))
  (= (select table-z-bottom-right-old j) (mk-some false))
         ))
+ (= (select table-z-bottom-right-after-EVAL j) (as mk-none (Maybe Bool)))
+        )
+)
+
+
+
+
+(check-sat) ;11
+;(get-model)
+(pop 1)
+
+(push 1)
+
+(assert (and precondition-holds
+        (not  (or
+ (= (select table-flag-top-right-old l) (as mk-none (Maybe Bool)))
+ (= (select table-flag-top-right-old l) (mk-some false))
+ (= (select table-z-top-right-old l) (as mk-none (Maybe Bool)))
+ (= (select table-flag-top-right-old r) (as mk-none (Maybe Bool)))
+ (= (select table-flag-top-right-old r) (mk-some false))
+ (= (select table-z-top-right-old r) (as mk-none (Maybe Bool)))
+ (= (select table-z-bottom-right-old j) (mk-some true))
+ (= (select table-z-bottom-right-old j) (mk-some false))
+        ))
              is-abort-right
         )
 )
 
-(check-sat) ;11
-(get-model)
+(check-sat) ;12
+;(get-model)
 (pop 1)
+
 
 (push 1)
 (assert (and precondition-holds
@@ -779,6 +810,6 @@ true
         (not is-abort-left))
 )
 
-(check-sat) ;12
-(get-model)
+(check-sat) ;13
+;(get-model)
 (pop 1)
