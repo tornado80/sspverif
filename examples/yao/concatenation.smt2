@@ -7328,8 +7328,10 @@
 (declare-const table-bottom-left-old  (Array Int (Maybe (Array Bool (Maybe Bits_n)))))
 (declare-const table-bottom-left-new  (Array Int (Maybe (Array Bool (Maybe Bits_n)))))
 (declare-const table-top-right-old    (Array Int (Maybe (Array Bool (Maybe Bits_n)))))
+(declare-const table-top-right-after-EVAL    (Array Int (Maybe (Array Bool (Maybe Bits_n)))))
 (declare-const table-top-right-new    (Array Int (Maybe (Array Bool (Maybe Bits_n)))))
 (declare-const table-bottom-right-old (Array Int (Maybe (Array Bool (Maybe Bits_n)))))
+(declare-const table-bottom-right-after-EVAL (Array Int (Maybe (Array Bool (Maybe Bits_n)))))
 (declare-const table-bottom-right-new (Array Int (Maybe (Array Bool (Maybe Bits_n)))))
 
 (declare-const table-z-top-left-old     (Array Int (Maybe Bool)))
@@ -7337,6 +7339,7 @@
 (declare-const table-z-bottom-left-old  (Array Int (Maybe Bool)))
 (declare-const table-z-bottom-left-new  (Array Int (Maybe Bool)))
 (declare-const table-z-top-right-old    (Array Int (Maybe Bool)))
+(declare-const table-z-top-right-after-EVAL    (Array Int (Maybe Bool)))
 (declare-const table-z-top-right-new    (Array Int (Maybe Bool)))
 (declare-const table-z-bottom-right-old (Array Int (Maybe Bool)))
 (declare-const table-z-bottom-right-after-EVAL (Array Int (Maybe Bool)))
@@ -7347,8 +7350,10 @@
 (declare-const table-flag-bottom-left-old  (Array Int (Maybe Bool)))
 (declare-const table-flag-bottom-left-new  (Array Int (Maybe Bool)))
 (declare-const table-flag-top-right-old    (Array Int (Maybe Bool)))
+(declare-const table-flag-top-right-after-EVAL    (Array Int (Maybe Bool)))
 (declare-const table-flag-top-right-new    (Array Int (Maybe Bool)))
 (declare-const table-flag-bottom-right-old (Array Int (Maybe Bool)))
+(declare-const table-flag-bottom-right-after-EVAL (Array Int (Maybe Bool)))
 (declare-const table-flag-bottom-right-new (Array Int (Maybe Bool)))
 
 ;randomness for encryption
@@ -7433,8 +7438,10 @@
 
               ;variable for the state of the upper/lower key package left/right before/after call
               (= table-top-left-new   (state-Left-keys_top-T    (composition-pkgstate-Left-keys_top     state-left-new)))
+              (= table-top-right-after-EVAL (state-Right-keys_top-T    (composition-pkgstate-Right-keys_top    state-right-after-EVAL)))
               (= table-top-right-new (state-Right-keys_top-T    (composition-pkgstate-Right-keys_top    state-right-new)))
               (= table-bottom-left-new   (state-Left-keys_bottom-T (composition-pkgstate-Left-keys_bottom  state-left-new)))
+              (= table-bottom-right-after-EVAL (state-Right-keys_bottom-T (composition-pkgstate-Right-keys_bottom state-right-after-EVAL)))
               (= table-bottom-right-new (state-Right-keys_bottom-T (composition-pkgstate-Right-keys_bottom state-right-new)))
               (= table-top-left-old   (state-Left-keys_top-T    (composition-pkgstate-Left-keys_top     state-left-old)))
               (= table-top-right-old (state-Right-keys_top-T    (composition-pkgstate-Right-keys_top    state-right-old)))
@@ -7443,7 +7450,8 @@
 
               ;variable for the bit state of the upper/lower key package left/right before/after call
               (= table-z-top-left-new   (state-Left-keys_top-z    (composition-pkgstate-Left-keys_top     state-left-new)))
-              (= table-z-top-right-new (state-Right-keys_top-z    (composition-pkgstate-Right-keys_top    state-right-new)))
+              (= table-z-top-right-after-EVAL (state-Right-keys_top-z    (composition-pkgstate-Right-keys_top    state-right-after-EVAL))) 
+            (= table-z-top-right-new (state-Right-keys_top-z    (composition-pkgstate-Right-keys_top    state-right-new)))
               (= table-z-bottom-left-new   (state-Left-keys_bottom-z (composition-pkgstate-Left-keys_bottom  state-left-new)))
               (= table-z-bottom-right-after-EVAL (state-Right-keys_bottom-z (composition-pkgstate-Right-keys_bottom state-right-after-EVAL)))
               (= table-z-bottom-right-new (state-Right-keys_bottom-z (composition-pkgstate-Right-keys_bottom state-right-new)))
@@ -7708,8 +7716,10 @@ lemma5)))
 (assert (= lemma1 (and
 ;;;; Lemma on key tables
 (well-defined table-top-left-new)
+(well-defined table-top-right-after-EVAL)
 (well-defined table-top-right-new)
 (well-defined table-bottom-left-new)
+(well-defined table-bottom-right-after-EVAL)
 (well-defined table-bottom-right-new)
 )))
 
@@ -7733,6 +7743,7 @@ lemma5)))
 (assert (= lemma2 (and
 ; top tables remain the same
 (= table-top-left-old table-top-left-new)
+(= table-top-right-after-EVAL table-top-right-new)
 (= table-top-right-old table-top-right-new)
 )))
 
@@ -7740,9 +7751,11 @@ lemma5)))
 ; left: bottom tables are mostly equal and where they are not equal, there is Z
 (forall ((hh Int))
 (ite
-(and (= j hh) (= (select table-bottom-left-old hh) (as mk-none (Maybe (Array Bool (Maybe Bits_n))))))
-(= (select table-bottom-left-new hh) (mk-some Z-left))
+(not
+(and (= j hh) (= (select table-bottom-left-old hh) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))))
+;(= (select table-bottom-left-new hh) (mk-some Z-left))
 (= (select table-bottom-left-old hh) (select table-bottom-left-new hh))
+true
 ))
 )))
 
