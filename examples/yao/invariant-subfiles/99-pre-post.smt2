@@ -140,13 +140,38 @@
  (= (select table-z-bottom-right-old j) (mk-some true))
  (= (select table-z-bottom-right-old j) (mk-some false))
         ))
+ (= (select table-z-bottom-right-after-EVAL j) (as mk-none (Maybe Bool)))
+        )
+)
+
+
+
+
+(check-sat) ;11
+;(get-model)
+(pop 1)
+
+(push 1)
+
+(assert (and precondition-holds
+        (not  (or
+ (= (select table-flag-top-right-old l) (as mk-none (Maybe Bool)))
+ (= (select table-flag-top-right-old l) (mk-some false))
+ (= (select table-z-top-right-old l) (as mk-none (Maybe Bool)))
+ (= (select table-flag-top-right-old r) (as mk-none (Maybe Bool)))
+ (= (select table-flag-top-right-old r) (mk-some false))
+ (= (select table-z-top-right-old r) (as mk-none (Maybe Bool)))
+ (= (select table-z-bottom-right-old j) (mk-some true))
+ (= (select table-z-bottom-right-old j) (mk-some false))
+        ))
              is-abort-right
         )
 )
 
-(check-sat) ;11
-(get-model)
+(check-sat) ;12
+;(get-model)
 (pop 1)
+
 
 (push 1)
 (assert (and precondition-holds
@@ -162,6 +187,6 @@
         (not is-abort-left))
 )
 
-(check-sat) ;12
-(get-model)
+(check-sat) ;13
+;(get-model)
 (pop 1)

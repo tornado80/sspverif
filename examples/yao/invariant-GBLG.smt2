@@ -13,8 +13,21 @@
 ; possible state
 (declare-const state-left-old CompositionState-Left)
 (declare-const state-right-old CompositionState-Right)
+(declare-const state-right-after-EVAL CompositionState-Right)
 (declare-const state-left-new CompositionState-Left)
 (declare-const state-right-new CompositionState-Right)
+
+; possible state arrays
+(declare-const array-state-left-old (Array Int CompositionState-Left))
+(declare-const length-state-left-old Int)
+(declare-const array-state-right-old (Array Int CompositionState-Right))
+(declare-const length-state-right-old Int)
+(declare-const array-state-left-new (Array Int CompositionState-Left))
+(declare-const length-state-left-new Int)
+(declare-const array-state-right-new (Array Int CompositionState-Right))
+(declare-const length-state-right-new Int)
+
+
 
 ; return value for GBLG call
 (declare-const return-left Return_Left_gate_GBLG)
@@ -45,8 +58,10 @@
 (declare-const table-bottom-left-old  (Array Int (Maybe (Array Bool (Maybe Bits_n)))))
 (declare-const table-bottom-left-new  (Array Int (Maybe (Array Bool (Maybe Bits_n)))))
 (declare-const table-top-right-old    (Array Int (Maybe (Array Bool (Maybe Bits_n)))))
+(declare-const table-top-right-after-EVAL    (Array Int (Maybe (Array Bool (Maybe Bits_n)))))
 (declare-const table-top-right-new    (Array Int (Maybe (Array Bool (Maybe Bits_n)))))
 (declare-const table-bottom-right-old (Array Int (Maybe (Array Bool (Maybe Bits_n)))))
+(declare-const table-bottom-right-after-EVAL (Array Int (Maybe (Array Bool (Maybe Bits_n)))))
 (declare-const table-bottom-right-new (Array Int (Maybe (Array Bool (Maybe Bits_n)))))
 
 (declare-const table-z-top-left-old     (Array Int (Maybe Bool)))
@@ -54,8 +69,10 @@
 (declare-const table-z-bottom-left-old  (Array Int (Maybe Bool)))
 (declare-const table-z-bottom-left-new  (Array Int (Maybe Bool)))
 (declare-const table-z-top-right-old    (Array Int (Maybe Bool)))
+(declare-const table-z-top-right-after-EVAL    (Array Int (Maybe Bool)))
 (declare-const table-z-top-right-new    (Array Int (Maybe Bool)))
 (declare-const table-z-bottom-right-old (Array Int (Maybe Bool)))
+(declare-const table-z-bottom-right-after-EVAL (Array Int (Maybe Bool)))
 (declare-const table-z-bottom-right-new (Array Int (Maybe Bool)))
 
 (declare-const table-flag-top-left-old     (Array Int (Maybe Bool)))
@@ -63,8 +80,10 @@
 (declare-const table-flag-bottom-left-old  (Array Int (Maybe Bool)))
 (declare-const table-flag-bottom-left-new  (Array Int (Maybe Bool)))
 (declare-const table-flag-top-right-old    (Array Int (Maybe Bool)))
+(declare-const table-flag-top-right-after-EVAL    (Array Int (Maybe Bool)))
 (declare-const table-flag-top-right-new    (Array Int (Maybe Bool)))
 (declare-const table-flag-bottom-right-old (Array Int (Maybe Bool)))
+(declare-const table-flag-bottom-right-after-EVAL (Array Int (Maybe Bool)))
 (declare-const table-flag-bottom-right-new (Array Int (Maybe Bool)))
 
 ;randomness for encryption
@@ -91,8 +110,8 @@
 
 
 (assert (and  ;assignment of return (value,state)
-              (= return-left      (oracle-Left-gate-GBLG state-left-old handle l r op j))
-              (= return-right     (oracle-Right-simgate-GBLG state-right-old handle l r op j))
+              (= return-left      (oracle-Left-gate-GBLG array-state-left-old length-state-left-old handle l r op j))
+              (= return-right     (oracle-Right-simgate-GBLG array-state-right-old length-state-right-old handle l r op j))
 
               ;assignment of return values
               (= value-left       (return-Left-gate-GBLG-value return-left))
@@ -103,8 +122,25 @@
               (= is-abort-right   (= mk-abort-Right-simgate-GBLG return-right))
 
               ;assignment of return state
-              (= state-left-new   (return-Left-gate-GBLG-state return-left))
-              (= state-right-new  (return-Right-simgate-GBLG-state return-right))
+              (= array-state-left-new   (return-Left-gate-GBLG-state return-left))
+              (= array-state-right-new  (return-Right-simgate-GBLG-state return-right))
+
+              ;assignment of return length
+              (= length-state-left-new   (return-Left-gate-GBLG-state-length return-left))
+              (= length-state-right-new  (return-Right-simgate-GBLG-state-length return-right))
+
+              ;initial state list contains only one state
+              (= length-state-left-old 1)
+              (= length-state-right-old 1)
+
+              ;retrieving return state from the list
+              (= (select array-state-left-old 1) state-left-old)
+              (= (select array-state-right-old 1) state-right-old)
+              (= (select array-state-left-new length-state-left-new) state-left-new)
+              (= (select array-state-right-new length-state-right-new) state-right-new)
+
+              (= (select array-state-right-new 5) state-right-after-EVAL)
+
 
               ;assignment of the ctr of the sample instructions for the lower Key package
               (= ctr-r-left   (composition-rand-Left-3  state-left-old))
@@ -132,8 +168,10 @@
 
               ;variable for the state of the upper/lower key package left/right before/after call
               (= table-top-left-new   (state-Left-keys_top-T    (composition-pkgstate-Left-keys_top     state-left-new)))
+              (= table-top-right-after-EVAL (state-Right-keys_top-T    (composition-pkgstate-Right-keys_top    state-right-after-EVAL)))
               (= table-top-right-new (state-Right-keys_top-T    (composition-pkgstate-Right-keys_top    state-right-new)))
               (= table-bottom-left-new   (state-Left-keys_bottom-T (composition-pkgstate-Left-keys_bottom  state-left-new)))
+              (= table-bottom-right-after-EVAL (state-Right-keys_bottom-T (composition-pkgstate-Right-keys_bottom state-right-after-EVAL)))
               (= table-bottom-right-new (state-Right-keys_bottom-T (composition-pkgstate-Right-keys_bottom state-right-new)))
               (= table-top-left-old   (state-Left-keys_top-T    (composition-pkgstate-Left-keys_top     state-left-old)))
               (= table-top-right-old (state-Right-keys_top-T    (composition-pkgstate-Right-keys_top    state-right-old)))
@@ -142,8 +180,10 @@
 
               ;variable for the bit state of the upper/lower key package left/right before/after call
               (= table-z-top-left-new   (state-Left-keys_top-z    (composition-pkgstate-Left-keys_top     state-left-new)))
-              (= table-z-top-right-new (state-Right-keys_top-z    (composition-pkgstate-Right-keys_top    state-right-new)))
+              (= table-z-top-right-after-EVAL (state-Right-keys_top-z    (composition-pkgstate-Right-keys_top    state-right-after-EVAL))) 
+            (= table-z-top-right-new (state-Right-keys_top-z    (composition-pkgstate-Right-keys_top    state-right-new)))
               (= table-z-bottom-left-new   (state-Left-keys_bottom-z (composition-pkgstate-Left-keys_bottom  state-left-new)))
+              (= table-z-bottom-right-after-EVAL (state-Right-keys_bottom-z (composition-pkgstate-Right-keys_bottom state-right-after-EVAL)))
               (= table-z-bottom-right-new (state-Right-keys_bottom-z (composition-pkgstate-Right-keys_bottom state-right-new)))
               (= table-z-top-left-old   (state-Left-keys_top-z    (composition-pkgstate-Left-keys_top     state-left-old)))
               (= table-z-top-right-old (state-Right-keys_top-z    (composition-pkgstate-Right-keys_top    state-right-old)))
@@ -406,8 +446,10 @@ lemma5)))
 (assert (= lemma1 (and
 ;;;; Lemma on key tables
 (well-defined table-top-left-new)
+(well-defined table-top-right-after-EVAL)
 (well-defined table-top-right-new)
 (well-defined table-bottom-left-new)
+(well-defined table-bottom-right-after-EVAL)
 (well-defined table-bottom-right-new)
 )))
 
@@ -431,6 +473,7 @@ lemma5)))
 (assert (= lemma2 (and
 ; top tables remain the same
 (= table-top-left-old table-top-left-new)
+(= table-top-right-after-EVAL table-top-right-new)
 (= table-top-right-old table-top-right-new)
 )))
 
@@ -438,9 +481,11 @@ lemma5)))
 ; left: bottom tables are mostly equal and where they are not equal, there is Z
 (forall ((hh Int))
 (ite
-(and (= j hh) (= (select table-bottom-left-old hh) (as mk-none (Maybe (Array Bool (Maybe Bits_n))))))
-(= (select table-bottom-left-new hh) (mk-some Z-left))
+(not
+(and (= j hh) (= (select table-bottom-left-old hh) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))))
+;(= (select table-bottom-left-new hh) (mk-some Z-left))
 (= (select table-bottom-left-old hh) (select table-bottom-left-new hh))
+true
 ))
 )))
 
@@ -589,7 +634,11 @@ true
 ;(check-sat) ;6
 
 ;(pop 1)
-;;;;;;;;;;;; temp
+;;;;;;;;;;;; High-level goal
+; pre-condition => (1) left-abort <=> right-abort
+;                  (2) if no abort =>
+;                               (a) pre-condition as post-condition
+;                               (b) y-left = y-right
 ;(push 1)
 ;(assert precondition-holds)
 ;(check-sat) ;7
@@ -715,6 +764,31 @@ true
 (pop 1)
 
 (push 1)
+
+(assert (and precondition-holds
+        (not  (or
+ (= (select table-flag-top-right-old l) (as mk-none (Maybe Bool)))
+ (= (select table-flag-top-right-old l) (mk-some false))
+ (= (select table-z-top-right-old l) (as mk-none (Maybe Bool)))
+ (= (select table-flag-top-right-old r) (as mk-none (Maybe Bool)))
+ (= (select table-flag-top-right-old r) (mk-some false))
+ (= (select table-z-top-right-old r) (as mk-none (Maybe Bool)))
+ (= (select table-z-bottom-right-old j) (mk-some true))
+ (= (select table-z-bottom-right-old j) (mk-some false))
+        ))
+ (= (select table-z-bottom-right-after-EVAL j) (as mk-none (Maybe Bool)))
+        )
+)
+
+
+
+
+(check-sat) ;11
+;(get-model)
+(pop 1)
+
+(push 1)
+
 (assert (and precondition-holds
         (not  (or
  (= (select table-flag-top-right-old l) (as mk-none (Maybe Bool)))
@@ -727,12 +801,13 @@ true
  (= (select table-z-bottom-right-old j) (mk-some false))
         ))
              is-abort-right
-       )
+        )
 )
 
-(check-sat) ;11
-(get-model)
+(check-sat) ;12
+;(get-model)
 (pop 1)
+
 
 (push 1)
 (assert (and precondition-holds
@@ -748,6 +823,6 @@ true
         (not is-abort-left))
 )
 
-(check-sat) ;12
-(get-model)
+(check-sat) ;13
+;(get-model)
 (pop 1)
