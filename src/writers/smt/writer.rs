@@ -8,7 +8,7 @@ use crate::transforms::samplify::SampleInfo;
 use crate::types::Type;
 
 use crate::writers::smt::{
-    exprs::{smt_to_string, SmtExpr, SmtIte, SmtLet, SspSmtVar},
+    exprs::{smt_to_string, SmtExpr, SmtIte, SmtLet, SspSmtVar,SmtIs},
     state_helpers::{SmtCompositionContext, SmtPackageState},
 };
 
@@ -132,10 +132,30 @@ impl<'a> CompositionSmtWriter<'a> {
                     self.comp.name, inst.name, osig.name
                 )),
                 SmtExpr::List(vec![
-                    SmtExpr::List(vec![SmtExpr::Atom(format!(
-                        "mk-abort-{}-{}-{}",
-                        self.comp.name, inst.name, osig.name
-                    ))]),
+                    SmtExpr::List(vec![
+                        SmtExpr::Atom(format!(
+                            "mk-abort-{}-{}-{}",
+                            self.comp.name, inst.name, osig.name
+                        )),
+                        SmtExpr::List(vec![
+                            SmtExpr::Atom(format!(
+                                "abort-{}-{}-{}-state",
+                                self.comp.name, inst.name, osig.name
+                            )),
+                            SmtExpr::List(vec![
+                                SmtExpr::Atom("Array".into()),
+                                SmtExpr::Atom("Int".into()),
+                                self.comp_helper.smt_sort(),
+                            ])
+                        ]),
+                        SmtExpr::List(vec![
+                            SmtExpr::Atom(format!(
+                                "abort-{}-{}-{}-state-length",
+                                self.comp.name, inst.name, osig.name
+                            )),
+                            SmtExpr::Atom("Int".into()),
+                        ]),
+                    ]),
                     SmtExpr::List(constructor),
                 ]),
             ]))
@@ -211,11 +231,20 @@ impl<'a> CompositionSmtWriter<'a> {
                 }
                 Statement::Abort => {
                     // mk-abort-{name}
-                    SspSmtVar::OracleAbort {
-                        compname: self.comp.name.clone(),
-                        pkgname: pkgname.clone(),
-                        oname: sig.name.clone(),
-                    }
+                    self.comp_helper.smt_set_pkg_state(
+                        &inst.name,
+                        &SspSmtVar::SelfState.into(),
+                        SmtExpr::List(vec![
+                            SspSmtVar::OracleAbort {
+                                compname: self.comp.name.clone(),
+                                pkgname: pkgname.clone(),
+                                oname: sig.name.clone(),
+                            }
+                            .into(),
+                            SspSmtVar::CompositionContext.into(),
+                            SmtExpr::Atom("__state_length".into()),
+                        ]),
+                    )
                     .into()
                     //SmtExpr::Atom(format!("mk-abort-{}-{}", pkgname, sig.name))
                 }
@@ -340,18 +369,45 @@ impl<'a> CompositionSmtWriter<'a> {
                             SmtExpr::List(cmdline)
                         })],
                         body: SmtIte {
-                            cond: SmtEq2 {
-                                lhs: SspSmtVar::ReturnValue,
-                                rhs: SspSmtVar::OracleAbort {
-                                    compname: self.comp.name.clone(),
-                                    pkgname: target.clone(),
-                                    oname: name.clone(),
-                                },
+                            cond: SmtIs {
+                                expr: SspSmtVar::ReturnValue,
+                                con: format!("mk-abort-{}-{}-{}", self.comp.name, target, name),
                             },
-                            then: SspSmtVar::OracleAbort {
-                                compname: self.comp.name.clone(),
-                                pkgname: pkgname.into(),
-                                oname: sig.name.clone(),
+                            then: SmtLet {
+                                bindings: vec![(
+                                    smt_to_string(SspSmtVar::CompositionContext),
+                                    SmtExpr::List(vec![
+                                            SmtExpr::Atom(format!(
+                                                "abort-{}-{}-{}-state",
+                                                self.comp.name, target, name
+                                            )),
+                                            SspSmtVar::ReturnValue.into(),
+                                    ]),
+                                ), (
+                                    "__state_length".into(),
+                                    SmtExpr::List(vec![
+                                        SmtExpr::Atom(format!(
+                                            "abort-{}-{}-{}-state-length",
+                                            self.comp.name, target, name
+                                        )),
+                                        SspSmtVar::ReturnValue.into(),
+                                    ]),
+                                ),
+                                ],
+                                body: self.comp_helper.smt_set_pkg_state(
+                                    &inst.name,
+                                    &SspSmtVar::SelfState.into(),
+                                    SmtExpr::List(vec![
+                                        SspSmtVar::OracleAbort {
+                                            compname: self.comp.name.clone(),
+                                            pkgname: pkgname.clone(),
+                                            oname: sig.name.clone(),
+                                        }
+                                        .into(),
+                                        SspSmtVar::CompositionContext.into(),
+                                        SmtExpr::Atom("__state_length".into()),
+                                    ]),
+                                )
                             },
                             els: SmtLet {
                                 bindings: {
