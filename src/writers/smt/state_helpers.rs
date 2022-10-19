@@ -369,66 +369,47 @@ impl<'a> SmtReturnState<'a> {
         }
     }
 
-
     pub fn smt_declare_datatype(&self, comp_sort: SmtExpr) -> SmtExpr {
         let mut constructor = vec![
-                SmtExpr::Atom(format!(
-                    "mk-return-{}-{}-{}",
-                    self.comp_name, self.inst_name, self.sig.name
-                )),
-                SmtExpr::List(vec![
-                    SmtExpr::Atom(format!(
-                        "return-{}-{}-{}-state",
-                        self.comp_name, self.inst_name, self.sig.name
-                    )),
-                    SmtExpr::List(vec![
-                        SmtExpr::Atom("Array".into()),
-                        SmtExpr::Atom("Int".into()),
-                        comp_sort,
-                    ])
-                ]),
-                SmtExpr::List(vec![
-                    SmtExpr::Atom(format!(
-                        "return-{}-{}-{}-state-length",
-                        self.comp_name, self.inst_name, self.sig.name
-                    )),
-                    SmtExpr::Atom("Int".into()),
-                ]),
-                SmtExpr::List(vec![
-                    SmtExpr::Atom(format!(
-                        "return-{}-{}-{}-value",
-                        self.comp_name, self.inst_name, self.sig.name
-                    )),
-                    Type::Maybe(Box::new(self.sig.tipe.clone())).into(),
-                ]),
-                SmtExpr::List(vec![
-                    SmtExpr::Atom(format!(
-                        "return-{}-{}-{}-is-abort",
-                        self.comp_name, self.inst_name, self.sig.name
-                    )),
-                    Type::Boolean.into(),
-                ]),
-            ];
-
+            self.smt_constructor_atom(),
             SmtExpr::List(vec![
-                SmtExpr::Atom("declare-datatype".to_string()),
-                SmtExpr::Atom(format!(
-                    "Return_{}_{}_{}",
-                    self.comp_name, self.inst_name, self.sig.name
-                )),
+                self.smt_access_states_atom(),
                 SmtExpr::List(vec![
-                    SmtExpr::List(constructor),
-                ]),
-            ])
+                    SmtExpr::Atom("Array".into()),
+                    SmtExpr::Atom("Int".into()),
+                    comp_sort,
+                ])
+            ]),
+            SmtExpr::List(vec![
+                self.smt_access_states_length_atom(),
+                SmtExpr::Atom("Int".into()),
+            ]),
+            SmtExpr::List(vec![
+                self.smt_access_value_atom(),
+                Type::Maybe(Box::new(self.sig.tipe.clone())).into(),
+            ]),
+            SmtExpr::List(vec![
+                self.smt_access_is_abort_atom(),
+                Type::Boolean.into(),
+            ]),
+        ];
+
+        SmtExpr::List(vec![
+            SmtExpr::Atom("declare-datatype".to_string()),
+            self.smt_sort(),
+            SmtExpr::List(vec![
+                SmtExpr::List(constructor),
+            ]),
+        ])
     }
-    
+
     pub fn smt_constructor(&self, state: SmtExpr, statelen: SmtExpr, value: SmtExpr, isabort: SmtExpr) -> SmtExpr {
         SmtExpr::List(vec![
             SmtExpr::Atom(format!("mk-return-{}-{}-{}", self.comp_name, self.inst_name, self.sig.name)),
             state, statelen, value, isabort
         ])
     }
-    
+
     pub fn smt_constructor_atom(&self) -> SmtExpr {
         SmtExpr::Atom(format!("mk-return-{}-{}-{}", self.comp_name, self.inst_name, self.sig.name))
     }
