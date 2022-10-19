@@ -155,6 +155,7 @@ fn smt(name: &str) {
 
     hacks::declare_par_Maybe(&mut w);
     hacks::declare_Tuple(&mut w, 2);
+    hacks::declare_Empty(&mut w);
 
     for (name, comp) in comp_map {
         println!("; {}", name);

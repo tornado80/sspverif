@@ -87,6 +87,7 @@ impl From<Type> for SmtExpr {
             }
             Type::Maybe(t) => SmtExpr::List(vec![SmtExpr::Atom("Maybe".into()), (*t).into()]),
             Type::Boolean => SmtExpr::Atom("Bool".to_string()),
+            Type::Empty => SmtExpr::Atom("Empty".to_string()),
             Type::Integer => SmtExpr::Atom("Int".into()),
             Type::Table(t_idx, t_val) => SmtExpr::List(vec![
                 SmtExpr::Atom("Array".into()),
