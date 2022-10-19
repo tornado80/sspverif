@@ -210,10 +210,7 @@ impl<'a> CompositionSmtWriter<'a> {
                             .into(),
                             SspSmtVar::CompositionContext.into(),
                             SmtExpr::Atom("__state_length".into()),
-                            SmtExpr::List(vec![
-                                SmtExpr::Atom("mk-some".into()),
-                                expr.clone().into(),
-                            ]),
+                            Expression::Some(Box::new(expr.clone())).into(),
                             SmtExpr::Atom("false".into()),
                         ]),
                     )
