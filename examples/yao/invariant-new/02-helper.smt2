@@ -24,9 +24,9 @@
 ; the "top" queries are GETKEYS queries 
 ;
 (define-fun well-defined-Key-bool ((key-state State_keys)) Bool
-(let ((T    state-keys-T    key-state)
-      (flag state-keys-flag key-state)
-      (z    state-keys-z    key-state))
+(let ((T    (state-keys-T    key-state))
+      (flag (state-keys-flag key-state))
+      (z    (state-keys-z    key-state)))
 
 ;Key tables in the key packages are either completely defined or completely undefined
 (well-defined T)
@@ -34,7 +34,7 @@
 ; flag is true <=> key has been chosen 
 (and
 (forall ((hhh Int)) (=
-                    (not (= (select flag hhh) (Maybe true)))
+                    (not (= (select flag hhh) (mk-some true)))
                     (or
                     (= (select T hhh) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
                     (and
@@ -44,19 +44,21 @@
 
 ; z table is completely undefined
 (forall ((hhh Int))
-(= (select table-z-bottom-left-old hhh) (as mk-none (Maybe Bool))))
+(= (select T hhh) (as mk-none (Maybe (Array Bool (Maybe Bits_n))))
 
 )
 )
+)))
 
 ; captures the possible states which a Key package can be in when
 ; the "top" queries are GETA and SETBIT queries 
 ;
 (define-fun well-defined-Key-active ((key-state State_keys)) Bool
-(let ((T    state-keys-T    key-state)
-      (flag state-keys-flag key-state)
-      (z    state-keys-z    key-state))
+(let ((T    (state-keys-T    key-state))
+      (flag (state-keys-flag key-state))
+      (z    (state-keys-z    key-state)))
 
+(and
 ; Table entries either bot or well-defined
 (well-defined T)
 
@@ -78,4 +80,4 @@
                     (= (select flag hhh) (as mk-none (Maybe Bool))))
                     true
                     ))
-)
+)))
