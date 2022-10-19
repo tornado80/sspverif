@@ -1,13 +1,3339 @@
 (declare-datatypes ((Maybe 1)) ((par (T) ((mk-some (maybe-get T)) (mk-none)))))
 (declare-datatypes
   ((Tuple2 2))
-  ((par (T1 T2) ((mk-tuple2 (el1 T1) (el2 T2)))))); Right
+  ((par (T1 T2) ((mk-tuple2 (el1 T1) (el2 T2))))))
+(declare-datatype Empty (mk-empty)); Left
 (declare-sort Bits_p 0)
 (declare-const zero_bits_p Bits_p)
-(declare-sort Bits_n 0)
-(declare-const zero_bits_n Bits_n)
 (declare-sort Bits_m 0)
 (declare-const zero_bits_m Bits_m)
+(declare-sort Bits_n 0)
+(declare-const zero_bits_n Bits_n)
+(declare-fun __sample-rand-Left-Bits_n (Int Int) Bits_n)
+(declare-fun __sample-rand-Left-Bits_m (Int Int) Bits_m)
+(declare-fun __sample-rand-Left-Bits_p (Int Int) Bits_p)
+(declare-fun __func-Left-encn (Bits_n Bits_n Bits_n) Bits_m)
+(declare-fun __func-Left-encm (Bits_n Bits_m Bits_n) Bits_p)
+(declare-datatype
+  State_Left_keys_top
+  (
+    (mk-state-Left-keys_top
+      (state-Left-keys_top-T (Array Int (Maybe (Array Bool (Maybe Bits_n)))))
+      (state-Left-keys_top-z (Array Int (Maybe Bool)))
+      (state-Left-keys_top-flag (Array Int (Maybe Bool))))))
+(declare-datatype
+  State_Left_keys_bottom
+  (
+    (mk-state-Left-keys_bottom
+      (state-Left-keys_bottom-T (Array Int (Maybe (Array Bool (Maybe Bits_n)))))
+      (state-Left-keys_bottom-z (Array Int (Maybe Bool)))
+      (state-Left-keys_bottom-flag (Array Int (Maybe Bool))))))
+(declare-datatype State_Left_gate ((mk-state-Left-gate)))
+(declare-datatype State_Left_enc ((mk-state-Left-enc)))
+(declare-datatype
+  CompositionState-Left
+  (
+    (mk-composition-state-Left
+      (composition-pkgstate-Left-keys_top State_Left_keys_top)
+      (composition-pkgstate-Left-keys_bottom State_Left_keys_bottom)
+      (composition-pkgstate-Left-gate State_Left_gate)
+      (composition-pkgstate-Left-enc State_Left_enc)
+      (composition-param-Left-zerom Bits_m)
+      (composition-param-Left-n Int)
+      (composition-param-Left-m Int)
+      (composition-param-Left-zeron Bits_n)
+      (composition-param-Left-p Int)
+      (composition-rand-Left-0 Int)
+      (composition-rand-Left-1 Int)
+      (composition-rand-Left-2 Int)
+      (composition-rand-Left-3 Int)
+      (composition-rand-Left-4 Int)
+      (composition-rand-Left-5 Int)
+      (composition-rand-Left-6 Int)
+      (composition-rand-Left-7 Int)
+      (composition-rand-Left-8 Int)
+      (composition-rand-Left-9 Int)
+      (composition-rand-Left-10 Int)
+      (composition-rand-Left-11 Int)
+      (composition-rand-Left-12 Int))))
+(declare-datatype
+  Return_Left_keys_top_GETKEYSIN
+  (
+    (mk-return-Left-keys_top-GETKEYSIN
+      (return-Left-keys_top-GETKEYSIN-state (Array Int CompositionState-Left))
+      (return-Left-keys_top-GETKEYSIN-state-length Int)
+      (return-Left-keys_top-GETKEYSIN-value (Maybe (Array Bool (Maybe Bits_n))))
+      (return-Left-keys_top-GETKEYSIN-is-abort Bool))))
+(declare-datatype
+  Return_Left_keys_top_GETAIN
+  (
+    (mk-return-Left-keys_top-GETAIN
+      (return-Left-keys_top-GETAIN-state (Array Int CompositionState-Left))
+      (return-Left-keys_top-GETAIN-state-length Int)
+      (return-Left-keys_top-GETAIN-value (Maybe Bits_n))
+      (return-Left-keys_top-GETAIN-is-abort Bool))))
+(declare-datatype
+  Return_Left_keys_top_GETINAIN
+  (
+    (mk-return-Left-keys_top-GETINAIN
+      (return-Left-keys_top-GETINAIN-state (Array Int CompositionState-Left))
+      (return-Left-keys_top-GETINAIN-state-length Int)
+      (return-Left-keys_top-GETINAIN-value (Maybe Bits_n))
+      (return-Left-keys_top-GETINAIN-is-abort Bool))))
+(declare-datatype
+  Return_Left_keys_top_GETAOUT
+  (
+    (mk-return-Left-keys_top-GETAOUT
+      (return-Left-keys_top-GETAOUT-state (Array Int CompositionState-Left))
+      (return-Left-keys_top-GETAOUT-state-length Int)
+      (return-Left-keys_top-GETAOUT-value (Maybe Bits_n))
+      (return-Left-keys_top-GETAOUT-is-abort Bool))))
+(declare-datatype
+  Return_Left_keys_top_GETKEYSOUT
+  (
+    (mk-return-Left-keys_top-GETKEYSOUT
+      (return-Left-keys_top-GETKEYSOUT-state (Array Int CompositionState-Left))
+      (return-Left-keys_top-GETKEYSOUT-state-length Int)
+      (return-Left-keys_top-GETKEYSOUT-value (Maybe (Array Bool (Maybe Bits_n))))
+      (return-Left-keys_top-GETKEYSOUT-is-abort Bool))))
+(declare-datatype
+  Return_Left_keys_top_GETBIT
+  (
+    (mk-return-Left-keys_top-GETBIT
+      (return-Left-keys_top-GETBIT-state (Array Int CompositionState-Left))
+      (return-Left-keys_top-GETBIT-state-length Int)
+      (return-Left-keys_top-GETBIT-value (Maybe Bool))
+      (return-Left-keys_top-GETBIT-is-abort Bool))))
+(declare-datatype
+  Return_Left_keys_top_SETBIT
+  (
+    (mk-return-Left-keys_top-SETBIT
+      (return-Left-keys_top-SETBIT-state (Array Int CompositionState-Left))
+      (return-Left-keys_top-SETBIT-state-length Int)
+      (return-Left-keys_top-SETBIT-value (Maybe Empty))
+      (return-Left-keys_top-SETBIT-is-abort Bool))))
+(declare-datatype
+  Return_Left_keys_bottom_GETKEYSIN
+  (
+    (mk-return-Left-keys_bottom-GETKEYSIN
+      (return-Left-keys_bottom-GETKEYSIN-state (Array Int CompositionState-Left))
+      (return-Left-keys_bottom-GETKEYSIN-state-length Int)
+      (return-Left-keys_bottom-GETKEYSIN-value (Maybe (Array Bool (Maybe Bits_n))))
+      (return-Left-keys_bottom-GETKEYSIN-is-abort Bool))))
+(declare-datatype
+  Return_Left_keys_bottom_GETAIN
+  (
+    (mk-return-Left-keys_bottom-GETAIN
+      (return-Left-keys_bottom-GETAIN-state (Array Int CompositionState-Left))
+      (return-Left-keys_bottom-GETAIN-state-length Int)
+      (return-Left-keys_bottom-GETAIN-value (Maybe Bits_n))
+      (return-Left-keys_bottom-GETAIN-is-abort Bool))))
+(declare-datatype
+  Return_Left_keys_bottom_GETINAIN
+  (
+    (mk-return-Left-keys_bottom-GETINAIN
+      (return-Left-keys_bottom-GETINAIN-state (Array Int CompositionState-Left))
+      (return-Left-keys_bottom-GETINAIN-state-length Int)
+      (return-Left-keys_bottom-GETINAIN-value (Maybe Bits_n))
+      (return-Left-keys_bottom-GETINAIN-is-abort Bool))))
+(declare-datatype
+  Return_Left_keys_bottom_GETAOUT
+  (
+    (mk-return-Left-keys_bottom-GETAOUT
+      (return-Left-keys_bottom-GETAOUT-state (Array Int CompositionState-Left))
+      (return-Left-keys_bottom-GETAOUT-state-length Int)
+      (return-Left-keys_bottom-GETAOUT-value (Maybe Bits_n))
+      (return-Left-keys_bottom-GETAOUT-is-abort Bool))))
+(declare-datatype
+  Return_Left_keys_bottom_GETKEYSOUT
+  (
+    (mk-return-Left-keys_bottom-GETKEYSOUT
+      (return-Left-keys_bottom-GETKEYSOUT-state (Array Int CompositionState-Left))
+      (return-Left-keys_bottom-GETKEYSOUT-state-length Int)
+      (return-Left-keys_bottom-GETKEYSOUT-value (Maybe (Array Bool (Maybe Bits_n))))
+      (return-Left-keys_bottom-GETKEYSOUT-is-abort Bool))))
+(declare-datatype
+  Return_Left_keys_bottom_GETBIT
+  (
+    (mk-return-Left-keys_bottom-GETBIT
+      (return-Left-keys_bottom-GETBIT-state (Array Int CompositionState-Left))
+      (return-Left-keys_bottom-GETBIT-state-length Int)
+      (return-Left-keys_bottom-GETBIT-value (Maybe Bool))
+      (return-Left-keys_bottom-GETBIT-is-abort Bool))))
+(declare-datatype
+  Return_Left_keys_bottom_SETBIT
+  (
+    (mk-return-Left-keys_bottom-SETBIT
+      (return-Left-keys_bottom-SETBIT-state (Array Int CompositionState-Left))
+      (return-Left-keys_bottom-SETBIT-state-length Int)
+      (return-Left-keys_bottom-SETBIT-value (Maybe Empty))
+      (return-Left-keys_bottom-SETBIT-is-abort Bool))))
+(declare-datatype
+  Return_Left_gate_GBLG
+  (
+    (mk-return-Left-gate-GBLG
+      (return-Left-gate-GBLG-state (Array Int CompositionState-Left))
+      (return-Left-gate-GBLG-state-length Int)
+      (return-Left-gate-GBLG-value (Maybe (Array Bits_p (Maybe Bool))))
+      (return-Left-gate-GBLG-is-abort Bool))))
+(declare-datatype
+  Return_Left_enc_ENCN
+  (
+    (mk-return-Left-enc-ENCN
+      (return-Left-enc-ENCN-state (Array Int CompositionState-Left))
+      (return-Left-enc-ENCN-state-length Int)
+      (return-Left-enc-ENCN-value (Maybe Bits_m))
+      (return-Left-enc-ENCN-is-abort Bool))))
+(declare-datatype
+  Return_Left_enc_ENCM
+  (
+    (mk-return-Left-enc-ENCM
+      (return-Left-enc-ENCM-state (Array Int CompositionState-Left))
+      (return-Left-enc-ENCM-state-length Int)
+      (return-Left-enc-ENCM-value (Maybe Bits_p))
+      (return-Left-enc-ENCM-is-abort Bool)))); Composition of Left
+(define-fun
+  oracle-Left-keys_top-GETKEYSIN
+  (
+    (__global_state (Array Int CompositionState-Left))
+    (__state_length Int)
+    (h Int))
+  Return_Left_keys_top_GETKEYSIN
+  (let
+    (
+      (__self_state
+        (composition-pkgstate-Left-keys_top (select __global_state __state_length))))
+    (ite
+      (= (select (state-Left-keys_top-flag __self_state) h) (mk-some true))
+      (let
+        ((unwrap-1 (maybe-get (select (state-Left-keys_top-T __self_state) h))))
+        (let
+          ((Z unwrap-1))
+          (let
+            (
+              (__global_state
+                (store
+                  __global_state
+                  (+ 1 __state_length)
+                  (mk-composition-state-Left
+                    __self_state
+                    (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                    (composition-pkgstate-Left-gate (select __global_state __state_length))
+                    (composition-pkgstate-Left-enc (select __global_state __state_length))
+                    (composition-param-Left-zerom (select __global_state __state_length))
+                    (composition-param-Left-n (select __global_state __state_length))
+                    (composition-param-Left-m (select __global_state __state_length))
+                    (composition-param-Left-zeron (select __global_state __state_length))
+                    (composition-param-Left-p (select __global_state __state_length))
+                    (composition-rand-Left-0 (select __global_state __state_length))
+                    (composition-rand-Left-1 (select __global_state __state_length))
+                    (composition-rand-Left-2 (select __global_state __state_length))
+                    (composition-rand-Left-3 (select __global_state __state_length))
+                    (composition-rand-Left-4 (select __global_state __state_length))
+                    (composition-rand-Left-5 (select __global_state __state_length))
+                    (composition-rand-Left-6 (select __global_state __state_length))
+                    (composition-rand-Left-7 (select __global_state __state_length))
+                    (composition-rand-Left-8 (select __global_state __state_length))
+                    (composition-rand-Left-9 (select __global_state __state_length))
+                    (composition-rand-Left-10 (select __global_state __state_length))
+                    (composition-rand-Left-11 (select __global_state __state_length))
+                    (composition-rand-Left-12 (select __global_state __state_length)))))
+              (__state_length (+ 1 __state_length)))
+            (mk-return-Left-keys_top-GETKEYSIN
+              __global_state
+              __state_length
+              (mk-some Z)
+              false))))
+      (let
+        (
+          (__global_state
+            (store
+              __global_state
+              (+ 1 __state_length)
+              (mk-composition-state-Left
+                __self_state
+                (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                (composition-pkgstate-Left-gate (select __global_state __state_length))
+                (composition-pkgstate-Left-enc (select __global_state __state_length))
+                (composition-param-Left-zerom (select __global_state __state_length))
+                (composition-param-Left-n (select __global_state __state_length))
+                (composition-param-Left-m (select __global_state __state_length))
+                (composition-param-Left-zeron (select __global_state __state_length))
+                (composition-param-Left-p (select __global_state __state_length))
+                (composition-rand-Left-0 (select __global_state __state_length))
+                (composition-rand-Left-1 (select __global_state __state_length))
+                (composition-rand-Left-2 (select __global_state __state_length))
+                (composition-rand-Left-3 (select __global_state __state_length))
+                (composition-rand-Left-4 (select __global_state __state_length))
+                (composition-rand-Left-5 (select __global_state __state_length))
+                (composition-rand-Left-6 (select __global_state __state_length))
+                (composition-rand-Left-7 (select __global_state __state_length))
+                (composition-rand-Left-8 (select __global_state __state_length))
+                (composition-rand-Left-9 (select __global_state __state_length))
+                (composition-rand-Left-10 (select __global_state __state_length))
+                (composition-rand-Left-11 (select __global_state __state_length))
+                (composition-rand-Left-12 (select __global_state __state_length)))))
+          (__state_length (+ 1 __state_length)))
+        (mk-return-Left-keys_top-GETKEYSIN
+          __global_state
+          __state_length
+          (as mk-none (Maybe (Array Bool (Maybe Bits_n))))
+          true)))))
+(define-fun
+  oracle-Left-keys_top-GETAIN
+  (
+    (__global_state (Array Int CompositionState-Left))
+    (__state_length Int)
+    (h Int))
+  Return_Left_keys_top_GETAIN
+  (let
+    (
+      (__self_state
+        (composition-pkgstate-Left-keys_top (select __global_state __state_length))))
+    (ite
+      (= (select (state-Left-keys_top-flag __self_state) h) (mk-some true))
+      (let
+        ((unwrap-1 (maybe-get (select (state-Left-keys_top-T __self_state) h))))
+        (let
+          ((Z unwrap-1))
+          (let
+            ((unwrap-2 (maybe-get (select (state-Left-keys_top-z __self_state) h))))
+            (let
+              ((zz unwrap-2))
+              (let
+                ((unwrap-3 (maybe-get (select Z zz))))
+                (let
+                  ((k unwrap-3))
+                  (let
+                    (
+                      (__global_state
+                        (store
+                          __global_state
+                          (+ 1 __state_length)
+                          (mk-composition-state-Left
+                            __self_state
+                            (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                            (composition-pkgstate-Left-gate (select __global_state __state_length))
+                            (composition-pkgstate-Left-enc (select __global_state __state_length))
+                            (composition-param-Left-zerom (select __global_state __state_length))
+                            (composition-param-Left-n (select __global_state __state_length))
+                            (composition-param-Left-m (select __global_state __state_length))
+                            (composition-param-Left-zeron (select __global_state __state_length))
+                            (composition-param-Left-p (select __global_state __state_length))
+                            (composition-rand-Left-0 (select __global_state __state_length))
+                            (composition-rand-Left-1 (select __global_state __state_length))
+                            (composition-rand-Left-2 (select __global_state __state_length))
+                            (composition-rand-Left-3 (select __global_state __state_length))
+                            (composition-rand-Left-4 (select __global_state __state_length))
+                            (composition-rand-Left-5 (select __global_state __state_length))
+                            (composition-rand-Left-6 (select __global_state __state_length))
+                            (composition-rand-Left-7 (select __global_state __state_length))
+                            (composition-rand-Left-8 (select __global_state __state_length))
+                            (composition-rand-Left-9 (select __global_state __state_length))
+                            (composition-rand-Left-10 (select __global_state __state_length))
+                            (composition-rand-Left-11 (select __global_state __state_length))
+                            (composition-rand-Left-12 (select __global_state __state_length)))))
+                      (__state_length (+ 1 __state_length)))
+                    (mk-return-Left-keys_top-GETAIN
+                      __global_state
+                      __state_length
+                      (mk-some k)
+                      false))))))))
+      (let
+        (
+          (__global_state
+            (store
+              __global_state
+              (+ 1 __state_length)
+              (mk-composition-state-Left
+                __self_state
+                (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                (composition-pkgstate-Left-gate (select __global_state __state_length))
+                (composition-pkgstate-Left-enc (select __global_state __state_length))
+                (composition-param-Left-zerom (select __global_state __state_length))
+                (composition-param-Left-n (select __global_state __state_length))
+                (composition-param-Left-m (select __global_state __state_length))
+                (composition-param-Left-zeron (select __global_state __state_length))
+                (composition-param-Left-p (select __global_state __state_length))
+                (composition-rand-Left-0 (select __global_state __state_length))
+                (composition-rand-Left-1 (select __global_state __state_length))
+                (composition-rand-Left-2 (select __global_state __state_length))
+                (composition-rand-Left-3 (select __global_state __state_length))
+                (composition-rand-Left-4 (select __global_state __state_length))
+                (composition-rand-Left-5 (select __global_state __state_length))
+                (composition-rand-Left-6 (select __global_state __state_length))
+                (composition-rand-Left-7 (select __global_state __state_length))
+                (composition-rand-Left-8 (select __global_state __state_length))
+                (composition-rand-Left-9 (select __global_state __state_length))
+                (composition-rand-Left-10 (select __global_state __state_length))
+                (composition-rand-Left-11 (select __global_state __state_length))
+                (composition-rand-Left-12 (select __global_state __state_length)))))
+          (__state_length (+ 1 __state_length)))
+        (mk-return-Left-keys_top-GETAIN
+          __global_state
+          __state_length
+          (as mk-none (Maybe Bits_n))
+          true)))))
+(define-fun
+  oracle-Left-keys_top-GETINAIN
+  (
+    (__global_state (Array Int CompositionState-Left))
+    (__state_length Int)
+    (h Int))
+  Return_Left_keys_top_GETINAIN
+  (let
+    (
+      (__self_state
+        (composition-pkgstate-Left-keys_top (select __global_state __state_length))))
+    (ite
+      (= (select (state-Left-keys_top-flag __self_state) h) (mk-some true))
+      (let
+        ((unwrap-1 (maybe-get (select (state-Left-keys_top-T __self_state) h))))
+        (let
+          ((Z unwrap-1))
+          (let
+            ((unwrap-2 (maybe-get (select (state-Left-keys_top-z __self_state) h))))
+            (let
+              ((zz unwrap-2))
+              (let
+                ((unwrap-3 (maybe-get (select Z (not zz)))))
+                (let
+                  ((k unwrap-3))
+                  (let
+                    (
+                      (__global_state
+                        (store
+                          __global_state
+                          (+ 1 __state_length)
+                          (mk-composition-state-Left
+                            __self_state
+                            (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                            (composition-pkgstate-Left-gate (select __global_state __state_length))
+                            (composition-pkgstate-Left-enc (select __global_state __state_length))
+                            (composition-param-Left-zerom (select __global_state __state_length))
+                            (composition-param-Left-n (select __global_state __state_length))
+                            (composition-param-Left-m (select __global_state __state_length))
+                            (composition-param-Left-zeron (select __global_state __state_length))
+                            (composition-param-Left-p (select __global_state __state_length))
+                            (composition-rand-Left-0 (select __global_state __state_length))
+                            (composition-rand-Left-1 (select __global_state __state_length))
+                            (composition-rand-Left-2 (select __global_state __state_length))
+                            (composition-rand-Left-3 (select __global_state __state_length))
+                            (composition-rand-Left-4 (select __global_state __state_length))
+                            (composition-rand-Left-5 (select __global_state __state_length))
+                            (composition-rand-Left-6 (select __global_state __state_length))
+                            (composition-rand-Left-7 (select __global_state __state_length))
+                            (composition-rand-Left-8 (select __global_state __state_length))
+                            (composition-rand-Left-9 (select __global_state __state_length))
+                            (composition-rand-Left-10 (select __global_state __state_length))
+                            (composition-rand-Left-11 (select __global_state __state_length))
+                            (composition-rand-Left-12 (select __global_state __state_length)))))
+                      (__state_length (+ 1 __state_length)))
+                    (mk-return-Left-keys_top-GETINAIN
+                      __global_state
+                      __state_length
+                      (mk-some k)
+                      false))))))))
+      (let
+        (
+          (__global_state
+            (store
+              __global_state
+              (+ 1 __state_length)
+              (mk-composition-state-Left
+                __self_state
+                (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                (composition-pkgstate-Left-gate (select __global_state __state_length))
+                (composition-pkgstate-Left-enc (select __global_state __state_length))
+                (composition-param-Left-zerom (select __global_state __state_length))
+                (composition-param-Left-n (select __global_state __state_length))
+                (composition-param-Left-m (select __global_state __state_length))
+                (composition-param-Left-zeron (select __global_state __state_length))
+                (composition-param-Left-p (select __global_state __state_length))
+                (composition-rand-Left-0 (select __global_state __state_length))
+                (composition-rand-Left-1 (select __global_state __state_length))
+                (composition-rand-Left-2 (select __global_state __state_length))
+                (composition-rand-Left-3 (select __global_state __state_length))
+                (composition-rand-Left-4 (select __global_state __state_length))
+                (composition-rand-Left-5 (select __global_state __state_length))
+                (composition-rand-Left-6 (select __global_state __state_length))
+                (composition-rand-Left-7 (select __global_state __state_length))
+                (composition-rand-Left-8 (select __global_state __state_length))
+                (composition-rand-Left-9 (select __global_state __state_length))
+                (composition-rand-Left-10 (select __global_state __state_length))
+                (composition-rand-Left-11 (select __global_state __state_length))
+                (composition-rand-Left-12 (select __global_state __state_length)))))
+          (__state_length (+ 1 __state_length)))
+        (mk-return-Left-keys_top-GETINAIN
+          __global_state
+          __state_length
+          (as mk-none (Maybe Bits_n))
+          true)))))
+(define-fun
+  oracle-Left-keys_top-GETAOUT
+  (
+    (__global_state (Array Int CompositionState-Left))
+    (__state_length Int)
+    (h Int))
+  Return_Left_keys_top_GETAOUT
+  (let
+    (
+      (__self_state
+        (composition-pkgstate-Left-keys_top (select __global_state __state_length))))
+    (ite
+      (= (select (state-Left-keys_top-z __self_state) h) (mk-some true))
+      (let
+        (
+          (__self_state
+            (mk-state-Left-keys_top
+              (state-Left-keys_top-T __self_state)
+              (state-Left-keys_top-z __self_state)
+              (store (state-Left-keys_top-flag __self_state) h (mk-some true)))))
+        (let
+          ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
+          (ite
+            (=
+              (select (state-Left-keys_top-T __self_state) h)
+              (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
+            (let
+              (
+                (r
+                  (__sample-rand-Left-Bits_n
+                    1
+                    (composition-rand-Left-1 (select __global_state __state_length)))))
+              (let
+                (
+                  (__global_state
+                    (store
+                      __global_state
+                      __state_length
+                      (mk-composition-state-Left
+                        (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                        (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                        (composition-pkgstate-Left-gate (select __global_state __state_length))
+                        (composition-pkgstate-Left-enc (select __global_state __state_length))
+                        (composition-param-Left-zerom (select __global_state __state_length))
+                        (composition-param-Left-n (select __global_state __state_length))
+                        (composition-param-Left-m (select __global_state __state_length))
+                        (composition-param-Left-zeron (select __global_state __state_length))
+                        (composition-param-Left-p (select __global_state __state_length))
+                        (composition-rand-Left-0 (select __global_state __state_length))
+                        (+ 1 (composition-rand-Left-1 (select __global_state __state_length)))
+                        (composition-rand-Left-2 (select __global_state __state_length))
+                        (composition-rand-Left-3 (select __global_state __state_length))
+                        (composition-rand-Left-4 (select __global_state __state_length))
+                        (composition-rand-Left-5 (select __global_state __state_length))
+                        (composition-rand-Left-6 (select __global_state __state_length))
+                        (composition-rand-Left-7 (select __global_state __state_length))
+                        (composition-rand-Left-8 (select __global_state __state_length))
+                        (composition-rand-Left-9 (select __global_state __state_length))
+                        (composition-rand-Left-10 (select __global_state __state_length))
+                        (composition-rand-Left-11 (select __global_state __state_length))
+                        (composition-rand-Left-12 (select __global_state __state_length))))))
+                (let
+                  ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
+                  (let
+                    ((Z (store Z true (mk-some r))))
+                    (let
+                      (
+                        (rr
+                          (__sample-rand-Left-Bits_n
+                            2
+                            (composition-rand-Left-2 (select __global_state __state_length)))))
+                      (let
+                        (
+                          (__global_state
+                            (store
+                              __global_state
+                              __state_length
+                              (mk-composition-state-Left
+                                (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                                (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                                (composition-pkgstate-Left-gate (select __global_state __state_length))
+                                (composition-pkgstate-Left-enc (select __global_state __state_length))
+                                (composition-param-Left-zerom (select __global_state __state_length))
+                                (composition-param-Left-n (select __global_state __state_length))
+                                (composition-param-Left-m (select __global_state __state_length))
+                                (composition-param-Left-zeron (select __global_state __state_length))
+                                (composition-param-Left-p (select __global_state __state_length))
+                                (composition-rand-Left-0 (select __global_state __state_length))
+                                (composition-rand-Left-1 (select __global_state __state_length))
+                                (+ 1 (composition-rand-Left-2 (select __global_state __state_length)))
+                                (composition-rand-Left-3 (select __global_state __state_length))
+                                (composition-rand-Left-4 (select __global_state __state_length))
+                                (composition-rand-Left-5 (select __global_state __state_length))
+                                (composition-rand-Left-6 (select __global_state __state_length))
+                                (composition-rand-Left-7 (select __global_state __state_length))
+                                (composition-rand-Left-8 (select __global_state __state_length))
+                                (composition-rand-Left-9 (select __global_state __state_length))
+                                (composition-rand-Left-10 (select __global_state __state_length))
+                                (composition-rand-Left-11 (select __global_state __state_length))
+                                (composition-rand-Left-12 (select __global_state __state_length))))))
+                        (let
+                          ((Z (store Z false (mk-some rr))))
+                          (let
+                            (
+                              (__self_state
+                                (mk-state-Left-keys_top
+                                  (store (state-Left-keys_top-T __self_state) h (mk-some Z))
+                                  (state-Left-keys_top-z __self_state)
+                                  (state-Left-keys_top-flag __self_state))))
+                            (let
+                              ((unwrap-1 (maybe-get (select (state-Left-keys_top-T __self_state) h))))
+                              (let
+                                ((Z unwrap-1))
+                                (let
+                                  ((unwrap-2 (maybe-get (select (state-Left-keys_top-z __self_state) h))))
+                                  (let
+                                    ((zz unwrap-2))
+                                    (let
+                                      ((unwrap-3 (maybe-get (select Z zz))))
+                                      (let
+                                        ((k unwrap-3))
+                                        (let
+                                          (
+                                            (__global_state
+                                              (store
+                                                __global_state
+                                                (+ 1 __state_length)
+                                                (mk-composition-state-Left
+                                                  __self_state
+                                                  (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                                                  (composition-pkgstate-Left-gate (select __global_state __state_length))
+                                                  (composition-pkgstate-Left-enc (select __global_state __state_length))
+                                                  (composition-param-Left-zerom (select __global_state __state_length))
+                                                  (composition-param-Left-n (select __global_state __state_length))
+                                                  (composition-param-Left-m (select __global_state __state_length))
+                                                  (composition-param-Left-zeron (select __global_state __state_length))
+                                                  (composition-param-Left-p (select __global_state __state_length))
+                                                  (composition-rand-Left-0 (select __global_state __state_length))
+                                                  (composition-rand-Left-1 (select __global_state __state_length))
+                                                  (composition-rand-Left-2 (select __global_state __state_length))
+                                                  (composition-rand-Left-3 (select __global_state __state_length))
+                                                  (composition-rand-Left-4 (select __global_state __state_length))
+                                                  (composition-rand-Left-5 (select __global_state __state_length))
+                                                  (composition-rand-Left-6 (select __global_state __state_length))
+                                                  (composition-rand-Left-7 (select __global_state __state_length))
+                                                  (composition-rand-Left-8 (select __global_state __state_length))
+                                                  (composition-rand-Left-9 (select __global_state __state_length))
+                                                  (composition-rand-Left-10 (select __global_state __state_length))
+                                                  (composition-rand-Left-11 (select __global_state __state_length))
+                                                  (composition-rand-Left-12 (select __global_state __state_length)))))
+                                            (__state_length (+ 1 __state_length)))
+                                          (mk-return-Left-keys_top-GETAOUT
+                                            __global_state
+                                            __state_length
+                                            (mk-some k)
+                                            false))))))))))))))))
+            (let
+              ((unwrap-1 (maybe-get (select (state-Left-keys_top-T __self_state) h))))
+              (let
+                ((Z unwrap-1))
+                (let
+                  ((unwrap-2 (maybe-get (select (state-Left-keys_top-z __self_state) h))))
+                  (let
+                    ((zz unwrap-2))
+                    (let
+                      ((unwrap-3 (maybe-get (select Z zz))))
+                      (let
+                        ((k unwrap-3))
+                        (let
+                          (
+                            (__global_state
+                              (store
+                                __global_state
+                                (+ 1 __state_length)
+                                (mk-composition-state-Left
+                                  __self_state
+                                  (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                                  (composition-pkgstate-Left-gate (select __global_state __state_length))
+                                  (composition-pkgstate-Left-enc (select __global_state __state_length))
+                                  (composition-param-Left-zerom (select __global_state __state_length))
+                                  (composition-param-Left-n (select __global_state __state_length))
+                                  (composition-param-Left-m (select __global_state __state_length))
+                                  (composition-param-Left-zeron (select __global_state __state_length))
+                                  (composition-param-Left-p (select __global_state __state_length))
+                                  (composition-rand-Left-0 (select __global_state __state_length))
+                                  (composition-rand-Left-1 (select __global_state __state_length))
+                                  (composition-rand-Left-2 (select __global_state __state_length))
+                                  (composition-rand-Left-3 (select __global_state __state_length))
+                                  (composition-rand-Left-4 (select __global_state __state_length))
+                                  (composition-rand-Left-5 (select __global_state __state_length))
+                                  (composition-rand-Left-6 (select __global_state __state_length))
+                                  (composition-rand-Left-7 (select __global_state __state_length))
+                                  (composition-rand-Left-8 (select __global_state __state_length))
+                                  (composition-rand-Left-9 (select __global_state __state_length))
+                                  (composition-rand-Left-10 (select __global_state __state_length))
+                                  (composition-rand-Left-11 (select __global_state __state_length))
+                                  (composition-rand-Left-12 (select __global_state __state_length)))))
+                            (__state_length (+ 1 __state_length)))
+                          (mk-return-Left-keys_top-GETAOUT
+                            __global_state
+                            __state_length
+                            (mk-some k)
+                            false)))))))))))
+      (let
+        (
+          (__global_state
+            (store
+              __global_state
+              (+ 1 __state_length)
+              (mk-composition-state-Left
+                __self_state
+                (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                (composition-pkgstate-Left-gate (select __global_state __state_length))
+                (composition-pkgstate-Left-enc (select __global_state __state_length))
+                (composition-param-Left-zerom (select __global_state __state_length))
+                (composition-param-Left-n (select __global_state __state_length))
+                (composition-param-Left-m (select __global_state __state_length))
+                (composition-param-Left-zeron (select __global_state __state_length))
+                (composition-param-Left-p (select __global_state __state_length))
+                (composition-rand-Left-0 (select __global_state __state_length))
+                (composition-rand-Left-1 (select __global_state __state_length))
+                (composition-rand-Left-2 (select __global_state __state_length))
+                (composition-rand-Left-3 (select __global_state __state_length))
+                (composition-rand-Left-4 (select __global_state __state_length))
+                (composition-rand-Left-5 (select __global_state __state_length))
+                (composition-rand-Left-6 (select __global_state __state_length))
+                (composition-rand-Left-7 (select __global_state __state_length))
+                (composition-rand-Left-8 (select __global_state __state_length))
+                (composition-rand-Left-9 (select __global_state __state_length))
+                (composition-rand-Left-10 (select __global_state __state_length))
+                (composition-rand-Left-11 (select __global_state __state_length))
+                (composition-rand-Left-12 (select __global_state __state_length)))))
+          (__state_length (+ 1 __state_length)))
+        (mk-return-Left-keys_top-GETAOUT
+          __global_state
+          __state_length
+          (as mk-none (Maybe Bits_n))
+          true)))))
+(define-fun
+  oracle-Left-keys_top-GETKEYSOUT
+  (
+    (__global_state (Array Int CompositionState-Left))
+    (__state_length Int)
+    (h Int))
+  Return_Left_keys_top_GETKEYSOUT
+  (let
+    (
+      (__self_state
+        (composition-pkgstate-Left-keys_top (select __global_state __state_length))))
+    (ite
+      (not (= (select (state-Left-keys_top-flag __self_state) h) (mk-some true)))
+      (let
+        (
+          (__self_state
+            (mk-state-Left-keys_top
+              (state-Left-keys_top-T __self_state)
+              (state-Left-keys_top-z __self_state)
+              (store (state-Left-keys_top-flag __self_state) h (mk-some true)))))
+        (let
+          ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
+          (ite
+            (=
+              (select (state-Left-keys_top-T __self_state) h)
+              (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
+            (let
+              (
+                (r
+                  (__sample-rand-Left-Bits_n
+                    3
+                    (composition-rand-Left-3 (select __global_state __state_length)))))
+              (let
+                (
+                  (__global_state
+                    (store
+                      __global_state
+                      __state_length
+                      (mk-composition-state-Left
+                        (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                        (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                        (composition-pkgstate-Left-gate (select __global_state __state_length))
+                        (composition-pkgstate-Left-enc (select __global_state __state_length))
+                        (composition-param-Left-zerom (select __global_state __state_length))
+                        (composition-param-Left-n (select __global_state __state_length))
+                        (composition-param-Left-m (select __global_state __state_length))
+                        (composition-param-Left-zeron (select __global_state __state_length))
+                        (composition-param-Left-p (select __global_state __state_length))
+                        (composition-rand-Left-0 (select __global_state __state_length))
+                        (composition-rand-Left-1 (select __global_state __state_length))
+                        (composition-rand-Left-2 (select __global_state __state_length))
+                        (+ 1 (composition-rand-Left-3 (select __global_state __state_length)))
+                        (composition-rand-Left-4 (select __global_state __state_length))
+                        (composition-rand-Left-5 (select __global_state __state_length))
+                        (composition-rand-Left-6 (select __global_state __state_length))
+                        (composition-rand-Left-7 (select __global_state __state_length))
+                        (composition-rand-Left-8 (select __global_state __state_length))
+                        (composition-rand-Left-9 (select __global_state __state_length))
+                        (composition-rand-Left-10 (select __global_state __state_length))
+                        (composition-rand-Left-11 (select __global_state __state_length))
+                        (composition-rand-Left-12 (select __global_state __state_length))))))
+                (let
+                  ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
+                  (let
+                    ((Z (store Z true (mk-some r))))
+                    (let
+                      (
+                        (rr
+                          (__sample-rand-Left-Bits_n
+                            4
+                            (composition-rand-Left-4 (select __global_state __state_length)))))
+                      (let
+                        (
+                          (__global_state
+                            (store
+                              __global_state
+                              __state_length
+                              (mk-composition-state-Left
+                                (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                                (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                                (composition-pkgstate-Left-gate (select __global_state __state_length))
+                                (composition-pkgstate-Left-enc (select __global_state __state_length))
+                                (composition-param-Left-zerom (select __global_state __state_length))
+                                (composition-param-Left-n (select __global_state __state_length))
+                                (composition-param-Left-m (select __global_state __state_length))
+                                (composition-param-Left-zeron (select __global_state __state_length))
+                                (composition-param-Left-p (select __global_state __state_length))
+                                (composition-rand-Left-0 (select __global_state __state_length))
+                                (composition-rand-Left-1 (select __global_state __state_length))
+                                (composition-rand-Left-2 (select __global_state __state_length))
+                                (composition-rand-Left-3 (select __global_state __state_length))
+                                (+ 1 (composition-rand-Left-4 (select __global_state __state_length)))
+                                (composition-rand-Left-5 (select __global_state __state_length))
+                                (composition-rand-Left-6 (select __global_state __state_length))
+                                (composition-rand-Left-7 (select __global_state __state_length))
+                                (composition-rand-Left-8 (select __global_state __state_length))
+                                (composition-rand-Left-9 (select __global_state __state_length))
+                                (composition-rand-Left-10 (select __global_state __state_length))
+                                (composition-rand-Left-11 (select __global_state __state_length))
+                                (composition-rand-Left-12 (select __global_state __state_length))))))
+                        (let
+                          ((Z (store Z false (mk-some rr))))
+                          (let
+                            (
+                              (__self_state
+                                (mk-state-Left-keys_top
+                                  (store (state-Left-keys_top-T __self_state) h (mk-some Z))
+                                  (state-Left-keys_top-z __self_state)
+                                  (state-Left-keys_top-flag __self_state))))
+                            (let
+                              ((unwrap-1 (maybe-get (select (state-Left-keys_top-T __self_state) h))))
+                              (let
+                                ((Z unwrap-1))
+                                (let
+                                  (
+                                    (__global_state
+                                      (store
+                                        __global_state
+                                        (+ 1 __state_length)
+                                        (mk-composition-state-Left
+                                          __self_state
+                                          (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                                          (composition-pkgstate-Left-gate (select __global_state __state_length))
+                                          (composition-pkgstate-Left-enc (select __global_state __state_length))
+                                          (composition-param-Left-zerom (select __global_state __state_length))
+                                          (composition-param-Left-n (select __global_state __state_length))
+                                          (composition-param-Left-m (select __global_state __state_length))
+                                          (composition-param-Left-zeron (select __global_state __state_length))
+                                          (composition-param-Left-p (select __global_state __state_length))
+                                          (composition-rand-Left-0 (select __global_state __state_length))
+                                          (composition-rand-Left-1 (select __global_state __state_length))
+                                          (composition-rand-Left-2 (select __global_state __state_length))
+                                          (composition-rand-Left-3 (select __global_state __state_length))
+                                          (composition-rand-Left-4 (select __global_state __state_length))
+                                          (composition-rand-Left-5 (select __global_state __state_length))
+                                          (composition-rand-Left-6 (select __global_state __state_length))
+                                          (composition-rand-Left-7 (select __global_state __state_length))
+                                          (composition-rand-Left-8 (select __global_state __state_length))
+                                          (composition-rand-Left-9 (select __global_state __state_length))
+                                          (composition-rand-Left-10 (select __global_state __state_length))
+                                          (composition-rand-Left-11 (select __global_state __state_length))
+                                          (composition-rand-Left-12 (select __global_state __state_length)))))
+                                    (__state_length (+ 1 __state_length)))
+                                  (mk-return-Left-keys_top-GETKEYSOUT
+                                    __global_state
+                                    __state_length
+                                    (mk-some Z)
+                                    false))))))))))))
+            (let
+              ((unwrap-1 (maybe-get (select (state-Left-keys_top-T __self_state) h))))
+              (let
+                ((Z unwrap-1))
+                (let
+                  (
+                    (__global_state
+                      (store
+                        __global_state
+                        (+ 1 __state_length)
+                        (mk-composition-state-Left
+                          __self_state
+                          (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                          (composition-pkgstate-Left-gate (select __global_state __state_length))
+                          (composition-pkgstate-Left-enc (select __global_state __state_length))
+                          (composition-param-Left-zerom (select __global_state __state_length))
+                          (composition-param-Left-n (select __global_state __state_length))
+                          (composition-param-Left-m (select __global_state __state_length))
+                          (composition-param-Left-zeron (select __global_state __state_length))
+                          (composition-param-Left-p (select __global_state __state_length))
+                          (composition-rand-Left-0 (select __global_state __state_length))
+                          (composition-rand-Left-1 (select __global_state __state_length))
+                          (composition-rand-Left-2 (select __global_state __state_length))
+                          (composition-rand-Left-3 (select __global_state __state_length))
+                          (composition-rand-Left-4 (select __global_state __state_length))
+                          (composition-rand-Left-5 (select __global_state __state_length))
+                          (composition-rand-Left-6 (select __global_state __state_length))
+                          (composition-rand-Left-7 (select __global_state __state_length))
+                          (composition-rand-Left-8 (select __global_state __state_length))
+                          (composition-rand-Left-9 (select __global_state __state_length))
+                          (composition-rand-Left-10 (select __global_state __state_length))
+                          (composition-rand-Left-11 (select __global_state __state_length))
+                          (composition-rand-Left-12 (select __global_state __state_length)))))
+                    (__state_length (+ 1 __state_length)))
+                  (mk-return-Left-keys_top-GETKEYSOUT
+                    __global_state
+                    __state_length
+                    (mk-some Z)
+                    false)))))))
+      (let
+        (
+          (__global_state
+            (store
+              __global_state
+              (+ 1 __state_length)
+              (mk-composition-state-Left
+                __self_state
+                (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                (composition-pkgstate-Left-gate (select __global_state __state_length))
+                (composition-pkgstate-Left-enc (select __global_state __state_length))
+                (composition-param-Left-zerom (select __global_state __state_length))
+                (composition-param-Left-n (select __global_state __state_length))
+                (composition-param-Left-m (select __global_state __state_length))
+                (composition-param-Left-zeron (select __global_state __state_length))
+                (composition-param-Left-p (select __global_state __state_length))
+                (composition-rand-Left-0 (select __global_state __state_length))
+                (composition-rand-Left-1 (select __global_state __state_length))
+                (composition-rand-Left-2 (select __global_state __state_length))
+                (composition-rand-Left-3 (select __global_state __state_length))
+                (composition-rand-Left-4 (select __global_state __state_length))
+                (composition-rand-Left-5 (select __global_state __state_length))
+                (composition-rand-Left-6 (select __global_state __state_length))
+                (composition-rand-Left-7 (select __global_state __state_length))
+                (composition-rand-Left-8 (select __global_state __state_length))
+                (composition-rand-Left-9 (select __global_state __state_length))
+                (composition-rand-Left-10 (select __global_state __state_length))
+                (composition-rand-Left-11 (select __global_state __state_length))
+                (composition-rand-Left-12 (select __global_state __state_length)))))
+          (__state_length (+ 1 __state_length)))
+        (mk-return-Left-keys_top-GETKEYSOUT
+          __global_state
+          __state_length
+          (as mk-none (Maybe (Array Bool (Maybe Bits_n))))
+          true)))))
+(define-fun
+  oracle-Left-keys_top-GETBIT
+  (
+    (__global_state (Array Int CompositionState-Left))
+    (__state_length Int)
+    (h Int))
+  Return_Left_keys_top_GETBIT
+  (let
+    (
+      (__self_state
+        (composition-pkgstate-Left-keys_top (select __global_state __state_length))))
+    (ite
+      (not
+        (= (select (state-Left-keys_top-z __self_state) h) (as mk-none (Maybe Bool))))
+      (let
+        ((unwrap-1 (maybe-get (select (state-Left-keys_top-z __self_state) h))))
+        (let
+          ((zz unwrap-1))
+          (let
+            (
+              (__global_state
+                (store
+                  __global_state
+                  (+ 1 __state_length)
+                  (mk-composition-state-Left
+                    __self_state
+                    (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                    (composition-pkgstate-Left-gate (select __global_state __state_length))
+                    (composition-pkgstate-Left-enc (select __global_state __state_length))
+                    (composition-param-Left-zerom (select __global_state __state_length))
+                    (composition-param-Left-n (select __global_state __state_length))
+                    (composition-param-Left-m (select __global_state __state_length))
+                    (composition-param-Left-zeron (select __global_state __state_length))
+                    (composition-param-Left-p (select __global_state __state_length))
+                    (composition-rand-Left-0 (select __global_state __state_length))
+                    (composition-rand-Left-1 (select __global_state __state_length))
+                    (composition-rand-Left-2 (select __global_state __state_length))
+                    (composition-rand-Left-3 (select __global_state __state_length))
+                    (composition-rand-Left-4 (select __global_state __state_length))
+                    (composition-rand-Left-5 (select __global_state __state_length))
+                    (composition-rand-Left-6 (select __global_state __state_length))
+                    (composition-rand-Left-7 (select __global_state __state_length))
+                    (composition-rand-Left-8 (select __global_state __state_length))
+                    (composition-rand-Left-9 (select __global_state __state_length))
+                    (composition-rand-Left-10 (select __global_state __state_length))
+                    (composition-rand-Left-11 (select __global_state __state_length))
+                    (composition-rand-Left-12 (select __global_state __state_length)))))
+              (__state_length (+ 1 __state_length)))
+            (mk-return-Left-keys_top-GETBIT
+              __global_state
+              __state_length
+              (mk-some zz)
+              false))))
+      (let
+        (
+          (__global_state
+            (store
+              __global_state
+              (+ 1 __state_length)
+              (mk-composition-state-Left
+                __self_state
+                (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                (composition-pkgstate-Left-gate (select __global_state __state_length))
+                (composition-pkgstate-Left-enc (select __global_state __state_length))
+                (composition-param-Left-zerom (select __global_state __state_length))
+                (composition-param-Left-n (select __global_state __state_length))
+                (composition-param-Left-m (select __global_state __state_length))
+                (composition-param-Left-zeron (select __global_state __state_length))
+                (composition-param-Left-p (select __global_state __state_length))
+                (composition-rand-Left-0 (select __global_state __state_length))
+                (composition-rand-Left-1 (select __global_state __state_length))
+                (composition-rand-Left-2 (select __global_state __state_length))
+                (composition-rand-Left-3 (select __global_state __state_length))
+                (composition-rand-Left-4 (select __global_state __state_length))
+                (composition-rand-Left-5 (select __global_state __state_length))
+                (composition-rand-Left-6 (select __global_state __state_length))
+                (composition-rand-Left-7 (select __global_state __state_length))
+                (composition-rand-Left-8 (select __global_state __state_length))
+                (composition-rand-Left-9 (select __global_state __state_length))
+                (composition-rand-Left-10 (select __global_state __state_length))
+                (composition-rand-Left-11 (select __global_state __state_length))
+                (composition-rand-Left-12 (select __global_state __state_length)))))
+          (__state_length (+ 1 __state_length)))
+        (mk-return-Left-keys_top-GETBIT
+          __global_state
+          __state_length
+          (as mk-none (Maybe Bool))
+          true)))))
+(define-fun
+  oracle-Left-keys_top-SETBIT
+  (
+    (__global_state (Array Int CompositionState-Left))
+    (__state_length Int)
+    (h Int)
+    (zz Bool))
+  Return_Left_keys_top_SETBIT
+  (let
+    (
+      (__self_state
+        (composition-pkgstate-Left-keys_top (select __global_state __state_length))))
+    (ite
+      (= (select (state-Left-keys_top-z __self_state) h) (as mk-none (Maybe Bool)))
+      (let
+        (
+          (__self_state
+            (mk-state-Left-keys_top
+              (state-Left-keys_top-T __self_state)
+              (store (state-Left-keys_top-z __self_state) h (mk-some zz))
+              (state-Left-keys_top-flag __self_state))))
+        (let
+          (
+            (__global_state
+              (store
+                __global_state
+                (+ 1 __state_length)
+                (mk-composition-state-Left
+                  __self_state
+                  (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                  (composition-pkgstate-Left-gate (select __global_state __state_length))
+                  (composition-pkgstate-Left-enc (select __global_state __state_length))
+                  (composition-param-Left-zerom (select __global_state __state_length))
+                  (composition-param-Left-n (select __global_state __state_length))
+                  (composition-param-Left-m (select __global_state __state_length))
+                  (composition-param-Left-zeron (select __global_state __state_length))
+                  (composition-param-Left-p (select __global_state __state_length))
+                  (composition-rand-Left-0 (select __global_state __state_length))
+                  (composition-rand-Left-1 (select __global_state __state_length))
+                  (composition-rand-Left-2 (select __global_state __state_length))
+                  (composition-rand-Left-3 (select __global_state __state_length))
+                  (composition-rand-Left-4 (select __global_state __state_length))
+                  (composition-rand-Left-5 (select __global_state __state_length))
+                  (composition-rand-Left-6 (select __global_state __state_length))
+                  (composition-rand-Left-7 (select __global_state __state_length))
+                  (composition-rand-Left-8 (select __global_state __state_length))
+                  (composition-rand-Left-9 (select __global_state __state_length))
+                  (composition-rand-Left-10 (select __global_state __state_length))
+                  (composition-rand-Left-11 (select __global_state __state_length))
+                  (composition-rand-Left-12 (select __global_state __state_length)))))
+            (__state_length (+ 1 __state_length)))
+          (mk-return-Left-keys_top-SETBIT
+            __global_state
+            __state_length
+            (mk-some mk-empty)
+            false)))
+      (let
+        (
+          (__global_state
+            (store
+              __global_state
+              (+ 1 __state_length)
+              (mk-composition-state-Left
+                __self_state
+                (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                (composition-pkgstate-Left-gate (select __global_state __state_length))
+                (composition-pkgstate-Left-enc (select __global_state __state_length))
+                (composition-param-Left-zerom (select __global_state __state_length))
+                (composition-param-Left-n (select __global_state __state_length))
+                (composition-param-Left-m (select __global_state __state_length))
+                (composition-param-Left-zeron (select __global_state __state_length))
+                (composition-param-Left-p (select __global_state __state_length))
+                (composition-rand-Left-0 (select __global_state __state_length))
+                (composition-rand-Left-1 (select __global_state __state_length))
+                (composition-rand-Left-2 (select __global_state __state_length))
+                (composition-rand-Left-3 (select __global_state __state_length))
+                (composition-rand-Left-4 (select __global_state __state_length))
+                (composition-rand-Left-5 (select __global_state __state_length))
+                (composition-rand-Left-6 (select __global_state __state_length))
+                (composition-rand-Left-7 (select __global_state __state_length))
+                (composition-rand-Left-8 (select __global_state __state_length))
+                (composition-rand-Left-9 (select __global_state __state_length))
+                (composition-rand-Left-10 (select __global_state __state_length))
+                (composition-rand-Left-11 (select __global_state __state_length))
+                (composition-rand-Left-12 (select __global_state __state_length)))))
+          (__state_length (+ 1 __state_length)))
+        (mk-return-Left-keys_top-SETBIT
+          __global_state
+          __state_length
+          (as mk-none (Maybe Empty))
+          true)))))
+(define-fun
+  oracle-Left-keys_bottom-GETKEYSIN
+  (
+    (__global_state (Array Int CompositionState-Left))
+    (__state_length Int)
+    (h Int))
+  Return_Left_keys_bottom_GETKEYSIN
+  (let
+    (
+      (__self_state
+        (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))))
+    (ite
+      (= (select (state-Left-keys_bottom-flag __self_state) h) (mk-some true))
+      (let
+        ((unwrap-1 (maybe-get (select (state-Left-keys_bottom-T __self_state) h))))
+        (let
+          ((Z unwrap-1))
+          (let
+            (
+              (__global_state
+                (store
+                  __global_state
+                  (+ 1 __state_length)
+                  (mk-composition-state-Left
+                    (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                    __self_state
+                    (composition-pkgstate-Left-gate (select __global_state __state_length))
+                    (composition-pkgstate-Left-enc (select __global_state __state_length))
+                    (composition-param-Left-zerom (select __global_state __state_length))
+                    (composition-param-Left-n (select __global_state __state_length))
+                    (composition-param-Left-m (select __global_state __state_length))
+                    (composition-param-Left-zeron (select __global_state __state_length))
+                    (composition-param-Left-p (select __global_state __state_length))
+                    (composition-rand-Left-0 (select __global_state __state_length))
+                    (composition-rand-Left-1 (select __global_state __state_length))
+                    (composition-rand-Left-2 (select __global_state __state_length))
+                    (composition-rand-Left-3 (select __global_state __state_length))
+                    (composition-rand-Left-4 (select __global_state __state_length))
+                    (composition-rand-Left-5 (select __global_state __state_length))
+                    (composition-rand-Left-6 (select __global_state __state_length))
+                    (composition-rand-Left-7 (select __global_state __state_length))
+                    (composition-rand-Left-8 (select __global_state __state_length))
+                    (composition-rand-Left-9 (select __global_state __state_length))
+                    (composition-rand-Left-10 (select __global_state __state_length))
+                    (composition-rand-Left-11 (select __global_state __state_length))
+                    (composition-rand-Left-12 (select __global_state __state_length)))))
+              (__state_length (+ 1 __state_length)))
+            (mk-return-Left-keys_bottom-GETKEYSIN
+              __global_state
+              __state_length
+              (mk-some Z)
+              false))))
+      (let
+        (
+          (__global_state
+            (store
+              __global_state
+              (+ 1 __state_length)
+              (mk-composition-state-Left
+                (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                __self_state
+                (composition-pkgstate-Left-gate (select __global_state __state_length))
+                (composition-pkgstate-Left-enc (select __global_state __state_length))
+                (composition-param-Left-zerom (select __global_state __state_length))
+                (composition-param-Left-n (select __global_state __state_length))
+                (composition-param-Left-m (select __global_state __state_length))
+                (composition-param-Left-zeron (select __global_state __state_length))
+                (composition-param-Left-p (select __global_state __state_length))
+                (composition-rand-Left-0 (select __global_state __state_length))
+                (composition-rand-Left-1 (select __global_state __state_length))
+                (composition-rand-Left-2 (select __global_state __state_length))
+                (composition-rand-Left-3 (select __global_state __state_length))
+                (composition-rand-Left-4 (select __global_state __state_length))
+                (composition-rand-Left-5 (select __global_state __state_length))
+                (composition-rand-Left-6 (select __global_state __state_length))
+                (composition-rand-Left-7 (select __global_state __state_length))
+                (composition-rand-Left-8 (select __global_state __state_length))
+                (composition-rand-Left-9 (select __global_state __state_length))
+                (composition-rand-Left-10 (select __global_state __state_length))
+                (composition-rand-Left-11 (select __global_state __state_length))
+                (composition-rand-Left-12 (select __global_state __state_length)))))
+          (__state_length (+ 1 __state_length)))
+        (mk-return-Left-keys_bottom-GETKEYSIN
+          __global_state
+          __state_length
+          (as mk-none (Maybe (Array Bool (Maybe Bits_n))))
+          true)))))
+(define-fun
+  oracle-Left-keys_bottom-GETAIN
+  (
+    (__global_state (Array Int CompositionState-Left))
+    (__state_length Int)
+    (h Int))
+  Return_Left_keys_bottom_GETAIN
+  (let
+    (
+      (__self_state
+        (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))))
+    (ite
+      (= (select (state-Left-keys_bottom-flag __self_state) h) (mk-some true))
+      (let
+        ((unwrap-1 (maybe-get (select (state-Left-keys_bottom-T __self_state) h))))
+        (let
+          ((Z unwrap-1))
+          (let
+            ((unwrap-2 (maybe-get (select (state-Left-keys_bottom-z __self_state) h))))
+            (let
+              ((zz unwrap-2))
+              (let
+                ((unwrap-3 (maybe-get (select Z zz))))
+                (let
+                  ((k unwrap-3))
+                  (let
+                    (
+                      (__global_state
+                        (store
+                          __global_state
+                          (+ 1 __state_length)
+                          (mk-composition-state-Left
+                            (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                            __self_state
+                            (composition-pkgstate-Left-gate (select __global_state __state_length))
+                            (composition-pkgstate-Left-enc (select __global_state __state_length))
+                            (composition-param-Left-zerom (select __global_state __state_length))
+                            (composition-param-Left-n (select __global_state __state_length))
+                            (composition-param-Left-m (select __global_state __state_length))
+                            (composition-param-Left-zeron (select __global_state __state_length))
+                            (composition-param-Left-p (select __global_state __state_length))
+                            (composition-rand-Left-0 (select __global_state __state_length))
+                            (composition-rand-Left-1 (select __global_state __state_length))
+                            (composition-rand-Left-2 (select __global_state __state_length))
+                            (composition-rand-Left-3 (select __global_state __state_length))
+                            (composition-rand-Left-4 (select __global_state __state_length))
+                            (composition-rand-Left-5 (select __global_state __state_length))
+                            (composition-rand-Left-6 (select __global_state __state_length))
+                            (composition-rand-Left-7 (select __global_state __state_length))
+                            (composition-rand-Left-8 (select __global_state __state_length))
+                            (composition-rand-Left-9 (select __global_state __state_length))
+                            (composition-rand-Left-10 (select __global_state __state_length))
+                            (composition-rand-Left-11 (select __global_state __state_length))
+                            (composition-rand-Left-12 (select __global_state __state_length)))))
+                      (__state_length (+ 1 __state_length)))
+                    (mk-return-Left-keys_bottom-GETAIN
+                      __global_state
+                      __state_length
+                      (mk-some k)
+                      false))))))))
+      (let
+        (
+          (__global_state
+            (store
+              __global_state
+              (+ 1 __state_length)
+              (mk-composition-state-Left
+                (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                __self_state
+                (composition-pkgstate-Left-gate (select __global_state __state_length))
+                (composition-pkgstate-Left-enc (select __global_state __state_length))
+                (composition-param-Left-zerom (select __global_state __state_length))
+                (composition-param-Left-n (select __global_state __state_length))
+                (composition-param-Left-m (select __global_state __state_length))
+                (composition-param-Left-zeron (select __global_state __state_length))
+                (composition-param-Left-p (select __global_state __state_length))
+                (composition-rand-Left-0 (select __global_state __state_length))
+                (composition-rand-Left-1 (select __global_state __state_length))
+                (composition-rand-Left-2 (select __global_state __state_length))
+                (composition-rand-Left-3 (select __global_state __state_length))
+                (composition-rand-Left-4 (select __global_state __state_length))
+                (composition-rand-Left-5 (select __global_state __state_length))
+                (composition-rand-Left-6 (select __global_state __state_length))
+                (composition-rand-Left-7 (select __global_state __state_length))
+                (composition-rand-Left-8 (select __global_state __state_length))
+                (composition-rand-Left-9 (select __global_state __state_length))
+                (composition-rand-Left-10 (select __global_state __state_length))
+                (composition-rand-Left-11 (select __global_state __state_length))
+                (composition-rand-Left-12 (select __global_state __state_length)))))
+          (__state_length (+ 1 __state_length)))
+        (mk-return-Left-keys_bottom-GETAIN
+          __global_state
+          __state_length
+          (as mk-none (Maybe Bits_n))
+          true)))))
+(define-fun
+  oracle-Left-keys_bottom-GETINAIN
+  (
+    (__global_state (Array Int CompositionState-Left))
+    (__state_length Int)
+    (h Int))
+  Return_Left_keys_bottom_GETINAIN
+  (let
+    (
+      (__self_state
+        (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))))
+    (ite
+      (= (select (state-Left-keys_bottom-flag __self_state) h) (mk-some true))
+      (let
+        ((unwrap-1 (maybe-get (select (state-Left-keys_bottom-T __self_state) h))))
+        (let
+          ((Z unwrap-1))
+          (let
+            ((unwrap-2 (maybe-get (select (state-Left-keys_bottom-z __self_state) h))))
+            (let
+              ((zz unwrap-2))
+              (let
+                ((unwrap-3 (maybe-get (select Z (not zz)))))
+                (let
+                  ((k unwrap-3))
+                  (let
+                    (
+                      (__global_state
+                        (store
+                          __global_state
+                          (+ 1 __state_length)
+                          (mk-composition-state-Left
+                            (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                            __self_state
+                            (composition-pkgstate-Left-gate (select __global_state __state_length))
+                            (composition-pkgstate-Left-enc (select __global_state __state_length))
+                            (composition-param-Left-zerom (select __global_state __state_length))
+                            (composition-param-Left-n (select __global_state __state_length))
+                            (composition-param-Left-m (select __global_state __state_length))
+                            (composition-param-Left-zeron (select __global_state __state_length))
+                            (composition-param-Left-p (select __global_state __state_length))
+                            (composition-rand-Left-0 (select __global_state __state_length))
+                            (composition-rand-Left-1 (select __global_state __state_length))
+                            (composition-rand-Left-2 (select __global_state __state_length))
+                            (composition-rand-Left-3 (select __global_state __state_length))
+                            (composition-rand-Left-4 (select __global_state __state_length))
+                            (composition-rand-Left-5 (select __global_state __state_length))
+                            (composition-rand-Left-6 (select __global_state __state_length))
+                            (composition-rand-Left-7 (select __global_state __state_length))
+                            (composition-rand-Left-8 (select __global_state __state_length))
+                            (composition-rand-Left-9 (select __global_state __state_length))
+                            (composition-rand-Left-10 (select __global_state __state_length))
+                            (composition-rand-Left-11 (select __global_state __state_length))
+                            (composition-rand-Left-12 (select __global_state __state_length)))))
+                      (__state_length (+ 1 __state_length)))
+                    (mk-return-Left-keys_bottom-GETINAIN
+                      __global_state
+                      __state_length
+                      (mk-some k)
+                      false))))))))
+      (let
+        (
+          (__global_state
+            (store
+              __global_state
+              (+ 1 __state_length)
+              (mk-composition-state-Left
+                (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                __self_state
+                (composition-pkgstate-Left-gate (select __global_state __state_length))
+                (composition-pkgstate-Left-enc (select __global_state __state_length))
+                (composition-param-Left-zerom (select __global_state __state_length))
+                (composition-param-Left-n (select __global_state __state_length))
+                (composition-param-Left-m (select __global_state __state_length))
+                (composition-param-Left-zeron (select __global_state __state_length))
+                (composition-param-Left-p (select __global_state __state_length))
+                (composition-rand-Left-0 (select __global_state __state_length))
+                (composition-rand-Left-1 (select __global_state __state_length))
+                (composition-rand-Left-2 (select __global_state __state_length))
+                (composition-rand-Left-3 (select __global_state __state_length))
+                (composition-rand-Left-4 (select __global_state __state_length))
+                (composition-rand-Left-5 (select __global_state __state_length))
+                (composition-rand-Left-6 (select __global_state __state_length))
+                (composition-rand-Left-7 (select __global_state __state_length))
+                (composition-rand-Left-8 (select __global_state __state_length))
+                (composition-rand-Left-9 (select __global_state __state_length))
+                (composition-rand-Left-10 (select __global_state __state_length))
+                (composition-rand-Left-11 (select __global_state __state_length))
+                (composition-rand-Left-12 (select __global_state __state_length)))))
+          (__state_length (+ 1 __state_length)))
+        (mk-return-Left-keys_bottom-GETINAIN
+          __global_state
+          __state_length
+          (as mk-none (Maybe Bits_n))
+          true)))))
+(define-fun
+  oracle-Left-keys_bottom-GETAOUT
+  (
+    (__global_state (Array Int CompositionState-Left))
+    (__state_length Int)
+    (h Int))
+  Return_Left_keys_bottom_GETAOUT
+  (let
+    (
+      (__self_state
+        (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))))
+    (ite
+      (= (select (state-Left-keys_bottom-z __self_state) h) (mk-some true))
+      (let
+        (
+          (__self_state
+            (mk-state-Left-keys_bottom
+              (state-Left-keys_bottom-T __self_state)
+              (state-Left-keys_bottom-z __self_state)
+              (store (state-Left-keys_bottom-flag __self_state) h (mk-some true)))))
+        (let
+          ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
+          (ite
+            (=
+              (select (state-Left-keys_bottom-T __self_state) h)
+              (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
+            (let
+              (
+                (r
+                  (__sample-rand-Left-Bits_n
+                    5
+                    (composition-rand-Left-5 (select __global_state __state_length)))))
+              (let
+                (
+                  (__global_state
+                    (store
+                      __global_state
+                      __state_length
+                      (mk-composition-state-Left
+                        (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                        (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                        (composition-pkgstate-Left-gate (select __global_state __state_length))
+                        (composition-pkgstate-Left-enc (select __global_state __state_length))
+                        (composition-param-Left-zerom (select __global_state __state_length))
+                        (composition-param-Left-n (select __global_state __state_length))
+                        (composition-param-Left-m (select __global_state __state_length))
+                        (composition-param-Left-zeron (select __global_state __state_length))
+                        (composition-param-Left-p (select __global_state __state_length))
+                        (composition-rand-Left-0 (select __global_state __state_length))
+                        (composition-rand-Left-1 (select __global_state __state_length))
+                        (composition-rand-Left-2 (select __global_state __state_length))
+                        (composition-rand-Left-3 (select __global_state __state_length))
+                        (composition-rand-Left-4 (select __global_state __state_length))
+                        (+ 1 (composition-rand-Left-5 (select __global_state __state_length)))
+                        (composition-rand-Left-6 (select __global_state __state_length))
+                        (composition-rand-Left-7 (select __global_state __state_length))
+                        (composition-rand-Left-8 (select __global_state __state_length))
+                        (composition-rand-Left-9 (select __global_state __state_length))
+                        (composition-rand-Left-10 (select __global_state __state_length))
+                        (composition-rand-Left-11 (select __global_state __state_length))
+                        (composition-rand-Left-12 (select __global_state __state_length))))))
+                (let
+                  ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
+                  (let
+                    ((Z (store Z true (mk-some r))))
+                    (let
+                      (
+                        (rr
+                          (__sample-rand-Left-Bits_n
+                            6
+                            (composition-rand-Left-6 (select __global_state __state_length)))))
+                      (let
+                        (
+                          (__global_state
+                            (store
+                              __global_state
+                              __state_length
+                              (mk-composition-state-Left
+                                (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                                (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                                (composition-pkgstate-Left-gate (select __global_state __state_length))
+                                (composition-pkgstate-Left-enc (select __global_state __state_length))
+                                (composition-param-Left-zerom (select __global_state __state_length))
+                                (composition-param-Left-n (select __global_state __state_length))
+                                (composition-param-Left-m (select __global_state __state_length))
+                                (composition-param-Left-zeron (select __global_state __state_length))
+                                (composition-param-Left-p (select __global_state __state_length))
+                                (composition-rand-Left-0 (select __global_state __state_length))
+                                (composition-rand-Left-1 (select __global_state __state_length))
+                                (composition-rand-Left-2 (select __global_state __state_length))
+                                (composition-rand-Left-3 (select __global_state __state_length))
+                                (composition-rand-Left-4 (select __global_state __state_length))
+                                (composition-rand-Left-5 (select __global_state __state_length))
+                                (+ 1 (composition-rand-Left-6 (select __global_state __state_length)))
+                                (composition-rand-Left-7 (select __global_state __state_length))
+                                (composition-rand-Left-8 (select __global_state __state_length))
+                                (composition-rand-Left-9 (select __global_state __state_length))
+                                (composition-rand-Left-10 (select __global_state __state_length))
+                                (composition-rand-Left-11 (select __global_state __state_length))
+                                (composition-rand-Left-12 (select __global_state __state_length))))))
+                        (let
+                          ((Z (store Z false (mk-some rr))))
+                          (let
+                            (
+                              (__self_state
+                                (mk-state-Left-keys_bottom
+                                  (store (state-Left-keys_bottom-T __self_state) h (mk-some Z))
+                                  (state-Left-keys_bottom-z __self_state)
+                                  (state-Left-keys_bottom-flag __self_state))))
+                            (let
+                              ((unwrap-1 (maybe-get (select (state-Left-keys_bottom-T __self_state) h))))
+                              (let
+                                ((Z unwrap-1))
+                                (let
+                                  ((unwrap-2 (maybe-get (select (state-Left-keys_bottom-z __self_state) h))))
+                                  (let
+                                    ((zz unwrap-2))
+                                    (let
+                                      ((unwrap-3 (maybe-get (select Z zz))))
+                                      (let
+                                        ((k unwrap-3))
+                                        (let
+                                          (
+                                            (__global_state
+                                              (store
+                                                __global_state
+                                                (+ 1 __state_length)
+                                                (mk-composition-state-Left
+                                                  (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                                                  __self_state
+                                                  (composition-pkgstate-Left-gate (select __global_state __state_length))
+                                                  (composition-pkgstate-Left-enc (select __global_state __state_length))
+                                                  (composition-param-Left-zerom (select __global_state __state_length))
+                                                  (composition-param-Left-n (select __global_state __state_length))
+                                                  (composition-param-Left-m (select __global_state __state_length))
+                                                  (composition-param-Left-zeron (select __global_state __state_length))
+                                                  (composition-param-Left-p (select __global_state __state_length))
+                                                  (composition-rand-Left-0 (select __global_state __state_length))
+                                                  (composition-rand-Left-1 (select __global_state __state_length))
+                                                  (composition-rand-Left-2 (select __global_state __state_length))
+                                                  (composition-rand-Left-3 (select __global_state __state_length))
+                                                  (composition-rand-Left-4 (select __global_state __state_length))
+                                                  (composition-rand-Left-5 (select __global_state __state_length))
+                                                  (composition-rand-Left-6 (select __global_state __state_length))
+                                                  (composition-rand-Left-7 (select __global_state __state_length))
+                                                  (composition-rand-Left-8 (select __global_state __state_length))
+                                                  (composition-rand-Left-9 (select __global_state __state_length))
+                                                  (composition-rand-Left-10 (select __global_state __state_length))
+                                                  (composition-rand-Left-11 (select __global_state __state_length))
+                                                  (composition-rand-Left-12 (select __global_state __state_length)))))
+                                            (__state_length (+ 1 __state_length)))
+                                          (mk-return-Left-keys_bottom-GETAOUT
+                                            __global_state
+                                            __state_length
+                                            (mk-some k)
+                                            false))))))))))))))))
+            (let
+              ((unwrap-1 (maybe-get (select (state-Left-keys_bottom-T __self_state) h))))
+              (let
+                ((Z unwrap-1))
+                (let
+                  ((unwrap-2 (maybe-get (select (state-Left-keys_bottom-z __self_state) h))))
+                  (let
+                    ((zz unwrap-2))
+                    (let
+                      ((unwrap-3 (maybe-get (select Z zz))))
+                      (let
+                        ((k unwrap-3))
+                        (let
+                          (
+                            (__global_state
+                              (store
+                                __global_state
+                                (+ 1 __state_length)
+                                (mk-composition-state-Left
+                                  (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                                  __self_state
+                                  (composition-pkgstate-Left-gate (select __global_state __state_length))
+                                  (composition-pkgstate-Left-enc (select __global_state __state_length))
+                                  (composition-param-Left-zerom (select __global_state __state_length))
+                                  (composition-param-Left-n (select __global_state __state_length))
+                                  (composition-param-Left-m (select __global_state __state_length))
+                                  (composition-param-Left-zeron (select __global_state __state_length))
+                                  (composition-param-Left-p (select __global_state __state_length))
+                                  (composition-rand-Left-0 (select __global_state __state_length))
+                                  (composition-rand-Left-1 (select __global_state __state_length))
+                                  (composition-rand-Left-2 (select __global_state __state_length))
+                                  (composition-rand-Left-3 (select __global_state __state_length))
+                                  (composition-rand-Left-4 (select __global_state __state_length))
+                                  (composition-rand-Left-5 (select __global_state __state_length))
+                                  (composition-rand-Left-6 (select __global_state __state_length))
+                                  (composition-rand-Left-7 (select __global_state __state_length))
+                                  (composition-rand-Left-8 (select __global_state __state_length))
+                                  (composition-rand-Left-9 (select __global_state __state_length))
+                                  (composition-rand-Left-10 (select __global_state __state_length))
+                                  (composition-rand-Left-11 (select __global_state __state_length))
+                                  (composition-rand-Left-12 (select __global_state __state_length)))))
+                            (__state_length (+ 1 __state_length)))
+                          (mk-return-Left-keys_bottom-GETAOUT
+                            __global_state
+                            __state_length
+                            (mk-some k)
+                            false)))))))))))
+      (let
+        (
+          (__global_state
+            (store
+              __global_state
+              (+ 1 __state_length)
+              (mk-composition-state-Left
+                (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                __self_state
+                (composition-pkgstate-Left-gate (select __global_state __state_length))
+                (composition-pkgstate-Left-enc (select __global_state __state_length))
+                (composition-param-Left-zerom (select __global_state __state_length))
+                (composition-param-Left-n (select __global_state __state_length))
+                (composition-param-Left-m (select __global_state __state_length))
+                (composition-param-Left-zeron (select __global_state __state_length))
+                (composition-param-Left-p (select __global_state __state_length))
+                (composition-rand-Left-0 (select __global_state __state_length))
+                (composition-rand-Left-1 (select __global_state __state_length))
+                (composition-rand-Left-2 (select __global_state __state_length))
+                (composition-rand-Left-3 (select __global_state __state_length))
+                (composition-rand-Left-4 (select __global_state __state_length))
+                (composition-rand-Left-5 (select __global_state __state_length))
+                (composition-rand-Left-6 (select __global_state __state_length))
+                (composition-rand-Left-7 (select __global_state __state_length))
+                (composition-rand-Left-8 (select __global_state __state_length))
+                (composition-rand-Left-9 (select __global_state __state_length))
+                (composition-rand-Left-10 (select __global_state __state_length))
+                (composition-rand-Left-11 (select __global_state __state_length))
+                (composition-rand-Left-12 (select __global_state __state_length)))))
+          (__state_length (+ 1 __state_length)))
+        (mk-return-Left-keys_bottom-GETAOUT
+          __global_state
+          __state_length
+          (as mk-none (Maybe Bits_n))
+          true)))))
+(define-fun
+  oracle-Left-keys_bottom-GETKEYSOUT
+  (
+    (__global_state (Array Int CompositionState-Left))
+    (__state_length Int)
+    (h Int))
+  Return_Left_keys_bottom_GETKEYSOUT
+  (let
+    (
+      (__self_state
+        (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))))
+    (ite
+      (not (= (select (state-Left-keys_bottom-flag __self_state) h) (mk-some true)))
+      (let
+        (
+          (__self_state
+            (mk-state-Left-keys_bottom
+              (state-Left-keys_bottom-T __self_state)
+              (state-Left-keys_bottom-z __self_state)
+              (store (state-Left-keys_bottom-flag __self_state) h (mk-some true)))))
+        (let
+          ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
+          (ite
+            (=
+              (select (state-Left-keys_bottom-T __self_state) h)
+              (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
+            (let
+              (
+                (r
+                  (__sample-rand-Left-Bits_n
+                    7
+                    (composition-rand-Left-7 (select __global_state __state_length)))))
+              (let
+                (
+                  (__global_state
+                    (store
+                      __global_state
+                      __state_length
+                      (mk-composition-state-Left
+                        (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                        (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                        (composition-pkgstate-Left-gate (select __global_state __state_length))
+                        (composition-pkgstate-Left-enc (select __global_state __state_length))
+                        (composition-param-Left-zerom (select __global_state __state_length))
+                        (composition-param-Left-n (select __global_state __state_length))
+                        (composition-param-Left-m (select __global_state __state_length))
+                        (composition-param-Left-zeron (select __global_state __state_length))
+                        (composition-param-Left-p (select __global_state __state_length))
+                        (composition-rand-Left-0 (select __global_state __state_length))
+                        (composition-rand-Left-1 (select __global_state __state_length))
+                        (composition-rand-Left-2 (select __global_state __state_length))
+                        (composition-rand-Left-3 (select __global_state __state_length))
+                        (composition-rand-Left-4 (select __global_state __state_length))
+                        (composition-rand-Left-5 (select __global_state __state_length))
+                        (composition-rand-Left-6 (select __global_state __state_length))
+                        (+ 1 (composition-rand-Left-7 (select __global_state __state_length)))
+                        (composition-rand-Left-8 (select __global_state __state_length))
+                        (composition-rand-Left-9 (select __global_state __state_length))
+                        (composition-rand-Left-10 (select __global_state __state_length))
+                        (composition-rand-Left-11 (select __global_state __state_length))
+                        (composition-rand-Left-12 (select __global_state __state_length))))))
+                (let
+                  ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
+                  (let
+                    ((Z (store Z true (mk-some r))))
+                    (let
+                      (
+                        (rr
+                          (__sample-rand-Left-Bits_n
+                            8
+                            (composition-rand-Left-8 (select __global_state __state_length)))))
+                      (let
+                        (
+                          (__global_state
+                            (store
+                              __global_state
+                              __state_length
+                              (mk-composition-state-Left
+                                (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                                (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                                (composition-pkgstate-Left-gate (select __global_state __state_length))
+                                (composition-pkgstate-Left-enc (select __global_state __state_length))
+                                (composition-param-Left-zerom (select __global_state __state_length))
+                                (composition-param-Left-n (select __global_state __state_length))
+                                (composition-param-Left-m (select __global_state __state_length))
+                                (composition-param-Left-zeron (select __global_state __state_length))
+                                (composition-param-Left-p (select __global_state __state_length))
+                                (composition-rand-Left-0 (select __global_state __state_length))
+                                (composition-rand-Left-1 (select __global_state __state_length))
+                                (composition-rand-Left-2 (select __global_state __state_length))
+                                (composition-rand-Left-3 (select __global_state __state_length))
+                                (composition-rand-Left-4 (select __global_state __state_length))
+                                (composition-rand-Left-5 (select __global_state __state_length))
+                                (composition-rand-Left-6 (select __global_state __state_length))
+                                (composition-rand-Left-7 (select __global_state __state_length))
+                                (+ 1 (composition-rand-Left-8 (select __global_state __state_length)))
+                                (composition-rand-Left-9 (select __global_state __state_length))
+                                (composition-rand-Left-10 (select __global_state __state_length))
+                                (composition-rand-Left-11 (select __global_state __state_length))
+                                (composition-rand-Left-12 (select __global_state __state_length))))))
+                        (let
+                          ((Z (store Z false (mk-some rr))))
+                          (let
+                            (
+                              (__self_state
+                                (mk-state-Left-keys_bottom
+                                  (store (state-Left-keys_bottom-T __self_state) h (mk-some Z))
+                                  (state-Left-keys_bottom-z __self_state)
+                                  (state-Left-keys_bottom-flag __self_state))))
+                            (let
+                              ((unwrap-1 (maybe-get (select (state-Left-keys_bottom-T __self_state) h))))
+                              (let
+                                ((Z unwrap-1))
+                                (let
+                                  (
+                                    (__global_state
+                                      (store
+                                        __global_state
+                                        (+ 1 __state_length)
+                                        (mk-composition-state-Left
+                                          (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                                          __self_state
+                                          (composition-pkgstate-Left-gate (select __global_state __state_length))
+                                          (composition-pkgstate-Left-enc (select __global_state __state_length))
+                                          (composition-param-Left-zerom (select __global_state __state_length))
+                                          (composition-param-Left-n (select __global_state __state_length))
+                                          (composition-param-Left-m (select __global_state __state_length))
+                                          (composition-param-Left-zeron (select __global_state __state_length))
+                                          (composition-param-Left-p (select __global_state __state_length))
+                                          (composition-rand-Left-0 (select __global_state __state_length))
+                                          (composition-rand-Left-1 (select __global_state __state_length))
+                                          (composition-rand-Left-2 (select __global_state __state_length))
+                                          (composition-rand-Left-3 (select __global_state __state_length))
+                                          (composition-rand-Left-4 (select __global_state __state_length))
+                                          (composition-rand-Left-5 (select __global_state __state_length))
+                                          (composition-rand-Left-6 (select __global_state __state_length))
+                                          (composition-rand-Left-7 (select __global_state __state_length))
+                                          (composition-rand-Left-8 (select __global_state __state_length))
+                                          (composition-rand-Left-9 (select __global_state __state_length))
+                                          (composition-rand-Left-10 (select __global_state __state_length))
+                                          (composition-rand-Left-11 (select __global_state __state_length))
+                                          (composition-rand-Left-12 (select __global_state __state_length)))))
+                                    (__state_length (+ 1 __state_length)))
+                                  (mk-return-Left-keys_bottom-GETKEYSOUT
+                                    __global_state
+                                    __state_length
+                                    (mk-some Z)
+                                    false))))))))))))
+            (let
+              ((unwrap-1 (maybe-get (select (state-Left-keys_bottom-T __self_state) h))))
+              (let
+                ((Z unwrap-1))
+                (let
+                  (
+                    (__global_state
+                      (store
+                        __global_state
+                        (+ 1 __state_length)
+                        (mk-composition-state-Left
+                          (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                          __self_state
+                          (composition-pkgstate-Left-gate (select __global_state __state_length))
+                          (composition-pkgstate-Left-enc (select __global_state __state_length))
+                          (composition-param-Left-zerom (select __global_state __state_length))
+                          (composition-param-Left-n (select __global_state __state_length))
+                          (composition-param-Left-m (select __global_state __state_length))
+                          (composition-param-Left-zeron (select __global_state __state_length))
+                          (composition-param-Left-p (select __global_state __state_length))
+                          (composition-rand-Left-0 (select __global_state __state_length))
+                          (composition-rand-Left-1 (select __global_state __state_length))
+                          (composition-rand-Left-2 (select __global_state __state_length))
+                          (composition-rand-Left-3 (select __global_state __state_length))
+                          (composition-rand-Left-4 (select __global_state __state_length))
+                          (composition-rand-Left-5 (select __global_state __state_length))
+                          (composition-rand-Left-6 (select __global_state __state_length))
+                          (composition-rand-Left-7 (select __global_state __state_length))
+                          (composition-rand-Left-8 (select __global_state __state_length))
+                          (composition-rand-Left-9 (select __global_state __state_length))
+                          (composition-rand-Left-10 (select __global_state __state_length))
+                          (composition-rand-Left-11 (select __global_state __state_length))
+                          (composition-rand-Left-12 (select __global_state __state_length)))))
+                    (__state_length (+ 1 __state_length)))
+                  (mk-return-Left-keys_bottom-GETKEYSOUT
+                    __global_state
+                    __state_length
+                    (mk-some Z)
+                    false)))))))
+      (let
+        (
+          (__global_state
+            (store
+              __global_state
+              (+ 1 __state_length)
+              (mk-composition-state-Left
+                (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                __self_state
+                (composition-pkgstate-Left-gate (select __global_state __state_length))
+                (composition-pkgstate-Left-enc (select __global_state __state_length))
+                (composition-param-Left-zerom (select __global_state __state_length))
+                (composition-param-Left-n (select __global_state __state_length))
+                (composition-param-Left-m (select __global_state __state_length))
+                (composition-param-Left-zeron (select __global_state __state_length))
+                (composition-param-Left-p (select __global_state __state_length))
+                (composition-rand-Left-0 (select __global_state __state_length))
+                (composition-rand-Left-1 (select __global_state __state_length))
+                (composition-rand-Left-2 (select __global_state __state_length))
+                (composition-rand-Left-3 (select __global_state __state_length))
+                (composition-rand-Left-4 (select __global_state __state_length))
+                (composition-rand-Left-5 (select __global_state __state_length))
+                (composition-rand-Left-6 (select __global_state __state_length))
+                (composition-rand-Left-7 (select __global_state __state_length))
+                (composition-rand-Left-8 (select __global_state __state_length))
+                (composition-rand-Left-9 (select __global_state __state_length))
+                (composition-rand-Left-10 (select __global_state __state_length))
+                (composition-rand-Left-11 (select __global_state __state_length))
+                (composition-rand-Left-12 (select __global_state __state_length)))))
+          (__state_length (+ 1 __state_length)))
+        (mk-return-Left-keys_bottom-GETKEYSOUT
+          __global_state
+          __state_length
+          (as mk-none (Maybe (Array Bool (Maybe Bits_n))))
+          true)))))
+(define-fun
+  oracle-Left-keys_bottom-GETBIT
+  (
+    (__global_state (Array Int CompositionState-Left))
+    (__state_length Int)
+    (h Int))
+  Return_Left_keys_bottom_GETBIT
+  (let
+    (
+      (__self_state
+        (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))))
+    (ite
+      (not
+        (=
+          (select (state-Left-keys_bottom-z __self_state) h)
+          (as mk-none (Maybe Bool))))
+      (let
+        ((unwrap-1 (maybe-get (select (state-Left-keys_bottom-z __self_state) h))))
+        (let
+          ((zz unwrap-1))
+          (let
+            (
+              (__global_state
+                (store
+                  __global_state
+                  (+ 1 __state_length)
+                  (mk-composition-state-Left
+                    (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                    __self_state
+                    (composition-pkgstate-Left-gate (select __global_state __state_length))
+                    (composition-pkgstate-Left-enc (select __global_state __state_length))
+                    (composition-param-Left-zerom (select __global_state __state_length))
+                    (composition-param-Left-n (select __global_state __state_length))
+                    (composition-param-Left-m (select __global_state __state_length))
+                    (composition-param-Left-zeron (select __global_state __state_length))
+                    (composition-param-Left-p (select __global_state __state_length))
+                    (composition-rand-Left-0 (select __global_state __state_length))
+                    (composition-rand-Left-1 (select __global_state __state_length))
+                    (composition-rand-Left-2 (select __global_state __state_length))
+                    (composition-rand-Left-3 (select __global_state __state_length))
+                    (composition-rand-Left-4 (select __global_state __state_length))
+                    (composition-rand-Left-5 (select __global_state __state_length))
+                    (composition-rand-Left-6 (select __global_state __state_length))
+                    (composition-rand-Left-7 (select __global_state __state_length))
+                    (composition-rand-Left-8 (select __global_state __state_length))
+                    (composition-rand-Left-9 (select __global_state __state_length))
+                    (composition-rand-Left-10 (select __global_state __state_length))
+                    (composition-rand-Left-11 (select __global_state __state_length))
+                    (composition-rand-Left-12 (select __global_state __state_length)))))
+              (__state_length (+ 1 __state_length)))
+            (mk-return-Left-keys_bottom-GETBIT
+              __global_state
+              __state_length
+              (mk-some zz)
+              false))))
+      (let
+        (
+          (__global_state
+            (store
+              __global_state
+              (+ 1 __state_length)
+              (mk-composition-state-Left
+                (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                __self_state
+                (composition-pkgstate-Left-gate (select __global_state __state_length))
+                (composition-pkgstate-Left-enc (select __global_state __state_length))
+                (composition-param-Left-zerom (select __global_state __state_length))
+                (composition-param-Left-n (select __global_state __state_length))
+                (composition-param-Left-m (select __global_state __state_length))
+                (composition-param-Left-zeron (select __global_state __state_length))
+                (composition-param-Left-p (select __global_state __state_length))
+                (composition-rand-Left-0 (select __global_state __state_length))
+                (composition-rand-Left-1 (select __global_state __state_length))
+                (composition-rand-Left-2 (select __global_state __state_length))
+                (composition-rand-Left-3 (select __global_state __state_length))
+                (composition-rand-Left-4 (select __global_state __state_length))
+                (composition-rand-Left-5 (select __global_state __state_length))
+                (composition-rand-Left-6 (select __global_state __state_length))
+                (composition-rand-Left-7 (select __global_state __state_length))
+                (composition-rand-Left-8 (select __global_state __state_length))
+                (composition-rand-Left-9 (select __global_state __state_length))
+                (composition-rand-Left-10 (select __global_state __state_length))
+                (composition-rand-Left-11 (select __global_state __state_length))
+                (composition-rand-Left-12 (select __global_state __state_length)))))
+          (__state_length (+ 1 __state_length)))
+        (mk-return-Left-keys_bottom-GETBIT
+          __global_state
+          __state_length
+          (as mk-none (Maybe Bool))
+          true)))))
+(define-fun
+  oracle-Left-keys_bottom-SETBIT
+  (
+    (__global_state (Array Int CompositionState-Left))
+    (__state_length Int)
+    (h Int)
+    (zz Bool))
+  Return_Left_keys_bottom_SETBIT
+  (let
+    (
+      (__self_state
+        (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))))
+    (ite
+      (=
+        (select (state-Left-keys_bottom-z __self_state) h)
+        (as mk-none (Maybe Bool)))
+      (let
+        (
+          (__self_state
+            (mk-state-Left-keys_bottom
+              (state-Left-keys_bottom-T __self_state)
+              (store (state-Left-keys_bottom-z __self_state) h (mk-some zz))
+              (state-Left-keys_bottom-flag __self_state))))
+        (let
+          (
+            (__global_state
+              (store
+                __global_state
+                (+ 1 __state_length)
+                (mk-composition-state-Left
+                  (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                  __self_state
+                  (composition-pkgstate-Left-gate (select __global_state __state_length))
+                  (composition-pkgstate-Left-enc (select __global_state __state_length))
+                  (composition-param-Left-zerom (select __global_state __state_length))
+                  (composition-param-Left-n (select __global_state __state_length))
+                  (composition-param-Left-m (select __global_state __state_length))
+                  (composition-param-Left-zeron (select __global_state __state_length))
+                  (composition-param-Left-p (select __global_state __state_length))
+                  (composition-rand-Left-0 (select __global_state __state_length))
+                  (composition-rand-Left-1 (select __global_state __state_length))
+                  (composition-rand-Left-2 (select __global_state __state_length))
+                  (composition-rand-Left-3 (select __global_state __state_length))
+                  (composition-rand-Left-4 (select __global_state __state_length))
+                  (composition-rand-Left-5 (select __global_state __state_length))
+                  (composition-rand-Left-6 (select __global_state __state_length))
+                  (composition-rand-Left-7 (select __global_state __state_length))
+                  (composition-rand-Left-8 (select __global_state __state_length))
+                  (composition-rand-Left-9 (select __global_state __state_length))
+                  (composition-rand-Left-10 (select __global_state __state_length))
+                  (composition-rand-Left-11 (select __global_state __state_length))
+                  (composition-rand-Left-12 (select __global_state __state_length)))))
+            (__state_length (+ 1 __state_length)))
+          (mk-return-Left-keys_bottom-SETBIT
+            __global_state
+            __state_length
+            (mk-some mk-empty)
+            false)))
+      (let
+        (
+          (__global_state
+            (store
+              __global_state
+              (+ 1 __state_length)
+              (mk-composition-state-Left
+                (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                __self_state
+                (composition-pkgstate-Left-gate (select __global_state __state_length))
+                (composition-pkgstate-Left-enc (select __global_state __state_length))
+                (composition-param-Left-zerom (select __global_state __state_length))
+                (composition-param-Left-n (select __global_state __state_length))
+                (composition-param-Left-m (select __global_state __state_length))
+                (composition-param-Left-zeron (select __global_state __state_length))
+                (composition-param-Left-p (select __global_state __state_length))
+                (composition-rand-Left-0 (select __global_state __state_length))
+                (composition-rand-Left-1 (select __global_state __state_length))
+                (composition-rand-Left-2 (select __global_state __state_length))
+                (composition-rand-Left-3 (select __global_state __state_length))
+                (composition-rand-Left-4 (select __global_state __state_length))
+                (composition-rand-Left-5 (select __global_state __state_length))
+                (composition-rand-Left-6 (select __global_state __state_length))
+                (composition-rand-Left-7 (select __global_state __state_length))
+                (composition-rand-Left-8 (select __global_state __state_length))
+                (composition-rand-Left-9 (select __global_state __state_length))
+                (composition-rand-Left-10 (select __global_state __state_length))
+                (composition-rand-Left-11 (select __global_state __state_length))
+                (composition-rand-Left-12 (select __global_state __state_length)))))
+          (__state_length (+ 1 __state_length)))
+        (mk-return-Left-keys_bottom-SETBIT
+          __global_state
+          __state_length
+          (as mk-none (Maybe Empty))
+          true)))))
+(define-fun
+  oracle-Left-enc-ENCN
+  (
+    (__global_state (Array Int CompositionState-Left))
+    (__state_length Int)
+    (j Int)
+    (d Bool)
+    (nzero Bits_n)
+    (none Bits_n))
+  Return_Left_enc_ENCN
+  (let
+    (
+      (__self_state
+        (composition-pkgstate-Left-enc (select __global_state __state_length))))
+    (let
+      ((__ret (oracle-Left-keys_top-GETKEYSIN __global_state __state_length j)))
+      (ite
+        (return-Left-keys_top-GETKEYSIN-is-abort __ret)
+        (let
+          (
+            (__global_state (return-Left-keys_top-GETKEYSIN-state __ret))
+            (__state_length (return-Left-keys_top-GETKEYSIN-state-length __ret)))
+          (let
+            (
+              (__global_state
+                (store
+                  __global_state
+                  (+ 1 __state_length)
+                  (mk-composition-state-Left
+                    (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                    (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                    (composition-pkgstate-Left-gate (select __global_state __state_length))
+                    __self_state
+                    (composition-param-Left-zerom (select __global_state __state_length))
+                    (composition-param-Left-n (select __global_state __state_length))
+                    (composition-param-Left-m (select __global_state __state_length))
+                    (composition-param-Left-zeron (select __global_state __state_length))
+                    (composition-param-Left-p (select __global_state __state_length))
+                    (composition-rand-Left-0 (select __global_state __state_length))
+                    (composition-rand-Left-1 (select __global_state __state_length))
+                    (composition-rand-Left-2 (select __global_state __state_length))
+                    (composition-rand-Left-3 (select __global_state __state_length))
+                    (composition-rand-Left-4 (select __global_state __state_length))
+                    (composition-rand-Left-5 (select __global_state __state_length))
+                    (composition-rand-Left-6 (select __global_state __state_length))
+                    (composition-rand-Left-7 (select __global_state __state_length))
+                    (composition-rand-Left-8 (select __global_state __state_length))
+                    (composition-rand-Left-9 (select __global_state __state_length))
+                    (composition-rand-Left-10 (select __global_state __state_length))
+                    (composition-rand-Left-11 (select __global_state __state_length))
+                    (composition-rand-Left-12 (select __global_state __state_length)))))
+              (__state_length (+ 1 __state_length)))
+            (mk-return-Left-enc-ENCN
+              __global_state
+              __state_length
+              (as mk-none (Maybe Bits_m))
+              true)))
+        (let
+          (
+            (__global_state (return-Left-keys_top-GETKEYSIN-state __ret))
+            (__state_length (return-Left-keys_top-GETKEYSIN-state-length __ret))
+            (K (maybe-get (return-Left-keys_top-GETKEYSIN-value __ret))))
+          (let
+            ((__ret (oracle-Left-keys_top-GETBIT __global_state __state_length j)))
+            (ite
+              (return-Left-keys_top-GETBIT-is-abort __ret)
+              (let
+                (
+                  (__global_state (return-Left-keys_top-GETBIT-state __ret))
+                  (__state_length (return-Left-keys_top-GETBIT-state-length __ret)))
+                (let
+                  (
+                    (__global_state
+                      (store
+                        __global_state
+                        (+ 1 __state_length)
+                        (mk-composition-state-Left
+                          (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                          (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                          (composition-pkgstate-Left-gate (select __global_state __state_length))
+                          __self_state
+                          (composition-param-Left-zerom (select __global_state __state_length))
+                          (composition-param-Left-n (select __global_state __state_length))
+                          (composition-param-Left-m (select __global_state __state_length))
+                          (composition-param-Left-zeron (select __global_state __state_length))
+                          (composition-param-Left-p (select __global_state __state_length))
+                          (composition-rand-Left-0 (select __global_state __state_length))
+                          (composition-rand-Left-1 (select __global_state __state_length))
+                          (composition-rand-Left-2 (select __global_state __state_length))
+                          (composition-rand-Left-3 (select __global_state __state_length))
+                          (composition-rand-Left-4 (select __global_state __state_length))
+                          (composition-rand-Left-5 (select __global_state __state_length))
+                          (composition-rand-Left-6 (select __global_state __state_length))
+                          (composition-rand-Left-7 (select __global_state __state_length))
+                          (composition-rand-Left-8 (select __global_state __state_length))
+                          (composition-rand-Left-9 (select __global_state __state_length))
+                          (composition-rand-Left-10 (select __global_state __state_length))
+                          (composition-rand-Left-11 (select __global_state __state_length))
+                          (composition-rand-Left-12 (select __global_state __state_length)))))
+                    (__state_length (+ 1 __state_length)))
+                  (mk-return-Left-enc-ENCN
+                    __global_state
+                    __state_length
+                    (as mk-none (Maybe Bits_m))
+                    true)))
+              (let
+                (
+                  (__global_state (return-Left-keys_top-GETBIT-state __ret))
+                  (__state_length (return-Left-keys_top-GETBIT-state-length __ret))
+                  (z (maybe-get (return-Left-keys_top-GETBIT-value __ret))))
+                (let
+                  (
+                    (r
+                      (__sample-rand-Left-Bits_n
+                        9
+                        (composition-rand-Left-9 (select __global_state __state_length)))))
+                  (let
+                    (
+                      (__global_state
+                        (store
+                          __global_state
+                          __state_length
+                          (mk-composition-state-Left
+                            (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                            (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                            (composition-pkgstate-Left-gate (select __global_state __state_length))
+                            (composition-pkgstate-Left-enc (select __global_state __state_length))
+                            (composition-param-Left-zerom (select __global_state __state_length))
+                            (composition-param-Left-n (select __global_state __state_length))
+                            (composition-param-Left-m (select __global_state __state_length))
+                            (composition-param-Left-zeron (select __global_state __state_length))
+                            (composition-param-Left-p (select __global_state __state_length))
+                            (composition-rand-Left-0 (select __global_state __state_length))
+                            (composition-rand-Left-1 (select __global_state __state_length))
+                            (composition-rand-Left-2 (select __global_state __state_length))
+                            (composition-rand-Left-3 (select __global_state __state_length))
+                            (composition-rand-Left-4 (select __global_state __state_length))
+                            (composition-rand-Left-5 (select __global_state __state_length))
+                            (composition-rand-Left-6 (select __global_state __state_length))
+                            (composition-rand-Left-7 (select __global_state __state_length))
+                            (composition-rand-Left-8 (select __global_state __state_length))
+                            (+ 1 (composition-rand-Left-9 (select __global_state __state_length)))
+                            (composition-rand-Left-10 (select __global_state __state_length))
+                            (composition-rand-Left-11 (select __global_state __state_length))
+                            (composition-rand-Left-12 (select __global_state __state_length))))))
+                    (let
+                      (
+                        (c
+                          (__sample-rand-Left-Bits_m
+                            10
+                            (composition-rand-Left-10 (select __global_state __state_length)))))
+                      (let
+                        (
+                          (__global_state
+                            (store
+                              __global_state
+                              __state_length
+                              (mk-composition-state-Left
+                                (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                                (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                                (composition-pkgstate-Left-gate (select __global_state __state_length))
+                                (composition-pkgstate-Left-enc (select __global_state __state_length))
+                                (composition-param-Left-zerom (select __global_state __state_length))
+                                (composition-param-Left-n (select __global_state __state_length))
+                                (composition-param-Left-m (select __global_state __state_length))
+                                (composition-param-Left-zeron (select __global_state __state_length))
+                                (composition-param-Left-p (select __global_state __state_length))
+                                (composition-rand-Left-0 (select __global_state __state_length))
+                                (composition-rand-Left-1 (select __global_state __state_length))
+                                (composition-rand-Left-2 (select __global_state __state_length))
+                                (composition-rand-Left-3 (select __global_state __state_length))
+                                (composition-rand-Left-4 (select __global_state __state_length))
+                                (composition-rand-Left-5 (select __global_state __state_length))
+                                (composition-rand-Left-6 (select __global_state __state_length))
+                                (composition-rand-Left-7 (select __global_state __state_length))
+                                (composition-rand-Left-8 (select __global_state __state_length))
+                                (composition-rand-Left-9 (select __global_state __state_length))
+                                (+ 1 (composition-rand-Left-10 (select __global_state __state_length)))
+                                (composition-rand-Left-11 (select __global_state __state_length))
+                                (composition-rand-Left-12 (select __global_state __state_length))))))
+                        (ite
+                          (= d z)
+                          (let
+                            ((unwrap-1 (maybe-get (select K z))))
+                            (let
+                              ((c (__func-Left-encn unwrap-1 nzero r)))
+                              (let
+                                (
+                                  (__global_state
+                                    (store
+                                      __global_state
+                                      (+ 1 __state_length)
+                                      (mk-composition-state-Left
+                                        (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                                        (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                                        (composition-pkgstate-Left-gate (select __global_state __state_length))
+                                        __self_state
+                                        (composition-param-Left-zerom (select __global_state __state_length))
+                                        (composition-param-Left-n (select __global_state __state_length))
+                                        (composition-param-Left-m (select __global_state __state_length))
+                                        (composition-param-Left-zeron (select __global_state __state_length))
+                                        (composition-param-Left-p (select __global_state __state_length))
+                                        (composition-rand-Left-0 (select __global_state __state_length))
+                                        (composition-rand-Left-1 (select __global_state __state_length))
+                                        (composition-rand-Left-2 (select __global_state __state_length))
+                                        (composition-rand-Left-3 (select __global_state __state_length))
+                                        (composition-rand-Left-4 (select __global_state __state_length))
+                                        (composition-rand-Left-5 (select __global_state __state_length))
+                                        (composition-rand-Left-6 (select __global_state __state_length))
+                                        (composition-rand-Left-7 (select __global_state __state_length))
+                                        (composition-rand-Left-8 (select __global_state __state_length))
+                                        (composition-rand-Left-9 (select __global_state __state_length))
+                                        (composition-rand-Left-10 (select __global_state __state_length))
+                                        (composition-rand-Left-11 (select __global_state __state_length))
+                                        (composition-rand-Left-12 (select __global_state __state_length)))))
+                                  (__state_length (+ 1 __state_length)))
+                                (mk-return-Left-enc-ENCN __global_state __state_length (mk-some c) false))))
+                          (let
+                            ((unwrap-2 (maybe-get (select K z))))
+                            (let
+                              ((c (__func-Left-encn unwrap-2 none r)))
+                              (let
+                                (
+                                  (__global_state
+                                    (store
+                                      __global_state
+                                      (+ 1 __state_length)
+                                      (mk-composition-state-Left
+                                        (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                                        (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                                        (composition-pkgstate-Left-gate (select __global_state __state_length))
+                                        __self_state
+                                        (composition-param-Left-zerom (select __global_state __state_length))
+                                        (composition-param-Left-n (select __global_state __state_length))
+                                        (composition-param-Left-m (select __global_state __state_length))
+                                        (composition-param-Left-zeron (select __global_state __state_length))
+                                        (composition-param-Left-p (select __global_state __state_length))
+                                        (composition-rand-Left-0 (select __global_state __state_length))
+                                        (composition-rand-Left-1 (select __global_state __state_length))
+                                        (composition-rand-Left-2 (select __global_state __state_length))
+                                        (composition-rand-Left-3 (select __global_state __state_length))
+                                        (composition-rand-Left-4 (select __global_state __state_length))
+                                        (composition-rand-Left-5 (select __global_state __state_length))
+                                        (composition-rand-Left-6 (select __global_state __state_length))
+                                        (composition-rand-Left-7 (select __global_state __state_length))
+                                        (composition-rand-Left-8 (select __global_state __state_length))
+                                        (composition-rand-Left-9 (select __global_state __state_length))
+                                        (composition-rand-Left-10 (select __global_state __state_length))
+                                        (composition-rand-Left-11 (select __global_state __state_length))
+                                        (composition-rand-Left-12 (select __global_state __state_length)))))
+                                  (__state_length (+ 1 __state_length)))
+                                (mk-return-Left-enc-ENCN __global_state __state_length (mk-some c) false)))))))))))))))))
+(define-fun
+  oracle-Left-enc-ENCM
+  (
+    (__global_state (Array Int CompositionState-Left))
+    (__state_length Int)
+    (j Int)
+    (d Bool)
+    (mzero Bits_m)
+    (mone Bits_m))
+  Return_Left_enc_ENCM
+  (let
+    (
+      (__self_state
+        (composition-pkgstate-Left-enc (select __global_state __state_length))))
+    (let
+      ((__ret (oracle-Left-keys_top-GETKEYSIN __global_state __state_length j)))
+      (ite
+        (return-Left-keys_top-GETKEYSIN-is-abort __ret)
+        (let
+          (
+            (__global_state (return-Left-keys_top-GETKEYSIN-state __ret))
+            (__state_length (return-Left-keys_top-GETKEYSIN-state-length __ret)))
+          (let
+            (
+              (__global_state
+                (store
+                  __global_state
+                  (+ 1 __state_length)
+                  (mk-composition-state-Left
+                    (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                    (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                    (composition-pkgstate-Left-gate (select __global_state __state_length))
+                    __self_state
+                    (composition-param-Left-zerom (select __global_state __state_length))
+                    (composition-param-Left-n (select __global_state __state_length))
+                    (composition-param-Left-m (select __global_state __state_length))
+                    (composition-param-Left-zeron (select __global_state __state_length))
+                    (composition-param-Left-p (select __global_state __state_length))
+                    (composition-rand-Left-0 (select __global_state __state_length))
+                    (composition-rand-Left-1 (select __global_state __state_length))
+                    (composition-rand-Left-2 (select __global_state __state_length))
+                    (composition-rand-Left-3 (select __global_state __state_length))
+                    (composition-rand-Left-4 (select __global_state __state_length))
+                    (composition-rand-Left-5 (select __global_state __state_length))
+                    (composition-rand-Left-6 (select __global_state __state_length))
+                    (composition-rand-Left-7 (select __global_state __state_length))
+                    (composition-rand-Left-8 (select __global_state __state_length))
+                    (composition-rand-Left-9 (select __global_state __state_length))
+                    (composition-rand-Left-10 (select __global_state __state_length))
+                    (composition-rand-Left-11 (select __global_state __state_length))
+                    (composition-rand-Left-12 (select __global_state __state_length)))))
+              (__state_length (+ 1 __state_length)))
+            (mk-return-Left-enc-ENCM
+              __global_state
+              __state_length
+              (as mk-none (Maybe Bits_p))
+              true)))
+        (let
+          (
+            (__global_state (return-Left-keys_top-GETKEYSIN-state __ret))
+            (__state_length (return-Left-keys_top-GETKEYSIN-state-length __ret))
+            (K (maybe-get (return-Left-keys_top-GETKEYSIN-value __ret))))
+          (let
+            ((__ret (oracle-Left-keys_top-GETBIT __global_state __state_length j)))
+            (ite
+              (return-Left-keys_top-GETBIT-is-abort __ret)
+              (let
+                (
+                  (__global_state (return-Left-keys_top-GETBIT-state __ret))
+                  (__state_length (return-Left-keys_top-GETBIT-state-length __ret)))
+                (let
+                  (
+                    (__global_state
+                      (store
+                        __global_state
+                        (+ 1 __state_length)
+                        (mk-composition-state-Left
+                          (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                          (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                          (composition-pkgstate-Left-gate (select __global_state __state_length))
+                          __self_state
+                          (composition-param-Left-zerom (select __global_state __state_length))
+                          (composition-param-Left-n (select __global_state __state_length))
+                          (composition-param-Left-m (select __global_state __state_length))
+                          (composition-param-Left-zeron (select __global_state __state_length))
+                          (composition-param-Left-p (select __global_state __state_length))
+                          (composition-rand-Left-0 (select __global_state __state_length))
+                          (composition-rand-Left-1 (select __global_state __state_length))
+                          (composition-rand-Left-2 (select __global_state __state_length))
+                          (composition-rand-Left-3 (select __global_state __state_length))
+                          (composition-rand-Left-4 (select __global_state __state_length))
+                          (composition-rand-Left-5 (select __global_state __state_length))
+                          (composition-rand-Left-6 (select __global_state __state_length))
+                          (composition-rand-Left-7 (select __global_state __state_length))
+                          (composition-rand-Left-8 (select __global_state __state_length))
+                          (composition-rand-Left-9 (select __global_state __state_length))
+                          (composition-rand-Left-10 (select __global_state __state_length))
+                          (composition-rand-Left-11 (select __global_state __state_length))
+                          (composition-rand-Left-12 (select __global_state __state_length)))))
+                    (__state_length (+ 1 __state_length)))
+                  (mk-return-Left-enc-ENCM
+                    __global_state
+                    __state_length
+                    (as mk-none (Maybe Bits_p))
+                    true)))
+              (let
+                (
+                  (__global_state (return-Left-keys_top-GETBIT-state __ret))
+                  (__state_length (return-Left-keys_top-GETBIT-state-length __ret))
+                  (z (maybe-get (return-Left-keys_top-GETBIT-value __ret))))
+                (let
+                  (
+                    (r
+                      (__sample-rand-Left-Bits_n
+                        11
+                        (composition-rand-Left-11 (select __global_state __state_length)))))
+                  (let
+                    (
+                      (__global_state
+                        (store
+                          __global_state
+                          __state_length
+                          (mk-composition-state-Left
+                            (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                            (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                            (composition-pkgstate-Left-gate (select __global_state __state_length))
+                            (composition-pkgstate-Left-enc (select __global_state __state_length))
+                            (composition-param-Left-zerom (select __global_state __state_length))
+                            (composition-param-Left-n (select __global_state __state_length))
+                            (composition-param-Left-m (select __global_state __state_length))
+                            (composition-param-Left-zeron (select __global_state __state_length))
+                            (composition-param-Left-p (select __global_state __state_length))
+                            (composition-rand-Left-0 (select __global_state __state_length))
+                            (composition-rand-Left-1 (select __global_state __state_length))
+                            (composition-rand-Left-2 (select __global_state __state_length))
+                            (composition-rand-Left-3 (select __global_state __state_length))
+                            (composition-rand-Left-4 (select __global_state __state_length))
+                            (composition-rand-Left-5 (select __global_state __state_length))
+                            (composition-rand-Left-6 (select __global_state __state_length))
+                            (composition-rand-Left-7 (select __global_state __state_length))
+                            (composition-rand-Left-8 (select __global_state __state_length))
+                            (composition-rand-Left-9 (select __global_state __state_length))
+                            (composition-rand-Left-10 (select __global_state __state_length))
+                            (+ 1 (composition-rand-Left-11 (select __global_state __state_length)))
+                            (composition-rand-Left-12 (select __global_state __state_length))))))
+                    (let
+                      (
+                        (c
+                          (__sample-rand-Left-Bits_p
+                            12
+                            (composition-rand-Left-12 (select __global_state __state_length)))))
+                      (let
+                        (
+                          (__global_state
+                            (store
+                              __global_state
+                              __state_length
+                              (mk-composition-state-Left
+                                (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                                (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                                (composition-pkgstate-Left-gate (select __global_state __state_length))
+                                (composition-pkgstate-Left-enc (select __global_state __state_length))
+                                (composition-param-Left-zerom (select __global_state __state_length))
+                                (composition-param-Left-n (select __global_state __state_length))
+                                (composition-param-Left-m (select __global_state __state_length))
+                                (composition-param-Left-zeron (select __global_state __state_length))
+                                (composition-param-Left-p (select __global_state __state_length))
+                                (composition-rand-Left-0 (select __global_state __state_length))
+                                (composition-rand-Left-1 (select __global_state __state_length))
+                                (composition-rand-Left-2 (select __global_state __state_length))
+                                (composition-rand-Left-3 (select __global_state __state_length))
+                                (composition-rand-Left-4 (select __global_state __state_length))
+                                (composition-rand-Left-5 (select __global_state __state_length))
+                                (composition-rand-Left-6 (select __global_state __state_length))
+                                (composition-rand-Left-7 (select __global_state __state_length))
+                                (composition-rand-Left-8 (select __global_state __state_length))
+                                (composition-rand-Left-9 (select __global_state __state_length))
+                                (composition-rand-Left-10 (select __global_state __state_length))
+                                (composition-rand-Left-11 (select __global_state __state_length))
+                                (+ 1 (composition-rand-Left-12 (select __global_state __state_length)))))))
+                        (ite
+                          (= d z)
+                          (let
+                            ((unwrap-1 (maybe-get (select K z))))
+                            (let
+                              ((c (__func-Left-encm unwrap-1 mzero r)))
+                              (let
+                                (
+                                  (__global_state
+                                    (store
+                                      __global_state
+                                      (+ 1 __state_length)
+                                      (mk-composition-state-Left
+                                        (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                                        (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                                        (composition-pkgstate-Left-gate (select __global_state __state_length))
+                                        __self_state
+                                        (composition-param-Left-zerom (select __global_state __state_length))
+                                        (composition-param-Left-n (select __global_state __state_length))
+                                        (composition-param-Left-m (select __global_state __state_length))
+                                        (composition-param-Left-zeron (select __global_state __state_length))
+                                        (composition-param-Left-p (select __global_state __state_length))
+                                        (composition-rand-Left-0 (select __global_state __state_length))
+                                        (composition-rand-Left-1 (select __global_state __state_length))
+                                        (composition-rand-Left-2 (select __global_state __state_length))
+                                        (composition-rand-Left-3 (select __global_state __state_length))
+                                        (composition-rand-Left-4 (select __global_state __state_length))
+                                        (composition-rand-Left-5 (select __global_state __state_length))
+                                        (composition-rand-Left-6 (select __global_state __state_length))
+                                        (composition-rand-Left-7 (select __global_state __state_length))
+                                        (composition-rand-Left-8 (select __global_state __state_length))
+                                        (composition-rand-Left-9 (select __global_state __state_length))
+                                        (composition-rand-Left-10 (select __global_state __state_length))
+                                        (composition-rand-Left-11 (select __global_state __state_length))
+                                        (composition-rand-Left-12 (select __global_state __state_length)))))
+                                  (__state_length (+ 1 __state_length)))
+                                (mk-return-Left-enc-ENCM __global_state __state_length (mk-some c) false))))
+                          (let
+                            ((unwrap-2 (maybe-get (select K z))))
+                            (let
+                              ((c (__func-Left-encm unwrap-2 mone r)))
+                              (let
+                                (
+                                  (__global_state
+                                    (store
+                                      __global_state
+                                      (+ 1 __state_length)
+                                      (mk-composition-state-Left
+                                        (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                                        (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                                        (composition-pkgstate-Left-gate (select __global_state __state_length))
+                                        __self_state
+                                        (composition-param-Left-zerom (select __global_state __state_length))
+                                        (composition-param-Left-n (select __global_state __state_length))
+                                        (composition-param-Left-m (select __global_state __state_length))
+                                        (composition-param-Left-zeron (select __global_state __state_length))
+                                        (composition-param-Left-p (select __global_state __state_length))
+                                        (composition-rand-Left-0 (select __global_state __state_length))
+                                        (composition-rand-Left-1 (select __global_state __state_length))
+                                        (composition-rand-Left-2 (select __global_state __state_length))
+                                        (composition-rand-Left-3 (select __global_state __state_length))
+                                        (composition-rand-Left-4 (select __global_state __state_length))
+                                        (composition-rand-Left-5 (select __global_state __state_length))
+                                        (composition-rand-Left-6 (select __global_state __state_length))
+                                        (composition-rand-Left-7 (select __global_state __state_length))
+                                        (composition-rand-Left-8 (select __global_state __state_length))
+                                        (composition-rand-Left-9 (select __global_state __state_length))
+                                        (composition-rand-Left-10 (select __global_state __state_length))
+                                        (composition-rand-Left-11 (select __global_state __state_length))
+                                        (composition-rand-Left-12 (select __global_state __state_length)))))
+                                  (__state_length (+ 1 __state_length)))
+                                (mk-return-Left-enc-ENCM __global_state __state_length (mk-some c) false)))))))))))))))))
+(define-fun
+  oracle-Left-gate-GBLG
+  (
+    (__global_state (Array Int CompositionState-Left))
+    (__state_length Int)
+    (h Int)
+    (l Int)
+    (r Int)
+    (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
+    (j Int))
+  Return_Left_gate_GBLG
+  (let
+    (
+      (__self_state
+        (composition-pkgstate-Left-gate (select __global_state __state_length))))
+    (let
+      ((C ((as const (Array Bits_p (Maybe Bool))) (as mk-none (Maybe Bool)))))
+      (let
+        ((__ret (oracle-Left-keys_bottom-GETKEYSOUT __global_state __state_length j)))
+        (ite
+          (return-Left-keys_bottom-GETKEYSOUT-is-abort __ret)
+          (let
+            (
+              (__global_state (return-Left-keys_bottom-GETKEYSOUT-state __ret))
+              (__state_length (return-Left-keys_bottom-GETKEYSOUT-state-length __ret)))
+            (let
+              (
+                (__global_state
+                  (store
+                    __global_state
+                    (+ 1 __state_length)
+                    (mk-composition-state-Left
+                      (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                      (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                      __self_state
+                      (composition-pkgstate-Left-enc (select __global_state __state_length))
+                      (composition-param-Left-zerom (select __global_state __state_length))
+                      (composition-param-Left-n (select __global_state __state_length))
+                      (composition-param-Left-m (select __global_state __state_length))
+                      (composition-param-Left-zeron (select __global_state __state_length))
+                      (composition-param-Left-p (select __global_state __state_length))
+                      (composition-rand-Left-0 (select __global_state __state_length))
+                      (composition-rand-Left-1 (select __global_state __state_length))
+                      (composition-rand-Left-2 (select __global_state __state_length))
+                      (composition-rand-Left-3 (select __global_state __state_length))
+                      (composition-rand-Left-4 (select __global_state __state_length))
+                      (composition-rand-Left-5 (select __global_state __state_length))
+                      (composition-rand-Left-6 (select __global_state __state_length))
+                      (composition-rand-Left-7 (select __global_state __state_length))
+                      (composition-rand-Left-8 (select __global_state __state_length))
+                      (composition-rand-Left-9 (select __global_state __state_length))
+                      (composition-rand-Left-10 (select __global_state __state_length))
+                      (composition-rand-Left-11 (select __global_state __state_length))
+                      (composition-rand-Left-12 (select __global_state __state_length)))))
+                (__state_length (+ 1 __state_length)))
+              (mk-return-Left-gate-GBLG
+                __global_state
+                __state_length
+                (as mk-none (Maybe (Array Bits_p (Maybe Bool))))
+                true)))
+          (let
+            (
+              (__global_state (return-Left-keys_bottom-GETKEYSOUT-state __ret))
+              (__state_length (return-Left-keys_bottom-GETKEYSOUT-state-length __ret))
+              (Z (maybe-get (return-Left-keys_bottom-GETKEYSOUT-value __ret))))
+            (let
+              ((bl false))
+              (let
+                ((br false))
+                (let
+                  ((unwrap-1 (maybe-get (select op (mk-tuple2 bl br)))))
+                  (let
+                    ((bj unwrap-1))
+                    (let
+                      ((unwrap-2 (maybe-get (select Z bj))))
+                      (let
+                        ((kzero unwrap-2))
+                        (let
+                          (
+                            (__ret
+                              (oracle-Left-enc-ENCN
+                                __global_state
+                                __state_length
+                                l
+                                bl
+                                kzero
+                                (composition-param-Left-zeron (select __global_state __state_length)))))
+                          (ite
+                            (return-Left-enc-ENCN-is-abort __ret)
+                            (let
+                              (
+                                (__global_state (return-Left-enc-ENCN-state __ret))
+                                (__state_length (return-Left-enc-ENCN-state-length __ret)))
+                              (let
+                                (
+                                  (__global_state
+                                    (store
+                                      __global_state
+                                      (+ 1 __state_length)
+                                      (mk-composition-state-Left
+                                        (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                                        (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                                        __self_state
+                                        (composition-pkgstate-Left-enc (select __global_state __state_length))
+                                        (composition-param-Left-zerom (select __global_state __state_length))
+                                        (composition-param-Left-n (select __global_state __state_length))
+                                        (composition-param-Left-m (select __global_state __state_length))
+                                        (composition-param-Left-zeron (select __global_state __state_length))
+                                        (composition-param-Left-p (select __global_state __state_length))
+                                        (composition-rand-Left-0 (select __global_state __state_length))
+                                        (composition-rand-Left-1 (select __global_state __state_length))
+                                        (composition-rand-Left-2 (select __global_state __state_length))
+                                        (composition-rand-Left-3 (select __global_state __state_length))
+                                        (composition-rand-Left-4 (select __global_state __state_length))
+                                        (composition-rand-Left-5 (select __global_state __state_length))
+                                        (composition-rand-Left-6 (select __global_state __state_length))
+                                        (composition-rand-Left-7 (select __global_state __state_length))
+                                        (composition-rand-Left-8 (select __global_state __state_length))
+                                        (composition-rand-Left-9 (select __global_state __state_length))
+                                        (composition-rand-Left-10 (select __global_state __state_length))
+                                        (composition-rand-Left-11 (select __global_state __state_length))
+                                        (composition-rand-Left-12 (select __global_state __state_length)))))
+                                  (__state_length (+ 1 __state_length)))
+                                (mk-return-Left-gate-GBLG
+                                  __global_state
+                                  __state_length
+                                  (as mk-none (Maybe (Array Bits_p (Maybe Bool))))
+                                  true)))
+                            (let
+                              (
+                                (__global_state (return-Left-enc-ENCN-state __ret))
+                                (__state_length (return-Left-enc-ENCN-state-length __ret))
+                                (czeroin (maybe-get (return-Left-enc-ENCN-value __ret))))
+                              (let
+                                (
+                                  (__ret
+                                    (oracle-Left-enc-ENCN
+                                      __global_state
+                                      __state_length
+                                      l
+                                      bl
+                                      (composition-param-Left-zeron (select __global_state __state_length))
+                                      (composition-param-Left-zeron (select __global_state __state_length)))))
+                                (ite
+                                  (return-Left-enc-ENCN-is-abort __ret)
+                                  (let
+                                    (
+                                      (__global_state (return-Left-enc-ENCN-state __ret))
+                                      (__state_length (return-Left-enc-ENCN-state-length __ret)))
+                                    (let
+                                      (
+                                        (__global_state
+                                          (store
+                                            __global_state
+                                            (+ 1 __state_length)
+                                            (mk-composition-state-Left
+                                              (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                                              (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                                              __self_state
+                                              (composition-pkgstate-Left-enc (select __global_state __state_length))
+                                              (composition-param-Left-zerom (select __global_state __state_length))
+                                              (composition-param-Left-n (select __global_state __state_length))
+                                              (composition-param-Left-m (select __global_state __state_length))
+                                              (composition-param-Left-zeron (select __global_state __state_length))
+                                              (composition-param-Left-p (select __global_state __state_length))
+                                              (composition-rand-Left-0 (select __global_state __state_length))
+                                              (composition-rand-Left-1 (select __global_state __state_length))
+                                              (composition-rand-Left-2 (select __global_state __state_length))
+                                              (composition-rand-Left-3 (select __global_state __state_length))
+                                              (composition-rand-Left-4 (select __global_state __state_length))
+                                              (composition-rand-Left-5 (select __global_state __state_length))
+                                              (composition-rand-Left-6 (select __global_state __state_length))
+                                              (composition-rand-Left-7 (select __global_state __state_length))
+                                              (composition-rand-Left-8 (select __global_state __state_length))
+                                              (composition-rand-Left-9 (select __global_state __state_length))
+                                              (composition-rand-Left-10 (select __global_state __state_length))
+                                              (composition-rand-Left-11 (select __global_state __state_length))
+                                              (composition-rand-Left-12 (select __global_state __state_length)))))
+                                        (__state_length (+ 1 __state_length)))
+                                      (mk-return-Left-gate-GBLG
+                                        __global_state
+                                        __state_length
+                                        (as mk-none (Maybe (Array Bits_p (Maybe Bool))))
+                                        true)))
+                                  (let
+                                    (
+                                      (__global_state (return-Left-enc-ENCN-state __ret))
+                                      (__state_length (return-Left-enc-ENCN-state-length __ret))
+                                      (conein (maybe-get (return-Left-enc-ENCN-value __ret))))
+                                    (let
+                                      (
+                                        (__ret
+                                          (oracle-Left-enc-ENCM __global_state __state_length r br conein czeroin)))
+                                      (ite
+                                        (return-Left-enc-ENCM-is-abort __ret)
+                                        (let
+                                          (
+                                            (__global_state (return-Left-enc-ENCM-state __ret))
+                                            (__state_length (return-Left-enc-ENCM-state-length __ret)))
+                                          (let
+                                            (
+                                              (__global_state
+                                                (store
+                                                  __global_state
+                                                  (+ 1 __state_length)
+                                                  (mk-composition-state-Left
+                                                    (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                                                    (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                                                    __self_state
+                                                    (composition-pkgstate-Left-enc (select __global_state __state_length))
+                                                    (composition-param-Left-zerom (select __global_state __state_length))
+                                                    (composition-param-Left-n (select __global_state __state_length))
+                                                    (composition-param-Left-m (select __global_state __state_length))
+                                                    (composition-param-Left-zeron (select __global_state __state_length))
+                                                    (composition-param-Left-p (select __global_state __state_length))
+                                                    (composition-rand-Left-0 (select __global_state __state_length))
+                                                    (composition-rand-Left-1 (select __global_state __state_length))
+                                                    (composition-rand-Left-2 (select __global_state __state_length))
+                                                    (composition-rand-Left-3 (select __global_state __state_length))
+                                                    (composition-rand-Left-4 (select __global_state __state_length))
+                                                    (composition-rand-Left-5 (select __global_state __state_length))
+                                                    (composition-rand-Left-6 (select __global_state __state_length))
+                                                    (composition-rand-Left-7 (select __global_state __state_length))
+                                                    (composition-rand-Left-8 (select __global_state __state_length))
+                                                    (composition-rand-Left-9 (select __global_state __state_length))
+                                                    (composition-rand-Left-10 (select __global_state __state_length))
+                                                    (composition-rand-Left-11 (select __global_state __state_length))
+                                                    (composition-rand-Left-12 (select __global_state __state_length)))))
+                                              (__state_length (+ 1 __state_length)))
+                                            (mk-return-Left-gate-GBLG
+                                              __global_state
+                                              __state_length
+                                              (as mk-none (Maybe (Array Bits_p (Maybe Bool))))
+                                              true)))
+                                        (let
+                                          (
+                                            (__global_state (return-Left-enc-ENCM-state __ret))
+                                            (__state_length (return-Left-enc-ENCM-state-length __ret))
+                                            (cout (maybe-get (return-Left-enc-ENCM-value __ret))))
+                                          (let
+                                            ((C ((as const (Array Bits_p (Maybe Bool))) (as mk-none (Maybe Bool)))))
+                                            (let
+                                              ((C (store C cout (mk-some true))))
+                                              (let
+                                                ((bl true))
+                                                (let
+                                                  ((br false))
+                                                  (let
+                                                    ((unwrap-3 (maybe-get (select op (mk-tuple2 bl br)))))
+                                                    (let
+                                                      ((bj unwrap-3))
+                                                      (let
+                                                        ((unwrap-4 (maybe-get (select Z bj))))
+                                                        (let
+                                                          ((kzero unwrap-4))
+                                                          (let
+                                                            (
+                                                              (__ret
+                                                                (oracle-Left-enc-ENCN
+                                                                  __global_state
+                                                                  __state_length
+                                                                  l
+                                                                  bl
+                                                                  kzero
+                                                                  (composition-param-Left-zeron (select __global_state __state_length)))))
+                                                            (ite
+                                                              (return-Left-enc-ENCN-is-abort __ret)
+                                                              (let
+                                                                (
+                                                                  (__global_state (return-Left-enc-ENCN-state __ret))
+                                                                  (__state_length (return-Left-enc-ENCN-state-length __ret)))
+                                                                (let
+                                                                  (
+                                                                    (__global_state
+                                                                      (store
+                                                                        __global_state
+                                                                        (+ 1 __state_length)
+                                                                        (mk-composition-state-Left
+                                                                          (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                                                                          (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                                                                          __self_state
+                                                                          (composition-pkgstate-Left-enc (select __global_state __state_length))
+                                                                          (composition-param-Left-zerom (select __global_state __state_length))
+                                                                          (composition-param-Left-n (select __global_state __state_length))
+                                                                          (composition-param-Left-m (select __global_state __state_length))
+                                                                          (composition-param-Left-zeron (select __global_state __state_length))
+                                                                          (composition-param-Left-p (select __global_state __state_length))
+                                                                          (composition-rand-Left-0 (select __global_state __state_length))
+                                                                          (composition-rand-Left-1 (select __global_state __state_length))
+                                                                          (composition-rand-Left-2 (select __global_state __state_length))
+                                                                          (composition-rand-Left-3 (select __global_state __state_length))
+                                                                          (composition-rand-Left-4 (select __global_state __state_length))
+                                                                          (composition-rand-Left-5 (select __global_state __state_length))
+                                                                          (composition-rand-Left-6 (select __global_state __state_length))
+                                                                          (composition-rand-Left-7 (select __global_state __state_length))
+                                                                          (composition-rand-Left-8 (select __global_state __state_length))
+                                                                          (composition-rand-Left-9 (select __global_state __state_length))
+                                                                          (composition-rand-Left-10 (select __global_state __state_length))
+                                                                          (composition-rand-Left-11 (select __global_state __state_length))
+                                                                          (composition-rand-Left-12 (select __global_state __state_length)))))
+                                                                    (__state_length (+ 1 __state_length)))
+                                                                  (mk-return-Left-gate-GBLG
+                                                                    __global_state
+                                                                    __state_length
+                                                                    (as mk-none (Maybe (Array Bits_p (Maybe Bool))))
+                                                                    true)))
+                                                              (let
+                                                                (
+                                                                  (__global_state (return-Left-enc-ENCN-state __ret))
+                                                                  (__state_length (return-Left-enc-ENCN-state-length __ret))
+                                                                  (czeroin (maybe-get (return-Left-enc-ENCN-value __ret))))
+                                                                (let
+                                                                  (
+                                                                    (__ret
+                                                                      (oracle-Left-enc-ENCN
+                                                                        __global_state
+                                                                        __state_length
+                                                                        l
+                                                                        bl
+                                                                        (composition-param-Left-zeron (select __global_state __state_length))
+                                                                        (composition-param-Left-zeron (select __global_state __state_length)))))
+                                                                  (ite
+                                                                    (return-Left-enc-ENCN-is-abort __ret)
+                                                                    (let
+                                                                      (
+                                                                        (__global_state (return-Left-enc-ENCN-state __ret))
+                                                                        (__state_length (return-Left-enc-ENCN-state-length __ret)))
+                                                                      (let
+                                                                        (
+                                                                          (__global_state
+                                                                            (store
+                                                                              __global_state
+                                                                              (+ 1 __state_length)
+                                                                              (mk-composition-state-Left
+                                                                                (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                                                                                (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                                                                                __self_state
+                                                                                (composition-pkgstate-Left-enc (select __global_state __state_length))
+                                                                                (composition-param-Left-zerom (select __global_state __state_length))
+                                                                                (composition-param-Left-n (select __global_state __state_length))
+                                                                                (composition-param-Left-m (select __global_state __state_length))
+                                                                                (composition-param-Left-zeron (select __global_state __state_length))
+                                                                                (composition-param-Left-p (select __global_state __state_length))
+                                                                                (composition-rand-Left-0 (select __global_state __state_length))
+                                                                                (composition-rand-Left-1 (select __global_state __state_length))
+                                                                                (composition-rand-Left-2 (select __global_state __state_length))
+                                                                                (composition-rand-Left-3 (select __global_state __state_length))
+                                                                                (composition-rand-Left-4 (select __global_state __state_length))
+                                                                                (composition-rand-Left-5 (select __global_state __state_length))
+                                                                                (composition-rand-Left-6 (select __global_state __state_length))
+                                                                                (composition-rand-Left-7 (select __global_state __state_length))
+                                                                                (composition-rand-Left-8 (select __global_state __state_length))
+                                                                                (composition-rand-Left-9 (select __global_state __state_length))
+                                                                                (composition-rand-Left-10 (select __global_state __state_length))
+                                                                                (composition-rand-Left-11 (select __global_state __state_length))
+                                                                                (composition-rand-Left-12 (select __global_state __state_length)))))
+                                                                          (__state_length (+ 1 __state_length)))
+                                                                        (mk-return-Left-gate-GBLG
+                                                                          __global_state
+                                                                          __state_length
+                                                                          (as mk-none (Maybe (Array Bits_p (Maybe Bool))))
+                                                                          true)))
+                                                                    (let
+                                                                      (
+                                                                        (__global_state (return-Left-enc-ENCN-state __ret))
+                                                                        (__state_length (return-Left-enc-ENCN-state-length __ret))
+                                                                        (conein (maybe-get (return-Left-enc-ENCN-value __ret))))
+                                                                      (let
+                                                                        (
+                                                                          (__ret
+                                                                            (oracle-Left-enc-ENCM __global_state __state_length r br conein czeroin)))
+                                                                        (ite
+                                                                          (return-Left-enc-ENCM-is-abort __ret)
+                                                                          (let
+                                                                            (
+                                                                              (__global_state (return-Left-enc-ENCM-state __ret))
+                                                                              (__state_length (return-Left-enc-ENCM-state-length __ret)))
+                                                                            (let
+                                                                              (
+                                                                                (__global_state
+                                                                                  (store
+                                                                                    __global_state
+                                                                                    (+ 1 __state_length)
+                                                                                    (mk-composition-state-Left
+                                                                                      (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                                                                                      (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                                                                                      __self_state
+                                                                                      (composition-pkgstate-Left-enc (select __global_state __state_length))
+                                                                                      (composition-param-Left-zerom (select __global_state __state_length))
+                                                                                      (composition-param-Left-n (select __global_state __state_length))
+                                                                                      (composition-param-Left-m (select __global_state __state_length))
+                                                                                      (composition-param-Left-zeron (select __global_state __state_length))
+                                                                                      (composition-param-Left-p (select __global_state __state_length))
+                                                                                      (composition-rand-Left-0 (select __global_state __state_length))
+                                                                                      (composition-rand-Left-1 (select __global_state __state_length))
+                                                                                      (composition-rand-Left-2 (select __global_state __state_length))
+                                                                                      (composition-rand-Left-3 (select __global_state __state_length))
+                                                                                      (composition-rand-Left-4 (select __global_state __state_length))
+                                                                                      (composition-rand-Left-5 (select __global_state __state_length))
+                                                                                      (composition-rand-Left-6 (select __global_state __state_length))
+                                                                                      (composition-rand-Left-7 (select __global_state __state_length))
+                                                                                      (composition-rand-Left-8 (select __global_state __state_length))
+                                                                                      (composition-rand-Left-9 (select __global_state __state_length))
+                                                                                      (composition-rand-Left-10 (select __global_state __state_length))
+                                                                                      (composition-rand-Left-11 (select __global_state __state_length))
+                                                                                      (composition-rand-Left-12 (select __global_state __state_length)))))
+                                                                                (__state_length (+ 1 __state_length)))
+                                                                              (mk-return-Left-gate-GBLG
+                                                                                __global_state
+                                                                                __state_length
+                                                                                (as mk-none (Maybe (Array Bits_p (Maybe Bool))))
+                                                                                true)))
+                                                                          (let
+                                                                            (
+                                                                              (__global_state (return-Left-enc-ENCM-state __ret))
+                                                                              (__state_length (return-Left-enc-ENCM-state-length __ret))
+                                                                              (cout (maybe-get (return-Left-enc-ENCM-value __ret))))
+                                                                            (let
+                                                                              ((C (store C cout (mk-some true))))
+                                                                              (let
+                                                                                ((bl false))
+                                                                                (let
+                                                                                  ((br true))
+                                                                                  (let
+                                                                                    ((unwrap-5 (maybe-get (select op (mk-tuple2 bl br)))))
+                                                                                    (let
+                                                                                      ((bj unwrap-5))
+                                                                                      (let
+                                                                                        ((unwrap-6 (maybe-get (select Z bj))))
+                                                                                        (let
+                                                                                          ((kzero unwrap-6))
+                                                                                          (let
+                                                                                            (
+                                                                                              (__ret
+                                                                                                (oracle-Left-enc-ENCN
+                                                                                                  __global_state
+                                                                                                  __state_length
+                                                                                                  l
+                                                                                                  bl
+                                                                                                  kzero
+                                                                                                  (composition-param-Left-zeron (select __global_state __state_length)))))
+                                                                                            (ite
+                                                                                              (return-Left-enc-ENCN-is-abort __ret)
+                                                                                              (let
+                                                                                                (
+                                                                                                  (__global_state (return-Left-enc-ENCN-state __ret))
+                                                                                                  (__state_length (return-Left-enc-ENCN-state-length __ret)))
+                                                                                                (let
+                                                                                                  (
+                                                                                                    (__global_state
+                                                                                                      (store
+                                                                                                        __global_state
+                                                                                                        (+ 1 __state_length)
+                                                                                                        (mk-composition-state-Left
+                                                                                                          (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                                                                                                          (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                                                                                                          __self_state
+                                                                                                          (composition-pkgstate-Left-enc (select __global_state __state_length))
+                                                                                                          (composition-param-Left-zerom (select __global_state __state_length))
+                                                                                                          (composition-param-Left-n (select __global_state __state_length))
+                                                                                                          (composition-param-Left-m (select __global_state __state_length))
+                                                                                                          (composition-param-Left-zeron (select __global_state __state_length))
+                                                                                                          (composition-param-Left-p (select __global_state __state_length))
+                                                                                                          (composition-rand-Left-0 (select __global_state __state_length))
+                                                                                                          (composition-rand-Left-1 (select __global_state __state_length))
+                                                                                                          (composition-rand-Left-2 (select __global_state __state_length))
+                                                                                                          (composition-rand-Left-3 (select __global_state __state_length))
+                                                                                                          (composition-rand-Left-4 (select __global_state __state_length))
+                                                                                                          (composition-rand-Left-5 (select __global_state __state_length))
+                                                                                                          (composition-rand-Left-6 (select __global_state __state_length))
+                                                                                                          (composition-rand-Left-7 (select __global_state __state_length))
+                                                                                                          (composition-rand-Left-8 (select __global_state __state_length))
+                                                                                                          (composition-rand-Left-9 (select __global_state __state_length))
+                                                                                                          (composition-rand-Left-10 (select __global_state __state_length))
+                                                                                                          (composition-rand-Left-11 (select __global_state __state_length))
+                                                                                                          (composition-rand-Left-12 (select __global_state __state_length)))))
+                                                                                                    (__state_length (+ 1 __state_length)))
+                                                                                                  (mk-return-Left-gate-GBLG
+                                                                                                    __global_state
+                                                                                                    __state_length
+                                                                                                    (as mk-none (Maybe (Array Bits_p (Maybe Bool))))
+                                                                                                    true)))
+                                                                                              (let
+                                                                                                (
+                                                                                                  (__global_state (return-Left-enc-ENCN-state __ret))
+                                                                                                  (__state_length (return-Left-enc-ENCN-state-length __ret))
+                                                                                                  (czeroin (maybe-get (return-Left-enc-ENCN-value __ret))))
+                                                                                                (let
+                                                                                                  (
+                                                                                                    (__ret
+                                                                                                      (oracle-Left-enc-ENCN
+                                                                                                        __global_state
+                                                                                                        __state_length
+                                                                                                        l
+                                                                                                        bl
+                                                                                                        (composition-param-Left-zeron (select __global_state __state_length))
+                                                                                                        (composition-param-Left-zeron (select __global_state __state_length)))))
+                                                                                                  (ite
+                                                                                                    (return-Left-enc-ENCN-is-abort __ret)
+                                                                                                    (let
+                                                                                                      (
+                                                                                                        (__global_state (return-Left-enc-ENCN-state __ret))
+                                                                                                        (__state_length (return-Left-enc-ENCN-state-length __ret)))
+                                                                                                      (let
+                                                                                                        (
+                                                                                                          (__global_state
+                                                                                                            (store
+                                                                                                              __global_state
+                                                                                                              (+ 1 __state_length)
+                                                                                                              (mk-composition-state-Left
+                                                                                                                (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                                                                                                                (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                                                                                                                __self_state
+                                                                                                                (composition-pkgstate-Left-enc (select __global_state __state_length))
+                                                                                                                (composition-param-Left-zerom (select __global_state __state_length))
+                                                                                                                (composition-param-Left-n (select __global_state __state_length))
+                                                                                                                (composition-param-Left-m (select __global_state __state_length))
+                                                                                                                (composition-param-Left-zeron (select __global_state __state_length))
+                                                                                                                (composition-param-Left-p (select __global_state __state_length))
+                                                                                                                (composition-rand-Left-0 (select __global_state __state_length))
+                                                                                                                (composition-rand-Left-1 (select __global_state __state_length))
+                                                                                                                (composition-rand-Left-2 (select __global_state __state_length))
+                                                                                                                (composition-rand-Left-3 (select __global_state __state_length))
+                                                                                                                (composition-rand-Left-4 (select __global_state __state_length))
+                                                                                                                (composition-rand-Left-5 (select __global_state __state_length))
+                                                                                                                (composition-rand-Left-6 (select __global_state __state_length))
+                                                                                                                (composition-rand-Left-7 (select __global_state __state_length))
+                                                                                                                (composition-rand-Left-8 (select __global_state __state_length))
+                                                                                                                (composition-rand-Left-9 (select __global_state __state_length))
+                                                                                                                (composition-rand-Left-10 (select __global_state __state_length))
+                                                                                                                (composition-rand-Left-11 (select __global_state __state_length))
+                                                                                                                (composition-rand-Left-12 (select __global_state __state_length)))))
+                                                                                                          (__state_length (+ 1 __state_length)))
+                                                                                                        (mk-return-Left-gate-GBLG
+                                                                                                          __global_state
+                                                                                                          __state_length
+                                                                                                          (as mk-none (Maybe (Array Bits_p (Maybe Bool))))
+                                                                                                          true)))
+                                                                                                    (let
+                                                                                                      (
+                                                                                                        (__global_state (return-Left-enc-ENCN-state __ret))
+                                                                                                        (__state_length (return-Left-enc-ENCN-state-length __ret))
+                                                                                                        (conein (maybe-get (return-Left-enc-ENCN-value __ret))))
+                                                                                                      (let
+                                                                                                        (
+                                                                                                          (__ret
+                                                                                                            (oracle-Left-enc-ENCM __global_state __state_length r br conein czeroin)))
+                                                                                                        (ite
+                                                                                                          (return-Left-enc-ENCM-is-abort __ret)
+                                                                                                          (let
+                                                                                                            (
+                                                                                                              (__global_state (return-Left-enc-ENCM-state __ret))
+                                                                                                              (__state_length (return-Left-enc-ENCM-state-length __ret)))
+                                                                                                            (let
+                                                                                                              (
+                                                                                                                (__global_state
+                                                                                                                  (store
+                                                                                                                    __global_state
+                                                                                                                    (+ 1 __state_length)
+                                                                                                                    (mk-composition-state-Left
+                                                                                                                      (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                                                                                                                      (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                                                                                                                      __self_state
+                                                                                                                      (composition-pkgstate-Left-enc (select __global_state __state_length))
+                                                                                                                      (composition-param-Left-zerom (select __global_state __state_length))
+                                                                                                                      (composition-param-Left-n (select __global_state __state_length))
+                                                                                                                      (composition-param-Left-m (select __global_state __state_length))
+                                                                                                                      (composition-param-Left-zeron (select __global_state __state_length))
+                                                                                                                      (composition-param-Left-p (select __global_state __state_length))
+                                                                                                                      (composition-rand-Left-0 (select __global_state __state_length))
+                                                                                                                      (composition-rand-Left-1 (select __global_state __state_length))
+                                                                                                                      (composition-rand-Left-2 (select __global_state __state_length))
+                                                                                                                      (composition-rand-Left-3 (select __global_state __state_length))
+                                                                                                                      (composition-rand-Left-4 (select __global_state __state_length))
+                                                                                                                      (composition-rand-Left-5 (select __global_state __state_length))
+                                                                                                                      (composition-rand-Left-6 (select __global_state __state_length))
+                                                                                                                      (composition-rand-Left-7 (select __global_state __state_length))
+                                                                                                                      (composition-rand-Left-8 (select __global_state __state_length))
+                                                                                                                      (composition-rand-Left-9 (select __global_state __state_length))
+                                                                                                                      (composition-rand-Left-10 (select __global_state __state_length))
+                                                                                                                      (composition-rand-Left-11 (select __global_state __state_length))
+                                                                                                                      (composition-rand-Left-12 (select __global_state __state_length)))))
+                                                                                                                (__state_length (+ 1 __state_length)))
+                                                                                                              (mk-return-Left-gate-GBLG
+                                                                                                                __global_state
+                                                                                                                __state_length
+                                                                                                                (as mk-none (Maybe (Array Bits_p (Maybe Bool))))
+                                                                                                                true)))
+                                                                                                          (let
+                                                                                                            (
+                                                                                                              (__global_state (return-Left-enc-ENCM-state __ret))
+                                                                                                              (__state_length (return-Left-enc-ENCM-state-length __ret))
+                                                                                                              (cout (maybe-get (return-Left-enc-ENCM-value __ret))))
+                                                                                                            (let
+                                                                                                              ((C (store C cout (mk-some true))))
+                                                                                                              (let
+                                                                                                                ((bl true))
+                                                                                                                (let
+                                                                                                                  ((br true))
+                                                                                                                  (let
+                                                                                                                    ((unwrap-7 (maybe-get (select op (mk-tuple2 bl br)))))
+                                                                                                                    (let
+                                                                                                                      ((bj unwrap-7))
+                                                                                                                      (let
+                                                                                                                        ((unwrap-8 (maybe-get (select Z bj))))
+                                                                                                                        (let
+                                                                                                                          ((kzero unwrap-8))
+                                                                                                                          (let
+                                                                                                                            (
+                                                                                                                              (__ret
+                                                                                                                                (oracle-Left-enc-ENCN
+                                                                                                                                  __global_state
+                                                                                                                                  __state_length
+                                                                                                                                  l
+                                                                                                                                  bl
+                                                                                                                                  kzero
+                                                                                                                                  (composition-param-Left-zeron (select __global_state __state_length)))))
+                                                                                                                            (ite
+                                                                                                                              (return-Left-enc-ENCN-is-abort __ret)
+                                                                                                                              (let
+                                                                                                                                (
+                                                                                                                                  (__global_state (return-Left-enc-ENCN-state __ret))
+                                                                                                                                  (__state_length (return-Left-enc-ENCN-state-length __ret)))
+                                                                                                                                (let
+                                                                                                                                  (
+                                                                                                                                    (__global_state
+                                                                                                                                      (store
+                                                                                                                                        __global_state
+                                                                                                                                        (+ 1 __state_length)
+                                                                                                                                        (mk-composition-state-Left
+                                                                                                                                          (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                                                                                                                                          (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                                                                                                                                          __self_state
+                                                                                                                                          (composition-pkgstate-Left-enc (select __global_state __state_length))
+                                                                                                                                          (composition-param-Left-zerom (select __global_state __state_length))
+                                                                                                                                          (composition-param-Left-n (select __global_state __state_length))
+                                                                                                                                          (composition-param-Left-m (select __global_state __state_length))
+                                                                                                                                          (composition-param-Left-zeron (select __global_state __state_length))
+                                                                                                                                          (composition-param-Left-p (select __global_state __state_length))
+                                                                                                                                          (composition-rand-Left-0 (select __global_state __state_length))
+                                                                                                                                          (composition-rand-Left-1 (select __global_state __state_length))
+                                                                                                                                          (composition-rand-Left-2 (select __global_state __state_length))
+                                                                                                                                          (composition-rand-Left-3 (select __global_state __state_length))
+                                                                                                                                          (composition-rand-Left-4 (select __global_state __state_length))
+                                                                                                                                          (composition-rand-Left-5 (select __global_state __state_length))
+                                                                                                                                          (composition-rand-Left-6 (select __global_state __state_length))
+                                                                                                                                          (composition-rand-Left-7 (select __global_state __state_length))
+                                                                                                                                          (composition-rand-Left-8 (select __global_state __state_length))
+                                                                                                                                          (composition-rand-Left-9 (select __global_state __state_length))
+                                                                                                                                          (composition-rand-Left-10 (select __global_state __state_length))
+                                                                                                                                          (composition-rand-Left-11 (select __global_state __state_length))
+                                                                                                                                          (composition-rand-Left-12 (select __global_state __state_length)))))
+                                                                                                                                    (__state_length (+ 1 __state_length)))
+                                                                                                                                  (mk-return-Left-gate-GBLG
+                                                                                                                                    __global_state
+                                                                                                                                    __state_length
+                                                                                                                                    (as mk-none (Maybe (Array Bits_p (Maybe Bool))))
+                                                                                                                                    true)))
+                                                                                                                              (let
+                                                                                                                                (
+                                                                                                                                  (__global_state (return-Left-enc-ENCN-state __ret))
+                                                                                                                                  (__state_length (return-Left-enc-ENCN-state-length __ret))
+                                                                                                                                  (czeroin (maybe-get (return-Left-enc-ENCN-value __ret))))
+                                                                                                                                (let
+                                                                                                                                  (
+                                                                                                                                    (__ret
+                                                                                                                                      (oracle-Left-enc-ENCN
+                                                                                                                                        __global_state
+                                                                                                                                        __state_length
+                                                                                                                                        l
+                                                                                                                                        bl
+                                                                                                                                        (composition-param-Left-zeron (select __global_state __state_length))
+                                                                                                                                        (composition-param-Left-zeron (select __global_state __state_length)))))
+                                                                                                                                  (ite
+                                                                                                                                    (return-Left-enc-ENCN-is-abort __ret)
+                                                                                                                                    (let
+                                                                                                                                      (
+                                                                                                                                        (__global_state (return-Left-enc-ENCN-state __ret))
+                                                                                                                                        (__state_length (return-Left-enc-ENCN-state-length __ret)))
+                                                                                                                                      (let
+                                                                                                                                        (
+                                                                                                                                          (__global_state
+                                                                                                                                            (store
+                                                                                                                                              __global_state
+                                                                                                                                              (+ 1 __state_length)
+                                                                                                                                              (mk-composition-state-Left
+                                                                                                                                                (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                                                                                                                                                (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                                                                                                                                                __self_state
+                                                                                                                                                (composition-pkgstate-Left-enc (select __global_state __state_length))
+                                                                                                                                                (composition-param-Left-zerom (select __global_state __state_length))
+                                                                                                                                                (composition-param-Left-n (select __global_state __state_length))
+                                                                                                                                                (composition-param-Left-m (select __global_state __state_length))
+                                                                                                                                                (composition-param-Left-zeron (select __global_state __state_length))
+                                                                                                                                                (composition-param-Left-p (select __global_state __state_length))
+                                                                                                                                                (composition-rand-Left-0 (select __global_state __state_length))
+                                                                                                                                                (composition-rand-Left-1 (select __global_state __state_length))
+                                                                                                                                                (composition-rand-Left-2 (select __global_state __state_length))
+                                                                                                                                                (composition-rand-Left-3 (select __global_state __state_length))
+                                                                                                                                                (composition-rand-Left-4 (select __global_state __state_length))
+                                                                                                                                                (composition-rand-Left-5 (select __global_state __state_length))
+                                                                                                                                                (composition-rand-Left-6 (select __global_state __state_length))
+                                                                                                                                                (composition-rand-Left-7 (select __global_state __state_length))
+                                                                                                                                                (composition-rand-Left-8 (select __global_state __state_length))
+                                                                                                                                                (composition-rand-Left-9 (select __global_state __state_length))
+                                                                                                                                                (composition-rand-Left-10 (select __global_state __state_length))
+                                                                                                                                                (composition-rand-Left-11 (select __global_state __state_length))
+                                                                                                                                                (composition-rand-Left-12 (select __global_state __state_length)))))
+                                                                                                                                          (__state_length (+ 1 __state_length)))
+                                                                                                                                        (mk-return-Left-gate-GBLG
+                                                                                                                                          __global_state
+                                                                                                                                          __state_length
+                                                                                                                                          (as mk-none (Maybe (Array Bits_p (Maybe Bool))))
+                                                                                                                                          true)))
+                                                                                                                                    (let
+                                                                                                                                      (
+                                                                                                                                        (__global_state (return-Left-enc-ENCN-state __ret))
+                                                                                                                                        (__state_length (return-Left-enc-ENCN-state-length __ret))
+                                                                                                                                        (conein (maybe-get (return-Left-enc-ENCN-value __ret))))
+                                                                                                                                      (let
+                                                                                                                                        (
+                                                                                                                                          (__ret
+                                                                                                                                            (oracle-Left-enc-ENCM __global_state __state_length r br conein czeroin)))
+                                                                                                                                        (ite
+                                                                                                                                          (return-Left-enc-ENCM-is-abort __ret)
+                                                                                                                                          (let
+                                                                                                                                            (
+                                                                                                                                              (__global_state (return-Left-enc-ENCM-state __ret))
+                                                                                                                                              (__state_length (return-Left-enc-ENCM-state-length __ret)))
+                                                                                                                                            (let
+                                                                                                                                              (
+                                                                                                                                                (__global_state
+                                                                                                                                                  (store
+                                                                                                                                                    __global_state
+                                                                                                                                                    (+ 1 __state_length)
+                                                                                                                                                    (mk-composition-state-Left
+                                                                                                                                                      (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                                                                                                                                                      (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                                                                                                                                                      __self_state
+                                                                                                                                                      (composition-pkgstate-Left-enc (select __global_state __state_length))
+                                                                                                                                                      (composition-param-Left-zerom (select __global_state __state_length))
+                                                                                                                                                      (composition-param-Left-n (select __global_state __state_length))
+                                                                                                                                                      (composition-param-Left-m (select __global_state __state_length))
+                                                                                                                                                      (composition-param-Left-zeron (select __global_state __state_length))
+                                                                                                                                                      (composition-param-Left-p (select __global_state __state_length))
+                                                                                                                                                      (composition-rand-Left-0 (select __global_state __state_length))
+                                                                                                                                                      (composition-rand-Left-1 (select __global_state __state_length))
+                                                                                                                                                      (composition-rand-Left-2 (select __global_state __state_length))
+                                                                                                                                                      (composition-rand-Left-3 (select __global_state __state_length))
+                                                                                                                                                      (composition-rand-Left-4 (select __global_state __state_length))
+                                                                                                                                                      (composition-rand-Left-5 (select __global_state __state_length))
+                                                                                                                                                      (composition-rand-Left-6 (select __global_state __state_length))
+                                                                                                                                                      (composition-rand-Left-7 (select __global_state __state_length))
+                                                                                                                                                      (composition-rand-Left-8 (select __global_state __state_length))
+                                                                                                                                                      (composition-rand-Left-9 (select __global_state __state_length))
+                                                                                                                                                      (composition-rand-Left-10 (select __global_state __state_length))
+                                                                                                                                                      (composition-rand-Left-11 (select __global_state __state_length))
+                                                                                                                                                      (composition-rand-Left-12 (select __global_state __state_length)))))
+                                                                                                                                                (__state_length (+ 1 __state_length)))
+                                                                                                                                              (mk-return-Left-gate-GBLG
+                                                                                                                                                __global_state
+                                                                                                                                                __state_length
+                                                                                                                                                (as mk-none (Maybe (Array Bits_p (Maybe Bool))))
+                                                                                                                                                true)))
+                                                                                                                                          (let
+                                                                                                                                            (
+                                                                                                                                              (__global_state (return-Left-enc-ENCM-state __ret))
+                                                                                                                                              (__state_length (return-Left-enc-ENCM-state-length __ret))
+                                                                                                                                              (cout (maybe-get (return-Left-enc-ENCM-value __ret))))
+                                                                                                                                            (let
+                                                                                                                                              ((C (store C cout (mk-some true))))
+                                                                                                                                              (let
+                                                                                                                                                (
+                                                                                                                                                  (__global_state
+                                                                                                                                                    (store
+                                                                                                                                                      __global_state
+                                                                                                                                                      (+ 1 __state_length)
+                                                                                                                                                      (mk-composition-state-Left
+                                                                                                                                                        (composition-pkgstate-Left-keys_top (select __global_state __state_length))
+                                                                                                                                                        (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
+                                                                                                                                                        __self_state
+                                                                                                                                                        (composition-pkgstate-Left-enc (select __global_state __state_length))
+                                                                                                                                                        (composition-param-Left-zerom (select __global_state __state_length))
+                                                                                                                                                        (composition-param-Left-n (select __global_state __state_length))
+                                                                                                                                                        (composition-param-Left-m (select __global_state __state_length))
+                                                                                                                                                        (composition-param-Left-zeron (select __global_state __state_length))
+                                                                                                                                                        (composition-param-Left-p (select __global_state __state_length))
+                                                                                                                                                        (composition-rand-Left-0 (select __global_state __state_length))
+                                                                                                                                                        (composition-rand-Left-1 (select __global_state __state_length))
+                                                                                                                                                        (composition-rand-Left-2 (select __global_state __state_length))
+                                                                                                                                                        (composition-rand-Left-3 (select __global_state __state_length))
+                                                                                                                                                        (composition-rand-Left-4 (select __global_state __state_length))
+                                                                                                                                                        (composition-rand-Left-5 (select __global_state __state_length))
+                                                                                                                                                        (composition-rand-Left-6 (select __global_state __state_length))
+                                                                                                                                                        (composition-rand-Left-7 (select __global_state __state_length))
+                                                                                                                                                        (composition-rand-Left-8 (select __global_state __state_length))
+                                                                                                                                                        (composition-rand-Left-9 (select __global_state __state_length))
+                                                                                                                                                        (composition-rand-Left-10 (select __global_state __state_length))
+                                                                                                                                                        (composition-rand-Left-11 (select __global_state __state_length))
+                                                                                                                                                        (composition-rand-Left-12 (select __global_state __state_length)))))
+                                                                                                                                                  (__state_length (+ 1 __state_length)))
+                                                                                                                                                (mk-return-Left-gate-GBLG __global_state __state_length (mk-some C) false))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))); Right
 (declare-fun __sample-rand-Right-Bits_n (Int Int) Bits_n)
 (declare-fun __func-Right-encn (Bits_n Bits_n Bits_n) Bits_m)
 (declare-fun __func-Right-encm (Bits_n Bits_m Bits_n) Bits_p)
@@ -35,11 +3361,11 @@
       (composition-pkgstate-Right-keys_bottom State_Right_keys_bottom)
       (composition-pkgstate-Right-simgate State_Right_simgate)
       (composition-pkgstate-Right-ev State_Right_ev)
-      (composition-param-Right-zerom Bits_m)
-      (composition-param-Right-zeron Bits_n)
       (composition-param-Right-m Int)
-      (composition-param-Right-n Int)
       (composition-param-Right-p Int)
+      (composition-param-Right-zerom Bits_m)
+      (composition-param-Right-n Int)
+      (composition-param-Right-zeron Bits_n)
       (composition-rand-Right-0 Int)
       (composition-rand-Right-1 Int)
       (composition-rand-Right-2 Int)
@@ -60,128 +3386,131 @@
 (declare-datatype
   Return_Right_keys_top_GETKEYSIN
   (
-    (mk-abort-Right-keys_top-GETKEYSIN)
     (mk-return-Right-keys_top-GETKEYSIN
       (return-Right-keys_top-GETKEYSIN-state (Array Int CompositionState-Right))
       (return-Right-keys_top-GETKEYSIN-state-length Int)
-      (return-Right-keys_top-GETKEYSIN-value (Array Bool (Maybe Bits_n))))))
+      (return-Right-keys_top-GETKEYSIN-value (Maybe (Array Bool (Maybe Bits_n))))
+      (return-Right-keys_top-GETKEYSIN-is-abort Bool))))
 (declare-datatype
   Return_Right_keys_top_GETAIN
   (
-    (mk-abort-Right-keys_top-GETAIN)
     (mk-return-Right-keys_top-GETAIN
       (return-Right-keys_top-GETAIN-state (Array Int CompositionState-Right))
       (return-Right-keys_top-GETAIN-state-length Int)
-      (return-Right-keys_top-GETAIN-value Bits_n))))
+      (return-Right-keys_top-GETAIN-value (Maybe Bits_n))
+      (return-Right-keys_top-GETAIN-is-abort Bool))))
 (declare-datatype
   Return_Right_keys_top_GETINAIN
   (
-    (mk-abort-Right-keys_top-GETINAIN)
     (mk-return-Right-keys_top-GETINAIN
       (return-Right-keys_top-GETINAIN-state (Array Int CompositionState-Right))
       (return-Right-keys_top-GETINAIN-state-length Int)
-      (return-Right-keys_top-GETINAIN-value Bits_n))))
+      (return-Right-keys_top-GETINAIN-value (Maybe Bits_n))
+      (return-Right-keys_top-GETINAIN-is-abort Bool))))
 (declare-datatype
   Return_Right_keys_top_GETAOUT
   (
-    (mk-abort-Right-keys_top-GETAOUT)
     (mk-return-Right-keys_top-GETAOUT
       (return-Right-keys_top-GETAOUT-state (Array Int CompositionState-Right))
       (return-Right-keys_top-GETAOUT-state-length Int)
-      (return-Right-keys_top-GETAOUT-value Bits_n))))
+      (return-Right-keys_top-GETAOUT-value (Maybe Bits_n))
+      (return-Right-keys_top-GETAOUT-is-abort Bool))))
 (declare-datatype
   Return_Right_keys_top_GETKEYSOUT
   (
-    (mk-abort-Right-keys_top-GETKEYSOUT)
     (mk-return-Right-keys_top-GETKEYSOUT
       (return-Right-keys_top-GETKEYSOUT-state (Array Int CompositionState-Right))
       (return-Right-keys_top-GETKEYSOUT-state-length Int)
-      (return-Right-keys_top-GETKEYSOUT-value (Array Bool (Maybe Bits_n))))))
+      (return-Right-keys_top-GETKEYSOUT-value (Maybe (Array Bool (Maybe Bits_n))))
+      (return-Right-keys_top-GETKEYSOUT-is-abort Bool))))
 (declare-datatype
   Return_Right_keys_top_GETBIT
   (
-    (mk-abort-Right-keys_top-GETBIT)
     (mk-return-Right-keys_top-GETBIT
       (return-Right-keys_top-GETBIT-state (Array Int CompositionState-Right))
       (return-Right-keys_top-GETBIT-state-length Int)
-      (return-Right-keys_top-GETBIT-value Bool))))
+      (return-Right-keys_top-GETBIT-value (Maybe Bool))
+      (return-Right-keys_top-GETBIT-is-abort Bool))))
 (declare-datatype
   Return_Right_keys_top_SETBIT
   (
-    (mk-abort-Right-keys_top-SETBIT)
     (mk-return-Right-keys_top-SETBIT
       (return-Right-keys_top-SETBIT-state (Array Int CompositionState-Right))
-      (return-Right-keys_top-SETBIT-state-length Int))))
+      (return-Right-keys_top-SETBIT-state-length Int)
+      (return-Right-keys_top-SETBIT-value (Maybe Empty))
+      (return-Right-keys_top-SETBIT-is-abort Bool))))
 (declare-datatype
   Return_Right_keys_bottom_GETKEYSIN
   (
-    (mk-abort-Right-keys_bottom-GETKEYSIN)
     (mk-return-Right-keys_bottom-GETKEYSIN
       (return-Right-keys_bottom-GETKEYSIN-state (Array Int CompositionState-Right))
       (return-Right-keys_bottom-GETKEYSIN-state-length Int)
-      (return-Right-keys_bottom-GETKEYSIN-value (Array Bool (Maybe Bits_n))))))
+      (return-Right-keys_bottom-GETKEYSIN-value (Maybe (Array Bool (Maybe Bits_n))))
+      (return-Right-keys_bottom-GETKEYSIN-is-abort Bool))))
 (declare-datatype
   Return_Right_keys_bottom_GETAIN
   (
-    (mk-abort-Right-keys_bottom-GETAIN)
     (mk-return-Right-keys_bottom-GETAIN
       (return-Right-keys_bottom-GETAIN-state (Array Int CompositionState-Right))
       (return-Right-keys_bottom-GETAIN-state-length Int)
-      (return-Right-keys_bottom-GETAIN-value Bits_n))))
+      (return-Right-keys_bottom-GETAIN-value (Maybe Bits_n))
+      (return-Right-keys_bottom-GETAIN-is-abort Bool))))
 (declare-datatype
   Return_Right_keys_bottom_GETINAIN
   (
-    (mk-abort-Right-keys_bottom-GETINAIN)
     (mk-return-Right-keys_bottom-GETINAIN
       (return-Right-keys_bottom-GETINAIN-state (Array Int CompositionState-Right))
       (return-Right-keys_bottom-GETINAIN-state-length Int)
-      (return-Right-keys_bottom-GETINAIN-value Bits_n))))
+      (return-Right-keys_bottom-GETINAIN-value (Maybe Bits_n))
+      (return-Right-keys_bottom-GETINAIN-is-abort Bool))))
 (declare-datatype
   Return_Right_keys_bottom_GETAOUT
   (
-    (mk-abort-Right-keys_bottom-GETAOUT)
     (mk-return-Right-keys_bottom-GETAOUT
       (return-Right-keys_bottom-GETAOUT-state (Array Int CompositionState-Right))
       (return-Right-keys_bottom-GETAOUT-state-length Int)
-      (return-Right-keys_bottom-GETAOUT-value Bits_n))))
+      (return-Right-keys_bottom-GETAOUT-value (Maybe Bits_n))
+      (return-Right-keys_bottom-GETAOUT-is-abort Bool))))
 (declare-datatype
   Return_Right_keys_bottom_GETKEYSOUT
   (
-    (mk-abort-Right-keys_bottom-GETKEYSOUT)
     (mk-return-Right-keys_bottom-GETKEYSOUT
       (return-Right-keys_bottom-GETKEYSOUT-state (Array Int CompositionState-Right))
       (return-Right-keys_bottom-GETKEYSOUT-state-length Int)
-      (return-Right-keys_bottom-GETKEYSOUT-value (Array Bool (Maybe Bits_n))))))
+      (return-Right-keys_bottom-GETKEYSOUT-value (Maybe (Array Bool (Maybe Bits_n))))
+      (return-Right-keys_bottom-GETKEYSOUT-is-abort Bool))))
 (declare-datatype
   Return_Right_keys_bottom_GETBIT
   (
-    (mk-abort-Right-keys_bottom-GETBIT)
     (mk-return-Right-keys_bottom-GETBIT
       (return-Right-keys_bottom-GETBIT-state (Array Int CompositionState-Right))
       (return-Right-keys_bottom-GETBIT-state-length Int)
-      (return-Right-keys_bottom-GETBIT-value Bool))))
+      (return-Right-keys_bottom-GETBIT-value (Maybe Bool))
+      (return-Right-keys_bottom-GETBIT-is-abort Bool))))
 (declare-datatype
   Return_Right_keys_bottom_SETBIT
   (
-    (mk-abort-Right-keys_bottom-SETBIT)
     (mk-return-Right-keys_bottom-SETBIT
       (return-Right-keys_bottom-SETBIT-state (Array Int CompositionState-Right))
-      (return-Right-keys_bottom-SETBIT-state-length Int))))
+      (return-Right-keys_bottom-SETBIT-state-length Int)
+      (return-Right-keys_bottom-SETBIT-value (Maybe Empty))
+      (return-Right-keys_bottom-SETBIT-is-abort Bool))))
 (declare-datatype
   Return_Right_simgate_GBLG
   (
-    (mk-abort-Right-simgate-GBLG)
     (mk-return-Right-simgate-GBLG
       (return-Right-simgate-GBLG-state (Array Int CompositionState-Right))
       (return-Right-simgate-GBLG-state-length Int)
-      (return-Right-simgate-GBLG-value (Array Bits_p (Maybe Bool))))))
+      (return-Right-simgate-GBLG-value (Maybe (Array Bits_p (Maybe Bool))))
+      (return-Right-simgate-GBLG-is-abort Bool))))
 (declare-datatype
   Return_Right_ev_EVAL
   (
-    (mk-abort-Right-ev-EVAL)
     (mk-return-Right-ev-EVAL
       (return-Right-ev-EVAL-state (Array Int CompositionState-Right))
-      (return-Right-ev-EVAL-state-length Int)))); Composition of Right
+      (return-Right-ev-EVAL-state-length Int)
+      (return-Right-ev-EVAL-value (Maybe Empty))
+      (return-Right-ev-EVAL-is-abort Bool)))); Composition of Right
 (define-fun
   oracle-Right-keys_top-GETKEYSIN
   (
@@ -210,11 +3539,11 @@
                     (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                     (composition-pkgstate-Right-simgate (select __global_state __state_length))
                     (composition-pkgstate-Right-ev (select __global_state __state_length))
-                    (composition-param-Right-zerom (select __global_state __state_length))
-                    (composition-param-Right-zeron (select __global_state __state_length))
                     (composition-param-Right-m (select __global_state __state_length))
-                    (composition-param-Right-n (select __global_state __state_length))
                     (composition-param-Right-p (select __global_state __state_length))
+                    (composition-param-Right-zerom (select __global_state __state_length))
+                    (composition-param-Right-n (select __global_state __state_length))
+                    (composition-param-Right-zeron (select __global_state __state_length))
                     (composition-rand-Right-0 (select __global_state __state_length))
                     (composition-rand-Right-1 (select __global_state __state_length))
                     (composition-rand-Right-2 (select __global_state __state_length))
@@ -233,8 +3562,50 @@
                     (composition-rand-Right-15 (select __global_state __state_length))
                     (composition-rand-Right-16 (select __global_state __state_length)))))
               (__state_length (+ 1 __state_length)))
-            (mk-return-Right-keys_top-GETKEYSIN __global_state __state_length Z))))
-      mk-abort-Right-keys_top-GETKEYSIN)))
+            (mk-return-Right-keys_top-GETKEYSIN
+              __global_state
+              __state_length
+              (mk-some Z)
+              false))))
+      (let
+        (
+          (__global_state
+            (store
+              __global_state
+              (+ 1 __state_length)
+              (mk-composition-state-Right
+                __self_state
+                (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
+                (composition-pkgstate-Right-simgate (select __global_state __state_length))
+                (composition-pkgstate-Right-ev (select __global_state __state_length))
+                (composition-param-Right-m (select __global_state __state_length))
+                (composition-param-Right-p (select __global_state __state_length))
+                (composition-param-Right-zerom (select __global_state __state_length))
+                (composition-param-Right-n (select __global_state __state_length))
+                (composition-param-Right-zeron (select __global_state __state_length))
+                (composition-rand-Right-0 (select __global_state __state_length))
+                (composition-rand-Right-1 (select __global_state __state_length))
+                (composition-rand-Right-2 (select __global_state __state_length))
+                (composition-rand-Right-3 (select __global_state __state_length))
+                (composition-rand-Right-4 (select __global_state __state_length))
+                (composition-rand-Right-5 (select __global_state __state_length))
+                (composition-rand-Right-6 (select __global_state __state_length))
+                (composition-rand-Right-7 (select __global_state __state_length))
+                (composition-rand-Right-8 (select __global_state __state_length))
+                (composition-rand-Right-9 (select __global_state __state_length))
+                (composition-rand-Right-10 (select __global_state __state_length))
+                (composition-rand-Right-11 (select __global_state __state_length))
+                (composition-rand-Right-12 (select __global_state __state_length))
+                (composition-rand-Right-13 (select __global_state __state_length))
+                (composition-rand-Right-14 (select __global_state __state_length))
+                (composition-rand-Right-15 (select __global_state __state_length))
+                (composition-rand-Right-16 (select __global_state __state_length)))))
+          (__state_length (+ 1 __state_length)))
+        (mk-return-Right-keys_top-GETKEYSIN
+          __global_state
+          __state_length
+          (as mk-none (Maybe (Array Bool (Maybe Bits_n))))
+          true)))))
 (define-fun
   oracle-Right-keys_top-GETAIN
   (
@@ -271,11 +3642,11 @@
                             (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                             (composition-pkgstate-Right-simgate (select __global_state __state_length))
                             (composition-pkgstate-Right-ev (select __global_state __state_length))
-                            (composition-param-Right-zerom (select __global_state __state_length))
-                            (composition-param-Right-zeron (select __global_state __state_length))
                             (composition-param-Right-m (select __global_state __state_length))
-                            (composition-param-Right-n (select __global_state __state_length))
                             (composition-param-Right-p (select __global_state __state_length))
+                            (composition-param-Right-zerom (select __global_state __state_length))
+                            (composition-param-Right-n (select __global_state __state_length))
+                            (composition-param-Right-zeron (select __global_state __state_length))
                             (composition-rand-Right-0 (select __global_state __state_length))
                             (composition-rand-Right-1 (select __global_state __state_length))
                             (composition-rand-Right-2 (select __global_state __state_length))
@@ -294,8 +3665,50 @@
                             (composition-rand-Right-15 (select __global_state __state_length))
                             (composition-rand-Right-16 (select __global_state __state_length)))))
                       (__state_length (+ 1 __state_length)))
-                    (mk-return-Right-keys_top-GETAIN __global_state __state_length k))))))))
-      mk-abort-Right-keys_top-GETAIN)))
+                    (mk-return-Right-keys_top-GETAIN
+                      __global_state
+                      __state_length
+                      (mk-some k)
+                      false))))))))
+      (let
+        (
+          (__global_state
+            (store
+              __global_state
+              (+ 1 __state_length)
+              (mk-composition-state-Right
+                __self_state
+                (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
+                (composition-pkgstate-Right-simgate (select __global_state __state_length))
+                (composition-pkgstate-Right-ev (select __global_state __state_length))
+                (composition-param-Right-m (select __global_state __state_length))
+                (composition-param-Right-p (select __global_state __state_length))
+                (composition-param-Right-zerom (select __global_state __state_length))
+                (composition-param-Right-n (select __global_state __state_length))
+                (composition-param-Right-zeron (select __global_state __state_length))
+                (composition-rand-Right-0 (select __global_state __state_length))
+                (composition-rand-Right-1 (select __global_state __state_length))
+                (composition-rand-Right-2 (select __global_state __state_length))
+                (composition-rand-Right-3 (select __global_state __state_length))
+                (composition-rand-Right-4 (select __global_state __state_length))
+                (composition-rand-Right-5 (select __global_state __state_length))
+                (composition-rand-Right-6 (select __global_state __state_length))
+                (composition-rand-Right-7 (select __global_state __state_length))
+                (composition-rand-Right-8 (select __global_state __state_length))
+                (composition-rand-Right-9 (select __global_state __state_length))
+                (composition-rand-Right-10 (select __global_state __state_length))
+                (composition-rand-Right-11 (select __global_state __state_length))
+                (composition-rand-Right-12 (select __global_state __state_length))
+                (composition-rand-Right-13 (select __global_state __state_length))
+                (composition-rand-Right-14 (select __global_state __state_length))
+                (composition-rand-Right-15 (select __global_state __state_length))
+                (composition-rand-Right-16 (select __global_state __state_length)))))
+          (__state_length (+ 1 __state_length)))
+        (mk-return-Right-keys_top-GETAIN
+          __global_state
+          __state_length
+          (as mk-none (Maybe Bits_n))
+          true)))))
 (define-fun
   oracle-Right-keys_top-GETINAIN
   (
@@ -332,11 +3745,11 @@
                             (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                             (composition-pkgstate-Right-simgate (select __global_state __state_length))
                             (composition-pkgstate-Right-ev (select __global_state __state_length))
-                            (composition-param-Right-zerom (select __global_state __state_length))
-                            (composition-param-Right-zeron (select __global_state __state_length))
                             (composition-param-Right-m (select __global_state __state_length))
-                            (composition-param-Right-n (select __global_state __state_length))
                             (composition-param-Right-p (select __global_state __state_length))
+                            (composition-param-Right-zerom (select __global_state __state_length))
+                            (composition-param-Right-n (select __global_state __state_length))
+                            (composition-param-Right-zeron (select __global_state __state_length))
                             (composition-rand-Right-0 (select __global_state __state_length))
                             (composition-rand-Right-1 (select __global_state __state_length))
                             (composition-rand-Right-2 (select __global_state __state_length))
@@ -355,8 +3768,50 @@
                             (composition-rand-Right-15 (select __global_state __state_length))
                             (composition-rand-Right-16 (select __global_state __state_length)))))
                       (__state_length (+ 1 __state_length)))
-                    (mk-return-Right-keys_top-GETINAIN __global_state __state_length k))))))))
-      mk-abort-Right-keys_top-GETINAIN)))
+                    (mk-return-Right-keys_top-GETINAIN
+                      __global_state
+                      __state_length
+                      (mk-some k)
+                      false))))))))
+      (let
+        (
+          (__global_state
+            (store
+              __global_state
+              (+ 1 __state_length)
+              (mk-composition-state-Right
+                __self_state
+                (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
+                (composition-pkgstate-Right-simgate (select __global_state __state_length))
+                (composition-pkgstate-Right-ev (select __global_state __state_length))
+                (composition-param-Right-m (select __global_state __state_length))
+                (composition-param-Right-p (select __global_state __state_length))
+                (composition-param-Right-zerom (select __global_state __state_length))
+                (composition-param-Right-n (select __global_state __state_length))
+                (composition-param-Right-zeron (select __global_state __state_length))
+                (composition-rand-Right-0 (select __global_state __state_length))
+                (composition-rand-Right-1 (select __global_state __state_length))
+                (composition-rand-Right-2 (select __global_state __state_length))
+                (composition-rand-Right-3 (select __global_state __state_length))
+                (composition-rand-Right-4 (select __global_state __state_length))
+                (composition-rand-Right-5 (select __global_state __state_length))
+                (composition-rand-Right-6 (select __global_state __state_length))
+                (composition-rand-Right-7 (select __global_state __state_length))
+                (composition-rand-Right-8 (select __global_state __state_length))
+                (composition-rand-Right-9 (select __global_state __state_length))
+                (composition-rand-Right-10 (select __global_state __state_length))
+                (composition-rand-Right-11 (select __global_state __state_length))
+                (composition-rand-Right-12 (select __global_state __state_length))
+                (composition-rand-Right-13 (select __global_state __state_length))
+                (composition-rand-Right-14 (select __global_state __state_length))
+                (composition-rand-Right-15 (select __global_state __state_length))
+                (composition-rand-Right-16 (select __global_state __state_length)))))
+          (__state_length (+ 1 __state_length)))
+        (mk-return-Right-keys_top-GETINAIN
+          __global_state
+          __state_length
+          (as mk-none (Maybe Bits_n))
+          true)))))
 (define-fun
   oracle-Right-keys_top-GETAOUT
   (
@@ -400,11 +3855,11 @@
                         (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                         (composition-pkgstate-Right-simgate (select __global_state __state_length))
                         (composition-pkgstate-Right-ev (select __global_state __state_length))
-                        (composition-param-Right-zerom (select __global_state __state_length))
-                        (composition-param-Right-zeron (select __global_state __state_length))
                         (composition-param-Right-m (select __global_state __state_length))
-                        (composition-param-Right-n (select __global_state __state_length))
                         (composition-param-Right-p (select __global_state __state_length))
+                        (composition-param-Right-zerom (select __global_state __state_length))
+                        (composition-param-Right-n (select __global_state __state_length))
+                        (composition-param-Right-zeron (select __global_state __state_length))
                         (composition-rand-Right-0 (select __global_state __state_length))
                         (+ 1 (composition-rand-Right-1 (select __global_state __state_length)))
                         (composition-rand-Right-2 (select __global_state __state_length))
@@ -443,11 +3898,11 @@
                                 (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                 (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                 (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                (composition-param-Right-zerom (select __global_state __state_length))
-                                (composition-param-Right-zeron (select __global_state __state_length))
                                 (composition-param-Right-m (select __global_state __state_length))
-                                (composition-param-Right-n (select __global_state __state_length))
                                 (composition-param-Right-p (select __global_state __state_length))
+                                (composition-param-Right-zerom (select __global_state __state_length))
+                                (composition-param-Right-n (select __global_state __state_length))
+                                (composition-param-Right-zeron (select __global_state __state_length))
                                 (composition-rand-Right-0 (select __global_state __state_length))
                                 (composition-rand-Right-1 (select __global_state __state_length))
                                 (+ 1 (composition-rand-Right-2 (select __global_state __state_length)))
@@ -497,11 +3952,11 @@
                                                   (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                   (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                   (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                  (composition-param-Right-zerom (select __global_state __state_length))
-                                                  (composition-param-Right-zeron (select __global_state __state_length))
                                                   (composition-param-Right-m (select __global_state __state_length))
-                                                  (composition-param-Right-n (select __global_state __state_length))
                                                   (composition-param-Right-p (select __global_state __state_length))
+                                                  (composition-param-Right-zerom (select __global_state __state_length))
+                                                  (composition-param-Right-n (select __global_state __state_length))
+                                                  (composition-param-Right-zeron (select __global_state __state_length))
                                                   (composition-rand-Right-0 (select __global_state __state_length))
                                                   (composition-rand-Right-1 (select __global_state __state_length))
                                                   (composition-rand-Right-2 (select __global_state __state_length))
@@ -520,7 +3975,11 @@
                                                   (composition-rand-Right-15 (select __global_state __state_length))
                                                   (composition-rand-Right-16 (select __global_state __state_length)))))
                                             (__state_length (+ 1 __state_length)))
-                                          (mk-return-Right-keys_top-GETAOUT __global_state __state_length k))))))))))))))))
+                                          (mk-return-Right-keys_top-GETAOUT
+                                            __global_state
+                                            __state_length
+                                            (mk-some k)
+                                            false))))))))))))))))
             (let
               ((unwrap-1 (maybe-get (select (state-Right-keys_top-T __self_state) h))))
               (let
@@ -544,11 +4003,11 @@
                                   (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                   (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                   (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                  (composition-param-Right-zerom (select __global_state __state_length))
-                                  (composition-param-Right-zeron (select __global_state __state_length))
                                   (composition-param-Right-m (select __global_state __state_length))
-                                  (composition-param-Right-n (select __global_state __state_length))
                                   (composition-param-Right-p (select __global_state __state_length))
+                                  (composition-param-Right-zerom (select __global_state __state_length))
+                                  (composition-param-Right-n (select __global_state __state_length))
+                                  (composition-param-Right-zeron (select __global_state __state_length))
                                   (composition-rand-Right-0 (select __global_state __state_length))
                                   (composition-rand-Right-1 (select __global_state __state_length))
                                   (composition-rand-Right-2 (select __global_state __state_length))
@@ -567,8 +4026,50 @@
                                   (composition-rand-Right-15 (select __global_state __state_length))
                                   (composition-rand-Right-16 (select __global_state __state_length)))))
                             (__state_length (+ 1 __state_length)))
-                          (mk-return-Right-keys_top-GETAOUT __global_state __state_length k)))))))))))
-      mk-abort-Right-keys_top-GETAOUT)))
+                          (mk-return-Right-keys_top-GETAOUT
+                            __global_state
+                            __state_length
+                            (mk-some k)
+                            false)))))))))))
+      (let
+        (
+          (__global_state
+            (store
+              __global_state
+              (+ 1 __state_length)
+              (mk-composition-state-Right
+                __self_state
+                (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
+                (composition-pkgstate-Right-simgate (select __global_state __state_length))
+                (composition-pkgstate-Right-ev (select __global_state __state_length))
+                (composition-param-Right-m (select __global_state __state_length))
+                (composition-param-Right-p (select __global_state __state_length))
+                (composition-param-Right-zerom (select __global_state __state_length))
+                (composition-param-Right-n (select __global_state __state_length))
+                (composition-param-Right-zeron (select __global_state __state_length))
+                (composition-rand-Right-0 (select __global_state __state_length))
+                (composition-rand-Right-1 (select __global_state __state_length))
+                (composition-rand-Right-2 (select __global_state __state_length))
+                (composition-rand-Right-3 (select __global_state __state_length))
+                (composition-rand-Right-4 (select __global_state __state_length))
+                (composition-rand-Right-5 (select __global_state __state_length))
+                (composition-rand-Right-6 (select __global_state __state_length))
+                (composition-rand-Right-7 (select __global_state __state_length))
+                (composition-rand-Right-8 (select __global_state __state_length))
+                (composition-rand-Right-9 (select __global_state __state_length))
+                (composition-rand-Right-10 (select __global_state __state_length))
+                (composition-rand-Right-11 (select __global_state __state_length))
+                (composition-rand-Right-12 (select __global_state __state_length))
+                (composition-rand-Right-13 (select __global_state __state_length))
+                (composition-rand-Right-14 (select __global_state __state_length))
+                (composition-rand-Right-15 (select __global_state __state_length))
+                (composition-rand-Right-16 (select __global_state __state_length)))))
+          (__state_length (+ 1 __state_length)))
+        (mk-return-Right-keys_top-GETAOUT
+          __global_state
+          __state_length
+          (as mk-none (Maybe Bits_n))
+          true)))))
 (define-fun
   oracle-Right-keys_top-GETKEYSOUT
   (
@@ -612,11 +4113,11 @@
                         (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                         (composition-pkgstate-Right-simgate (select __global_state __state_length))
                         (composition-pkgstate-Right-ev (select __global_state __state_length))
-                        (composition-param-Right-zerom (select __global_state __state_length))
-                        (composition-param-Right-zeron (select __global_state __state_length))
                         (composition-param-Right-m (select __global_state __state_length))
-                        (composition-param-Right-n (select __global_state __state_length))
                         (composition-param-Right-p (select __global_state __state_length))
+                        (composition-param-Right-zerom (select __global_state __state_length))
+                        (composition-param-Right-n (select __global_state __state_length))
+                        (composition-param-Right-zeron (select __global_state __state_length))
                         (composition-rand-Right-0 (select __global_state __state_length))
                         (composition-rand-Right-1 (select __global_state __state_length))
                         (composition-rand-Right-2 (select __global_state __state_length))
@@ -655,11 +4156,11 @@
                                 (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                 (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                 (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                (composition-param-Right-zerom (select __global_state __state_length))
-                                (composition-param-Right-zeron (select __global_state __state_length))
                                 (composition-param-Right-m (select __global_state __state_length))
-                                (composition-param-Right-n (select __global_state __state_length))
                                 (composition-param-Right-p (select __global_state __state_length))
+                                (composition-param-Right-zerom (select __global_state __state_length))
+                                (composition-param-Right-n (select __global_state __state_length))
+                                (composition-param-Right-zeron (select __global_state __state_length))
                                 (composition-rand-Right-0 (select __global_state __state_length))
                                 (composition-rand-Right-1 (select __global_state __state_length))
                                 (composition-rand-Right-2 (select __global_state __state_length))
@@ -701,11 +4202,11 @@
                                           (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                           (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                           (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                          (composition-param-Right-zerom (select __global_state __state_length))
-                                          (composition-param-Right-zeron (select __global_state __state_length))
                                           (composition-param-Right-m (select __global_state __state_length))
-                                          (composition-param-Right-n (select __global_state __state_length))
                                           (composition-param-Right-p (select __global_state __state_length))
+                                          (composition-param-Right-zerom (select __global_state __state_length))
+                                          (composition-param-Right-n (select __global_state __state_length))
+                                          (composition-param-Right-zeron (select __global_state __state_length))
                                           (composition-rand-Right-0 (select __global_state __state_length))
                                           (composition-rand-Right-1 (select __global_state __state_length))
                                           (composition-rand-Right-2 (select __global_state __state_length))
@@ -724,7 +4225,11 @@
                                           (composition-rand-Right-15 (select __global_state __state_length))
                                           (composition-rand-Right-16 (select __global_state __state_length)))))
                                     (__state_length (+ 1 __state_length)))
-                                  (mk-return-Right-keys_top-GETKEYSOUT __global_state __state_length Z))))))))))))
+                                  (mk-return-Right-keys_top-GETKEYSOUT
+                                    __global_state
+                                    __state_length
+                                    (mk-some Z)
+                                    false))))))))))))
             (let
               ((unwrap-1 (maybe-get (select (state-Right-keys_top-T __self_state) h))))
               (let
@@ -740,11 +4245,11 @@
                           (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                           (composition-pkgstate-Right-simgate (select __global_state __state_length))
                           (composition-pkgstate-Right-ev (select __global_state __state_length))
-                          (composition-param-Right-zerom (select __global_state __state_length))
-                          (composition-param-Right-zeron (select __global_state __state_length))
                           (composition-param-Right-m (select __global_state __state_length))
-                          (composition-param-Right-n (select __global_state __state_length))
                           (composition-param-Right-p (select __global_state __state_length))
+                          (composition-param-Right-zerom (select __global_state __state_length))
+                          (composition-param-Right-n (select __global_state __state_length))
+                          (composition-param-Right-zeron (select __global_state __state_length))
                           (composition-rand-Right-0 (select __global_state __state_length))
                           (composition-rand-Right-1 (select __global_state __state_length))
                           (composition-rand-Right-2 (select __global_state __state_length))
@@ -763,8 +4268,50 @@
                           (composition-rand-Right-15 (select __global_state __state_length))
                           (composition-rand-Right-16 (select __global_state __state_length)))))
                     (__state_length (+ 1 __state_length)))
-                  (mk-return-Right-keys_top-GETKEYSOUT __global_state __state_length Z)))))))
-      mk-abort-Right-keys_top-GETKEYSOUT)))
+                  (mk-return-Right-keys_top-GETKEYSOUT
+                    __global_state
+                    __state_length
+                    (mk-some Z)
+                    false)))))))
+      (let
+        (
+          (__global_state
+            (store
+              __global_state
+              (+ 1 __state_length)
+              (mk-composition-state-Right
+                __self_state
+                (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
+                (composition-pkgstate-Right-simgate (select __global_state __state_length))
+                (composition-pkgstate-Right-ev (select __global_state __state_length))
+                (composition-param-Right-m (select __global_state __state_length))
+                (composition-param-Right-p (select __global_state __state_length))
+                (composition-param-Right-zerom (select __global_state __state_length))
+                (composition-param-Right-n (select __global_state __state_length))
+                (composition-param-Right-zeron (select __global_state __state_length))
+                (composition-rand-Right-0 (select __global_state __state_length))
+                (composition-rand-Right-1 (select __global_state __state_length))
+                (composition-rand-Right-2 (select __global_state __state_length))
+                (composition-rand-Right-3 (select __global_state __state_length))
+                (composition-rand-Right-4 (select __global_state __state_length))
+                (composition-rand-Right-5 (select __global_state __state_length))
+                (composition-rand-Right-6 (select __global_state __state_length))
+                (composition-rand-Right-7 (select __global_state __state_length))
+                (composition-rand-Right-8 (select __global_state __state_length))
+                (composition-rand-Right-9 (select __global_state __state_length))
+                (composition-rand-Right-10 (select __global_state __state_length))
+                (composition-rand-Right-11 (select __global_state __state_length))
+                (composition-rand-Right-12 (select __global_state __state_length))
+                (composition-rand-Right-13 (select __global_state __state_length))
+                (composition-rand-Right-14 (select __global_state __state_length))
+                (composition-rand-Right-15 (select __global_state __state_length))
+                (composition-rand-Right-16 (select __global_state __state_length)))))
+          (__state_length (+ 1 __state_length)))
+        (mk-return-Right-keys_top-GETKEYSOUT
+          __global_state
+          __state_length
+          (as mk-none (Maybe (Array Bool (Maybe Bits_n))))
+          true)))))
 (define-fun
   oracle-Right-keys_top-GETBIT
   (
@@ -794,11 +4341,11 @@
                     (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                     (composition-pkgstate-Right-simgate (select __global_state __state_length))
                     (composition-pkgstate-Right-ev (select __global_state __state_length))
-                    (composition-param-Right-zerom (select __global_state __state_length))
-                    (composition-param-Right-zeron (select __global_state __state_length))
                     (composition-param-Right-m (select __global_state __state_length))
-                    (composition-param-Right-n (select __global_state __state_length))
                     (composition-param-Right-p (select __global_state __state_length))
+                    (composition-param-Right-zerom (select __global_state __state_length))
+                    (composition-param-Right-n (select __global_state __state_length))
+                    (composition-param-Right-zeron (select __global_state __state_length))
                     (composition-rand-Right-0 (select __global_state __state_length))
                     (composition-rand-Right-1 (select __global_state __state_length))
                     (composition-rand-Right-2 (select __global_state __state_length))
@@ -817,8 +4364,50 @@
                     (composition-rand-Right-15 (select __global_state __state_length))
                     (composition-rand-Right-16 (select __global_state __state_length)))))
               (__state_length (+ 1 __state_length)))
-            (mk-return-Right-keys_top-GETBIT __global_state __state_length zz))))
-      mk-abort-Right-keys_top-GETBIT)))
+            (mk-return-Right-keys_top-GETBIT
+              __global_state
+              __state_length
+              (mk-some zz)
+              false))))
+      (let
+        (
+          (__global_state
+            (store
+              __global_state
+              (+ 1 __state_length)
+              (mk-composition-state-Right
+                __self_state
+                (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
+                (composition-pkgstate-Right-simgate (select __global_state __state_length))
+                (composition-pkgstate-Right-ev (select __global_state __state_length))
+                (composition-param-Right-m (select __global_state __state_length))
+                (composition-param-Right-p (select __global_state __state_length))
+                (composition-param-Right-zerom (select __global_state __state_length))
+                (composition-param-Right-n (select __global_state __state_length))
+                (composition-param-Right-zeron (select __global_state __state_length))
+                (composition-rand-Right-0 (select __global_state __state_length))
+                (composition-rand-Right-1 (select __global_state __state_length))
+                (composition-rand-Right-2 (select __global_state __state_length))
+                (composition-rand-Right-3 (select __global_state __state_length))
+                (composition-rand-Right-4 (select __global_state __state_length))
+                (composition-rand-Right-5 (select __global_state __state_length))
+                (composition-rand-Right-6 (select __global_state __state_length))
+                (composition-rand-Right-7 (select __global_state __state_length))
+                (composition-rand-Right-8 (select __global_state __state_length))
+                (composition-rand-Right-9 (select __global_state __state_length))
+                (composition-rand-Right-10 (select __global_state __state_length))
+                (composition-rand-Right-11 (select __global_state __state_length))
+                (composition-rand-Right-12 (select __global_state __state_length))
+                (composition-rand-Right-13 (select __global_state __state_length))
+                (composition-rand-Right-14 (select __global_state __state_length))
+                (composition-rand-Right-15 (select __global_state __state_length))
+                (composition-rand-Right-16 (select __global_state __state_length)))))
+          (__state_length (+ 1 __state_length)))
+        (mk-return-Right-keys_top-GETBIT
+          __global_state
+          __state_length
+          (as mk-none (Maybe Bool))
+          true)))))
 (define-fun
   oracle-Right-keys_top-SETBIT
   (
@@ -851,11 +4440,11 @@
                   (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                   (composition-pkgstate-Right-simgate (select __global_state __state_length))
                   (composition-pkgstate-Right-ev (select __global_state __state_length))
-                  (composition-param-Right-zerom (select __global_state __state_length))
-                  (composition-param-Right-zeron (select __global_state __state_length))
                   (composition-param-Right-m (select __global_state __state_length))
-                  (composition-param-Right-n (select __global_state __state_length))
                   (composition-param-Right-p (select __global_state __state_length))
+                  (composition-param-Right-zerom (select __global_state __state_length))
+                  (composition-param-Right-n (select __global_state __state_length))
+                  (composition-param-Right-zeron (select __global_state __state_length))
                   (composition-rand-Right-0 (select __global_state __state_length))
                   (composition-rand-Right-1 (select __global_state __state_length))
                   (composition-rand-Right-2 (select __global_state __state_length))
@@ -874,8 +4463,50 @@
                   (composition-rand-Right-15 (select __global_state __state_length))
                   (composition-rand-Right-16 (select __global_state __state_length)))))
             (__state_length (+ 1 __state_length)))
-          (mk-return-Right-keys_top-SETBIT __global_state __state_length)))
-      mk-abort-Right-keys_top-SETBIT)))
+          (mk-return-Right-keys_top-SETBIT
+            __global_state
+            __state_length
+            (mk-some mk-empty)
+            false)))
+      (let
+        (
+          (__global_state
+            (store
+              __global_state
+              (+ 1 __state_length)
+              (mk-composition-state-Right
+                __self_state
+                (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
+                (composition-pkgstate-Right-simgate (select __global_state __state_length))
+                (composition-pkgstate-Right-ev (select __global_state __state_length))
+                (composition-param-Right-m (select __global_state __state_length))
+                (composition-param-Right-p (select __global_state __state_length))
+                (composition-param-Right-zerom (select __global_state __state_length))
+                (composition-param-Right-n (select __global_state __state_length))
+                (composition-param-Right-zeron (select __global_state __state_length))
+                (composition-rand-Right-0 (select __global_state __state_length))
+                (composition-rand-Right-1 (select __global_state __state_length))
+                (composition-rand-Right-2 (select __global_state __state_length))
+                (composition-rand-Right-3 (select __global_state __state_length))
+                (composition-rand-Right-4 (select __global_state __state_length))
+                (composition-rand-Right-5 (select __global_state __state_length))
+                (composition-rand-Right-6 (select __global_state __state_length))
+                (composition-rand-Right-7 (select __global_state __state_length))
+                (composition-rand-Right-8 (select __global_state __state_length))
+                (composition-rand-Right-9 (select __global_state __state_length))
+                (composition-rand-Right-10 (select __global_state __state_length))
+                (composition-rand-Right-11 (select __global_state __state_length))
+                (composition-rand-Right-12 (select __global_state __state_length))
+                (composition-rand-Right-13 (select __global_state __state_length))
+                (composition-rand-Right-14 (select __global_state __state_length))
+                (composition-rand-Right-15 (select __global_state __state_length))
+                (composition-rand-Right-16 (select __global_state __state_length)))))
+          (__state_length (+ 1 __state_length)))
+        (mk-return-Right-keys_top-SETBIT
+          __global_state
+          __state_length
+          (as mk-none (Maybe Empty))
+          true)))))
 (define-fun
   oracle-Right-keys_bottom-GETKEYSIN
   (
@@ -904,11 +4535,11 @@
                     __self_state
                     (composition-pkgstate-Right-simgate (select __global_state __state_length))
                     (composition-pkgstate-Right-ev (select __global_state __state_length))
-                    (composition-param-Right-zerom (select __global_state __state_length))
-                    (composition-param-Right-zeron (select __global_state __state_length))
                     (composition-param-Right-m (select __global_state __state_length))
-                    (composition-param-Right-n (select __global_state __state_length))
                     (composition-param-Right-p (select __global_state __state_length))
+                    (composition-param-Right-zerom (select __global_state __state_length))
+                    (composition-param-Right-n (select __global_state __state_length))
+                    (composition-param-Right-zeron (select __global_state __state_length))
                     (composition-rand-Right-0 (select __global_state __state_length))
                     (composition-rand-Right-1 (select __global_state __state_length))
                     (composition-rand-Right-2 (select __global_state __state_length))
@@ -927,8 +4558,50 @@
                     (composition-rand-Right-15 (select __global_state __state_length))
                     (composition-rand-Right-16 (select __global_state __state_length)))))
               (__state_length (+ 1 __state_length)))
-            (mk-return-Right-keys_bottom-GETKEYSIN __global_state __state_length Z))))
-      mk-abort-Right-keys_bottom-GETKEYSIN)))
+            (mk-return-Right-keys_bottom-GETKEYSIN
+              __global_state
+              __state_length
+              (mk-some Z)
+              false))))
+      (let
+        (
+          (__global_state
+            (store
+              __global_state
+              (+ 1 __state_length)
+              (mk-composition-state-Right
+                (composition-pkgstate-Right-keys_top (select __global_state __state_length))
+                __self_state
+                (composition-pkgstate-Right-simgate (select __global_state __state_length))
+                (composition-pkgstate-Right-ev (select __global_state __state_length))
+                (composition-param-Right-m (select __global_state __state_length))
+                (composition-param-Right-p (select __global_state __state_length))
+                (composition-param-Right-zerom (select __global_state __state_length))
+                (composition-param-Right-n (select __global_state __state_length))
+                (composition-param-Right-zeron (select __global_state __state_length))
+                (composition-rand-Right-0 (select __global_state __state_length))
+                (composition-rand-Right-1 (select __global_state __state_length))
+                (composition-rand-Right-2 (select __global_state __state_length))
+                (composition-rand-Right-3 (select __global_state __state_length))
+                (composition-rand-Right-4 (select __global_state __state_length))
+                (composition-rand-Right-5 (select __global_state __state_length))
+                (composition-rand-Right-6 (select __global_state __state_length))
+                (composition-rand-Right-7 (select __global_state __state_length))
+                (composition-rand-Right-8 (select __global_state __state_length))
+                (composition-rand-Right-9 (select __global_state __state_length))
+                (composition-rand-Right-10 (select __global_state __state_length))
+                (composition-rand-Right-11 (select __global_state __state_length))
+                (composition-rand-Right-12 (select __global_state __state_length))
+                (composition-rand-Right-13 (select __global_state __state_length))
+                (composition-rand-Right-14 (select __global_state __state_length))
+                (composition-rand-Right-15 (select __global_state __state_length))
+                (composition-rand-Right-16 (select __global_state __state_length)))))
+          (__state_length (+ 1 __state_length)))
+        (mk-return-Right-keys_bottom-GETKEYSIN
+          __global_state
+          __state_length
+          (as mk-none (Maybe (Array Bool (Maybe Bits_n))))
+          true)))))
 (define-fun
   oracle-Right-keys_bottom-GETAIN
   (
@@ -965,11 +4638,11 @@
                             __self_state
                             (composition-pkgstate-Right-simgate (select __global_state __state_length))
                             (composition-pkgstate-Right-ev (select __global_state __state_length))
-                            (composition-param-Right-zerom (select __global_state __state_length))
-                            (composition-param-Right-zeron (select __global_state __state_length))
                             (composition-param-Right-m (select __global_state __state_length))
-                            (composition-param-Right-n (select __global_state __state_length))
                             (composition-param-Right-p (select __global_state __state_length))
+                            (composition-param-Right-zerom (select __global_state __state_length))
+                            (composition-param-Right-n (select __global_state __state_length))
+                            (composition-param-Right-zeron (select __global_state __state_length))
                             (composition-rand-Right-0 (select __global_state __state_length))
                             (composition-rand-Right-1 (select __global_state __state_length))
                             (composition-rand-Right-2 (select __global_state __state_length))
@@ -988,8 +4661,50 @@
                             (composition-rand-Right-15 (select __global_state __state_length))
                             (composition-rand-Right-16 (select __global_state __state_length)))))
                       (__state_length (+ 1 __state_length)))
-                    (mk-return-Right-keys_bottom-GETAIN __global_state __state_length k))))))))
-      mk-abort-Right-keys_bottom-GETAIN)))
+                    (mk-return-Right-keys_bottom-GETAIN
+                      __global_state
+                      __state_length
+                      (mk-some k)
+                      false))))))))
+      (let
+        (
+          (__global_state
+            (store
+              __global_state
+              (+ 1 __state_length)
+              (mk-composition-state-Right
+                (composition-pkgstate-Right-keys_top (select __global_state __state_length))
+                __self_state
+                (composition-pkgstate-Right-simgate (select __global_state __state_length))
+                (composition-pkgstate-Right-ev (select __global_state __state_length))
+                (composition-param-Right-m (select __global_state __state_length))
+                (composition-param-Right-p (select __global_state __state_length))
+                (composition-param-Right-zerom (select __global_state __state_length))
+                (composition-param-Right-n (select __global_state __state_length))
+                (composition-param-Right-zeron (select __global_state __state_length))
+                (composition-rand-Right-0 (select __global_state __state_length))
+                (composition-rand-Right-1 (select __global_state __state_length))
+                (composition-rand-Right-2 (select __global_state __state_length))
+                (composition-rand-Right-3 (select __global_state __state_length))
+                (composition-rand-Right-4 (select __global_state __state_length))
+                (composition-rand-Right-5 (select __global_state __state_length))
+                (composition-rand-Right-6 (select __global_state __state_length))
+                (composition-rand-Right-7 (select __global_state __state_length))
+                (composition-rand-Right-8 (select __global_state __state_length))
+                (composition-rand-Right-9 (select __global_state __state_length))
+                (composition-rand-Right-10 (select __global_state __state_length))
+                (composition-rand-Right-11 (select __global_state __state_length))
+                (composition-rand-Right-12 (select __global_state __state_length))
+                (composition-rand-Right-13 (select __global_state __state_length))
+                (composition-rand-Right-14 (select __global_state __state_length))
+                (composition-rand-Right-15 (select __global_state __state_length))
+                (composition-rand-Right-16 (select __global_state __state_length)))))
+          (__state_length (+ 1 __state_length)))
+        (mk-return-Right-keys_bottom-GETAIN
+          __global_state
+          __state_length
+          (as mk-none (Maybe Bits_n))
+          true)))))
 (define-fun
   oracle-Right-keys_bottom-GETINAIN
   (
@@ -1026,11 +4741,11 @@
                             __self_state
                             (composition-pkgstate-Right-simgate (select __global_state __state_length))
                             (composition-pkgstate-Right-ev (select __global_state __state_length))
-                            (composition-param-Right-zerom (select __global_state __state_length))
-                            (composition-param-Right-zeron (select __global_state __state_length))
                             (composition-param-Right-m (select __global_state __state_length))
-                            (composition-param-Right-n (select __global_state __state_length))
                             (composition-param-Right-p (select __global_state __state_length))
+                            (composition-param-Right-zerom (select __global_state __state_length))
+                            (composition-param-Right-n (select __global_state __state_length))
+                            (composition-param-Right-zeron (select __global_state __state_length))
                             (composition-rand-Right-0 (select __global_state __state_length))
                             (composition-rand-Right-1 (select __global_state __state_length))
                             (composition-rand-Right-2 (select __global_state __state_length))
@@ -1049,8 +4764,50 @@
                             (composition-rand-Right-15 (select __global_state __state_length))
                             (composition-rand-Right-16 (select __global_state __state_length)))))
                       (__state_length (+ 1 __state_length)))
-                    (mk-return-Right-keys_bottom-GETINAIN __global_state __state_length k))))))))
-      mk-abort-Right-keys_bottom-GETINAIN)))
+                    (mk-return-Right-keys_bottom-GETINAIN
+                      __global_state
+                      __state_length
+                      (mk-some k)
+                      false))))))))
+      (let
+        (
+          (__global_state
+            (store
+              __global_state
+              (+ 1 __state_length)
+              (mk-composition-state-Right
+                (composition-pkgstate-Right-keys_top (select __global_state __state_length))
+                __self_state
+                (composition-pkgstate-Right-simgate (select __global_state __state_length))
+                (composition-pkgstate-Right-ev (select __global_state __state_length))
+                (composition-param-Right-m (select __global_state __state_length))
+                (composition-param-Right-p (select __global_state __state_length))
+                (composition-param-Right-zerom (select __global_state __state_length))
+                (composition-param-Right-n (select __global_state __state_length))
+                (composition-param-Right-zeron (select __global_state __state_length))
+                (composition-rand-Right-0 (select __global_state __state_length))
+                (composition-rand-Right-1 (select __global_state __state_length))
+                (composition-rand-Right-2 (select __global_state __state_length))
+                (composition-rand-Right-3 (select __global_state __state_length))
+                (composition-rand-Right-4 (select __global_state __state_length))
+                (composition-rand-Right-5 (select __global_state __state_length))
+                (composition-rand-Right-6 (select __global_state __state_length))
+                (composition-rand-Right-7 (select __global_state __state_length))
+                (composition-rand-Right-8 (select __global_state __state_length))
+                (composition-rand-Right-9 (select __global_state __state_length))
+                (composition-rand-Right-10 (select __global_state __state_length))
+                (composition-rand-Right-11 (select __global_state __state_length))
+                (composition-rand-Right-12 (select __global_state __state_length))
+                (composition-rand-Right-13 (select __global_state __state_length))
+                (composition-rand-Right-14 (select __global_state __state_length))
+                (composition-rand-Right-15 (select __global_state __state_length))
+                (composition-rand-Right-16 (select __global_state __state_length)))))
+          (__state_length (+ 1 __state_length)))
+        (mk-return-Right-keys_bottom-GETINAIN
+          __global_state
+          __state_length
+          (as mk-none (Maybe Bits_n))
+          true)))))
 (define-fun
   oracle-Right-keys_bottom-GETAOUT
   (
@@ -1094,11 +4851,11 @@
                         (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                         (composition-pkgstate-Right-simgate (select __global_state __state_length))
                         (composition-pkgstate-Right-ev (select __global_state __state_length))
-                        (composition-param-Right-zerom (select __global_state __state_length))
-                        (composition-param-Right-zeron (select __global_state __state_length))
                         (composition-param-Right-m (select __global_state __state_length))
-                        (composition-param-Right-n (select __global_state __state_length))
                         (composition-param-Right-p (select __global_state __state_length))
+                        (composition-param-Right-zerom (select __global_state __state_length))
+                        (composition-param-Right-n (select __global_state __state_length))
+                        (composition-param-Right-zeron (select __global_state __state_length))
                         (composition-rand-Right-0 (select __global_state __state_length))
                         (composition-rand-Right-1 (select __global_state __state_length))
                         (composition-rand-Right-2 (select __global_state __state_length))
@@ -1137,11 +4894,11 @@
                                 (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                 (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                 (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                (composition-param-Right-zerom (select __global_state __state_length))
-                                (composition-param-Right-zeron (select __global_state __state_length))
                                 (composition-param-Right-m (select __global_state __state_length))
-                                (composition-param-Right-n (select __global_state __state_length))
                                 (composition-param-Right-p (select __global_state __state_length))
+                                (composition-param-Right-zerom (select __global_state __state_length))
+                                (composition-param-Right-n (select __global_state __state_length))
+                                (composition-param-Right-zeron (select __global_state __state_length))
                                 (composition-rand-Right-0 (select __global_state __state_length))
                                 (composition-rand-Right-1 (select __global_state __state_length))
                                 (composition-rand-Right-2 (select __global_state __state_length))
@@ -1191,11 +4948,11 @@
                                                   __self_state
                                                   (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                   (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                  (composition-param-Right-zerom (select __global_state __state_length))
-                                                  (composition-param-Right-zeron (select __global_state __state_length))
                                                   (composition-param-Right-m (select __global_state __state_length))
-                                                  (composition-param-Right-n (select __global_state __state_length))
                                                   (composition-param-Right-p (select __global_state __state_length))
+                                                  (composition-param-Right-zerom (select __global_state __state_length))
+                                                  (composition-param-Right-n (select __global_state __state_length))
+                                                  (composition-param-Right-zeron (select __global_state __state_length))
                                                   (composition-rand-Right-0 (select __global_state __state_length))
                                                   (composition-rand-Right-1 (select __global_state __state_length))
                                                   (composition-rand-Right-2 (select __global_state __state_length))
@@ -1214,7 +4971,11 @@
                                                   (composition-rand-Right-15 (select __global_state __state_length))
                                                   (composition-rand-Right-16 (select __global_state __state_length)))))
                                             (__state_length (+ 1 __state_length)))
-                                          (mk-return-Right-keys_bottom-GETAOUT __global_state __state_length k))))))))))))))))
+                                          (mk-return-Right-keys_bottom-GETAOUT
+                                            __global_state
+                                            __state_length
+                                            (mk-some k)
+                                            false))))))))))))))))
             (let
               ((unwrap-1 (maybe-get (select (state-Right-keys_bottom-T __self_state) h))))
               (let
@@ -1238,11 +4999,11 @@
                                   __self_state
                                   (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                   (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                  (composition-param-Right-zerom (select __global_state __state_length))
-                                  (composition-param-Right-zeron (select __global_state __state_length))
                                   (composition-param-Right-m (select __global_state __state_length))
-                                  (composition-param-Right-n (select __global_state __state_length))
                                   (composition-param-Right-p (select __global_state __state_length))
+                                  (composition-param-Right-zerom (select __global_state __state_length))
+                                  (composition-param-Right-n (select __global_state __state_length))
+                                  (composition-param-Right-zeron (select __global_state __state_length))
                                   (composition-rand-Right-0 (select __global_state __state_length))
                                   (composition-rand-Right-1 (select __global_state __state_length))
                                   (composition-rand-Right-2 (select __global_state __state_length))
@@ -1261,8 +5022,50 @@
                                   (composition-rand-Right-15 (select __global_state __state_length))
                                   (composition-rand-Right-16 (select __global_state __state_length)))))
                             (__state_length (+ 1 __state_length)))
-                          (mk-return-Right-keys_bottom-GETAOUT __global_state __state_length k)))))))))))
-      mk-abort-Right-keys_bottom-GETAOUT)))
+                          (mk-return-Right-keys_bottom-GETAOUT
+                            __global_state
+                            __state_length
+                            (mk-some k)
+                            false)))))))))))
+      (let
+        (
+          (__global_state
+            (store
+              __global_state
+              (+ 1 __state_length)
+              (mk-composition-state-Right
+                (composition-pkgstate-Right-keys_top (select __global_state __state_length))
+                __self_state
+                (composition-pkgstate-Right-simgate (select __global_state __state_length))
+                (composition-pkgstate-Right-ev (select __global_state __state_length))
+                (composition-param-Right-m (select __global_state __state_length))
+                (composition-param-Right-p (select __global_state __state_length))
+                (composition-param-Right-zerom (select __global_state __state_length))
+                (composition-param-Right-n (select __global_state __state_length))
+                (composition-param-Right-zeron (select __global_state __state_length))
+                (composition-rand-Right-0 (select __global_state __state_length))
+                (composition-rand-Right-1 (select __global_state __state_length))
+                (composition-rand-Right-2 (select __global_state __state_length))
+                (composition-rand-Right-3 (select __global_state __state_length))
+                (composition-rand-Right-4 (select __global_state __state_length))
+                (composition-rand-Right-5 (select __global_state __state_length))
+                (composition-rand-Right-6 (select __global_state __state_length))
+                (composition-rand-Right-7 (select __global_state __state_length))
+                (composition-rand-Right-8 (select __global_state __state_length))
+                (composition-rand-Right-9 (select __global_state __state_length))
+                (composition-rand-Right-10 (select __global_state __state_length))
+                (composition-rand-Right-11 (select __global_state __state_length))
+                (composition-rand-Right-12 (select __global_state __state_length))
+                (composition-rand-Right-13 (select __global_state __state_length))
+                (composition-rand-Right-14 (select __global_state __state_length))
+                (composition-rand-Right-15 (select __global_state __state_length))
+                (composition-rand-Right-16 (select __global_state __state_length)))))
+          (__state_length (+ 1 __state_length)))
+        (mk-return-Right-keys_bottom-GETAOUT
+          __global_state
+          __state_length
+          (as mk-none (Maybe Bits_n))
+          true)))))
 (define-fun
   oracle-Right-keys_bottom-GETKEYSOUT
   (
@@ -1306,11 +5109,11 @@
                         (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                         (composition-pkgstate-Right-simgate (select __global_state __state_length))
                         (composition-pkgstate-Right-ev (select __global_state __state_length))
-                        (composition-param-Right-zerom (select __global_state __state_length))
-                        (composition-param-Right-zeron (select __global_state __state_length))
                         (composition-param-Right-m (select __global_state __state_length))
-                        (composition-param-Right-n (select __global_state __state_length))
                         (composition-param-Right-p (select __global_state __state_length))
+                        (composition-param-Right-zerom (select __global_state __state_length))
+                        (composition-param-Right-n (select __global_state __state_length))
+                        (composition-param-Right-zeron (select __global_state __state_length))
                         (composition-rand-Right-0 (select __global_state __state_length))
                         (composition-rand-Right-1 (select __global_state __state_length))
                         (composition-rand-Right-2 (select __global_state __state_length))
@@ -1349,11 +5152,11 @@
                                 (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                 (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                 (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                (composition-param-Right-zerom (select __global_state __state_length))
-                                (composition-param-Right-zeron (select __global_state __state_length))
                                 (composition-param-Right-m (select __global_state __state_length))
-                                (composition-param-Right-n (select __global_state __state_length))
                                 (composition-param-Right-p (select __global_state __state_length))
+                                (composition-param-Right-zerom (select __global_state __state_length))
+                                (composition-param-Right-n (select __global_state __state_length))
+                                (composition-param-Right-zeron (select __global_state __state_length))
                                 (composition-rand-Right-0 (select __global_state __state_length))
                                 (composition-rand-Right-1 (select __global_state __state_length))
                                 (composition-rand-Right-2 (select __global_state __state_length))
@@ -1395,11 +5198,11 @@
                                           __self_state
                                           (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                           (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                          (composition-param-Right-zerom (select __global_state __state_length))
-                                          (composition-param-Right-zeron (select __global_state __state_length))
                                           (composition-param-Right-m (select __global_state __state_length))
-                                          (composition-param-Right-n (select __global_state __state_length))
                                           (composition-param-Right-p (select __global_state __state_length))
+                                          (composition-param-Right-zerom (select __global_state __state_length))
+                                          (composition-param-Right-n (select __global_state __state_length))
+                                          (composition-param-Right-zeron (select __global_state __state_length))
                                           (composition-rand-Right-0 (select __global_state __state_length))
                                           (composition-rand-Right-1 (select __global_state __state_length))
                                           (composition-rand-Right-2 (select __global_state __state_length))
@@ -1418,7 +5221,11 @@
                                           (composition-rand-Right-15 (select __global_state __state_length))
                                           (composition-rand-Right-16 (select __global_state __state_length)))))
                                     (__state_length (+ 1 __state_length)))
-                                  (mk-return-Right-keys_bottom-GETKEYSOUT __global_state __state_length Z))))))))))))
+                                  (mk-return-Right-keys_bottom-GETKEYSOUT
+                                    __global_state
+                                    __state_length
+                                    (mk-some Z)
+                                    false))))))))))))
             (let
               ((unwrap-1 (maybe-get (select (state-Right-keys_bottom-T __self_state) h))))
               (let
@@ -1434,11 +5241,11 @@
                           __self_state
                           (composition-pkgstate-Right-simgate (select __global_state __state_length))
                           (composition-pkgstate-Right-ev (select __global_state __state_length))
-                          (composition-param-Right-zerom (select __global_state __state_length))
-                          (composition-param-Right-zeron (select __global_state __state_length))
                           (composition-param-Right-m (select __global_state __state_length))
-                          (composition-param-Right-n (select __global_state __state_length))
                           (composition-param-Right-p (select __global_state __state_length))
+                          (composition-param-Right-zerom (select __global_state __state_length))
+                          (composition-param-Right-n (select __global_state __state_length))
+                          (composition-param-Right-zeron (select __global_state __state_length))
                           (composition-rand-Right-0 (select __global_state __state_length))
                           (composition-rand-Right-1 (select __global_state __state_length))
                           (composition-rand-Right-2 (select __global_state __state_length))
@@ -1457,8 +5264,50 @@
                           (composition-rand-Right-15 (select __global_state __state_length))
                           (composition-rand-Right-16 (select __global_state __state_length)))))
                     (__state_length (+ 1 __state_length)))
-                  (mk-return-Right-keys_bottom-GETKEYSOUT __global_state __state_length Z)))))))
-      mk-abort-Right-keys_bottom-GETKEYSOUT)))
+                  (mk-return-Right-keys_bottom-GETKEYSOUT
+                    __global_state
+                    __state_length
+                    (mk-some Z)
+                    false)))))))
+      (let
+        (
+          (__global_state
+            (store
+              __global_state
+              (+ 1 __state_length)
+              (mk-composition-state-Right
+                (composition-pkgstate-Right-keys_top (select __global_state __state_length))
+                __self_state
+                (composition-pkgstate-Right-simgate (select __global_state __state_length))
+                (composition-pkgstate-Right-ev (select __global_state __state_length))
+                (composition-param-Right-m (select __global_state __state_length))
+                (composition-param-Right-p (select __global_state __state_length))
+                (composition-param-Right-zerom (select __global_state __state_length))
+                (composition-param-Right-n (select __global_state __state_length))
+                (composition-param-Right-zeron (select __global_state __state_length))
+                (composition-rand-Right-0 (select __global_state __state_length))
+                (composition-rand-Right-1 (select __global_state __state_length))
+                (composition-rand-Right-2 (select __global_state __state_length))
+                (composition-rand-Right-3 (select __global_state __state_length))
+                (composition-rand-Right-4 (select __global_state __state_length))
+                (composition-rand-Right-5 (select __global_state __state_length))
+                (composition-rand-Right-6 (select __global_state __state_length))
+                (composition-rand-Right-7 (select __global_state __state_length))
+                (composition-rand-Right-8 (select __global_state __state_length))
+                (composition-rand-Right-9 (select __global_state __state_length))
+                (composition-rand-Right-10 (select __global_state __state_length))
+                (composition-rand-Right-11 (select __global_state __state_length))
+                (composition-rand-Right-12 (select __global_state __state_length))
+                (composition-rand-Right-13 (select __global_state __state_length))
+                (composition-rand-Right-14 (select __global_state __state_length))
+                (composition-rand-Right-15 (select __global_state __state_length))
+                (composition-rand-Right-16 (select __global_state __state_length)))))
+          (__state_length (+ 1 __state_length)))
+        (mk-return-Right-keys_bottom-GETKEYSOUT
+          __global_state
+          __state_length
+          (as mk-none (Maybe (Array Bool (Maybe Bits_n))))
+          true)))))
 (define-fun
   oracle-Right-keys_bottom-GETBIT
   (
@@ -1490,11 +5339,11 @@
                     __self_state
                     (composition-pkgstate-Right-simgate (select __global_state __state_length))
                     (composition-pkgstate-Right-ev (select __global_state __state_length))
-                    (composition-param-Right-zerom (select __global_state __state_length))
-                    (composition-param-Right-zeron (select __global_state __state_length))
                     (composition-param-Right-m (select __global_state __state_length))
-                    (composition-param-Right-n (select __global_state __state_length))
                     (composition-param-Right-p (select __global_state __state_length))
+                    (composition-param-Right-zerom (select __global_state __state_length))
+                    (composition-param-Right-n (select __global_state __state_length))
+                    (composition-param-Right-zeron (select __global_state __state_length))
                     (composition-rand-Right-0 (select __global_state __state_length))
                     (composition-rand-Right-1 (select __global_state __state_length))
                     (composition-rand-Right-2 (select __global_state __state_length))
@@ -1513,8 +5362,50 @@
                     (composition-rand-Right-15 (select __global_state __state_length))
                     (composition-rand-Right-16 (select __global_state __state_length)))))
               (__state_length (+ 1 __state_length)))
-            (mk-return-Right-keys_bottom-GETBIT __global_state __state_length zz))))
-      mk-abort-Right-keys_bottom-GETBIT)))
+            (mk-return-Right-keys_bottom-GETBIT
+              __global_state
+              __state_length
+              (mk-some zz)
+              false))))
+      (let
+        (
+          (__global_state
+            (store
+              __global_state
+              (+ 1 __state_length)
+              (mk-composition-state-Right
+                (composition-pkgstate-Right-keys_top (select __global_state __state_length))
+                __self_state
+                (composition-pkgstate-Right-simgate (select __global_state __state_length))
+                (composition-pkgstate-Right-ev (select __global_state __state_length))
+                (composition-param-Right-m (select __global_state __state_length))
+                (composition-param-Right-p (select __global_state __state_length))
+                (composition-param-Right-zerom (select __global_state __state_length))
+                (composition-param-Right-n (select __global_state __state_length))
+                (composition-param-Right-zeron (select __global_state __state_length))
+                (composition-rand-Right-0 (select __global_state __state_length))
+                (composition-rand-Right-1 (select __global_state __state_length))
+                (composition-rand-Right-2 (select __global_state __state_length))
+                (composition-rand-Right-3 (select __global_state __state_length))
+                (composition-rand-Right-4 (select __global_state __state_length))
+                (composition-rand-Right-5 (select __global_state __state_length))
+                (composition-rand-Right-6 (select __global_state __state_length))
+                (composition-rand-Right-7 (select __global_state __state_length))
+                (composition-rand-Right-8 (select __global_state __state_length))
+                (composition-rand-Right-9 (select __global_state __state_length))
+                (composition-rand-Right-10 (select __global_state __state_length))
+                (composition-rand-Right-11 (select __global_state __state_length))
+                (composition-rand-Right-12 (select __global_state __state_length))
+                (composition-rand-Right-13 (select __global_state __state_length))
+                (composition-rand-Right-14 (select __global_state __state_length))
+                (composition-rand-Right-15 (select __global_state __state_length))
+                (composition-rand-Right-16 (select __global_state __state_length)))))
+          (__state_length (+ 1 __state_length)))
+        (mk-return-Right-keys_bottom-GETBIT
+          __global_state
+          __state_length
+          (as mk-none (Maybe Bool))
+          true)))))
 (define-fun
   oracle-Right-keys_bottom-SETBIT
   (
@@ -1549,11 +5440,11 @@
                   __self_state
                   (composition-pkgstate-Right-simgate (select __global_state __state_length))
                   (composition-pkgstate-Right-ev (select __global_state __state_length))
-                  (composition-param-Right-zerom (select __global_state __state_length))
-                  (composition-param-Right-zeron (select __global_state __state_length))
                   (composition-param-Right-m (select __global_state __state_length))
-                  (composition-param-Right-n (select __global_state __state_length))
                   (composition-param-Right-p (select __global_state __state_length))
+                  (composition-param-Right-zerom (select __global_state __state_length))
+                  (composition-param-Right-n (select __global_state __state_length))
+                  (composition-param-Right-zeron (select __global_state __state_length))
                   (composition-rand-Right-0 (select __global_state __state_length))
                   (composition-rand-Right-1 (select __global_state __state_length))
                   (composition-rand-Right-2 (select __global_state __state_length))
@@ -1572,8 +5463,50 @@
                   (composition-rand-Right-15 (select __global_state __state_length))
                   (composition-rand-Right-16 (select __global_state __state_length)))))
             (__state_length (+ 1 __state_length)))
-          (mk-return-Right-keys_bottom-SETBIT __global_state __state_length)))
-      mk-abort-Right-keys_bottom-SETBIT)))
+          (mk-return-Right-keys_bottom-SETBIT
+            __global_state
+            __state_length
+            (mk-some mk-empty)
+            false)))
+      (let
+        (
+          (__global_state
+            (store
+              __global_state
+              (+ 1 __state_length)
+              (mk-composition-state-Right
+                (composition-pkgstate-Right-keys_top (select __global_state __state_length))
+                __self_state
+                (composition-pkgstate-Right-simgate (select __global_state __state_length))
+                (composition-pkgstate-Right-ev (select __global_state __state_length))
+                (composition-param-Right-m (select __global_state __state_length))
+                (composition-param-Right-p (select __global_state __state_length))
+                (composition-param-Right-zerom (select __global_state __state_length))
+                (composition-param-Right-n (select __global_state __state_length))
+                (composition-param-Right-zeron (select __global_state __state_length))
+                (composition-rand-Right-0 (select __global_state __state_length))
+                (composition-rand-Right-1 (select __global_state __state_length))
+                (composition-rand-Right-2 (select __global_state __state_length))
+                (composition-rand-Right-3 (select __global_state __state_length))
+                (composition-rand-Right-4 (select __global_state __state_length))
+                (composition-rand-Right-5 (select __global_state __state_length))
+                (composition-rand-Right-6 (select __global_state __state_length))
+                (composition-rand-Right-7 (select __global_state __state_length))
+                (composition-rand-Right-8 (select __global_state __state_length))
+                (composition-rand-Right-9 (select __global_state __state_length))
+                (composition-rand-Right-10 (select __global_state __state_length))
+                (composition-rand-Right-11 (select __global_state __state_length))
+                (composition-rand-Right-12 (select __global_state __state_length))
+                (composition-rand-Right-13 (select __global_state __state_length))
+                (composition-rand-Right-14 (select __global_state __state_length))
+                (composition-rand-Right-15 (select __global_state __state_length))
+                (composition-rand-Right-16 (select __global_state __state_length)))))
+          (__state_length (+ 1 __state_length)))
+        (mk-return-Right-keys_bottom-SETBIT
+          __global_state
+          __state_length
+          (as mk-none (Maybe Empty))
+          true)))))
 (define-fun
   oracle-Right-ev-EVAL
   (
@@ -1591,23 +5524,107 @@
     (let
       ((__ret (oracle-Right-keys_top-GETBIT __global_state __state_length l)))
       (ite
-        (= __ret mk-abort-Right-keys_top-GETBIT)
-        mk-abort-Right-ev-EVAL
+        (return-Right-keys_top-GETBIT-is-abort __ret)
+        (let
+          (
+            (__global_state (return-Right-keys_top-GETBIT-state __ret))
+            (__state_length (return-Right-keys_top-GETBIT-state-length __ret)))
+          (let
+            (
+              (__global_state
+                (store
+                  __global_state
+                  (+ 1 __state_length)
+                  (mk-composition-state-Right
+                    (composition-pkgstate-Right-keys_top (select __global_state __state_length))
+                    (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
+                    (composition-pkgstate-Right-simgate (select __global_state __state_length))
+                    __self_state
+                    (composition-param-Right-m (select __global_state __state_length))
+                    (composition-param-Right-p (select __global_state __state_length))
+                    (composition-param-Right-zerom (select __global_state __state_length))
+                    (composition-param-Right-n (select __global_state __state_length))
+                    (composition-param-Right-zeron (select __global_state __state_length))
+                    (composition-rand-Right-0 (select __global_state __state_length))
+                    (composition-rand-Right-1 (select __global_state __state_length))
+                    (composition-rand-Right-2 (select __global_state __state_length))
+                    (composition-rand-Right-3 (select __global_state __state_length))
+                    (composition-rand-Right-4 (select __global_state __state_length))
+                    (composition-rand-Right-5 (select __global_state __state_length))
+                    (composition-rand-Right-6 (select __global_state __state_length))
+                    (composition-rand-Right-7 (select __global_state __state_length))
+                    (composition-rand-Right-8 (select __global_state __state_length))
+                    (composition-rand-Right-9 (select __global_state __state_length))
+                    (composition-rand-Right-10 (select __global_state __state_length))
+                    (composition-rand-Right-11 (select __global_state __state_length))
+                    (composition-rand-Right-12 (select __global_state __state_length))
+                    (composition-rand-Right-13 (select __global_state __state_length))
+                    (composition-rand-Right-14 (select __global_state __state_length))
+                    (composition-rand-Right-15 (select __global_state __state_length))
+                    (composition-rand-Right-16 (select __global_state __state_length)))))
+              (__state_length (+ 1 __state_length)))
+            (mk-return-Right-ev-EVAL
+              __global_state
+              __state_length
+              (as mk-none (Maybe Empty))
+              true)))
         (let
           (
             (__global_state (return-Right-keys_top-GETBIT-state __ret))
             (__state_length (return-Right-keys_top-GETBIT-state-length __ret))
-            (zl (return-Right-keys_top-GETBIT-value __ret)))
+            (zl (maybe-get (return-Right-keys_top-GETBIT-value __ret))))
           (let
             ((__ret (oracle-Right-keys_top-GETBIT __global_state __state_length r)))
             (ite
-              (= __ret mk-abort-Right-keys_top-GETBIT)
-              mk-abort-Right-ev-EVAL
+              (return-Right-keys_top-GETBIT-is-abort __ret)
+              (let
+                (
+                  (__global_state (return-Right-keys_top-GETBIT-state __ret))
+                  (__state_length (return-Right-keys_top-GETBIT-state-length __ret)))
+                (let
+                  (
+                    (__global_state
+                      (store
+                        __global_state
+                        (+ 1 __state_length)
+                        (mk-composition-state-Right
+                          (composition-pkgstate-Right-keys_top (select __global_state __state_length))
+                          (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
+                          (composition-pkgstate-Right-simgate (select __global_state __state_length))
+                          __self_state
+                          (composition-param-Right-m (select __global_state __state_length))
+                          (composition-param-Right-p (select __global_state __state_length))
+                          (composition-param-Right-zerom (select __global_state __state_length))
+                          (composition-param-Right-n (select __global_state __state_length))
+                          (composition-param-Right-zeron (select __global_state __state_length))
+                          (composition-rand-Right-0 (select __global_state __state_length))
+                          (composition-rand-Right-1 (select __global_state __state_length))
+                          (composition-rand-Right-2 (select __global_state __state_length))
+                          (composition-rand-Right-3 (select __global_state __state_length))
+                          (composition-rand-Right-4 (select __global_state __state_length))
+                          (composition-rand-Right-5 (select __global_state __state_length))
+                          (composition-rand-Right-6 (select __global_state __state_length))
+                          (composition-rand-Right-7 (select __global_state __state_length))
+                          (composition-rand-Right-8 (select __global_state __state_length))
+                          (composition-rand-Right-9 (select __global_state __state_length))
+                          (composition-rand-Right-10 (select __global_state __state_length))
+                          (composition-rand-Right-11 (select __global_state __state_length))
+                          (composition-rand-Right-12 (select __global_state __state_length))
+                          (composition-rand-Right-13 (select __global_state __state_length))
+                          (composition-rand-Right-14 (select __global_state __state_length))
+                          (composition-rand-Right-15 (select __global_state __state_length))
+                          (composition-rand-Right-16 (select __global_state __state_length)))))
+                    (__state_length (+ 1 __state_length)))
+                  (mk-return-Right-ev-EVAL
+                    __global_state
+                    __state_length
+                    (as mk-none (Maybe Empty))
+                    true)))
               (let
                 (
                   (__global_state (return-Right-keys_top-GETBIT-state __ret))
                   (__state_length (return-Right-keys_top-GETBIT-state-length __ret))
-                  (zr (return-Right-keys_top-GETBIT-value __ret)))
+                  (zr (maybe-get (return-Right-keys_top-GETBIT-value __ret))))
                 (let
                   ((unwrap-1 (maybe-get (select op (mk-tuple2 zl zr)))))
                   (let
@@ -1615,8 +5632,7 @@
                     (let
                       ((__ret (oracle-Right-keys_bottom-SETBIT __global_state __state_length j z)))
                       (ite
-                        (= __ret mk-abort-Right-keys_bottom-SETBIT)
-                        mk-abort-Right-ev-EVAL
+                        (return-Right-keys_bottom-SETBIT-is-abort __ret)
                         (let
                           (
                             (__global_state (return-Right-keys_bottom-SETBIT-state __ret))
@@ -1632,11 +5648,11 @@
                                     (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                     (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                     __self_state
-                                    (composition-param-Right-zerom (select __global_state __state_length))
-                                    (composition-param-Right-zeron (select __global_state __state_length))
                                     (composition-param-Right-m (select __global_state __state_length))
-                                    (composition-param-Right-n (select __global_state __state_length))
                                     (composition-param-Right-p (select __global_state __state_length))
+                                    (composition-param-Right-zerom (select __global_state __state_length))
+                                    (composition-param-Right-n (select __global_state __state_length))
+                                    (composition-param-Right-zeron (select __global_state __state_length))
                                     (composition-rand-Right-0 (select __global_state __state_length))
                                     (composition-rand-Right-1 (select __global_state __state_length))
                                     (composition-rand-Right-2 (select __global_state __state_length))
@@ -1655,7 +5671,54 @@
                                     (composition-rand-Right-15 (select __global_state __state_length))
                                     (composition-rand-Right-16 (select __global_state __state_length)))))
                               (__state_length (+ 1 __state_length)))
-                            (mk-return-Right-ev-EVAL __global_state __state_length)))))))))))))))
+                            (mk-return-Right-ev-EVAL
+                              __global_state
+                              __state_length
+                              (as mk-none (Maybe Empty))
+                              true)))
+                        (let
+                          (
+                            (__global_state (return-Right-keys_bottom-SETBIT-state __ret))
+                            (__state_length (return-Right-keys_bottom-SETBIT-state-length __ret)))
+                          (let
+                            (
+                              (__global_state
+                                (store
+                                  __global_state
+                                  (+ 1 __state_length)
+                                  (mk-composition-state-Right
+                                    (composition-pkgstate-Right-keys_top (select __global_state __state_length))
+                                    (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
+                                    (composition-pkgstate-Right-simgate (select __global_state __state_length))
+                                    __self_state
+                                    (composition-param-Right-m (select __global_state __state_length))
+                                    (composition-param-Right-p (select __global_state __state_length))
+                                    (composition-param-Right-zerom (select __global_state __state_length))
+                                    (composition-param-Right-n (select __global_state __state_length))
+                                    (composition-param-Right-zeron (select __global_state __state_length))
+                                    (composition-rand-Right-0 (select __global_state __state_length))
+                                    (composition-rand-Right-1 (select __global_state __state_length))
+                                    (composition-rand-Right-2 (select __global_state __state_length))
+                                    (composition-rand-Right-3 (select __global_state __state_length))
+                                    (composition-rand-Right-4 (select __global_state __state_length))
+                                    (composition-rand-Right-5 (select __global_state __state_length))
+                                    (composition-rand-Right-6 (select __global_state __state_length))
+                                    (composition-rand-Right-7 (select __global_state __state_length))
+                                    (composition-rand-Right-8 (select __global_state __state_length))
+                                    (composition-rand-Right-9 (select __global_state __state_length))
+                                    (composition-rand-Right-10 (select __global_state __state_length))
+                                    (composition-rand-Right-11 (select __global_state __state_length))
+                                    (composition-rand-Right-12 (select __global_state __state_length))
+                                    (composition-rand-Right-13 (select __global_state __state_length))
+                                    (composition-rand-Right-14 (select __global_state __state_length))
+                                    (composition-rand-Right-15 (select __global_state __state_length))
+                                    (composition-rand-Right-16 (select __global_state __state_length)))))
+                              (__state_length (+ 1 __state_length)))
+                            (mk-return-Right-ev-EVAL
+                              __global_state
+                              __state_length
+                              (mk-some mk-empty)
+                              false)))))))))))))))
 (define-fun
   oracle-Right-simgate-GBLG
   (
@@ -1682,8 +5745,50 @@
             (let
               ((__ret (oracle-Right-ev-EVAL __global_state __state_length j l r op)))
               (ite
-                (= __ret mk-abort-Right-ev-EVAL)
-                mk-abort-Right-simgate-GBLG
+                (return-Right-ev-EVAL-is-abort __ret)
+                (let
+                  (
+                    (__global_state (return-Right-ev-EVAL-state __ret))
+                    (__state_length (return-Right-ev-EVAL-state-length __ret)))
+                  (let
+                    (
+                      (__global_state
+                        (store
+                          __global_state
+                          (+ 1 __state_length)
+                          (mk-composition-state-Right
+                            (composition-pkgstate-Right-keys_top (select __global_state __state_length))
+                            (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
+                            __self_state
+                            (composition-pkgstate-Right-ev (select __global_state __state_length))
+                            (composition-param-Right-m (select __global_state __state_length))
+                            (composition-param-Right-p (select __global_state __state_length))
+                            (composition-param-Right-zerom (select __global_state __state_length))
+                            (composition-param-Right-n (select __global_state __state_length))
+                            (composition-param-Right-zeron (select __global_state __state_length))
+                            (composition-rand-Right-0 (select __global_state __state_length))
+                            (composition-rand-Right-1 (select __global_state __state_length))
+                            (composition-rand-Right-2 (select __global_state __state_length))
+                            (composition-rand-Right-3 (select __global_state __state_length))
+                            (composition-rand-Right-4 (select __global_state __state_length))
+                            (composition-rand-Right-5 (select __global_state __state_length))
+                            (composition-rand-Right-6 (select __global_state __state_length))
+                            (composition-rand-Right-7 (select __global_state __state_length))
+                            (composition-rand-Right-8 (select __global_state __state_length))
+                            (composition-rand-Right-9 (select __global_state __state_length))
+                            (composition-rand-Right-10 (select __global_state __state_length))
+                            (composition-rand-Right-11 (select __global_state __state_length))
+                            (composition-rand-Right-12 (select __global_state __state_length))
+                            (composition-rand-Right-13 (select __global_state __state_length))
+                            (composition-rand-Right-14 (select __global_state __state_length))
+                            (composition-rand-Right-15 (select __global_state __state_length))
+                            (composition-rand-Right-16 (select __global_state __state_length)))))
+                      (__state_length (+ 1 __state_length)))
+                    (mk-return-Right-simgate-GBLG
+                      __global_state
+                      __state_length
+                      (as mk-none (Maybe (Array Bits_p (Maybe Bool))))
+                      true)))
                 (let
                   (
                     (__global_state (return-Right-ev-EVAL-state __ret))
@@ -1691,13 +5796,55 @@
                   (let
                     ((__ret (oracle-Right-keys_top-GETAIN __global_state __state_length l)))
                     (ite
-                      (= __ret mk-abort-Right-keys_top-GETAIN)
-                      mk-abort-Right-simgate-GBLG
+                      (return-Right-keys_top-GETAIN-is-abort __ret)
+                      (let
+                        (
+                          (__global_state (return-Right-keys_top-GETAIN-state __ret))
+                          (__state_length (return-Right-keys_top-GETAIN-state-length __ret)))
+                        (let
+                          (
+                            (__global_state
+                              (store
+                                __global_state
+                                (+ 1 __state_length)
+                                (mk-composition-state-Right
+                                  (composition-pkgstate-Right-keys_top (select __global_state __state_length))
+                                  (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
+                                  __self_state
+                                  (composition-pkgstate-Right-ev (select __global_state __state_length))
+                                  (composition-param-Right-m (select __global_state __state_length))
+                                  (composition-param-Right-p (select __global_state __state_length))
+                                  (composition-param-Right-zerom (select __global_state __state_length))
+                                  (composition-param-Right-n (select __global_state __state_length))
+                                  (composition-param-Right-zeron (select __global_state __state_length))
+                                  (composition-rand-Right-0 (select __global_state __state_length))
+                                  (composition-rand-Right-1 (select __global_state __state_length))
+                                  (composition-rand-Right-2 (select __global_state __state_length))
+                                  (composition-rand-Right-3 (select __global_state __state_length))
+                                  (composition-rand-Right-4 (select __global_state __state_length))
+                                  (composition-rand-Right-5 (select __global_state __state_length))
+                                  (composition-rand-Right-6 (select __global_state __state_length))
+                                  (composition-rand-Right-7 (select __global_state __state_length))
+                                  (composition-rand-Right-8 (select __global_state __state_length))
+                                  (composition-rand-Right-9 (select __global_state __state_length))
+                                  (composition-rand-Right-10 (select __global_state __state_length))
+                                  (composition-rand-Right-11 (select __global_state __state_length))
+                                  (composition-rand-Right-12 (select __global_state __state_length))
+                                  (composition-rand-Right-13 (select __global_state __state_length))
+                                  (composition-rand-Right-14 (select __global_state __state_length))
+                                  (composition-rand-Right-15 (select __global_state __state_length))
+                                  (composition-rand-Right-16 (select __global_state __state_length)))))
+                            (__state_length (+ 1 __state_length)))
+                          (mk-return-Right-simgate-GBLG
+                            __global_state
+                            __state_length
+                            (as mk-none (Maybe (Array Bits_p (Maybe Bool))))
+                            true)))
                       (let
                         (
                           (__global_state (return-Right-keys_top-GETAIN-state __ret))
                           (__state_length (return-Right-keys_top-GETAIN-state-length __ret))
-                          (temp (return-Right-keys_top-GETAIN-value __ret)))
+                          (temp (maybe-get (return-Right-keys_top-GETAIN-value __ret))))
                         (let
                           ((Sl ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
                           (let
@@ -1705,25 +5852,109 @@
                             (let
                               ((__ret (oracle-Right-keys_top-GETINAIN __global_state __state_length l)))
                               (ite
-                                (= __ret mk-abort-Right-keys_top-GETINAIN)
-                                mk-abort-Right-simgate-GBLG
+                                (return-Right-keys_top-GETINAIN-is-abort __ret)
+                                (let
+                                  (
+                                    (__global_state (return-Right-keys_top-GETINAIN-state __ret))
+                                    (__state_length (return-Right-keys_top-GETINAIN-state-length __ret)))
+                                  (let
+                                    (
+                                      (__global_state
+                                        (store
+                                          __global_state
+                                          (+ 1 __state_length)
+                                          (mk-composition-state-Right
+                                            (composition-pkgstate-Right-keys_top (select __global_state __state_length))
+                                            (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
+                                            __self_state
+                                            (composition-pkgstate-Right-ev (select __global_state __state_length))
+                                            (composition-param-Right-m (select __global_state __state_length))
+                                            (composition-param-Right-p (select __global_state __state_length))
+                                            (composition-param-Right-zerom (select __global_state __state_length))
+                                            (composition-param-Right-n (select __global_state __state_length))
+                                            (composition-param-Right-zeron (select __global_state __state_length))
+                                            (composition-rand-Right-0 (select __global_state __state_length))
+                                            (composition-rand-Right-1 (select __global_state __state_length))
+                                            (composition-rand-Right-2 (select __global_state __state_length))
+                                            (composition-rand-Right-3 (select __global_state __state_length))
+                                            (composition-rand-Right-4 (select __global_state __state_length))
+                                            (composition-rand-Right-5 (select __global_state __state_length))
+                                            (composition-rand-Right-6 (select __global_state __state_length))
+                                            (composition-rand-Right-7 (select __global_state __state_length))
+                                            (composition-rand-Right-8 (select __global_state __state_length))
+                                            (composition-rand-Right-9 (select __global_state __state_length))
+                                            (composition-rand-Right-10 (select __global_state __state_length))
+                                            (composition-rand-Right-11 (select __global_state __state_length))
+                                            (composition-rand-Right-12 (select __global_state __state_length))
+                                            (composition-rand-Right-13 (select __global_state __state_length))
+                                            (composition-rand-Right-14 (select __global_state __state_length))
+                                            (composition-rand-Right-15 (select __global_state __state_length))
+                                            (composition-rand-Right-16 (select __global_state __state_length)))))
+                                      (__state_length (+ 1 __state_length)))
+                                    (mk-return-Right-simgate-GBLG
+                                      __global_state
+                                      __state_length
+                                      (as mk-none (Maybe (Array Bits_p (Maybe Bool))))
+                                      true)))
                                 (let
                                   (
                                     (__global_state (return-Right-keys_top-GETINAIN-state __ret))
                                     (__state_length (return-Right-keys_top-GETINAIN-state-length __ret))
-                                    (temp (return-Right-keys_top-GETINAIN-value __ret)))
+                                    (temp (maybe-get (return-Right-keys_top-GETINAIN-value __ret))))
                                   (let
                                     ((Sl (store Sl false (mk-some temp))))
                                     (let
                                       ((__ret (oracle-Right-keys_top-GETAIN __global_state __state_length r)))
                                       (ite
-                                        (= __ret mk-abort-Right-keys_top-GETAIN)
-                                        mk-abort-Right-simgate-GBLG
+                                        (return-Right-keys_top-GETAIN-is-abort __ret)
+                                        (let
+                                          (
+                                            (__global_state (return-Right-keys_top-GETAIN-state __ret))
+                                            (__state_length (return-Right-keys_top-GETAIN-state-length __ret)))
+                                          (let
+                                            (
+                                              (__global_state
+                                                (store
+                                                  __global_state
+                                                  (+ 1 __state_length)
+                                                  (mk-composition-state-Right
+                                                    (composition-pkgstate-Right-keys_top (select __global_state __state_length))
+                                                    (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
+                                                    __self_state
+                                                    (composition-pkgstate-Right-ev (select __global_state __state_length))
+                                                    (composition-param-Right-m (select __global_state __state_length))
+                                                    (composition-param-Right-p (select __global_state __state_length))
+                                                    (composition-param-Right-zerom (select __global_state __state_length))
+                                                    (composition-param-Right-n (select __global_state __state_length))
+                                                    (composition-param-Right-zeron (select __global_state __state_length))
+                                                    (composition-rand-Right-0 (select __global_state __state_length))
+                                                    (composition-rand-Right-1 (select __global_state __state_length))
+                                                    (composition-rand-Right-2 (select __global_state __state_length))
+                                                    (composition-rand-Right-3 (select __global_state __state_length))
+                                                    (composition-rand-Right-4 (select __global_state __state_length))
+                                                    (composition-rand-Right-5 (select __global_state __state_length))
+                                                    (composition-rand-Right-6 (select __global_state __state_length))
+                                                    (composition-rand-Right-7 (select __global_state __state_length))
+                                                    (composition-rand-Right-8 (select __global_state __state_length))
+                                                    (composition-rand-Right-9 (select __global_state __state_length))
+                                                    (composition-rand-Right-10 (select __global_state __state_length))
+                                                    (composition-rand-Right-11 (select __global_state __state_length))
+                                                    (composition-rand-Right-12 (select __global_state __state_length))
+                                                    (composition-rand-Right-13 (select __global_state __state_length))
+                                                    (composition-rand-Right-14 (select __global_state __state_length))
+                                                    (composition-rand-Right-15 (select __global_state __state_length))
+                                                    (composition-rand-Right-16 (select __global_state __state_length)))))
+                                              (__state_length (+ 1 __state_length)))
+                                            (mk-return-Right-simgate-GBLG
+                                              __global_state
+                                              __state_length
+                                              (as mk-none (Maybe (Array Bits_p (Maybe Bool))))
+                                              true)))
                                         (let
                                           (
                                             (__global_state (return-Right-keys_top-GETAIN-state __ret))
                                             (__state_length (return-Right-keys_top-GETAIN-state-length __ret))
-                                            (temp (return-Right-keys_top-GETAIN-value __ret)))
+                                            (temp (maybe-get (return-Right-keys_top-GETAIN-value __ret))))
                                           (let
                                             ((Sr ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
                                             (let
@@ -1731,25 +5962,109 @@
                                               (let
                                                 ((__ret (oracle-Right-keys_top-GETINAIN __global_state __state_length r)))
                                                 (ite
-                                                  (= __ret mk-abort-Right-keys_top-GETINAIN)
-                                                  mk-abort-Right-simgate-GBLG
+                                                  (return-Right-keys_top-GETINAIN-is-abort __ret)
+                                                  (let
+                                                    (
+                                                      (__global_state (return-Right-keys_top-GETINAIN-state __ret))
+                                                      (__state_length (return-Right-keys_top-GETINAIN-state-length __ret)))
+                                                    (let
+                                                      (
+                                                        (__global_state
+                                                          (store
+                                                            __global_state
+                                                            (+ 1 __state_length)
+                                                            (mk-composition-state-Right
+                                                              (composition-pkgstate-Right-keys_top (select __global_state __state_length))
+                                                              (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
+                                                              __self_state
+                                                              (composition-pkgstate-Right-ev (select __global_state __state_length))
+                                                              (composition-param-Right-m (select __global_state __state_length))
+                                                              (composition-param-Right-p (select __global_state __state_length))
+                                                              (composition-param-Right-zerom (select __global_state __state_length))
+                                                              (composition-param-Right-n (select __global_state __state_length))
+                                                              (composition-param-Right-zeron (select __global_state __state_length))
+                                                              (composition-rand-Right-0 (select __global_state __state_length))
+                                                              (composition-rand-Right-1 (select __global_state __state_length))
+                                                              (composition-rand-Right-2 (select __global_state __state_length))
+                                                              (composition-rand-Right-3 (select __global_state __state_length))
+                                                              (composition-rand-Right-4 (select __global_state __state_length))
+                                                              (composition-rand-Right-5 (select __global_state __state_length))
+                                                              (composition-rand-Right-6 (select __global_state __state_length))
+                                                              (composition-rand-Right-7 (select __global_state __state_length))
+                                                              (composition-rand-Right-8 (select __global_state __state_length))
+                                                              (composition-rand-Right-9 (select __global_state __state_length))
+                                                              (composition-rand-Right-10 (select __global_state __state_length))
+                                                              (composition-rand-Right-11 (select __global_state __state_length))
+                                                              (composition-rand-Right-12 (select __global_state __state_length))
+                                                              (composition-rand-Right-13 (select __global_state __state_length))
+                                                              (composition-rand-Right-14 (select __global_state __state_length))
+                                                              (composition-rand-Right-15 (select __global_state __state_length))
+                                                              (composition-rand-Right-16 (select __global_state __state_length)))))
+                                                        (__state_length (+ 1 __state_length)))
+                                                      (mk-return-Right-simgate-GBLG
+                                                        __global_state
+                                                        __state_length
+                                                        (as mk-none (Maybe (Array Bits_p (Maybe Bool))))
+                                                        true)))
                                                   (let
                                                     (
                                                       (__global_state (return-Right-keys_top-GETINAIN-state __ret))
                                                       (__state_length (return-Right-keys_top-GETINAIN-state-length __ret))
-                                                      (temp (return-Right-keys_top-GETINAIN-value __ret)))
+                                                      (temp (maybe-get (return-Right-keys_top-GETINAIN-value __ret))))
                                                     (let
                                                       ((Sr (store Sr true (mk-some temp))))
                                                       (let
                                                         ((__ret (oracle-Right-keys_bottom-GETAOUT __global_state __state_length j)))
                                                         (ite
-                                                          (= __ret mk-abort-Right-keys_bottom-GETAOUT)
-                                                          mk-abort-Right-simgate-GBLG
+                                                          (return-Right-keys_bottom-GETAOUT-is-abort __ret)
+                                                          (let
+                                                            (
+                                                              (__global_state (return-Right-keys_bottom-GETAOUT-state __ret))
+                                                              (__state_length (return-Right-keys_bottom-GETAOUT-state-length __ret)))
+                                                            (let
+                                                              (
+                                                                (__global_state
+                                                                  (store
+                                                                    __global_state
+                                                                    (+ 1 __state_length)
+                                                                    (mk-composition-state-Right
+                                                                      (composition-pkgstate-Right-keys_top (select __global_state __state_length))
+                                                                      (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
+                                                                      __self_state
+                                                                      (composition-pkgstate-Right-ev (select __global_state __state_length))
+                                                                      (composition-param-Right-m (select __global_state __state_length))
+                                                                      (composition-param-Right-p (select __global_state __state_length))
+                                                                      (composition-param-Right-zerom (select __global_state __state_length))
+                                                                      (composition-param-Right-n (select __global_state __state_length))
+                                                                      (composition-param-Right-zeron (select __global_state __state_length))
+                                                                      (composition-rand-Right-0 (select __global_state __state_length))
+                                                                      (composition-rand-Right-1 (select __global_state __state_length))
+                                                                      (composition-rand-Right-2 (select __global_state __state_length))
+                                                                      (composition-rand-Right-3 (select __global_state __state_length))
+                                                                      (composition-rand-Right-4 (select __global_state __state_length))
+                                                                      (composition-rand-Right-5 (select __global_state __state_length))
+                                                                      (composition-rand-Right-6 (select __global_state __state_length))
+                                                                      (composition-rand-Right-7 (select __global_state __state_length))
+                                                                      (composition-rand-Right-8 (select __global_state __state_length))
+                                                                      (composition-rand-Right-9 (select __global_state __state_length))
+                                                                      (composition-rand-Right-10 (select __global_state __state_length))
+                                                                      (composition-rand-Right-11 (select __global_state __state_length))
+                                                                      (composition-rand-Right-12 (select __global_state __state_length))
+                                                                      (composition-rand-Right-13 (select __global_state __state_length))
+                                                                      (composition-rand-Right-14 (select __global_state __state_length))
+                                                                      (composition-rand-Right-15 (select __global_state __state_length))
+                                                                      (composition-rand-Right-16 (select __global_state __state_length)))))
+                                                                (__state_length (+ 1 __state_length)))
+                                                              (mk-return-Right-simgate-GBLG
+                                                                __global_state
+                                                                __state_length
+                                                                (as mk-none (Maybe (Array Bits_p (Maybe Bool))))
+                                                                true)))
                                                           (let
                                                             (
                                                               (__global_state (return-Right-keys_bottom-GETAOUT-state __ret))
                                                               (__state_length (return-Right-keys_bottom-GETAOUT-state-length __ret))
-                                                              (temp (return-Right-keys_bottom-GETAOUT-value __ret)))
+                                                              (temp (maybe-get (return-Right-keys_bottom-GETAOUT-value __ret))))
                                                             (let
                                                               ((Sj ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
                                                               (let
@@ -1791,11 +6106,11 @@
                                                                                                 (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                 (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                 (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                 (composition-param-Right-m (select __global_state __state_length))
-                                                                                                (composition-param-Right-n (select __global_state __state_length))
                                                                                                 (composition-param-Right-p (select __global_state __state_length))
+                                                                                                (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                (composition-param-Right-n (select __global_state __state_length))
+                                                                                                (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                 (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                 (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                 (composition-rand-Right-2 (select __global_state __state_length))
@@ -1830,11 +6145,11 @@
                                                                                                     (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                     (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                     (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                    (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                    (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                     (composition-param-Right-m (select __global_state __state_length))
-                                                                                                    (composition-param-Right-n (select __global_state __state_length))
                                                                                                     (composition-param-Right-p (select __global_state __state_length))
+                                                                                                    (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                    (composition-param-Right-n (select __global_state __state_length))
+                                                                                                    (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                     (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                     (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                     (composition-rand-Right-2 (select __global_state __state_length))
@@ -1897,11 +6212,11 @@
                                                                                                                                     (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                     (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                     (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                    (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                    (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                     (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                    (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                     (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                    (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                    (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                    (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                     (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                     (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                     (composition-rand-Right-2 (select __global_state __state_length))
@@ -1936,11 +6251,11 @@
                                                                                                                                         (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                         (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                         (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                        (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                        (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                         (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                        (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                         (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                        (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                        (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                        (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                         (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                         (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                         (composition-rand-Right-2 (select __global_state __state_length))
@@ -2001,11 +6316,11 @@
                                                                                                                                                                       (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                       (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                       (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                      (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                      (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                       (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                      (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                       (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                      (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                      (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                      (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                       (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                       (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                       (composition-rand-Right-2 (select __global_state __state_length))
@@ -2040,11 +6355,11 @@
                                                                                                                                                                           (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                           (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                           (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                          (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                          (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                           (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                          (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                           (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                          (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                          (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                          (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                           (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                           (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                           (composition-rand-Right-2 (select __global_state __state_length))
@@ -2105,11 +6420,11 @@
                                                                                                                                                                                                         (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                         (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                                                         (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                        (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                        (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                         (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                        (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                         (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                        (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                        (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                        (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                         (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                         (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                         (composition-rand-Right-2 (select __global_state __state_length))
@@ -2144,11 +6459,11 @@
                                                                                                                                                                                                             (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                             (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                                                             (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                            (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                            (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                             (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                            (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                             (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                            (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                            (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                            (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                             (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                             (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                             (composition-rand-Right-2 (select __global_state __state_length))
@@ -2183,11 +6498,11 @@
                                                                                                                                                                                                                     (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                                     __self_state
                                                                                                                                                                                                                     (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                                    (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                                    (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                                     (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                                    (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                                     (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                                    (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                                    (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                                    (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                                     (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                                     (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                                     (composition-rand-Right-2 (select __global_state __state_length))
@@ -2206,7 +6521,7 @@
                                                                                                                                                                                                                     (composition-rand-Right-15 (select __global_state __state_length))
                                                                                                                                                                                                                     (composition-rand-Right-16 (select __global_state __state_length)))))
                                                                                                                                                                                                               (__state_length (+ 1 __state_length)))
-                                                                                                                                                                                                            (mk-return-Right-simgate-GBLG __global_state __state_length C)))))))))))
+                                                                                                                                                                                                            (mk-return-Right-simgate-GBLG __global_state __state_length (mk-some C) false)))))))))))
                                                                                                                                                                                         (let
                                                                                                                                                                                           (
                                                                                                                                                                                             (rin
@@ -2224,11 +6539,11 @@
                                                                                                                                                                                                     (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                     (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                                                     (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                    (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                    (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                     (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                    (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                     (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                    (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                    (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                    (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                     (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                     (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                     (composition-rand-Right-2 (select __global_state __state_length))
@@ -2263,11 +6578,11 @@
                                                                                                                                                                                                         (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                         (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                                                         (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                        (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                        (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                         (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                        (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                         (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                        (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                        (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                        (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                         (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                         (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                         (composition-rand-Right-2 (select __global_state __state_length))
@@ -2302,11 +6617,11 @@
                                                                                                                                                                                                                 (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                                 __self_state
                                                                                                                                                                                                                 (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                                (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                                (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                                 (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                                (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                                 (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                                (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                                (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                                (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                                 (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                                 (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                                 (composition-rand-Right-2 (select __global_state __state_length))
@@ -2325,7 +6640,7 @@
                                                                                                                                                                                                                 (composition-rand-Right-15 (select __global_state __state_length))
                                                                                                                                                                                                                 (composition-rand-Right-16 (select __global_state __state_length)))))
                                                                                                                                                                                                           (__state_length (+ 1 __state_length)))
-                                                                                                                                                                                                        (mk-return-Right-simgate-GBLG __global_state __state_length C))))))))))))))))))))))))))
+                                                                                                                                                                                                        (mk-return-Right-simgate-GBLG __global_state __state_length (mk-some C) false))))))))))))))))))))))))))
                                                                                                                                                       (let
                                                                                                                                                         (
                                                                                                                                                           (rin
@@ -2343,11 +6658,11 @@
                                                                                                                                                                   (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                   (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                   (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                  (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                  (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                   (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                  (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                   (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                  (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                  (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                  (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                   (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                   (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                   (composition-rand-Right-2 (select __global_state __state_length))
@@ -2382,11 +6697,11 @@
                                                                                                                                                                       (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                       (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                       (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                      (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                      (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                       (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                      (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                       (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                      (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                      (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                      (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                       (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                       (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                       (composition-rand-Right-2 (select __global_state __state_length))
@@ -2447,11 +6762,11 @@
                                                                                                                                                                                                     (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                     (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                                                     (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                    (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                    (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                     (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                    (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                     (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                    (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                    (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                    (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                     (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                     (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                     (composition-rand-Right-2 (select __global_state __state_length))
@@ -2486,11 +6801,11 @@
                                                                                                                                                                                                         (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                         (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                                                         (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                        (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                        (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                         (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                        (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                         (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                        (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                        (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                        (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                         (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                         (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                         (composition-rand-Right-2 (select __global_state __state_length))
@@ -2525,11 +6840,11 @@
                                                                                                                                                                                                                 (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                                 __self_state
                                                                                                                                                                                                                 (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                                (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                                (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                                 (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                                (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                                 (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                                (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                                (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                                (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                                 (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                                 (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                                 (composition-rand-Right-2 (select __global_state __state_length))
@@ -2548,7 +6863,7 @@
                                                                                                                                                                                                                 (composition-rand-Right-15 (select __global_state __state_length))
                                                                                                                                                                                                                 (composition-rand-Right-16 (select __global_state __state_length)))))
                                                                                                                                                                                                           (__state_length (+ 1 __state_length)))
-                                                                                                                                                                                                        (mk-return-Right-simgate-GBLG __global_state __state_length C)))))))))))
+                                                                                                                                                                                                        (mk-return-Right-simgate-GBLG __global_state __state_length (mk-some C) false)))))))))))
                                                                                                                                                                                     (let
                                                                                                                                                                                       (
                                                                                                                                                                                         (rin
@@ -2566,11 +6881,11 @@
                                                                                                                                                                                                 (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                 (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                                                 (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                 (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                 (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                 (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                 (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                 (composition-rand-Right-2 (select __global_state __state_length))
@@ -2605,11 +6920,11 @@
                                                                                                                                                                                                     (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                     (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                                                     (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                    (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                    (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                     (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                    (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                     (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                    (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                    (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                    (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                     (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                     (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                     (composition-rand-Right-2 (select __global_state __state_length))
@@ -2644,11 +6959,11 @@
                                                                                                                                                                                                             (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                             __self_state
                                                                                                                                                                                                             (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                            (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                            (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                             (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                            (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                             (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                            (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                            (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                            (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                             (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                             (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                             (composition-rand-Right-2 (select __global_state __state_length))
@@ -2667,7 +6982,7 @@
                                                                                                                                                                                                             (composition-rand-Right-15 (select __global_state __state_length))
                                                                                                                                                                                                             (composition-rand-Right-16 (select __global_state __state_length)))))
                                                                                                                                                                                                       (__state_length (+ 1 __state_length)))
-                                                                                                                                                                                                    (mk-return-Right-simgate-GBLG __global_state __state_length C)))))))))))))))))))))))))))))))))))))))))
+                                                                                                                                                                                                    (mk-return-Right-simgate-GBLG __global_state __state_length (mk-some C) false)))))))))))))))))))))))))))))))))))))))))
                                                                                                                     (let
                                                                                                                       (
                                                                                                                         (rin
@@ -2685,11 +7000,11 @@
                                                                                                                                 (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                 (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                 (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                 (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                 (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                 (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                 (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                 (composition-rand-Right-2 (select __global_state __state_length))
@@ -2724,11 +7039,11 @@
                                                                                                                                     (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                     (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                     (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                    (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                    (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                     (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                    (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                     (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                    (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                    (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                    (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                     (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                     (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                     (composition-rand-Right-2 (select __global_state __state_length))
@@ -2789,11 +7104,11 @@
                                                                                                                                                                   (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                   (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                   (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                  (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                  (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                   (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                  (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                   (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                  (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                  (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                  (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                   (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                   (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                   (composition-rand-Right-2 (select __global_state __state_length))
@@ -2828,11 +7143,11 @@
                                                                                                                                                                       (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                       (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                       (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                      (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                      (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                       (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                      (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                       (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                      (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                      (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                      (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                       (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                       (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                       (composition-rand-Right-2 (select __global_state __state_length))
@@ -2893,11 +7208,11 @@
                                                                                                                                                                                                     (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                     (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                                                     (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                    (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                    (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                     (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                    (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                     (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                    (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                    (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                    (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                     (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                     (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                     (composition-rand-Right-2 (select __global_state __state_length))
@@ -2932,11 +7247,11 @@
                                                                                                                                                                                                         (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                         (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                                                         (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                        (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                        (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                         (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                        (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                         (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                        (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                        (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                        (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                         (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                         (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                         (composition-rand-Right-2 (select __global_state __state_length))
@@ -2971,11 +7286,11 @@
                                                                                                                                                                                                                 (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                                 __self_state
                                                                                                                                                                                                                 (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                                (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                                (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                                 (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                                (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                                 (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                                (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                                (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                                (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                                 (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                                 (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                                 (composition-rand-Right-2 (select __global_state __state_length))
@@ -2994,7 +7309,7 @@
                                                                                                                                                                                                                 (composition-rand-Right-15 (select __global_state __state_length))
                                                                                                                                                                                                                 (composition-rand-Right-16 (select __global_state __state_length)))))
                                                                                                                                                                                                           (__state_length (+ 1 __state_length)))
-                                                                                                                                                                                                        (mk-return-Right-simgate-GBLG __global_state __state_length C)))))))))))
+                                                                                                                                                                                                        (mk-return-Right-simgate-GBLG __global_state __state_length (mk-some C) false)))))))))))
                                                                                                                                                                                     (let
                                                                                                                                                                                       (
                                                                                                                                                                                         (rin
@@ -3012,11 +7327,11 @@
                                                                                                                                                                                                 (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                 (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                                                 (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                 (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                 (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                 (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                 (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                 (composition-rand-Right-2 (select __global_state __state_length))
@@ -3051,11 +7366,11 @@
                                                                                                                                                                                                     (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                     (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                                                     (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                    (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                    (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                     (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                    (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                     (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                    (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                    (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                    (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                     (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                     (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                     (composition-rand-Right-2 (select __global_state __state_length))
@@ -3090,11 +7405,11 @@
                                                                                                                                                                                                             (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                             __self_state
                                                                                                                                                                                                             (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                            (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                            (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                             (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                            (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                             (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                            (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                            (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                            (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                             (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                             (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                             (composition-rand-Right-2 (select __global_state __state_length))
@@ -3113,7 +7428,7 @@
                                                                                                                                                                                                             (composition-rand-Right-15 (select __global_state __state_length))
                                                                                                                                                                                                             (composition-rand-Right-16 (select __global_state __state_length)))))
                                                                                                                                                                                                       (__state_length (+ 1 __state_length)))
-                                                                                                                                                                                                    (mk-return-Right-simgate-GBLG __global_state __state_length C))))))))))))))))))))))))))
+                                                                                                                                                                                                    (mk-return-Right-simgate-GBLG __global_state __state_length (mk-some C) false))))))))))))))))))))))))))
                                                                                                                                                   (let
                                                                                                                                                     (
                                                                                                                                                       (rin
@@ -3131,11 +7446,11 @@
                                                                                                                                                               (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                               (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                               (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                              (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                              (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                               (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                              (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                               (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                              (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                              (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                              (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                               (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                               (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                               (composition-rand-Right-2 (select __global_state __state_length))
@@ -3170,11 +7485,11 @@
                                                                                                                                                                   (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                   (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                   (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                  (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                  (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                   (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                  (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                   (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                  (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                  (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                  (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                   (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                   (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                   (composition-rand-Right-2 (select __global_state __state_length))
@@ -3235,11 +7550,11 @@
                                                                                                                                                                                                 (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                 (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                                                 (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                 (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                 (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                 (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                 (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                 (composition-rand-Right-2 (select __global_state __state_length))
@@ -3274,11 +7589,11 @@
                                                                                                                                                                                                     (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                     (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                                                     (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                    (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                    (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                     (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                    (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                     (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                    (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                    (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                    (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                     (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                     (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                     (composition-rand-Right-2 (select __global_state __state_length))
@@ -3313,11 +7628,11 @@
                                                                                                                                                                                                             (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                             __self_state
                                                                                                                                                                                                             (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                            (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                            (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                             (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                            (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                             (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                            (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                            (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                            (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                             (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                             (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                             (composition-rand-Right-2 (select __global_state __state_length))
@@ -3336,7 +7651,7 @@
                                                                                                                                                                                                             (composition-rand-Right-15 (select __global_state __state_length))
                                                                                                                                                                                                             (composition-rand-Right-16 (select __global_state __state_length)))))
                                                                                                                                                                                                       (__state_length (+ 1 __state_length)))
-                                                                                                                                                                                                    (mk-return-Right-simgate-GBLG __global_state __state_length C)))))))))))
+                                                                                                                                                                                                    (mk-return-Right-simgate-GBLG __global_state __state_length (mk-some C) false)))))))))))
                                                                                                                                                                                 (let
                                                                                                                                                                                   (
                                                                                                                                                                                     (rin
@@ -3354,11 +7669,11 @@
                                                                                                                                                                                             (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                             (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                                             (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                            (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                            (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                             (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                            (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                             (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                            (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                            (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                            (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                             (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                             (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                             (composition-rand-Right-2 (select __global_state __state_length))
@@ -3393,11 +7708,11 @@
                                                                                                                                                                                                 (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                 (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                                                 (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                 (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                 (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                 (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                 (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                 (composition-rand-Right-2 (select __global_state __state_length))
@@ -3432,11 +7747,11 @@
                                                                                                                                                                                                         (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                         __self_state
                                                                                                                                                                                                         (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                        (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                        (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                         (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                        (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                         (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                        (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                        (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                        (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                         (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                         (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                         (composition-rand-Right-2 (select __global_state __state_length))
@@ -3455,7 +7770,7 @@
                                                                                                                                                                                                         (composition-rand-Right-15 (select __global_state __state_length))
                                                                                                                                                                                                         (composition-rand-Right-16 (select __global_state __state_length)))))
                                                                                                                                                                                                   (__state_length (+ 1 __state_length)))
-                                                                                                                                                                                                (mk-return-Right-simgate-GBLG __global_state __state_length C)))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+                                                                                                                                                                                                (mk-return-Right-simgate-GBLG __global_state __state_length (mk-some C) false)))))))))))))))))))))))))))))))))))))))))))))))))))))))))
                                                                                 (let
                                                                                   (
                                                                                     (rin
@@ -3473,11 +7788,11 @@
                                                                                             (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                             (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                             (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                            (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                            (composition-param-Right-zeron (select __global_state __state_length))
                                                                                             (composition-param-Right-m (select __global_state __state_length))
-                                                                                            (composition-param-Right-n (select __global_state __state_length))
                                                                                             (composition-param-Right-p (select __global_state __state_length))
+                                                                                            (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                            (composition-param-Right-n (select __global_state __state_length))
+                                                                                            (composition-param-Right-zeron (select __global_state __state_length))
                                                                                             (composition-rand-Right-0 (select __global_state __state_length))
                                                                                             (composition-rand-Right-1 (select __global_state __state_length))
                                                                                             (composition-rand-Right-2 (select __global_state __state_length))
@@ -3512,11 +7827,11 @@
                                                                                                 (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                 (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                 (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                 (composition-param-Right-m (select __global_state __state_length))
-                                                                                                (composition-param-Right-n (select __global_state __state_length))
                                                                                                 (composition-param-Right-p (select __global_state __state_length))
+                                                                                                (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                (composition-param-Right-n (select __global_state __state_length))
+                                                                                                (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                 (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                 (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                 (composition-rand-Right-2 (select __global_state __state_length))
@@ -3579,11 +7894,11 @@
                                                                                                                                 (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                 (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                 (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                 (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                 (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                 (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                 (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                 (composition-rand-Right-2 (select __global_state __state_length))
@@ -3618,11 +7933,11 @@
                                                                                                                                     (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                     (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                     (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                    (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                    (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                     (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                    (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                     (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                    (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                    (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                    (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                     (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                     (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                     (composition-rand-Right-2 (select __global_state __state_length))
@@ -3683,11 +7998,11 @@
                                                                                                                                                                   (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                   (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                   (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                  (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                  (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                   (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                  (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                   (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                  (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                  (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                  (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                   (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                   (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                   (composition-rand-Right-2 (select __global_state __state_length))
@@ -3722,11 +8037,11 @@
                                                                                                                                                                       (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                       (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                       (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                      (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                      (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                       (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                      (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                       (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                      (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                      (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                      (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                       (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                       (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                       (composition-rand-Right-2 (select __global_state __state_length))
@@ -3787,11 +8102,11 @@
                                                                                                                                                                                                     (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                     (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                                                     (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                    (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                    (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                     (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                    (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                     (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                    (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                    (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                    (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                     (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                     (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                     (composition-rand-Right-2 (select __global_state __state_length))
@@ -3826,11 +8141,11 @@
                                                                                                                                                                                                         (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                         (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                                                         (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                        (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                        (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                         (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                        (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                         (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                        (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                        (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                        (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                         (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                         (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                         (composition-rand-Right-2 (select __global_state __state_length))
@@ -3865,11 +8180,11 @@
                                                                                                                                                                                                                 (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                                 __self_state
                                                                                                                                                                                                                 (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                                (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                                (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                                 (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                                (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                                 (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                                (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                                (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                                (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                                 (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                                 (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                                 (composition-rand-Right-2 (select __global_state __state_length))
@@ -3888,7 +8203,7 @@
                                                                                                                                                                                                                 (composition-rand-Right-15 (select __global_state __state_length))
                                                                                                                                                                                                                 (composition-rand-Right-16 (select __global_state __state_length)))))
                                                                                                                                                                                                           (__state_length (+ 1 __state_length)))
-                                                                                                                                                                                                        (mk-return-Right-simgate-GBLG __global_state __state_length C)))))))))))
+                                                                                                                                                                                                        (mk-return-Right-simgate-GBLG __global_state __state_length (mk-some C) false)))))))))))
                                                                                                                                                                                     (let
                                                                                                                                                                                       (
                                                                                                                                                                                         (rin
@@ -3906,11 +8221,11 @@
                                                                                                                                                                                                 (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                 (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                                                 (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                 (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                 (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                 (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                 (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                 (composition-rand-Right-2 (select __global_state __state_length))
@@ -3945,11 +8260,11 @@
                                                                                                                                                                                                     (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                     (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                                                     (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                    (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                    (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                     (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                    (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                     (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                    (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                    (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                    (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                     (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                     (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                     (composition-rand-Right-2 (select __global_state __state_length))
@@ -3984,11 +8299,11 @@
                                                                                                                                                                                                             (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                             __self_state
                                                                                                                                                                                                             (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                            (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                            (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                             (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                            (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                             (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                            (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                            (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                            (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                             (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                             (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                             (composition-rand-Right-2 (select __global_state __state_length))
@@ -4007,7 +8322,7 @@
                                                                                                                                                                                                             (composition-rand-Right-15 (select __global_state __state_length))
                                                                                                                                                                                                             (composition-rand-Right-16 (select __global_state __state_length)))))
                                                                                                                                                                                                       (__state_length (+ 1 __state_length)))
-                                                                                                                                                                                                    (mk-return-Right-simgate-GBLG __global_state __state_length C))))))))))))))))))))))))))
+                                                                                                                                                                                                    (mk-return-Right-simgate-GBLG __global_state __state_length (mk-some C) false))))))))))))))))))))))))))
                                                                                                                                                   (let
                                                                                                                                                     (
                                                                                                                                                       (rin
@@ -4025,11 +8340,11 @@
                                                                                                                                                               (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                               (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                               (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                              (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                              (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                               (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                              (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                               (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                              (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                              (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                              (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                               (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                               (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                               (composition-rand-Right-2 (select __global_state __state_length))
@@ -4064,11 +8379,11 @@
                                                                                                                                                                   (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                   (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                   (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                  (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                  (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                   (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                  (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                   (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                  (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                  (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                  (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                   (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                   (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                   (composition-rand-Right-2 (select __global_state __state_length))
@@ -4129,11 +8444,11 @@
                                                                                                                                                                                                 (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                 (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                                                 (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                 (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                 (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                 (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                 (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                 (composition-rand-Right-2 (select __global_state __state_length))
@@ -4168,11 +8483,11 @@
                                                                                                                                                                                                     (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                     (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                                                     (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                    (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                    (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                     (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                    (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                     (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                    (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                    (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                    (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                     (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                     (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                     (composition-rand-Right-2 (select __global_state __state_length))
@@ -4207,11 +8522,11 @@
                                                                                                                                                                                                             (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                             __self_state
                                                                                                                                                                                                             (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                            (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                            (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                             (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                            (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                             (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                            (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                            (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                            (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                             (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                             (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                             (composition-rand-Right-2 (select __global_state __state_length))
@@ -4230,7 +8545,7 @@
                                                                                                                                                                                                             (composition-rand-Right-15 (select __global_state __state_length))
                                                                                                                                                                                                             (composition-rand-Right-16 (select __global_state __state_length)))))
                                                                                                                                                                                                       (__state_length (+ 1 __state_length)))
-                                                                                                                                                                                                    (mk-return-Right-simgate-GBLG __global_state __state_length C)))))))))))
+                                                                                                                                                                                                    (mk-return-Right-simgate-GBLG __global_state __state_length (mk-some C) false)))))))))))
                                                                                                                                                                                 (let
                                                                                                                                                                                   (
                                                                                                                                                                                     (rin
@@ -4248,11 +8563,11 @@
                                                                                                                                                                                             (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                             (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                                             (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                            (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                            (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                             (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                            (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                             (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                            (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                            (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                            (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                             (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                             (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                             (composition-rand-Right-2 (select __global_state __state_length))
@@ -4287,11 +8602,11 @@
                                                                                                                                                                                                 (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                 (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                                                 (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                 (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                 (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                 (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                 (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                 (composition-rand-Right-2 (select __global_state __state_length))
@@ -4326,11 +8641,11 @@
                                                                                                                                                                                                         (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                         __self_state
                                                                                                                                                                                                         (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                        (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                        (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                         (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                        (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                         (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                        (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                        (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                        (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                         (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                         (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                         (composition-rand-Right-2 (select __global_state __state_length))
@@ -4349,7 +8664,7 @@
                                                                                                                                                                                                         (composition-rand-Right-15 (select __global_state __state_length))
                                                                                                                                                                                                         (composition-rand-Right-16 (select __global_state __state_length)))))
                                                                                                                                                                                                   (__state_length (+ 1 __state_length)))
-                                                                                                                                                                                                (mk-return-Right-simgate-GBLG __global_state __state_length C)))))))))))))))))))))))))))))))))))))))))
+                                                                                                                                                                                                (mk-return-Right-simgate-GBLG __global_state __state_length (mk-some C) false)))))))))))))))))))))))))))))))))))))))))
                                                                                                                 (let
                                                                                                                   (
                                                                                                                     (rin
@@ -4367,11 +8682,11 @@
                                                                                                                             (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                             (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                             (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                            (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                            (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                             (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                            (composition-param-Right-n (select __global_state __state_length))
                                                                                                                             (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                            (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                            (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                            (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                             (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                             (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                             (composition-rand-Right-2 (select __global_state __state_length))
@@ -4406,11 +8721,11 @@
                                                                                                                                 (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                 (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                 (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                 (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                 (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                 (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                 (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                 (composition-rand-Right-2 (select __global_state __state_length))
@@ -4471,11 +8786,11 @@
                                                                                                                                                               (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                               (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                               (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                              (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                              (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                               (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                              (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                               (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                              (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                              (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                              (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                               (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                               (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                               (composition-rand-Right-2 (select __global_state __state_length))
@@ -4510,11 +8825,11 @@
                                                                                                                                                                   (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                   (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                   (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                  (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                  (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                   (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                  (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                   (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                  (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                  (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                  (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                   (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                   (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                   (composition-rand-Right-2 (select __global_state __state_length))
@@ -4575,11 +8890,11 @@
                                                                                                                                                                                                 (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                 (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                                                 (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                 (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                 (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                 (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                 (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                 (composition-rand-Right-2 (select __global_state __state_length))
@@ -4614,11 +8929,11 @@
                                                                                                                                                                                                     (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                     (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                                                     (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                    (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                    (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                     (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                    (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                     (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                    (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                    (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                    (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                     (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                     (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                     (composition-rand-Right-2 (select __global_state __state_length))
@@ -4653,11 +8968,11 @@
                                                                                                                                                                                                             (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                             __self_state
                                                                                                                                                                                                             (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                            (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                            (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                             (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                            (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                             (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                            (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                            (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                            (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                             (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                             (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                             (composition-rand-Right-2 (select __global_state __state_length))
@@ -4676,7 +8991,7 @@
                                                                                                                                                                                                             (composition-rand-Right-15 (select __global_state __state_length))
                                                                                                                                                                                                             (composition-rand-Right-16 (select __global_state __state_length)))))
                                                                                                                                                                                                       (__state_length (+ 1 __state_length)))
-                                                                                                                                                                                                    (mk-return-Right-simgate-GBLG __global_state __state_length C)))))))))))
+                                                                                                                                                                                                    (mk-return-Right-simgate-GBLG __global_state __state_length (mk-some C) false)))))))))))
                                                                                                                                                                                 (let
                                                                                                                                                                                   (
                                                                                                                                                                                     (rin
@@ -4694,11 +9009,11 @@
                                                                                                                                                                                             (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                             (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                                             (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                            (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                            (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                             (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                            (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                             (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                            (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                            (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                            (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                             (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                             (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                             (composition-rand-Right-2 (select __global_state __state_length))
@@ -4733,11 +9048,11 @@
                                                                                                                                                                                                 (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                 (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                                                 (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                 (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                 (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                 (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                 (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                 (composition-rand-Right-2 (select __global_state __state_length))
@@ -4772,11 +9087,11 @@
                                                                                                                                                                                                         (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                         __self_state
                                                                                                                                                                                                         (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                        (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                        (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                         (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                        (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                         (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                        (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                        (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                        (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                         (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                         (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                         (composition-rand-Right-2 (select __global_state __state_length))
@@ -4795,7 +9110,7 @@
                                                                                                                                                                                                         (composition-rand-Right-15 (select __global_state __state_length))
                                                                                                                                                                                                         (composition-rand-Right-16 (select __global_state __state_length)))))
                                                                                                                                                                                                   (__state_length (+ 1 __state_length)))
-                                                                                                                                                                                                (mk-return-Right-simgate-GBLG __global_state __state_length C))))))))))))))))))))))))))
+                                                                                                                                                                                                (mk-return-Right-simgate-GBLG __global_state __state_length (mk-some C) false))))))))))))))))))))))))))
                                                                                                                                               (let
                                                                                                                                                 (
                                                                                                                                                   (rin
@@ -4813,11 +9128,11 @@
                                                                                                                                                           (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                           (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                           (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                          (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                          (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                           (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                          (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                           (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                          (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                          (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                          (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                           (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                           (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                           (composition-rand-Right-2 (select __global_state __state_length))
@@ -4852,11 +9167,11 @@
                                                                                                                                                               (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                               (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                               (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                              (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                              (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                               (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                              (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                               (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                              (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                              (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                              (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                               (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                               (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                               (composition-rand-Right-2 (select __global_state __state_length))
@@ -4917,11 +9232,11 @@
                                                                                                                                                                                             (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                             (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                                             (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                            (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                            (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                             (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                            (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                             (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                            (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                            (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                            (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                             (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                             (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                             (composition-rand-Right-2 (select __global_state __state_length))
@@ -4956,11 +9271,11 @@
                                                                                                                                                                                                 (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                 (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                                                 (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                 (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                 (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                 (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                 (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                 (composition-rand-Right-2 (select __global_state __state_length))
@@ -4995,11 +9310,11 @@
                                                                                                                                                                                                         (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                         __self_state
                                                                                                                                                                                                         (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                        (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                        (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                         (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                        (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                         (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                        (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                        (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                        (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                         (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                         (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                         (composition-rand-Right-2 (select __global_state __state_length))
@@ -5018,7 +9333,7 @@
                                                                                                                                                                                                         (composition-rand-Right-15 (select __global_state __state_length))
                                                                                                                                                                                                         (composition-rand-Right-16 (select __global_state __state_length)))))
                                                                                                                                                                                                   (__state_length (+ 1 __state_length)))
-                                                                                                                                                                                                (mk-return-Right-simgate-GBLG __global_state __state_length C)))))))))))
+                                                                                                                                                                                                (mk-return-Right-simgate-GBLG __global_state __state_length (mk-some C) false)))))))))))
                                                                                                                                                                             (let
                                                                                                                                                                               (
                                                                                                                                                                                 (rin
@@ -5036,11 +9351,11 @@
                                                                                                                                                                                         (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                         (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                                         (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                        (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                        (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                         (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                        (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                         (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                        (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                        (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                        (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                         (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                         (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                         (composition-rand-Right-2 (select __global_state __state_length))
@@ -5075,11 +9390,11 @@
                                                                                                                                                                                             (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                             (composition-pkgstate-Right-simgate (select __global_state __state_length))
                                                                                                                                                                                             (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                            (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                            (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                             (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                            (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                             (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                            (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                            (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                            (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                             (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                             (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                             (composition-rand-Right-2 (select __global_state __state_length))
@@ -5114,11 +9429,11 @@
                                                                                                                                                                                                     (composition-pkgstate-Right-keys_bottom (select __global_state __state_length))
                                                                                                                                                                                                     __self_state
                                                                                                                                                                                                     (composition-pkgstate-Right-ev (select __global_state __state_length))
-                                                                                                                                                                                                    (composition-param-Right-zerom (select __global_state __state_length))
-                                                                                                                                                                                                    (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                     (composition-param-Right-m (select __global_state __state_length))
-                                                                                                                                                                                                    (composition-param-Right-n (select __global_state __state_length))
                                                                                                                                                                                                     (composition-param-Right-p (select __global_state __state_length))
+                                                                                                                                                                                                    (composition-param-Right-zerom (select __global_state __state_length))
+                                                                                                                                                                                                    (composition-param-Right-n (select __global_state __state_length))
+                                                                                                                                                                                                    (composition-param-Right-zeron (select __global_state __state_length))
                                                                                                                                                                                                     (composition-rand-Right-0 (select __global_state __state_length))
                                                                                                                                                                                                     (composition-rand-Right-1 (select __global_state __state_length))
                                                                                                                                                                                                     (composition-rand-Right-2 (select __global_state __state_length))
@@ -5137,2134 +9452,5 @@
                                                                                                                                                                                                     (composition-rand-Right-15 (select __global_state __state_length))
                                                                                                                                                                                                     (composition-rand-Right-16 (select __global_state __state_length)))))
                                                                                                                                                                                               (__state_length (+ 1 __state_length)))
-                                                                                                                                                                                            (mk-return-Right-simgate-GBLG __global_state __state_length C))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))); Left
-(declare-fun __sample-rand-Left-Bits_p (Int Int) Bits_p)
-(declare-fun __sample-rand-Left-Bits_n (Int Int) Bits_n)
-(declare-fun __sample-rand-Left-Bits_m (Int Int) Bits_m)
-(declare-fun __func-Left-encm (Bits_n Bits_m Bits_n) Bits_p)
-(declare-fun __func-Left-encn (Bits_n Bits_n Bits_n) Bits_m)
-(declare-datatype
-  State_Left_keys_top
-  (
-    (mk-state-Left-keys_top
-      (state-Left-keys_top-T (Array Int (Maybe (Array Bool (Maybe Bits_n)))))
-      (state-Left-keys_top-z (Array Int (Maybe Bool)))
-      (state-Left-keys_top-flag (Array Int (Maybe Bool))))))
-(declare-datatype
-  State_Left_keys_bottom
-  (
-    (mk-state-Left-keys_bottom
-      (state-Left-keys_bottom-T (Array Int (Maybe (Array Bool (Maybe Bits_n)))))
-      (state-Left-keys_bottom-z (Array Int (Maybe Bool)))
-      (state-Left-keys_bottom-flag (Array Int (Maybe Bool))))))
-(declare-datatype State_Left_gate ((mk-state-Left-gate)))
-(declare-datatype State_Left_enc ((mk-state-Left-enc)))
-(declare-datatype
-  CompositionState-Left
-  (
-    (mk-composition-state-Left
-      (composition-pkgstate-Left-keys_top State_Left_keys_top)
-      (composition-pkgstate-Left-keys_bottom State_Left_keys_bottom)
-      (composition-pkgstate-Left-gate State_Left_gate)
-      (composition-pkgstate-Left-enc State_Left_enc)
-      (composition-param-Left-zerom Bits_m)
-      (composition-param-Left-n Int)
-      (composition-param-Left-m Int)
-      (composition-param-Left-p Int)
-      (composition-param-Left-zeron Bits_n)
-      (composition-rand-Left-0 Int)
-      (composition-rand-Left-1 Int)
-      (composition-rand-Left-2 Int)
-      (composition-rand-Left-3 Int)
-      (composition-rand-Left-4 Int)
-      (composition-rand-Left-5 Int)
-      (composition-rand-Left-6 Int)
-      (composition-rand-Left-7 Int)
-      (composition-rand-Left-8 Int)
-      (composition-rand-Left-9 Int)
-      (composition-rand-Left-10 Int)
-      (composition-rand-Left-11 Int)
-      (composition-rand-Left-12 Int))))
-(declare-datatype
-  Return_Left_keys_top_GETKEYSIN
-  (
-    (mk-abort-Left-keys_top-GETKEYSIN)
-    (mk-return-Left-keys_top-GETKEYSIN
-      (return-Left-keys_top-GETKEYSIN-state (Array Int CompositionState-Left))
-      (return-Left-keys_top-GETKEYSIN-state-length Int)
-      (return-Left-keys_top-GETKEYSIN-value (Array Bool (Maybe Bits_n))))))
-(declare-datatype
-  Return_Left_keys_top_GETAIN
-  (
-    (mk-abort-Left-keys_top-GETAIN)
-    (mk-return-Left-keys_top-GETAIN
-      (return-Left-keys_top-GETAIN-state (Array Int CompositionState-Left))
-      (return-Left-keys_top-GETAIN-state-length Int)
-      (return-Left-keys_top-GETAIN-value Bits_n))))
-(declare-datatype
-  Return_Left_keys_top_GETINAIN
-  (
-    (mk-abort-Left-keys_top-GETINAIN)
-    (mk-return-Left-keys_top-GETINAIN
-      (return-Left-keys_top-GETINAIN-state (Array Int CompositionState-Left))
-      (return-Left-keys_top-GETINAIN-state-length Int)
-      (return-Left-keys_top-GETINAIN-value Bits_n))))
-(declare-datatype
-  Return_Left_keys_top_GETAOUT
-  (
-    (mk-abort-Left-keys_top-GETAOUT)
-    (mk-return-Left-keys_top-GETAOUT
-      (return-Left-keys_top-GETAOUT-state (Array Int CompositionState-Left))
-      (return-Left-keys_top-GETAOUT-state-length Int)
-      (return-Left-keys_top-GETAOUT-value Bits_n))))
-(declare-datatype
-  Return_Left_keys_top_GETKEYSOUT
-  (
-    (mk-abort-Left-keys_top-GETKEYSOUT)
-    (mk-return-Left-keys_top-GETKEYSOUT
-      (return-Left-keys_top-GETKEYSOUT-state (Array Int CompositionState-Left))
-      (return-Left-keys_top-GETKEYSOUT-state-length Int)
-      (return-Left-keys_top-GETKEYSOUT-value (Array Bool (Maybe Bits_n))))))
-(declare-datatype
-  Return_Left_keys_top_GETBIT
-  (
-    (mk-abort-Left-keys_top-GETBIT)
-    (mk-return-Left-keys_top-GETBIT
-      (return-Left-keys_top-GETBIT-state (Array Int CompositionState-Left))
-      (return-Left-keys_top-GETBIT-state-length Int)
-      (return-Left-keys_top-GETBIT-value Bool))))
-(declare-datatype
-  Return_Left_keys_top_SETBIT
-  (
-    (mk-abort-Left-keys_top-SETBIT)
-    (mk-return-Left-keys_top-SETBIT
-      (return-Left-keys_top-SETBIT-state (Array Int CompositionState-Left))
-      (return-Left-keys_top-SETBIT-state-length Int))))
-(declare-datatype
-  Return_Left_keys_bottom_GETKEYSIN
-  (
-    (mk-abort-Left-keys_bottom-GETKEYSIN)
-    (mk-return-Left-keys_bottom-GETKEYSIN
-      (return-Left-keys_bottom-GETKEYSIN-state (Array Int CompositionState-Left))
-      (return-Left-keys_bottom-GETKEYSIN-state-length Int)
-      (return-Left-keys_bottom-GETKEYSIN-value (Array Bool (Maybe Bits_n))))))
-(declare-datatype
-  Return_Left_keys_bottom_GETAIN
-  (
-    (mk-abort-Left-keys_bottom-GETAIN)
-    (mk-return-Left-keys_bottom-GETAIN
-      (return-Left-keys_bottom-GETAIN-state (Array Int CompositionState-Left))
-      (return-Left-keys_bottom-GETAIN-state-length Int)
-      (return-Left-keys_bottom-GETAIN-value Bits_n))))
-(declare-datatype
-  Return_Left_keys_bottom_GETINAIN
-  (
-    (mk-abort-Left-keys_bottom-GETINAIN)
-    (mk-return-Left-keys_bottom-GETINAIN
-      (return-Left-keys_bottom-GETINAIN-state (Array Int CompositionState-Left))
-      (return-Left-keys_bottom-GETINAIN-state-length Int)
-      (return-Left-keys_bottom-GETINAIN-value Bits_n))))
-(declare-datatype
-  Return_Left_keys_bottom_GETAOUT
-  (
-    (mk-abort-Left-keys_bottom-GETAOUT)
-    (mk-return-Left-keys_bottom-GETAOUT
-      (return-Left-keys_bottom-GETAOUT-state (Array Int CompositionState-Left))
-      (return-Left-keys_bottom-GETAOUT-state-length Int)
-      (return-Left-keys_bottom-GETAOUT-value Bits_n))))
-(declare-datatype
-  Return_Left_keys_bottom_GETKEYSOUT
-  (
-    (mk-abort-Left-keys_bottom-GETKEYSOUT)
-    (mk-return-Left-keys_bottom-GETKEYSOUT
-      (return-Left-keys_bottom-GETKEYSOUT-state (Array Int CompositionState-Left))
-      (return-Left-keys_bottom-GETKEYSOUT-state-length Int)
-      (return-Left-keys_bottom-GETKEYSOUT-value (Array Bool (Maybe Bits_n))))))
-(declare-datatype
-  Return_Left_keys_bottom_GETBIT
-  (
-    (mk-abort-Left-keys_bottom-GETBIT)
-    (mk-return-Left-keys_bottom-GETBIT
-      (return-Left-keys_bottom-GETBIT-state (Array Int CompositionState-Left))
-      (return-Left-keys_bottom-GETBIT-state-length Int)
-      (return-Left-keys_bottom-GETBIT-value Bool))))
-(declare-datatype
-  Return_Left_keys_bottom_SETBIT
-  (
-    (mk-abort-Left-keys_bottom-SETBIT)
-    (mk-return-Left-keys_bottom-SETBIT
-      (return-Left-keys_bottom-SETBIT-state (Array Int CompositionState-Left))
-      (return-Left-keys_bottom-SETBIT-state-length Int))))
-(declare-datatype
-  Return_Left_gate_GBLG
-  (
-    (mk-abort-Left-gate-GBLG)
-    (mk-return-Left-gate-GBLG
-      (return-Left-gate-GBLG-state (Array Int CompositionState-Left))
-      (return-Left-gate-GBLG-state-length Int)
-      (return-Left-gate-GBLG-value (Array Bits_p (Maybe Bool))))))
-(declare-datatype
-  Return_Left_enc_ENCN
-  (
-    (mk-abort-Left-enc-ENCN)
-    (mk-return-Left-enc-ENCN
-      (return-Left-enc-ENCN-state (Array Int CompositionState-Left))
-      (return-Left-enc-ENCN-state-length Int)
-      (return-Left-enc-ENCN-value Bits_m))))
-(declare-datatype
-  Return_Left_enc_ENCM
-  (
-    (mk-abort-Left-enc-ENCM)
-    (mk-return-Left-enc-ENCM
-      (return-Left-enc-ENCM-state (Array Int CompositionState-Left))
-      (return-Left-enc-ENCM-state-length Int)
-      (return-Left-enc-ENCM-value Bits_p)))); Composition of Left
-(define-fun
-  oracle-Left-keys_top-GETKEYSIN
-  (
-    (__global_state (Array Int CompositionState-Left))
-    (__state_length Int)
-    (h Int))
-  Return_Left_keys_top_GETKEYSIN
-  (let
-    (
-      (__self_state
-        (composition-pkgstate-Left-keys_top (select __global_state __state_length))))
-    (ite
-      (= (select (state-Left-keys_top-flag __self_state) h) (mk-some true))
-      (let
-        ((unwrap-1 (maybe-get (select (state-Left-keys_top-T __self_state) h))))
-        (let
-          ((Z unwrap-1))
-          (let
-            (
-              (__global_state
-                (store
-                  __global_state
-                  (+ 1 __state_length)
-                  (mk-composition-state-Left
-                    __self_state
-                    (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
-                    (composition-pkgstate-Left-gate (select __global_state __state_length))
-                    (composition-pkgstate-Left-enc (select __global_state __state_length))
-                    (composition-param-Left-zerom (select __global_state __state_length))
-                    (composition-param-Left-n (select __global_state __state_length))
-                    (composition-param-Left-m (select __global_state __state_length))
-                    (composition-param-Left-p (select __global_state __state_length))
-                    (composition-param-Left-zeron (select __global_state __state_length))
-                    (composition-rand-Left-0 (select __global_state __state_length))
-                    (composition-rand-Left-1 (select __global_state __state_length))
-                    (composition-rand-Left-2 (select __global_state __state_length))
-                    (composition-rand-Left-3 (select __global_state __state_length))
-                    (composition-rand-Left-4 (select __global_state __state_length))
-                    (composition-rand-Left-5 (select __global_state __state_length))
-                    (composition-rand-Left-6 (select __global_state __state_length))
-                    (composition-rand-Left-7 (select __global_state __state_length))
-                    (composition-rand-Left-8 (select __global_state __state_length))
-                    (composition-rand-Left-9 (select __global_state __state_length))
-                    (composition-rand-Left-10 (select __global_state __state_length))
-                    (composition-rand-Left-11 (select __global_state __state_length))
-                    (composition-rand-Left-12 (select __global_state __state_length)))))
-              (__state_length (+ 1 __state_length)))
-            (mk-return-Left-keys_top-GETKEYSIN __global_state __state_length Z))))
-      mk-abort-Left-keys_top-GETKEYSIN)))
-(define-fun
-  oracle-Left-keys_top-GETAIN
-  (
-    (__global_state (Array Int CompositionState-Left))
-    (__state_length Int)
-    (h Int))
-  Return_Left_keys_top_GETAIN
-  (let
-    (
-      (__self_state
-        (composition-pkgstate-Left-keys_top (select __global_state __state_length))))
-    (ite
-      (= (select (state-Left-keys_top-flag __self_state) h) (mk-some true))
-      (let
-        ((unwrap-1 (maybe-get (select (state-Left-keys_top-T __self_state) h))))
-        (let
-          ((Z unwrap-1))
-          (let
-            ((unwrap-2 (maybe-get (select (state-Left-keys_top-z __self_state) h))))
-            (let
-              ((zz unwrap-2))
-              (let
-                ((unwrap-3 (maybe-get (select Z zz))))
-                (let
-                  ((k unwrap-3))
-                  (let
-                    (
-                      (__global_state
-                        (store
-                          __global_state
-                          (+ 1 __state_length)
-                          (mk-composition-state-Left
-                            __self_state
-                            (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
-                            (composition-pkgstate-Left-gate (select __global_state __state_length))
-                            (composition-pkgstate-Left-enc (select __global_state __state_length))
-                            (composition-param-Left-zerom (select __global_state __state_length))
-                            (composition-param-Left-n (select __global_state __state_length))
-                            (composition-param-Left-m (select __global_state __state_length))
-                            (composition-param-Left-p (select __global_state __state_length))
-                            (composition-param-Left-zeron (select __global_state __state_length))
-                            (composition-rand-Left-0 (select __global_state __state_length))
-                            (composition-rand-Left-1 (select __global_state __state_length))
-                            (composition-rand-Left-2 (select __global_state __state_length))
-                            (composition-rand-Left-3 (select __global_state __state_length))
-                            (composition-rand-Left-4 (select __global_state __state_length))
-                            (composition-rand-Left-5 (select __global_state __state_length))
-                            (composition-rand-Left-6 (select __global_state __state_length))
-                            (composition-rand-Left-7 (select __global_state __state_length))
-                            (composition-rand-Left-8 (select __global_state __state_length))
-                            (composition-rand-Left-9 (select __global_state __state_length))
-                            (composition-rand-Left-10 (select __global_state __state_length))
-                            (composition-rand-Left-11 (select __global_state __state_length))
-                            (composition-rand-Left-12 (select __global_state __state_length)))))
-                      (__state_length (+ 1 __state_length)))
-                    (mk-return-Left-keys_top-GETAIN __global_state __state_length k))))))))
-      mk-abort-Left-keys_top-GETAIN)))
-(define-fun
-  oracle-Left-keys_top-GETINAIN
-  (
-    (__global_state (Array Int CompositionState-Left))
-    (__state_length Int)
-    (h Int))
-  Return_Left_keys_top_GETINAIN
-  (let
-    (
-      (__self_state
-        (composition-pkgstate-Left-keys_top (select __global_state __state_length))))
-    (ite
-      (= (select (state-Left-keys_top-flag __self_state) h) (mk-some true))
-      (let
-        ((unwrap-1 (maybe-get (select (state-Left-keys_top-T __self_state) h))))
-        (let
-          ((Z unwrap-1))
-          (let
-            ((unwrap-2 (maybe-get (select (state-Left-keys_top-z __self_state) h))))
-            (let
-              ((zz unwrap-2))
-              (let
-                ((unwrap-3 (maybe-get (select Z (not zz)))))
-                (let
-                  ((k unwrap-3))
-                  (let
-                    (
-                      (__global_state
-                        (store
-                          __global_state
-                          (+ 1 __state_length)
-                          (mk-composition-state-Left
-                            __self_state
-                            (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
-                            (composition-pkgstate-Left-gate (select __global_state __state_length))
-                            (composition-pkgstate-Left-enc (select __global_state __state_length))
-                            (composition-param-Left-zerom (select __global_state __state_length))
-                            (composition-param-Left-n (select __global_state __state_length))
-                            (composition-param-Left-m (select __global_state __state_length))
-                            (composition-param-Left-p (select __global_state __state_length))
-                            (composition-param-Left-zeron (select __global_state __state_length))
-                            (composition-rand-Left-0 (select __global_state __state_length))
-                            (composition-rand-Left-1 (select __global_state __state_length))
-                            (composition-rand-Left-2 (select __global_state __state_length))
-                            (composition-rand-Left-3 (select __global_state __state_length))
-                            (composition-rand-Left-4 (select __global_state __state_length))
-                            (composition-rand-Left-5 (select __global_state __state_length))
-                            (composition-rand-Left-6 (select __global_state __state_length))
-                            (composition-rand-Left-7 (select __global_state __state_length))
-                            (composition-rand-Left-8 (select __global_state __state_length))
-                            (composition-rand-Left-9 (select __global_state __state_length))
-                            (composition-rand-Left-10 (select __global_state __state_length))
-                            (composition-rand-Left-11 (select __global_state __state_length))
-                            (composition-rand-Left-12 (select __global_state __state_length)))))
-                      (__state_length (+ 1 __state_length)))
-                    (mk-return-Left-keys_top-GETINAIN __global_state __state_length k))))))))
-      mk-abort-Left-keys_top-GETINAIN)))
-(define-fun
-  oracle-Left-keys_top-GETAOUT
-  (
-    (__global_state (Array Int CompositionState-Left))
-    (__state_length Int)
-    (h Int))
-  Return_Left_keys_top_GETAOUT
-  (let
-    (
-      (__self_state
-        (composition-pkgstate-Left-keys_top (select __global_state __state_length))))
-    (ite
-      (= (select (state-Left-keys_top-z __self_state) h) (mk-some true))
-      (let
-        (
-          (__self_state
-            (mk-state-Left-keys_top
-              (state-Left-keys_top-T __self_state)
-              (state-Left-keys_top-z __self_state)
-              (store (state-Left-keys_top-flag __self_state) h (mk-some true)))))
-        (let
-          ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
-          (ite
-            (=
-              (select (state-Left-keys_top-T __self_state) h)
-              (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
-            (let
-              (
-                (r
-                  (__sample-rand-Left-Bits_n
-                    1
-                    (composition-rand-Left-1 (select __global_state __state_length)))))
-              (let
-                (
-                  (__global_state
-                    (store
-                      __global_state
-                      __state_length
-                      (mk-composition-state-Left
-                        (composition-pkgstate-Left-keys_top (select __global_state __state_length))
-                        (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
-                        (composition-pkgstate-Left-gate (select __global_state __state_length))
-                        (composition-pkgstate-Left-enc (select __global_state __state_length))
-                        (composition-param-Left-zerom (select __global_state __state_length))
-                        (composition-param-Left-n (select __global_state __state_length))
-                        (composition-param-Left-m (select __global_state __state_length))
-                        (composition-param-Left-p (select __global_state __state_length))
-                        (composition-param-Left-zeron (select __global_state __state_length))
-                        (composition-rand-Left-0 (select __global_state __state_length))
-                        (+ 1 (composition-rand-Left-1 (select __global_state __state_length)))
-                        (composition-rand-Left-2 (select __global_state __state_length))
-                        (composition-rand-Left-3 (select __global_state __state_length))
-                        (composition-rand-Left-4 (select __global_state __state_length))
-                        (composition-rand-Left-5 (select __global_state __state_length))
-                        (composition-rand-Left-6 (select __global_state __state_length))
-                        (composition-rand-Left-7 (select __global_state __state_length))
-                        (composition-rand-Left-8 (select __global_state __state_length))
-                        (composition-rand-Left-9 (select __global_state __state_length))
-                        (composition-rand-Left-10 (select __global_state __state_length))
-                        (composition-rand-Left-11 (select __global_state __state_length))
-                        (composition-rand-Left-12 (select __global_state __state_length))))))
-                (let
-                  ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
-                  (let
-                    ((Z (store Z true (mk-some r))))
-                    (let
-                      (
-                        (rr
-                          (__sample-rand-Left-Bits_n
-                            2
-                            (composition-rand-Left-2 (select __global_state __state_length)))))
-                      (let
-                        (
-                          (__global_state
-                            (store
-                              __global_state
-                              __state_length
-                              (mk-composition-state-Left
-                                (composition-pkgstate-Left-keys_top (select __global_state __state_length))
-                                (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
-                                (composition-pkgstate-Left-gate (select __global_state __state_length))
-                                (composition-pkgstate-Left-enc (select __global_state __state_length))
-                                (composition-param-Left-zerom (select __global_state __state_length))
-                                (composition-param-Left-n (select __global_state __state_length))
-                                (composition-param-Left-m (select __global_state __state_length))
-                                (composition-param-Left-p (select __global_state __state_length))
-                                (composition-param-Left-zeron (select __global_state __state_length))
-                                (composition-rand-Left-0 (select __global_state __state_length))
-                                (composition-rand-Left-1 (select __global_state __state_length))
-                                (+ 1 (composition-rand-Left-2 (select __global_state __state_length)))
-                                (composition-rand-Left-3 (select __global_state __state_length))
-                                (composition-rand-Left-4 (select __global_state __state_length))
-                                (composition-rand-Left-5 (select __global_state __state_length))
-                                (composition-rand-Left-6 (select __global_state __state_length))
-                                (composition-rand-Left-7 (select __global_state __state_length))
-                                (composition-rand-Left-8 (select __global_state __state_length))
-                                (composition-rand-Left-9 (select __global_state __state_length))
-                                (composition-rand-Left-10 (select __global_state __state_length))
-                                (composition-rand-Left-11 (select __global_state __state_length))
-                                (composition-rand-Left-12 (select __global_state __state_length))))))
-                        (let
-                          ((Z (store Z false (mk-some rr))))
-                          (let
-                            (
-                              (__self_state
-                                (mk-state-Left-keys_top
-                                  (store (state-Left-keys_top-T __self_state) h (mk-some Z))
-                                  (state-Left-keys_top-z __self_state)
-                                  (state-Left-keys_top-flag __self_state))))
-                            (let
-                              ((unwrap-1 (maybe-get (select (state-Left-keys_top-T __self_state) h))))
-                              (let
-                                ((Z unwrap-1))
-                                (let
-                                  ((unwrap-2 (maybe-get (select (state-Left-keys_top-z __self_state) h))))
-                                  (let
-                                    ((zz unwrap-2))
-                                    (let
-                                      ((unwrap-3 (maybe-get (select Z zz))))
-                                      (let
-                                        ((k unwrap-3))
-                                        (let
-                                          (
-                                            (__global_state
-                                              (store
-                                                __global_state
-                                                (+ 1 __state_length)
-                                                (mk-composition-state-Left
-                                                  __self_state
-                                                  (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
-                                                  (composition-pkgstate-Left-gate (select __global_state __state_length))
-                                                  (composition-pkgstate-Left-enc (select __global_state __state_length))
-                                                  (composition-param-Left-zerom (select __global_state __state_length))
-                                                  (composition-param-Left-n (select __global_state __state_length))
-                                                  (composition-param-Left-m (select __global_state __state_length))
-                                                  (composition-param-Left-p (select __global_state __state_length))
-                                                  (composition-param-Left-zeron (select __global_state __state_length))
-                                                  (composition-rand-Left-0 (select __global_state __state_length))
-                                                  (composition-rand-Left-1 (select __global_state __state_length))
-                                                  (composition-rand-Left-2 (select __global_state __state_length))
-                                                  (composition-rand-Left-3 (select __global_state __state_length))
-                                                  (composition-rand-Left-4 (select __global_state __state_length))
-                                                  (composition-rand-Left-5 (select __global_state __state_length))
-                                                  (composition-rand-Left-6 (select __global_state __state_length))
-                                                  (composition-rand-Left-7 (select __global_state __state_length))
-                                                  (composition-rand-Left-8 (select __global_state __state_length))
-                                                  (composition-rand-Left-9 (select __global_state __state_length))
-                                                  (composition-rand-Left-10 (select __global_state __state_length))
-                                                  (composition-rand-Left-11 (select __global_state __state_length))
-                                                  (composition-rand-Left-12 (select __global_state __state_length)))))
-                                            (__state_length (+ 1 __state_length)))
-                                          (mk-return-Left-keys_top-GETAOUT __global_state __state_length k))))))))))))))))
-            (let
-              ((unwrap-1 (maybe-get (select (state-Left-keys_top-T __self_state) h))))
-              (let
-                ((Z unwrap-1))
-                (let
-                  ((unwrap-2 (maybe-get (select (state-Left-keys_top-z __self_state) h))))
-                  (let
-                    ((zz unwrap-2))
-                    (let
-                      ((unwrap-3 (maybe-get (select Z zz))))
-                      (let
-                        ((k unwrap-3))
-                        (let
-                          (
-                            (__global_state
-                              (store
-                                __global_state
-                                (+ 1 __state_length)
-                                (mk-composition-state-Left
-                                  __self_state
-                                  (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
-                                  (composition-pkgstate-Left-gate (select __global_state __state_length))
-                                  (composition-pkgstate-Left-enc (select __global_state __state_length))
-                                  (composition-param-Left-zerom (select __global_state __state_length))
-                                  (composition-param-Left-n (select __global_state __state_length))
-                                  (composition-param-Left-m (select __global_state __state_length))
-                                  (composition-param-Left-p (select __global_state __state_length))
-                                  (composition-param-Left-zeron (select __global_state __state_length))
-                                  (composition-rand-Left-0 (select __global_state __state_length))
-                                  (composition-rand-Left-1 (select __global_state __state_length))
-                                  (composition-rand-Left-2 (select __global_state __state_length))
-                                  (composition-rand-Left-3 (select __global_state __state_length))
-                                  (composition-rand-Left-4 (select __global_state __state_length))
-                                  (composition-rand-Left-5 (select __global_state __state_length))
-                                  (composition-rand-Left-6 (select __global_state __state_length))
-                                  (composition-rand-Left-7 (select __global_state __state_length))
-                                  (composition-rand-Left-8 (select __global_state __state_length))
-                                  (composition-rand-Left-9 (select __global_state __state_length))
-                                  (composition-rand-Left-10 (select __global_state __state_length))
-                                  (composition-rand-Left-11 (select __global_state __state_length))
-                                  (composition-rand-Left-12 (select __global_state __state_length)))))
-                            (__state_length (+ 1 __state_length)))
-                          (mk-return-Left-keys_top-GETAOUT __global_state __state_length k)))))))))))
-      mk-abort-Left-keys_top-GETAOUT)))
-(define-fun
-  oracle-Left-keys_top-GETKEYSOUT
-  (
-    (__global_state (Array Int CompositionState-Left))
-    (__state_length Int)
-    (h Int))
-  Return_Left_keys_top_GETKEYSOUT
-  (let
-    (
-      (__self_state
-        (composition-pkgstate-Left-keys_top (select __global_state __state_length))))
-    (ite
-      (not (= (select (state-Left-keys_top-flag __self_state) h) (mk-some true)))
-      (let
-        (
-          (__self_state
-            (mk-state-Left-keys_top
-              (state-Left-keys_top-T __self_state)
-              (state-Left-keys_top-z __self_state)
-              (store (state-Left-keys_top-flag __self_state) h (mk-some true)))))
-        (let
-          ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
-          (ite
-            (=
-              (select (state-Left-keys_top-T __self_state) h)
-              (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
-            (let
-              (
-                (r
-                  (__sample-rand-Left-Bits_n
-                    3
-                    (composition-rand-Left-3 (select __global_state __state_length)))))
-              (let
-                (
-                  (__global_state
-                    (store
-                      __global_state
-                      __state_length
-                      (mk-composition-state-Left
-                        (composition-pkgstate-Left-keys_top (select __global_state __state_length))
-                        (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
-                        (composition-pkgstate-Left-gate (select __global_state __state_length))
-                        (composition-pkgstate-Left-enc (select __global_state __state_length))
-                        (composition-param-Left-zerom (select __global_state __state_length))
-                        (composition-param-Left-n (select __global_state __state_length))
-                        (composition-param-Left-m (select __global_state __state_length))
-                        (composition-param-Left-p (select __global_state __state_length))
-                        (composition-param-Left-zeron (select __global_state __state_length))
-                        (composition-rand-Left-0 (select __global_state __state_length))
-                        (composition-rand-Left-1 (select __global_state __state_length))
-                        (composition-rand-Left-2 (select __global_state __state_length))
-                        (+ 1 (composition-rand-Left-3 (select __global_state __state_length)))
-                        (composition-rand-Left-4 (select __global_state __state_length))
-                        (composition-rand-Left-5 (select __global_state __state_length))
-                        (composition-rand-Left-6 (select __global_state __state_length))
-                        (composition-rand-Left-7 (select __global_state __state_length))
-                        (composition-rand-Left-8 (select __global_state __state_length))
-                        (composition-rand-Left-9 (select __global_state __state_length))
-                        (composition-rand-Left-10 (select __global_state __state_length))
-                        (composition-rand-Left-11 (select __global_state __state_length))
-                        (composition-rand-Left-12 (select __global_state __state_length))))))
-                (let
-                  ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
-                  (let
-                    ((Z (store Z true (mk-some r))))
-                    (let
-                      (
-                        (rr
-                          (__sample-rand-Left-Bits_n
-                            4
-                            (composition-rand-Left-4 (select __global_state __state_length)))))
-                      (let
-                        (
-                          (__global_state
-                            (store
-                              __global_state
-                              __state_length
-                              (mk-composition-state-Left
-                                (composition-pkgstate-Left-keys_top (select __global_state __state_length))
-                                (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
-                                (composition-pkgstate-Left-gate (select __global_state __state_length))
-                                (composition-pkgstate-Left-enc (select __global_state __state_length))
-                                (composition-param-Left-zerom (select __global_state __state_length))
-                                (composition-param-Left-n (select __global_state __state_length))
-                                (composition-param-Left-m (select __global_state __state_length))
-                                (composition-param-Left-p (select __global_state __state_length))
-                                (composition-param-Left-zeron (select __global_state __state_length))
-                                (composition-rand-Left-0 (select __global_state __state_length))
-                                (composition-rand-Left-1 (select __global_state __state_length))
-                                (composition-rand-Left-2 (select __global_state __state_length))
-                                (composition-rand-Left-3 (select __global_state __state_length))
-                                (+ 1 (composition-rand-Left-4 (select __global_state __state_length)))
-                                (composition-rand-Left-5 (select __global_state __state_length))
-                                (composition-rand-Left-6 (select __global_state __state_length))
-                                (composition-rand-Left-7 (select __global_state __state_length))
-                                (composition-rand-Left-8 (select __global_state __state_length))
-                                (composition-rand-Left-9 (select __global_state __state_length))
-                                (composition-rand-Left-10 (select __global_state __state_length))
-                                (composition-rand-Left-11 (select __global_state __state_length))
-                                (composition-rand-Left-12 (select __global_state __state_length))))))
-                        (let
-                          ((Z (store Z false (mk-some rr))))
-                          (let
-                            (
-                              (__self_state
-                                (mk-state-Left-keys_top
-                                  (store (state-Left-keys_top-T __self_state) h (mk-some Z))
-                                  (state-Left-keys_top-z __self_state)
-                                  (state-Left-keys_top-flag __self_state))))
-                            (let
-                              ((unwrap-1 (maybe-get (select (state-Left-keys_top-T __self_state) h))))
-                              (let
-                                ((Z unwrap-1))
-                                (let
-                                  (
-                                    (__global_state
-                                      (store
-                                        __global_state
-                                        (+ 1 __state_length)
-                                        (mk-composition-state-Left
-                                          __self_state
-                                          (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
-                                          (composition-pkgstate-Left-gate (select __global_state __state_length))
-                                          (composition-pkgstate-Left-enc (select __global_state __state_length))
-                                          (composition-param-Left-zerom (select __global_state __state_length))
-                                          (composition-param-Left-n (select __global_state __state_length))
-                                          (composition-param-Left-m (select __global_state __state_length))
-                                          (composition-param-Left-p (select __global_state __state_length))
-                                          (composition-param-Left-zeron (select __global_state __state_length))
-                                          (composition-rand-Left-0 (select __global_state __state_length))
-                                          (composition-rand-Left-1 (select __global_state __state_length))
-                                          (composition-rand-Left-2 (select __global_state __state_length))
-                                          (composition-rand-Left-3 (select __global_state __state_length))
-                                          (composition-rand-Left-4 (select __global_state __state_length))
-                                          (composition-rand-Left-5 (select __global_state __state_length))
-                                          (composition-rand-Left-6 (select __global_state __state_length))
-                                          (composition-rand-Left-7 (select __global_state __state_length))
-                                          (composition-rand-Left-8 (select __global_state __state_length))
-                                          (composition-rand-Left-9 (select __global_state __state_length))
-                                          (composition-rand-Left-10 (select __global_state __state_length))
-                                          (composition-rand-Left-11 (select __global_state __state_length))
-                                          (composition-rand-Left-12 (select __global_state __state_length)))))
-                                    (__state_length (+ 1 __state_length)))
-                                  (mk-return-Left-keys_top-GETKEYSOUT __global_state __state_length Z))))))))))))
-            (let
-              ((unwrap-1 (maybe-get (select (state-Left-keys_top-T __self_state) h))))
-              (let
-                ((Z unwrap-1))
-                (let
-                  (
-                    (__global_state
-                      (store
-                        __global_state
-                        (+ 1 __state_length)
-                        (mk-composition-state-Left
-                          __self_state
-                          (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
-                          (composition-pkgstate-Left-gate (select __global_state __state_length))
-                          (composition-pkgstate-Left-enc (select __global_state __state_length))
-                          (composition-param-Left-zerom (select __global_state __state_length))
-                          (composition-param-Left-n (select __global_state __state_length))
-                          (composition-param-Left-m (select __global_state __state_length))
-                          (composition-param-Left-p (select __global_state __state_length))
-                          (composition-param-Left-zeron (select __global_state __state_length))
-                          (composition-rand-Left-0 (select __global_state __state_length))
-                          (composition-rand-Left-1 (select __global_state __state_length))
-                          (composition-rand-Left-2 (select __global_state __state_length))
-                          (composition-rand-Left-3 (select __global_state __state_length))
-                          (composition-rand-Left-4 (select __global_state __state_length))
-                          (composition-rand-Left-5 (select __global_state __state_length))
-                          (composition-rand-Left-6 (select __global_state __state_length))
-                          (composition-rand-Left-7 (select __global_state __state_length))
-                          (composition-rand-Left-8 (select __global_state __state_length))
-                          (composition-rand-Left-9 (select __global_state __state_length))
-                          (composition-rand-Left-10 (select __global_state __state_length))
-                          (composition-rand-Left-11 (select __global_state __state_length))
-                          (composition-rand-Left-12 (select __global_state __state_length)))))
-                    (__state_length (+ 1 __state_length)))
-                  (mk-return-Left-keys_top-GETKEYSOUT __global_state __state_length Z)))))))
-      mk-abort-Left-keys_top-GETKEYSOUT)))
-(define-fun
-  oracle-Left-keys_top-GETBIT
-  (
-    (__global_state (Array Int CompositionState-Left))
-    (__state_length Int)
-    (h Int))
-  Return_Left_keys_top_GETBIT
-  (let
-    (
-      (__self_state
-        (composition-pkgstate-Left-keys_top (select __global_state __state_length))))
-    (ite
-      (not
-        (= (select (state-Left-keys_top-z __self_state) h) (as mk-none (Maybe Bool))))
-      (let
-        ((unwrap-1 (maybe-get (select (state-Left-keys_top-z __self_state) h))))
-        (let
-          ((zz unwrap-1))
-          (let
-            (
-              (__global_state
-                (store
-                  __global_state
-                  (+ 1 __state_length)
-                  (mk-composition-state-Left
-                    __self_state
-                    (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
-                    (composition-pkgstate-Left-gate (select __global_state __state_length))
-                    (composition-pkgstate-Left-enc (select __global_state __state_length))
-                    (composition-param-Left-zerom (select __global_state __state_length))
-                    (composition-param-Left-n (select __global_state __state_length))
-                    (composition-param-Left-m (select __global_state __state_length))
-                    (composition-param-Left-p (select __global_state __state_length))
-                    (composition-param-Left-zeron (select __global_state __state_length))
-                    (composition-rand-Left-0 (select __global_state __state_length))
-                    (composition-rand-Left-1 (select __global_state __state_length))
-                    (composition-rand-Left-2 (select __global_state __state_length))
-                    (composition-rand-Left-3 (select __global_state __state_length))
-                    (composition-rand-Left-4 (select __global_state __state_length))
-                    (composition-rand-Left-5 (select __global_state __state_length))
-                    (composition-rand-Left-6 (select __global_state __state_length))
-                    (composition-rand-Left-7 (select __global_state __state_length))
-                    (composition-rand-Left-8 (select __global_state __state_length))
-                    (composition-rand-Left-9 (select __global_state __state_length))
-                    (composition-rand-Left-10 (select __global_state __state_length))
-                    (composition-rand-Left-11 (select __global_state __state_length))
-                    (composition-rand-Left-12 (select __global_state __state_length)))))
-              (__state_length (+ 1 __state_length)))
-            (mk-return-Left-keys_top-GETBIT __global_state __state_length zz))))
-      mk-abort-Left-keys_top-GETBIT)))
-(define-fun
-  oracle-Left-keys_top-SETBIT
-  (
-    (__global_state (Array Int CompositionState-Left))
-    (__state_length Int)
-    (h Int)
-    (zz Bool))
-  Return_Left_keys_top_SETBIT
-  (let
-    (
-      (__self_state
-        (composition-pkgstate-Left-keys_top (select __global_state __state_length))))
-    (ite
-      (= (select (state-Left-keys_top-z __self_state) h) (as mk-none (Maybe Bool)))
-      (let
-        (
-          (__self_state
-            (mk-state-Left-keys_top
-              (state-Left-keys_top-T __self_state)
-              (store (state-Left-keys_top-z __self_state) h (mk-some zz))
-              (state-Left-keys_top-flag __self_state))))
-        (let
-          (
-            (__global_state
-              (store
-                __global_state
-                (+ 1 __state_length)
-                (mk-composition-state-Left
-                  __self_state
-                  (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
-                  (composition-pkgstate-Left-gate (select __global_state __state_length))
-                  (composition-pkgstate-Left-enc (select __global_state __state_length))
-                  (composition-param-Left-zerom (select __global_state __state_length))
-                  (composition-param-Left-n (select __global_state __state_length))
-                  (composition-param-Left-m (select __global_state __state_length))
-                  (composition-param-Left-p (select __global_state __state_length))
-                  (composition-param-Left-zeron (select __global_state __state_length))
-                  (composition-rand-Left-0 (select __global_state __state_length))
-                  (composition-rand-Left-1 (select __global_state __state_length))
-                  (composition-rand-Left-2 (select __global_state __state_length))
-                  (composition-rand-Left-3 (select __global_state __state_length))
-                  (composition-rand-Left-4 (select __global_state __state_length))
-                  (composition-rand-Left-5 (select __global_state __state_length))
-                  (composition-rand-Left-6 (select __global_state __state_length))
-                  (composition-rand-Left-7 (select __global_state __state_length))
-                  (composition-rand-Left-8 (select __global_state __state_length))
-                  (composition-rand-Left-9 (select __global_state __state_length))
-                  (composition-rand-Left-10 (select __global_state __state_length))
-                  (composition-rand-Left-11 (select __global_state __state_length))
-                  (composition-rand-Left-12 (select __global_state __state_length)))))
-            (__state_length (+ 1 __state_length)))
-          (mk-return-Left-keys_top-SETBIT __global_state __state_length)))
-      mk-abort-Left-keys_top-SETBIT)))
-(define-fun
-  oracle-Left-keys_bottom-GETKEYSIN
-  (
-    (__global_state (Array Int CompositionState-Left))
-    (__state_length Int)
-    (h Int))
-  Return_Left_keys_bottom_GETKEYSIN
-  (let
-    (
-      (__self_state
-        (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))))
-    (ite
-      (= (select (state-Left-keys_bottom-flag __self_state) h) (mk-some true))
-      (let
-        ((unwrap-1 (maybe-get (select (state-Left-keys_bottom-T __self_state) h))))
-        (let
-          ((Z unwrap-1))
-          (let
-            (
-              (__global_state
-                (store
-                  __global_state
-                  (+ 1 __state_length)
-                  (mk-composition-state-Left
-                    (composition-pkgstate-Left-keys_top (select __global_state __state_length))
-                    __self_state
-                    (composition-pkgstate-Left-gate (select __global_state __state_length))
-                    (composition-pkgstate-Left-enc (select __global_state __state_length))
-                    (composition-param-Left-zerom (select __global_state __state_length))
-                    (composition-param-Left-n (select __global_state __state_length))
-                    (composition-param-Left-m (select __global_state __state_length))
-                    (composition-param-Left-p (select __global_state __state_length))
-                    (composition-param-Left-zeron (select __global_state __state_length))
-                    (composition-rand-Left-0 (select __global_state __state_length))
-                    (composition-rand-Left-1 (select __global_state __state_length))
-                    (composition-rand-Left-2 (select __global_state __state_length))
-                    (composition-rand-Left-3 (select __global_state __state_length))
-                    (composition-rand-Left-4 (select __global_state __state_length))
-                    (composition-rand-Left-5 (select __global_state __state_length))
-                    (composition-rand-Left-6 (select __global_state __state_length))
-                    (composition-rand-Left-7 (select __global_state __state_length))
-                    (composition-rand-Left-8 (select __global_state __state_length))
-                    (composition-rand-Left-9 (select __global_state __state_length))
-                    (composition-rand-Left-10 (select __global_state __state_length))
-                    (composition-rand-Left-11 (select __global_state __state_length))
-                    (composition-rand-Left-12 (select __global_state __state_length)))))
-              (__state_length (+ 1 __state_length)))
-            (mk-return-Left-keys_bottom-GETKEYSIN __global_state __state_length Z))))
-      mk-abort-Left-keys_bottom-GETKEYSIN)))
-(define-fun
-  oracle-Left-keys_bottom-GETAIN
-  (
-    (__global_state (Array Int CompositionState-Left))
-    (__state_length Int)
-    (h Int))
-  Return_Left_keys_bottom_GETAIN
-  (let
-    (
-      (__self_state
-        (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))))
-    (ite
-      (= (select (state-Left-keys_bottom-flag __self_state) h) (mk-some true))
-      (let
-        ((unwrap-1 (maybe-get (select (state-Left-keys_bottom-T __self_state) h))))
-        (let
-          ((Z unwrap-1))
-          (let
-            ((unwrap-2 (maybe-get (select (state-Left-keys_bottom-z __self_state) h))))
-            (let
-              ((zz unwrap-2))
-              (let
-                ((unwrap-3 (maybe-get (select Z zz))))
-                (let
-                  ((k unwrap-3))
-                  (let
-                    (
-                      (__global_state
-                        (store
-                          __global_state
-                          (+ 1 __state_length)
-                          (mk-composition-state-Left
-                            (composition-pkgstate-Left-keys_top (select __global_state __state_length))
-                            __self_state
-                            (composition-pkgstate-Left-gate (select __global_state __state_length))
-                            (composition-pkgstate-Left-enc (select __global_state __state_length))
-                            (composition-param-Left-zerom (select __global_state __state_length))
-                            (composition-param-Left-n (select __global_state __state_length))
-                            (composition-param-Left-m (select __global_state __state_length))
-                            (composition-param-Left-p (select __global_state __state_length))
-                            (composition-param-Left-zeron (select __global_state __state_length))
-                            (composition-rand-Left-0 (select __global_state __state_length))
-                            (composition-rand-Left-1 (select __global_state __state_length))
-                            (composition-rand-Left-2 (select __global_state __state_length))
-                            (composition-rand-Left-3 (select __global_state __state_length))
-                            (composition-rand-Left-4 (select __global_state __state_length))
-                            (composition-rand-Left-5 (select __global_state __state_length))
-                            (composition-rand-Left-6 (select __global_state __state_length))
-                            (composition-rand-Left-7 (select __global_state __state_length))
-                            (composition-rand-Left-8 (select __global_state __state_length))
-                            (composition-rand-Left-9 (select __global_state __state_length))
-                            (composition-rand-Left-10 (select __global_state __state_length))
-                            (composition-rand-Left-11 (select __global_state __state_length))
-                            (composition-rand-Left-12 (select __global_state __state_length)))))
-                      (__state_length (+ 1 __state_length)))
-                    (mk-return-Left-keys_bottom-GETAIN __global_state __state_length k))))))))
-      mk-abort-Left-keys_bottom-GETAIN)))
-(define-fun
-  oracle-Left-keys_bottom-GETINAIN
-  (
-    (__global_state (Array Int CompositionState-Left))
-    (__state_length Int)
-    (h Int))
-  Return_Left_keys_bottom_GETINAIN
-  (let
-    (
-      (__self_state
-        (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))))
-    (ite
-      (= (select (state-Left-keys_bottom-flag __self_state) h) (mk-some true))
-      (let
-        ((unwrap-1 (maybe-get (select (state-Left-keys_bottom-T __self_state) h))))
-        (let
-          ((Z unwrap-1))
-          (let
-            ((unwrap-2 (maybe-get (select (state-Left-keys_bottom-z __self_state) h))))
-            (let
-              ((zz unwrap-2))
-              (let
-                ((unwrap-3 (maybe-get (select Z (not zz)))))
-                (let
-                  ((k unwrap-3))
-                  (let
-                    (
-                      (__global_state
-                        (store
-                          __global_state
-                          (+ 1 __state_length)
-                          (mk-composition-state-Left
-                            (composition-pkgstate-Left-keys_top (select __global_state __state_length))
-                            __self_state
-                            (composition-pkgstate-Left-gate (select __global_state __state_length))
-                            (composition-pkgstate-Left-enc (select __global_state __state_length))
-                            (composition-param-Left-zerom (select __global_state __state_length))
-                            (composition-param-Left-n (select __global_state __state_length))
-                            (composition-param-Left-m (select __global_state __state_length))
-                            (composition-param-Left-p (select __global_state __state_length))
-                            (composition-param-Left-zeron (select __global_state __state_length))
-                            (composition-rand-Left-0 (select __global_state __state_length))
-                            (composition-rand-Left-1 (select __global_state __state_length))
-                            (composition-rand-Left-2 (select __global_state __state_length))
-                            (composition-rand-Left-3 (select __global_state __state_length))
-                            (composition-rand-Left-4 (select __global_state __state_length))
-                            (composition-rand-Left-5 (select __global_state __state_length))
-                            (composition-rand-Left-6 (select __global_state __state_length))
-                            (composition-rand-Left-7 (select __global_state __state_length))
-                            (composition-rand-Left-8 (select __global_state __state_length))
-                            (composition-rand-Left-9 (select __global_state __state_length))
-                            (composition-rand-Left-10 (select __global_state __state_length))
-                            (composition-rand-Left-11 (select __global_state __state_length))
-                            (composition-rand-Left-12 (select __global_state __state_length)))))
-                      (__state_length (+ 1 __state_length)))
-                    (mk-return-Left-keys_bottom-GETINAIN __global_state __state_length k))))))))
-      mk-abort-Left-keys_bottom-GETINAIN)))
-(define-fun
-  oracle-Left-keys_bottom-GETAOUT
-  (
-    (__global_state (Array Int CompositionState-Left))
-    (__state_length Int)
-    (h Int))
-  Return_Left_keys_bottom_GETAOUT
-  (let
-    (
-      (__self_state
-        (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))))
-    (ite
-      (= (select (state-Left-keys_bottom-z __self_state) h) (mk-some true))
-      (let
-        (
-          (__self_state
-            (mk-state-Left-keys_bottom
-              (state-Left-keys_bottom-T __self_state)
-              (state-Left-keys_bottom-z __self_state)
-              (store (state-Left-keys_bottom-flag __self_state) h (mk-some true)))))
-        (let
-          ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
-          (ite
-            (=
-              (select (state-Left-keys_bottom-T __self_state) h)
-              (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
-            (let
-              (
-                (r
-                  (__sample-rand-Left-Bits_n
-                    5
-                    (composition-rand-Left-5 (select __global_state __state_length)))))
-              (let
-                (
-                  (__global_state
-                    (store
-                      __global_state
-                      __state_length
-                      (mk-composition-state-Left
-                        (composition-pkgstate-Left-keys_top (select __global_state __state_length))
-                        (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
-                        (composition-pkgstate-Left-gate (select __global_state __state_length))
-                        (composition-pkgstate-Left-enc (select __global_state __state_length))
-                        (composition-param-Left-zerom (select __global_state __state_length))
-                        (composition-param-Left-n (select __global_state __state_length))
-                        (composition-param-Left-m (select __global_state __state_length))
-                        (composition-param-Left-p (select __global_state __state_length))
-                        (composition-param-Left-zeron (select __global_state __state_length))
-                        (composition-rand-Left-0 (select __global_state __state_length))
-                        (composition-rand-Left-1 (select __global_state __state_length))
-                        (composition-rand-Left-2 (select __global_state __state_length))
-                        (composition-rand-Left-3 (select __global_state __state_length))
-                        (composition-rand-Left-4 (select __global_state __state_length))
-                        (+ 1 (composition-rand-Left-5 (select __global_state __state_length)))
-                        (composition-rand-Left-6 (select __global_state __state_length))
-                        (composition-rand-Left-7 (select __global_state __state_length))
-                        (composition-rand-Left-8 (select __global_state __state_length))
-                        (composition-rand-Left-9 (select __global_state __state_length))
-                        (composition-rand-Left-10 (select __global_state __state_length))
-                        (composition-rand-Left-11 (select __global_state __state_length))
-                        (composition-rand-Left-12 (select __global_state __state_length))))))
-                (let
-                  ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
-                  (let
-                    ((Z (store Z true (mk-some r))))
-                    (let
-                      (
-                        (rr
-                          (__sample-rand-Left-Bits_n
-                            6
-                            (composition-rand-Left-6 (select __global_state __state_length)))))
-                      (let
-                        (
-                          (__global_state
-                            (store
-                              __global_state
-                              __state_length
-                              (mk-composition-state-Left
-                                (composition-pkgstate-Left-keys_top (select __global_state __state_length))
-                                (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
-                                (composition-pkgstate-Left-gate (select __global_state __state_length))
-                                (composition-pkgstate-Left-enc (select __global_state __state_length))
-                                (composition-param-Left-zerom (select __global_state __state_length))
-                                (composition-param-Left-n (select __global_state __state_length))
-                                (composition-param-Left-m (select __global_state __state_length))
-                                (composition-param-Left-p (select __global_state __state_length))
-                                (composition-param-Left-zeron (select __global_state __state_length))
-                                (composition-rand-Left-0 (select __global_state __state_length))
-                                (composition-rand-Left-1 (select __global_state __state_length))
-                                (composition-rand-Left-2 (select __global_state __state_length))
-                                (composition-rand-Left-3 (select __global_state __state_length))
-                                (composition-rand-Left-4 (select __global_state __state_length))
-                                (composition-rand-Left-5 (select __global_state __state_length))
-                                (+ 1 (composition-rand-Left-6 (select __global_state __state_length)))
-                                (composition-rand-Left-7 (select __global_state __state_length))
-                                (composition-rand-Left-8 (select __global_state __state_length))
-                                (composition-rand-Left-9 (select __global_state __state_length))
-                                (composition-rand-Left-10 (select __global_state __state_length))
-                                (composition-rand-Left-11 (select __global_state __state_length))
-                                (composition-rand-Left-12 (select __global_state __state_length))))))
-                        (let
-                          ((Z (store Z false (mk-some rr))))
-                          (let
-                            (
-                              (__self_state
-                                (mk-state-Left-keys_bottom
-                                  (store (state-Left-keys_bottom-T __self_state) h (mk-some Z))
-                                  (state-Left-keys_bottom-z __self_state)
-                                  (state-Left-keys_bottom-flag __self_state))))
-                            (let
-                              ((unwrap-1 (maybe-get (select (state-Left-keys_bottom-T __self_state) h))))
-                              (let
-                                ((Z unwrap-1))
-                                (let
-                                  ((unwrap-2 (maybe-get (select (state-Left-keys_bottom-z __self_state) h))))
-                                  (let
-                                    ((zz unwrap-2))
-                                    (let
-                                      ((unwrap-3 (maybe-get (select Z zz))))
-                                      (let
-                                        ((k unwrap-3))
-                                        (let
-                                          (
-                                            (__global_state
-                                              (store
-                                                __global_state
-                                                (+ 1 __state_length)
-                                                (mk-composition-state-Left
-                                                  (composition-pkgstate-Left-keys_top (select __global_state __state_length))
-                                                  __self_state
-                                                  (composition-pkgstate-Left-gate (select __global_state __state_length))
-                                                  (composition-pkgstate-Left-enc (select __global_state __state_length))
-                                                  (composition-param-Left-zerom (select __global_state __state_length))
-                                                  (composition-param-Left-n (select __global_state __state_length))
-                                                  (composition-param-Left-m (select __global_state __state_length))
-                                                  (composition-param-Left-p (select __global_state __state_length))
-                                                  (composition-param-Left-zeron (select __global_state __state_length))
-                                                  (composition-rand-Left-0 (select __global_state __state_length))
-                                                  (composition-rand-Left-1 (select __global_state __state_length))
-                                                  (composition-rand-Left-2 (select __global_state __state_length))
-                                                  (composition-rand-Left-3 (select __global_state __state_length))
-                                                  (composition-rand-Left-4 (select __global_state __state_length))
-                                                  (composition-rand-Left-5 (select __global_state __state_length))
-                                                  (composition-rand-Left-6 (select __global_state __state_length))
-                                                  (composition-rand-Left-7 (select __global_state __state_length))
-                                                  (composition-rand-Left-8 (select __global_state __state_length))
-                                                  (composition-rand-Left-9 (select __global_state __state_length))
-                                                  (composition-rand-Left-10 (select __global_state __state_length))
-                                                  (composition-rand-Left-11 (select __global_state __state_length))
-                                                  (composition-rand-Left-12 (select __global_state __state_length)))))
-                                            (__state_length (+ 1 __state_length)))
-                                          (mk-return-Left-keys_bottom-GETAOUT __global_state __state_length k))))))))))))))))
-            (let
-              ((unwrap-1 (maybe-get (select (state-Left-keys_bottom-T __self_state) h))))
-              (let
-                ((Z unwrap-1))
-                (let
-                  ((unwrap-2 (maybe-get (select (state-Left-keys_bottom-z __self_state) h))))
-                  (let
-                    ((zz unwrap-2))
-                    (let
-                      ((unwrap-3 (maybe-get (select Z zz))))
-                      (let
-                        ((k unwrap-3))
-                        (let
-                          (
-                            (__global_state
-                              (store
-                                __global_state
-                                (+ 1 __state_length)
-                                (mk-composition-state-Left
-                                  (composition-pkgstate-Left-keys_top (select __global_state __state_length))
-                                  __self_state
-                                  (composition-pkgstate-Left-gate (select __global_state __state_length))
-                                  (composition-pkgstate-Left-enc (select __global_state __state_length))
-                                  (composition-param-Left-zerom (select __global_state __state_length))
-                                  (composition-param-Left-n (select __global_state __state_length))
-                                  (composition-param-Left-m (select __global_state __state_length))
-                                  (composition-param-Left-p (select __global_state __state_length))
-                                  (composition-param-Left-zeron (select __global_state __state_length))
-                                  (composition-rand-Left-0 (select __global_state __state_length))
-                                  (composition-rand-Left-1 (select __global_state __state_length))
-                                  (composition-rand-Left-2 (select __global_state __state_length))
-                                  (composition-rand-Left-3 (select __global_state __state_length))
-                                  (composition-rand-Left-4 (select __global_state __state_length))
-                                  (composition-rand-Left-5 (select __global_state __state_length))
-                                  (composition-rand-Left-6 (select __global_state __state_length))
-                                  (composition-rand-Left-7 (select __global_state __state_length))
-                                  (composition-rand-Left-8 (select __global_state __state_length))
-                                  (composition-rand-Left-9 (select __global_state __state_length))
-                                  (composition-rand-Left-10 (select __global_state __state_length))
-                                  (composition-rand-Left-11 (select __global_state __state_length))
-                                  (composition-rand-Left-12 (select __global_state __state_length)))))
-                            (__state_length (+ 1 __state_length)))
-                          (mk-return-Left-keys_bottom-GETAOUT __global_state __state_length k)))))))))))
-      mk-abort-Left-keys_bottom-GETAOUT)))
-(define-fun
-  oracle-Left-keys_bottom-GETKEYSOUT
-  (
-    (__global_state (Array Int CompositionState-Left))
-    (__state_length Int)
-    (h Int))
-  Return_Left_keys_bottom_GETKEYSOUT
-  (let
-    (
-      (__self_state
-        (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))))
-    (ite
-      (not (= (select (state-Left-keys_bottom-flag __self_state) h) (mk-some true)))
-      (let
-        (
-          (__self_state
-            (mk-state-Left-keys_bottom
-              (state-Left-keys_bottom-T __self_state)
-              (state-Left-keys_bottom-z __self_state)
-              (store (state-Left-keys_bottom-flag __self_state) h (mk-some true)))))
-        (let
-          ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
-          (ite
-            (=
-              (select (state-Left-keys_bottom-T __self_state) h)
-              (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
-            (let
-              (
-                (r
-                  (__sample-rand-Left-Bits_n
-                    7
-                    (composition-rand-Left-7 (select __global_state __state_length)))))
-              (let
-                (
-                  (__global_state
-                    (store
-                      __global_state
-                      __state_length
-                      (mk-composition-state-Left
-                        (composition-pkgstate-Left-keys_top (select __global_state __state_length))
-                        (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
-                        (composition-pkgstate-Left-gate (select __global_state __state_length))
-                        (composition-pkgstate-Left-enc (select __global_state __state_length))
-                        (composition-param-Left-zerom (select __global_state __state_length))
-                        (composition-param-Left-n (select __global_state __state_length))
-                        (composition-param-Left-m (select __global_state __state_length))
-                        (composition-param-Left-p (select __global_state __state_length))
-                        (composition-param-Left-zeron (select __global_state __state_length))
-                        (composition-rand-Left-0 (select __global_state __state_length))
-                        (composition-rand-Left-1 (select __global_state __state_length))
-                        (composition-rand-Left-2 (select __global_state __state_length))
-                        (composition-rand-Left-3 (select __global_state __state_length))
-                        (composition-rand-Left-4 (select __global_state __state_length))
-                        (composition-rand-Left-5 (select __global_state __state_length))
-                        (composition-rand-Left-6 (select __global_state __state_length))
-                        (+ 1 (composition-rand-Left-7 (select __global_state __state_length)))
-                        (composition-rand-Left-8 (select __global_state __state_length))
-                        (composition-rand-Left-9 (select __global_state __state_length))
-                        (composition-rand-Left-10 (select __global_state __state_length))
-                        (composition-rand-Left-11 (select __global_state __state_length))
-                        (composition-rand-Left-12 (select __global_state __state_length))))))
-                (let
-                  ((Z ((as const (Array Bool (Maybe Bits_n))) (as mk-none (Maybe Bits_n)))))
-                  (let
-                    ((Z (store Z true (mk-some r))))
-                    (let
-                      (
-                        (rr
-                          (__sample-rand-Left-Bits_n
-                            8
-                            (composition-rand-Left-8 (select __global_state __state_length)))))
-                      (let
-                        (
-                          (__global_state
-                            (store
-                              __global_state
-                              __state_length
-                              (mk-composition-state-Left
-                                (composition-pkgstate-Left-keys_top (select __global_state __state_length))
-                                (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
-                                (composition-pkgstate-Left-gate (select __global_state __state_length))
-                                (composition-pkgstate-Left-enc (select __global_state __state_length))
-                                (composition-param-Left-zerom (select __global_state __state_length))
-                                (composition-param-Left-n (select __global_state __state_length))
-                                (composition-param-Left-m (select __global_state __state_length))
-                                (composition-param-Left-p (select __global_state __state_length))
-                                (composition-param-Left-zeron (select __global_state __state_length))
-                                (composition-rand-Left-0 (select __global_state __state_length))
-                                (composition-rand-Left-1 (select __global_state __state_length))
-                                (composition-rand-Left-2 (select __global_state __state_length))
-                                (composition-rand-Left-3 (select __global_state __state_length))
-                                (composition-rand-Left-4 (select __global_state __state_length))
-                                (composition-rand-Left-5 (select __global_state __state_length))
-                                (composition-rand-Left-6 (select __global_state __state_length))
-                                (composition-rand-Left-7 (select __global_state __state_length))
-                                (+ 1 (composition-rand-Left-8 (select __global_state __state_length)))
-                                (composition-rand-Left-9 (select __global_state __state_length))
-                                (composition-rand-Left-10 (select __global_state __state_length))
-                                (composition-rand-Left-11 (select __global_state __state_length))
-                                (composition-rand-Left-12 (select __global_state __state_length))))))
-                        (let
-                          ((Z (store Z false (mk-some rr))))
-                          (let
-                            (
-                              (__self_state
-                                (mk-state-Left-keys_bottom
-                                  (store (state-Left-keys_bottom-T __self_state) h (mk-some Z))
-                                  (state-Left-keys_bottom-z __self_state)
-                                  (state-Left-keys_bottom-flag __self_state))))
-                            (let
-                              ((unwrap-1 (maybe-get (select (state-Left-keys_bottom-T __self_state) h))))
-                              (let
-                                ((Z unwrap-1))
-                                (let
-                                  (
-                                    (__global_state
-                                      (store
-                                        __global_state
-                                        (+ 1 __state_length)
-                                        (mk-composition-state-Left
-                                          (composition-pkgstate-Left-keys_top (select __global_state __state_length))
-                                          __self_state
-                                          (composition-pkgstate-Left-gate (select __global_state __state_length))
-                                          (composition-pkgstate-Left-enc (select __global_state __state_length))
-                                          (composition-param-Left-zerom (select __global_state __state_length))
-                                          (composition-param-Left-n (select __global_state __state_length))
-                                          (composition-param-Left-m (select __global_state __state_length))
-                                          (composition-param-Left-p (select __global_state __state_length))
-                                          (composition-param-Left-zeron (select __global_state __state_length))
-                                          (composition-rand-Left-0 (select __global_state __state_length))
-                                          (composition-rand-Left-1 (select __global_state __state_length))
-                                          (composition-rand-Left-2 (select __global_state __state_length))
-                                          (composition-rand-Left-3 (select __global_state __state_length))
-                                          (composition-rand-Left-4 (select __global_state __state_length))
-                                          (composition-rand-Left-5 (select __global_state __state_length))
-                                          (composition-rand-Left-6 (select __global_state __state_length))
-                                          (composition-rand-Left-7 (select __global_state __state_length))
-                                          (composition-rand-Left-8 (select __global_state __state_length))
-                                          (composition-rand-Left-9 (select __global_state __state_length))
-                                          (composition-rand-Left-10 (select __global_state __state_length))
-                                          (composition-rand-Left-11 (select __global_state __state_length))
-                                          (composition-rand-Left-12 (select __global_state __state_length)))))
-                                    (__state_length (+ 1 __state_length)))
-                                  (mk-return-Left-keys_bottom-GETKEYSOUT __global_state __state_length Z))))))))))))
-            (let
-              ((unwrap-1 (maybe-get (select (state-Left-keys_bottom-T __self_state) h))))
-              (let
-                ((Z unwrap-1))
-                (let
-                  (
-                    (__global_state
-                      (store
-                        __global_state
-                        (+ 1 __state_length)
-                        (mk-composition-state-Left
-                          (composition-pkgstate-Left-keys_top (select __global_state __state_length))
-                          __self_state
-                          (composition-pkgstate-Left-gate (select __global_state __state_length))
-                          (composition-pkgstate-Left-enc (select __global_state __state_length))
-                          (composition-param-Left-zerom (select __global_state __state_length))
-                          (composition-param-Left-n (select __global_state __state_length))
-                          (composition-param-Left-m (select __global_state __state_length))
-                          (composition-param-Left-p (select __global_state __state_length))
-                          (composition-param-Left-zeron (select __global_state __state_length))
-                          (composition-rand-Left-0 (select __global_state __state_length))
-                          (composition-rand-Left-1 (select __global_state __state_length))
-                          (composition-rand-Left-2 (select __global_state __state_length))
-                          (composition-rand-Left-3 (select __global_state __state_length))
-                          (composition-rand-Left-4 (select __global_state __state_length))
-                          (composition-rand-Left-5 (select __global_state __state_length))
-                          (composition-rand-Left-6 (select __global_state __state_length))
-                          (composition-rand-Left-7 (select __global_state __state_length))
-                          (composition-rand-Left-8 (select __global_state __state_length))
-                          (composition-rand-Left-9 (select __global_state __state_length))
-                          (composition-rand-Left-10 (select __global_state __state_length))
-                          (composition-rand-Left-11 (select __global_state __state_length))
-                          (composition-rand-Left-12 (select __global_state __state_length)))))
-                    (__state_length (+ 1 __state_length)))
-                  (mk-return-Left-keys_bottom-GETKEYSOUT __global_state __state_length Z)))))))
-      mk-abort-Left-keys_bottom-GETKEYSOUT)))
-(define-fun
-  oracle-Left-keys_bottom-GETBIT
-  (
-    (__global_state (Array Int CompositionState-Left))
-    (__state_length Int)
-    (h Int))
-  Return_Left_keys_bottom_GETBIT
-  (let
-    (
-      (__self_state
-        (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))))
-    (ite
-      (not
-        (=
-          (select (state-Left-keys_bottom-z __self_state) h)
-          (as mk-none (Maybe Bool))))
-      (let
-        ((unwrap-1 (maybe-get (select (state-Left-keys_bottom-z __self_state) h))))
-        (let
-          ((zz unwrap-1))
-          (let
-            (
-              (__global_state
-                (store
-                  __global_state
-                  (+ 1 __state_length)
-                  (mk-composition-state-Left
-                    (composition-pkgstate-Left-keys_top (select __global_state __state_length))
-                    __self_state
-                    (composition-pkgstate-Left-gate (select __global_state __state_length))
-                    (composition-pkgstate-Left-enc (select __global_state __state_length))
-                    (composition-param-Left-zerom (select __global_state __state_length))
-                    (composition-param-Left-n (select __global_state __state_length))
-                    (composition-param-Left-m (select __global_state __state_length))
-                    (composition-param-Left-p (select __global_state __state_length))
-                    (composition-param-Left-zeron (select __global_state __state_length))
-                    (composition-rand-Left-0 (select __global_state __state_length))
-                    (composition-rand-Left-1 (select __global_state __state_length))
-                    (composition-rand-Left-2 (select __global_state __state_length))
-                    (composition-rand-Left-3 (select __global_state __state_length))
-                    (composition-rand-Left-4 (select __global_state __state_length))
-                    (composition-rand-Left-5 (select __global_state __state_length))
-                    (composition-rand-Left-6 (select __global_state __state_length))
-                    (composition-rand-Left-7 (select __global_state __state_length))
-                    (composition-rand-Left-8 (select __global_state __state_length))
-                    (composition-rand-Left-9 (select __global_state __state_length))
-                    (composition-rand-Left-10 (select __global_state __state_length))
-                    (composition-rand-Left-11 (select __global_state __state_length))
-                    (composition-rand-Left-12 (select __global_state __state_length)))))
-              (__state_length (+ 1 __state_length)))
-            (mk-return-Left-keys_bottom-GETBIT __global_state __state_length zz))))
-      mk-abort-Left-keys_bottom-GETBIT)))
-(define-fun
-  oracle-Left-keys_bottom-SETBIT
-  (
-    (__global_state (Array Int CompositionState-Left))
-    (__state_length Int)
-    (h Int)
-    (zz Bool))
-  Return_Left_keys_bottom_SETBIT
-  (let
-    (
-      (__self_state
-        (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))))
-    (ite
-      (=
-        (select (state-Left-keys_bottom-z __self_state) h)
-        (as mk-none (Maybe Bool)))
-      (let
-        (
-          (__self_state
-            (mk-state-Left-keys_bottom
-              (state-Left-keys_bottom-T __self_state)
-              (store (state-Left-keys_bottom-z __self_state) h (mk-some zz))
-              (state-Left-keys_bottom-flag __self_state))))
-        (let
-          (
-            (__global_state
-              (store
-                __global_state
-                (+ 1 __state_length)
-                (mk-composition-state-Left
-                  (composition-pkgstate-Left-keys_top (select __global_state __state_length))
-                  __self_state
-                  (composition-pkgstate-Left-gate (select __global_state __state_length))
-                  (composition-pkgstate-Left-enc (select __global_state __state_length))
-                  (composition-param-Left-zerom (select __global_state __state_length))
-                  (composition-param-Left-n (select __global_state __state_length))
-                  (composition-param-Left-m (select __global_state __state_length))
-                  (composition-param-Left-p (select __global_state __state_length))
-                  (composition-param-Left-zeron (select __global_state __state_length))
-                  (composition-rand-Left-0 (select __global_state __state_length))
-                  (composition-rand-Left-1 (select __global_state __state_length))
-                  (composition-rand-Left-2 (select __global_state __state_length))
-                  (composition-rand-Left-3 (select __global_state __state_length))
-                  (composition-rand-Left-4 (select __global_state __state_length))
-                  (composition-rand-Left-5 (select __global_state __state_length))
-                  (composition-rand-Left-6 (select __global_state __state_length))
-                  (composition-rand-Left-7 (select __global_state __state_length))
-                  (composition-rand-Left-8 (select __global_state __state_length))
-                  (composition-rand-Left-9 (select __global_state __state_length))
-                  (composition-rand-Left-10 (select __global_state __state_length))
-                  (composition-rand-Left-11 (select __global_state __state_length))
-                  (composition-rand-Left-12 (select __global_state __state_length)))))
-            (__state_length (+ 1 __state_length)))
-          (mk-return-Left-keys_bottom-SETBIT __global_state __state_length)))
-      mk-abort-Left-keys_bottom-SETBIT)))
-(define-fun
-  oracle-Left-enc-ENCN
-  (
-    (__global_state (Array Int CompositionState-Left))
-    (__state_length Int)
-    (j Int)
-    (d Bool)
-    (nzero Bits_n)
-    (none Bits_n))
-  Return_Left_enc_ENCN
-  (let
-    (
-      (__self_state
-        (composition-pkgstate-Left-enc (select __global_state __state_length))))
-    (let
-      ((__ret (oracle-Left-keys_top-GETKEYSIN __global_state __state_length j)))
-      (ite
-        (= __ret mk-abort-Left-keys_top-GETKEYSIN)
-        mk-abort-Left-enc-ENCN
-        (let
-          (
-            (__global_state (return-Left-keys_top-GETKEYSIN-state __ret))
-            (__state_length (return-Left-keys_top-GETKEYSIN-state-length __ret))
-            (K (return-Left-keys_top-GETKEYSIN-value __ret)))
-          (let
-            ((__ret (oracle-Left-keys_top-GETBIT __global_state __state_length j)))
-            (ite
-              (= __ret mk-abort-Left-keys_top-GETBIT)
-              mk-abort-Left-enc-ENCN
-              (let
-                (
-                  (__global_state (return-Left-keys_top-GETBIT-state __ret))
-                  (__state_length (return-Left-keys_top-GETBIT-state-length __ret))
-                  (z (return-Left-keys_top-GETBIT-value __ret)))
-                (let
-                  (
-                    (r
-                      (__sample-rand-Left-Bits_n
-                        9
-                        (composition-rand-Left-9 (select __global_state __state_length)))))
-                  (let
-                    (
-                      (__global_state
-                        (store
-                          __global_state
-                          __state_length
-                          (mk-composition-state-Left
-                            (composition-pkgstate-Left-keys_top (select __global_state __state_length))
-                            (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
-                            (composition-pkgstate-Left-gate (select __global_state __state_length))
-                            (composition-pkgstate-Left-enc (select __global_state __state_length))
-                            (composition-param-Left-zerom (select __global_state __state_length))
-                            (composition-param-Left-n (select __global_state __state_length))
-                            (composition-param-Left-m (select __global_state __state_length))
-                            (composition-param-Left-p (select __global_state __state_length))
-                            (composition-param-Left-zeron (select __global_state __state_length))
-                            (composition-rand-Left-0 (select __global_state __state_length))
-                            (composition-rand-Left-1 (select __global_state __state_length))
-                            (composition-rand-Left-2 (select __global_state __state_length))
-                            (composition-rand-Left-3 (select __global_state __state_length))
-                            (composition-rand-Left-4 (select __global_state __state_length))
-                            (composition-rand-Left-5 (select __global_state __state_length))
-                            (composition-rand-Left-6 (select __global_state __state_length))
-                            (composition-rand-Left-7 (select __global_state __state_length))
-                            (composition-rand-Left-8 (select __global_state __state_length))
-                            (+ 1 (composition-rand-Left-9 (select __global_state __state_length)))
-                            (composition-rand-Left-10 (select __global_state __state_length))
-                            (composition-rand-Left-11 (select __global_state __state_length))
-                            (composition-rand-Left-12 (select __global_state __state_length))))))
-                    (let
-                      (
-                        (c
-                          (__sample-rand-Left-Bits_m
-                            10
-                            (composition-rand-Left-10 (select __global_state __state_length)))))
-                      (let
-                        (
-                          (__global_state
-                            (store
-                              __global_state
-                              __state_length
-                              (mk-composition-state-Left
-                                (composition-pkgstate-Left-keys_top (select __global_state __state_length))
-                                (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
-                                (composition-pkgstate-Left-gate (select __global_state __state_length))
-                                (composition-pkgstate-Left-enc (select __global_state __state_length))
-                                (composition-param-Left-zerom (select __global_state __state_length))
-                                (composition-param-Left-n (select __global_state __state_length))
-                                (composition-param-Left-m (select __global_state __state_length))
-                                (composition-param-Left-p (select __global_state __state_length))
-                                (composition-param-Left-zeron (select __global_state __state_length))
-                                (composition-rand-Left-0 (select __global_state __state_length))
-                                (composition-rand-Left-1 (select __global_state __state_length))
-                                (composition-rand-Left-2 (select __global_state __state_length))
-                                (composition-rand-Left-3 (select __global_state __state_length))
-                                (composition-rand-Left-4 (select __global_state __state_length))
-                                (composition-rand-Left-5 (select __global_state __state_length))
-                                (composition-rand-Left-6 (select __global_state __state_length))
-                                (composition-rand-Left-7 (select __global_state __state_length))
-                                (composition-rand-Left-8 (select __global_state __state_length))
-                                (composition-rand-Left-9 (select __global_state __state_length))
-                                (+ 1 (composition-rand-Left-10 (select __global_state __state_length)))
-                                (composition-rand-Left-11 (select __global_state __state_length))
-                                (composition-rand-Left-12 (select __global_state __state_length))))))
-                        (ite
-                          (= d z)
-                          (let
-                            ((unwrap-1 (maybe-get (select K z))))
-                            (let
-                              ((c (__func-Left-encn unwrap-1 nzero r)))
-                              (let
-                                (
-                                  (__global_state
-                                    (store
-                                      __global_state
-                                      (+ 1 __state_length)
-                                      (mk-composition-state-Left
-                                        (composition-pkgstate-Left-keys_top (select __global_state __state_length))
-                                        (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
-                                        (composition-pkgstate-Left-gate (select __global_state __state_length))
-                                        __self_state
-                                        (composition-param-Left-zerom (select __global_state __state_length))
-                                        (composition-param-Left-n (select __global_state __state_length))
-                                        (composition-param-Left-m (select __global_state __state_length))
-                                        (composition-param-Left-p (select __global_state __state_length))
-                                        (composition-param-Left-zeron (select __global_state __state_length))
-                                        (composition-rand-Left-0 (select __global_state __state_length))
-                                        (composition-rand-Left-1 (select __global_state __state_length))
-                                        (composition-rand-Left-2 (select __global_state __state_length))
-                                        (composition-rand-Left-3 (select __global_state __state_length))
-                                        (composition-rand-Left-4 (select __global_state __state_length))
-                                        (composition-rand-Left-5 (select __global_state __state_length))
-                                        (composition-rand-Left-6 (select __global_state __state_length))
-                                        (composition-rand-Left-7 (select __global_state __state_length))
-                                        (composition-rand-Left-8 (select __global_state __state_length))
-                                        (composition-rand-Left-9 (select __global_state __state_length))
-                                        (composition-rand-Left-10 (select __global_state __state_length))
-                                        (composition-rand-Left-11 (select __global_state __state_length))
-                                        (composition-rand-Left-12 (select __global_state __state_length)))))
-                                  (__state_length (+ 1 __state_length)))
-                                (mk-return-Left-enc-ENCN __global_state __state_length c))))
-                          (let
-                            ((unwrap-2 (maybe-get (select K z))))
-                            (let
-                              ((c (__func-Left-encn unwrap-2 none r)))
-                              (let
-                                (
-                                  (__global_state
-                                    (store
-                                      __global_state
-                                      (+ 1 __state_length)
-                                      (mk-composition-state-Left
-                                        (composition-pkgstate-Left-keys_top (select __global_state __state_length))
-                                        (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
-                                        (composition-pkgstate-Left-gate (select __global_state __state_length))
-                                        __self_state
-                                        (composition-param-Left-zerom (select __global_state __state_length))
-                                        (composition-param-Left-n (select __global_state __state_length))
-                                        (composition-param-Left-m (select __global_state __state_length))
-                                        (composition-param-Left-p (select __global_state __state_length))
-                                        (composition-param-Left-zeron (select __global_state __state_length))
-                                        (composition-rand-Left-0 (select __global_state __state_length))
-                                        (composition-rand-Left-1 (select __global_state __state_length))
-                                        (composition-rand-Left-2 (select __global_state __state_length))
-                                        (composition-rand-Left-3 (select __global_state __state_length))
-                                        (composition-rand-Left-4 (select __global_state __state_length))
-                                        (composition-rand-Left-5 (select __global_state __state_length))
-                                        (composition-rand-Left-6 (select __global_state __state_length))
-                                        (composition-rand-Left-7 (select __global_state __state_length))
-                                        (composition-rand-Left-8 (select __global_state __state_length))
-                                        (composition-rand-Left-9 (select __global_state __state_length))
-                                        (composition-rand-Left-10 (select __global_state __state_length))
-                                        (composition-rand-Left-11 (select __global_state __state_length))
-                                        (composition-rand-Left-12 (select __global_state __state_length)))))
-                                  (__state_length (+ 1 __state_length)))
-                                (mk-return-Left-enc-ENCN __global_state __state_length c)))))))))))))))))
-(define-fun
-  oracle-Left-enc-ENCM
-  (
-    (__global_state (Array Int CompositionState-Left))
-    (__state_length Int)
-    (j Int)
-    (d Bool)
-    (mzero Bits_m)
-    (mone Bits_m))
-  Return_Left_enc_ENCM
-  (let
-    (
-      (__self_state
-        (composition-pkgstate-Left-enc (select __global_state __state_length))))
-    (let
-      ((__ret (oracle-Left-keys_top-GETKEYSIN __global_state __state_length j)))
-      (ite
-        (= __ret mk-abort-Left-keys_top-GETKEYSIN)
-        mk-abort-Left-enc-ENCM
-        (let
-          (
-            (__global_state (return-Left-keys_top-GETKEYSIN-state __ret))
-            (__state_length (return-Left-keys_top-GETKEYSIN-state-length __ret))
-            (K (return-Left-keys_top-GETKEYSIN-value __ret)))
-          (let
-            ((__ret (oracle-Left-keys_top-GETBIT __global_state __state_length j)))
-            (ite
-              (= __ret mk-abort-Left-keys_top-GETBIT)
-              mk-abort-Left-enc-ENCM
-              (let
-                (
-                  (__global_state (return-Left-keys_top-GETBIT-state __ret))
-                  (__state_length (return-Left-keys_top-GETBIT-state-length __ret))
-                  (z (return-Left-keys_top-GETBIT-value __ret)))
-                (let
-                  (
-                    (r
-                      (__sample-rand-Left-Bits_n
-                        11
-                        (composition-rand-Left-11 (select __global_state __state_length)))))
-                  (let
-                    (
-                      (__global_state
-                        (store
-                          __global_state
-                          __state_length
-                          (mk-composition-state-Left
-                            (composition-pkgstate-Left-keys_top (select __global_state __state_length))
-                            (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
-                            (composition-pkgstate-Left-gate (select __global_state __state_length))
-                            (composition-pkgstate-Left-enc (select __global_state __state_length))
-                            (composition-param-Left-zerom (select __global_state __state_length))
-                            (composition-param-Left-n (select __global_state __state_length))
-                            (composition-param-Left-m (select __global_state __state_length))
-                            (composition-param-Left-p (select __global_state __state_length))
-                            (composition-param-Left-zeron (select __global_state __state_length))
-                            (composition-rand-Left-0 (select __global_state __state_length))
-                            (composition-rand-Left-1 (select __global_state __state_length))
-                            (composition-rand-Left-2 (select __global_state __state_length))
-                            (composition-rand-Left-3 (select __global_state __state_length))
-                            (composition-rand-Left-4 (select __global_state __state_length))
-                            (composition-rand-Left-5 (select __global_state __state_length))
-                            (composition-rand-Left-6 (select __global_state __state_length))
-                            (composition-rand-Left-7 (select __global_state __state_length))
-                            (composition-rand-Left-8 (select __global_state __state_length))
-                            (composition-rand-Left-9 (select __global_state __state_length))
-                            (composition-rand-Left-10 (select __global_state __state_length))
-                            (+ 1 (composition-rand-Left-11 (select __global_state __state_length)))
-                            (composition-rand-Left-12 (select __global_state __state_length))))))
-                    (let
-                      (
-                        (c
-                          (__sample-rand-Left-Bits_p
-                            12
-                            (composition-rand-Left-12 (select __global_state __state_length)))))
-                      (let
-                        (
-                          (__global_state
-                            (store
-                              __global_state
-                              __state_length
-                              (mk-composition-state-Left
-                                (composition-pkgstate-Left-keys_top (select __global_state __state_length))
-                                (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
-                                (composition-pkgstate-Left-gate (select __global_state __state_length))
-                                (composition-pkgstate-Left-enc (select __global_state __state_length))
-                                (composition-param-Left-zerom (select __global_state __state_length))
-                                (composition-param-Left-n (select __global_state __state_length))
-                                (composition-param-Left-m (select __global_state __state_length))
-                                (composition-param-Left-p (select __global_state __state_length))
-                                (composition-param-Left-zeron (select __global_state __state_length))
-                                (composition-rand-Left-0 (select __global_state __state_length))
-                                (composition-rand-Left-1 (select __global_state __state_length))
-                                (composition-rand-Left-2 (select __global_state __state_length))
-                                (composition-rand-Left-3 (select __global_state __state_length))
-                                (composition-rand-Left-4 (select __global_state __state_length))
-                                (composition-rand-Left-5 (select __global_state __state_length))
-                                (composition-rand-Left-6 (select __global_state __state_length))
-                                (composition-rand-Left-7 (select __global_state __state_length))
-                                (composition-rand-Left-8 (select __global_state __state_length))
-                                (composition-rand-Left-9 (select __global_state __state_length))
-                                (composition-rand-Left-10 (select __global_state __state_length))
-                                (composition-rand-Left-11 (select __global_state __state_length))
-                                (+ 1 (composition-rand-Left-12 (select __global_state __state_length)))))))
-                        (ite
-                          (= d z)
-                          (let
-                            ((unwrap-1 (maybe-get (select K z))))
-                            (let
-                              ((c (__func-Left-encm unwrap-1 mzero r)))
-                              (let
-                                (
-                                  (__global_state
-                                    (store
-                                      __global_state
-                                      (+ 1 __state_length)
-                                      (mk-composition-state-Left
-                                        (composition-pkgstate-Left-keys_top (select __global_state __state_length))
-                                        (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
-                                        (composition-pkgstate-Left-gate (select __global_state __state_length))
-                                        __self_state
-                                        (composition-param-Left-zerom (select __global_state __state_length))
-                                        (composition-param-Left-n (select __global_state __state_length))
-                                        (composition-param-Left-m (select __global_state __state_length))
-                                        (composition-param-Left-p (select __global_state __state_length))
-                                        (composition-param-Left-zeron (select __global_state __state_length))
-                                        (composition-rand-Left-0 (select __global_state __state_length))
-                                        (composition-rand-Left-1 (select __global_state __state_length))
-                                        (composition-rand-Left-2 (select __global_state __state_length))
-                                        (composition-rand-Left-3 (select __global_state __state_length))
-                                        (composition-rand-Left-4 (select __global_state __state_length))
-                                        (composition-rand-Left-5 (select __global_state __state_length))
-                                        (composition-rand-Left-6 (select __global_state __state_length))
-                                        (composition-rand-Left-7 (select __global_state __state_length))
-                                        (composition-rand-Left-8 (select __global_state __state_length))
-                                        (composition-rand-Left-9 (select __global_state __state_length))
-                                        (composition-rand-Left-10 (select __global_state __state_length))
-                                        (composition-rand-Left-11 (select __global_state __state_length))
-                                        (composition-rand-Left-12 (select __global_state __state_length)))))
-                                  (__state_length (+ 1 __state_length)))
-                                (mk-return-Left-enc-ENCM __global_state __state_length c))))
-                          (let
-                            ((unwrap-2 (maybe-get (select K z))))
-                            (let
-                              ((c (__func-Left-encm unwrap-2 mone r)))
-                              (let
-                                (
-                                  (__global_state
-                                    (store
-                                      __global_state
-                                      (+ 1 __state_length)
-                                      (mk-composition-state-Left
-                                        (composition-pkgstate-Left-keys_top (select __global_state __state_length))
-                                        (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
-                                        (composition-pkgstate-Left-gate (select __global_state __state_length))
-                                        __self_state
-                                        (composition-param-Left-zerom (select __global_state __state_length))
-                                        (composition-param-Left-n (select __global_state __state_length))
-                                        (composition-param-Left-m (select __global_state __state_length))
-                                        (composition-param-Left-p (select __global_state __state_length))
-                                        (composition-param-Left-zeron (select __global_state __state_length))
-                                        (composition-rand-Left-0 (select __global_state __state_length))
-                                        (composition-rand-Left-1 (select __global_state __state_length))
-                                        (composition-rand-Left-2 (select __global_state __state_length))
-                                        (composition-rand-Left-3 (select __global_state __state_length))
-                                        (composition-rand-Left-4 (select __global_state __state_length))
-                                        (composition-rand-Left-5 (select __global_state __state_length))
-                                        (composition-rand-Left-6 (select __global_state __state_length))
-                                        (composition-rand-Left-7 (select __global_state __state_length))
-                                        (composition-rand-Left-8 (select __global_state __state_length))
-                                        (composition-rand-Left-9 (select __global_state __state_length))
-                                        (composition-rand-Left-10 (select __global_state __state_length))
-                                        (composition-rand-Left-11 (select __global_state __state_length))
-                                        (composition-rand-Left-12 (select __global_state __state_length)))))
-                                  (__state_length (+ 1 __state_length)))
-                                (mk-return-Left-enc-ENCM __global_state __state_length c)))))))))))))))))
-(define-fun
-  oracle-Left-gate-GBLG
-  (
-    (__global_state (Array Int CompositionState-Left))
-    (__state_length Int)
-    (h Int)
-    (l Int)
-    (r Int)
-    (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
-    (j Int))
-  Return_Left_gate_GBLG
-  (let
-    (
-      (__self_state
-        (composition-pkgstate-Left-gate (select __global_state __state_length))))
-    (let
-      ((C ((as const (Array Bits_p (Maybe Bool))) (as mk-none (Maybe Bool)))))
-      (let
-        ((__ret (oracle-Left-keys_bottom-GETKEYSOUT __global_state __state_length j)))
-        (ite
-          (= __ret mk-abort-Left-keys_bottom-GETKEYSOUT)
-          mk-abort-Left-gate-GBLG
-          (let
-            (
-              (__global_state (return-Left-keys_bottom-GETKEYSOUT-state __ret))
-              (__state_length (return-Left-keys_bottom-GETKEYSOUT-state-length __ret))
-              (Z (return-Left-keys_bottom-GETKEYSOUT-value __ret)))
-            (let
-              ((bl false))
-              (let
-                ((br false))
-                (let
-                  ((unwrap-1 (maybe-get (select op (mk-tuple2 bl br)))))
-                  (let
-                    ((bj unwrap-1))
-                    (let
-                      ((unwrap-2 (maybe-get (select Z bj))))
-                      (let
-                        ((kzero unwrap-2))
-                        (let
-                          (
-                            (__ret
-                              (oracle-Left-enc-ENCN
-                                __global_state
-                                __state_length
-                                l
-                                bl
-                                kzero
-                                (composition-param-Left-zeron (select __global_state __state_length)))))
-                          (ite
-                            (= __ret mk-abort-Left-enc-ENCN)
-                            mk-abort-Left-gate-GBLG
-                            (let
-                              (
-                                (__global_state (return-Left-enc-ENCN-state __ret))
-                                (__state_length (return-Left-enc-ENCN-state-length __ret))
-                                (czeroin (return-Left-enc-ENCN-value __ret)))
-                              (let
-                                (
-                                  (__ret
-                                    (oracle-Left-enc-ENCN
-                                      __global_state
-                                      __state_length
-                                      l
-                                      bl
-                                      (composition-param-Left-zeron (select __global_state __state_length))
-                                      (composition-param-Left-zeron (select __global_state __state_length)))))
-                                (ite
-                                  (= __ret mk-abort-Left-enc-ENCN)
-                                  mk-abort-Left-gate-GBLG
-                                  (let
-                                    (
-                                      (__global_state (return-Left-enc-ENCN-state __ret))
-                                      (__state_length (return-Left-enc-ENCN-state-length __ret))
-                                      (conein (return-Left-enc-ENCN-value __ret)))
-                                    (let
-                                      (
-                                        (__ret
-                                          (oracle-Left-enc-ENCM __global_state __state_length r br conein czeroin)))
-                                      (ite
-                                        (= __ret mk-abort-Left-enc-ENCM)
-                                        mk-abort-Left-gate-GBLG
-                                        (let
-                                          (
-                                            (__global_state (return-Left-enc-ENCM-state __ret))
-                                            (__state_length (return-Left-enc-ENCM-state-length __ret))
-                                            (cout (return-Left-enc-ENCM-value __ret)))
-                                          (let
-                                            ((C ((as const (Array Bits_p (Maybe Bool))) (as mk-none (Maybe Bool)))))
-                                            (let
-                                              ((C (store C cout (mk-some true))))
-                                              (let
-                                                ((bl true))
-                                                (let
-                                                  ((br false))
-                                                  (let
-                                                    ((unwrap-3 (maybe-get (select op (mk-tuple2 bl br)))))
-                                                    (let
-                                                      ((bj unwrap-3))
-                                                      (let
-                                                        ((unwrap-4 (maybe-get (select Z bj))))
-                                                        (let
-                                                          ((kzero unwrap-4))
-                                                          (let
-                                                            (
-                                                              (__ret
-                                                                (oracle-Left-enc-ENCN
-                                                                  __global_state
-                                                                  __state_length
-                                                                  l
-                                                                  bl
-                                                                  kzero
-                                                                  (composition-param-Left-zeron (select __global_state __state_length)))))
-                                                            (ite
-                                                              (= __ret mk-abort-Left-enc-ENCN)
-                                                              mk-abort-Left-gate-GBLG
-                                                              (let
-                                                                (
-                                                                  (__global_state (return-Left-enc-ENCN-state __ret))
-                                                                  (__state_length (return-Left-enc-ENCN-state-length __ret))
-                                                                  (czeroin (return-Left-enc-ENCN-value __ret)))
-                                                                (let
-                                                                  (
-                                                                    (__ret
-                                                                      (oracle-Left-enc-ENCN
-                                                                        __global_state
-                                                                        __state_length
-                                                                        l
-                                                                        bl
-                                                                        (composition-param-Left-zeron (select __global_state __state_length))
-                                                                        (composition-param-Left-zeron (select __global_state __state_length)))))
-                                                                  (ite
-                                                                    (= __ret mk-abort-Left-enc-ENCN)
-                                                                    mk-abort-Left-gate-GBLG
-                                                                    (let
-                                                                      (
-                                                                        (__global_state (return-Left-enc-ENCN-state __ret))
-                                                                        (__state_length (return-Left-enc-ENCN-state-length __ret))
-                                                                        (conein (return-Left-enc-ENCN-value __ret)))
-                                                                      (let
-                                                                        (
-                                                                          (__ret
-                                                                            (oracle-Left-enc-ENCM __global_state __state_length r br conein czeroin)))
-                                                                        (ite
-                                                                          (= __ret mk-abort-Left-enc-ENCM)
-                                                                          mk-abort-Left-gate-GBLG
-                                                                          (let
-                                                                            (
-                                                                              (__global_state (return-Left-enc-ENCM-state __ret))
-                                                                              (__state_length (return-Left-enc-ENCM-state-length __ret))
-                                                                              (cout (return-Left-enc-ENCM-value __ret)))
-                                                                            (let
-                                                                              ((C (store C cout (mk-some true))))
-                                                                              (let
-                                                                                ((bl false))
-                                                                                (let
-                                                                                  ((br true))
-                                                                                  (let
-                                                                                    ((unwrap-5 (maybe-get (select op (mk-tuple2 bl br)))))
-                                                                                    (let
-                                                                                      ((bj unwrap-5))
-                                                                                      (let
-                                                                                        ((unwrap-6 (maybe-get (select Z bj))))
-                                                                                        (let
-                                                                                          ((kzero unwrap-6))
-                                                                                          (let
-                                                                                            (
-                                                                                              (__ret
-                                                                                                (oracle-Left-enc-ENCN
-                                                                                                  __global_state
-                                                                                                  __state_length
-                                                                                                  l
-                                                                                                  bl
-                                                                                                  kzero
-                                                                                                  (composition-param-Left-zeron (select __global_state __state_length)))))
-                                                                                            (ite
-                                                                                              (= __ret mk-abort-Left-enc-ENCN)
-                                                                                              mk-abort-Left-gate-GBLG
-                                                                                              (let
-                                                                                                (
-                                                                                                  (__global_state (return-Left-enc-ENCN-state __ret))
-                                                                                                  (__state_length (return-Left-enc-ENCN-state-length __ret))
-                                                                                                  (czeroin (return-Left-enc-ENCN-value __ret)))
-                                                                                                (let
-                                                                                                  (
-                                                                                                    (__ret
-                                                                                                      (oracle-Left-enc-ENCN
-                                                                                                        __global_state
-                                                                                                        __state_length
-                                                                                                        l
-                                                                                                        bl
-                                                                                                        (composition-param-Left-zeron (select __global_state __state_length))
-                                                                                                        (composition-param-Left-zeron (select __global_state __state_length)))))
-                                                                                                  (ite
-                                                                                                    (= __ret mk-abort-Left-enc-ENCN)
-                                                                                                    mk-abort-Left-gate-GBLG
-                                                                                                    (let
-                                                                                                      (
-                                                                                                        (__global_state (return-Left-enc-ENCN-state __ret))
-                                                                                                        (__state_length (return-Left-enc-ENCN-state-length __ret))
-                                                                                                        (conein (return-Left-enc-ENCN-value __ret)))
-                                                                                                      (let
-                                                                                                        (
-                                                                                                          (__ret
-                                                                                                            (oracle-Left-enc-ENCM __global_state __state_length r br conein czeroin)))
-                                                                                                        (ite
-                                                                                                          (= __ret mk-abort-Left-enc-ENCM)
-                                                                                                          mk-abort-Left-gate-GBLG
-                                                                                                          (let
-                                                                                                            (
-                                                                                                              (__global_state (return-Left-enc-ENCM-state __ret))
-                                                                                                              (__state_length (return-Left-enc-ENCM-state-length __ret))
-                                                                                                              (cout (return-Left-enc-ENCM-value __ret)))
-                                                                                                            (let
-                                                                                                              ((C (store C cout (mk-some true))))
-                                                                                                              (let
-                                                                                                                ((bl true))
-                                                                                                                (let
-                                                                                                                  ((br true))
-                                                                                                                  (let
-                                                                                                                    ((unwrap-7 (maybe-get (select op (mk-tuple2 bl br)))))
-                                                                                                                    (let
-                                                                                                                      ((bj unwrap-7))
-                                                                                                                      (let
-                                                                                                                        ((unwrap-8 (maybe-get (select Z bj))))
-                                                                                                                        (let
-                                                                                                                          ((kzero unwrap-8))
-                                                                                                                          (let
-                                                                                                                            (
-                                                                                                                              (__ret
-                                                                                                                                (oracle-Left-enc-ENCN
-                                                                                                                                  __global_state
-                                                                                                                                  __state_length
-                                                                                                                                  l
-                                                                                                                                  bl
-                                                                                                                                  kzero
-                                                                                                                                  (composition-param-Left-zeron (select __global_state __state_length)))))
-                                                                                                                            (ite
-                                                                                                                              (= __ret mk-abort-Left-enc-ENCN)
-                                                                                                                              mk-abort-Left-gate-GBLG
-                                                                                                                              (let
-                                                                                                                                (
-                                                                                                                                  (__global_state (return-Left-enc-ENCN-state __ret))
-                                                                                                                                  (__state_length (return-Left-enc-ENCN-state-length __ret))
-                                                                                                                                  (czeroin (return-Left-enc-ENCN-value __ret)))
-                                                                                                                                (let
-                                                                                                                                  (
-                                                                                                                                    (__ret
-                                                                                                                                      (oracle-Left-enc-ENCN
-                                                                                                                                        __global_state
-                                                                                                                                        __state_length
-                                                                                                                                        l
-                                                                                                                                        bl
-                                                                                                                                        (composition-param-Left-zeron (select __global_state __state_length))
-                                                                                                                                        (composition-param-Left-zeron (select __global_state __state_length)))))
-                                                                                                                                  (ite
-                                                                                                                                    (= __ret mk-abort-Left-enc-ENCN)
-                                                                                                                                    mk-abort-Left-gate-GBLG
-                                                                                                                                    (let
-                                                                                                                                      (
-                                                                                                                                        (__global_state (return-Left-enc-ENCN-state __ret))
-                                                                                                                                        (__state_length (return-Left-enc-ENCN-state-length __ret))
-                                                                                                                                        (conein (return-Left-enc-ENCN-value __ret)))
-                                                                                                                                      (let
-                                                                                                                                        (
-                                                                                                                                          (__ret
-                                                                                                                                            (oracle-Left-enc-ENCM __global_state __state_length r br conein czeroin)))
-                                                                                                                                        (ite
-                                                                                                                                          (= __ret mk-abort-Left-enc-ENCM)
-                                                                                                                                          mk-abort-Left-gate-GBLG
-                                                                                                                                          (let
-                                                                                                                                            (
-                                                                                                                                              (__global_state (return-Left-enc-ENCM-state __ret))
-                                                                                                                                              (__state_length (return-Left-enc-ENCM-state-length __ret))
-                                                                                                                                              (cout (return-Left-enc-ENCM-value __ret)))
-                                                                                                                                            (let
-                                                                                                                                              ((C (store C cout (mk-some true))))
-                                                                                                                                              (let
-                                                                                                                                                (
-                                                                                                                                                  (__global_state
-                                                                                                                                                    (store
-                                                                                                                                                      __global_state
-                                                                                                                                                      (+ 1 __state_length)
-                                                                                                                                                      (mk-composition-state-Left
-                                                                                                                                                        (composition-pkgstate-Left-keys_top (select __global_state __state_length))
-                                                                                                                                                        (composition-pkgstate-Left-keys_bottom (select __global_state __state_length))
-                                                                                                                                                        __self_state
-                                                                                                                                                        (composition-pkgstate-Left-enc (select __global_state __state_length))
-                                                                                                                                                        (composition-param-Left-zerom (select __global_state __state_length))
-                                                                                                                                                        (composition-param-Left-n (select __global_state __state_length))
-                                                                                                                                                        (composition-param-Left-m (select __global_state __state_length))
-                                                                                                                                                        (composition-param-Left-p (select __global_state __state_length))
-                                                                                                                                                        (composition-param-Left-zeron (select __global_state __state_length))
-                                                                                                                                                        (composition-rand-Left-0 (select __global_state __state_length))
-                                                                                                                                                        (composition-rand-Left-1 (select __global_state __state_length))
-                                                                                                                                                        (composition-rand-Left-2 (select __global_state __state_length))
-                                                                                                                                                        (composition-rand-Left-3 (select __global_state __state_length))
-                                                                                                                                                        (composition-rand-Left-4 (select __global_state __state_length))
-                                                                                                                                                        (composition-rand-Left-5 (select __global_state __state_length))
-                                                                                                                                                        (composition-rand-Left-6 (select __global_state __state_length))
-                                                                                                                                                        (composition-rand-Left-7 (select __global_state __state_length))
-                                                                                                                                                        (composition-rand-Left-8 (select __global_state __state_length))
-                                                                                                                                                        (composition-rand-Left-9 (select __global_state __state_length))
-                                                                                                                                                        (composition-rand-Left-10 (select __global_state __state_length))
-                                                                                                                                                        (composition-rand-Left-11 (select __global_state __state_length))
-                                                                                                                                                        (composition-rand-Left-12 (select __global_state __state_length)))))
-                                                                                                                                                  (__state_length (+ 1 __state_length)))
-                                                                                                                                                (mk-return-Left-gate-GBLG __global_state __state_length C)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+                                                                                                                                                                                            (mk-return-Right-simgate-GBLG __global_state __state_length (mk-some C) false)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
 (check-sat)
