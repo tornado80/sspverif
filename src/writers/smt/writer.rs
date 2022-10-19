@@ -59,7 +59,7 @@ impl<'a> CompositionSmtWriter<'a> {
             SmtExpr::List(vec![
                 SmtExpr::Atom("select".into()),
                 SspSmtVar::CompositionContext.into(),
-                SmtExpr::Atom("__state_length".into())
+                SspSmtVar::ContextLength.into(),
             ])
         )
             .into()
@@ -187,7 +187,7 @@ impl<'a> CompositionSmtWriter<'a> {
                             }
                             .into(),
                             SspSmtVar::CompositionContext.into(),
-                            SmtExpr::Atom("__state_length".into()),
+                            SspSmtVar::ContextLength.into(),
                             SmtExpr::List(vec![
                                 SmtExpr::Atom("mk-some".into()),
                                 SmtExpr::Atom("mk-empty".into()),
@@ -209,7 +209,7 @@ impl<'a> CompositionSmtWriter<'a> {
                             }
                             .into(),
                             SspSmtVar::CompositionContext.into(),
-                            SmtExpr::Atom("__state_length".into()),
+                            SspSmtVar::ContextLength.into(),
                             Expression::Some(Box::new(expr.clone())).into(),
                             SmtExpr::Atom("false".into()),
                         ]),
@@ -228,7 +228,7 @@ impl<'a> CompositionSmtWriter<'a> {
                             }
                             .into(),
                             SspSmtVar::CompositionContext.into(),
-                            SmtExpr::Atom("__state_length".into()),
+                            SspSmtVar::ContextLength.into(),
                             Expression::None(oracle_return_tipe.clone()).into(),                            
                             SmtExpr::Atom("true".into()),
                         ]),
@@ -347,7 +347,7 @@ impl<'a> CompositionSmtWriter<'a> {
                                     self.comp.name, target, name
                                 )),
                                 SspSmtVar::CompositionContext.into(),
-                                SmtExpr::Atom("__state_length".into()),
+                                SspSmtVar::ContextLength.into(),
                             ];
 
                             for arg in args {
@@ -375,7 +375,7 @@ impl<'a> CompositionSmtWriter<'a> {
                                             SspSmtVar::ReturnValue.into(),
                                     ]),
                                 ), (
-                                    "__state_length".into(),
+                                    smt_to_string(SspSmtVar::ContextLength),
                                     SmtExpr::List(vec![
                                         SmtExpr::Atom(format!(
                                             "return-{}-{}-{}-state-length",
@@ -396,7 +396,7 @@ impl<'a> CompositionSmtWriter<'a> {
                                         }
                                         .into(),
                                         SspSmtVar::CompositionContext.into(),
-                                        SmtExpr::Atom("__state_length".into()),
+                                        SspSmtVar::ContextLength.into(),
                                         Expression::None(oracle_return_tipe.clone()).into(),
                                         SmtExpr::Atom("true".into()),
                                     ]),
@@ -413,10 +413,8 @@ impl<'a> CompositionSmtWriter<'a> {
                                             )),
                                             SspSmtVar::ReturnValue.into(),
                                         ]),
-                                    ),
-
-                                    (
-                                        "__state_length".into(),
+                                    ), (
+                                        smt_to_string(SspSmtVar::ContextLength),
                                         SmtExpr::List(vec![
                                             SmtExpr::Atom(format!(
                                                 "return-{}-{}-{}-state-length",
@@ -586,9 +584,8 @@ impl<'a> CompositionSmtWriter<'a> {
                         SmtExpr::Atom("Int".into()),
                         self.comp_helper.smt_sort(),
                     ]),
-                ]),
-                SmtExpr::List(vec![
-                    SmtExpr::Atom("__state_length".into()),
+                ]), SmtExpr::List(vec![
+                    SspSmtVar::ContextLength.into(),
                     SmtExpr::Atom("Int".into()),
                 ]),
                 ];
@@ -616,7 +613,7 @@ impl<'a> CompositionSmtWriter<'a> {
                                                 SmtExpr::List(vec![
                                                     SmtExpr::Atom("select".into()),
                                                     SspSmtVar::CompositionContext.into(),
-                                                    SmtExpr::Atom("__state_length".into())
+                                                    SspSmtVar::ContextLength.into(),
                                                 ])
                                 ),
                         )],

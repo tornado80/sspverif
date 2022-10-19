@@ -191,6 +191,7 @@ impl From<SspSmtVar> for SmtExpr {
     fn from(v: SspSmtVar) -> SmtExpr {
         match v {
             SspSmtVar::CompositionContext => "__global_state".into(),
+            SspSmtVar::ContextLength => "__state_length".into(),
             SspSmtVar::SelfState => SmtExpr::Atom("__self_state".into()),
             SspSmtVar::ReturnValue => SmtExpr::Atom("__ret".into()),
             SspSmtVar::OracleReturnConstructor {
@@ -251,6 +252,7 @@ where
 
 pub enum SspSmtVar {
     CompositionContext,
+    ContextLength,
     SelfState,
     ReturnValue,
     OracleReturnConstructor {
