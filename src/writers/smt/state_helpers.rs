@@ -137,7 +137,7 @@ impl<'a> SmtCompositionContext<'a> {
         let mut tmp = vec![self.smt_constructor()];
         let latest_state = SmtExpr::List(vec![SmtExpr::Atom("select".into()),
                                               SspSmtVar::CompositionContext.into(),
-                                              SmtExpr::Atom("__state_length".into()),
+                                              SspSmtVar::ContextLength.into(),
         ]);
 
         // add values for the package states, replacing target
@@ -165,11 +165,19 @@ impl<'a> SmtCompositionContext<'a> {
                 SmtExpr::List(vec![
                     SmtExpr::Atom("store".into()),
                     SspSmtVar::CompositionContext.into(),
-                    SmtExpr::List(vec![SmtExpr::Atom("+".into()),SmtExpr::Atom("1".into()),SmtExpr::Atom("__state_length".into())]),
+                    SmtExpr::List(vec![
+                        SmtExpr::Atom("+".into()),
+                        SmtExpr::Atom("1".into()),
+                        SspSmtVar::ContextLength.into()]),
                     SmtExpr::List(tmp),
                 ])
             ),(
-                "__state_length".into(), SmtExpr::List(vec![SmtExpr::Atom("+".into()),SmtExpr::Atom("1".into()),SmtExpr::Atom("__state_length".into())])
+                smt_to_string(SspSmtVar::ContextLength),
+                SmtExpr::List(vec![
+                    SmtExpr::Atom("+".into()),
+                    SmtExpr::Atom("1".into()),
+                    SspSmtVar::ContextLength.into()
+                ])
             )
             ],
             body,
@@ -182,7 +190,7 @@ impl<'a> SmtCompositionContext<'a> {
         let mut tmp = vec![self.smt_constructor()];
         let latest_state = SmtExpr::List(vec![SmtExpr::Atom("select".into()),
                                               SspSmtVar::CompositionContext.into(),
-                                              SmtExpr::Atom("__state_length".into()),
+                                              SspSmtVar::ContextLength.into(),
         ]);
 
         // copy values for the package states
@@ -212,7 +220,7 @@ impl<'a> SmtCompositionContext<'a> {
                 SmtExpr::List(vec![
                     SmtExpr::Atom("store".into()),
                     SspSmtVar::CompositionContext.into(),
-                    SmtExpr::Atom("__state_length".into()),
+                    SspSmtVar::ContextLength.into(),
                     SmtExpr::List(tmp),
                 ])
             )],

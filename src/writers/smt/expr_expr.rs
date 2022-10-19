@@ -112,7 +112,7 @@ impl From<Expression> for SmtExpr {
                 SmtExpr::List(vec![
                     SmtExpr::Atom("select".into()),
                     SspSmtVar::CompositionContext.into(),
-                    SmtExpr::Atom("__state_length".into())
+                    SspSmtVar::ContextLength.into(),
                 ])
             ]),
             Expression::Bot => SmtExpr::Atom("bot".to_string()),
