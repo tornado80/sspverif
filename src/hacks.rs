@@ -18,6 +18,17 @@ pub fn declare_par_Maybe<W: Write>(w: &mut W) -> Result<()> {
     )
 }
 
+
+#[allow(non_snake_case)]
+pub fn declare_Empty<W: Write>(w: &mut W) -> Result<()> {
+    write!(
+        w,
+        "(declare-datatype Empty (mk-empty))"
+    )
+}
+
+
+
 #[allow(non_snake_case)]
 pub fn declare_datatype_Tuple<W: Write>(w: &mut W, ts: &[&str]) -> Result<()> {
     let mut out = String::new();
