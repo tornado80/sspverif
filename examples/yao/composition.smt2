@@ -9453,4 +9453,8 @@
                                                                                                                                                                                                     (composition-rand-Right-16 (select __global_state __state_length)))))
                                                                                                                                                                                               (__state_length (+ 1 __state_length)))
                                                                                                                                                                                             (mk-return-Right-simgate-GBLG __global_state __state_length (mk-some C) false)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
-(check-sat)
+(push 1)
+(assert true)
+(check-sat) ;2
+(pop 1)
+

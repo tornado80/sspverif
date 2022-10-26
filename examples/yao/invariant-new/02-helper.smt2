@@ -1,3 +1,7 @@
+;(push 1)
+;(assert true)
+;(check-sat) ;5
+;(pop 1)
 
 
 ; catches corner cases of tables

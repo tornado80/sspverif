@@ -9453,7 +9453,11 @@
                                                                                                                                                                                                     (composition-rand-Right-16 (select __global_state __state_length)))))
                                                                                                                                                                                               (__state_length (+ 1 __state_length)))
                                                                                                                                                                                             (mk-return-Right-simgate-GBLG __global_state __state_length (mk-some C) false)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
-(check-sat)
+(push 1)
+(assert true)
+(check-sat) ;2
+(pop 1)
+
 (declare-datatype
   State_keys
   (
@@ -9538,6 +9542,10 @@
 (declare-const rr-left Bits_n)
 (declare-const rr-right Bits_n)
 
+(push 1)
+(assert true)
+(check-sat) ;2
+(pop 1)
 
 
 (assert
@@ -9569,6 +9577,12 @@
 )
 )
 
+(push 1)
+(assert true)
+(check-sat) ;3
+(pop 1)
+
+
 ; special-purpose glue for this particular project
 (assert
 (and
@@ -9577,8 +9591,14 @@
 (not (= (select op (mk-tuple2 true  false))(as mk-none (Maybe Bool))))
 (not (= (select op (mk-tuple2 false true ))(as mk-none (Maybe Bool))))
 (not (= (select op (mk-tuple2 false false))(as mk-none (Maybe Bool))))
+))
 
+(push 1)
+(assert true)
+(check-sat) ;4
+(pop 1)
 
+(assert
 ;;;;;;Pre-condition (randomness mapping):
 ;equality of values of the sample functions for the lower Key package
 (forall ((ctr Int))
@@ -9586,8 +9606,16 @@
               (= (__sample-rand-Left-Bits_n 3 ctr)
                  (__sample-rand-Right-Bits_n 1 ctr))
               (= (__sample-rand-Left-Bits_n 4 ctr)
-                 (__sample-rand-Right-Bits_n 2 ctr))
+                 (__sample-rand-Right-Bits_n 2 ctr)))))
 
+;(push 1)
+;(assert true)
+;(check-sat) ;4
+;(pop 1)
+
+(assert
+(forall ((ctr Int))
+(and
 ;equality of values of the sample functions for the encryptions
               (= (__sample-rand-Left-Bits_n   9 ctr)
                  (__sample-rand-Right-Bits_n  9 ctr))
@@ -9601,134 +9629,18 @@
                  (__sample-rand-Right-Bits_n 13 ctr))
               (= (__sample-rand-Left-Bits_n  11 (+ 2 ctr))
                  (__sample-rand-Right-Bits_n 14 ctr))
-              (= (__sample-rand-Left-Bits_n   9  (+ 3 ctr))
+              (= (__sample-rand-Left-Bits_n   9 (+ 3 ctr))
                  (__sample-rand-Right-Bits_n 15 ctr))
               (= (__sample-rand-Left-Bits_n  11 (+ 3 ctr))
                  (__sample-rand-Right-Bits_n 16 ctr))
 
 )
 )
-)
-);(;let (
-;
-;              ;retrieving return state from the list
-;              (= (select array-state-left-old 1) state-left-old)
-;              (= (select array-state-right-old 1) state-right-old)
-;              (= (select array-state-left-new length-state-left-new) state-left-new)
-;              (= (select array-state-right-new length-state-right-new) state-right;-new)
-;
-;              (= (select array-state-right-new 5) state-right-after-EVAL)
-;
-;
-;              ;assignment of the ctr of the sample instructions for the lower Key package
-;              (= ctr-r-left   (composition-rand-Left-3  state-left-old))
-;              (= ctr-r-right  (composition-rand-Right-1 state-right-old))
-;              (= ctr-rr-left  (composition-rand-Left-4  state-left-old))
-;              (= ctr-rr-right (composition-rand-Right-2 state-right-old))
-;
-;              ;assignment of the ctr of the sample instructions for the lower Key package on new state
-;              (= ctr-r-left-new   (composition-rand-Left-3  state-left-new))
-;              (= ctr-r-right-new  (composition-rand-Right-1 state-right-new))
-;              (= ctr-rr-left-new  (composition-rand-Left-4  state-left-new))
-;              (= ctr-rr-right-new (composition-rand-Right-2 state-right-new))
-;
-;              ;assignment of the sampled values for the lower Key package
-;              (= r-left   (__sample-rand-Left-Bits_n 3 ctr-r-left))
-;              (= r-right  (__sample-rand-Right-Bits_n 1 ctr-r-right))
-;              (= rr-left  (__sample-rand-Left-Bits_n 4 ctr-rr-left))
-;              (= rr-right (__sample-rand-Right-Bits_n 2 ctr-rr-left))
-;
-;              ;assignment of the sampled values for the lower Key package as a table
-;              (= (mk-some  r-left)  (select Z-left   true))
-;              (= (mk-some rr-left)  (select Z-left  false))
-;              (= (mk-some  r-right) (select Z-right  true))
-;              (= (mk-some rr-right) (select Z-right false))
-;
-;              ;variable for the state of the upper/lower key package left/right before/after call
-;              (= table-top-left-new   (state-Left-keys_top-T    (composition-pkgstate-Left-keys_top     state-left-new)))
-;              (= table-top-right-after-EVAL (state-Right-keys_top-T    (composition-pkgstate-Right-keys_top    state-right-after-EVAL)))
-;              (= table-top-right-new (state-Right-keys_top-T    (composition-pkgstate-Right-keys_top    state-right-new)))
-;              (= table-bottom-left-new   (state-Left-keys_bottom-T (composition-pkgstate-Left-keys_bottom  state-left-new)))
-;              (= table-bottom-right-after-EVAL (state-Right-keys_bottom-T (composition-pkgstate-Right-keys_bottom state-right-after-EVAL)))
-;              (= table-bottom-right-new (state-Right-keys_bottom-T (composition-pkgstate-Right-keys_bottom state-right-new)))
-;              (= table-top-left-old   (state-Left-keys_top-T    (composition-pkgstate-Left-keys_top     state-left-old)))
-;              (= table-top-right-old (state-Right-keys_top-T    (composition-pkgstate-Right-keys_top    state-right-old)))
-;              (= table-bottom-left-old   (state-Left-keys_bottom-T (composition-pkgstate-Left-keys_bottom  state-left-old)))
-;              (= table-bottom-right-old (state-Right-keys_bottom-T (composition-pkgstate-Right-keys_bottom state-right-old)))
-;
-;              ;variable for the bit state of the upper/lower key package left/right before/after call
-;              (= table-z-top-left-new   (state-Left-keys_top-z    (composition-pkgstate-Left-keys_top     state-left-new)))
-;              (= table-z-top-right-after-EVAL (state-Right-keys_top-z    (composition-pkgstate-Right-keys_top    state-right-after-EVAL))) 
-;            (= table-z-top-right-new (state-Right-keys_top-z    (composition-pkgstate-Right-keys_top    state-right-new)))
-;              (= table-z-bottom-left-new   (state-Left-keys_bottom-z (composition-pkgstate-Left-keys_bottom  state-left-new)))
-;              (= table-z-bottom-right-after-EVAL (state-Right-keys_bottom-z (composition-pkgstate-Right-keys_bottom state-right-after-EVAL)))
-;              (= table-z-bottom-right-new (state-Right-keys_bottom-z (composition-pkgstate-Right-keys_bottom state-right-new)))
-;              (= table-z-top-left-old   (state-Left-keys_top-z    (composition-pkgstate-Left-keys_top     state-left-old)))
-;              (= table-z-top-right-old (state-Right-keys_top-z    (composition-pkgstate-Right-keys_top    state-right-old)))
-;              (= table-z-bottom-left-old   (state-Left-keys_bottom-z (composition-pkgstate-Left-keys_bottom  state-left-old)))
-;              (= table-z-bottom-right-old (state-Right-keys_bottom-z (composition-pkgstate-Right-keys_bottom state-right-old)))
-;
-;             ;variable for the flag state of the upper/lower key package left/right before/after call
-;              (= table-flag-top-left-new   (state-Left-keys_top-flag    (composition-pkgstate-Left-keys_top     state-left-new)))
-;              (= table-flag-top-right-new (state-Right-keys_top-flag    (composition-pkgstate-Right-keys_top    state-right-new)))
-;              (= table-flag-bottom-left-new   (state-Left-keys_bottom-flag (composition-pkgstate-Left-keys_bottom  state-left-new)))
-;              (= table-flag-bottom-right-new (state-Right-keys_bottom-flag (composition-pkgstate-Right-keys_bottom state-right-new)))
-;              (= table-flag-top-left-old   (state-Left-keys_top-flag    (composition-pkgstate-Left-keys_top     state-left-old)))
-;              (= table-flag-top-right-old (state-Right-keys_top-flag    (composition-pkgstate-Right-keys_top    state-right-old)))
-;              (= table-flag-bottom-left-old   (state-Left-keys_bottom-flag (composition-pkgstate-Left-keys_bottom  state-left-old)))
-;              (= table-flag-bottom-right-old (state-Right-keys_bottom-flag (composition-pkgstate-Right-keys_bottom state-right-old)))
-;
-;              ;assignment of the ctr of the sample instructions for the 8 encryptions on the left
-;              (= ctr-rin-left  (composition-rand-Left-9  state-left-old))
-;              (= ctr-rout-left (composition-rand-Left-11 state-left-old))
-;              ; Note that the counter is increased 4 times
-;
-;              ;assignment of the sampled values for the 8 encryptions on the left
-;              (= (rin-left false false)    (__sample-rand-Left-Bits_n 9  ctr-r-left))
-;              (= (rin-left true false)     (__sample-rand-Left-Bits_n 9  (+ 1 ctr-r-left)))
-;              (= (rin-left false true)     (__sample-rand-Left-Bits_n 9  (+ 2 ctr-r-left)))
-;              (= (rin-left true true)      (__sample-rand-Left-Bits_n 9  (+ 3 ctr-r-left)))
-;              (= (rout-left false false)   (__sample-rand-Left-Bits_n 11 ctr-r-left))
-;              (= (rout-left true false)    (__sample-rand-Left-Bits_n 11 (+ 1 ctr-r-left)))
-;              (= (rout-left false true)    (__sample-rand-Left-Bits_n 11 (+ 2 ctr-r-left)))
-;              (= (rout-left true true)     (__sample-rand-Left-Bits_n 11 (+ 3 ctr-r-left)))
-;
-;              ;assignment of the ctr of the sample instructions for the 8 encryptions on the right
-;              (= ctr-rin-oo-right  (composition-rand-Right-9  state-right-old))
-;              (= ctr-rout-oo-right (composition-rand-Right-10 state-right-old))
-;              (= ctr-rin-io-right  (composition-rand-Right-11 state-right-old))
-;              (= ctr-rout-io-right (composition-rand-Right-12 state-right-old))
-;              (= ctr-rin-oi-right  (composition-rand-Right-13 state-right-old))
-;              (= ctr-rout-oi-right (composition-rand-Right-14 state-right-old))
-;              (= ctr-rin-ii-right  (composition-rand-Right-15 state-right-old))
-;              (= ctr-rout-ii-right (composition-rand-Right-16 state-right-old))
-;
-;              ;assignment of the sampled values for the 8 encryptions on the right
-;              (= (rin-right  false false)  (__sample-rand-Right-Bits_n 9  ctr-rin-oo-right))
-;              (= (rout-right false false)  (__sample-rand-Right-Bits_n 10 ctr-rout-oo-right))
-;              (= (rin-right  true false)   (__sample-rand-Right-Bits_n 11 ctr-rin-io-right))
-;              (= (rout-right true false)   (__sample-rand-Right-Bits_n 12 ctr-rout-io-right))
-;              (= (rin-right  false true)   (__sample-rand-Right-Bits_n 13 ctr-rin-oi-right))
-;              (= (rout-right false true)   (__sample-rand-Right-Bits_n 14 ctr-rout-oi-right))
-;              (= (rin-right  true true)    (__sample-rand-Right-Bits_n 15 ctr-rin-ii-right))
-;              (= (rout-right true true)    (__sample-rand-Right-Bits_n 16 ctr-rout-ii-right))
-;
-;              ;assignment of the active bit on the right
-;              (= (mk-some z1) (select table-z-top-right-old l)) ;is this a cheat?
-;              (= (mk-some z2) (select table-z-top-right-old r))
-;
-;))
-;
-;;(push 1)
-;
-;;(assert true)
-;;(check-sat) ;2
-;
-;;(pop 1)
-;
-;
-;
-;)
+);(push 1)
+;(assert true)
+;(check-sat) ;5
+;(pop 1)
+
 
 ; catches corner cases of tables
 ;
@@ -9811,6 +9723,12 @@
                     true
                     ))
 )))
+;(push 1)
+;(assert true)
+;(check-sat) ;6
+;(pop 1)
+
+
 (define-fun invariant-keys ((state-left CompositionState-Left)(state-right CompositionState-Right)) Bool
 
 
@@ -9834,10 +9752,10 @@
 
 (and
 ;top key package states are equal
-;(= top-key-package-left top-key-package-left)
+(= top-key-package-left top-key-package-right)
 
 ;for bottom key package, tables are equal
-;(= table-bottom-left table-bottom-right)
+(= table-bottom-left table-bottom-right)
 
 ;top key packages behave like a key packages
 (well-defined-Key-active top-key-package-left)
@@ -9848,6 +9766,7 @@
 (well-defined-Key-active bottom-key-package-right)
 
 ))))
+
 
 
 (define-fun invariant-ctr ((state-left CompositionState-Left)(state-right CompositionState-Right)) Bool
@@ -9871,9 +9790,47 @@
 )
 )
 
+(define-fun lemma1-left-keys ((state-left-alt CompositionState-Left)(state-left-neu CompositionState-Left)) Bool
+
+(let
+
+; state of the key packages
+(
+(top-key-package-left-alt (project-State_Left_keys_top (composition-pkgstate-Left-keys_top state-left-alt)))
+(top-key-package-left-neu (project-State_Left_keys_top (composition-pkgstate-Left-keys_top state-left-neu)))
+(bottom-key-package-left-alt (project-State_Left_keys_bottom (composition-pkgstate-Left-keys_bottom state-left-alt)))
+(bottom-key-package-left-neu (project-State_Left_keys_bottom (composition-pkgstate-Left-keys_bottom state-left-neu)))
+)
+
+(let
+
+; table of the bottom key package
+(
+(table-top-left-alt (state-keys-T bottom-key-package-left-alt))
+(table-top-left-neu (state-keys-T bottom-key-package-left-neu))
+(table-bottom-left-alt (state-keys-T bottom-key-package-left-alt))
+(table-bottom-left-neu (state-keys-T bottom-key-package-left-neu))
+)
+
+
+;;;top key packages don't change
+(table-top-left-alt table-top-left-neu)
+
+)))
+;(push 1)
+;(assert true)
+;(check-sat) ;7
+;(pop 1)
+
+
 (push 1)
 
-(check-sat) ;2
+(assert (and (invariant-keys state-left-old state-right-old)
+             (invariant-ctr state-left-old state-right-old)
+             (not is-abort-right)
+             (not is-abort-left)
+             (not (invariant-keys state-left-old state-right-old))))
+(check-sat) ;5 ;8
 ;(get-model)
 (pop 1)
 
@@ -9883,10 +9840,34 @@
              (invariant-ctr state-left-old state-right-old)
              (not is-abort-right)
              (not is-abort-left)
-             (not (invariant-keys state-left-old state-right-after-EVAL))))
-(check-sat) ;2
+             (not (weak-invariant-keys state-left-old state-right-old))))
+(check-sat) ;5 ;8
 ;(get-model)
 (pop 1)
+
+(push 1)
+
+(assert (and (invariant-keys state-left-old state-right-old)
+             (invariant-ctr state-left-old state-right-old)
+             (not is-abort-right)
+             (not is-abort-left)
+             (not lemma1-left-keys)))
+(check-sat) ;5 ;8
+;(get-model)
+(pop 1)
+
+(push 1)
+
+(assert (and (invariant-keys state-left-old state-right-old)
+             (invariant-ctr state-left-old state-right-old)
+             (not is-abort-right)
+             (not is-abort-left)
+             lemma1-left-keys
+             (not (weak-invariant-keys state-left-new state-right-old))))
+(check-sat) ;5 ;8
+;(get-model)
+(pop 1)
+
 
 (push 1)
 
@@ -9896,7 +9877,7 @@
              (not is-abort-right)
              (not is-abort-left)
              (not (invariant-keys state-left-new state-right-new))))
-(check-sat) ;2
+(check-sat) ;6 ;9
 ;(get-model)
 (pop 1)
 
@@ -9911,7 +9892,7 @@
              (not is-abort-right)
              (not is-abort-left)
              (not (invariant-ctr state-left-new state-right-new))))
-(check-sat) ;3
+(check-sat) ;10
 ;(get-model)
 (pop 1)
 
@@ -9925,6 +9906,6 @@
              (not is-abort-left)
              (y-left y-right)
              ))
-(check-sat) ;4
+(check-sat) ;11
 ;(get-model)
 (pop 1)

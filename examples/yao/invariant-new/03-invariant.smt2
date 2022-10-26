@@ -1,3 +1,9 @@
+;(push 1)
+;(assert true)
+;(check-sat) ;6
+;(pop 1)
+
+
 (define-fun invariant-keys ((state-left CompositionState-Left)(state-right CompositionState-Right)) Bool
 
 
@@ -21,10 +27,10 @@
 
 (and
 ;top key package states are equal
-;(= top-key-package-left top-key-package-left)
+(= top-key-package-left top-key-package-right)
 
 ;for bottom key package, tables are equal
-;(= table-bottom-left table-bottom-right)
+(= table-bottom-left table-bottom-right)
 
 ;top key packages behave like a key packages
 (well-defined-Key-active top-key-package-left)
@@ -35,6 +41,7 @@
 (well-defined-Key-active bottom-key-package-right)
 
 ))))
+
 
 
 (define-fun invariant-ctr ((state-left CompositionState-Left)(state-right CompositionState-Right)) Bool

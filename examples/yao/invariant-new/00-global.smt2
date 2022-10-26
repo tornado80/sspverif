@@ -82,6 +82,10 @@
 (declare-const rr-left Bits_n)
 (declare-const rr-right Bits_n)
 
+(push 1)
+(assert true)
+(check-sat) ;2
+(pop 1)
 
 
 (assert
@@ -113,6 +117,12 @@
 )
 )
 
+(push 1)
+(assert true)
+(check-sat) ;3
+(pop 1)
+
+
 ; special-purpose glue for this particular project
 (assert
 (and
@@ -121,8 +131,14 @@
 (not (= (select op (mk-tuple2 true  false))(as mk-none (Maybe Bool))))
 (not (= (select op (mk-tuple2 false true ))(as mk-none (Maybe Bool))))
 (not (= (select op (mk-tuple2 false false))(as mk-none (Maybe Bool))))
+))
 
+(push 1)
+(assert true)
+(check-sat) ;4
+(pop 1)
 
+(assert
 ;;;;;;Pre-condition (randomness mapping):
 ;equality of values of the sample functions for the lower Key package
 (forall ((ctr Int))
@@ -130,8 +146,16 @@
               (= (__sample-rand-Left-Bits_n 3 ctr)
                  (__sample-rand-Right-Bits_n 1 ctr))
               (= (__sample-rand-Left-Bits_n 4 ctr)
-                 (__sample-rand-Right-Bits_n 2 ctr))
+                 (__sample-rand-Right-Bits_n 2 ctr)))))
 
+;(push 1)
+;(assert true)
+;(check-sat) ;4
+;(pop 1)
+
+(assert
+(forall ((ctr Int))
+(and
 ;equality of values of the sample functions for the encryptions
               (= (__sample-rand-Left-Bits_n   9 ctr)
                  (__sample-rand-Right-Bits_n  9 ctr))
@@ -145,12 +169,11 @@
                  (__sample-rand-Right-Bits_n 13 ctr))
               (= (__sample-rand-Left-Bits_n  11 (+ 2 ctr))
                  (__sample-rand-Right-Bits_n 14 ctr))
-              (= (__sample-rand-Left-Bits_n   9  (+ 3 ctr))
+              (= (__sample-rand-Left-Bits_n   9 (+ 3 ctr))
                  (__sample-rand-Right-Bits_n 15 ctr))
               (= (__sample-rand-Left-Bits_n  11 (+ 3 ctr))
                  (__sample-rand-Right-Bits_n 16 ctr))
 
-)
 )
 )
 )
