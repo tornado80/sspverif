@@ -1,17 +1,11 @@
-;(push 1)
-;(assert true)
-;(check-sat) ;7
-;(pop 1)
-
-
 (push 1)
 
 (assert (and (invariant-keys state-left-old state-right-old)
              (invariant-ctr state-left-old state-right-old)
              (not is-abort-right)
              (not is-abort-left)
-             (not (invariant-keys state-left-old state-right-old))))
-(check-sat) ;5 ;8
+             (not (lemma1-left-keys state-left-old state-left-new))))
+(check-sat) ;5
 ;(get-model)
 (pop 1)
 
@@ -21,8 +15,9 @@
              (invariant-ctr state-left-old state-right-old)
              (not is-abort-right)
              (not is-abort-left)
-             (not (weak-invariant-keys state-left-old state-right-old))))
-(check-sat) ;5 ;8
+             (lemma1-left-keys state-left-old state-left-new)
+             (not (lemma1-right-keys state-right-old state-right-new))))
+(check-sat) ;6
 ;(get-model)
 (pop 1)
 
@@ -32,8 +27,9 @@
              (invariant-ctr state-left-old state-right-old)
              (not is-abort-right)
              (not is-abort-left)
-             (not lemma1-left-keys)))
-(check-sat) ;5 ;8
+             (lemma1-left-keys state-left-old state-left-new)
+             (lemma1-right-keys state-right-old state-right-new)))
+(check-sat) ;7
 ;(get-model)
 (pop 1)
 
@@ -43,9 +39,10 @@
              (invariant-ctr state-left-old state-right-old)
              (not is-abort-right)
              (not is-abort-left)
-             lemma1-left-keys
+             (lemma1-left-keys state-left-old state-left-new)
+             (lemma1-right-keys state-right-old state-right-new)
              (not (weak-invariant-keys state-left-new state-right-old))))
-(check-sat) ;5 ;8
+(check-sat) ;8
 ;(get-model)
 (pop 1)
 
@@ -85,7 +82,7 @@
              (invariant-ctr state-left-new state-right-new)
              (not is-abort-right)
              (not is-abort-left)
-             (y-left y-right)
+             (= y-left y-right)
              ))
 (check-sat) ;11
 ;(get-model)

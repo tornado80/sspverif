@@ -9814,23 +9814,113 @@
 
 
 ;;;top key packages don't change
-(table-top-left-alt table-top-left-neu)
+(= table-top-left-alt table-top-left-neu)
 
 )))
-;(push 1)
-;(assert true)
-;(check-sat) ;7
-;(pop 1)
+
+(define-fun lemma1-right-keys ((state-right-alt CompositionState-Right)(state-right-neu CompositionState-Right)) Bool
+
+(let
+
+; state of the key packages
+(
+(top-key-package-right-alt (project-State_Right_keys_top (composition-pkgstate-Right-keys_top state-right-alt)))
+(top-key-package-right-neu (project-State_Right_keys_top (composition-pkgstate-Right-keys_top state-right-neu)))
+(bottom-key-package-right-alt (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-alt)))
+(bottom-key-package-right-neu (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-neu)))
+)
+
+(let
+
+; table of the bottom key package
+(
+(table-top-right-alt (state-keys-T bottom-key-package-right-alt))
+(table-top-right-neu (state-keys-T bottom-key-package-right-neu))
+(table-bottom-right-alt (state-keys-T bottom-key-package-right-alt))
+(table-bottom-right-neu (state-keys-T bottom-key-package-right-neu))
+)
 
 
+;;;top key packages don't change
+(= table-top-right-alt table-top-right-neu)
+
+)))
+
+(define-fun lemma2-left-keys ((state-left-alt CompositionState-Left)(state-left-neu CompositionState-Left)) Bool
+
+(let
+
+; state of the key packages
+(
+(top-key-package-left-alt (project-State_Left_keys_top (composition-pkgstate-Left-keys_top state-left-alt)))
+(top-key-package-left-neu (project-State_Left_keys_top (composition-pkgstate-Left-keys_top state-left-neu)))
+(bottom-key-package-left-alt (project-State_Left_keys_bottom (composition-pkgstate-Left-keys_bottom state-left-alt)))
+(bottom-key-package-left-neu (project-State_Left_keys_bottom (composition-pkgstate-Left-keys_bottom state-left-neu)))
+)
+
+(let
+
+; table of the bottom key package
+(
+(table-top-left-alt (state-keys-T bottom-key-package-left-alt))
+(table-top-left-neu (state-keys-T bottom-key-package-left-neu))
+(table-bottom-left-alt (state-keys-T bottom-key-package-left-alt))
+(table-bottom-left-neu (state-keys-T bottom-key-package-left-neu))
+)
+
+;;; bottom key packages equal except for position j
+;;; and where there is j, there is the same or Z
+(forall ((hh Int))
+(ite
+(not
+(and (= j hh) (= (select table-bottom-left-alt hh) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))))
+;(= (select table-bottom-right-new hh) (mk-some Z-right)) ;this is the hard part in the proof
+(= (select table-bottom-left-alt hh) (select table-bottom-left-neu hh))
+true
+)))))
+
+
+
+(define-fun lemma2-right-keys ((state-right-alt CompositionState-Right)(state-right-neu CompositionState-Right)) Bool
+
+(let
+
+; state of the key packages
+(
+(top-key-package-right-alt (project-State_Right_keys_top (composition-pkgstate-Right-keys_top state-right-alt)))
+(top-key-package-right-neu (project-State_Right_keys_top (composition-pkgstate-Right-keys_top state-right-neu)))
+(bottom-key-package-right-alt (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-alt)))
+(bottom-key-package-right-neu (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-neu)))
+)
+
+(let
+
+; table of the bottom key package
+(
+(table-top-right-alt (state-keys-T bottom-key-package-right-alt))
+(table-top-right-neu (state-keys-T bottom-key-package-right-neu))
+(table-bottom-right-alt (state-keys-T bottom-key-package-right-alt))
+(table-bottom-right-neu (state-keys-T bottom-key-package-right-neu))
+)
+
+;;; bottom key packages equal except for position j
+;;; and where there is j, there is the same or Z
+(forall ((hh Int))
+(ite
+(not
+(and (= j hh) (= (select table-bottom-right-alt hh) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))))
+;(= (select table-bottom-right-new hh) (mk-some Z-right)) ;this is the hard part in the proof
+(= (select table-bottom-right-alt hh) (select table-bottom-right-neu hh))
+true
+)))))
 (push 1)
 
 (assert (and (invariant-keys state-left-old state-right-old)
              (invariant-ctr state-left-old state-right-old)
              (not is-abort-right)
              (not is-abort-left)
-             (not (invariant-keys state-left-old state-right-old))))
-(check-sat) ;5 ;8
+             (not (lemma1-left-keys state-left-old state-left-new))))
+(check-sat) ;5
 ;(get-model)
 (pop 1)
 
@@ -9840,8 +9930,9 @@
              (invariant-ctr state-left-old state-right-old)
              (not is-abort-right)
              (not is-abort-left)
-             (not (weak-invariant-keys state-left-old state-right-old))))
-(check-sat) ;5 ;8
+             (lemma1-left-keys state-left-old state-left-new)
+             (not (lemma1-right-keys state-right-old state-right-new))))
+(check-sat) ;6
 ;(get-model)
 (pop 1)
 
@@ -9851,8 +9942,9 @@
              (invariant-ctr state-left-old state-right-old)
              (not is-abort-right)
              (not is-abort-left)
-             (not lemma1-left-keys)))
-(check-sat) ;5 ;8
+             (lemma1-left-keys state-left-old state-left-new)
+             (lemma1-right-keys state-right-old state-right-new)))
+(check-sat) ;7
 ;(get-model)
 (pop 1)
 
@@ -9862,9 +9954,10 @@
              (invariant-ctr state-left-old state-right-old)
              (not is-abort-right)
              (not is-abort-left)
-             lemma1-left-keys
+             (lemma1-left-keys state-left-old state-left-new)
+             (lemma1-right-keys state-right-old state-right-new)
              (not (weak-invariant-keys state-left-new state-right-old))))
-(check-sat) ;5 ;8
+(check-sat) ;8
 ;(get-model)
 (pop 1)
 
@@ -9904,7 +9997,7 @@
              (invariant-ctr state-left-new state-right-new)
              (not is-abort-right)
              (not is-abort-left)
-             (y-left y-right)
+             (= y-left y-right)
              ))
 (check-sat) ;11
 ;(get-model)
