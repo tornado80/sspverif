@@ -15,8 +15,10 @@ lemma5)))
 (assert (= lemma1 (and
 ;;;; Lemma on key tables
 (well-defined table-top-left-new)
+(well-defined table-top-right-after-EVAL)
 (well-defined table-top-right-new)
 (well-defined table-bottom-left-new)
+(well-defined table-bottom-right-after-EVAL)
 (well-defined table-bottom-right-new)
 )))
 
@@ -40,6 +42,7 @@ lemma5)))
 (assert (= lemma2 (and
 ; top tables remain the same
 (= table-top-left-old table-top-left-new)
+(= table-top-right-after-EVAL table-top-right-new)
 (= table-top-right-old table-top-right-new)
 )))
 
@@ -47,9 +50,11 @@ lemma5)))
 ; left: bottom tables are mostly equal and where they are not equal, there is Z
 (forall ((hh Int))
 (ite
-(and (= j hh) (= (select table-bottom-left-old hh) (as mk-none (Maybe (Array Bool (Maybe Bits_n))))))
-(= (select table-bottom-left-new hh) (mk-some Z-left))
+(not
+(and (= j hh) (= (select table-bottom-left-old hh) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))))
+;(= (select table-bottom-left-new hh) (mk-some Z-left)) ;this is the hard part in the proof
 (= (select table-bottom-left-old hh) (select table-bottom-left-new hh))
+true
 ))
 )))
 

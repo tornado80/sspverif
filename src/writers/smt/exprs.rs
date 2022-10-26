@@ -87,6 +87,7 @@ impl From<Type> for SmtExpr {
             }
             Type::Maybe(t) => SmtExpr::List(vec![SmtExpr::Atom("Maybe".into()), (*t).into()]),
             Type::Boolean => SmtExpr::Atom("Bool".to_string()),
+            Type::Empty => SmtExpr::Atom("Empty".to_string()),
             Type::Integer => SmtExpr::Atom("Int".into()),
             Type::Table(t_idx, t_val) => SmtExpr::List(vec![
                 SmtExpr::Atom("Array".into()),
@@ -190,6 +191,7 @@ impl From<SspSmtVar> for SmtExpr {
     fn from(v: SspSmtVar) -> SmtExpr {
         match v {
             SspSmtVar::CompositionContext => "__global_state".into(),
+            SspSmtVar::ContextLength => "__state_length".into(),
             SspSmtVar::SelfState => SmtExpr::Atom("__self_state".into()),
             SspSmtVar::ReturnValue => SmtExpr::Atom("__ret".into()),
             SspSmtVar::OracleReturnConstructor {
@@ -250,6 +252,7 @@ where
 
 pub enum SspSmtVar {
     CompositionContext,
+    ContextLength,
     SelfState,
     ReturnValue,
     OracleReturnConstructor {

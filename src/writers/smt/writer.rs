@@ -8,8 +8,8 @@ use crate::transforms::samplify::SampleInfo;
 use crate::types::Type;
 
 use crate::writers::smt::{
-    exprs::{smt_to_string, SmtExpr, SmtIte, SmtLet, SspSmtVar},
-    state_helpers::{SmtCompositionContext, SmtPackageState},
+    exprs::{smt_to_string, SmtExpr, SmtIte, SmtLet, SspSmtVar,SmtIs},
+    state_helpers::{SmtCompositionContext, SmtPackageState, SmtReturnState},
 };
 
 use super::exprs::{SmtAs, SmtEq2};
@@ -56,7 +56,11 @@ impl<'a> CompositionSmtWriter<'a> {
     fn get_randomness(&self, sample_id: u32) -> SmtExpr {
         (
             self.comp_helper.smt_accessor_rand(sample_id),
-            SspSmtVar::CompositionContext,
+            SmtExpr::List(vec![
+                SmtExpr::Atom("select".into()),
+                SspSmtVar::CompositionContext.into(),
+                SspSmtVar::ContextLength.into(),
+            ])
         )
             .into()
     }
@@ -86,44 +90,7 @@ impl<'a> CompositionSmtWriter<'a> {
         let mut smts = vec![];
 
         for osig in inst.get_oracle_sigs() {
-            let mut constructor = vec![
-                SmtExpr::Atom(format!(
-                    "mk-return-{}-{}-{}",
-                    self.comp.name, inst.name, osig.name
-                )),
-                SmtExpr::List(vec![
-                    SmtExpr::Atom(format!(
-                        "return-{}-{}-{}-state",
-                        self.comp.name, inst.name, osig.name
-                    )),
-                    self.comp_helper.smt_sort(),
-                ]),
-            ];
-
-            if Type::Empty != osig.tipe {
-                constructor.push(SmtExpr::List(vec![
-                    SmtExpr::Atom(format!(
-                        "return-{}-{}-{}-value",
-                        self.comp.name, inst.name, osig.name
-                    )),
-                    osig.tipe.into(),
-                ]));
-            }
-
-            smts.push(SmtExpr::List(vec![
-                SmtExpr::Atom("declare-datatype".to_string()),
-                SmtExpr::Atom(format!(
-                    "Return_{}_{}_{}",
-                    self.comp.name, inst.name, osig.name
-                )),
-                SmtExpr::List(vec![
-                    SmtExpr::List(vec![SmtExpr::Atom(format!(
-                        "mk-abort-{}-{}-{}",
-                        self.comp.name, inst.name, osig.name
-                    ))]),
-                    SmtExpr::List(constructor),
-                ]),
-            ]))
+            smts.push(SmtReturnState::new(&self.comp.name, &inst.name, osig).smt_declare_datatype(self.comp_helper.smt_sort()))
         }
         smts
     }
@@ -145,8 +112,10 @@ impl<'a> CompositionSmtWriter<'a> {
     ) -> SmtExpr {
         let PackageInstance { name: pkgname, .. } = inst;
         let OracleSig {
-            name: oracle_name, ..
+            name: oracle_name, tipe: oracle_return_tipe, ..
         } = sig;
+
+        let return_state_helper = SmtReturnState::new(&self.comp.name, pkgname, sig.clone());
 
         //eprintln!("DEBUG code_smt_helper start {pkgname}.{oracle_name}");
 
@@ -160,43 +129,47 @@ impl<'a> CompositionSmtWriter<'a> {
                 }
                 .into(),
                 Statement::Return(None) => {
-                    // (mk-return-{name} statevarname)
-                    (
-                        SspSmtVar::OracleReturnConstructor {
-                            compname: self.comp.name.clone(),
-                            pkgname: pkgname.clone(),
-                            oname: sig.name.clone(),
-                        },
-                        SspSmtVar::CompositionContext,
+                    // (mk-return-{name} statevarname expr)
+                    self.comp_helper.smt_set_pkg_state(
+                        &inst.name,
+                        &SspSmtVar::SelfState.into(),
+                        return_state_helper.smt_constructor(
+                            SspSmtVar::CompositionContext.into(),
+                            SspSmtVar::ContextLength.into(),
+                            SmtExpr::List(vec![
+                                SmtExpr::Atom("mk-some".into()),
+                                SmtExpr::Atom("mk-empty".into()),
+                            ]),
+                            SmtExpr::Atom("false".into()),
+                        )
                     )
-                        .into()
                 }
                 Statement::Return(Some(expr)) => {
                     // (mk-return-{name} statevarname expr)
                     self.comp_helper.smt_set_pkg_state(
                         &inst.name,
                         &SspSmtVar::SelfState.into(),
-                        SmtExpr::List(vec![
-                            SspSmtVar::OracleReturnConstructor {
-                                compname: self.comp.name.clone(),
-                                pkgname: pkgname.clone(),
-                                oname: sig.name.clone(),
-                            }
-                            .into(),
+                        return_state_helper.smt_constructor(
                             SspSmtVar::CompositionContext.into(),
-                            expr.clone().into(),
-                        ]),
+                            SspSmtVar::ContextLength.into(),
+                            Expression::Some(Box::new(expr.clone())).into(),
+                            SmtExpr::Atom("false".into()),
+                        ),
                     )
                 }
                 Statement::Abort => {
                     // mk-abort-{name}
-                    SspSmtVar::OracleAbort {
-                        compname: self.comp.name.clone(),
-                        pkgname: pkgname.clone(),
-                        oname: sig.name.clone(),
-                    }
+                    self.comp_helper.smt_set_pkg_state(
+                        &inst.name,
+                        &SspSmtVar::SelfState.into(),
+                        return_state_helper.smt_constructor(
+                            SspSmtVar::CompositionContext.into(),
+                            SspSmtVar::ContextLength.into(),
+                            Expression::None(oracle_return_tipe.clone()).into(),
+                            SmtExpr::Atom("true".into()),
+                        ),
+                    )
                     .into()
-                    //SmtExpr::Atom(format!("mk-abort-{}-{}", pkgname, sig.name))
                 }
                 // TODO actually use the type that we sample to know how far to advance the randomness tape
                 Statement::Sample(ident, opt_idx, sample_id, tipe) => {
@@ -294,13 +267,26 @@ impl<'a> CompositionSmtWriter<'a> {
                     panic!("found an unresolved oracle invocation: {:#?}", stmt);
                 }
                 Statement::InvokeOracle {
+                    tipe: None,
+                    ..
+                } => {
+                    panic!("found an unresolved oracle invocation: {:#?}", stmt);
+                }
+                Statement::InvokeOracle {
                     id,
                     opt_idx,
                     name,
                     args,
                     target_inst_name: Some(target),
-                    tipe: _,
+                    tipe: Some(called_tipe),
                 } => {
+                    let called_return_state_helper = SmtReturnState::new(&self.comp.name,
+                                                                         target,
+                                                                         OracleSig{
+                                                                             name:name.clone(),
+                                                                             args: Vec::new(),
+                                                                             tipe: called_tipe.clone()});
+
                     let smt_expr = SmtLet {
                         bindings: vec![(smt_to_string(SspSmtVar::ReturnValue), {
                             let mut cmdline = vec![
@@ -309,6 +295,7 @@ impl<'a> CompositionSmtWriter<'a> {
                                     self.comp.name, target, name
                                 )),
                                 SspSmtVar::CompositionContext.into(),
+                                SspSmtVar::ContextLength.into(),
                             ];
 
                             for arg in args {
@@ -318,41 +305,56 @@ impl<'a> CompositionSmtWriter<'a> {
                             SmtExpr::List(cmdline)
                         })],
                         body: SmtIte {
-                            cond: SmtEq2 {
-                                lhs: SspSmtVar::ReturnValue,
-                                rhs: SspSmtVar::OracleAbort {
-                                    compname: self.comp.name.clone(),
-                                    pkgname: target.clone(),
-                                    oname: name.clone(),
-                                },
-                            },
-                            then: SspSmtVar::OracleAbort {
-                                compname: self.comp.name.clone(),
-                                pkgname: pkgname.into(),
-                                oname: sig.name.clone(),
+                            cond: called_return_state_helper.smt_access_is_abort_fn(
+                                SspSmtVar::ReturnValue.into(),
+                            ),
+                            then: SmtLet {
+                                bindings: vec![(
+                                    smt_to_string(SspSmtVar::CompositionContext),
+                                    called_return_state_helper.smt_access_states_fn(
+                                        SspSmtVar::ReturnValue.into(),
+                                    ),
+                                ), (
+                                    smt_to_string(SspSmtVar::ContextLength),
+                                    called_return_state_helper.smt_access_states_length_fn(
+                                        SspSmtVar::ReturnValue.into(),
+                                    ),
+                                ),
+                                ],
+                                body: self.comp_helper.smt_set_pkg_state(
+                                    &inst.name,
+                                    &SspSmtVar::SelfState.into(),
+                                    return_state_helper.smt_constructor(
+                                        SspSmtVar::CompositionContext.into(),
+                                        SspSmtVar::ContextLength.into(),
+                                        Expression::None(oracle_return_tipe.clone()).into(),
+                                        SmtExpr::Atom("true".into()),
+                                    ),
+                                )
                             },
                             els: SmtLet {
                                 bindings: {
                                     let mut bindings = vec![(
                                         smt_to_string(SspSmtVar::CompositionContext),
-                                        SmtExpr::List(vec![
-                                            SmtExpr::Atom(format!(
-                                                "return-{}-{}-{}-state",
-                                                self.comp.name, target, name
-                                            )),
+                                        called_return_state_helper.smt_access_states_fn(
+                                            SspSmtVar::ReturnValue.into()
+                                        )
+                                    ), (
+                                        smt_to_string(SspSmtVar::ContextLength),
+                                        called_return_state_helper.smt_access_states_length_fn(
                                             SspSmtVar::ReturnValue.into(),
-                                        ]),
-                                    )];
+                                        )
+                                    ),
+                                    ];
 
                                     if id.ident() != "_" {
                                         bindings.push((
                                             id.ident(),
                                             SmtExpr::List(vec![
-                                                SmtExpr::Atom(format!(
-                                                    "return-{}-{}-{}-value",
-                                                    self.comp.name, target, name
-                                                )),
-                                                SspSmtVar::ReturnValue.into(),
+                                                SmtExpr::Atom("maybe-get".into()),
+                                                called_return_state_helper.smt_access_value_fn(
+                                                    SspSmtVar::ReturnValue.into(),
+                                                )
                                             ]),
                                         ));
                                     }
@@ -495,8 +497,16 @@ impl<'a> CompositionSmtWriter<'a> {
                 let code = &def.code;
                 let mut args = vec![SmtExpr::List(vec![
                     SspSmtVar::CompositionContext.into(),
-                    self.comp_helper.smt_sort(),
-                ])];
+                    SmtExpr::List(vec![
+                        SmtExpr::Atom("Array".into()),
+                        SmtExpr::Atom("Int".into()),
+                        self.comp_helper.smt_sort(),
+                    ]),
+                ]), SmtExpr::List(vec![
+                    SspSmtVar::ContextLength.into(),
+                    SmtExpr::Atom("Int".into()),
+                ]),
+                ];
 
                 for (name, tipe) in def.sig.args.clone() {
                     args.push(SmtExpr::List(vec![SmtExpr::Atom(name), tipe.into()]))
@@ -517,7 +527,13 @@ impl<'a> CompositionSmtWriter<'a> {
                         bindings: vec![(
                             smt_to_string(SspSmtVar::SelfState),
                             self.comp_helper
-                                .smt_access_pkg(&inst.name, SspSmtVar::CompositionContext.into()),
+                                .smt_access_pkg(&inst.name,
+                                                SmtExpr::List(vec![
+                                                    SmtExpr::Atom("select".into()),
+                                                    SspSmtVar::CompositionContext.into(),
+                                                    SspSmtVar::ContextLength.into(),
+                                                ])
+                                ),
                         )],
                         body: self.code_smt_helper(code.clone(), &def.sig, inst),
                     }
