@@ -8,7 +8,7 @@ pub fn smt_to_string<T: Into<SmtExpr>>(t: T) -> String {
     expr.to_string()
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialOrd, Ord,Eq, PartialEq)]
 pub enum SmtExpr {
     Comment(String),
     Atom(String),

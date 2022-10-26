@@ -45,11 +45,12 @@ impl<'a> SmtCompositionContext<'a> {
     ) -> SmtCompositionContext<'a> {
         // skip functions
 
-        let params: Vec<(&String, &Type)> = params
+        let mut params: Vec<(&String, &Type)> = params
             .iter()
             .filter(|(_, tipe)| !matches!(tipe, Type::Fn(..)))
             .map(|(a, b)| (a, b))
             .collect();
+        params.sort();
 
         SmtCompositionContext {
             comp_name,
@@ -428,8 +429,8 @@ impl<'a> SmtReturnState<'a> {
             on
         ])
     }
-    
-    
+
+
     pub fn smt_access_states_length_atom(&self) -> SmtExpr {
         SmtExpr::Atom(format!("return-{}-{}-{}-state-length", self.comp_name, self.inst_name, self.sig.name))
     }
@@ -440,7 +441,7 @@ impl<'a> SmtReturnState<'a> {
             on
         ])
     }
-    
+
     pub fn smt_access_is_abort_atom(&self) -> SmtExpr {
         SmtExpr::Atom(format!("return-{}-{}-{}-is-abort", self.comp_name, self.inst_name, self.sig.name))
     }
@@ -463,4 +464,3 @@ impl<'a> SmtReturnState<'a> {
         ])
     }
 }
-

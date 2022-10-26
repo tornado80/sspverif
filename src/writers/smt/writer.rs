@@ -555,7 +555,7 @@ impl<'a> CompositionSmtWriter<'a> {
     }
 
     fn smt_composition_paramfuncs(&self) -> Vec<SmtExpr> {
-        let fns = self
+        let mut fns = self
             .comp
             .consts
             .iter()
@@ -587,12 +587,12 @@ impl<'a> CompositionSmtWriter<'a> {
                     .into(),
             )
         }
-
+        funcs.sort();
         funcs
     }
 
     fn smt_composition_randomness(&mut self) -> Vec<SmtExpr> {
-        self.sample_info
+        let mut result : Vec<_> = self.sample_info
             .tipes
             .iter()
             .map(|tipe| {
@@ -610,7 +610,9 @@ impl<'a> CompositionSmtWriter<'a> {
                 )
                     .into()
             })
-            .collect()
+            .collect();
+        result.sort();
+        result
     }
 
     pub fn smt_composition_all(&mut self) -> Vec<SmtExpr> {

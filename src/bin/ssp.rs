@@ -157,7 +157,11 @@ fn smt(name: &str) {
     hacks::declare_Tuple(&mut w, 2);
     hacks::declare_Empty(&mut w);
 
-    for (name, comp) in comp_map {
+    let mut names : Vec<_> = comp_map.keys().collect();
+    names.sort();
+
+    for name in names {
+        let comp = &comp_map[name];
         println!("; {}", name);
 
         //println!("{:#?}", comp);
@@ -167,7 +171,13 @@ fn smt(name: &str) {
                 panic!("found an error in composition {}: {:?}", name, e)
             }
         };
-        for tipe in scope.known_types().difference(&declared_types) {
+        let mut newtypes : Vec<_> = scope
+            .known_types()
+            .difference(&declared_types)
+            .cloned()
+            .collect();
+        newtypes.sort();
+        for tipe in newtypes {
             match tipe {
                 Type::Bits(len) => {
                     println!("(declare-sort Bits_{} 0)", len);
