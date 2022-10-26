@@ -385,15 +385,31 @@
 ;(= ctr-rin-left (* 4 ctr-rin-oo-right))
 ;(= ctr-rout-left (* 4 ctr-rout-oo-right))
 ;
-;)(push 1)
+;)
+
+(push 1)
 
 (assert (and (invariant-keys state-left-old state-right-old)
+             (not is-abort-right)
+             (not is-abort-left)
+             (not (invariant-keys state-left-old state-right-after-EVAL))))
+(check-sat) ;2
+;(get-model)
+(pop 1)
+
+(push 1)
+
+(assert (and (invariant-keys state-left-old state-right-old)
+             (invariant-keys state-left-new state-right-after-EVAL)
              (not is-abort-right)
              (not is-abort-left)
              (not (invariant-keys state-left-new state-right-new))))
 (check-sat) ;2
 ;(get-model)
 (pop 1)
+
+
+
 
 (push 1)
 
