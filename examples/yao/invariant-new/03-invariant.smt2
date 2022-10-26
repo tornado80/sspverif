@@ -37,12 +37,24 @@
 ))))
 
 
-;(define-fun invariant-ctr ((state-left Type)(state-right Type)) Bool
-;
-;TODO
+(define-fun invariant-ctr ((state-left CompositionState-Left)(state-right CompositionState-Right)) Bool
+
+(let
+
+; counter values
+(
+              (ctr-rin-oo-right  (composition-rand-Right-9  state-right))
+              (ctr-rout-oo-right (composition-rand-Right-10 state-right))
+;assignment of the ctr of the sample instructions for the 8 encryptions on the left
+              (ctr-rin-left  (composition-rand-Left-9  state-left))
+              (ctr-rout-left (composition-rand-Left-11 state-left))
+)
+
+
 ;compatibility of the counter values
-;(= ctr-rin-left (* 4 ctr-rin-oo-right))
-;(= ctr-rout-left (* 4 ctr-rout-oo-right))
-;
-;)
+(= ctr-rin-left (* 4 ctr-rin-oo-right))
+(= ctr-rout-left (* 4 ctr-rout-oo-right))
+
+)
+)
 

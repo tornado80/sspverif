@@ -63,8 +63,8 @@
 (declare-const return-right Return_Right_simgate_GBLG)
 (declare-const is-abort-left Bool)
 (declare-const is-abort-right Bool)
-(declare-const value-left  (Maybe (Array Bits_p (Maybe Bool))))
-(declare-const value-right (Maybe (Array Bits_p (Maybe Bool))))
+(declare-const y-left  (Maybe (Array Bits_p (Maybe Bool))))
+(declare-const y-right (Maybe (Array Bits_p (Maybe Bool))))
 
 ; sampled value Z and associated values
 (declare-const Z-left  (Array Bool (Maybe Bits_n)))
@@ -92,8 +92,8 @@
               (= return-right     (oracle-Right-simgate-GBLG array-state-right-old length-state-right-old handle l r op j))
 
               ;assignment of return values
-              (= value-left       (return-Left-gate-GBLG-value return-left))
-              (= value-right      (return-Right-simgate-GBLG-value return-right))
+              (= y-left       (return-Left-gate-GBLG-value return-left))
+              (= y-right      (return-Right-simgate-GBLG-value return-right))
 
               ;assignment of abort values
               (= is-abort-left    (return-Left-gate-GBLG-is-abort return-left))
@@ -124,18 +124,34 @@
 
 
 ;;;;;;Pre-condition (randomness mapping):
-;equality of values of the sample instructions for the lower Key package
-(= r-left r-right)
-(= rr-left rr-right)
+;equality of values of the sample functions for the lower Key package
+(forall ((ctr Int))
+(and
+              (= (__sample-rand-Left-Bits_n 3 ctr)
+                 (__sample-rand-Right-Bits_n 1 ctr))
+              (= (__sample-rand-Left-Bits_n 4 ctr)
+                 (__sample-rand-Right-Bits_n 2 ctr))
 
+;equality of values of the sample functions for the encryptions
+              (= (__sample-rand-Left-Bits_n   9 ctr)
+                 (__sample-rand-Right-Bits_n  9 ctr))
+              (= (__sample-rand-Left-Bits_n  11 ctr)
+                 (__sample-rand-Right-Bits_n 10 ctr))
+              (= (__sample-rand-Left-Bits_n   9 (+ 1 ctr))
+                 (__sample-rand-Right-Bits_n 11 ctr))
+              (= (__sample-rand-Left-Bits_n  11 (+ 1 ctr))
+                 (__sample-rand-Right-Bits_n 12 ctr))
+              (= (__sample-rand-Left-Bits_n   9 (+ 2 ctr))
+                 (__sample-rand-Right-Bits_n 13 ctr))
+              (= (__sample-rand-Left-Bits_n  11 (+ 2 ctr))
+                 (__sample-rand-Right-Bits_n 14 ctr))
+              (= (__sample-rand-Left-Bits_n   9  (+ 3 ctr))
+                 (__sample-rand-Right-Bits_n 15 ctr))
+              (= (__sample-rand-Left-Bits_n  11 (+ 3 ctr))
+                 (__sample-rand-Right-Bits_n 16 ctr))
 
-;equality of values of the sample instructions for the encryptions
-;(forall ((b1 Bool) (b2 Bool))
-;(and
-;(= (rin-left b1 b2) (rin-right (xor b1 z1) (xor b2 z2)))
-;(= (rin-left b1 b2) (rout-right (xor b1 z1) (xor b2 z2)))
-;))
-
+)
+)
 )
 );(;let (
 ;
@@ -378,18 +394,37 @@
 ))))
 
 
-;(define-fun invariant-ctr ((state-left Type)(state-right Type)) Bool
-;
-;TODO
+(define-fun invariant-ctr ((state-left CompositionState-Left)(state-right CompositionState-Right)) Bool
+
+(let
+
+; counter values
+(
+              (ctr-rin-oo-right  (composition-rand-Right-9  state-right))
+              (ctr-rout-oo-right (composition-rand-Right-10 state-right))
+;assignment of the ctr of the sample instructions for the 8 encryptions on the left
+              (ctr-rin-left  (composition-rand-Left-9  state-left))
+              (ctr-rout-left (composition-rand-Left-11 state-left))
+)
+
+
 ;compatibility of the counter values
-;(= ctr-rin-left (* 4 ctr-rin-oo-right))
-;(= ctr-rout-left (* 4 ctr-rout-oo-right))
-;
-;)
+(= ctr-rin-left (* 4 ctr-rin-oo-right))
+(= ctr-rout-left (* 4 ctr-rout-oo-right))
+
+)
+)
+
+(push 1)
+
+(check-sat) ;2
+;(get-model)
+(pop 1)
 
 (push 1)
 
 (assert (and (invariant-keys state-left-old state-right-old)
+             (invariant-ctr state-left-old state-right-old)
              (not is-abort-right)
              (not is-abort-left)
              (not (invariant-keys state-left-old state-right-after-EVAL))))
@@ -401,6 +436,7 @@
 
 (assert (and (invariant-keys state-left-old state-right-old)
              (invariant-keys state-left-new state-right-after-EVAL)
+             (invariant-ctr state-left-old state-right-old)
              (not is-abort-right)
              (not is-abort-left)
              (not (invariant-keys state-left-new state-right-new))))
@@ -415,7 +451,7 @@
 
 (assert (and (invariant-keys state-left-old state-right-old)
              (invariant-ctr state-left-old state-right-old)
-             (invariant-key state-left-new state-right-new)
+             (invariant-keys state-left-new state-right-new)
              (not is-abort-right)
              (not is-abort-left)
              (not (invariant-ctr state-left-new state-right-new))))

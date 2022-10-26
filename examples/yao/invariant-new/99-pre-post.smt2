@@ -1,6 +1,13 @@
 (push 1)
 
+(check-sat) ;2
+;(get-model)
+(pop 1)
+
+(push 1)
+
 (assert (and (invariant-keys state-left-old state-right-old)
+             (invariant-ctr state-left-old state-right-old)
              (not is-abort-right)
              (not is-abort-left)
              (not (invariant-keys state-left-old state-right-after-EVAL))))
@@ -12,6 +19,7 @@
 
 (assert (and (invariant-keys state-left-old state-right-old)
              (invariant-keys state-left-new state-right-after-EVAL)
+             (invariant-ctr state-left-old state-right-old)
              (not is-abort-right)
              (not is-abort-left)
              (not (invariant-keys state-left-new state-right-new))))
@@ -26,7 +34,7 @@
 
 (assert (and (invariant-keys state-left-old state-right-old)
              (invariant-ctr state-left-old state-right-old)
-             (invariant-key state-left-new state-right-new)
+             (invariant-keys state-left-new state-right-new)
              (not is-abort-right)
              (not is-abort-left)
              (not (invariant-ctr state-left-new state-right-new))))
