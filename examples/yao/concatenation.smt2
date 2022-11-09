@@ -9466,8 +9466,6 @@
       (state-keys-z (Array Int (Maybe Bool)))
       (state-keys-flag (Array Int (Maybe Bool))))))
 
-
-
 (define-fun project-State_Left_keys_top ((in State_Left_keys_top)) State_keys
   (mk-state-keys (state-Left-keys_top-T    in)
                  (state-Left-keys_top-z    in)
@@ -9571,16 +9569,25 @@
               (= length-state-left-new   (return-Left-gate-GBLG-state-length return-left))
               (= length-state-right-new  (return-Right-simgate-GBLG-state-length return-right))
 
+              ;assignment of return state
+              (= state-left-new   (select array-state-left-new length-state-left-new))
+              (= state-right-new  (select array-state-right-new length-state-right-new))
+
               ;initial state list contains only one state
               (= length-state-left-old 1)
               (= length-state-right-old 1)
+
+              ;assignment of old state
+              (= state-left-old   (select array-state-left-old length-state-left-old))
+              (= state-right-old  (select array-state-right-old length-state-right-old))
+
 )
 )
 
-(push 1)
-(assert true)
-(check-sat) ;3
-(pop 1)
+;(push 1)
+;(assert true)
+;(check-sat) ;3
+;(pop 1)
 
 
 ; special-purpose glue for this particular project
@@ -9593,10 +9600,10 @@
 (not (= (select op (mk-tuple2 false false))(as mk-none (Maybe Bool))))
 ))
 
-(push 1)
-(assert true)
-(check-sat) ;4
-(pop 1)
+;(push 1)
+;(assert true)
+;(check-sat) ;4
+;(pop 1)
 
 (assert
 ;;;;;;Pre-condition (randomness mapping):
@@ -9608,30 +9615,25 @@
               (= (__sample-rand-Left-Bits_n 4 ctr)
                  (__sample-rand-Right-Bits_n 2 ctr)))))
 
-;(push 1)
-;(assert true)
-;(check-sat) ;4
-;(pop 1)
-
 (assert
 (forall ((ctr Int))
 (and
 ;equality of values of the sample functions for the encryptions
-              (= (__sample-rand-Left-Bits_n   9 ctr)
+              (= (__sample-rand-Left-Bits_n   9 (* 4 ctr))
                  (__sample-rand-Right-Bits_n  9 ctr))
-              (= (__sample-rand-Left-Bits_n  11 ctr)
+              (= (__sample-rand-Left-Bits_n  11 (* 4 ctr))
                  (__sample-rand-Right-Bits_n 10 ctr))
-              (= (__sample-rand-Left-Bits_n   9 (+ 1 ctr))
+              (= (__sample-rand-Left-Bits_n   9 (+ 1 (* 4 ctr)))
                  (__sample-rand-Right-Bits_n 11 ctr))
-              (= (__sample-rand-Left-Bits_n  11 (+ 1 ctr))
+              (= (__sample-rand-Left-Bits_n  11 (+ 1 (* 4 ctr)))
                  (__sample-rand-Right-Bits_n 12 ctr))
-              (= (__sample-rand-Left-Bits_n   9 (+ 2 ctr))
+              (= (__sample-rand-Left-Bits_n   9 (+ 2 (* 4 ctr)))
                  (__sample-rand-Right-Bits_n 13 ctr))
-              (= (__sample-rand-Left-Bits_n  11 (+ 2 ctr))
+              (= (__sample-rand-Left-Bits_n  11 (+ 2 (* 4 ctr)))
                  (__sample-rand-Right-Bits_n 14 ctr))
-              (= (__sample-rand-Left-Bits_n   9 (+ 3 ctr))
+              (= (__sample-rand-Left-Bits_n   9 (+ 3 (* 4 ctr)))
                  (__sample-rand-Right-Bits_n 15 ctr))
-              (= (__sample-rand-Left-Bits_n  11 (+ 3 ctr))
+              (= (__sample-rand-Left-Bits_n  11 (+ 3 (* 4 ctr)))
                  (__sample-rand-Right-Bits_n 16 ctr))
 
 )
@@ -9806,8 +9808,8 @@
 
 ; table of the bottom key package
 (
-(table-top-left-alt (state-keys-T bottom-key-package-left-alt))
-(table-top-left-neu (state-keys-T bottom-key-package-left-neu))
+(table-top-left-alt (state-keys-T top-key-package-left-alt))
+(table-top-left-neu (state-keys-T top-key-package-left-neu))
 (table-bottom-left-alt (state-keys-T bottom-key-package-left-alt))
 (table-bottom-left-neu (state-keys-T bottom-key-package-left-neu))
 )
@@ -9834,8 +9836,8 @@
 
 ; table of the bottom key package
 (
-(table-top-right-alt (state-keys-T bottom-key-package-right-alt))
-(table-top-right-neu (state-keys-T bottom-key-package-right-neu))
+(table-top-right-alt (state-keys-T top-key-package-right-alt))
+(table-top-right-neu (state-keys-T top-key-package-right-neu))
 (table-bottom-right-alt (state-keys-T bottom-key-package-right-alt))
 (table-bottom-right-neu (state-keys-T bottom-key-package-right-neu))
 )
@@ -9862,8 +9864,8 @@
 
 ; table of the bottom key package
 (
-(table-top-left-alt (state-keys-T bottom-key-package-left-alt))
-(table-top-left-neu (state-keys-T bottom-key-package-left-neu))
+(table-top-left-alt (state-keys-T top-key-package-left-alt))
+(table-top-left-neu (state-keys-T top-key-package-left-neu))
 (table-bottom-left-alt (state-keys-T bottom-key-package-left-alt))
 (table-bottom-left-neu (state-keys-T bottom-key-package-left-neu))
 )
@@ -9897,8 +9899,8 @@ true
 
 ; table of the bottom key package
 (
-(table-top-right-alt (state-keys-T bottom-key-package-right-alt))
-(table-top-right-neu (state-keys-T bottom-key-package-right-neu))
+(table-top-right-alt    (state-keys-T top-key-package-right-alt))
+(table-top-right-neu    (state-keys-T top-key-package-right-neu))
 (table-bottom-right-alt (state-keys-T bottom-key-package-right-alt))
 (table-bottom-right-neu (state-keys-T bottom-key-package-right-neu))
 )
@@ -9913,7 +9915,92 @@ true
 (= (select table-bottom-right-alt hh) (select table-bottom-right-neu hh))
 true
 )))))
+
+;(define-fun lemma3-left-keys ((state-left-alt CompositionState-Left)(state-left-neu CompositionState-Left)) Bool
+;
+;(let
+;
+;; state of the key packages
+;(
+;(top-key-package-left-alt (project-State_Left_keys_top (composition-pkgstate-Left-keys_top state-left-alt)))
+;(top-key-package-left-neu (project-State_Left_keys_top (composition-pkgstate-Left-keys_top state-left-neu)))
+;(bottom-key-package-left-alt (project-State_Left_keys_bottom (composition-pkgstate-Left-keys_bottom state-left-alt)))
+;(bottom-key-package-left-neu (project-State_Left_keys_bottom (composition-pkgstate-Left-keys_bottom state-left-neu)))
+;
+;)
+;
+;(select Z-left true              (= r-left   (__sample-rand-Left-Bits_n 3 ctr-r-left))
+;;              (= r-right  (__sample-rand-Right-Bits_n 1 ctr-r-right))
+;              (= rr-left  (__sample-rand-Left-Bits_n 4 ctr-rr-left))
+;;              (= rr-right (__sample-rand-Right-Bits_n 2 ctr-rr-left))
+;
+;              ;assignment of the sampled values for the lower Key package as a table
+;              (= (mk-some  r-left)  (select Z-left   true))
+;              (= (mk-some rr-left)  (select Z-left  false))
+;
+;(let
+;
+;; table of the bottom key package
+;(
+;(table-top-left-alt (state-keys-T bottom-key-package-left-alt))
+;(table-top-left-neu (state-keys-T bottom-key-package-left-neu))
+;(table-bottom-left-alt (state-keys-T bottom-key-package-left-alt))
+;(table-bottom-left-neu (state-keys-T bottom-key-package-left-neu))
+;)
+;
+;;;; bottom key packages equal except for position j
+;;;; and where there is j, there is the same or Z
+;(forall ((hh Int))
+;(ite
+;(and (= j hh) (= (select table-bottom-left-alt hh) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))))
+;(= (select table-bottom-right-new hh) (mk-some Z-left)) ;this is the hard part in the proof
+;true
+;))))
+
+(define-fun weak-invariant-keys
+           ((state-left-neu CompositionState-Left)(state-right-neu CompositionState-Right)) Bool
+
+(let
+
+; state of the key packages
+(
+(top-key-package-left-neu  (project-State_Left_keys_top  (composition-pkgstate-Left-keys_top  state-left-neu)))
+(top-key-package-right-neu (project-State_Right_keys_top (composition-pkgstate-Right-keys_top state-right-neu)))
+(bottom-key-package-left-neu  (project-State_Left_keys_bottom (composition-pkgstate-Left-keys_bottom state-left-neu)))
+(bottom-key-package-right-neu (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-neu)))
+)
+
+(let
+
+; table of the bottom key package
+(
+(table-top-left-neu  (state-keys-T top-key-package-left-neu))
+(table-top-right-neu (state-keys-T top-key-package-right-neu))
+(table-bottom-left-neu  (state-keys-T bottom-key-package-left-neu))
+(table-bottom-right-neu (state-keys-T bottom-key-package-right-neu))
+)
+
+;;; bottom key packages equal except for position j
+;;; and where there is j, there is the same or Z
+(ite
+(= table-top-left-neu table-top-right-neu)
+true
+false)
+
+
+)))
+
+
 (push 1)
+
+(assert (and (invariant-keys state-left-old state-right-old)
+             (invariant-ctr state-left-old state-right-old)
+             (not is-abort-right)
+             (not is-abort-left)
+
+             (= state-left-new   (select array-state-left-new length-state-left-new))
+             (= state-right-new  (select array-state-right-new length-state-right-new))))
+
 
 (assert (and (invariant-keys state-left-old state-right-old)
              (invariant-ctr state-left-old state-right-old)
@@ -9943,7 +10030,24 @@ true
              (not is-abort-right)
              (not is-abort-left)
              (lemma1-left-keys state-left-old state-left-new)
-             (lemma1-right-keys state-right-old state-right-new)))
+             (lemma1-right-keys state-right-old state-right-new)
+             (not (lemma2-left-keys state-left-old state-left-new))
+             ))
+(check-sat) ;7
+;(get-model)
+(pop 1)
+
+(push 1)
+
+(assert (and (invariant-keys state-left-old state-right-old)
+             (invariant-ctr state-left-old state-right-old)
+             (not is-abort-right)
+             (not is-abort-left)
+             (lemma1-left-keys state-left-old state-left-new)
+             (lemma1-right-keys state-right-old state-right-new)
+             (lemma2-left-keys state-left-old state-left-new)
+             (not (lemma2-right-keys state-right-old state-right-new))
+             ))
 (check-sat) ;7
 ;(get-model)
 (pop 1)

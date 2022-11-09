@@ -14,8 +14,8 @@
 
 ; table of the bottom key package
 (
-(table-top-left-alt (state-keys-T bottom-key-package-left-alt))
-(table-top-left-neu (state-keys-T bottom-key-package-left-neu))
+(table-top-left-alt (state-keys-T top-key-package-left-alt))
+(table-top-left-neu (state-keys-T top-key-package-left-neu))
 (table-bottom-left-alt (state-keys-T bottom-key-package-left-alt))
 (table-bottom-left-neu (state-keys-T bottom-key-package-left-neu))
 )
@@ -42,8 +42,8 @@
 
 ; table of the bottom key package
 (
-(table-top-right-alt (state-keys-T bottom-key-package-right-alt))
-(table-top-right-neu (state-keys-T bottom-key-package-right-neu))
+(table-top-right-alt (state-keys-T top-key-package-right-alt))
+(table-top-right-neu (state-keys-T top-key-package-right-neu))
 (table-bottom-right-alt (state-keys-T bottom-key-package-right-alt))
 (table-bottom-right-neu (state-keys-T bottom-key-package-right-neu))
 )
@@ -70,8 +70,8 @@
 
 ; table of the bottom key package
 (
-(table-top-left-alt (state-keys-T bottom-key-package-left-alt))
-(table-top-left-neu (state-keys-T bottom-key-package-left-neu))
+(table-top-left-alt (state-keys-T top-key-package-left-alt))
+(table-top-left-neu (state-keys-T top-key-package-left-neu))
 (table-bottom-left-alt (state-keys-T bottom-key-package-left-alt))
 (table-bottom-left-neu (state-keys-T bottom-key-package-left-neu))
 )
@@ -105,8 +105,8 @@ true
 
 ; table of the bottom key package
 (
-(table-top-right-alt (state-keys-T bottom-key-package-right-alt))
-(table-top-right-neu (state-keys-T bottom-key-package-right-neu))
+(table-top-right-alt    (state-keys-T top-key-package-right-alt))
+(table-top-right-neu    (state-keys-T top-key-package-right-neu))
 (table-bottom-right-alt (state-keys-T bottom-key-package-right-alt))
 (table-bottom-right-neu (state-keys-T bottom-key-package-right-neu))
 )
@@ -162,3 +162,36 @@ true
 ;(= (select table-bottom-right-new hh) (mk-some Z-left)) ;this is the hard part in the proof
 ;true
 ;))))
+
+(define-fun weak-invariant-keys
+           ((state-left-neu CompositionState-Left)(state-right-neu CompositionState-Right)) Bool
+
+(let
+
+; state of the key packages
+(
+(top-key-package-left-neu  (project-State_Left_keys_top  (composition-pkgstate-Left-keys_top  state-left-neu)))
+(top-key-package-right-neu (project-State_Right_keys_top (composition-pkgstate-Right-keys_top state-right-neu)))
+(bottom-key-package-left-neu  (project-State_Left_keys_bottom (composition-pkgstate-Left-keys_bottom state-left-neu)))
+(bottom-key-package-right-neu (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-neu)))
+)
+
+(let
+
+; table of the bottom key package
+(
+(table-top-left-neu  (state-keys-T top-key-package-left-neu))
+(table-top-right-neu (state-keys-T top-key-package-right-neu))
+(table-bottom-left-neu  (state-keys-T bottom-key-package-left-neu))
+(table-bottom-right-neu (state-keys-T bottom-key-package-right-neu))
+)
+
+;;; bottom key packages equal except for position j
+;;; and where there is j, there is the same or Z
+(ite
+(= table-top-left-neu table-top-right-neu)
+true
+false)
+
+
+)))

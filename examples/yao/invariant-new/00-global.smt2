@@ -6,8 +6,6 @@
       (state-keys-z (Array Int (Maybe Bool)))
       (state-keys-flag (Array Int (Maybe Bool))))))
 
-
-
 (define-fun project-State_Left_keys_top ((in State_Left_keys_top)) State_keys
   (mk-state-keys (state-Left-keys_top-T    in)
                  (state-Left-keys_top-z    in)
@@ -111,16 +109,25 @@
               (= length-state-left-new   (return-Left-gate-GBLG-state-length return-left))
               (= length-state-right-new  (return-Right-simgate-GBLG-state-length return-right))
 
+              ;assignment of return state
+              (= state-left-new   (select array-state-left-new length-state-left-new))
+              (= state-right-new  (select array-state-right-new length-state-right-new))
+
               ;initial state list contains only one state
               (= length-state-left-old 1)
               (= length-state-right-old 1)
+
+              ;assignment of old state
+              (= state-left-old   (select array-state-left-old length-state-left-old))
+              (= state-right-old  (select array-state-right-old length-state-right-old))
+
 )
 )
 
-(push 1)
-(assert true)
-(check-sat) ;3
-(pop 1)
+;(push 1)
+;(assert true)
+;(check-sat) ;3
+;(pop 1)
 
 
 ; special-purpose glue for this particular project
@@ -133,10 +140,10 @@
 (not (= (select op (mk-tuple2 false false))(as mk-none (Maybe Bool))))
 ))
 
-(push 1)
-(assert true)
-(check-sat) ;4
-(pop 1)
+;(push 1)
+;(assert true)
+;(check-sat) ;4
+;(pop 1)
 
 (assert
 ;;;;;;Pre-condition (randomness mapping):
@@ -148,30 +155,25 @@
               (= (__sample-rand-Left-Bits_n 4 ctr)
                  (__sample-rand-Right-Bits_n 2 ctr)))))
 
-;(push 1)
-;(assert true)
-;(check-sat) ;4
-;(pop 1)
-
 (assert
 (forall ((ctr Int))
 (and
 ;equality of values of the sample functions for the encryptions
-              (= (__sample-rand-Left-Bits_n   9 ctr)
+              (= (__sample-rand-Left-Bits_n   9 (* 4 ctr))
                  (__sample-rand-Right-Bits_n  9 ctr))
-              (= (__sample-rand-Left-Bits_n  11 ctr)
+              (= (__sample-rand-Left-Bits_n  11 (* 4 ctr))
                  (__sample-rand-Right-Bits_n 10 ctr))
-              (= (__sample-rand-Left-Bits_n   9 (+ 1 ctr))
+              (= (__sample-rand-Left-Bits_n   9 (+ 1 (* 4 ctr)))
                  (__sample-rand-Right-Bits_n 11 ctr))
-              (= (__sample-rand-Left-Bits_n  11 (+ 1 ctr))
+              (= (__sample-rand-Left-Bits_n  11 (+ 1 (* 4 ctr)))
                  (__sample-rand-Right-Bits_n 12 ctr))
-              (= (__sample-rand-Left-Bits_n   9 (+ 2 ctr))
+              (= (__sample-rand-Left-Bits_n   9 (+ 2 (* 4 ctr)))
                  (__sample-rand-Right-Bits_n 13 ctr))
-              (= (__sample-rand-Left-Bits_n  11 (+ 2 ctr))
+              (= (__sample-rand-Left-Bits_n  11 (+ 2 (* 4 ctr)))
                  (__sample-rand-Right-Bits_n 14 ctr))
-              (= (__sample-rand-Left-Bits_n   9 (+ 3 ctr))
+              (= (__sample-rand-Left-Bits_n   9 (+ 3 (* 4 ctr)))
                  (__sample-rand-Right-Bits_n 15 ctr))
-              (= (__sample-rand-Left-Bits_n  11 (+ 3 ctr))
+              (= (__sample-rand-Left-Bits_n  11 (+ 3 (* 4 ctr)))
                  (__sample-rand-Right-Bits_n 16 ctr))
 
 )

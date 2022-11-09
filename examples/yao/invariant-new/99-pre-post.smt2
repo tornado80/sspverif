@@ -1,4 +1,15 @@
+
+
 (push 1)
+
+(assert (and (invariant-keys state-left-old state-right-old)
+             (invariant-ctr state-left-old state-right-old)
+             (not is-abort-right)
+             (not is-abort-left)
+
+             (= state-left-new   (select array-state-left-new length-state-left-new))
+             (= state-right-new  (select array-state-right-new length-state-right-new))))
+
 
 (assert (and (invariant-keys state-left-old state-right-old)
              (invariant-ctr state-left-old state-right-old)
@@ -28,7 +39,24 @@
              (not is-abort-right)
              (not is-abort-left)
              (lemma1-left-keys state-left-old state-left-new)
-             (lemma1-right-keys state-right-old state-right-new)))
+             (lemma1-right-keys state-right-old state-right-new)
+             (not (lemma2-left-keys state-left-old state-left-new))
+             ))
+(check-sat) ;7
+;(get-model)
+(pop 1)
+
+(push 1)
+
+(assert (and (invariant-keys state-left-old state-right-old)
+             (invariant-ctr state-left-old state-right-old)
+             (not is-abort-right)
+             (not is-abort-left)
+             (lemma1-left-keys state-left-old state-left-new)
+             (lemma1-right-keys state-right-old state-right-new)
+             (lemma2-left-keys state-left-old state-left-new)
+             (not (lemma2-right-keys state-right-old state-right-new))
+             ))
 (check-sat) ;7
 ;(get-model)
 (pop 1)
