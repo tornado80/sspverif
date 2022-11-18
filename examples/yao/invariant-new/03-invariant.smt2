@@ -50,6 +50,12 @@
 
 ; counter values
 (
+;key sampling
+              (ctr-r-left   (composition-rand-Left-5   state-left ))
+              (ctr-rr-left  (composition-rand-Left-6   state-left ))
+              (ctr-r-right  (composition-rand-Right-7  state-right))
+              (ctr-rr-right (composition-rand-Right-8  state-right))
+
               (ctr-rin-oo-right  (composition-rand-Right-9  state-right))
               (ctr-rout-oo-right (composition-rand-Right-10 state-right))
 ;assignment of the ctr of the sample instructions for the 8 encryptions on the left
@@ -61,7 +67,14 @@
 ;compatibility of the counter values
 (= ctr-rin-left (* 4 ctr-rin-oo-right))
 (= ctr-rout-left (* 4 ctr-rout-oo-right))
+(= ctr-r-left ctr-r-right)
+(= ctr-rr-left ctr-rr-right)
 
 )
 )
+
+;used to be 3 --> 5 left
+;used to be 1 --> 7 right
+;used to be 4 --> 6 left
+;used to be 2 --> 8 right
 

@@ -57,28 +57,28 @@
 (declare-const state-right-new CompositionState-Right)
 
 ; return value for GBLG call
-(declare-const return-left Return_Left_gate_GBLG)
+(declare-const return-left  Return_Left_gate_GBLG)
 (declare-const return-right Return_Right_simgate_GBLG)
 (declare-const is-abort-left Bool)
 (declare-const is-abort-right Bool)
 (declare-const y-left  (Maybe (Array Bits_p (Maybe Bool))))
 (declare-const y-right (Maybe (Array Bits_p (Maybe Bool))))
 
+
 ; sampled value Z and associated values
-(declare-const Z-left  (Array Bool (Maybe Bits_n)))
-(declare-const Z-right (Array Bool (Maybe Bits_n)))
-(declare-const ctr-r-left Int)
-(declare-const ctr-r-right Int)
-(declare-const ctr-rr-left Int)
-(declare-const ctr-rr-right Int)
-(declare-const ctr-r-left-new Int)
-(declare-const ctr-r-right-new Int)
-(declare-const ctr-rr-left-new Int)
-(declare-const ctr-rr-right-new Int)
-(declare-const r-left Bits_n)
-(declare-const r-right Bits_n)
-(declare-const rr-left Bits_n)
-(declare-const rr-right Bits_n)
+(declare-const Z  (Array Bool (Maybe Bits_n)))
+;(declare-const ctr-r-left Int)
+;(declare-const ctr-r-right Int)
+;(declare-const ctr-rr-left Int)
+;(declare-const ctr-rr-right Int)
+;(declare-const ctr-r-left-new Int)
+;(declare-const ctr-r-right-new Int)
+;(declare-const ctr-rr-left-new Int)
+;(declare-const ctr-rr-right-new Int)
+;(declare-const r-left Bits_n)
+;(declare-const r-right Bits_n)
+;(declare-const rr-left Bits_n)
+;(declare-const rr-right Bits_n)
 
 (push 1)
 (assert true)
@@ -150,10 +150,15 @@
 ;equality of values of the sample functions for the lower Key package
 (forall ((ctr Int))
 (and
-              (= (__sample-rand-Left-Bits_n 3 ctr)
-                 (__sample-rand-Right-Bits_n 1 ctr))
-              (= (__sample-rand-Left-Bits_n 4 ctr)
-                 (__sample-rand-Right-Bits_n 2 ctr)))))
+              (= (__sample-rand-Left-Bits_n 5 ctr)      ;used to be 3 --> 5
+                 (__sample-rand-Right-Bits_n 7 ctr))    ;used to be 1 --> 7
+              (= (__sample-rand-Left-Bits_n 6 ctr)      ;used to be 4 --> 6
+                 (__sample-rand-Right-Bits_n 8 ctr))))) ;used to be 2 --> 8
+
+;used to be 3 --> 5
+;used to be 1 --> 7
+;used to be 4 --> 6
+;used to be 2 --> 8
 
 (assert
 (forall ((ctr Int))

@@ -158,7 +158,7 @@
               (= r-left   (__sample-rand-Left-Bits_n 3 ctr-r-left))
               (= r-right  (__sample-rand-Right-Bits_n 1 ctr-r-right))
               (= rr-left  (__sample-rand-Left-Bits_n 4 ctr-rr-left))
-              (= rr-right (__sample-rand-Right-Bits_n 2 ctr-rr-left))
+              (= rr-right (__sample-rand-Right-Bits_n 2 ctr-rr-right))
 
               ;assignment of the sampled values for the lower Key package as a table
               (= (mk-some  r-left)  (select Z-left   true))
