@@ -1,3 +1,12 @@
 sat
 sat
 unsat
+unknown
+unsat
+unsat
+unsat
+unsat
+unknown
+unsat
+unknown
+unknown

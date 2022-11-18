@@ -56,22 +56,40 @@
               (ctr-r-right  (composition-rand-Right-7  state-right))
               (ctr-rr-right (composition-rand-Right-8  state-right))
 
-              (ctr-rin-oo-right  (composition-rand-Right-9  state-right))
-              (ctr-rout-oo-right (composition-rand-Right-10 state-right))
-;assignment of the ctr of the sample instructions for the 8 encryptions on the left
-              (ctr-rin-left  (composition-rand-Left-9  state-left))
-              (ctr-rout-left (composition-rand-Left-11 state-left))
+;randomness for the encryptions
+              (ctr-left-9  (composition-rand-Left-9  state-left))
+              (ctr-left-11 (composition-rand-Left-11 state-left))
+
+              (ctr-right-9  (composition-rand-Right-9  state-right))
+              (ctr-right-10 (composition-rand-Right-10 state-right))
+              (ctr-right-11 (composition-rand-Right-11 state-right))
+              (ctr-right-12 (composition-rand-Right-12 state-right))
+              (ctr-right-13 (composition-rand-Right-13 state-right))
+              (ctr-right-14 (composition-rand-Right-14 state-right))
+              (ctr-right-15 (composition-rand-Right-15 state-right))
+              (ctr-right-16 (composition-rand-Right-16 state-right))
 )
 
 
 ;compatibility of the counter values
-(= ctr-rin-left (* 4 ctr-rin-oo-right))
-(= ctr-rout-left (* 4 ctr-rout-oo-right))
 (= ctr-r-left ctr-r-right)
 (= ctr-rr-left ctr-rr-right)
 
+(= ctr-left-9  (* 4 ctr-right-9))
+(= ctr-left-11 (* 4 ctr-right-10))
+(= ctr-right-9 ctr-right-10)
+(= ctr-right-10 ctr-right-11)
+(= ctr-right-11 ctr-right-12)
+(= ctr-right-12 ctr-right-13)
+(= ctr-right-13 ctr-right-14)
+(= ctr-right-14 ctr-right-15)
+(= ctr-right-15 ctr-right-16)
+
+
 )
 )
+
+
 
 ;used to be 3 --> 5 left
 ;used to be 1 --> 7 right
