@@ -292,7 +292,9 @@ pub fn handle_pkg_spec(pkg_spec: Pair<Rule>, name: &str) -> Package {
                 }
             }
             Rule::params => {
-                params = Some(handle_decl_list(spec.into_inner().next().unwrap()));
+                if let Some(inner_spec) = spec.into_inner().next() {
+                    params = Some(handle_decl_list(inner_spec));
+                }
             }
             Rule::import_oracles => {
                 for sig_ast in spec.into_inner() {
