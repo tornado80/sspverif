@@ -1,5 +1,4 @@
-; oracle GBLG
-; lemma foo
+; oracle GBLG, lemma foo
 (push 1)
 (assert (not (=> (and (randomness-mapping-GBLG state-left state-right return-left-gate-GBLG return-right-simgate-GBLG arg-GBLG-h arg-GBLG-l arg-GBLG-r arg-GBLG-op arg-GBLG-j)
  (invariant-GBLG state-left state-right return-left-gate-GBLG return-right-simgate-GBLG arg-GBLG-h arg-GBLG-l arg-GBLG-r arg-GBLG-op arg-GBLG-j)
@@ -10,7 +9,7 @@
 )
 (check-sat)
 (pop 1)
-; lemma bar
+; oracle GBLG, lemma bar
 (push 1)
 (assert (not (=> (and (randomness-mapping-GBLG state-left state-right return-left-gate-GBLG return-right-simgate-GBLG arg-GBLG-h arg-GBLG-l arg-GBLG-r arg-GBLG-op arg-GBLG-j)
  (invariant-GBLG state-left state-right return-left-gate-GBLG return-right-simgate-GBLG arg-GBLG-h arg-GBLG-l arg-GBLG-r arg-GBLG-op arg-GBLG-j)

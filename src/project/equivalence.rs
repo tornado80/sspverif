@@ -166,10 +166,8 @@ impl ResolvedEquivalence {
         }
 
         // write epilogue code
-        let mut epilogue = String::new();
+        let mut epilogue = Vec::new();
         for (oracle_name, tree) in trees {
-            write!(epilogue, "; oracle {oracle_name}\n")?;
-
             let sig = left
                 .exports
                 .iter()
@@ -244,7 +242,9 @@ impl ResolvedEquivalence {
             */
 
             for (lemma_name, deps) in tree {
-                write!(epilogue, "; lemma {lemma_name}\n")?;
+                let mut lemma_code = String::new();
+
+                writeln!(lemma_code, "; oracle {oracle_name}, lemma {lemma_name}")?;
 
                 let mut dependencies_code: Vec<SmtExpr> = vec![
                     build_lemma_call(format!("randomness-mapping-{oracle_name}")),
@@ -262,13 +262,15 @@ impl ResolvedEquivalence {
                         build_lemma_call(lemma_name.clone()),
                     )))
                     .into(),
-                    SmtExpr::List(vec!["check-sat".into()]),
+                    ("check-sat",).into(),
                     ("pop", "1").into(),
                 ];
 
                 for line in code {
-                    write!(epilogue, "{line}")?;
+                    write!(lemma_code, "{line}")?;
                 }
+
+                epilogue.push((oracle_name, lemma_name, lemma_code))
             }
         }
 
@@ -278,7 +280,10 @@ impl ResolvedEquivalence {
         write!(right_decl_smt_file, "{rght_declarations}")?;
 
         write!(const_decl_smt_file, "{const_declarations}")?;
-        write!(epilogue_smt_file, "{epilogue}")?;
+
+        for (_, _, code) in &epilogue {
+            write!(epilogue_smt_file, "{code}")?;
+        }
 
         // start talking to prover
 
@@ -305,11 +310,13 @@ impl ResolvedEquivalence {
         expect_sat(&mut prover_comm)?;
         println!("received.");
 
-        write!(prover_comm, "{epilogue}").unwrap();
+        for (oracle_name, lemma_name, epilogue_code) in &epilogue {
+            write!(prover_comm, "{epilogue_code}").unwrap();
 
-        println!("sent epilogue, waiting for sat... ");
-        expect_sat(&mut prover_comm)?;
-        println!("received.");
+            println!("sent code for lemma {oracle_name}/{lemma_name}, waiting for response... (expecting unsat)");
+            expect_unsat(&mut prover_comm)?;
+            println!("received.");
+        }
 
         prover_comm.close();
         let rest = prover_comm.read_until_end()?;
@@ -325,7 +332,20 @@ impl ResolvedEquivalence {
 fn expect_sat(comm: &mut Communicator) -> Result<()> {
     match comm.check_sat()? {
         ProverResponse::Sat => Ok(()),
-        resp => Err(Error::ExpectedSatError(resp)),
+        resp => Err(Error::UnexpectedProverResponseError(
+            resp,
+            ProverResponse::Sat,
+        )),
+    }
+}
+
+fn expect_unsat(comm: &mut Communicator) -> Result<()> {
+    match comm.check_sat()? {
+        ProverResponse::Unsat => Ok(()),
+        resp => Err(Error::UnexpectedProverResponseError(
+            resp,
+            ProverResponse::Unsat,
+        )),
     }
 }
 

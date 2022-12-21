@@ -49,8 +49,8 @@ pub enum Error {
     ProcessError(#[from] crate::util::process::Error),
     #[error("error interactiv with prover process: {0}")]
     ProverProcessError(#[from] crate::util::prover_process::Error),
-    #[error(r#""expected "sat" from prover, got {0}""#)]
-    ExpectedSatError(ProverResponse),
+    #[error("unexpected prover response {0}, expected {1}")]
+    UnexpectedProverResponseError(ProverResponse, ProverResponse),
     #[error("got a formatting error")]
     FmtError(#[from] std::fmt::Error),
 }

@@ -69,6 +69,13 @@ impl<V: Into<SmtExpr>> From<SmtWrap<V>> for SmtExpr {
     }
 }
 
+impl<T1: Into<SmtExpr>> From<(T1,)> for SmtExpr {
+    fn from(lst: (T1,)) -> SmtExpr {
+        let (v1,) = lst;
+        SmtExpr::List(vec![v1.into()])
+    }
+}
+
 impl<T1: Into<SmtExpr>, T2: Into<SmtExpr>> From<(T1, T2)> for SmtExpr {
     fn from(lst: (T1, T2)) -> SmtExpr {
         let (v1, v2) = lst;
