@@ -155,11 +155,6 @@
               (= (__sample-rand-Left-Bits_n 6 ctr)      ;used to be 4 --> 6
                  (__sample-rand-Right-Bits_n 8 ctr))))) ;used to be 2 --> 8
 
-;used to be 3 --> 5
-;used to be 1 --> 7
-;used to be 4 --> 6
-;used to be 2 --> 8
-
 (assert
 (forall ((ctr Int))
 (and

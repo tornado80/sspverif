@@ -8,5 +8,3 @@ unsat
 unsat
 unknown
 unsat
-unknown
-unknown
