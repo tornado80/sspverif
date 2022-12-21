@@ -288,7 +288,7 @@ impl ResolvedEquivalence {
         // start talking to prover
 
         let mut prover_comm =
-            Communicator::new_cvc4_with_transcript(joined_smt_file.try_clone().unwrap())?;
+            Communicator::new_cvc5_with_transcript(joined_smt_file.try_clone().unwrap())?;
 
         write!(prover_comm, "{base_declarations}")?;
         write!(prover_comm, "{left_declarations}")?;
