@@ -15,14 +15,15 @@ package Enc1 {
     state {
     }
 
-    oracle ENCN(j: Integer,d: Bool, mzero: Bits(n), mone: Bits(n)) -> Bits(m) {
+    oracle ENCN(j: Integer,d: Bool, nzero: Bits(n), none: Bits(n)) -> Bits(m) {
         K <- invoke GETKEYSIN(j);
         z <- invoke GETBIT(j);
         r <-$ Bits(n);
-        if (b==z)
-        {c <- encn(Unwrap(K[z]),mzero,r);}
+        c <-$ Bits(m);
+        if (d==z)
+        {c <- encn(Unwrap(K[z]),nzero,r);}
         else
-        {c <- encn(Unwrap(K[z]),mone,r);}
+        {c <- encn(Unwrap(K[z]),none,r);}
         return c;
     }
 
@@ -30,7 +31,8 @@ package Enc1 {
         K <- invoke GETKEYSIN(j);
         z <- invoke GETBIT(j);
         r <-$ Bits(n);
-        if (b==z)
+        c <-$ Bits(p);
+        if (d==z)
         {c <- encm(Unwrap(K[z]),mzero,r);}
         else
         {c <- encm(Unwrap(K[z]),mone,r);}

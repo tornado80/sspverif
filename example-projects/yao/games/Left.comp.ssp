@@ -31,7 +31,7 @@ instance gate =
           }
 
 instance enc =
-        Enc0
+        Enc1
           {
           n: n,
           m: m,
@@ -55,6 +55,7 @@ compose {
         },
      enc:
         { GETKEYSIN: keys_top,
+          GETBIT: keys_top
         },
         }
  }
