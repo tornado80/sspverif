@@ -21,3 +21,30 @@ impl SspParser {
         SspParser::parse(Rule::composition, contents)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn empty_param_section_is_fine() {
+        let sspcode = r#"package testpkg {
+            params {}
+        }
+        "#;
+
+        let mut pairs =
+            super::SspParser::parse_package(sspcode).expect("empty param section fails parsing");
+        super::package::handle_pkg(pairs.next().unwrap());
+    }
+
+    #[test]
+    fn empty_state_section_is_fine() {
+        let sspcode = r#"package testpkg {
+            state {}
+        }
+        "#;
+
+        let mut pairs =
+            super::SspParser::parse_package(sspcode).expect("empty state section fails parsing");
+        super::package::handle_pkg(pairs.next().unwrap());
+    }
+}
