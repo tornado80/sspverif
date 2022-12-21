@@ -77,6 +77,8 @@
 
 (= ctr-left-9  (* 4 ctr-right-9))
 (= ctr-left-11 (* 4 ctr-right-10))
+
+;and the other right counters are all equal.
 (= ctr-right-9 ctr-right-10)
 (= ctr-right-10 ctr-right-11)
 (= ctr-right-11 ctr-right-12)
