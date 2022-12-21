@@ -109,6 +109,7 @@ impl Communicator {
         )?))
     }
 
+    #[cfg(not(target_os = "windows"))]
     pub fn check_sat(&mut self) -> Result<ProverResponse> {
         writeln!(self, "(check-sat)")?;
 
@@ -122,6 +123,31 @@ impl Communicator {
                     return (6, Some(Ok(ProverResponse::Unsat)));
                 } else if data.starts_with("unknown\n") {
                     return (6, Some(Ok(ProverResponse::Unknown)));
+                } else if is_err_start && is_err_end {
+                    return (data.len(), Some(Err(Error::ProverError(data.to_string()))));
+                } else {
+                    return (0, None);
+                }
+            };
+
+        let resp = self.0.read_until_pred(pred)??;
+        Ok(resp)
+    }
+
+    #[cfg(target_os = "windows")]
+    pub fn check_sat(&mut self) -> Result<ProverResponse> {
+        writeln!(self, "(check-sat)")?;
+
+        let pred =
+            |_: usize, data: &str| -> (usize, Option<result::Result<ProverResponse, Error>>) {
+                let is_err_start = data.starts_with(r#"(error ""#);
+                let is_err_end = data.ends_with(")\n");
+                if data.starts_with("sat\r\n") {
+                    return (5, Some(Ok(ProverResponse::Sat)));
+                } else if data.starts_with("unsat\r\n") {
+                    return (7, Some(Ok(ProverResponse::Unsat)));
+                } else if data.starts_with("unknown\r\n") {
+                    return (9, Some(Ok(ProverResponse::Unknown)));
                 } else if is_err_start && is_err_end {
                     return (data.len(), Some(Err(Error::ProverError(data.to_string()))));
                 } else {
