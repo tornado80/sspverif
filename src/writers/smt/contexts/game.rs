@@ -342,4 +342,14 @@ impl<'a> GameContext<'a> {
         let new_value = ("+", 1, old_value);
         self.smt_update_gamestate_rand(state, sample_info, target_sample_id, new_value)
     }
+
+    pub fn smt_eval_randfn<CTR: Into<SmtExpr>>(
+        &self,
+        sample_id: usize,
+        ctr: CTR,
+        tipe: &Type,
+    ) -> SmtExpr {
+        let rand_fn_name = names::fn_sample_rand_name(&self.game.name, tipe);
+        (rand_fn_name, sample_id, ctr).into()
+    }
 }

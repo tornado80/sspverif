@@ -1,4 +1,5 @@
 use crate::package::{Composition, Export};
+use crate::transforms::samplify::SampleInfo;
 use crate::util::prover_process::{Communicator, ProverResponse};
 use crate::writers::smt::exprs::{SmtAnd, SmtAssert, SmtEq2, SmtExpr, SmtImplies, SmtNot};
 use crate::writers::smt::writer::CompositionSmtWriter;
@@ -127,19 +128,19 @@ impl ResolvedEquivalence {
         writeln!(const_declarations, "{decl_state_left}")?;
         writeln!(const_declarations, "{decl_state_right}")?;
 
-        // write declarations of state lenghts
+        // write declarations of state lengths
         let state_length_left_old = "state-length-left-old";
         let state_length_left_new = "state-length-left-new";
         let state_length_right_old = "state-length-right-old";
         let state_length_right_new = "state-length-right-new";
-        let state_lenghts = &[
+        let state_lengths = &[
             state_length_left_old,
             state_length_left_new,
             state_length_right_old,
             state_length_right_new,
         ];
 
-        for state_length in state_lenghts {
+        for state_length in state_lengths {
             let decl_state_length =
                 declare::declare_const(state_length.to_string(), types::Type::Integer);
             write!(const_declarations, "{decl_state_length}")?;
@@ -163,6 +164,24 @@ impl ResolvedEquivalence {
         for (decl_ret, constrain) in build_returns(&right, Side::Right) {
             write!(const_declarations, "{decl_ret}")?;
             write!(const_declarations, "{constrain}")?;
+        }
+
+        for (decl_ctr, assert_ctr, decl_val, assert_val) in
+            build_rands(&samp_left, left, Side::Left)
+        {
+            write!(const_declarations, "{decl_ctr}")?;
+            write!(const_declarations, "{assert_ctr}")?;
+            write!(const_declarations, "{decl_val}")?;
+            write!(const_declarations, "{assert_val}")?;
+        }
+
+        for (decl_ctr, assert_ctr, decl_val, assert_val) in
+            build_rands(&samp_right, right, Side::Right)
+        {
+            write!(const_declarations, "{decl_ctr}")?;
+            write!(const_declarations, "{assert_ctr}")?;
+            write!(const_declarations, "{decl_val}")?;
+            write!(const_declarations, "{assert_val}")?;
         }
 
         // write epilogue code
@@ -213,6 +232,8 @@ impl ResolvedEquivalence {
                     name.into(),
                     "state-left".into(),
                     "state-right".into(),
+                    "state-length-left".into(),
+                    "state-length-right".into(),
                     left_return_name.clone().into(),
                     right_return_name.clone().into(),
                 ];
@@ -422,6 +443,62 @@ fn build_returns(game: &Composition, game_side: Side) -> Vec<(SmtExpr, SmtExpr)>
             .into();
 
             (decl_return, constrain_return)
+        })
+        .collect()
+}
+
+fn build_rands(
+    sample_info: &SampleInfo,
+    game: &Composition,
+    game_side: Side,
+) -> Vec<(SmtExpr, SmtExpr, SmtExpr, SmtExpr)> {
+    let gctx = contexts::GameContext::new(game);
+
+    sample_info
+        .positions
+        .iter()
+        .map(|sample_item| {
+            let ictx = gctx.pkg_inst_ctx_by_name(&sample_item.inst_name).unwrap();
+
+            let sample_id = sample_item.sample_id;
+            let tipe = &sample_item.tipe;
+
+            let states = format!("state-{game_side}");
+            let states_len = format!("state-length-{game_side}-old");
+            let state = ("select", states, states_len);
+
+            let randctr_name = format!("randctr-{game_side}-{sample_id}");
+            let randval_name = format!("randval-{game_side}-{sample_id}");
+
+            let decl_randctr = declare::declare_const(randctr_name.clone(), Type::Integer);
+            let decl_randval = declare::declare_const(randval_name.clone(), tipe);
+
+            // pull randomness counter for given sample_id out of the gamestate
+            let randctr = gctx
+                .smt_access_gamestate_rand(sample_info, state, sample_id)
+                .unwrap();
+
+            let constrain_randctr: SmtExpr = SmtAssert(SmtEq2 {
+                lhs: randctr_name.as_str(),
+                rhs: randctr.clone(),
+            })
+            .into();
+
+            // apply respective randomness function (based on type) to the given counter
+            let randval = gctx.smt_eval_randfn(sample_id, ("+", 0, randctr_name.as_str()), tipe);
+
+            let constrain_randval: SmtExpr = SmtAssert(SmtEq2 {
+                lhs: randval_name,
+                rhs: randval,
+            })
+            .into();
+
+            (
+                decl_randctr,
+                constrain_randctr,
+                decl_randval,
+                constrain_randval,
+            )
         })
         .collect()
 }
