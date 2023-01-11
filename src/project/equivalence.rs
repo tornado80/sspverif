@@ -335,7 +335,19 @@ impl ResolvedEquivalence {
             write!(prover_comm, "{epilogue_code}").unwrap();
 
             println!("sent code for lemma {oracle_name}/{lemma_name}, waiting for response... (expecting unsat)");
-            expect_unsat(&mut prover_comm)?;
+            match expect_unsat(&mut prover_comm) {
+                Err(e) => {
+                    if matches!(e, Error::UnexpectedProverResponseError(_, _)) {
+                        prover_comm.write_str("(get-model)\n")?;
+                        prover_comm.close();
+                        let model = prover_comm.read_until_end()?;
+                        println!("{model}");
+                    }
+
+                    Err(e)
+                }
+                Ok(_) => Ok(()),
+            }?;
             println!("received.");
         }
 
