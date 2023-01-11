@@ -232,8 +232,8 @@ impl ResolvedEquivalence {
                     name.into(),
                     "state-left".into(),
                     "state-right".into(),
-                    "state-length-left".into(),
-                    "state-length-right".into(),
+                    "state-length-left-old".into(),
+                    "state-length-right-old".into(),
                     left_return_name.clone().into(),
                     right_return_name.clone().into(),
                 ];
@@ -268,7 +268,7 @@ impl ResolvedEquivalence {
                 writeln!(lemma_code, "; oracle {oracle_name}, lemma {lemma_name}")?;
 
                 let mut dependencies_code: Vec<SmtExpr> = vec![
-                    build_lemma_call(format!("randomness-mapping-{oracle_name}")),
+                    format!("randomness-mapping-{oracle_name}").into(),
                     build_lemma_call(format!("invariant-{oracle_name}")),
                 ];
 

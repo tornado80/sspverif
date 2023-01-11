@@ -18,4 +18,4 @@ rightmap = [["keys_top", "keys_bottom"], ["keys_bottom", "keys_top"],["simgate",
 left = "Left"
 right = "Right"
 invariant_path = "./invariant-GBLG.smt2"
-trees.GBLG = [["foo", []], ["bar", ["foo"]]]
+trees.GBLG = [ ["lemma1-right-keys", []], ["lemma1-left-keys", []] ]

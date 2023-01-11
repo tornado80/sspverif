@@ -1,21 +1,18 @@
-; oracle GBLG, lemma foo
+; oracle GBLG, lemma lemma1-right-keys
 (push 1)
-(assert (not (=> (and (randomness-mapping-GBLG state-left state-right state-length-left state-length-right return-left-gate-GBLG return-right-simgate-GBLG arg-GBLG-h arg-GBLG-l arg-GBLG-r arg-GBLG-op arg-GBLG-j)
- (invariant-GBLG state-left state-right state-length-left state-length-right return-left-gate-GBLG return-right-simgate-GBLG arg-GBLG-h arg-GBLG-l arg-GBLG-r arg-GBLG-op arg-GBLG-j)
+(assert (not (=> (and randomness-mapping-GBLG (invariant-GBLG state-left state-right state-length-left-old state-length-right-old return-left-gate-GBLG return-right-simgate-GBLG arg-GBLG-h arg-GBLG-l arg-GBLG-r arg-GBLG-op arg-GBLG-j)
 )
- (foo state-left state-right state-length-left state-length-right return-left-gate-GBLG return-right-simgate-GBLG arg-GBLG-h arg-GBLG-l arg-GBLG-r arg-GBLG-op arg-GBLG-j)
+ (lemma1-right-keys state-left state-right state-length-left-old state-length-right-old return-left-gate-GBLG return-right-simgate-GBLG arg-GBLG-h arg-GBLG-l arg-GBLG-r arg-GBLG-op arg-GBLG-j)
 )
 )
 )
 (check-sat)
 (pop 1)
-; oracle GBLG, lemma bar
+; oracle GBLG, lemma lemma1-left-keys
 (push 1)
-(assert (not (=> (and (randomness-mapping-GBLG state-left state-right state-length-left state-length-right return-left-gate-GBLG return-right-simgate-GBLG arg-GBLG-h arg-GBLG-l arg-GBLG-r arg-GBLG-op arg-GBLG-j)
- (invariant-GBLG state-left state-right state-length-left state-length-right return-left-gate-GBLG return-right-simgate-GBLG arg-GBLG-h arg-GBLG-l arg-GBLG-r arg-GBLG-op arg-GBLG-j)
- (foo state-left state-right state-length-left state-length-right return-left-gate-GBLG return-right-simgate-GBLG arg-GBLG-h arg-GBLG-l arg-GBLG-r arg-GBLG-op arg-GBLG-j)
+(assert (not (=> (and randomness-mapping-GBLG (invariant-GBLG state-left state-right state-length-left-old state-length-right-old return-left-gate-GBLG return-right-simgate-GBLG arg-GBLG-h arg-GBLG-l arg-GBLG-r arg-GBLG-op arg-GBLG-j)
 )
- (bar state-left state-right state-length-left state-length-right return-left-gate-GBLG return-right-simgate-GBLG arg-GBLG-h arg-GBLG-l arg-GBLG-r arg-GBLG-op arg-GBLG-j)
+ (lemma1-left-keys state-left state-right state-length-left-old state-length-right-old return-left-gate-GBLG return-right-simgate-GBLG arg-GBLG-h arg-GBLG-l arg-GBLG-r arg-GBLG-op arg-GBLG-j)
 )
 )
 )
