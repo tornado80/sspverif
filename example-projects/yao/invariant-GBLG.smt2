@@ -210,6 +210,9 @@
 (well-defined-Key-active bottom-key-package-right)
 
 
+(not (return-Right-simgate-GBLG-is-abort state-right-new))
+(not (return-Left-gate-GBLG-is-abort state-left-new))
+
 
 ))))
 
