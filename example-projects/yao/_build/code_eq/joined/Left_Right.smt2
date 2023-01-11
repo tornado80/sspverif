@@ -15769,6 +15769,31 @@
 )
 )
 (check-sat)
+(declare-const randval-left-9+1 Bits_n)
+(assert (= randval-left-9+1 (__sample-rand-Left-Bits_n 9 (+ 1 randctr-left-9)
+)))
+
+(declare-const randval-left-9+2 Bits_n)
+(assert (= randval-left-9+2 (__sample-rand-Left-Bits_n 9 (+ 2 randctr-left-9)
+)))
+
+(declare-const randval-left-9+3 Bits_n)
+(assert (= randval-left-9+3 (__sample-rand-Left-Bits_n 9 (+ 3 randctr-left-9)
+)))
+
+(declare-const randval-left-11+1 Bits_n)
+(assert (= randval-left-11+1 (__sample-rand-Left-Bits_n 11 (+ 1 randctr-left-11)
+)))
+
+(declare-const randval-left-11+2 Bits_n)
+(assert (= randval-left-11+2 (__sample-rand-Left-Bits_n 11 (+ 2 randctr-left-11)
+)))
+
+(declare-const randval-left-11+3 Bits_n)
+(assert (= randval-left-11+3 (__sample-rand-Left-Bits_n 11 (+ 3 randctr-left-11)
+)))
+
+
 (define-fun randomness-mapping-GBLG () Bool
 (and
 ;equality of values of the sample functions for the lower Key package
@@ -15778,14 +15803,12 @@
 ;equality of values of the sample functions for the encryptions
 (= randval-left-9    randval-right-9)
 (= randval-left-11   randval-right-10)
-;(= randval-left-9+1  randval-right-11)
-;(= randval-left-11+1 randval-right-12)
-;(= randval-left-9+2  randval-right-11)
-;(= randval-left-11+2 randval-right-12)
-;(= randval-left-9+3  randval-right-13)
-;(= randval-left-11+3 randval-right-14)
-;(= randval-left-9+4  randval-right-15)
-;(= randval-left-11+4 randval-right-16)
+(= randval-left-9+1  randval-right-11)
+(= randval-left-11+1 randval-right-12)
+(= randval-left-9+2  randval-right-11)
+(= randval-left-11+2 randval-right-12)
+(= randval-left-9+3  randval-right-13)
+(= randval-left-11+3 randval-right-14)
 )
 )
 
@@ -15969,7 +15992,7 @@
         (state-right (Array Int CompositionState-Right))
         (state-length-left Int)
         (state-length-right Int)
-        (state-left-NEU Return_Left_gate_GBLG) ;TODO: extract state from table
+        (state-left-NEU Return_Left_gate_GBLG)
         (state-right-NEU Return_Right_simgate_GBLG)
         (h Int)
         (l Int)
