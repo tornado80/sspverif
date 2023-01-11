@@ -214,6 +214,7 @@
 ))))
 
 
+
 ;;;;;;;;;; Lemmas
 
 (define-fun lemma1-left-keys          (
@@ -256,7 +257,7 @@
         (state-length-left Int)
         (state-length-right Int)
         (state-left-NEU Return_Left_gate_GBLG)
-        (state-right-NEU Return_Right_simgate_GBLG) ;TODO: extract state from table
+        (state-right-NEU Return_Right_simgate_GBLG)
         (h Int)
         (l Int)
         (r Int)
@@ -294,8 +295,8 @@
         (state-right (Array Int CompositionState-Right))
         (state-length-left Int)
         (state-length-right Int)
-        (state-left-NEU Return_Left_gate_GBLG) ;TODO: extract state from table
-        (state-right-NEU Return_Right_simgate_GBLG) ;TODO: extract state from table
+        (state-left-NEU Return_Left_gate_GBLG)
+        (state-right-NEU Return_Right_simgate_GBLG)
         (h Int)
         (l Int)
         (r Int)
@@ -312,8 +313,6 @@
     )
 
   (let
-
-;; TODO this is broken because we access the return value using the compositions selectors
 
 ; state of the key packages
 (
@@ -338,7 +337,7 @@
         (state-right (Array Int CompositionState-Right))
         (state-length-left Int)
         (state-length-right Int)
-        (state-left-NEU Return_Left_gate_GBLG) ;TODO: Extract state from table
+        (state-left-NEU Return_Left_gate_GBLG)
         (state-right-NEU Return_Right_simgate_GBLG)
         (h Int)
         (l Int)
@@ -356,7 +355,6 @@
     )
 
     (let
-;; TODO this is broken because we access the return value using the compositions selectors
 
 ; state of the key packages
 (
