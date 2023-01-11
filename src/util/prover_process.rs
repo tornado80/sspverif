@@ -122,7 +122,7 @@ impl Communicator {
                 } else if data.starts_with("unsat\n") {
                     return (6, Some(Ok(ProverResponse::Unsat)));
                 } else if data.starts_with("unknown\n") {
-                    return (6, Some(Ok(ProverResponse::Unknown)));
+                    return (8, Some(Ok(ProverResponse::Unknown)));
                 } else if is_err_start && is_err_end {
                     return (data.len(), Some(Err(Error::ProverError(data.to_string()))));
                 } else {
@@ -141,7 +141,7 @@ impl Communicator {
         let pred =
             |_: usize, data: &str| -> (usize, Option<result::Result<ProverResponse, Error>>) {
                 let is_err_start = data.starts_with(r#"(error ""#);
-                let is_err_end = data.ends_with(")\n");
+                let is_err_end = data.ends_with(")\r\n");
                 if data.starts_with("sat\r\n") {
                     return (5, Some(Ok(ProverResponse::Sat)));
                 } else if data.starts_with("unsat\r\n") {
