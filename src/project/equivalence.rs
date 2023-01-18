@@ -276,22 +276,13 @@ impl ResolvedEquivalence {
                     dependencies_code.push(build_lemma_call(dep_name.clone()))
                 }
 
-                let code: Vec<SmtExpr> = vec![
-                    ("push", "1").into(),
-                    crate::writers::smt::exprs::SmtAssert(SmtNot(SmtImplies(
-                        SmtAnd(dependencies_code),
-                        build_lemma_call(lemma_name.clone()),
-                    )))
-                    .into(),
-                    ("check-sat",).into(),
-                    ("pop", "1").into(),
-                ];
+                let code: SmtExpr = crate::writers::smt::exprs::SmtAssert(SmtNot(SmtImplies(
+                    SmtAnd(dependencies_code),
+                    build_lemma_call(lemma_name.clone()),
+                )))
+                .into();
 
-                for line in code {
-                    write!(lemma_code, "{line}")?;
-                }
-
-                epilogue.push((oracle_name, lemma_name, lemma_code))
+                epilogue.push((oracle_name, lemma_name, code))
             }
         }
 
@@ -301,10 +292,6 @@ impl ResolvedEquivalence {
         write!(right_decl_smt_file, "{rght_declarations}")?;
 
         write!(const_decl_smt_file, "{const_declarations}")?;
-
-        for (_, _, code) in &epilogue {
-            write!(epilogue_smt_file, "{code}")?;
-        }
 
         // start talking to prover
 
@@ -331,14 +318,20 @@ impl ResolvedEquivalence {
         expect_sat(&mut prover_comm)?;
         println!("received.");
 
-        for (oracle_name, lemma_name, epilogue_code) in &epilogue {
-            write!(prover_comm, "{epilogue_code}").unwrap();
-
+        for (oracle_name, lemma_name, code) in &epilogue {
+            writeln!(epilogue_smt_file, "(push 1)")?;
+            writeln!(prover_comm, "(push 1)")?;
+            write!(epilogue_smt_file, "{code}")?;
+            write!(prover_comm, "{code}")?;
             println!("sent code for lemma {oracle_name}/{lemma_name}, waiting for response... (expecting unsat)");
+
+            writeln!(epilogue_smt_file, "(check-sat)")?;
+
             match expect_unsat(&mut prover_comm) {
                 Err(e) => {
                     if matches!(e, Error::UnexpectedProverResponseError(_, _)) {
-                        prover_comm.write_str("(get-model)\n")?;
+                        writeln!(epilogue_smt_file, "(get-model)")?;
+                        writeln!(prover_comm, "(get-model)")?;
                         prover_comm.close();
                         let model = prover_comm.read_until_end()?;
                         println!("{model}");
@@ -349,6 +342,9 @@ impl ResolvedEquivalence {
                 Ok(_) => Ok(()),
             }?;
             println!("received.");
+
+            writeln!(epilogue_smt_file, "(pop 1)")?;
+            writeln!(prover_comm, "(pop 1)")?;
         }
 
         prover_comm.close();
