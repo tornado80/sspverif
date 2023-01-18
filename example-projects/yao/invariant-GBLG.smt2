@@ -216,13 +216,56 @@
 
 ))))
 
+(declare-const debug-top-old-left State_keys)
+(declare-const debug-top-new-left State_keys)
+
+
+(assert
+(and
+(= 
+debug-top-new-left
+(
+  (let  (
+      (state-left-neu (select   (return-Left-gate-GBLG-state return-left-gate-GBLG)
+                                (return-Left-gate-GBLG-state-length return-left-gate-GBLG)))
+    )
+    (let
+
+; state of the key packages
+(
+(top-key-package-left-alt (project-State_Left_keys_top        (composition-pkgstate-Left-keys_top     (select state-left state-length-left-old))))
+(top-key-package-left-neu (project-State_Left_keys_top        (composition-pkgstate-Left-keys_top     state-left-neu)))
+)
+top-key-package-left-neu
+)))
+
+)
+(= 
+debug-top-old-left
+(
+  (let  (
+      (state-left-neu (select   (return-Left-gate-GBLG-state return-left-gate-GBLG)
+                                (return-Left-gate-GBLG-state-length return-left-gate-GBLG)))
+    )
+    (let
+
+; state of the key packages
+(
+(top-key-package-left-alt (project-State_Left_keys_top        (composition-pkgstate-Left-keys_top     (select state-left state-length-left-old))))
+(top-key-package-left-neu (project-State_Left_keys_top        (composition-pkgstate-Left-keys_top     state-left-neu)))
+)
+top-key-package-left-alt
+)))
+
+)
+))
 
 
 ;;;;;;;;;; Lemmas
 
 (define-fun lemma1-left-keys          (
         (state-left-alt (Array Int CompositionState-Left))
-        (state-right (Array Int CompositionState-Right))
+        (state-right-alt (Array Int CompositionState-Right))
         (state-length-left Int)
         (state-length-right Int)
         (state-left-NEU Return_Left_gate_GBLG)
