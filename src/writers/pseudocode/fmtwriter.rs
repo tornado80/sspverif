@@ -60,6 +60,7 @@ impl<W: Write> FmtWriter<W> {
             Type::String => self.write_string("String"),
             Type::Integer => self.write_string("Integer"),
             Type::Boolean => self.write_string("Boolean"),
+            Type::Empty => self.write_string("Empty"),
             Type::Bits(n) => self.write_string(&format!("Bits({n})")),
             Type::Maybe(t) => {
                 self.write_string("Maybe(")?;
@@ -83,7 +84,7 @@ impl<W: Write> FmtWriter<W> {
                 self.write_type(t_value)?;
                 self.write_string(")")
             }
-            _ => todo!(),
+            _ => todo!("{:#?}", t)
         }
     }
 
@@ -199,6 +200,10 @@ impl<W: Write> FmtWriter<W> {
                 self.write_expression(idx)?;
                 self.write_string("]")?;
             }
+            Expression::EmptyTable => {
+                self.write_string("new Table()")?;
+            }
+
             _ => {
                 todo!("{:#?}", expr)
             }
