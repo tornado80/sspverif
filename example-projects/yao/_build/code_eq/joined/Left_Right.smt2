@@ -16162,8 +16162,6 @@ top-key-package-left-alt
     (let (
       (state-left-neu (select   (return-Left-gate-GBLG-state state-left-NEU)
                                 (return-Left-gate-GBLG-state-length state-left-NEU)))
-      (state-right-neu (select  (return-Right-simgate-GBLG-state state-right-NEU)
-                                (return-Right-simgate-GBLG-state-length state-right-NEU)))
     )
 
     (let
@@ -16190,21 +16188,45 @@ top-key-package-left-alt
 (
               ;assignment of the sampled values for the lower Key package as a table
               (Z-left (store (store Z
-                    false (mk-some randval-right-6))
-                  true (mk-some randval-right-5)))
+                    false (mk-some randval-left-6))
+                  true (mk-some randval-left-5)))
               
 )
 
 ;;; bottom key packages equal except for position j
 ;;; and where there is j, there is the same or Z
 (forall ((hh Int))
-(ite
-(and (= j hh) (= (select table-bottom-left-alt hh) (as mk-none (Maybe (Array Bool (Maybe Bits_n))))))
-true
+(=>
+(not
+(and (= j hh) (= (select table-bottom-left-alt hh) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))))
 (= (select table-bottom-left-alt hh) (select table-bottom-left-neu hh))
 )))))
     
     ))
+
+(define-fun no-abort (
+        (state-left-alt (Array Int CompositionState-Left))
+        (state-right (Array Int CompositionState-Right))
+        (state-length-left Int)
+        (state-length-right Int)
+        (state-left-NEU Return_Left_gate_GBLG) ;TODO: Extract state from table
+        (state-right-NEU Return_Right_simgate_GBLG)
+        (h Int)
+        (l Int)
+        (r Int)
+        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
+        (j Int))
+    Bool
+      (let
+      (
+      (abort-left  (return-Left-gate-GBLG-is-abort  state-left-NEU))
+      (abort-right (return-Right-simgate-GBLG-is-abort state-right-NEU))
+      )
+(and
+(= abort-left  false)
+(= abort-right false)
+)))
+
 
 (define-fun lemma2-left-keys-b          (
         (state-left-alt (Array Int CompositionState-Left))
@@ -16251,21 +16273,16 @@ true
 (
               ;assignment of the sampled values for the lower Key package as a table
                 (Z-left (store (store Z
-                    false (mk-some randval-right-6))
-                  true (mk-some randval-right-5)))
+                    false (mk-some randval-left-6))
+                  true (mk-some randval-left-5)))
 )
 
 ;;; bottom key packages equal except for position j
 ;;; and where there is j, there is the same or Z
-(forall ((hh Int))
-(ite
-(and (= j hh) (= (select table-bottom-left-alt hh) (as mk-none (Maybe (Array Bool (Maybe Bits_n))))))
-;(= (select table-bottom-left-alt hh) (select table-bottom-left-neu hh))
-(= (select table-bottom-left-neu hh) (mk-some Z-left)) ;this is the hard part in the proof
-true
-)))))
-    
-    ))
+( =>
+(and (= (select table-bottom-left-alt j) (as mk-none (Maybe (Array Bool (Maybe Bits_n))))))
+(= (select table-bottom-left-neu j) (mk-some Z-left)) ;this is the hard part in the proof
+))))))
 
 (define-fun lemma2-right-keys-a          (
         (state-left (Array Int CompositionState-Left))
@@ -16273,7 +16290,7 @@ true
         (state-length-left Int)
         (state-length-right Int)
         (state-left-NEU Return_Left_gate_GBLG)
-        (state-right-NEU Return_Right_simgate_GBLG) ;TODO: Extract state from table
+        (state-right-NEU Return_Right_simgate_GBLG) 
         (h Int)
         (l Int)
         (r Int)
@@ -16324,22 +16341,19 @@ true
 ;;; bottom key packages equal except for position j
 ;;; and where there is j, there is the same or Z
 (forall ((hh Int))
-(ite
-(not
+(=> (not
 (and (= j hh) (= (select table-bottom-right-alt hh) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))))
 (= (select table-bottom-right-alt hh) (select table-bottom-right-neu hh))
-true ;(= (select table-bottom-right-neu hh) (mk-some Z-right)) ;this is the hard part in the proof
-)))))
-    
-    ))
+;(= (select table-bottom-right-neu hh) (mk-some Z-right)) ;this is the hard part in the proof
+)))))))
 
 (define-fun lemma2-right-keys-b          (
         (state-left (Array Int CompositionState-Left))
-        (state-right-alt (Array Int CompositionState-Right))
+        (state-right (Array Int CompositionState-Right))
         (state-length-left Int)
         (state-length-right Int)
         (state-left-NEU Return_Left_gate_GBLG)
-        (state-right-NEU Return_Right_simgate_GBLG) ;TODO: extract state from table
+        (state-right-NEU Return_Right_simgate_GBLG)
         (h Int)
         (l Int)
         (r Int)
@@ -16359,9 +16373,9 @@ true ;(= (select table-bottom-right-neu hh) (mk-some Z-right)) ;this is the hard
 
 ; state of the key packages
 (
-(top-key-package-right-alt (project-State_Right_keys_top (composition-pkgstate-Right-keys_top (select state-right-alt state-length-right))))
+(top-key-package-right-alt (project-State_Right_keys_top (composition-pkgstate-Right-keys_top (select state-right state-length-right))))
 (top-key-package-right-neu (project-State_Right_keys_top (composition-pkgstate-Right-keys_top state-right-neu)))
-(bottom-key-package-right-alt (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom (select state-right-alt state-length-right))))
+(bottom-key-package-right-alt (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom (select state-right state-length-right))))
 (bottom-key-package-right-neu (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-neu)))
 
 )
@@ -16389,67 +16403,95 @@ true ;(= (select table-bottom-right-neu hh) (mk-some Z-right)) ;this is the hard
 
 ;;; bottom key packages equal except for position j
 ;;; and where there is j, there is the same or Z
-(forall ((hh Int))
-(ite
-(not
-(and (= j hh) (= (select table-bottom-right-alt hh) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))))
-true
-(= (select table-bottom-right-neu hh) (mk-some Z-right)) ;this is the hard part in the proof
+( =>
+(and (= (select table-bottom-right-alt j) (as mk-none (Maybe (Array Bool (Maybe Bits_n))))))
+(= (select table-bottom-right-neu j) (mk-some Z-right))) ;this is the hard part in the proof
 )))))
-    ))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; TODO
-;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(define-fun lemma2-keys          (
+        (state-left (Array Int CompositionState-Left))
+        (state-right (Array Int CompositionState-Right))
+        (state-length-left Int)
+        (state-length-right Int)
+        (state-left-NEU Return_Left_gate_GBLG)
+        (state-right-NEU Return_Right_simgate_GBLG)
+        (h Int)
+        (l Int)
+        (r Int)
+        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
+        (j Int))
+        Bool
 
-;(define-fun lemma1-left-keys          (
-;        (state-left (Array Int CompositionState-Left))
-;        (state-right (Array Int CompositionState-Right))
-;        (state-length-left Int)
-;        (state-length-right Int)
-;        (state-left-new Return_Left_gate_GBLG)
-;        (state-right-new Return_Right_simgate_GBLG)
-;        (h Int)
-;        (l Int)
-;        (r Int)
-;        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
-;        (j Int))
-;    Bool)
-;
-;(define-fun lemma1-left-keys          (
-;        (state-left (Array Int CompositionState-Left))
-;        (state-right (Array Int CompositionState-Right))
-;        (state-length-left Int)
-;        (state-length-right Int)
-;        (state-left-new Return_Left_gate_GBLG)
-;        (state-right-new Return_Right_simgate_GBLG)
-;        (h Int)
-;        (l Int)
-;        (r Int)
-;        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
-;        (j Int))
-;    Bool)
-(check-sat)
-; oracle GBLG, lemma lemma1-right-keys
+
+    (let (
+      (state-left-neu (select   (return-Left-gate-GBLG-state state-left-NEU)
+                                (return-Left-gate-GBLG-state-length state-left-NEU)))
+      (state-right-neu (select  (return-Right-simgate-GBLG-state state-right-NEU)
+                                (return-Right-simgate-GBLG-state-length state-right-NEU)))
+    )
+
+  (let
+
+; state of the key packages
+(
+(top-key-package-left-neu  (project-State_Left_keys_top  (composition-pkgstate-Left-keys_top  state-left-neu)))
+(top-key-package-right-neu (project-State_Right_keys_top (composition-pkgstate-Right-keys_top state-right-neu)))
+(bottom-key-package-left-neu  (project-State_Left_keys_bottom (composition-pkgstate-Left-keys_bottom state-left-neu)))
+(bottom-key-package-right-neu (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-neu)))
+)
+
+(let
+
+; table of the bottom key package
+(
+(table-bottom-left-neu (state-keys-T bottom-key-package-left-neu))
+(table-bottom-right-neu (state-keys-T bottom-key-package-right-neu))
+
+
+)
+
+
+;;; top key packages have equal state
+(= table-bottom-left-neu table-bottom-right-neu)
+
+
+))))
+
+(define-fun same-output          (
+        (state-left (Array Int CompositionState-Left))
+        (state-right (Array Int CompositionState-Right))
+        (state-length-left Int)
+        (state-length-right Int)
+        (state-left-NEU Return_Left_gate_GBLG)
+        (state-right-NEU Return_Right_simgate_GBLG)
+        (h Int)
+        (l Int)
+        (r Int)
+        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
+        (j Int))
+        Bool
+(=
+(return-Left-gate-GBLG-value return-left-gate-GBLG)
+(return-Right-simgate-GBLG-value return-right-simgate-GBLG)
+)
+)(check-sat)
 (push 1)
 (assert (not (=> (and randomness-mapping-GBLG (invariant-GBLG state-left state-right state-length-left-old state-length-right-old return-left-gate-GBLG return-right-simgate-GBLG arg-GBLG-h arg-GBLG-l arg-GBLG-r arg-GBLG-op arg-GBLG-j)
 )
- (lemma1-right-keys state-left state-right state-length-left-old state-length-right-old return-left-gate-GBLG return-right-simgate-GBLG arg-GBLG-h arg-GBLG-l arg-GBLG-r arg-GBLG-op arg-GBLG-j)
+ (lemma1-keys state-left state-right state-length-left-old state-length-right-old return-left-gate-GBLG return-right-simgate-GBLG arg-GBLG-h arg-GBLG-l arg-GBLG-r arg-GBLG-op arg-GBLG-j)
 )
 )
 )
 (check-sat)
 (pop 1)
-(check-sat)
-; oracle GBLG, lemma lemma1-left-keys
 (push 1)
 (assert (not (=> (and randomness-mapping-GBLG (invariant-GBLG state-left state-right state-length-left-old state-length-right-old return-left-gate-GBLG return-right-simgate-GBLG arg-GBLG-h arg-GBLG-l arg-GBLG-r arg-GBLG-op arg-GBLG-j)
+ (no-abort state-left state-right state-length-left-old state-length-right-old return-left-gate-GBLG return-right-simgate-GBLG arg-GBLG-h arg-GBLG-l arg-GBLG-r arg-GBLG-op arg-GBLG-j)
+ (lemma1-keys state-left state-right state-length-left-old state-length-right-old return-left-gate-GBLG return-right-simgate-GBLG arg-GBLG-h arg-GBLG-l arg-GBLG-r arg-GBLG-op arg-GBLG-j)
+ (lemma2-keys state-left state-right state-length-left-old state-length-right-old return-left-gate-GBLG return-right-simgate-GBLG arg-GBLG-h arg-GBLG-l arg-GBLG-r arg-GBLG-op arg-GBLG-j)
 )
- (lemma1-left-keys state-left state-right state-length-left-old state-length-right-old return-left-gate-GBLG return-right-simgate-GBLG arg-GBLG-h arg-GBLG-l arg-GBLG-r arg-GBLG-op arg-GBLG-j)
+ (same-output state-left state-right state-length-left-old state-length-right-old return-left-gate-GBLG return-right-simgate-GBLG arg-GBLG-h arg-GBLG-l arg-GBLG-r arg-GBLG-op arg-GBLG-j)
 )
 )
 )
 (check-sat)
-(pop 1)
-(check-sat)
-(get-model)
