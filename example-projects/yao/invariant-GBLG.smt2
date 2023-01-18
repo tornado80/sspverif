@@ -224,7 +224,6 @@
 (and
 (= 
 debug-top-new-left
-(
   (let  (
       (state-left-neu (select   (return-Left-gate-GBLG-state return-left-gate-GBLG)
                                 (return-Left-gate-GBLG-state-length return-left-gate-GBLG)))
@@ -239,10 +238,8 @@ debug-top-new-left
 top-key-package-left-neu
 )))
 
-)
 (= 
 debug-top-old-left
-(
   (let  (
       (state-left-neu (select   (return-Left-gate-GBLG-state return-left-gate-GBLG)
                                 (return-Left-gate-GBLG-state-length return-left-gate-GBLG)))
@@ -257,9 +254,7 @@ debug-top-old-left
 top-key-package-left-alt
 )))
 
-)
 ))
-
 
 ;;;;;;;;;; Lemmas
 
