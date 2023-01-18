@@ -1,25 +1,25 @@
-package Keys {
+package GenericKeys {
     params {
         n: Integer,
     }
 
     types {
-        Handle
+        Handle,
     }
 
     state {
-        T: Table(Integer,Table(Bool,Bits(n))),
-        z: Table(Integer,Bool),
-        flag: Table(Integer,Bool),
+        T: Table(Handle,Table(Bool,Bits(n))),
+        z: Table(Handle,Bool),
+        flag: Table(Handle,Bool),
     }
 
-    oracle GETKEYSIN(h: Integer) -> Table(Bool,Bits(n)) {
+    oracle GETKEYSIN(h: Handle) -> Table(Bool,Bits(n)) {
         assert (flag[h]==Some(true));
         Z <- Unwrap(T[h]);
         return Z;
     }
 
-    oracle GETAIN(h: Integer) -> Bits(n) {
+    oracle GETAIN(h: Handle) -> Bits(n) {
         assert (flag[h]==Some(true));
         Z <- Unwrap(T[h]);
         zz <- Unwrap(z[h]);
@@ -27,7 +27,7 @@ package Keys {
         return k;
     }
 
-    oracle GETINAIN(h: Integer) -> Bits(n) {
+    oracle GETINAIN(h: Handle) -> Bits(n) {
         assert (flag[h] == Some(true));
         Z <- Unwrap(T[h]);
         zz <- Unwrap(z[h]);
@@ -35,7 +35,7 @@ package Keys {
         return k;
     }
 
-    oracle GETAOUT(h: Integer) -> Bits(n) {
+    oracle GETAOUT(h: Handle) -> Bits(n) {
         assert (z[h] == Some(true));
         flag[h] <- Some(true);
         Z <- new Table(Bool,Bits(n));
@@ -51,7 +51,7 @@ package Keys {
         return k;
     }
 
-    oracle GETKEYSOUT(h: Integer) -> Table(Bool,Bits(n)) {
+    oracle GETKEYSOUT(h: Handle) -> Table(Bool,Bits(n)) {
         assert (flag[h] != Some(true));
         flag[h]<- Some(true);
         Z <- new Table(Bool,Bits(n));
@@ -65,13 +65,13 @@ package Keys {
         return Z;
     }
 
-    oracle GETBIT(h: Integer) -> Bool {
+    oracle GETBIT(h: Handle) -> Bool {
         assert (z[h] != None as Bool);
         zz <- Unwrap(z[h]);
         return zz;
     }
 
-    oracle SETBIT(h: Integer, zz:Bool) -> () {
+    oracle SETBIT(h: Handle, zz:Bool) -> () {
         assert (z[h] == None as Bool);
         z[h] <- Some(zz);
         return ;

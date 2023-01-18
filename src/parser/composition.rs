@@ -15,7 +15,7 @@ pub fn handle_const_decl(ast: Pair<Rule>) -> (String, Type) {
     (name, tipe)
 }
 
-pub fn handle_instance_assign_list(ast: Pairs<Rule>) -> Vec<(String, String)> {
+pub fn handle_compose_assign_list(ast: Pairs<Rule>) -> Vec<(String, String)> {
     ast.map(|assignment| {
         let mut inner = assignment.into_inner();
         let oracle_name = inner.next().unwrap().as_str();
@@ -24,6 +24,28 @@ pub fn handle_instance_assign_list(ast: Pairs<Rule>) -> Vec<(String, String)> {
         (oracle_name.to_owned(), dst_inst_name.to_owned())
     })
     .collect()
+}
+
+pub fn handle_types_def(ast: Pair<Rule>) -> Vec<(Type, Type)> {
+    match ast.into_inner().next() {
+        None => vec![],
+        Some(ast) => handle_types_def_list(ast),
+    }
+}
+
+pub fn handle_types_def_list(ast: Pair<Rule>) -> Vec<(Type, Type)> {
+    ast.into_inner()
+        .map(|def_spec| handle_types_def_spec(def_spec))
+        .collect()
+}
+
+pub fn handle_types_def_spec(ast: Pair<Rule>) -> (Type, Type) {
+    let mut iter = ast.into_inner();
+
+    let fst = iter.next().unwrap();
+    let snd = iter.next().unwrap();
+
+    (handle_type(fst), handle_type(snd))
 }
 
 /*
@@ -39,7 +61,7 @@ pub fn handle_compose_assign_body_list(
         let mut inner = body.into_inner();
         let inst_name = inner.next().unwrap().as_str();
         if inst_name == "adversary" {
-            for (oracle_name, dst_inst_name) in handle_instance_assign_list(inner) {
+            for (oracle_name, dst_inst_name) in handle_compose_assign_list(inner) {
                 let (dst_offset, dst_inst) = match instances.get(&dst_inst_name) {
                     None => {
                         panic!(
@@ -76,7 +98,7 @@ pub fn handle_compose_assign_body_list(
             Some(x) => x,
         };
 
-        for (oracle_name, dst_inst_name) in handle_instance_assign_list(inner) {
+        for (oracle_name, dst_inst_name) in handle_compose_assign_list(inner) {
             let (dst_offset, dst_inst) = match instances.get(&dst_inst_name) {
                 None => {
                     panic!(
@@ -179,6 +201,8 @@ pub fn handle_comp_spec_list(
 pub fn handle_instance_param_assign_list(ast: Pair<Rule>) -> Vec<(String, String)> {
     ast.into_inner()
         .map(|inner| {
+            //let inner = inner.into_inner().next().unwrap();
+
             let mut inner = inner.into_inner();
             let left = inner.next().unwrap().as_str();
             let right = inner.next().unwrap().as_str();
@@ -186,6 +210,31 @@ pub fn handle_instance_param_assign_list(ast: Pair<Rule>) -> Vec<(String, String
             (left.to_owned(), right.to_owned())
         })
         .collect()
+}
+
+pub fn handle_params_def_list(ast: Pair<Rule>) -> Vec<(String, String)> {
+    handle_instance_param_assign_list(ast)
+}
+
+pub fn handle_instance_assign_list(ast: Pair<Rule>) -> (Vec<(String, String)>, Vec<(Type, Type)>) {
+    let mut params = vec![];
+    let mut types = vec![];
+
+    for elem in ast.into_inner() {
+        match elem.as_rule() {
+            Rule::params_def => {
+                let mut defs = handle_params_def_list(elem.into_inner().next().unwrap());
+                params.append(&mut defs);
+            }
+            Rule::types_def => {
+                let mut defs = handle_types_def_list(elem.into_inner().next().unwrap());
+                types.append(&mut defs);
+            }
+            _ => unreachable!("{:#?}", elem),
+        }
+    }
+
+    (params, types)
 }
 
 pub fn handle_instance_decl(
@@ -196,7 +245,7 @@ pub fn handle_instance_decl(
     let mut inner = ast.into_inner();
     let inst_name = inner.next().unwrap().as_str();
     let pkg_name = inner.next().unwrap().as_str();
-    let params = inner.next().unwrap();
+    let data = inner.next().unwrap();
 
     let pkg = match pkg_map.get(pkg_name) {
         None => {
@@ -205,7 +254,8 @@ pub fn handle_instance_decl(
         Some(pkg) => pkg,
     };
 
-    let param_list = handle_instance_param_assign_list(params);
+    let (param_list, type_list) = handle_instance_assign_list(data);
+    //let param_list = handle_instance_param_assign_list(params);
 
     // check that param lists match (including types)
     let mut typed_params: Vec<_> = param_list
@@ -220,8 +270,8 @@ pub fn handle_instance_decl(
             (pkg_param.to_owned(), maybe_type.unwrap().clone())
         })
         .collect();
-
     typed_params.sort();
+
     let mut pkg_params = pkg.params.clone();
     pkg_params.sort();
 
@@ -231,9 +281,26 @@ pub fn handle_instance_decl(
         pkg_name
     );
 
+    let mut assigned_types: Vec<_> = type_list
+        .iter()
+        .map(|(pkg_type, _)| pkg_type)
+        .cloned()
+        .collect();
+    assigned_types.sort();
+
+    let mut pkg_types = pkg.types.clone();
+    pkg_types.sort();
+
+    assert_eq!(
+        assigned_types, pkg_types,
+        "types specified in composition don't match types specified in package for package {}",
+        pkg_name
+    );
+
     PackageInstance {
         name: inst_name.to_owned(),
         params: HashMap::from_iter(param_list.into_iter()),
+        types: HashMap::from_iter(type_list.into_iter()),
         pkg: pkg.clone(),
     }
 }

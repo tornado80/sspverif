@@ -30,6 +30,7 @@ pub fn handle_type(tipe: Pair<Rule>) -> Type {
             let tipe = handle_type(inner.next().unwrap());
             Type::Fn(argtipes, Box::new(tipe))
         }
+        Rule::type_userdefined => Type::UserDefined(tipe.as_str().to_string()),
         _ => {
             unreachable!("{:#?}", tipe)
         }

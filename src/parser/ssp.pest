@@ -9,6 +9,7 @@ kw_import = _{ "import" }
 kw_oracles = _{ "oracles" }
 kw_oracle = _{ "oracle" }
 kw_parse = _{ "parse" }
+kw_types = _{ "types" }
 
 kw_composition = _{ "composition" }
 kw_const = _{ "const" }
@@ -30,8 +31,8 @@ composition_spec_list = { const_decl* ~ instance_decl* ~ compose_decl? }
 const_decl = { kw_const ~ identifier ~ ":" ~ tipe ~ ";" }
 
 instance_decl = { kw_instance ~ identifier ~ "=" ~ identifier ~ "{" ~ instance_assign_list? ~ "}"}
-instance_assign_list = { instance_assign ~ ( "," ~ instance_assign )* ~ ","? }
-instance_assign = { identifier ~ ":" ~ identifier }
+instance_assign_list = { instance_assign ~ ( instance_assign )* }
+instance_assign = _{ params_def | types_def }
 
 compose_decl = { kw_compose ~ "{" ~ compose_assign_body_list? ~ "}" }
 compose_assign_body_list = _{ compose_assign_body ~ ( "," ~ compose_assign_body)* ~ ","? }
@@ -44,16 +45,29 @@ package = { kw_package ~ identifier ~ "{" ~ package_spec_list ~ "}" }
 package_spec_list = { package_spec* }
 
 package_spec = _{
-    params | state | import_oracles | oracle_def
+    types | params | state | import_oracles | oracle_def
 }
 
+// these are for package files
 params = { kw_params ~ ("{" ~ decl_list ~ "}" | "{" ~ "}") }
-decl_list = { decl_spec ~ ( "," ~ decl_spec)* ~ ","? }
+decl_list = { decl_spec ~ ( "," ~ decl_spec )* ~ ","? }
 decl_spec = { identifier ~ ":" ~ tipe  }
+
+types = { kw_types ~ ("{" ~ types_list ~ "}" | "{" ~ "}") }
+types_list = { type_userdefined ~ ( "," ~ type_userdefined )* ~ ","? }
+
+// these are for composition files in instance blocks
+params_def = { kw_params ~ ("{" ~ params_def_list ~ "}" | "{" ~ "}") }
+params_def_list = { params_def_spec ~ ( "," ~ params_def_spec )* ~ ","? }
+params_def_spec = { identifier ~ ":" ~ identifier  }
+
+types_def = { kw_types ~ ("{" ~ types_def_list ~ "}" | "{" ~ "}") }
+types_def_list = { types_def_spec ~ ( "," ~ types_def_spec )* ~ ","? }
+types_def_spec = { type_userdefined ~ ":" ~ tipe }
 
 countspec = { identifier | num | "*" }
 
-tipe = _{ type_integer | type_bool | type_string | type_bits | type_maybe | type_fn | type_tuple | type_table |type_list | type_empty }
+tipe = _{ type_integer | type_bool | type_string | type_bits | type_maybe | type_fn | type_tuple | type_table | type_list | type_empty | type_userdefined }
     type_integer = { "Integer" }
     type_bool = { "Bool" }
     type_string = { "String" }
@@ -66,6 +80,7 @@ tipe = _{ type_integer | type_bool | type_string | type_bits | type_maybe | type
     type_empty = { "()" }
     type_list = { "List(" ~ tipe ~ ")"}
     type_table = { "Table(" ~ tipe ~ "," ~ tipe ~ ")" }
+    type_userdefined = @{ ( ASCII_ALPHA | "_" ) ~ ( ASCII_ALPHA | ASCII_DIGIT | "_" )* }
 
 state = { kw_state ~ "{" ~ decl_list? ~ "}"  }
 

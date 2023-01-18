@@ -58,6 +58,53 @@ impl Expression {
     }
     */
 
+    pub fn walk(&mut self, f: &mut impl FnMut(&mut Expression) -> bool) {
+        if !f(self) {
+            return;
+        }
+
+        match self {
+            Expression::Bot
+            | Expression::EmptyTable
+            | Expression::None(_)
+            | Expression::Sample(_)
+            | Expression::StringLiteral(_)
+            | Expression::IntegerLiteral(_)
+            | Expression::BooleanLiteral(_)
+            | Expression::Identifier(_) => {}
+
+            Expression::Not(expr)
+            | Expression::Some(expr)
+            | Expression::Unwrap(expr)
+            | Expression::TableAccess(_, expr)
+            | Expression::Typed(_, expr) => expr.as_mut().walk(f),
+
+            Expression::Tuple(exprs)
+            | Expression::Equals(exprs)
+            | Expression::And(exprs)
+            | Expression::Or(exprs)
+            | Expression::FnCall(_, exprs)
+            | Expression::List(exprs)
+            | Expression::Set(exprs) => {
+                for expr in exprs {
+                    expr.walk(f)
+                }
+            }
+
+            Expression::Add(lhs, rhs)
+            | Expression::Sub(lhs, rhs)
+            | Expression::Mul(lhs, rhs)
+            | Expression::Div(lhs, rhs) => {
+                lhs.as_mut().walk(f);
+                rhs.as_mut().walk(f)
+            }
+
+            _ => {
+                panic!("Expression: not implemented: {:#?}", self)
+            }
+        }
+    }
+
     pub fn map<F>(&self, f: F) -> Expression
     where
         F: Fn(Expression) -> Expression + Copy,

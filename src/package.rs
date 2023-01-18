@@ -45,6 +45,7 @@ pub struct OracleDef {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Package {
     pub name: String,
+    pub types: Vec<Type>,
     pub params: Vec<(String, Type)>,
     pub state: Vec<(String, Type)>,
     pub oracles: Vec<OracleDef>,
@@ -91,6 +92,7 @@ impl Package {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PackageInstance {
     pub params: HashMap<String, String>,
+    pub types: HashMap<Type, Type>,
     pub pkg: Package,
     pub name: String,
 }

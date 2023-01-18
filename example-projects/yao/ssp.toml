@@ -10,7 +10,7 @@ left = "Left"
 right = "Right"
 assumption = "LeftRight"
 leftmap = [["keys_top", "keys_top"], ["keys_bottom", "keys_bottom"],["gate","gate"], ["enc", "enc"]]
-rightmap = [["keys_top", "keys_bottom"], ["keys_bottom", "keys_top"],["simgate", "simgate"],["ev", "ev"]]
+rightmap = [["keys_top", "keys_top"], ["keys_bottom", "keys_bottom"],["simgate", "simgate"],["ev", "ev"]]
 
 [[game_hops]]
 [game_hops.Equivalence]

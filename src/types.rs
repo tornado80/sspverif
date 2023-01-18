@@ -16,6 +16,7 @@ pub enum Type {
     Table(Box<Type>, Box<Type>),
     Maybe(Box<Type>),
     Fn(Vec<Type>, Box<Type>), // arg types, return type
+    UserDefined(String),
 }
 
 impl Type {

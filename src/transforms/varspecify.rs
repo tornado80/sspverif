@@ -273,6 +273,7 @@ mod test {
         let params: HashMap<String, String> = HashMap::new();
         let param_t: Vec<(String, Type)> = Vec::new();
         let state: Vec<(String, Type)> = Vec::new();
+        let types: Vec<Type> = Vec::new();
 
         let source_id = Identifier::Scalar("v".to_string());
         let target_id = Identifier::Local("v".to_string());
@@ -282,10 +283,12 @@ mod test {
             let res = var_specify(
                 &PackageInstance {
                     params: params.clone(),
+                    types: HashMap::new(),
                     name: "test".to_string(),
                     pkg: Package {
                         name: "testpkg".to_string(),
                         params: param_t.clone(),
+                        types: types.clone(),
                         state: state.clone(),
                         imports: vec![],
                         oracles: vec![OracleDef {
@@ -308,6 +311,7 @@ mod test {
     fn variable_is_state() {
         let params: HashMap<String, String> = HashMap::new();
         let param_t: Vec<(String, Type)> = Vec::new();
+        let types: Vec<Type> = Vec::new();
         let mut state: Vec<(String, Type)> = Vec::new();
         state.push(("v".to_string(), Type::Integer));
 
@@ -322,11 +326,13 @@ mod test {
         code.iter().for_each(|c| {
             let res = var_specify(
                 &PackageInstance {
+                    types: HashMap::new(),
                     params: params.clone(),
                     name: "testpkg".to_string(),
                     pkg: Package {
                         name: "testpkg".to_string(),
                         params: param_t.clone(),
+                        types: types.clone(),
                         state: state.clone(),
                         imports: vec![],
                         oracles: vec![OracleDef {
@@ -350,6 +356,7 @@ mod test {
         let params: HashMap<String, String> =
             HashMap::from_iter(vec![("v".to_string(), "v".to_string())]);
         let mut param_t: Vec<(String, Type)> = Vec::new();
+        let types: Vec<Type> = Vec::new();
         let state: Vec<(String, Type)> = Vec::new();
         param_t.push(("v".to_string(), Type::Integer));
 
@@ -366,11 +373,13 @@ mod test {
         code.iter().for_each(|c| {
             let res = var_specify(
                 &PackageInstance {
+                    types: HashMap::new(),
                     params: params.clone(),
                     name: "testpkg".to_string(),
                     pkg: Package {
                         name: "testpkg".to_string(),
                         params: param_t.clone(),
+                        types: types.clone(),
                         state: state.clone(),
                         imports: vec![],
                         oracles: vec![OracleDef {

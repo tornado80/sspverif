@@ -26,6 +26,13 @@ pub fn handle_decl_list(state: Pair<Rule>) -> Vec<(String, Type)> {
         .collect()
 }
 
+pub fn handle_types_list(types: Pair<Rule>) -> Vec<Type> {
+    types
+        .into_inner()
+        .map(|entry| Type::UserDefined(entry.as_str().to_string()))
+        .collect()
+}
+
 // TODO: identifier is optional
 pub fn handle_arglist(arglist: Pair<Rule>) -> Vec<(String, Type)> {
     arglist
@@ -282,19 +289,25 @@ pub fn handle_pkg_spec(pkg_spec: Pair<Rule>, name: &str) -> Package {
     let mut oracles = vec![];
     let mut state = None;
     let mut params = None;
+    let mut types = None;
     let mut imported_oracles = HashMap::new();
 
     for spec in pkg_spec.into_inner() {
         match spec.as_rule() {
+            Rule::types => {
+                types = spec.into_inner().next().map(handle_types_list);
+            }
             Rule::state => {
-                if let Some(inner_spec) = spec.into_inner().next() {
-                    state = Some(handle_decl_list(inner_spec));
-                }
+                state = spec
+                    .into_inner()
+                    .next()
+                    .map(|state| handle_decl_list(state));
             }
             Rule::params => {
-                if let Some(inner_spec) = spec.into_inner().next() {
-                    params = Some(handle_decl_list(inner_spec));
-                }
+                params = spec
+                    .into_inner()
+                    .next()
+                    .map(|params| handle_decl_list(params));
             }
             Rule::import_oracles => {
                 for sig_ast in spec.into_inner() {
@@ -312,6 +325,7 @@ pub fn handle_pkg_spec(pkg_spec: Pair<Rule>, name: &str) -> Package {
     Package {
         name: name.to_string(),
         oracles,
+        types: types.unwrap_or_default(),
         params: params.unwrap_or_default(),
         imports: imported_oracles.iter().map(|(_k, v)| v.clone()).collect(),
         state: state.unwrap_or_default(),

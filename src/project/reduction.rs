@@ -249,6 +249,7 @@ mod tests {
         let pkg_a = Package {
             name: "A".to_string(),
             params: vec![],
+            types: vec![],
             state: vec![],
             oracles: vec![OracleDef {
                 sig: osig_a.clone(),
@@ -259,6 +260,7 @@ mod tests {
 
         let pkg_b = Package {
             name: "B".to_string(),
+            types: vec![],
             params: vec![],
             state: vec![],
             oracles: vec![OracleDef {
@@ -273,16 +275,19 @@ mod tests {
                 PackageInstance {
                     pkg: pkg_a.clone(),
                     params: HashMap::new(),
+                    types: HashMap::new(),
                     name: "leftA1".to_string(),
                 },
                 PackageInstance {
                     pkg: pkg_a.clone(),
                     params: HashMap::new(),
+                    types: HashMap::new(),
                     name: "leftA2".to_string(),
                 },
                 PackageInstance {
                     pkg: pkg_a.clone(),
                     params: HashMap::new(),
+                    types: HashMap::new(),
                     name: "leftA3".to_string(),
                 },
             ],
@@ -297,16 +302,19 @@ mod tests {
                 PackageInstance {
                     pkg: pkg_a.clone(),
                     params: HashMap::new(),
+                    types: HashMap::new(),
                     name: "rightA1".to_string(),
                 },
                 PackageInstance {
                     pkg: pkg_a.clone(),
                     params: HashMap::new(),
+                    types: HashMap::new(),
                     name: "rightA2".to_string(),
                 },
                 PackageInstance {
                     pkg: pkg_b.clone(),
                     params: HashMap::new(),
+                    types: HashMap::new(),
                     name: "rightB3".to_string(),
                 },
             ],
@@ -322,11 +330,13 @@ mod tests {
                 PackageInstance {
                     pkg: pkg_a.clone(),
                     params: HashMap::new(),
+                    types: HashMap::new(),
                     name: "leftA1".to_string(),
                 },
                 PackageInstance {
                     pkg: pkg_a.clone(),
                     params: HashMap::new(),
+                    types: HashMap::new(),
                     name: "leftA3".to_string(),
                 },
             ],
@@ -340,11 +350,13 @@ mod tests {
                 PackageInstance {
                     pkg: pkg_a.clone(),
                     params: HashMap::new(),
+                    types: HashMap::new(),
                     name: "rightA1".to_string(),
                 },
                 PackageInstance {
                     pkg: pkg_b.clone(),
                     params: HashMap::new(),
+                    types: HashMap::new(),
                     name: "rightB3".to_string(),
                 },
             ],

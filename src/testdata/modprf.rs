@@ -10,6 +10,7 @@ use crate::{block, fncall};
 pub fn mod_prf(params: &HashMap<String, String>) -> PackageInstance {
     PackageInstance {
         name: "mod-prf".to_string(),
+        types: HashMap::new(),
         params: params.clone(),
         pkg: Package {
             name: "mod-prf".to_string(),
@@ -23,6 +24,7 @@ pub fn mod_prf(params: &HashMap<String, String>) -> PackageInstance {
                     ),
                 ),
             ],
+            types: vec![],
             state: vec![],
             imports: vec![],
             oracles: vec![OracleDef {

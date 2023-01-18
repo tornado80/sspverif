@@ -1,6 +1,7 @@
 use crate::package::Composition;
 
 pub mod resolveoracles;
+pub mod resolvetypes;
 pub mod returnify;
 pub mod samplify;
 pub mod tableinitialize;
@@ -28,6 +29,9 @@ pub fn transform_all(
     ),
     <typecheck::Transformation as Transformation>::Err,
 > {
+    let (comp, _) = resolvetypes::Transformation(&comp)
+        .transform()
+        .expect("resolving user-defined types failed");
     let (comp, scope) =
         typecheck::Transformation::new_with_empty_scope(comp.clone()).transform()?;
     let (comp, types) = type_extract::Transformation(&comp)
@@ -68,6 +72,9 @@ pub fn transform_explain(
     ),
     <typecheck::Transformation as Transformation>::Err,
 > {
+    let (comp, _) = resolvetypes::Transformation(&comp)
+        .transform()
+        .expect("resolving user-defined types failed");
     let (comp, scope) =
         typecheck::Transformation::new_with_empty_scope(comp.clone()).transform()?;
     let (comp, samplinginfo) = samplify::Transformation(&comp)

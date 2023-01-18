@@ -10,11 +10,13 @@ use crate::block;
 pub fn key_pkg(params: &HashMap<String, String>) -> PackageInstance {
     PackageInstance {
         name: "key".to_string(),
+        types: HashMap::new(),
         params: params.clone(),
         pkg: Package {
             name: "key".to_string(),
             params: vec![("n".to_string(), Type::Integer)],
             state: vec![("k".to_string(), Type::Maybe(Box::new(Type::new_bits("n"))))],
+            types: vec![],
             imports: vec![],
             oracles: vec![
                 OracleDef {
