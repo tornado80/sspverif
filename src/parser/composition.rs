@@ -242,6 +242,8 @@ pub fn handle_instance_decl(
     pkg_map: &HashMap<String, Package>,
     consts: &HashMap<String, Type>,
 ) -> PackageInstance {
+    let span = ast.as_span();
+
     let mut inner = ast.into_inner();
     let inst_name = inner.next().unwrap().as_str();
     let pkg_name = inner.next().unwrap().as_str();
@@ -262,10 +264,12 @@ pub fn handle_instance_decl(
         .iter()
         .map(|(pkg_param, comp_param)| {
             let maybe_type = consts.get(comp_param);
+
             assert!(
                 maybe_type.is_some(),
-                "constant not specified: {}",
-                comp_param
+                "constant not specified: {} at {:?}",
+                comp_param,
+                span
             );
             (pkg_param.to_owned(), maybe_type.unwrap().clone())
         })
