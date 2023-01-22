@@ -466,8 +466,6 @@ fn build_rands(
         .positions
         .iter()
         .map(|sample_item| {
-            let ictx = gctx.pkg_inst_ctx_by_name(&sample_item.inst_name).unwrap();
-
             let sample_id = sample_item.sample_id;
             let tipe = &sample_item.tipe;
 
