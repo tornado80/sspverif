@@ -7,7 +7,7 @@ use std::collections::HashMap;
 
 use crate::{block, fncall};
 
-pub fn mod_prf(params: &HashMap<String, String>) -> PackageInstance {
+pub fn mod_prf(params: &HashMap<String, Expression>) -> PackageInstance {
     PackageInstance {
         name: "mod-prf".to_string(),
         types: HashMap::new(),

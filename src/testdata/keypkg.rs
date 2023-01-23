@@ -7,7 +7,7 @@ use std::collections::HashMap;
 
 use crate::block;
 
-pub fn key_pkg(params: &HashMap<String, String>) -> PackageInstance {
+pub fn key_pkg(params: &HashMap<String, Expression>) -> PackageInstance {
     PackageInstance {
         name: "key".to_string(),
         types: HashMap::new(),

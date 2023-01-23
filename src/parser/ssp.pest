@@ -59,7 +59,7 @@ types_list = { type_userdefined ~ ( "," ~ type_userdefined )* ~ ","? }
 // these are for composition files in instance blocks
 params_def = { kw_params ~ ("{" ~ params_def_list ~ "}" | "{" ~ "}") }
 params_def_list = { params_def_spec ~ ( "," ~ params_def_spec )* ~ ","? }
-params_def_spec = { identifier ~ ":" ~ identifier  }
+params_def_spec = { identifier ~ ":" ~ ( literal | identifier )  }
 
 types_def = { kw_types ~ ("{" ~ types_def_list ~ "}" | "{" ~ "}") }
 types_def_list = { types_def_spec ~ ( "," ~ types_def_spec )* ~ ","? }
@@ -99,6 +99,9 @@ literal_boolean = { kw_true | kw_false }
 literal_integer = { num }
 literal_emptyset = { kw_emptyset ~ "as" ~ tipe }
 
+literal = _{ literal_boolean | literal_emptyset | literal_integer }
+
+
 code = { (stmt )* }
 stmt = _{ table_sample | table_assign | sample | parse | invocation | assign | return_stmt | assert | abort | ite}
 
@@ -117,7 +120,7 @@ abort = { kw_abort ~ ";" }
 
 table_index = { expression }
 
-expression = _{ expr_list | expr_set | expr_none | expr_some | expr_unwrap | expr_add | expr_sub | expr_mul | expr_div | expr_or | expr_and | expr_xor | expr_not | expr_tuple | expr_equals | expr_not_equals | expr_newtable | fn_call | table_access | literal_boolean | literal_integer | literal_emptyset | identifier }
+expression = _{ expr_list | expr_set | expr_none | expr_some | expr_unwrap | expr_add | expr_sub | expr_mul | expr_div | expr_or | expr_and | expr_xor | expr_not | expr_tuple | expr_equals | expr_not_equals | expr_newtable | fn_call | table_access | literal | identifier }
 
 expr_equals     = { "("  ~ expression ~ ("==" ~ expression)* ~ ")" }
 expr_not_equals = { "("  ~ expression ~ ("!=" ~ expression)* ~ ")" }

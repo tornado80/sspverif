@@ -258,6 +258,7 @@ mod treeify_transform_test {
     use super::super::Transformation as TTransformation;
     use super::Transformation;
 
+    use crate::expressions::Expression;
     use crate::package::{Composition, Edge, Export};
     use crate::testdata::{keypkg, modprf};
     use std::collections::HashMap;
@@ -265,7 +266,10 @@ mod treeify_transform_test {
     #[test]
     fn runs_for_all_packages_and_oracles() {
         let mut params = HashMap::new();
-        params.insert("n".to_string(), "256".to_string());
+        params.insert(
+            "n".to_string(),
+            Expression::IntegerLiteral("256".to_string()),
+        );
 
         let key_real_pkg = keypkg::key_pkg(&params);
         let mod_prf_real_pkg = modprf::mod_prf(&params);

@@ -3,6 +3,8 @@ use std::fmt::Debug;
 use pest::Span;
 use thiserror::Error;
 
+use crate::types::Type;
+
 #[derive(Clone)]
 pub struct SpanError {
     err: Error,
@@ -85,7 +87,12 @@ pub enum Error {
     #[error(
         "the const parameter assignments don't match the package definition for package {pkg_name}"
     )]
-    ConstParameterMismatch { pkg_name: String },
+    ConstParameterMismatch {
+        pkg_name: String,
+        inst_name: String,
+        bound_params: Vec<(String, Type)>,
+        pkg_params: Vec<(String, Type)>,
+    },
 }
 
 impl Error {

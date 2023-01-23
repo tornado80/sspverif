@@ -44,17 +44,22 @@ fn var_specify_helper(inst: &PackageInstance, block: CodeBlock, comp_name: &str)
                     },
                     args,
                 )
-            } else if params.clone().iter().any(|(id_, _name_in_comp)| id == *id_) {
-                Expression::FnCall(
-                    Identifier::Params {
-                        name_in_pkg: id.clone(),
-                        pkgname: name.clone(),
+            } else if params.clone().iter().any(|(id_, _param_type)| id == *id_) {
+                match inst_params.get(&id) {
+                    Some(Expression::Identifier(id_resolved)) => Expression::FnCall(
+                        Identifier::Params {
+                            name_in_pkg: id.clone(),
+                            pkgname: name.clone(),
 
-                        name_in_comp: inst_params[&id].clone(),
-                        compname: comp_name.into(),
-                    },
-                    args,
-                )
+                            name_in_comp: id_resolved.ident(),
+                            compname: comp_name.into(),
+                        },
+                        args,
+                    ),
+                    _ => {
+                        unreachable!()
+                    }
+                }
             } else {
                 Expression::FnCall(Identifier::Local(id), args)
             }
@@ -67,13 +72,28 @@ fn var_specify_helper(inst: &PackageInstance, block: CodeBlock, comp_name: &str)
                     compname: comp_name.into(),
                 })
             } else if params.clone().iter().any(|(id_, _name_in_comp)| id == *id_) {
-                Expression::Identifier(Identifier::Params {
-                    name_in_pkg: id.clone(),
-                    pkgname: name.clone(),
+                match inst_params.get(&id) {
+                    Some(Expression::Identifier(id_resolved)) => {
+                        Expression::Identifier(Identifier::Params {
+                            name_in_pkg: id.clone(),
+                            pkgname: name.clone(),
 
-                    name_in_comp: inst_params[&id].clone(),
-                    compname: comp_name.into(),
-                })
+                            name_in_comp: id_resolved.ident(),
+                            compname: comp_name.into(),
+                        })
+                    }
+                    _ => {
+                        unreachable!()
+                    }
+                }
+
+                // Expression::Identifier(Identifier::Params {
+                //     name_in_pkg: id.clone(),
+                //     pkgname: name.clone(),
+
+                //     name_in_comp: inst_params[&id].clone(),
+                //     compname: comp_name.into(),
+                // })
             } else {
                 Expression::Identifier(Identifier::Local(id))
             }
@@ -89,16 +109,21 @@ fn var_specify_helper(inst: &PackageInstance, block: CodeBlock, comp_name: &str)
                     expr,
                 )
             } else if params.clone().iter().any(|(id_, _)| id == *id_) {
-                Expression::TableAccess(
-                    Identifier::Params {
-                        name_in_pkg: id.clone(),
-                        pkgname: name.clone(),
+                match inst_params.get(&id) {
+                    Some(Expression::Identifier(id_resolved)) => Expression::TableAccess(
+                        Identifier::Params {
+                            name_in_pkg: id.clone(),
+                            pkgname: name.clone(),
 
-                        name_in_comp: inst_params[&id].clone(),
-                        compname: comp_name.into(),
-                    },
-                    expr,
-                )
+                            name_in_comp: id_resolved.ident(),
+                            compname: comp_name.into(),
+                        },
+                        expr,
+                    ),
+                    _ => {
+                        unreachable!()
+                    }
+                }
             } else {
                 Expression::TableAccess(Identifier::Local(id), expr)
             }
@@ -270,7 +295,7 @@ mod test {
 
     #[test]
     fn variable_is_local() {
-        let params: HashMap<String, String> = HashMap::new();
+        let params: HashMap<String, Expression> = HashMap::new();
         let param_t: Vec<(String, Type)> = Vec::new();
         let state: Vec<(String, Type)> = Vec::new();
         let types: Vec<Type> = Vec::new();
@@ -309,7 +334,7 @@ mod test {
 
     #[test]
     fn variable_is_state() {
-        let params: HashMap<String, String> = HashMap::new();
+        let params: HashMap<String, Expression> = HashMap::new();
         let param_t: Vec<(String, Type)> = Vec::new();
         let types: Vec<Type> = Vec::new();
         let mut state: Vec<(String, Type)> = Vec::new();
@@ -353,8 +378,10 @@ mod test {
 
     #[test]
     fn variable_is_param() {
-        let params: HashMap<String, String> =
-            HashMap::from_iter(vec![("v".to_string(), "v".to_string())]);
+        let params: HashMap<String, Expression> = HashMap::from_iter(vec![(
+            "v".to_string(),
+            Expression::Identifier(Identifier::Local("v".to_string())),
+        )]);
         let mut param_t: Vec<(String, Type)> = Vec::new();
         let types: Vec<Type> = Vec::new();
         let state: Vec<(String, Type)> = Vec::new();

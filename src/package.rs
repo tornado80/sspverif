@@ -91,7 +91,7 @@ impl Package {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PackageInstance {
-    pub params: HashMap<String, String>,
+    pub params: HashMap<String, Expression>,
     pub types: HashMap<Type, Type>,
     pub pkg: Package,
     pub name: String,
