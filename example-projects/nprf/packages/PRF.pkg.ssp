@@ -3,6 +3,7 @@ package PRF {
         Key,
         Message,
         HandleIn,
+        HandleOut,
     }
 
     params {
@@ -10,8 +11,14 @@ package PRF {
         hdl_type: String,
     }
 
+    import oracles {
+        Get(hdl: HandleIn) -> Key,
+        PR(hdl: HandleIn) -> Bool,
+        Set(hdl: HandleOut, k: Key, pr: Bool),
+    }
+
     oracle Eval(hdl: HandleIn, msg: Message) {
-        m <-  invoke Get(hdl);
+        k  <-  invoke Get(hdl);
         pr <- invoke  PR(hdl);
 
         k_out <- f(k, msg);

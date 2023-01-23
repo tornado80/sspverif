@@ -85,7 +85,8 @@ impl Expression {
             | Expression::Or(exprs)
             | Expression::FnCall(_, exprs)
             | Expression::List(exprs)
-            | Expression::Set(exprs) => {
+            | Expression::Set(exprs)
+            | Expression::Xor(exprs) => {
                 for expr in exprs {
                     expr.walk(f)
                 }
@@ -130,6 +131,9 @@ impl Expression {
             }
             Expression::Equals(exprs) => {
                 Expression::Equals(exprs.iter().map(|expr| expr.map(f)).collect())
+            }
+            Expression::Xor(exprs) => {
+                Expression::Xor(exprs.iter().map(|expr| expr.map(f)).collect())
             }
             Expression::And(exprs) => {
                 Expression::And(exprs.iter().map(|expr| expr.map(f)).collect())
@@ -205,6 +209,18 @@ impl Expression {
                     })
                     .collect();
                 (ac, Expression::Tuple(newexprs))
+            }
+            Expression::Xor(exprs) => {
+                let mut ac = init;
+                let newexprs = exprs
+                    .iter()
+                    .map(|expr| {
+                        let (newac, e) = expr.mapfold(ac.clone(), f);
+                        ac = newac;
+                        e
+                    })
+                    .collect();
+                (ac, Expression::Xor(newexprs))
             }
             Expression::Equals(exprs) => {
                 let mut ac = init;

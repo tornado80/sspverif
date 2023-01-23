@@ -10,31 +10,30 @@ package Key {
 
     state {
         keys: Table(Handle, Key),
-        pr:  Table(Handle, Bool), /* is_pseudorandom */
+        prs:  Table(Handle, Bool), /* is_pseudorandom */
     }
 
     oracle Set(hdl: Handle, k: Key, pr: Bool) {
         /* _should_ imply the rest is unset as well */
-        if not(keys[hdl] == None) {
+        if not(keys[hdl] == None as Bits(n)) {
             abort;
         }
 
         if (pr and ideal) {
-            keys[hdl] <-$ Key;
-        } else {
-            keys[hdl] <- keys;
+            k <-$ Key;
         }
 
-        hon[hdl] <- pr;    
+        keys[hdl] <- Some(k);
+        prs[hdl] <- Some(pr);
     }
 
-    oracle Get(hdl: Handle) -> Maybe(Key) {
+    oracle Get(hdl: Handle) -> Key {
         mk <- keys[hdl];
         return Unwrap(mk);
     }
 
-    oracle PR(hdl: Handle) -> Maybe(Bool) {
-        mpr <- pr[hdl];
+    oracle PR(hdl: Handle) -> Bool {
+        mpr <- prs[hdl];
         return Unwrap(mpr);
     }
 }

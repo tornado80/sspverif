@@ -17,6 +17,15 @@ pub enum Place {
         inst_name: String,
         state_name: String,
     },
+    ImportArg {
+        inst_name: String,
+        oracle_name: String,
+        arg_name: String,
+    },
+    ImportReturn {
+        inst_name: String,
+        oracle_name: String,
+    },
     OracleArg {
         inst_name: String,
         oracle_name: String,
@@ -85,7 +94,7 @@ impl<'a> super::Transformation for Transformation<'a> {
                 type_walker(type_mapping, place, tipe)?;
             }
 
-            // resolve oracle sigs
+            // resolve oracle definitions
             for OracleDef { sig, code } in &mut inst.pkg.oracles {
                 let OracleSig {
                     name: oracle_name,
@@ -98,6 +107,7 @@ impl<'a> super::Transformation for Transformation<'a> {
                     oracle_name: oracle_name.clone(),
                     inst_name: inst_name.clone(),
                 };
+
                 type_walker(type_mapping, return_place, tipe)?;
 
                 // resolve oracle arg types
@@ -117,6 +127,31 @@ impl<'a> super::Transformation for Transformation<'a> {
 
                 // resolve user-defined types in code blocks
                 codeblock_walker(&type_mapping, place, code)?
+            }
+
+            // resolve oracle import sigs
+            for OracleSig {
+                name: oracle_name,
+                args,
+                tipe,
+            } in &mut inst.pkg.imports
+            {
+                let place = Place::ImportReturn {
+                    inst_name: inst_name.clone(),
+                    oracle_name: oracle_name.clone(),
+                };
+
+                type_walker(type_mapping, place, tipe)?;
+
+                // resolve oracle arg types
+                for (arg_name, tipe) in args {
+                    let place = Place::ImportArg {
+                        oracle_name: oracle_name.clone(),
+                        arg_name: arg_name.clone(),
+                        inst_name: inst_name.clone(),
+                    };
+                    type_walker(type_mapping, place, tipe)?;
+                }
             }
         }
 
@@ -258,6 +293,13 @@ fn type_walker(type_mapping: &HashMap<Type, Type>, place: Place, tipe: &mut Type
             }
 
             Ok(())
+        }
+        Type::Fn(args, ret) => {
+            for arg in args {
+                type_walker(type_mapping, place.clone(), arg)?;
+            }
+
+            type_walker(type_mapping, place.clone(), ret)
         }
         _ => Ok(()),
     }

@@ -47,7 +47,7 @@ composition SNPRF_real {
     instance key_four = Key {
         types {
             Key:    Bits(n),
-            Handle: (String, (String, ((String, Integer, Bits(m)), (String, Integer, Bits(m)), (String, Integer, Bits(m))), Bits(m))),
+            Handle: (String, (String, ((String, Integer, Bits(m)), (String, Integer, Bits(m)), (String, Integer, Bits(m)))), Bits(m)),
         }
 
         params {
@@ -60,6 +60,7 @@ composition SNPRF_real {
             Key:        Bits(n),
             Message:    Bits(m),
             HandleIn:   Integer,
+            HandleOut:   (String, Integer, Bits(m)),
         }
 
         params {
@@ -71,6 +72,7 @@ composition SNPRF_real {
     instance xor = XOR3 {
         types {
             HandleIn:   (String, Integer, Bits(m)),
+            HandleOut:  (String, ((String, Integer, Bits(m)), (String, Integer, Bits(m)), (String, Integer, Bits(m)))),
             Key:        Bits(n)
         }
 
@@ -91,6 +93,7 @@ composition SNPRF_real {
         types {
             Message: Bits(m),
             HandleIn: (String, ((String, Integer, Bits(m)), (String, Integer, Bits(m)), (String, Integer, Bits(m)))),
+            HandleOut: (String, (String, ((String, Integer, Bits(m)), (String, Integer, Bits(m)), (String, Integer, Bits(m)))), Bits(m)),
             Key:    Bits(n),
         }
 

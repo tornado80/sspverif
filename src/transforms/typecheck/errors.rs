@@ -11,7 +11,7 @@ pub enum ErrorLocation {
 }
 
 #[derive(Debug)]
-pub struct ScopeError;
+pub struct ScopeError(pub String);
 
 #[derive(Debug, Clone)]
 pub struct TypeError(pub String);

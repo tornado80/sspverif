@@ -91,6 +91,12 @@ impl ResolvedReduction {
             ..
         } = self;
 
+        // apply transformations
+        let (ref left, _, _types_left, _samp_left) = crate::transforms::transform_all(&left)?;
+        let (ref right, _, _types_right, _samp_right) = crate::transforms::transform_all(&right)?;
+        let (ref left_assumption, _, _, _) = crate::transforms::transform_all(&assumption.left)?;
+        let (ref right_assumption, _, _, _) = crate::transforms::transform_all(&assumption.right)?;
+
         // PackageInstances are only mentioned once
         if !(leftmap.iter().map(|(from, _to)| from).all_unique()) {
             return Err(Error::ProofCheck(format!("leftmap has duplicate from")));
@@ -108,7 +114,7 @@ impl ResolvedReduction {
         // Mapping may only occure with the same package type
         let mismatches_left: Vec<_> = leftmap
             .iter()
-            .filter(|(from, to)| !same_package(&left.pkgs[*from], &assumption.left.pkgs[*to]))
+            .filter(|(from, to)| !same_package(&left.pkgs[*from], &left_assumption.pkgs[*to]))
             .map(|(from, to)| {
                 format!(
                     "{} and {} have different types",
@@ -124,7 +130,7 @@ impl ResolvedReduction {
         }
         let mismatches_right: Vec<_> = rightmap
             .iter()
-            .filter(|(from, to)| !same_package(&right.pkgs[*from], &assumption.right.pkgs[*to]))
+            .filter(|(from, to)| !same_package(&right.pkgs[*from], &right_assumption.pkgs[*to]))
             .map(|(from, to)| {
                 format!(
                     "{} and {} have different types",

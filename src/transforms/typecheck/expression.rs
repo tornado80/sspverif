@@ -395,27 +395,50 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
 
         Expression::Xor(vs) => {
             let mut vs_ = vec![];
-            // TODO bit strings
+            let mut tipe: Option<Type> = None;
+
             for v in vs {
                 let v_ = typify(v, scope)?;
                 let t_v = get_type(&v_, scope)?;
-                if t_v != Type::Boolean {
-                    return Err(TypeCheckError::TypeMismatch(
+                if let Some(tipe) = &tipe {
+                    if tipe != &t_v {
+                        return Err(TypeCheckError::TypeMismatch(
+                            ErrorLocation::Unknown,
+                            format!(
+                                "xor'd value of type {t_v:?} does not match previous type {tipe:?}"
+                            ),
+                            Some(v.clone()),
+                            t_v,
+                            tipe.to_owned(),
+                        ));
+                    }
+                } else {
+                    tipe = Some(t_v.clone());
+                }
+                match t_v {
+                    Type::Boolean | Type::Bits(_) => Ok(()),
+                    _ => Err(TypeCheckError::TypeMismatch(
                         ErrorLocation::Unknown,
-                        "xor'd value is not a bool".to_string(),
+                        "xor'd value is neither Bool nor Bits(_)".to_string(),
                         Some(v.clone()),
                         t_v,
                         Type::Boolean,
-                    ));
-                }
+                    )),
+                }?;
 
                 vs_.push(v_);
             }
 
-            Ok(Expression::Typed(
-                Type::Boolean,
-                Box::new(Expression::Xor(vs_)),
-            ))
+            if let Some(tipe) = tipe {
+                Ok(Expression::Typed(tipe, Box::new(Expression::Xor(vs_))))
+            } else {
+                Err(TypeCheckError::TypeMismatchVague(
+                    ErrorLocation::Unknown,
+                    "xor needs at least one operand".to_string(),
+                    Some(expr.clone()),
+                    Type::Boolean,
+                ))
+            }
         }
 
         Expression::And(vs) => {

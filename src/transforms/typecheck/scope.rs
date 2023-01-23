@@ -88,7 +88,7 @@ impl Scope {
                 panic!("scope declare: scope stack is empty");
             }
         } else {
-            Err(ScopeError) // already defined
+            Err(ScopeError(format!("already defined: {id:?}"))) // already defined
         }
     }
 

@@ -69,9 +69,33 @@ pub fn typecheck_comp(
                 continue;
             }
             if declared_imports[&i] != edge_imports[&i] {
+                let mut declared_imports: Vec<_> = declared_imports[&i]
+                    .iter()
+                    .map(|osig| {
+                        let mut code = String::new();
+                        let mut w =
+                            crate::writers::pseudocode::fmtwriter::FmtWriter::new(&mut code, false);
+                        w.write_oraclesig(osig).unwrap();
+                        code
+                    })
+                    .collect();
+                declared_imports.sort();
+
+                let mut edge_imports: Vec<_> = edge_imports[&i]
+                    .iter()
+                    .map(|osig| {
+                        let mut code = String::new();
+                        let mut w =
+                            crate::writers::pseudocode::fmtwriter::FmtWriter::new(&mut code, false);
+                        w.write_oraclesig(osig).unwrap();
+                        code
+                    })
+                    .collect();
+                edge_imports.sort();
+
                 panic!(
                     "Composition {}: package: {} declared: {:#?} edges: {:#?}",
-                    name, pkg.name, declared_imports[&i], edge_imports[&i]
+                    name, pkg.name, declared_imports, edge_imports
                 );
             }
         }

@@ -33,6 +33,7 @@ composition PRF_real {
             Key:        Bits(n),
             Message:    Bits(m),
             HandleIn:   Integer,
+            HandleOut:   (String, Integer, Bits(m)),
         }
 
         params {

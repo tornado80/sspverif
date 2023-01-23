@@ -82,9 +82,8 @@ fn var_specify_helper(inst: &PackageInstance, block: CodeBlock, comp_name: &str)
                             compname: comp_name.into(),
                         })
                     }
-                    _ => {
-                        unreachable!()
-                    }
+                    Some(expr) => expr.clone(),
+                    None => unreachable!(),
                 }
 
                 // Expression::Identifier(Identifier::Params {

@@ -4,6 +4,10 @@ package PRF2 {
         HandleIn,
     }
 
+    import oracles {
+        Eval(hdl: HandleIn, msg: Message),
+    }
+
     oracle Eval2(hdl: HandleIn, msg: Message) {
         _ <- invoke Eval(hdl, msg);
     }
