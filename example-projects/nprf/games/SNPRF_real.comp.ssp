@@ -1,0 +1,131 @@
+composition SNPRF_real {
+    const n: Integer; // key length
+    const m: Integer; // message length
+
+    const c_true: bool;
+    const c_false: bool;
+
+    const f: fn Key, Message -> Key; // PRF
+    
+    // sorting function; needs to be adequately constrained in SMT code.
+    const sort3hdl: fn HandleIn, HandleIn, HandleIn -> (HandleIn, HandleIn, HandleIn); 
+
+    instance key_one = Key {
+        types {
+            Key:    Bits(n),
+            Handle: Integer,
+        }
+
+        params {
+            ideal: c_true,
+        }
+    }
+
+    instance key_two = Key {
+        types {
+            Key:    Bits(n),
+            Handle: (String, Integer, Bits(m)),
+        }
+
+        params {
+            ideal: c_false,
+        }
+    }
+
+    instance key_three = Key {
+        types {
+            Key:    Bits(n),
+            Handle: (String, ((String, Integer, Bits(m)), (String, Integer, Bits(m)), (String, Integer, Bits(m))),
+        }
+
+        params {
+            ideal: c_false,
+        }
+    }
+
+    instance key_four = Key {
+        types {
+            Key:    Bits(n),
+            Handle: (String, (String, ((String, Integer, Bits(m)), (String, Integer, Bits(m)), (String, Integer, Bits(m))), Bits(m)),
+        }
+
+        params {
+            ideal: c_false,
+        }
+    }
+
+    instance prf_top = PRF {
+        types {
+            Key:        Bits(n),
+            Message:    Bits(m),
+            HandleIn:   Integer,
+        }
+
+        params {
+            f: f,
+        }
+    }
+
+    instance xor = 3XOR {
+        types {
+            HandleIn:   (String, Integer, Bits(m)),
+            Key:        Bits(n)
+        }
+
+        params {
+            sort3hdl: sort3hdl,
+        }
+    }
+
+    instance prf2 = PRF2 {
+        types {
+            Message: Bits(m),
+            Handle: (String, ((String, Integer, Bits(m)), (String, Integer, Bits(m)), (String, Integer, Bits(m)))),
+        }
+    }
+
+    instance prf_bottom = PRF {
+        types {
+            Message: Bits(m),
+            Handle: (String, ((String, Integer, Bits(m)), (String, Integer, Bits(m)), (String, Integer, Bits(m)))),
+            Key:    Bits(n),
+        }
+
+        params {
+            f: f,
+        }
+    }
+
+    compose {
+        adversary: {
+            Set: key_one,
+            Eval: prf_top,
+            3Xor: xor,
+            Eval2: prf2,
+            Get: key_four,
+            Hon: key_four,
+        },
+
+        prf_top: {
+            Get: key_one,
+            Hon: key_one,
+            Set: key_two,
+        },
+
+        xor: {
+            Get: key_two,
+            Hon: key_two,
+            Set: key_three,
+        }
+
+        prf2: {
+            Eval: prf_bottom,
+        }
+
+        prf_bottom: {
+            Get: key_three,
+            Hon: key_three,
+            Set: key_four
+        }
+    }
+}

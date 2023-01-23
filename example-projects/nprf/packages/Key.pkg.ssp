@@ -1,0 +1,40 @@
+package Key {
+    types {
+        Handle,
+        Key,
+    }
+
+    params {
+        ideal: bool,
+    }
+
+    state {
+        keys: Table(Handle, Key),
+        pr:  Table(Handle, bool), /* is_pseudorandom */
+    }
+
+    oracle Set(hdl: Handle, k: Key, pr: bool) {
+        /* _should_ imply the rest is unset as well */
+        if not(keys[hdl] == None) {
+            abort;
+        }
+
+        if (pr and ideal) {
+            keys[hdl] <-$ Key;
+        } else {
+            keys[hdl] <- keys;
+        }
+
+        hon[hdl] <- pr;    
+    }
+
+    oracle Get(hdl: Handle) -> Maybe(Key) {
+        mk <- keys[hdl];
+        return Unwrap(mk);
+    }
+
+    oracle PR(hdl: Handle) -> Maybe(bool) {
+        mpr <- pr[hdl];
+        return Unwrap(mpr);
+    }
+}

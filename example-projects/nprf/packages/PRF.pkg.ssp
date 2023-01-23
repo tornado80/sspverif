@@ -1,0 +1,22 @@
+package PRF {
+    types {
+        Key,
+        Message,
+        HandleIn,
+    }
+
+    params {
+        f: fn Key, Message -> Key,
+        hdl_type: String,
+    }
+
+    oracle Eval(hdl: HandleIn, msg: Message) {
+        m <-  invoke Get(hdl);
+        pr <- invoke  PR(hdl);
+
+        k_out <- f(k, msg);
+        hdl_out <- (hdl_type, hdl, msg);
+
+        _ <- invoke Set(hdl_out, k_out, pr);
+    }
+}

@@ -1,0 +1,55 @@
+composition PRF_real {
+    const n: Integer; // key length
+    const m: Integer; // message length
+
+    const f: fn Key, Message -> Key; // PRF
+
+    instance key_top = Key {
+        types {
+            Key:    Bits(n),
+            Handle: Integer,
+        }
+
+        params {
+            ideal: true,
+        }
+    }
+
+    instance key_bottom = Key {
+        types {
+            Key:    Bits(n),
+            Handle: (String, Integer, Bits(m)),
+        }
+
+        params {
+            ideal: false,
+        }
+    }
+
+    instance prf = PRF {
+        types {
+            Key:        Bits(n),
+            Message:    Bits(m),
+            HandleIn:   Integer,
+        }
+
+        params {
+            f: f,
+        }
+    }
+
+    compose {
+        adversary: {
+            Set: key_top,
+            Eval: prf,
+            Get: key_bottom,
+            Hon: key_bottom,
+        }
+
+        prf: {
+            Get: key_top,
+            Hon: key_top,
+            Set: key_bottom,
+        }
+    }
+}

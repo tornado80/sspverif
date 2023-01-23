@@ -1,0 +1,10 @@
+package PRF2 {
+    types {
+        Message,
+        HandleIn,
+    }
+
+    oracle Eval2(hdl: HandleIn, msg: Message) {
+        _ <- invoke Eval(hdl, msg);
+    }
+}
