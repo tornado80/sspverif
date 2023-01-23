@@ -1,13 +1,14 @@
 composition SNPRF_real {
-    const n: Integer; // key length
-    const m: Integer; // message length
+    const n: Integer; /* key length */
+    const m: Integer; /* message length */
 
-    const c_true: bool;
-    const c_false: bool;
+    const prf_hdl_type_top: String;
+    const prf_hdl_type_bottom: String;
+    const xor3_hdl_type: String;
 
-    const f: fn Key, Message -> Key; // PRF
+    const f: fn Key, Message -> Key; /* PRF */
     
-    // sorting function; needs to be adequately constrained in SMT code.
+    /* sorting function; needs to be adequately constrained in SMT code. */
     const sort3hdl: fn HandleIn, HandleIn, HandleIn -> (HandleIn, HandleIn, HandleIn); 
 
     instance key_one = Key {
@@ -17,7 +18,7 @@ composition SNPRF_real {
         }
 
         params {
-            ideal: c_true,
+            ideal: true,
         }
     }
 
@@ -28,29 +29,29 @@ composition SNPRF_real {
         }
 
         params {
-            ideal: c_false,
+            ideal: false,
         }
     }
 
     instance key_three = Key {
         types {
             Key:    Bits(n),
-            Handle: (String, ((String, Integer, Bits(m)), (String, Integer, Bits(m)), (String, Integer, Bits(m))),
+            Handle: (String, ((String, Integer, Bits(m)), (String, Integer, Bits(m)), (String, Integer, Bits(m)))),
         }
 
         params {
-            ideal: c_false,
+            ideal: false,
         }
     }
 
     instance key_four = Key {
         types {
             Key:    Bits(n),
-            Handle: (String, (String, ((String, Integer, Bits(m)), (String, Integer, Bits(m)), (String, Integer, Bits(m))), Bits(m)),
+            Handle: (String, (String, ((String, Integer, Bits(m)), (String, Integer, Bits(m)), (String, Integer, Bits(m))), Bits(m))),
         }
 
         params {
-            ideal: c_false,
+            ideal: false,
         }
     }
 
@@ -63,10 +64,11 @@ composition SNPRF_real {
 
         params {
             f: f,
+            hdl_type: prf_hdl_type_top,
         }
     }
 
-    instance xor = 3XOR {
+    instance xor = XOR3 {
         types {
             HandleIn:   (String, Integer, Bits(m)),
             Key:        Bits(n)
@@ -74,25 +76,27 @@ composition SNPRF_real {
 
         params {
             sort3hdl: sort3hdl,
+            hdl_type: xor3_hdl_type,
         }
     }
 
     instance prf2 = PRF2 {
         types {
             Message: Bits(m),
-            Handle: (String, ((String, Integer, Bits(m)), (String, Integer, Bits(m)), (String, Integer, Bits(m)))),
+            HandleIn: (String, ((String, Integer, Bits(m)), (String, Integer, Bits(m)), (String, Integer, Bits(m)))),
         }
     }
 
     instance prf_bottom = PRF {
         types {
             Message: Bits(m),
-            Handle: (String, ((String, Integer, Bits(m)), (String, Integer, Bits(m)), (String, Integer, Bits(m)))),
+            HandleIn: (String, ((String, Integer, Bits(m)), (String, Integer, Bits(m)), (String, Integer, Bits(m)))),
             Key:    Bits(n),
         }
 
         params {
             f: f,
+            hdl_type: prf_hdl_type_bottom,
         }
     }
 
@@ -100,31 +104,31 @@ composition SNPRF_real {
         adversary: {
             Set: key_one,
             Eval: prf_top,
-            3Xor: xor,
+            Xor: xor,
             Eval2: prf2,
             Get: key_four,
-            Hon: key_four,
+            PR: key_four,
         },
 
         prf_top: {
             Get: key_one,
-            Hon: key_one,
+            PR: key_one,
             Set: key_two,
         },
 
         xor: {
             Get: key_two,
-            Hon: key_two,
+            PR: key_two,
             Set: key_three,
-        }
+        },
 
         prf2: {
             Eval: prf_bottom,
-        }
+        },
 
         prf_bottom: {
             Get: key_three,
-            Hon: key_three,
+            PR: key_three,
             Set: key_four
         }
     }

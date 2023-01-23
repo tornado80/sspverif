@@ -2,8 +2,9 @@ composition SNPRF_g1 {
     const n: Integer; /* key length */
     const m: Integer; /* message length */
 
-    const c_true: bool;
-    const c_false: bool;
+    const prf_hdl_type_top: String;
+    const prf_hdl_type_bottom: String;
+    const xor3_hdl_type: String;
 
     const f: fn Key, Message -> Key; /* PRF */
     
@@ -17,7 +18,7 @@ composition SNPRF_g1 {
         }
 
         params {
-            ideal: c_true,
+            ideal: true,
         }
     }
 
@@ -28,7 +29,7 @@ composition SNPRF_g1 {
         }
 
         params {
-            ideal: c_true,
+            ideal: true,
         }
     }
 
@@ -39,7 +40,7 @@ composition SNPRF_g1 {
         }
 
         params {
-            ideal: c_false,
+            ideal: false,
         }
     }
 
@@ -50,7 +51,7 @@ composition SNPRF_g1 {
         }
 
         params {
-            ideal: c_false,
+            ideal: false,
         }
     }
 
@@ -63,6 +64,7 @@ composition SNPRF_g1 {
 
         params {
             f: f,
+            hdl_type: prf_hdl_type_top,
         }
     }
 
@@ -74,25 +76,27 @@ composition SNPRF_g1 {
 
         params {
             sort3hdl: sort3hdl,
+            hdl_type: xor3_hdl_type,
         }
     }
 
     instance prf2 = PRF2 {
         types {
             Message: Bits(m),
-            Handle: (String, ((String, Integer, Bits(m)), (String, Integer, Bits(m)), (String, Integer, Bits(m)))),
+            HandleIn: (String, ((String, Integer, Bits(m)), (String, Integer, Bits(m)), (String, Integer, Bits(m)))),
         }
     }
 
     instance prf_bottom = PRF {
         types {
             Message: Bits(m),
-            Handle: (String, ((String, Integer, Bits(m)), (String, Integer, Bits(m)), (String, Integer, Bits(m)))),
+            HandleIn: (String, ((String, Integer, Bits(m)), (String, Integer, Bits(m)), (String, Integer, Bits(m)))),
             Key:    Bits(n),
         }
 
         params {
             f: f,
+            hdl_type: prf_hdl_type_bottom,
         }
     }
 
@@ -103,18 +107,18 @@ composition SNPRF_g1 {
             Xor: xor,
             Eval2: prf2,
             Get: key_four,
-            Hon: key_four,
+            PR: key_four,
         },
 
         prf_top: {
             Get: key_one,
-            Hon: key_one,
+            PR: key_one,
             Set: key_two,
         },
 
         xor: {
             Get: key_two,
-            Hon: key_two,
+            PR: key_two,
             Set: key_three,
         },
 
@@ -124,7 +128,7 @@ composition SNPRF_g1 {
 
         prf_bottom: {
             Get: key_three,
-            Hon: key_three,
+            PR: key_three,
             Set: key_four
         }
     }

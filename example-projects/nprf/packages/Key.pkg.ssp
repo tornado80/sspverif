@@ -5,15 +5,15 @@ package Key {
     }
 
     params {
-        ideal: bool,
+        ideal: Bool,
     }
 
     state {
         keys: Table(Handle, Key),
-        pr:  Table(Handle, bool), /* is_pseudorandom */
+        pr:  Table(Handle, Bool), /* is_pseudorandom */
     }
 
-    oracle Set(hdl: Handle, k: Key, pr: bool) {
+    oracle Set(hdl: Handle, k: Key, pr: Bool) {
         /* _should_ imply the rest is unset as well */
         if not(keys[hdl] == None) {
             abort;
@@ -33,7 +33,7 @@ package Key {
         return Unwrap(mk);
     }
 
-    oracle PR(hdl: Handle) -> Maybe(bool) {
+    oracle PR(hdl: Handle) -> Maybe(Bool) {
         mpr <- pr[hdl];
         return Unwrap(mpr);
     }

@@ -1,9 +1,11 @@
+use super::package::handle_expression;
 use super::{common::*, error, Rule};
 
 use pest::iterators::{Pair, Pairs};
 use std::collections::HashMap;
 use std::iter::FromIterator;
 
+use crate::expressions::Expression;
 use crate::package::{Composition, Edge, Export, Package, PackageInstance};
 use crate::types::Type;
 
@@ -199,25 +201,24 @@ pub fn handle_comp_spec_list(
     })
 }
 
-pub fn handle_instance_param_assign_list(ast: Pair<Rule>) -> Vec<(String, String)> {
+pub fn handle_params_def_list(ast: Pair<Rule>) -> Vec<(String, Expression)> {
     ast.into_inner()
         .map(|inner| {
             //let inner = inner.into_inner().next().unwrap();
 
             let mut inner = inner.into_inner();
             let left = inner.next().unwrap().as_str();
-            let right = inner.next().unwrap().as_str();
+            let right = inner.next().unwrap();
+            let right = handle_expression(right);
 
-            (left.to_owned(), right.to_owned())
+            (left.to_owned(), right)
         })
         .collect()
 }
 
-pub fn handle_params_def_list(ast: Pair<Rule>) -> Vec<(String, String)> {
-    handle_instance_param_assign_list(ast)
-}
-
-pub fn handle_instance_assign_list(ast: Pair<Rule>) -> (Vec<(String, String)>, Vec<(Type, Type)>) {
+pub fn handle_instance_assign_list(
+    ast: Pair<Rule>,
+) -> (Vec<(String, Expression)>, Vec<(Type, Type)>) {
     let mut params = vec![];
     let mut types = vec![];
 
@@ -262,16 +263,23 @@ pub fn handle_instance_decl(
     // check that const param lists match
     let mut typed_params: Vec<_> = param_list
         .iter()
-        .map(|(pkg_param, comp_param)| {
-            let maybe_type = consts.get(comp_param);
+        .map(|(pkg_param, comp_param)| match comp_param {
+            Expression::Identifier(id) => {
+                let maybe_type = consts.get(&id.ident());
 
-            assert!(
-                maybe_type.is_some(),
-                "constant not specified: {} at {:?}",
-                comp_param,
-                span
-            );
-            (pkg_param.to_owned(), maybe_type.unwrap().clone())
+                assert!(
+                    maybe_type.is_some(),
+                    "constant not specified: {} at {:?}",
+                    id.ident(),
+                    span
+                );
+                (pkg_param.to_owned(), maybe_type.unwrap().clone())
+            }
+            Expression::BooleanLiteral(_) => (pkg_param.to_string(), Type::Boolean),
+            Expression::IntegerLiteral(_) => (pkg_param.to_string(), Type::Integer),
+            otherwise => {
+                panic!("unhandled expression: {:?}", otherwise)
+            }
         })
         .collect();
     typed_params.sort();
@@ -283,6 +291,9 @@ pub fn handle_instance_decl(
         // TODO: include the difference in here
         return Err(error::Error::ConstParameterMismatch {
             pkg_name: pkg_name.to_string(),
+            inst_name: inst_name.to_string(),
+            bound_params: typed_params,
+            pkg_params,
         }
         .with_span(span));
     }

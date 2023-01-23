@@ -10,5 +10,5 @@ right = "PRF_ideal"
 left = "SNPRF_real"
 right = "SNPRF_g1"
 assumption = "PRF"
-leftmap = [["keys_top", "keys_top"], ["keys_bottom", "keys_bottom"],["prf","prf_top"]]
-rightmap = [["keys_top", "keys_top"], ["keys_bottom", "keys_bottom"],["prf","prf_top"]]
+leftmap = [["key_one", "key_top" ], ["key_two", "key_bottom"], ["prf_top", "prf"]]
+rightmap = [["key_one", "key_top"], ["key_two", "key_bottom"], ["prf_top", "prf"]]
