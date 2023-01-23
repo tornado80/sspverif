@@ -141,7 +141,12 @@ pub(crate) fn games(
                     return Err((name, e).into());
                 }
                 let mut ast = parse_result.unwrap();
-                let comp = handle_composition(ast.next().unwrap(), pkgs);
+                let comp = match handle_composition(ast.next().unwrap(), pkgs) {
+                    Ok(game) => game,
+                    Err(err) => {
+                        return Err(err.with_source(filecontent).into());
+                    }
+                };
                 let comp_name = comp.name.clone();
 
                 games.insert(comp_name, comp);

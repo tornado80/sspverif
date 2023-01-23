@@ -1,4 +1,4 @@
-use super::{common::*, Rule};
+use super::{common::*, error, Rule};
 
 use pest::iterators::{Pair, Pairs};
 use std::collections::HashMap;
@@ -135,7 +135,8 @@ pub fn handle_comp_spec_list(
     ast: Pair<Rule>,
     comp_name: &str,
     pkg_map: &HashMap<String, Package>,
-) -> Composition {
+) -> error::Result<Composition> {
+    let span = ast.as_span();
     let mut consts = HashMap::new();
     let mut instances = vec![];
     let mut instance_table = HashMap::new();
@@ -156,7 +157,7 @@ pub fn handle_comp_spec_list(
                 consts.insert(name, tipe);
             }
             Rule::instance_decl => {
-                let inst = handle_instance_decl(comp_spec, pkg_map, &consts);
+                let inst = handle_instance_decl(comp_spec, pkg_map, &consts)?;
                 instances.push(inst.clone());
                 let offset = instances.len() - 1;
                 instance_table.insert(inst.name.clone(), (offset, inst));
@@ -174,28 +175,28 @@ pub fn handle_comp_spec_list(
     }
 
     let (edges, exports) = match (edges, exports) {
-        (None, None) => {
-            panic!(
-                "looks like composition {} doesn't have a compose block",
-                comp_name
-            );
-        }
-        (Some(edges), Some(exports)) => (edges, exports),
+        (None, None) => Err(error::SpanError::new_with_span(
+            error::Error::MissingComposeBlock {
+                game_name: comp_name.to_string(),
+            },
+            span,
+        )),
+        (Some(edges), Some(exports)) => Ok((edges, exports)),
         _ => {
             unreachable!();
         }
-    };
+    }?;
 
     let mut consts = Vec::from_iter(consts);
     consts.sort();
 
-    Composition {
+    Ok(Composition {
         edges,
         exports,
         name: comp_name.to_owned(),
         pkgs: instances,
         consts,
-    }
+    })
 }
 
 pub fn handle_instance_param_assign_list(ast: Pair<Rule>) -> Vec<(String, String)> {
@@ -241,7 +242,7 @@ pub fn handle_instance_decl(
     ast: Pair<Rule>,
     pkg_map: &HashMap<String, Package>,
     consts: &HashMap<String, Type>,
-) -> PackageInstance {
+) -> error::Result<PackageInstance> {
     let span = ast.as_span();
 
     let mut inner = ast.into_inner();
@@ -253,13 +254,12 @@ pub fn handle_instance_decl(
         None => {
             panic!("package {} is unknown", pkg_name);
         }
-        Some(pkg) => pkg,
-    };
+        Some(pkg) => Ok(pkg),
+    }?;
 
     let (param_list, type_list) = handle_instance_assign_list(data);
-    //let param_list = handle_instance_param_assign_list(params);
 
-    // check that param lists match (including types)
+    // check that const param lists match
     let mut typed_params: Vec<_> = param_list
         .iter()
         .map(|(pkg_param, comp_param)| {
@@ -279,12 +279,15 @@ pub fn handle_instance_decl(
     let mut pkg_params = pkg.params.clone();
     pkg_params.sort();
 
-    assert_eq!(
-        typed_params, pkg_params,
-        "params specified in composition don't match params specified in package for package {}",
-        pkg_name
-    );
+    if typed_params != pkg_params {
+        // TODO: include the difference in here
+        return Err(error::Error::ConstParameterMismatch {
+            pkg_name: pkg_name.to_string(),
+        }
+        .with_span(span));
+    }
 
+    // check that type param lists match
     let mut assigned_types: Vec<_> = type_list
         .iter()
         .map(|(pkg_type, _)| pkg_type)
@@ -295,21 +298,28 @@ pub fn handle_instance_decl(
     let mut pkg_types = pkg.types.clone();
     pkg_types.sort();
 
-    assert_eq!(
-        assigned_types, pkg_types,
-        "types specified in composition don't match types specified in package for package {}",
-        pkg_name
-    );
+    if assigned_types != pkg_types {
+        // TODO include the difference in here
+        return Err(error::SpanError::new_with_span(
+            error::Error::TypeParameterMismatch {
+                pkg_name: pkg_name.to_string(),
+            },
+            span,
+        ));
+    }
 
-    PackageInstance {
+    Ok(PackageInstance {
         name: inst_name.to_owned(),
         params: HashMap::from_iter(param_list.into_iter()),
         types: HashMap::from_iter(type_list.into_iter()),
         pkg: pkg.clone(),
-    }
+    })
 }
 
-pub fn handle_composition(ast: Pair<Rule>, pkg_map: &HashMap<String, Package>) -> Composition {
+pub fn handle_composition(
+    ast: Pair<Rule>,
+    pkg_map: &HashMap<String, Package>,
+) -> error::Result<Composition> {
     let mut inner = ast.into_inner();
     let name = inner.next().unwrap().as_str();
     let spec = inner.next().unwrap();

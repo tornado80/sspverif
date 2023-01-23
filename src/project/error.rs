@@ -24,6 +24,8 @@ pub enum Error {
         pest::error::InputLocation,
         pest::error::LineColLocation,
     ),
+    #[error("ssp parse error: {0}")]
+    SspParseError(#[from] crate::parser::error::SpanError),
     #[error("toml parse error: {0}")]
     TomlParseError(#[from] toml_edit::de::Error),
     #[error("proof tree validation failed: {0}")]

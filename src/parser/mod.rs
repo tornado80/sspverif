@@ -2,6 +2,8 @@ pub mod common;
 pub mod composition;
 pub mod package;
 
+pub mod error;
+
 use pest::Parser;
 extern crate pest;
 
