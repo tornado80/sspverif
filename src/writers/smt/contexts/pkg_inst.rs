@@ -36,6 +36,10 @@ impl<'a> PackageInstanceContext<'a> {
         })
     }
 
+    pub fn pkg_inst_name(&self) -> &'a str {
+        &self.game_ctx.game.pkgs[self.inst_offs].name
+    }
+
     pub fn smt_sorts_return(&self) -> Vec<SmtExpr> {
         let oracle_count = self.game_ctx.game.pkgs[self.inst_offs].pkg.oracles.len();
 

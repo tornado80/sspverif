@@ -266,9 +266,24 @@ impl ResolvedEquivalence {
                 let mut lemma_code = String::new();
 
                 writeln!(lemma_code, "; oracle {oracle_name}, lemma {lemma_name}")?;
+                let octx_left = gctx_left.exported_oracle_ctx_by_name(oracle_name).unwrap();
+                let inst_name_left = octx_left.pkg_inst_ctx().pkg_inst_name();
+
+                let octx_right = gctx_right.exported_oracle_ctx_by_name(oracle_name).unwrap();
+                let inst_name_right = octx_right.pkg_inst_ctx().pkg_inst_name();
+
+                let left_return_name = format!("return-left-{inst_name_left}-{oracle_name}");
+                let state_length_left_new =
+                    octx_left.smt_access_return_state_length(left_return_name);
+
+                let right_return_name = format!("return-right-{inst_name_right}-{oracle_name}");
+                let state_length_right_new =
+                    octx_right.smt_access_return_state_length(right_return_name);
 
                 let mut dependencies_code: Vec<SmtExpr> = vec![
                     format!("randomness-mapping-{oracle_name}").into(),
+                    ("=", "state-length-left-new", state_length_left_new).into(),
+                    ("=", "state-length-right-new", state_length_right_new).into(),
                     build_lemma_call(format!("invariant-{oracle_name}")),
                 ];
 
