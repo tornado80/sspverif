@@ -93,6 +93,8 @@ pub enum Error {
         bound_params: Vec<(String, Type)>,
         pkg_params: Vec<(String, Type)>,
     },
+    #[error("mapping: the game names don't match there definition in the {place}")]
+    ReductionMappingMismatch { place: String },
 }
 
 impl Error {

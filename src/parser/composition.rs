@@ -177,12 +177,10 @@ pub fn handle_comp_spec_list(
     }
 
     let (edges, exports) = match (edges, exports) {
-        (None, None) => Err(error::SpanError::new_with_span(
-            error::Error::MissingComposeBlock {
-                game_name: comp_name.to_string(),
-            },
-            span,
-        )),
+        (None, None) => Err(error::Error::MissingComposeBlock {
+            game_name: comp_name.to_string(),
+        }
+        .with_span(span)),
         (Some(edges), Some(exports)) => Ok((edges, exports)),
         _ => {
             unreachable!();

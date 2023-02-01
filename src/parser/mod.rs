@@ -3,6 +3,7 @@ pub mod composition;
 pub mod package;
 
 pub mod error;
+mod proof;
 
 use pest::Parser;
 extern crate pest;
@@ -21,6 +22,10 @@ impl SspParser {
 
     pub fn parse_composition(contents: &str) -> Result<Pairs<Rule>, Error<Rule>> {
         SspParser::parse(Rule::composition, contents)
+    }
+
+    pub fn parse_proof(contents: &str) -> Result<Pairs<Rule>, Error<Rule>> {
+        SspParser::parse(Rule::proof, contents)
     }
 }
 

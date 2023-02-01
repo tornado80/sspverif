@@ -1,14 +1,1 @@
-[assumptions]
-[assumptions.PRF]
-left = "PRF_real"
-right = "PRF_ideal"
-
-
-[[game_hops]]
-[game_hops.Reduction]
-
-left = "SNPRF_real"
-right = "SNPRF_g1"
-assumption = "PRF"
-leftmap = [["key_one", "key_top" ], ["key_two", "key_bottom"], ["prf_top", "prf"]]
-rightmap = [["key_one", "key_top"], ["key_two", "key_bottom"], ["prf_top", "prf"]]
+proof = "DNPRF"

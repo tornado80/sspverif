@@ -31,8 +31,8 @@ mod resolve;
 //mod util;
 
 pub use assumption::Assumption;
-use equivalence::Equivalence;
-use reduction::Reduction;
+pub use equivalence::Equivalence;
+pub use reduction::Reduction;
 
 // TODO: add a HybridArgument variant
 #[derive(Debug, Serialize, Deserialize)]
