@@ -16447,8 +16447,8 @@
 ; state of the key packages
 (
 (top-key-package-right-NEU     (project-State_Right_keys_top (composition-pkgstate-Right-keys_top state-right-NEU)))
-(top-key-package-right-alt     (project-State_Right_keys_top (composition-pkgstate-Right-keys_top state-right)))
-(bottom-key-package-right-alt  (project-State_Right_keys_bottom  (composition-pkgstate-Right-keys_bottom state-right)))
+(top-key-package-right-alt     (project-State_Right_keys_top (composition-pkgstate-Right-keys_top (select state-right state-length-right-old))))
+(bottom-key-package-right-alt  (project-State_Right_keys_bottom  (composition-pkgstate-Right-keys_bottom (select state-right state-length-right-old))))
 (bottom-key-package-right-1    (project-State_Right_keys_bottom  (composition-pkgstate-Right-keys_bottom state-right-1)))
 ;(bottom-key-package-right-2    (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-2)))
 ;(bottom-key-package-right-3    (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-3)))
@@ -16524,8 +16524,8 @@
 
 ; state of the key packages
 (
-(bottom-key-package-left-alt  (project-State_Left_keys_bottom (composition-pkgstate-Left-keys_bottom (select state-left state-length-left))))
-(bottom-key-package-right-alt  (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom (select state-right state-length-right))))
+(bottom-key-package-left-alt  (project-State_Left_keys_bottom (composition-pkgstate-Left-keys_bottom (select state-left state-length-left-old))))
+(bottom-key-package-right-alt  (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom (select state-right state-length-right-old))))
 (bottom-key-package-left-1  (project-State_Left_keys_bottom  (composition-pkgstate-Left-keys_bottom state-left-1)))
 (bottom-key-package-right-1 (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-1)))
 (bottom-key-package-left-2  (project-State_Left_keys_bottom  (composition-pkgstate-Left-keys_bottom state-left-2)))
@@ -16590,8 +16590,8 @@
 
 ; state of the key packages
 (
-(bottom-key-package-left-alt   (project-State_Left_keys_bottom  (composition-pkgstate-Left-keys_bottom  (select state-left  state-length-left))))
-(bottom-key-package-right-alt  (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom (select state-right state-length-right))))
+(bottom-key-package-left-alt   (project-State_Left_keys_bottom  (composition-pkgstate-Left-keys_bottom  (select state-left  state-length-left-old))))
+(bottom-key-package-right-alt  (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom (select state-right state-length-right-old))))
 (bottom-key-package-left-1     (project-State_Left_keys_bottom  (composition-pkgstate-Left-keys_bottom  state-left-1)))
 (bottom-key-package-right-1    (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-1)))
 (bottom-key-package-left-2     (project-State_Left_keys_bottom  (composition-pkgstate-Left-keys_bottom  state-left-2)))
@@ -16650,9 +16650,9 @@
 
 ; state of the key packages
 (
-(top-key-package-left-alt (project-State_Left_keys_top       (composition-pkgstate-Left-keys_top    (select state-left-alt state-length-left))))
+(top-key-package-left-alt (project-State_Left_keys_top       (composition-pkgstate-Left-keys_top    (select state-left-alt state-length-left-old))))
 (top-key-package-left-neu (project-State_Left_keys_top       (composition-pkgstate-Left-keys_top    state-left-neu)))
-(bottom-key-package-left-alt (project-State_Left_keys_bottom (composition-pkgstate-Left-keys_bottom (select state-left-alt state-length-left))))
+(bottom-key-package-left-alt (project-State_Left_keys_bottom (composition-pkgstate-Left-keys_bottom (select state-left-alt state-length-left-old))))
 (bottom-key-package-left-neu (project-State_Left_keys_bottom (composition-pkgstate-Left-keys_bottom state-left-neu)))
 )
 
@@ -16756,8 +16756,8 @@
 
 ; state of the key packages
 (
-(bottom-key-package-left-alt   (project-State_Left_keys_bottom  (composition-pkgstate-Left-keys_bottom  (select state-left  state-length-left))))
-(bottom-key-package-right-alt  (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom (select state-right state-length-right))))
+(bottom-key-package-left-alt   (project-State_Left_keys_bottom  (composition-pkgstate-Left-keys_bottom  (select state-left  state-length-left-old))))
+(bottom-key-package-right-alt  (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom (select state-right state-length-right-old))))
 (bottom-key-package-left-1     (project-State_Left_keys_bottom  (composition-pkgstate-Left-keys_bottom  state-left-1)))
 (bottom-key-package-right-1    (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-1)))
 (bottom-key-package-left-2     (project-State_Left_keys_bottom  (composition-pkgstate-Left-keys_bottom  state-left-2)))
@@ -16817,9 +16817,9 @@
 
 ; state of the key packages
 (
-(top-key-package-left-alt (project-State_Left_keys_top (composition-pkgstate-Left-keys_top (select state-left-alt state-length-left))))
+(top-key-package-left-alt (project-State_Left_keys_top (composition-pkgstate-Left-keys_top (select state-left-alt state-length-left-old))))
 (top-key-package-left-neu (project-State_Left_keys_top (composition-pkgstate-Left-keys_top state-left-neu)))
-(bottom-key-package-left-alt (project-State_Left_keys_bottom (composition-pkgstate-Left-keys_bottom (select state-left-alt state-length-left))))
+(bottom-key-package-left-alt (project-State_Left_keys_bottom (composition-pkgstate-Left-keys_bottom (select state-left-alt state-length-left-old))))
 (bottom-key-package-left-neu (project-State_Left_keys_bottom (composition-pkgstate-Left-keys_bottom state-left-neu)))
 )
 
@@ -16850,7 +16850,7 @@
 
 (define-fun lemma2-right-keys-a          (
         (state-left (Array Int CompositionState-Left))
-        (state-right-alt (Array Int CompositionState-Right))
+        (state-right (Array Int CompositionState-Right))
         (state-length-left Int)
         (state-length-right Int)
         (state-left-NEU Return_Left_gate_GBLG)
@@ -16873,9 +16873,9 @@
 
 ; state of the key packages
 (
-(top-key-package-right-alt (project-State_Right_keys_top (composition-pkgstate-Right-keys_top (select state-right-alt state-length-right))))
+(top-key-package-right-alt (project-State_Right_keys_top (composition-pkgstate-Right-keys_top (select state-right state-length-right-old))))
 (top-key-package-right-neu (project-State_Right_keys_top (composition-pkgstate-Right-keys_top state-right-neu)))
-(bottom-key-package-right-alt (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom (select state-right-alt state-length-right))))
+(bottom-key-package-right-alt (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom (select state-right state-length-right-old))))
 (bottom-key-package-right-neu (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-neu)))
 
 
@@ -16937,9 +16937,9 @@
 
 ; state of the key packages
 (
-(top-key-package-right-alt (project-State_Right_keys_top (composition-pkgstate-Right-keys_top (select state-right state-length-right))))
+(top-key-package-right-alt (project-State_Right_keys_top (composition-pkgstate-Right-keys_top (select state-right state-length-right-old))))
 (top-key-package-right-neu (project-State_Right_keys_top (composition-pkgstate-Right-keys_top state-right-neu)))
-(bottom-key-package-right-alt (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom (select state-right state-length-right))))
+(bottom-key-package-right-alt (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom (select state-right state-length-right-old))))
 (bottom-key-package-right-neu (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-neu)))
 
 )
@@ -17038,4 +17038,31 @@
 (return-Left-gate-GBLG-value return-left-gate-GBLG)
 (return-Right-simgate-GBLG-value return-right-simgate-GBLG)
 )
+)(check-sat)
+(push 1)
+(assert (not (=> (and randomness-mapping-GBLG (= state-length-left-new (return-Left-gate-GBLG-state-length return-left-gate-GBLG)
 )
+ (= state-length-right-new (return-Right-simgate-GBLG-state-length return-right-simgate-GBLG)
+)
+ (invariant-GBLG state-left state-right state-length-left-old state-length-right-old return-left-gate-GBLG return-right-simgate-GBLG arg-GBLG-h arg-GBLG-l arg-GBLG-r arg-GBLG-op arg-GBLG-j)
+ (pre-right state-left state-right state-length-left-old state-length-right-old return-left-gate-GBLG return-right-simgate-GBLG arg-GBLG-h arg-GBLG-l arg-GBLG-r arg-GBLG-op arg-GBLG-j)
+)
+ (bot-table-right-alt-right-1 state-left state-right state-length-left-old state-length-right-old return-left-gate-GBLG return-right-simgate-GBLG arg-GBLG-h arg-GBLG-l arg-GBLG-r arg-GBLG-op arg-GBLG-j)
+)
+)
+)
+(check-sat)
+(pop 1)
+(push 1)
+(assert (not (=> (and randomness-mapping-GBLG (= state-length-left-new (return-Left-gate-GBLG-state-length return-left-gate-GBLG)
+)
+ (= state-length-right-new (return-Right-simgate-GBLG-state-length return-right-simgate-GBLG)
+)
+ (invariant-GBLG state-left state-right state-length-left-old state-length-right-old return-left-gate-GBLG return-right-simgate-GBLG arg-GBLG-h arg-GBLG-l arg-GBLG-r arg-GBLG-op arg-GBLG-j)
+ (pre-right state-left state-right state-length-left-old state-length-right-old return-left-gate-GBLG return-right-simgate-GBLG arg-GBLG-h arg-GBLG-l arg-GBLG-r arg-GBLG-op arg-GBLG-j)
+)
+ (well-bot-right-1 state-left state-right state-length-left-old state-length-right-old return-left-gate-GBLG return-right-simgate-GBLG arg-GBLG-h arg-GBLG-l arg-GBLG-r arg-GBLG-op arg-GBLG-j)
+)
+)
+)
+(check-sat)

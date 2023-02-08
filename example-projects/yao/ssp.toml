@@ -20,10 +20,10 @@ right = "Right"
 invariant_path = "./invariant-GBLG.smt2"
 trees.GBLG = [ ["bot-table-right-alt-right-1", ["pre-right"]],
                ["well-bot-right-1",["pre-right"]],
-               ["well-bot-right-NEU",["pre-right"]],
-               ["bot-table-left-alt-left-1",  []],
-               ["well-bot-left-NEU",[]],
+               ["well-bot-right-NEU",["pre-right"]],  
                ["top-whole-left-neu-right-neu",  []],
+               ["bot-table-left-alt-left-1",  []],
+               ["well-bot-left-NEU",[]],         
                ["lemma2-right-keys-a", ["pre-right"]],
                ["lemma2-left-keys-a", []],
                ["lemma2-left-keys-2", []],
