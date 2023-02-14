@@ -3,7 +3,7 @@ pub mod composition;
 pub mod package;
 
 pub mod error;
-mod proof;
+pub mod proof;
 
 use pest::Parser;
 extern crate pest;

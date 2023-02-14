@@ -19,3 +19,5 @@ pub mod testdata;
 pub mod project;
 
 pub mod util;
+
+pub mod proof;

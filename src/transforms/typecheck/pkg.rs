@@ -10,6 +10,7 @@ pub fn typecheck_pkg(pkg: &Package, scope: &mut Scope) -> Result<Package, TypeCh
         params,
         state,
         oracles,
+        imports,
         ..
     } = pkg;
 
@@ -19,6 +20,12 @@ pub fn typecheck_pkg(pkg: &Package, scope: &mut Scope) -> Result<Package, TypeCh
     }
     for (name, ntipe) in state {
         scope.declare(Identifier::new_scalar(name), ntipe.clone())?;
+    }
+
+    for OracleSig { name, args, tipe } in imports {
+        let arg_types = args.iter().map(|(_, tipe)| tipe).cloned().collect();
+        let id = Identifier::Scalar(name.clone());
+        scope.declare_oracle(id, arg_types, tipe.clone())?;
     }
 
     let mut typed_oracles = vec![];

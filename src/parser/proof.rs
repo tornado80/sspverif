@@ -1,9 +1,14 @@
 use std::collections::HashMap;
 
 use crate::{
+    expressions::Expression,
+    package::{Composition, Package},
     parser::Rule,
     project::{GameHop, Reduction},
+    proof::Proof,
+    types::Type,
 };
+
 use pest::{
     iterators::{Pair, Pairs},
     Span,
@@ -11,34 +16,194 @@ use pest::{
 
 use crate::project::{Assumption, Equivalence};
 
+use super::common;
 use super::error::{Error, Result};
 
-pub struct Proof();
-
-pub fn handle_proof(ast: Pair<Rule>) -> Result<(String, Proof)> {
+pub fn handle_proof(
+    ast: Pair<Rule>,
+    pkgs: &HashMap<String, Package>,
+    games: &HashMap<String, Composition>,
+) -> Result<(String, Proof)> {
     let mut iter = ast.into_inner();
     let name = iter.next().unwrap().as_str();
     let proof_ast = iter.next().unwrap();
 
     let mut assumptions = vec![];
     let mut game_hops = vec![];
+    let mut instances = vec![];
+    let mut consts = vec![];
 
     for ast in proof_ast.into_inner() {
         match ast.as_rule() {
+            Rule::const_decl => {
+                consts.push(common::handle_const_decl(ast));
+            }
             Rule::assumptions => {
-                handle_assumptions(&mut assumptions, ast.into_inner())?;
+                handle_assumptions(&mut assumptions, ast.into_inner(), &instances)?;
             }
             Rule::game_hops => {
                 handle_game_hops(&mut game_hops, ast.into_inner(), &assumptions)?;
+            }
+            Rule::instance_decl => {
+                instances.push(handle_instance_decl(ast, &consts, pkgs, games)?);
             }
             otherwise => unreachable!("found {:?} in proof", otherwise),
         }
     }
 
-    Ok((name.to_string(), Proof()))
+    Ok((
+        name.to_string(),
+        Proof {
+            name: name.to_string(),
+        },
+    ))
 }
 
-fn handle_assumptions(dest: &mut Vec<(String, Assumption)>, ast: Pairs<Rule>) -> Result<()> {
+fn handle_instance_decl<'a>(
+    ast: Pair<Rule>,
+    proof_consts: &[(String, Type)],
+    pkgs: &HashMap<String, Package>,
+    games: &'a HashMap<String, Composition>,
+) -> Result<GameInstance<'a>> {
+    let span = ast.as_span();
+
+    let mut ast = ast.into_inner();
+
+    let inst_name = ast.next().unwrap().as_str();
+    let game_ast = ast.next().unwrap();
+    let game_span = game_ast.as_span();
+    let game_name = game_ast.as_str();
+    let body_ast = ast.next().unwrap();
+
+    let (types, consts) =
+        handle_instance_assign_list(inst_name, proof_consts, body_ast, pkgs, games)?;
+
+    let game = games
+        .get(game_name)
+        .ok_or(Error::UndefinedGame(game_name.to_string()).with_span(game_span))?;
+
+    let game_inst = GameInstance {
+        inst_name: inst_name.to_string(),
+        game,
+        types,
+        consts,
+    };
+
+    game_inst.check_consts(span)?;
+
+    Ok(game_inst)
+}
+
+pub fn handle_params_def_list(
+    ast: Pair<Rule>,
+    inst_name: &str,
+    game: &Composition,
+) -> Result<Vec<(String, Expression)>> {
+    ast.into_inner()
+        .map(|inner| {
+            //let inner = inner.into_inner().next().unwrap();
+
+            let mut inner = inner.into_inner();
+            let name_ast = inner.next().unwrap();
+            let name_span = name_ast.as_span();
+            let name = name_ast.as_str();
+
+            if !game.consts.iter().any(|(const_name, _)| const_name == name) {
+                return Err(Error::GameConstParameterUndeclared {
+                    game_name: game.name.clone(),
+                    inst_name: inst_name.to_string(),
+                    param_name: name.to_string(),
+                }
+                .with_span(name_span));
+            }
+
+            let left = inner.next().unwrap().as_str();
+            let right = inner.next().unwrap();
+            let right = common::handle_expression(right);
+
+            Ok((left.to_owned(), right))
+        })
+        .collect()
+}
+
+pub struct GameInstance<'a> {
+    inst_name: String,
+    game: &'a Composition,
+    types: Vec<(Type, Type)>,
+    consts: Vec<(String, Expression)>,
+}
+
+impl<'a> GameInstance<'a> {
+    fn check_types(&self) -> Result<()> {
+        // TODO deferred until the game actually has a place for type paramenters
+        Ok(())
+    }
+
+    fn check_consts(&self, span: Span) -> Result<()> {
+        let mut inst_const_names: Vec<_> = self
+            .consts
+            .iter()
+            .map(|(name, _)| name.to_string())
+            .collect();
+        inst_const_names.sort();
+
+        let mut game_const_names: Vec<_> = self
+            .game
+            .consts
+            .iter()
+            .map(|(name, _)| name.to_string())
+            .collect();
+        game_const_names.sort();
+
+        if inst_const_names != game_const_names {
+            return Err(Error::GameConstParameterMismatch {
+                game_name: self.game.name.clone(),
+                inst_name: self.inst_name.clone(),
+                bound_params: self.consts.clone(),
+                game_params: self.game.consts.clone(),
+            }
+            .with_span(span));
+        }
+
+        Ok(())
+    }
+}
+
+fn handle_instance_assign_list(
+    inst_name: &str,
+    proof_consts: &[(String, Type)],
+    ast: Pair<Rule>,
+    pkgs: &HashMap<String, Package>,
+    games: &HashMap<String, Composition>,
+) -> Result<(Vec<(Type, Type)>, Vec<(String, Expression)>)> {
+    let ast = ast.into_inner();
+
+    let mut types = vec![];
+    let mut consts = vec![];
+
+    for ast in ast {
+        match ast.as_rule() {
+            Rule::types_def => {
+                let ast = ast.into_inner().next().unwrap();
+                types.extend(common::handle_types_def_list(ast, inst_name)?);
+            }
+            Rule::params_def => {
+                consts.extend(common::handle_params_def_list(ast, proof_consts)?);
+            }
+            otherwise => {
+                unreachable!("unexpected {:?} at {:?}", otherwise, ast.as_span())
+            }
+        }
+    }
+
+    Ok((types, consts))
+}
+
+fn handle_assumptions(
+    dest: &mut Vec<(String, Assumption)>,
+    ast: Pairs<Rule>,
+    instances: &[GameInstance],
+) -> Result<()> {
     for pair in ast {
         let (name, left, right) = handle_string_triplet(&mut pair.into_inner());
         let assumption = Assumption { left, right };

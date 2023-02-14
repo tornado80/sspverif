@@ -1,11 +1,23 @@
 proof DNPRF_pseudorandom {
+    instance PRF_real_Integer = PRF_real {
+        types {
+            HandleIn: Integer
+        }
+    }
+
+    instance PRF_ideal_Integer = PRF_ideal {
+        types {
+            HandleIn: Integer,
+        }
+    }
+
     assumptions {
-        PRF: PRF_real ~ PRF_ideal
+        PRF_Integer: PRF_real_Integer ~ PRF_ideal_Integer
     }
 
     gamehops {
         reduction SNPRF_real SNPRF_g1 {
-            assumption PRF
+            assumption PRF_Integer
 
             map PRF_real SNPRF_real {
                 key_top: key_one
@@ -42,6 +54,6 @@ proof DNPRF_pseudorandom {
                 }
             }
         }
-        ...
+        
     }
 }

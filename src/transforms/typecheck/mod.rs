@@ -8,9 +8,11 @@ mod scope;
 
 use crate::types;
 
-use composition::typecheck_comp;
 pub use errors::TypeCheckError;
 pub use scope::Scope;
+
+pub use composition::typecheck_comp;
+pub use pkg::typecheck_pkg;
 
 use crate::package::Composition;
 

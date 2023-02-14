@@ -1,4 +1,7 @@
-use crate::package::Composition;
+use crate::{
+    package::{Composition, Package, PackageInstance},
+    types::Type,
+};
 
 pub mod resolveoracles;
 pub mod resolvetypes;
@@ -10,6 +13,30 @@ pub mod type_extract;
 pub mod typecheck;
 pub mod unwrapify;
 pub mod varspecify;
+
+pub trait PackageTransform {
+    type Err;
+    type Aux;
+
+    fn transform_package(&self) -> Result<(Package, Self::Aux), Self::Err>;
+}
+
+pub trait PackageInstanceTransform {
+    type Err;
+    type Aux;
+
+    fn transform_package_instance(
+        &self,
+        inst: &PackageInstance,
+    ) -> Result<(PackageInstance, Self::Aux), Self::Err>;
+}
+
+pub trait TypeTransform {
+    type Err;
+    type Aux;
+
+    fn transform_type(&self, tipe: &Type) -> Result<(Type, Self::Aux), Self::Err>;
+}
 
 pub trait Transformation {
     type Err;

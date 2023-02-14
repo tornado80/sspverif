@@ -19,7 +19,7 @@ impl<W: Write> FmtWriter<W> {
         FmtWriter {
             w: w,
             indent_lvl: 0,
-            annotate: annotate
+            annotate: annotate,
         }
     }
 
@@ -84,7 +84,8 @@ impl<W: Write> FmtWriter<W> {
                 self.write_type(t_value)?;
                 self.write_string(")")
             }
-            _ => todo!("{:#?}", t)
+            Type::UserDefined(type_name) => self.write_string(type_name),
+            _ => todo!("{:#?}", t),
         }
     }
 

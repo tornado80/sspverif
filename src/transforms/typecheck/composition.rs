@@ -2,7 +2,7 @@ use super::errors::TypeCheckError;
 use super::pkg::typecheck_pkg;
 use super::scope::Scope;
 
-use crate::package::{Composition, Edge, Export, PackageInstance};
+use crate::package::{Composition, Edge, Export, OracleSig, PackageInstance};
 
 use crate::identifier::Identifier;
 
@@ -26,7 +26,7 @@ pub fn typecheck_comp(
         let mut found = false;
         for sig in pkgs[*to].get_oracle_sigs() {
             if sig == sig_.clone() {
-                found = true
+                found = true;
             }
         }
         if !found {
@@ -118,15 +118,15 @@ pub fn typecheck_comp(
     // 3. check all package instances
     for (id, pkg) in pkgs.clone().into_iter().enumerate() {
         scope.enter();
-        for Edge(from, _, sig) in edges {
-            if *from == id {
-                scope.declare_oracle(
-                    Identifier::new_scalar(sig.name.as_str()),
-                    sig.args.clone().into_iter().map(|(_, tipe)| tipe).collect(),
-                    sig.tipe.clone(),
-                )?;
-            }
-        }
+        // for Edge(from, _, sig) in edges {
+        //     if *from == id {
+        //         scope.declare_oracle(
+        //             Identifier::new_scalar(sig.name.as_str()),
+        //             sig.args.clone().into_iter().map(|(_, tipe)| tipe).collect(),
+        //             sig.tipe.clone(),
+        //         )?;
+        //     }
+        // }
         let result = typecheck_pkg(&pkg.pkg, scope)?;
         scope.leave();
 

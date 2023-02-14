@@ -36,7 +36,7 @@ kw_invariant = _{ "invariant" }
 kw_lemmas = _{ "lemmas" }
 
 proof = { kw_proof ~ identifier ~ "{" ~ proof_spec_list ~ "}" }
-proof_spec_list = { assumptions? ~ game_hops }
+proof_spec_list = { const_decl* ~ instance_decl* ~ assumptions? ~ game_hops }
   assumptions = { kw_assumptions ~ "{" ~ ( assumption_entry )* ~ "}" }
     assumption_entry = { identifier ~ ":" ~ identifier ~ "~" ~ identifier }
   game_hops = { kw_gamehops ~ "{" ~ ( reduction | equivalence )* ~ "}"}
@@ -49,12 +49,12 @@ proof_spec_list = { assumptions? ~ game_hops }
 
     equivalence = { kw_equivalence ~ identifier ~ identifier ~ "{" ~ equivalence_oracle ~ equivalence_oracle* ~ "}"}
       equivalence_oracle = { identifier ~ ":" ~ "{" ~ invariant_spec ~ lemmas_spec ~ "}"}
-        invariant_spec  = {kw_invariant ~ ":" ~ (path | "[" ~ path ~ (","? ~ path)* ~ "]")}
+        invariant_spec  = {kw_invariant ~ ":" ~ (("[" ~ path ~ (","? ~ path)* ~ "]") | path)}
         lemmas_spec = {kw_lemmas ~ "{" ~ (lemma_line)* ~ "}"}
         lemma_line = {smt_identifier ~ ":" ~ "[" ~ ( smt_identifier  ~ ","?)* ~ "]"}
 
 smt_identifier = @{ ( ASCII_ALPHA | "_" | "-" ) ~ ( ASCII_ALPHA | ASCII_DIGIT | "_" | "-" )* }
-path = @{ ( ASCII_ALPHA | "/" | "_" | "-" ) ~ ( ASCII_ALPHA | ASCII_DIGIT |  "/" | "_" | "-" )* }
+path = @{ ( ASCII_ALPHA | "/" | "_" | "-" | "." ) ~ ( ASCII_ALPHA | ASCII_DIGIT |  "/" | "_" | "-" | "." )* }
 
 composition = { kw_composition ~ identifier ~ "{" ~ composition_spec_list ~ "}" }
 composition_spec_list = { const_decl* ~ instance_decl* ~ compose_decl? }
@@ -62,7 +62,7 @@ composition_spec_list = { const_decl* ~ instance_decl* ~ compose_decl? }
 const_decl = { kw_const ~ identifier ~ ":" ~ tipe ~ ";" }
 
 instance_decl = { kw_instance ~ identifier ~ "=" ~ identifier ~ "{" ~ instance_assign_list? ~ "}"}
-instance_assign_list = { instance_assign ~ ( instance_assign )* }
+instance_assign_list = { ( instance_assign )* }
 instance_assign = _{ params_def | types_def }
 
 compose_decl = { kw_compose ~ "{" ~ compose_assign_body_list? ~ "}" }

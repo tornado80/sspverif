@@ -4,40 +4,39 @@ composition PRF_real {
 
     const hdl_type: String;
 
-    const f: fn Key, Message -> Key; /* PRF */
+    const f: fn Bits(n), Message -> Bits(n); /* PRF */
 
     instance key_top = Key {
         types {
-            Key:    Bits(n),
             Handle: Integer,
         }
 
         params {
             ideal: true,
+            n: n,
         }
     }
 
     instance key_bottom = Key {
         types {
-            Key:    Bits(n),
             Handle: (String, Integer, Bits(m)),
         }
 
         params {
+            n: n,
             ideal: false,
         }
     }
 
     instance prf = PRF {
         types {
-            Key:        Bits(n),
             Message:    Bits(m),
             HandleIn:   Integer,
-            HandleOut:   (String, Integer, Bits(m)),
         }
 
         params {
             f: f,
+            n: n,
             hdl_type: hdl_type,
         }
     }

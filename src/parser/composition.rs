@@ -7,15 +7,10 @@ use std::iter::FromIterator;
 
 use crate::expressions::Expression;
 use crate::package::{Composition, Edge, Export, Package, PackageInstance};
+use crate::transforms::resolvetypes::ResolveTypesPackageInstanceTransform;
+use crate::transforms::PackageInstanceTransform;
+
 use crate::types::Type;
-
-pub fn handle_const_decl(ast: Pair<Rule>) -> (String, Type) {
-    let mut inner = ast.into_inner();
-    let name = inner.next().unwrap().as_str().to_owned();
-    let tipe = handle_type(inner.next().unwrap());
-
-    (name, tipe)
-}
 
 pub fn handle_compose_assign_list(ast: Pairs<Rule>) -> Vec<(String, String)> {
     ast.map(|assignment| {
@@ -28,26 +23,11 @@ pub fn handle_compose_assign_list(ast: Pairs<Rule>) -> Vec<(String, String)> {
     .collect()
 }
 
-pub fn handle_types_def(ast: Pair<Rule>) -> Vec<(Type, Type)> {
+pub fn handle_types_def(ast: Pair<Rule>, inst_name: &str) -> error::Result<Vec<(Type, Type)>> {
     match ast.into_inner().next() {
-        None => vec![],
-        Some(ast) => handle_types_def_list(ast),
+        None => Ok(vec![]),
+        Some(ast) => handle_types_def_list(ast, inst_name),
     }
-}
-
-pub fn handle_types_def_list(ast: Pair<Rule>) -> Vec<(Type, Type)> {
-    ast.into_inner()
-        .map(|def_spec| handle_types_def_spec(def_spec))
-        .collect()
-}
-
-pub fn handle_types_def_spec(ast: Pair<Rule>) -> (Type, Type) {
-    let mut iter = ast.into_inner();
-
-    let fst = iter.next().unwrap();
-    let snd = iter.next().unwrap();
-
-    (handle_type(fst), handle_type(snd))
 }
 
 /*
@@ -111,7 +91,7 @@ pub fn handle_compose_assign_body_list(
                 Some(inst) => inst,
             };
 
-            let oracle_sig = match dst_inst
+            let mut oracle_sig = match dst_inst
                 .pkg
                 .oracles
                 .iter()
@@ -125,6 +105,8 @@ pub fn handle_compose_assign_body_list(
                 }
                 Some(def) => def.sig.clone(),
             };
+
+            for (i, (name, arg_type)) in oracle_sig.args.iter().enumerate() {}
 
             edges.push(Edge(*offset, *dst_offset, oracle_sig));
         }
@@ -140,6 +122,7 @@ pub fn handle_comp_spec_list(
 ) -> error::Result<Composition> {
     let span = ast.as_span();
     let mut consts = HashMap::new();
+    let mut consts_as_list = vec![];
     let mut instances = vec![];
     let mut instance_table = HashMap::new();
 
@@ -156,6 +139,7 @@ pub fn handle_comp_spec_list(
         match comp_spec.as_rule() {
             Rule::const_decl => {
                 let (name, tipe) = handle_const_decl(comp_spec);
+                consts_as_list.push((name.clone(), tipe.clone()));
                 consts.insert(name, tipe);
             }
             Rule::instance_decl => {
@@ -175,6 +159,8 @@ pub fn handle_comp_spec_list(
             }
         }
     }
+
+    println!("handled const, instance, compose.");
 
     let (edges, exports) = match (edges, exports) {
         (None, None) => Err(error::Error::MissingComposeBlock {
@@ -199,42 +185,30 @@ pub fn handle_comp_spec_list(
     })
 }
 
-pub fn handle_params_def_list(ast: Pair<Rule>) -> Vec<(String, Expression)> {
-    ast.into_inner()
-        .map(|inner| {
-            //let inner = inner.into_inner().next().unwrap();
-
-            let mut inner = inner.into_inner();
-            let left = inner.next().unwrap().as_str();
-            let right = inner.next().unwrap();
-            let right = handle_expression(right);
-
-            (left.to_owned(), right)
-        })
-        .collect()
-}
-
 pub fn handle_instance_assign_list(
     ast: Pair<Rule>,
-) -> (Vec<(String, Expression)>, Vec<(Type, Type)>) {
+    inst_name: &str,
+    defined_consts: &[(String, Type)],
+) -> error::Result<(Vec<(String, Expression)>, Vec<(Type, Type)>)> {
     let mut params = vec![];
     let mut types = vec![];
 
     for elem in ast.into_inner() {
         match elem.as_rule() {
             Rule::params_def => {
-                let mut defs = handle_params_def_list(elem.into_inner().next().unwrap());
+                let mut defs =
+                    handle_params_def_list(elem.into_inner().next().unwrap(), defined_consts)?;
                 params.append(&mut defs);
             }
             Rule::types_def => {
-                let mut defs = handle_types_def_list(elem.into_inner().next().unwrap());
+                let mut defs = handle_types_def_list(elem.into_inner().next().unwrap(), inst_name)?;
                 types.append(&mut defs);
             }
             _ => unreachable!("{:#?}", elem),
         }
     }
 
-    (params, types)
+    Ok((params, types))
 }
 
 pub fn handle_instance_decl(
@@ -256,7 +230,12 @@ pub fn handle_instance_decl(
         Some(pkg) => Ok(pkg),
     }?;
 
-    let (param_list, type_list) = handle_instance_assign_list(data);
+    let defined_consts: Vec<_> = consts
+        .iter()
+        .map(|(name, tipe)| (name.clone(), tipe.clone()))
+        .collect();
+
+    let (param_list, type_list) = handle_instance_assign_list(data, inst_name, &defined_consts)?;
 
     // check that const param lists match
     let mut typed_params: Vec<_> = param_list
@@ -287,7 +266,7 @@ pub fn handle_instance_decl(
 
     if typed_params != pkg_params {
         // TODO: include the difference in here
-        return Err(error::Error::ConstParameterMismatch {
+        return Err(error::Error::PackageConstParameterMismatch {
             pkg_name: pkg_name.to_string(),
             inst_name: inst_name.to_string(),
             bound_params: typed_params,
@@ -304,6 +283,8 @@ pub fn handle_instance_decl(
         .collect();
     assigned_types.sort();
 
+    for (left, right) in &type_list {}
+
     let mut pkg_types = pkg.types.clone();
     pkg_types.sort();
 
@@ -317,12 +298,17 @@ pub fn handle_instance_decl(
         ));
     }
 
-    Ok(PackageInstance {
+    let inst = PackageInstance {
         name: inst_name.to_owned(),
         params: HashMap::from_iter(param_list.into_iter()),
         types: HashMap::from_iter(type_list.into_iter()),
         pkg: pkg.clone(),
-    })
+    };
+
+    match ResolveTypesPackageInstanceTransform.transform_package_instance(&inst) {
+        Ok((inst, _)) => Ok(inst),
+        Err(err) => Err(error::Error::from(err).with_span(span)),
+    }
 }
 
 pub fn handle_composition(

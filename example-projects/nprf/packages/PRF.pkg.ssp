@@ -1,25 +1,26 @@
 package PRF {
     types {
-        Key,
+        /* Key, */
         Message,
         HandleIn,
-        HandleOut,
+        /*HandleOut = (String, HandleIn, Message),*/
     }
 
     params {
-        f: fn Key, Message -> Key,
+        f: fn Bits(n), Message -> Bits(n),
         hdl_type: String,
+        n: Integer,
     }
 
     import oracles {
-        Get(hdl: HandleIn) -> Key,
+        Get(hdl: HandleIn) -> Bits(n),
         PR(hdl: HandleIn) -> Bool,
-        Set(hdl: HandleOut, k: Key, pr: Bool),
+        Set(hdl: (String, HandleIn, Message), k: Bits(n), pr: Bool),
     }
 
     oracle Eval(hdl: HandleIn, msg: Message) {
-        k  <-  invoke Get(hdl);
-        pr <- invoke  PR(hdl);
+        k  <- invoke Get(hdl);
+        pr <- invoke PR(hdl);
 
         k_out <- f(k, msg);
         hdl_out <- (hdl_type, hdl, msg);

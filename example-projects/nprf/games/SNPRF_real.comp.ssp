@@ -6,64 +6,63 @@ composition SNPRF_real {
     const prf_hdl_type_bottom: String;
     const xor3_hdl_type: String;
 
-    const f: fn Key, Message -> Key; /* PRF */
+    const f: fn Bits(n), Message -> Bits(n); /* PRF */
     
     /* sorting function; needs to be adequately constrained in SMT code. */
     const sort3hdl: fn HandleIn, HandleIn, HandleIn -> (HandleIn, HandleIn, HandleIn); 
 
     instance key_one = Key {
         types {
-            Key:    Bits(n),
             Handle: Integer,
         }
 
         params {
             ideal: true,
+            n: n,
         }
     }
 
     instance key_two = Key {
         types {
-            Key:    Bits(n),
             Handle: (String, Integer, Bits(m)),
         }
 
         params {
+            n: n,
             ideal: false,
         }
     }
 
     instance key_three = Key {
         types {
-            Key:    Bits(n),
             Handle: (String, ((String, Integer, Bits(m)), (String, Integer, Bits(m)), (String, Integer, Bits(m)))),
         }
 
         params {
+            n: n,
             ideal: false,
         }
     }
 
     instance key_four = Key {
         types {
-            Key:    Bits(n),
             Handle: (String, (String, ((String, Integer, Bits(m)), (String, Integer, Bits(m)), (String, Integer, Bits(m)))), Bits(m)),
         }
 
         params {
+            n: n,
             ideal: false,
         }
     }
 
     instance prf_top = PRF {
         types {
-            Key:        Bits(n),
             Message:    Bits(m),
             HandleIn:   Integer,
-            HandleOut:   (String, Integer, Bits(m)),
         }
 
         params {
+            n: n,
             f: f,
             hdl_type: prf_hdl_type_top,
         }
@@ -72,11 +71,10 @@ composition SNPRF_real {
     instance xor = XOR3 {
         types {
             HandleIn:   (String, Integer, Bits(m)),
-            HandleOut:  (String, ((String, Integer, Bits(m)), (String, Integer, Bits(m)), (String, Integer, Bits(m)))),
-            Key:        Bits(n)
         }
 
         params {
+            n: n,
             sort3hdl: sort3hdl,
             hdl_type: xor3_hdl_type,
         }
@@ -93,12 +91,11 @@ composition SNPRF_real {
         types {
             Message: Bits(m),
             HandleIn: (String, ((String, Integer, Bits(m)), (String, Integer, Bits(m)), (String, Integer, Bits(m)))),
-            HandleOut: (String, (String, ((String, Integer, Bits(m)), (String, Integer, Bits(m)), (String, Integer, Bits(m)))), Bits(m)),
-            Key:    Bits(n),
         }
 
         params {
             f: f,
+            n: n,
             hdl_type: prf_hdl_type_bottom,
         }
     }

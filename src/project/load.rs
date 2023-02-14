@@ -9,8 +9,9 @@ use itertools::Itertools;
 use crate::package::{Composition, Export, Package};
 use crate::parser::composition::handle_composition;
 use crate::parser::package::handle_pkg;
+use crate::parser::proof::handle_proof;
 use crate::parser::SspParser;
-
+use crate::proof::Proof;
 extern crate toml_edit;
 
 /*
@@ -135,19 +136,27 @@ pub(crate) fn games(
         let dir_entry = dir_entry?;
         if let Some(name) = dir_entry.file_name().to_str() {
             if name.ends_with(GAME_EXT) {
+                let path = &dir_entry.path();
+                let path_str = path.to_str().unwrap();
+                println!("reading {path_str}");
+
                 let filecontent = std::fs::read_to_string(dir_entry.path())?;
                 let parse_result = SspParser::parse_composition(&filecontent);
                 if let Err(e) = parse_result {
                     return Err((name, e).into());
                 }
+
+                println!("parsed.");
                 let mut ast = parse_result.unwrap();
                 let comp = match handle_composition(ast.next().unwrap(), pkgs) {
                     Ok(game) => game,
                     Err(err) => {
+                        println!("printing error...");
                         return Err(err.with_source(filecontent).into());
                     }
                 };
                 let comp_name = comp.name.clone();
+                println!("ast built.");
 
                 games.insert(comp_name, comp);
             }
@@ -155,6 +164,52 @@ pub(crate) fn games(
     }
 
     Ok(games)
+}
+
+pub(crate) fn proofs(
+    root: PathBuf,
+    pkgs: &HashMap<String, Package>,
+    games: &HashMap<String, Composition>,
+) -> Result<HashMap<String, Proof>> {
+    let mut dir = root;
+    dir.push(PROOFS_DIR);
+    let dir_str = dir.to_str().expect("couldn't get the path string");
+
+    let mut proofs = HashMap::new();
+
+    for dir_entry in std::fs::read_dir(dir_str)? {
+        let dir_entry = dir_entry?;
+        if let Some(name) = dir_entry.file_name().to_str() {
+            if name.ends_with(".ssp") {
+                // TODO make a constant and figure out if we really need the sub-extensions
+                let path = &dir_entry.path();
+                let path_str = path.to_str().unwrap();
+                println!("reading {path_str}");
+
+                let filecontent = std::fs::read_to_string(dir_entry.path())?;
+                let parse_result = SspParser::parse_proof(&filecontent);
+                if let Err(e) = parse_result {
+                    return Err((name, e).into());
+                }
+
+                println!("parsed.");
+                let mut ast = parse_result.unwrap();
+                let proof = match handle_proof(ast.next().unwrap(), pkgs, games) {
+                    Ok((_, proof)) => proof,
+                    Err(err) => {
+                        println!("printing error...");
+                        return Err(err.with_source(filecontent).into());
+                    }
+                };
+                let proof_name = proof.name.clone();
+                println!("ast built.");
+
+                proofs.insert(proof_name, proof);
+            }
+        }
+    }
+
+    Ok(proofs)
 }
 
 pub(crate) fn validate_assumptions(

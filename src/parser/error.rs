@@ -3,7 +3,7 @@ use std::fmt::Debug;
 use pest::Span;
 use thiserror::Error;
 
-use crate::types::Type;
+use crate::{expressions::Expression, transforms::resolvetypes, types::Type};
 
 #[derive(Clone)]
 pub struct SpanError {
@@ -87,14 +87,37 @@ pub enum Error {
     #[error(
         "the const parameter assignments don't match the package definition for package {pkg_name}"
     )]
-    ConstParameterMismatch {
+    PackageConstParameterMismatch {
         pkg_name: String,
         inst_name: String,
         bound_params: Vec<(String, Type)>,
         pkg_params: Vec<(String, Type)>,
     },
+    #[error(
+        "the const parameter assignments don't match the game definition for game {game_name}"
+    )]
+    GameConstParameterMismatch {
+        game_name: String,
+        inst_name: String,
+        bound_params: Vec<(String, Expression)>,
+        game_params: Vec<(String, Type)>,
+    },
+    #[error("assiged const parameter {param_name} to game {game_name} in instance {inst_name}, but the game does not declare that parameter")]
+    GameConstParameterUndeclared {
+        game_name: String,
+        inst_name: String,
+        param_name: String,
+    },
     #[error("mapping: the game names don't match there definition in the {place}")]
     ReductionMappingMismatch { place: String },
+    #[error("error resolving type: {0:?}")]
+    ResolveTypesError(#[from] resolvetypes::ResolutionError),
+    #[error("game {0} is undefined")]
+    UndefinedGame(String),
+    #[error("use of undefined identifier {0}")]
+    UndefinedIdentifer(String),
+    #[error("cannot use expression {0:?} in const block")]
+    IllegalExpression(Expression),
 }
 
 impl Error {

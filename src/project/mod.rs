@@ -12,12 +12,14 @@ use std::{collections::HashMap, path::PathBuf};
 use error::{Error, Result};
 
 use crate::package::{Composition, Package};
+use crate::transforms::typecheck::{typecheck_comp, typecheck_pkg, Scope};
 
 pub const PROJECT_FILE: &str = "ssp.toml";
 pub const GAMEHOPS_FILE: &str = "game_hops.toml";
 
 pub const PACKAGES_DIR: &str = "packages";
 pub const GAMES_DIR: &str = "games";
+pub const PROOFS_DIR: &str = "proofs";
 pub const ASSUMPTIONS_DIR: &str = "assumptions";
 
 pub const PACKAGE_EXT: &str = ".pkg.ssp";
@@ -89,7 +91,21 @@ impl Project {
     pub fn load() -> Result<Project> {
         let root_dir = find_project_root()?;
         let packages = load::packages(root_dir.clone())?;
+
+        for (pkg_name, pkg) in &packages {
+            let mut scope = Scope::new();
+            typecheck_pkg(pkg, &mut scope)?;
+        }
+
         let games = load::games(root_dir.clone(), &packages)?;
+
+        for (game_name, game) in &games {
+            let mut scope = Scope::new();
+            typecheck_comp(game, &mut scope)?;
+        }
+
+        let proofs = load::proofs(root_dir.clone(), &packages, &games)?;
+
         let (game_hops, assumptions) = load::toml_file(root_dir.clone(), &games)?;
 
         let project = Project {
