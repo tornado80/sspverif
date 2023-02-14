@@ -36,7 +36,7 @@ package Keys {
     }
 
     oracle GETAOUT(h: Integer) -> Bits(n) {
-        assert (z[h] == Some(true));
+        assert (z[h] != None as Bool);
         flag[h] <- Some(true);
         Z <- new Table(Bool,Bits(n));
         if (T[h] == None as Table(Bool,Bits(n)))

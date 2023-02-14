@@ -18,10 +18,15 @@ rightmap = [["keys_top", "keys_top"], ["keys_bottom", "keys_bottom"],["simgate",
 left = "Left"
 right = "Right"
 invariant_path = "./invariant-GBLG.smt2"
-trees.GBLG = [ ["bot-table-left-alt-left-1", []],
+trees.GBLG = [ ["right-top-abort", []],
+               ["right-bot-abort", []],
+               ["right-all-aborts", []],
+               ["right-all-aborts-inverse", []],
+               ["left-all-aborts", []],
+               ["left-inverse-all-aborts", []],
                ["bot-Z-left-1", []],
+               ["bot-table-left-alt-left-1", []],
                ["bot-table-left-2-left-neu", []],
-               ["bot-j-abort",[]],
                ["bot-except-left-neu-left-alt", []],
                ["well-bot-left-NEU", []],
                ["top-whole-left-neu-right-neu", []],
