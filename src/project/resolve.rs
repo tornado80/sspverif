@@ -6,6 +6,8 @@ use super::{
     Assumption, Project,
 };
 
+/*
+
 impl Project {
     // i is passed for error reporting only
     pub fn resolve_reduction(&self, reduction: &Reduction, i: usize) -> Result<ResolvedReduction> {
@@ -152,3 +154,5 @@ impl Project {
         Ok(ResolvedAssumption { left, right })
     }
 }
+
+*/

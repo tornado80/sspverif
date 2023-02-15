@@ -12,6 +12,7 @@ use std::{collections::HashMap, path::PathBuf};
 use error::{Error, Result};
 
 use crate::package::{Composition, Package};
+use crate::proof::{self, GameHop, Proof};
 use crate::transforms::typecheck::{typecheck_comp, typecheck_pkg, Scope};
 
 pub const PROJECT_FILE: &str = "ssp.toml";
@@ -32,17 +33,10 @@ mod reduction;
 mod resolve;
 //mod util;
 
-pub use assumption::Assumption;
+pub use crate::proof::Assumption;
 pub use equivalence::Equivalence;
 pub use reduction::Reduction;
-
-// TODO: add a HybridArgument variant
-#[derive(Debug, Serialize, Deserialize)]
-pub enum GameHop {
-    Reduction(Reduction),
-    Equivalence(Equivalence),
-}
-
+/*
 impl From<load::TomlGameHop> for GameHop {
     fn from(toml_hop: load::TomlGameHop) -> Self {
         match toml_hop {
@@ -75,6 +69,7 @@ impl From<load::TomlGameHop> for GameHop {
         }
     }
 }
+*/
 
 pub mod error;
 
@@ -82,9 +77,10 @@ pub mod error;
 pub struct Project {
     root_dir: PathBuf,
     packages: HashMap<String, Package>,
-    assumptions: HashMap<String, Assumption>,
+    //assumptions: HashMap<String, Assumption>,
     games: HashMap<String, Composition>,
-    game_hops: Vec<GameHop>,
+    //game_hops: Vec<GameHop>,
+    proofs: HashMap<String, Proof>,
 }
 
 impl Project {
@@ -106,31 +102,34 @@ impl Project {
 
         let proofs = load::proofs(root_dir.clone(), &packages, &games)?;
 
-        let (game_hops, assumptions) = load::toml_file(root_dir.clone(), &games)?;
+        //let (game_hops, assumptions) = load::toml_file(root_dir.clone(), &games)?;
 
         let project = Project {
             root_dir,
             packages,
             games,
-            assumptions,
-            game_hops,
+            proofs,
         };
 
         Ok(project)
     }
 
+    /*
     // we might want to return a proof trace here instead
     // we could then extract the proof viewer output and other useful info trom the trace
     pub fn prove(&self) -> Result<()> {
-        for (i, game_hop) in self.game_hops.iter().enumerate() {
-            match game_hop {
-                GameHop::Reduction(red) => self.resolve_reduction(&red, i)?.prove()?,
-                GameHop::Equivalence(eq) => self.resolve_equivalence(eq)?.prove()?,
+        for (_, proof) in self.proofs {
+            for (i, game_hop) in proof.game_hops().iter().enumerate() {
+                match game_hop {
+                    GameHop::Reduction(red) => red.prove()?,
+                    GameHop::Equivalence(eq) => eq.prove()?,
+                }
             }
         }
 
         Ok(())
     }
+    */
 
     pub fn explain_game(&self, game_name: &str) -> Result<String> {
         let game = self.get_game(game_name).ok_or(Error::UndefinedGame(
@@ -151,13 +150,15 @@ impl Project {
         Ok(buf)
         //tex_write_composition(&comp, Path::new(&args.output));
     }
-    pub fn get_game<'a>(&'a self, name: &str) -> Option<&'a Composition> {
+    pub fn get_game<'b>(&'b self, name: &str) -> Option<&'b Composition> {
         self.games.get(name)
     }
 
+    /*
     pub fn get_assumption<'a>(&'a self, name: &str) -> Option<&'a Assumption> {
         self.assumptions.get(name)
     }
+    */
 
     pub fn get_root_dir(&self) -> PathBuf {
         self.root_dir.clone()

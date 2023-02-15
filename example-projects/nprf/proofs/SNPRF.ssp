@@ -1,19 +1,50 @@
 proof SNPRF {
+    const m: Integer;
+    const n: Integer;
+    const hdl_type_PRF: String;
+    const f_prf: fn Bits(n), Bits(m) -> Bits(n);
+
+    instance PRF_real_Integer = PRF_real {
+        types {
+            HandleIn: Integer
+        }
+
+        params {
+            f: f_prf,
+            hdl_type: hdl_type_PRF,
+            m: m,
+            n:n,
+        }
+    }
+
+    instance PRF_ideal_Integer = PRF_ideal {
+        types {
+            HandleIn: Integer,
+        }
+
+        params {
+            f: f_prf,
+            hdl_type: hdl_type_PRF,
+            m: m,
+            n:n,
+        }
+    }
+
     assumptions {
-        PRF: PRF_real ~ PRF_ideal
+        PRF: PRF_real_Integer ~ PRF_ideal_Integer
     }
 
     gamehops {
         reduction SNPRF_real SNPRF_g1 {
             assumption PRF
 
-            map PRF_real SNPRF_real {
+            map PRF_real_Integer SNPRF_real {
                 key_top: key_one
                 key_bottom: key_two
                 prf: prf_top
             }
 
-            map PRF_ideal SNPRF_g1 {
+            map PRF_ideal_Integer SNPRF_g1 {
                 key_top: key_one
                 key_bottom: key_two
                 prf: prf_top
@@ -42,6 +73,5 @@ proof SNPRF {
                 }
             }
         }
-        ...
     }
 }

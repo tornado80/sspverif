@@ -54,6 +54,7 @@ pub enum TomlGameHop {
     },
 }
 
+/*
 #[derive(Debug, Serialize, Deserialize)]
 struct TomlStructure {
     game_hops: Vec<TomlGameHop>,
@@ -82,7 +83,7 @@ pub(crate) fn toml_file(
 
     Ok((hops, toml_data.assumptions))
 }
-
+*/
 pub(crate) fn packages(root: PathBuf) -> Result<HashMap<String, Package>> {
     let mut dir = root;
     dir.push(PACKAGES_DIR);
@@ -175,6 +176,9 @@ pub(crate) fn proofs(
     dir.push(PROOFS_DIR);
     let dir_str = dir.to_str().expect("couldn't get the path string");
 
+    let pkgs = Vec::from_iter(pkgs.values().cloned());
+    let games = Vec::from_iter(games.values().cloned());
+
     let mut proofs = HashMap::new();
 
     for dir_entry in std::fs::read_dir(dir_str)? {
@@ -194,14 +198,14 @@ pub(crate) fn proofs(
 
                 println!("parsed.");
                 let mut ast = parse_result.unwrap();
-                let proof = match handle_proof(ast.next().unwrap(), pkgs, games) {
-                    Ok((_, proof)) => proof,
+                let proof = match handle_proof(ast.next().unwrap(), &pkgs, &games) {
+                    Ok(proof) => proof,
                     Err(err) => {
                         println!("printing error...");
                         return Err(err.with_source(filecontent).into());
                     }
                 };
-                let proof_name = proof.name.clone();
+                let proof_name = proof.as_name().to_string();
                 println!("ast built.");
 
                 proofs.insert(proof_name, proof);
@@ -212,6 +216,7 @@ pub(crate) fn proofs(
     Ok(proofs)
 }
 
+/*
 pub(crate) fn validate_assumptions(
     assumptions: &HashMap<String, Assumption>,
     games: &HashMap<String, Composition>,
@@ -328,3 +333,4 @@ fn validate_game_hops(
 
     Ok(())
 }
+ */

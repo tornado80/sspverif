@@ -118,6 +118,10 @@ pub enum Error {
     UndefinedIdentifer(String),
     #[error("cannot use expression {0:?} in const block")]
     IllegalExpression(Expression),
+    #[error("invalid assumption mapping. reason: {0}")]
+    InvalidAssumptionMapping(String),
+    #[error("undefined game instance {0}")]
+    UndefinedGameInstance(String),
 }
 
 impl Error {
