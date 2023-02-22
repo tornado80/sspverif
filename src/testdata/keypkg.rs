@@ -10,8 +10,8 @@ use crate::block;
 pub fn key_pkg(params: &HashMap<String, Expression>) -> PackageInstance {
     PackageInstance {
         name: "key".to_string(),
-        types: HashMap::new(),
-        params: params.clone(),
+        types: vec![],
+        params: params.clone().into_iter().collect(),
         pkg: Package {
             name: "key".to_string(),
             params: vec![("n".to_string(), Type::Integer)],

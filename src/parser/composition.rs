@@ -300,8 +300,8 @@ pub fn handle_instance_decl(
 
     let inst = PackageInstance {
         name: inst_name.to_owned(),
-        params: HashMap::from_iter(param_list.into_iter()),
-        types: HashMap::from_iter(type_list.into_iter()),
+        params: param_list,
+        types: type_list,
         pkg: pkg.clone(),
     };
 

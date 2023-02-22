@@ -1,5 +1,7 @@
 use std::fmt::{Display, Result};
 
+use crate::writers::smt::exprs::SmtExpr;
+
 pub struct MaybeDeclaration;
 
 impl Display for MaybeDeclaration {
@@ -11,6 +13,33 @@ impl Display for MaybeDeclaration {
     }
 }
 
+impl Into<Vec<SmtExpr>> for MaybeDeclaration {
+    fn into(self) -> Vec<SmtExpr> {
+        vec![(
+            "declare-datatypes",
+            (("Maybe", 1),),
+            ((
+                "par",
+                ("T",),
+                (("mk-some", ("maybe-get", "T")), ("mk-none",)),
+            ),),
+        )
+            .into()]
+    }
+}
+
+/*
+impl IntoIterator for MaybeDeclaration {
+    type Item = SmtExpr;
+
+    type IntoIter = <Vec<SmtExpr> as IntoIterator>::IntoIter;
+
+    fn into_iter(self) -> Self::IntoIter {
+        let tmp: Vec<SmtExpr> = self.into();
+        tmp.into_iter()
+    }
+}
+ */
 pub struct TupleDeclaration(pub usize);
 
 impl Display for TupleDeclaration {
@@ -35,6 +64,28 @@ impl Display for TupleDeclaration {
     }
 }
 
+impl Into<Vec<SmtExpr>> for TupleDeclaration {
+    fn into(self) -> Vec<SmtExpr> {
+        let TupleDeclaration(n) = self;
+
+        let types: Vec<SmtExpr> = (1..n + 1).map(|i| "T{i}".into()).collect::<Vec<_>>();
+
+        let ds: Vec<SmtExpr> = (1..n + 1)
+            .map(|i| (format!("(el{i}"), format!("T{i})")).into())
+            .collect::<Vec<_>>();
+
+        let mut fns = vec![format!("mk-tuple{n}").into()];
+        fns.extend(ds.into_iter());
+
+        vec![(
+            "declare-datatypes",
+            ((format!("Tuple{n}"), n),),
+            (("par", SmtExpr::List(types), (SmtExpr::List(fns),))),
+        )
+            .into()]
+    }
+}
+
 pub struct TuplesDeclaration(pub std::ops::Range<usize>);
 
 impl Display for TuplesDeclaration {
@@ -49,12 +100,29 @@ impl Display for TuplesDeclaration {
     }
 }
 
+impl Into<Vec<SmtExpr>> for TuplesDeclaration {
+    fn into(self) -> Vec<SmtExpr> {
+        self.0
+            .map(|i| <TupleDeclaration as Into<Vec<SmtExpr>>>::into(TupleDeclaration(i)))
+            .flatten()
+            .collect()
+    }
+}
+
 pub struct BitsDeclaration(pub String);
 
 impl Display for BitsDeclaration {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result {
         let BitsDeclaration(id) = self;
         writeln!(f, "(declare-sort Bits_{id} 0)")
+    }
+}
+
+impl Into<Vec<SmtExpr>> for BitsDeclaration {
+    fn into(self) -> Vec<SmtExpr> {
+        let BitsDeclaration(id) = self;
+
+        vec![("declare-sort", format!("Bits_{id}"), 0).into()]
     }
 }
 
@@ -65,3 +133,29 @@ impl Display for EmptyDeclaration {
         writeln!(f, "(declare-datatype Empty ((mk-empty)) )")
     }
 }
+
+impl Into<Vec<SmtExpr>> for EmptyDeclaration {
+    fn into(self) -> Vec<SmtExpr> {
+        vec![("declare-datatype", "Empty", (("mk-empty",),)).into()]
+    }
+}
+
+macro_rules! impl_IntoIterator {
+    ($tipe:ident) => {
+        impl IntoIterator for $tipe {
+            type Item = SmtExpr;
+            type IntoIter = <Vec<SmtExpr> as IntoIterator>::IntoIter;
+
+            fn into_iter(self) -> Self::IntoIter {
+                let tmp: Vec<SmtExpr> = self.into();
+                tmp.into_iter()
+            }
+        }
+    };
+}
+
+impl_IntoIterator!(MaybeDeclaration);
+impl_IntoIterator!(TupleDeclaration);
+impl_IntoIterator!(TuplesDeclaration);
+impl_IntoIterator!(EmptyDeclaration);
+impl_IntoIterator!(BitsDeclaration);

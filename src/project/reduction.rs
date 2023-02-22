@@ -10,6 +10,8 @@ use crate::project::Result;
 use super::assumption::ResolvedAssumption;
 use super::Error;
 
+use crate::proof::{Proof, Resolver, SliceResolver};
+
 // TODO: add a HybridArgument variant
 #[derive(Debug, Serialize, Deserialize)]
 pub enum Direction {
@@ -225,10 +227,185 @@ impl ResolvedReduction {
     }
 }
 
+fn verify(red: &Reduction, proof: &Proof) -> Result<()> {
+    let Reduction {
+        left,
+        right,
+        assumption,
+        leftmap,
+        rightmap,
+        ..
+    } = red;
+
+    // resolve game instances
+    let game_instance_resolver = SliceResolver(proof.instances());
+    let left = game_instance_resolver
+        .resolve(left)
+        .ok_or(Error::ProofCheck(format!(
+            "could not find game instance {left:?}"
+        )))?;
+    let right = game_instance_resolver
+        .resolve(right)
+        .ok_or(Error::ProofCheck(format!(
+            "could not find game instance {right:?}"
+        )))?;
+
+    let assumption_resolver = SliceResolver(proof.assumptions());
+    let assumption = assumption_resolver
+        .resolve(assumption)
+        .ok_or(Error::ProofCheck(format!(
+            "could not find assumption {assumption:?}"
+        )))?;
+
+    let assumption_left = &assumption.left_name;
+    let assumption_left = game_instance_resolver
+        .resolve(&assumption.left_name)
+        .ok_or(Error::ProofCheck(format!(
+            "could not find game instance {assumption_left:?}"
+        )))?;
+
+    let assumption_right = &assumption.right_name;
+    let assumption_right = game_instance_resolver
+        .resolve(&assumption.right_name)
+        .ok_or(Error::ProofCheck(format!(
+            "could not find game instance {assumption_right:?}"
+        )))?;
+
+    // PackageInstances are only mentioned once
+    if !(leftmap.iter().map(|(from, _to)| from).all_unique()) {
+        return Err(Error::ProofCheck(format!("leftmap has duplicate from")));
+    }
+    if !(leftmap.iter().map(|(_from, to)| to).all_unique()) {
+        return Err(Error::ProofCheck(format!("leftmap has duplicate to")));
+    }
+    if !(rightmap.iter().map(|(from, _to)| from).all_unique()) {
+        return Err(Error::ProofCheck(format!("rightmap has duplicate from")));
+    }
+    if !(rightmap.iter().map(|(_from, to)| to).all_unique()) {
+        return Err(Error::ProofCheck(format!("rightmap has duplicate to")));
+    }
+
+    // TODO check that all names are well-defined (or has that already happened?)
+
+    let right_package_resolver = SliceResolver(&right.as_game().pkgs);
+    let left_package_resolver = SliceResolver(&left.as_game().pkgs);
+    let assumption_right_package_resolver = SliceResolver(&assumption_right.as_game().pkgs);
+    let assumption_left_package_resolver = SliceResolver(&assumption_left.as_game().pkgs);
+
+    // Mapping may only occure with the same package type
+    let mismatches_left: Vec<_> = leftmap
+        .iter()
+        .filter(|(from, to)| {
+            !same_package(
+                &left_package_resolver.resolve(from).unwrap(),
+                &assumption_left_package_resolver.resolve(to).unwrap(),
+            )
+        })
+        .map(|(from, to)| format!("{from} and {to} have different types",))
+        .collect();
+    if !mismatches_left.is_empty() {
+        return Err(Error::ProofCheck(format!(
+            "leftmap has incompatible package instances: {}",
+            mismatches_left.join(", ")
+        )));
+    }
+    let mismatches_right: Vec<_> = rightmap
+        .iter()
+        .filter(|(from, to)| {
+            !same_package(
+                &right_package_resolver.resolve(from).unwrap(),
+                &assumption_right_package_resolver.resolve(to).unwrap(),
+            )
+        })
+        .map(|(from, to)| format!("{from} and {to} have different types",))
+        .collect();
+    if !mismatches_right.is_empty() {
+        return Err(Error::ProofCheck(format!(
+            "rightmap has incompatible package instances: {}",
+            mismatches_right.join(", ")
+        )));
+    }
+
+    // Every PackageInstance in the assumptions is mapped
+    if assumption_left.as_game().pkgs.len() != leftmap.len() {
+        return Err(Error::ProofCheck(format!(
+            "Some package instances in leftasusmption are not mapped"
+        )));
+    }
+    if assumption_right.as_game().pkgs.len() != rightmap.len() {
+        return Err(Error::ProofCheck(format!(
+            "Some package instances in rightasusmption are not mapped"
+        )));
+    }
+
+    // Every PackageInstance in the game, which is mapped
+    // only calls other mapped package instances
+    for Edge(from, to, _sig) in &left.as_game().edges {
+        let from = &left.as_game().pkgs[*from].name;
+        let from_is_mapped = leftmap
+            .iter()
+            .find(|(game_inst_name, _)| game_inst_name == from)
+            .is_some();
+
+        let to = &left.as_game().pkgs[*to].name;
+        let to_is_mapped = leftmap
+            .iter()
+            .find(|(game_inst_name, _)| game_inst_name == to)
+            .is_some();
+
+        if from_is_mapped && !to_is_mapped {
+            return Err(Error::ProofCheck(format!(
+                "Left Game: Mapped package {from} calls unmappedpackage {to}",
+            )));
+        }
+    }
+    for Edge(from, to, _sig) in &right.as_game().edges {
+        let from = &right.as_game().pkgs[*from].name;
+        let from_is_mapped = rightmap
+            .iter()
+            .find(|(game_inst_name, _)| game_inst_name == from)
+            .is_some();
+
+        let to = &right.as_game().pkgs[*to].name;
+        let to_is_mapped = rightmap
+            .iter()
+            .find(|(game_inst_name, _)| game_inst_name == to)
+            .is_some();
+
+        if from_is_mapped && !to_is_mapped {
+            return Err(Error::ProofCheck(format!(
+                "Right Game: Mapped package {from} calls unmappedpackage {to}",
+            )));
+        }
+    }
+
+    // The PackageInstances in the games which are *not* mapped need to be identical
+    let unmapped_left: HashSet<_> =
+        HashSet::from_iter(left.as_game().pkgs.iter().filter(|pkg_inst| {
+            leftmap
+                .iter()
+                .find(|(game_inst_name, _)| game_inst_name == &pkg_inst.name)
+                .is_none()
+        }));
+    let unmapped_right = HashSet::from_iter(right.as_game().pkgs.iter().filter(|pkg_inst| {
+        rightmap
+            .iter()
+            .find(|(game_inst_name, _)| game_inst_name == &pkg_inst.name)
+            .is_none()
+    }));
+
+    if unmapped_left != unmapped_right {
+        return Err(Error::ProofCheck(format!(
+            "unmapped package instances not equal: {:?} and {:?}",
+            unmapped_left, unmapped_right
+        )));
+    }
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
-
     use crate::package::{
         Composition, Edge, Export, OracleDef, OracleSig, Package, PackageInstance,
     };
@@ -280,20 +457,20 @@ mod tests {
             pkgs: vec![
                 PackageInstance {
                     pkg: pkg_a.clone(),
-                    params: HashMap::new(),
-                    types: HashMap::new(),
+                    params: vec![],
+                    types: vec![],
                     name: "leftA1".to_string(),
                 },
                 PackageInstance {
                     pkg: pkg_a.clone(),
-                    params: HashMap::new(),
-                    types: HashMap::new(),
+                    params: vec![],
+                    types: vec![],
                     name: "leftA2".to_string(),
                 },
                 PackageInstance {
                     pkg: pkg_a.clone(),
-                    params: HashMap::new(),
-                    types: HashMap::new(),
+                    params: vec![],
+                    types: vec![],
                     name: "leftA3".to_string(),
                 },
             ],
@@ -307,20 +484,20 @@ mod tests {
             pkgs: vec![
                 PackageInstance {
                     pkg: pkg_a.clone(),
-                    params: HashMap::new(),
-                    types: HashMap::new(),
+                    params: vec![],
+                    types: vec![],
                     name: "rightA1".to_string(),
                 },
                 PackageInstance {
                     pkg: pkg_a.clone(),
-                    params: HashMap::new(),
-                    types: HashMap::new(),
+                    params: vec![],
+                    types: vec![],
                     name: "rightA2".to_string(),
                 },
                 PackageInstance {
                     pkg: pkg_b.clone(),
-                    params: HashMap::new(),
-                    types: HashMap::new(),
+                    params: vec![],
+                    types: vec![],
                     name: "rightB3".to_string(),
                 },
             ],
@@ -335,14 +512,14 @@ mod tests {
             pkgs: vec![
                 PackageInstance {
                     pkg: pkg_a.clone(),
-                    params: HashMap::new(),
-                    types: HashMap::new(),
+                    params: vec![],
+                    types: vec![],
                     name: "leftA1".to_string(),
                 },
                 PackageInstance {
                     pkg: pkg_a.clone(),
-                    params: HashMap::new(),
-                    types: HashMap::new(),
+                    params: vec![],
+                    types: vec![],
                     name: "leftA3".to_string(),
                 },
             ],
@@ -355,14 +532,14 @@ mod tests {
             pkgs: vec![
                 PackageInstance {
                     pkg: pkg_a.clone(),
-                    params: HashMap::new(),
-                    types: HashMap::new(),
+                    params: vec![],
+                    types: vec![],
                     name: "rightA1".to_string(),
                 },
                 PackageInstance {
                     pkg: pkg_b.clone(),
-                    params: HashMap::new(),
-                    types: HashMap::new(),
+                    params: vec![],
+                    types: vec![],
                     name: "rightB3".to_string(),
                 },
             ],

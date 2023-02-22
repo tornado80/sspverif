@@ -1,4 +1,5 @@
 use crate::package::{Composition, Export};
+use crate::proof::{Proof, Resolver, SliceResolver};
 use crate::transforms::samplify::SampleInfo;
 use crate::util::prover_process::{Communicator, ProverResponse};
 use crate::writers::smt::exprs::{SmtAnd, SmtAssert, SmtEq2, SmtExpr, SmtImplies, SmtNot};
@@ -18,6 +19,334 @@ use std::iter::FromIterator;
 use serde_derive::{Deserialize, Serialize};
 
 use super::load::ProofTreeSpec;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ProverThingyState {
+    EmitBaseDeclarations,
+    EmitGameInstances,
+    EmitConstantDeclarations,
+    EmitInvariant(usize),
+    EmitLemmaAssert(usize),
+    Done,
+}
+
+struct ProverThingyOutput {
+    output_type: ProverThingyOutputType,
+    smt: Vec<SmtExpr>,
+    expect: Option<ProverResponse>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum ProverThingyOutputType {
+    BaseDeclarations,
+    Games,
+    ConstantDeclarations,
+    Invariant { file_name: String },
+    LemmaAssert { lemma_name: String },
+    End,
+}
+
+struct ProverThingy<'a> {
+    state: ProverThingyState,
+    eq: &'a Equivalence,
+    proof: &'a Proof,
+    types: &'a [Type],
+    sample_info_left: &'a SampleInfo,
+    sample_info_right: &'a SampleInfo,
+}
+
+impl<'a> ProverThingy<'a> {
+    pub fn new(
+        eq: &'a Equivalence,
+        proof: &'a Proof,
+        types: &'a [Type],
+        sample_info_left: &'a SampleInfo,
+        sample_info_right: &'a SampleInfo,
+    ) -> ProverThingy<'a> {
+        ProverThingy {
+            state: ProverThingyState::EmitBaseDeclarations,
+            eq,
+            proof,
+            types,
+            sample_info_left,
+            sample_info_right,
+        }
+    }
+
+    pub fn next(&mut self, resp: Option<ProverResponse>) -> ProverThingyOutput {
+        match self.state {
+            ProverThingyState::EmitBaseDeclarations => {
+                let resp = self.emit_base_declarations();
+                self.state = ProverThingyState::EmitGameInstances;
+                resp
+            }
+            ProverThingyState::EmitGameInstances => {
+                let resp = self.emit_game_definitions();
+                self.state = ProverThingyState::EmitConstantDeclarations;
+                resp
+            }
+            ProverThingyState::EmitConstantDeclarations => {
+                let resp = self.emit_base_declarations();
+                self.state = ProverThingyState::EmitInvariant(0);
+                resp
+            }
+            ProverThingyState::EmitInvariant(_) => todo!(),
+            ProverThingyState::EmitLemmaAssert(_) => todo!(),
+            ProverThingyState::Done => todo!(),
+        }
+    }
+
+    fn emit_base_declarations(&self) -> ProverThingyOutput {
+        let mut base_declarations: Vec<SmtExpr> = vec![("set-logic", "ALL").into()];
+
+        for tipe in self.types {
+            if let Type::Bits(id) = &tipe {
+                base_declarations.extend(hacks::BitsDeclaration(id.to_string()).into_iter());
+            }
+        }
+
+        base_declarations.extend(hacks::MaybeDeclaration.into_iter());
+        base_declarations.extend(hacks::TuplesDeclaration(1..32).into_iter());
+        base_declarations.extend(hacks::EmptyDeclaration.into_iter());
+
+        ProverThingyOutput {
+            output_type: ProverThingyOutputType::BaseDeclarations,
+            smt: base_declarations,
+            expect: None,
+        }
+    }
+
+    fn emit_game_definitions(&self) -> ProverThingyOutput {
+        let instance_resolver = SliceResolver(self.proof.instances());
+        let left = instance_resolver.resolve(&self.eq.left).unwrap();
+        let right = instance_resolver.resolve(&self.eq.right).unwrap();
+
+        let mut left_writer = CompositionSmtWriter::new(left.as_game(), &self.sample_info_left);
+        let mut right_writer = CompositionSmtWriter::new(right.as_game(), &self.sample_info_right);
+        // write left game code
+        let mut out = left_writer.smt_composition_all();
+        // write right game code
+        let right_out = right_writer.smt_composition_all();
+
+        out.extend(right_out.into_iter());
+
+        ProverThingyOutput {
+            output_type: ProverThingyOutputType::Games,
+            smt: out,
+            expect: None,
+        }
+    }
+
+    fn emit_constant_declarations(&self) -> ProverThingyOutput {
+        let instance_resolver = SliceResolver(self.proof.instances());
+        let left = instance_resolver.resolve(&self.eq.left).unwrap();
+        let right = instance_resolver.resolve(&self.eq.right).unwrap();
+
+        let gctx_left = contexts::GameContext::new(left.as_game());
+        let gctx_right = contexts::GameContext::new(right.as_game());
+
+        let mut out = Vec::new();
+
+        // write declaration of left (old) state constant
+        let decl_state_left =
+            declare::declare_const("state-left".to_string(), gctx_left.smt_sort_gamestates());
+
+        // write declaration of right (old) state constant
+        let decl_state_right =
+            declare::declare_const("state-right".to_string(), gctx_right.smt_sort_gamestates());
+
+        out.push(decl_state_left);
+        out.push(decl_state_right);
+
+        // write declarations of state lengths
+        let state_length_left_old = "state-length-left-old";
+        let state_length_left_new = "state-length-left-new";
+        let state_length_right_old = "state-length-right-old";
+        let state_length_right_new = "state-length-right-new";
+        let state_lengths = &[
+            state_length_left_old,
+            state_length_left_new,
+            state_length_right_old,
+            state_length_right_new,
+        ];
+
+        for state_length in state_lengths {
+            let decl_state_length =
+                declare::declare_const(state_length.to_string(), types::Type::Integer);
+            out.push(decl_state_length);
+        }
+
+        // write declarations of arguments
+        for Export(_, sig) in &left.as_game().exports {
+            let oracle_name = &sig.name;
+            for (arg_name, arg_type) in &sig.args {
+                let decl_arg =
+                    declare::declare_const(format!("arg-{oracle_name}-{arg_name}"), arg_type);
+                out.push(decl_arg);
+            }
+        }
+
+        for (decl_ret, constrain) in build_returns(&left.as_game(), Side::Left) {
+            out.push(decl_ret);
+            out.push(constrain);
+        }
+
+        for (decl_ret, constrain) in build_returns(&right.as_game(), Side::Right) {
+            out.push(decl_ret);
+            out.push(constrain);
+        }
+
+        for (decl_ctr, assert_ctr, decl_val, assert_val) in
+            build_rands(&self.sample_info_left, left.as_game(), Side::Left)
+        {
+            out.push(decl_ctr);
+            out.push(assert_ctr);
+            out.push(decl_val);
+            out.push(assert_val);
+        }
+
+        for (decl_ctr, assert_ctr, decl_val, assert_val) in
+            build_rands(&self.sample_info_right, right.as_game(), Side::Right)
+        {
+            out.push(decl_ctr);
+            out.push(assert_ctr);
+            out.push(decl_val);
+            out.push(assert_val);
+        }
+
+        ProverThingyOutput {
+            output_type: ProverThingyOutputType::ConstantDeclarations,
+            smt: out,
+            expect: None,
+        }
+    }
+}
+
+fn verify(
+    eq: &Equivalence,
+    proof: &Proof,
+    types: &[Type],
+    sample_info_left: &SampleInfo,
+    sample_info_right: &SampleInfo,
+) -> Result<()> {
+    let mut prover = Communicator::new_cvc5()?;
+    let mut thingy = ProverThingy::new(eq, proof, types, sample_info_left, sample_info_right);
+    let mut resp = None;
+
+    loop {
+        let ProverThingyOutput {
+            smt: smt_exprs,
+            expect,
+            output_type,
+        } = thingy.next(resp);
+
+        if output_type == ProverThingyOutputType::End {
+            return Ok(());
+        }
+
+        for smt_expr in smt_exprs {
+            write!(prover, "{smt_expr}")?;
+        }
+
+        resp = if let Some(expected) = expect {
+            let resp: ProverResponse = prover.check_sat()?;
+            if resp != expected {
+                //let model = prover.get_model();
+                let model = ();
+                return Err(Error::ProofCheck(format!("expected prover result {expected}, got {resp} at output type {output_type:?}. model: {model:?}")));
+            }
+
+            Some(expected)
+        } else {
+            None
+        };
+    }
+}
+
+/*
+
+do the inversion of control approach
+
+- type that carries all state of the prover session
+- has a method to get the next output and pass in the prover data
+
+
+impl ProverThingy {
+    fn next(data: ???) -> (SmtCode, SmtExpectedResponse, ???)
+    fn next(data: ProverResponse) -> Result<SmtCode>
+
+
+    fn next() -> (SmtCode, SmtExpectedResponse, ???)
+    fn recv_data(data:???)
+}
+
+
+fn run() {
+    let prover = Prover::new();
+
+    let thingy = ProverThingt::new(....);
+
+    let smt = thingy.next(None)?
+    let resp: ProverResponse = prover.send(smt);
+
+    let next_smt = thingy.next(Some(resp))?;
+}
+
+
+fn verify(eq: &Equality, proof: &Proof) {
+    let mut prover = Prover::new_cvc5();
+    let mut thingy = ProverThingy::new(eq, proof);
+    let mut resp = None;
+
+    for {
+        let (smt, expected, smt_type) = thingy.next(resp)?;
+        transcripts[smt_type].write(smt);
+        prover.send(smt);
+
+        resp = match expected {
+            Some(expected) => {
+                let resp: ProverResponse = prover.recv();
+                if resp != expected {
+                    let model = prover.get_model();
+                    return Err(Error::ProveError(smt_type, model));
+                }
+
+                Some(expected)
+            }
+            None => None,
+        };
+    }
+
+}
+
+enum SmtType {
+    BaseDeclarations,
+    Games,
+    ConstantDeclarations,
+    Invariant{file_name: String},
+    LemmaAssert{lemma_name: String}
+}
+
+
+
+(push 1)
+(assert ....)
+(check-sat)
+
+entweder
+-> sat
+(pop 1)
+
+else
+-> unsat/unknown
+(get-model)
+(pop 1)
+
+
+
+
+
+ */
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Equivalence {

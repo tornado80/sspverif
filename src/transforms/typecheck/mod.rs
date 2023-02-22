@@ -28,17 +28,17 @@ impl From<types::Type> for Type {
     }
 }
 
-pub struct Transformation {
+pub struct Transformation<'a> {
     scope: Scope,
-    comp: Composition,
+    comp: &'a Composition,
 }
 
-impl Transformation {
-    pub fn new(scope: Scope, comp: Composition) -> Transformation {
+impl<'a> Transformation<'a> {
+    pub fn new(scope: Scope, comp: &'a Composition) -> Transformation {
         Transformation { scope, comp }
     }
 
-    pub fn new_with_empty_scope(comp: Composition) -> Transformation {
+    pub fn new_with_empty_scope(comp: &'a Composition) -> Transformation {
         Transformation::new(Scope::new(), comp)
     }
 
@@ -47,12 +47,12 @@ impl Transformation {
     }
 }
 
-impl super::Transformation for Transformation {
+impl<'a> super::Transformation for Transformation<'a> {
     type Err = TypeCheckError;
     type Aux = Scope;
     fn transform(&self) -> Result<(Composition, Scope), TypeCheckError> {
         let mut scope = self.scope.clone();
-        let typed_comp = typecheck_comp(&self.comp, &mut scope)?;
+        let typed_comp = typecheck_comp(self.comp, &mut scope)?;
 
         Ok((typed_comp, scope))
     }

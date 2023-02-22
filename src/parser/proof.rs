@@ -56,6 +56,8 @@ pub fn handle_proof<'a>(ast: Pair<Rule>, pkgs: &[Package], games: &[Composition]
         instances,
         assumptions,
         game_hops,
+        games.to_vec(),
+        pkgs.to_vec(),
     ))
 }
 
@@ -78,11 +80,12 @@ fn handle_instance_decl(
     let (types, consts) = handle_instance_assign_list(&name, proof_consts, body_ast, pkgs, games)?;
 
     let game_resolver = SliceResolver(games);
-    if game_resolver.resolve(&game_name).is_none() {
-        return Err(Error::UndefinedGame(game_name.to_string()).with_span(game_span));
-    }
+    let game = match game_resolver.resolve(&game_name) {
+        Some(game) => game,
+        None => return Err(Error::UndefinedGame(game_name.to_string()).with_span(game_span)),
+    };
 
-    let game_inst = GameInstance::new(name, game_name, types, consts);
+    let game_inst = GameInstance::new(name, game.clone(), types, consts);
 
     check_consts(&game_inst, span, games)?;
 

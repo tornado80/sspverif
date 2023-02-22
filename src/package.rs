@@ -89,10 +89,10 @@ impl Package {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PackageInstance {
-    pub params: HashMap<String, Expression>,
-    pub types: HashMap<Type, Type>,
+    pub params: Vec<(String, Expression)>,
+    pub types: Vec<(Type, Type)>,
     pub pkg: Package,
     pub name: String,
 }

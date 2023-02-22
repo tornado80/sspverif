@@ -1,19 +1,21 @@
 use crate::package::Composition;
+use crate::proof::{GameInstance, Proof};
 use crate::statement::{CodeBlock, Statement};
 use crate::types::Type;
-
-pub struct Transformation<'a>(pub &'a Composition);
 
 #[derive(Debug, Clone)]
 pub struct Error(pub String);
 
-impl<'a> super::Transformation for Transformation<'a> {
+pub struct TransformNg {
+    //proof: &'a Proof,
+}
+
+impl<'a> super::GameTransform for TransformNg {
     type Err = Error;
     type Aux = ();
 
-    fn transform(&self) -> Result<(Composition, ()), Error> {
-        let insts: Result<Vec<_>, _> = self
-            .0
+    fn transform_game(&self, game: &Composition) -> Result<(Composition, Self::Aux), Self::Err> {
+        let insts: Result<Vec<_>, _> = game
             .pkgs
             .iter()
             .map(|inst| {
@@ -28,10 +30,62 @@ impl<'a> super::Transformation for Transformation<'a> {
         Ok((
             Composition {
                 pkgs: insts?,
-                ..self.0.clone()
+                ..game.clone()
             },
             (),
         ))
+    }
+}
+
+use super::GameTransform;
+
+impl super::GameInstanceTransform for TransformNg {
+    type Err = Error;
+    type Aux = ();
+
+    fn transform_game_instance(
+        &self,
+        instance: &crate::proof::GameInstance,
+    ) -> Result<(crate::proof::GameInstance, Self::Aux), Self::Err> {
+        let (game, _) = <Self as GameTransform>::transform_game(&self, instance.as_game())?;
+        Ok((instance.with_other_game(game), ()))
+    }
+}
+
+mod old {
+    use super::super::Transformation as TransformationTrait;
+    use super::{returnify, Error};
+    use crate::package::Composition;
+    use crate::types::Type;
+
+    pub struct Transformation<'a>(pub &'a Composition);
+
+    impl<'a> TransformationTrait for Transformation<'a> {
+        type Err = Error;
+        type Aux = ();
+
+        fn transform(&self) -> Result<(Composition, ()), Error> {
+            let insts: Result<Vec<_>, _> = self
+                .0
+                .pkgs
+                .iter()
+                .map(|inst| {
+                    let mut newinst = inst.clone();
+                    for (i, oracle) in newinst.pkg.oracles.clone().iter().enumerate() {
+                        newinst.pkg.oracles[i].code =
+                            returnify(&oracle.code, oracle.sig.tipe == Type::Empty)?;
+                    }
+                    Ok(newinst)
+                })
+                .collect();
+            Ok((
+                Composition {
+                    pkgs: insts?,
+                    ..self.0.clone()
+                },
+                (),
+            ))
+        }
     }
 }
 

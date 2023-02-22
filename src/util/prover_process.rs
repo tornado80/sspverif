@@ -20,7 +20,7 @@ pub enum Error {
     ProverError(String),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum ProverResponse {
     Sat,
     Unsat,

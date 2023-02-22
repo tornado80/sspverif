@@ -10,8 +10,8 @@ use crate::{block, fncall};
 pub fn mod_prf(params: &HashMap<String, Expression>) -> PackageInstance {
     PackageInstance {
         name: "mod-prf".to_string(),
-        types: HashMap::new(),
-        params: params.clone(),
+        types: vec![],
+        params: params.clone().into_iter().collect(),
         pkg: Package {
             name: "mod-prf".to_string(),
             params: vec![

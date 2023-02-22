@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::{
     expressions::Expression,
-    package::{Composition, Package},
+    package::{Composition, Package, PackageInstance},
     types::Type,
 };
 
@@ -33,6 +33,7 @@ macro_rules! impl_Named {
 }
 
 impl_Named!(Package);
+impl_Named!(PackageInstance);
 impl_Named!(Composition);
 impl_Named!(GameInstance);
 impl_Named!(Assumption);
@@ -54,6 +55,7 @@ impl<'a> Resolver<Expression> for SliceResolver<'a, (String, Expression)> {
 pub struct GameInstance {
     name: String,
     game_name: String,
+    game: Composition,
     types: Vec<(Type, Type)>,
     consts: Vec<(String, Expression)>,
 }
@@ -61,17 +63,29 @@ pub struct GameInstance {
 impl GameInstance {
     pub fn new(
         name: String,
-        game_name: String,
+        //game_name: String,
+        game: Composition,
         types: Vec<(Type, Type)>,
         consts: Vec<(String, Expression)>,
     ) -> GameInstance {
+        let game_name = game.name.clone();
+
         GameInstance {
             name,
             game_name,
+            game,
             types,
             consts,
         }
     }
+
+    pub fn with_other_game(&self, game: Composition) -> GameInstance {
+        GameInstance {
+            game,
+            ..self.clone()
+        }
+    }
+
     pub fn as_name(&self) -> &str {
         &self.name
     }
@@ -82,6 +96,10 @@ impl GameInstance {
 
     pub fn as_game_name(&self) -> &str {
         &self.game_name
+    }
+
+    pub fn as_game(&self) -> &Composition {
+        &self.game
     }
 }
 
@@ -170,6 +188,8 @@ pub struct Proof {
     instances: Vec<GameInstance>,
     assumptions: Vec<Assumption>,
     game_hops: Vec<GameHop>,
+    games: Vec<Composition>,
+    pkgs: Vec<Package>,
 }
 
 impl Proof {
@@ -179,6 +199,8 @@ impl Proof {
         instances: Vec<GameInstance>,
         assumptions: Vec<Assumption>,
         game_hops: Vec<GameHop>,
+        games: Vec<Composition>,
+        pkgs: Vec<Package>,
     ) -> Proof {
         Proof {
             name,
@@ -186,14 +208,32 @@ impl Proof {
             instances,
             assumptions,
             game_hops,
+            games,
+            pkgs,
         }
     }
 
     pub fn as_name(&self) -> &str {
-        return &self.name;
+        &self.name
     }
 
     pub fn game_hops(&self) -> &[GameHop] {
-        return &self.game_hops;
+        &self.game_hops
+    }
+
+    pub fn instances(&self) -> &[GameInstance] {
+        &self.instances
+    }
+
+    pub fn assumptions(&self) -> &[Assumption] {
+        &self.assumptions
+    }
+
+    pub fn games(&self) -> &[Composition] {
+        &self.games
+    }
+
+    pub fn packages(&self) -> &[Package] {
+        &self.pkgs
     }
 }

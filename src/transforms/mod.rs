@@ -1,5 +1,6 @@
 use crate::{
     package::{Composition, Package, PackageInstance},
+    proof::GameInstance,
     types::Type,
 };
 
@@ -37,7 +38,22 @@ pub trait TypeTransform {
 
     fn transform_type(&self, tipe: &Type) -> Result<(Type, Self::Aux), Self::Err>;
 }
+pub trait GameInstanceTransform {
+    type Err;
+    type Aux;
 
+    fn transform_game_instance(
+        &self,
+        instance: &GameInstance,
+    ) -> Result<(GameInstance, Self::Aux), Self::Err>;
+}
+
+pub trait GameTransform {
+    type Err;
+    type Aux;
+
+    fn transform_game(&self, game: &Composition) -> Result<(Composition, Self::Aux), Self::Err>;
+}
 pub trait Transformation {
     type Err;
     type Aux;
@@ -59,8 +75,7 @@ pub fn transform_all(
     let (comp, _) = resolvetypes::Transformation(&comp)
         .transform()
         .expect("resolving user-defined types failed");
-    let (comp, scope) =
-        typecheck::Transformation::new_with_empty_scope(comp.clone()).transform()?;
+    let (comp, scope) = typecheck::Transformation::new_with_empty_scope(&comp).transform()?;
     let (comp, types) = type_extract::Transformation(&comp)
         .transform()
         .expect("type extraction transformation failed unexpectedly");
@@ -70,8 +85,8 @@ pub fn transform_all(
     let (comp, _) = unwrapify::Transformation(&comp)
         .transform()
         .expect("unwrapify transformation failed unexpectedly");
-    let (comp, _) = returnify::Transformation(&comp)
-        .transform()
+    let (comp, _) = returnify::TransformNg {}
+        .transform_game(&comp)
         .expect("returnify transformation failed unexpectedly");
     let (comp, _) = varspecify::Transformation(&comp)
         .transform()
@@ -102,8 +117,7 @@ pub fn transform_explain(
     let (comp, _) = resolvetypes::Transformation(&comp)
         .transform()
         .expect("resolving user-defined types failed");
-    let (comp, scope) =
-        typecheck::Transformation::new_with_empty_scope(comp.clone()).transform()?;
+    let (comp, scope) = typecheck::Transformation::new_with_empty_scope(&comp).transform()?;
     let (comp, samplinginfo) = samplify::Transformation(&comp)
         .transform()
         .expect("samplify transformation failed unexpectedly");

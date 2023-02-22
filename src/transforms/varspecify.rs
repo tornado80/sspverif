@@ -1,3 +1,6 @@
+use std::collections::HashMap;
+use std::iter::FromIterator;
+
 use crate::expressions::Expression;
 use crate::identifier::Identifier;
 use crate::package::{Composition, OracleDef, Package, PackageInstance};
@@ -32,6 +35,8 @@ fn var_specify_helper(inst: &PackageInstance, block: CodeBlock, comp_name: &str)
         params: inst_params,
         ..
     } = inst;
+
+    let inst_params: HashMap<_, _> = HashMap::from_iter(inst_params.iter().cloned());
 
     let fixup = |expr| match expr {
         Expression::FnCall(Identifier::Scalar(id), args) => {
@@ -306,8 +311,8 @@ mod test {
         code.iter().for_each(|c| {
             let res = var_specify(
                 &PackageInstance {
-                    params: params.clone(),
-                    types: HashMap::new(),
+                    params: params.clone().into_iter().collect(),
+                    types: vec![],
                     name: "test".to_string(),
                     pkg: Package {
                         name: "testpkg".to_string(),
@@ -350,8 +355,8 @@ mod test {
         code.iter().for_each(|c| {
             let res = var_specify(
                 &PackageInstance {
-                    types: HashMap::new(),
-                    params: params.clone(),
+                    params: params.clone().into_iter().collect(),
+                    types: vec![],
                     name: "testpkg".to_string(),
                     pkg: Package {
                         name: "testpkg".to_string(),
@@ -399,8 +404,8 @@ mod test {
         code.iter().for_each(|c| {
             let res = var_specify(
                 &PackageInstance {
-                    types: HashMap::new(),
-                    params: params.clone(),
+                    params: params.clone().into_iter().collect(),
+                    types: vec![],
                     name: "testpkg".to_string(),
                     pkg: Package {
                         name: "testpkg".to_string(),

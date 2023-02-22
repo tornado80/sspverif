@@ -5,6 +5,7 @@ use crate::statement::{CodeBlock, Statement};
 use crate::types::Type;
 
 use std::collections::HashMap;
+use std::iter::FromIterator;
 
 pub struct ResolveTypesPackageInstanceTransform;
 
@@ -19,7 +20,7 @@ impl super::PackageInstanceTransform for ResolveTypesPackageInstanceTransform {
         let mut inst = inst.clone();
 
         let inst_name = &inst.name;
-        let type_mapping = &inst.types;
+        let type_mapping = HashMap::from_iter(inst.types.iter().cloned());
 
         /*
         Things we need to do here:
@@ -37,7 +38,7 @@ impl super::PackageInstanceTransform for ResolveTypesPackageInstanceTransform {
                 param_name: param_name.clone(),
             };
 
-            type_walker(type_mapping, place, tipe)?;
+            type_walker(&type_mapping, place, tipe)?;
         }
 
         // resolve state
@@ -46,7 +47,7 @@ impl super::PackageInstanceTransform for ResolveTypesPackageInstanceTransform {
                 inst_name: inst_name.clone(),
                 state_name: state_name.clone(),
             };
-            type_walker(type_mapping, place, tipe)?;
+            type_walker(&type_mapping, place, tipe)?;
         }
 
         // resolve oracle definitions
@@ -63,7 +64,7 @@ impl super::PackageInstanceTransform for ResolveTypesPackageInstanceTransform {
                 inst_name: inst_name.clone(),
             };
 
-            type_walker(type_mapping, return_place, tipe)?;
+            type_walker(&type_mapping, return_place, tipe)?;
 
             // resolve oracle arg types
             for (arg_name, tipe) in args {
@@ -72,7 +73,7 @@ impl super::PackageInstanceTransform for ResolveTypesPackageInstanceTransform {
                     arg_name: arg_name.clone(),
                     inst_name: inst_name.clone(),
                 };
-                type_walker(type_mapping, place, tipe)?;
+                type_walker(&type_mapping, place, tipe)?;
             }
 
             let place = Place::OracleBody {
@@ -96,7 +97,7 @@ impl super::PackageInstanceTransform for ResolveTypesPackageInstanceTransform {
                 oracle_name: oracle_name.clone(),
             };
 
-            type_walker(type_mapping, place, tipe)?;
+            type_walker(&type_mapping, place, tipe)?;
 
             // resolve oracle arg types
             for (arg_name, tipe) in args {
@@ -105,7 +106,7 @@ impl super::PackageInstanceTransform for ResolveTypesPackageInstanceTransform {
                     arg_name: arg_name.clone(),
                     inst_name: inst_name.clone(),
                 };
-                type_walker(type_mapping, place, tipe)?;
+                type_walker(&type_mapping, place, tipe)?;
             }
         }
 
