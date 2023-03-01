@@ -268,6 +268,78 @@
     (= (select     z-bot-right h) (as mk-none (Maybe Bool ))))
 ))))))
 
+(define-fun invariant-GBLG-post          (
+        (state-left  (Array Int CompositionState-Left ))
+        (state-right (Array Int CompositionState-Right))
+        (state-length-left  Int) ;old index
+        (state-length-right Int) ;old index
+        (state-left-new  Return_Left_gate_GBLG)
+        (state-right-new Return_Right_simgate_GBLG)
+        (h Int)
+        (l Int)
+        (r Int)
+        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
+        (j Int))
+    Bool
+(let (
+      (state-left-nov  (select  (return-Left-gate-GBLG-state        state-left-new)
+                                (return-Left-gate-GBLG-state-length state-left-new)
+                                ))
+      (state-right-nov (select  (return-Right-simgate-GBLG-state        state-right-new)
+                                (return-Right-simgate-GBLG-state-length state-right-new)
+                                ))
+     )
+
+    (let
+
+; state of the key packages
+(
+(top-key-package-left  (project-State_Left_keys_top      (composition-pkgstate-Left-keys_top     state-left-nov  )))
+(top-key-package-right (project-State_Right_keys_top     (composition-pkgstate-Right-keys_top    state-right-nov )))
+(bot-key-package-left  (project-State_Left_keys_bottom   (composition-pkgstate-Left-keys_bottom  state-left-nov  )))
+(bot-key-package-right (project-State_Right_keys_bottom  (composition-pkgstate-Right-keys_bottom state-right-nov )))
+)
+
+(let
+
+; table of the bottom key package
+(
+(table-bot-left  (state-keys-T    bot-key-package-left))
+(table-bot-right (state-keys-T    bot-key-package-right))
+(    z-bot-left  (state-keys-z    bot-key-package-left))
+(    z-bot-right (state-keys-z    bot-key-package-right))
+(flag-bot-left   (state-keys-flag bot-key-package-left))
+(flag-bot-right  (state-keys-flag bot-key-package-right))
+)
+
+(and
+;top key package states are equal
+(= top-key-package-left top-key-package-right)
+
+;for bottom key package, tables are equal
+(= table-bot-left table-bot-right)
+
+;top key package state is "good"
+(well-defined-Key-active top-key-package-left )
+(well-defined-Key-active top-key-package-right)
+
+;bottom key packages state is "good"
+(well-defined-Key-bool   bot-key-package-left )
+(well-defined-Key-active bot-key-package-right)
+(forall ((h Int))
+(and
+    (= (select  flag-bot-left  h) 
+       (select  flag-bot-right h))
+(=> (= (select table-bot-left  h) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
+    (= (select  flag-bot-left  h) (   mk-some        false)))
+(=> (= (select table-bot-right h) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
+    (and
+    (= (select  flag-bot-right h) (   mk-some        false))
+    (= (select     z-bot-right h) (as mk-none (Maybe Bool )))))
+(=> (= (select  flag-bot-right h) (   mk-some        false))
+    (= (select     z-bot-right h) (as mk-none (Maybe Bool ))))
+)))))))
+
 
 
 
@@ -594,6 +666,55 @@
    false)
 ))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+;    State lemma: top left = top right
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(define-fun top-whole-left-neu-right-neu          (
+        (state-left (Array Int CompositionState-Left))
+        (state-right (Array Int CompositionState-Right))
+        (state-length-left  Int) ;old index
+        (state-length-right Int) ;old index
+        (state-left-NEU Return_Left_gate_GBLG)
+        (state-right-NEU Return_Right_simgate_GBLG)
+        (h Int)
+        (l Int)
+        (r Int)
+        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
+        (j Int))
+        Bool
+
+
+    (let (
+      (state-left-neu (select   (return-Left-gate-GBLG-state state-left-NEU)
+                                (return-Left-gate-GBLG-state-length state-left-NEU)))
+      (state-right-neu (select  (return-Right-simgate-GBLG-state state-right-NEU)
+                                (return-Right-simgate-GBLG-state-length state-right-NEU)))
+    )
+
+  (let
+
+; state of the key packages
+(
+(   top-key-package-left-neu  (project-State_Left_keys_top     (composition-pkgstate-Left-keys_top     state-left-neu)))
+(   top-key-package-right-neu (project-State_Right_keys_top    (composition-pkgstate-Right-keys_top    state-right-neu)))
+(bottom-key-package-left-neu  (project-State_Left_keys_bottom  (composition-pkgstate-Left-keys_bottom  state-left-neu)))
+(bottom-key-package-right-neu (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-neu)))
+)
+
+
+;;; top key packages have equal state
+(= top-key-package-left-neu top-key-package-right-neu)
+
+
+)))
+
+
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
@@ -612,14 +733,212 @@
 ; full characterization of no-abort
 ; The latter two things only come in the TOML
 ;
-; Implementation:
+;  New Implementation:
+;  bot-left-neu: characterization of new left table
+
+(declare-const Z (Array Bool (Maybe Bits_n)))
+
+(define-fun bot-left-neu          (
+        (state-left  (Array Int CompositionState-Left))
+        (state-right (Array Int CompositionState-Right))
+        (state-length-left Int)  ; old index
+        (state-length-right Int) ; old index
+        (state-left-NEU  Return_Left_gate_GBLG)    
+        (state-right-NEU Return_Right_simgate_GBLG)
+        (h Int)
+        (l Int)
+        (r Int)
+        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
+        (j Int))
+        Bool
+
+
+    (let (
+      (state-left-1  (select  (return-Left-gate-GBLG-state state-left-NEU)
+                                ;(return-Left-gate-GBLG-state-length state-left-NEU)
+                                1))
+      (state-left-2  (select  (return-Left-gate-GBLG-state state-left-NEU)
+                                ;(return-Left-gate-GBLG-state-length state-left-NEU)
+                                2))
+      (state-left-neu  (select  (return-Left-gate-GBLG-state state-left-NEU)
+                              (return-Left-gate-GBLG-state-length state-left-NEU)
+                                 ))
+    )
+
+  (let
+
+; state of the bottom key packages
+(
+(bottom-key-package-left-1     (project-State_Left_keys_bottom  (composition-pkgstate-Left-keys_bottom  state-left-1)))
+(bottom-key-package-left-neu   (project-State_Left_keys_bottom  (composition-pkgstate-Left-keys_bottom  state-left-neu)))
+)
+
+(let
+(
+              ;assignment of the sampled values for the lower Key package as a table
+              (Z-left (store (store Z
+                  false (mk-some randval-left-6))
+                  true  (mk-some randval-left-5)))
+)
+
+
+(let
+(
+              ; table of the bottom key package
+              (   T-bottom-left-1     (state-keys-T    bottom-key-package-left-1))
+              (   z-bottom-left-1     (state-keys-z    bottom-key-package-left-1))
+              (flag-bottom-left-1     (state-keys-flag bottom-key-package-left-1))
+              (   T-bottom-left-neu   (state-keys-T    bottom-key-package-left-neu))
+              (   z-bottom-left-neu   (state-keys-z    bottom-key-package-left-neu))
+              (flag-bottom-left-neu   (state-keys-flag bottom-key-package-left-neu))
+)
+
+;;; characerization of bottom key package state
+(forall ((h Int))
+     (ite 
+     (= h j)
+     (and
+     (= (select    T-bottom-left-neu h) (mk-some Z-left))
+     (= (select flag-bottom-left-neu h) (mk-some true  ))
+     )
+     (and
+     (= (select    T-bottom-left-neu h) (select    T-bottom-left-1 h))
+     (= (select    z-bottom-left-neu h) (select    z-bottom-left-1 h))
+     (= (select flag-bottom-left-neu h) (select flag-bottom-left-1 h))
+     )))
+)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+;    State lemmas Right
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(define-fun bot-right-neu          (
+        (state-left  (Array Int CompositionState-Left))
+        (state-right (Array Int CompositionState-Right))
+        (state-length-left Int)  ; old index
+        (state-length-right Int) ; old index
+        (state-left-NEU  Return_Left_gate_GBLG)    
+        (state-right-NEU Return_Right_simgate_GBLG)
+        (h Int)
+        (l Int)
+        (r Int)
+        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
+        (j Int))
+        Bool
+
+
+    (let (
+      (state-right-1   (select  (return-Right-simgate-GBLG-state state-right-NEU)
+                                ;(return-Left-gate-GBLG-state-length state-left-NEU)
+                                1))
+      (state-right-2   (select  (return-Right-simgate-GBLG-state state-right-NEU)
+                                ;(return-Left-gate-GBLG-state-length state-left-NEU)
+                                2))
+      (state-right-neu (select  (return-Right-simgate-GBLG-state        state-right-NEU)
+                                (return-Right-simgate-GBLG-state-length state-right-NEU)
+                                 ))
+    )
+
+  (let
+
+; state of the bottom key packages
+(
+(bottom-key-package-right-1     (project-State_Right_keys_bottom  (composition-pkgstate-Right-keys_bottom  state-right-1)))
+(bottom-key-package-right-neu   (project-State_Right_keys_bottom  (composition-pkgstate-Right-keys_bottom  state-right-neu)))
+)
+
+(let
+(
+              ;assignment of the sampled values for the lower Key package as a table
+              (Z-right (store (store Z
+                  false (mk-some randval-right-8))
+                  true  (mk-some randval-right-7)))
+)
+
+
+(let
+(
+              ; table of the bottom key package
+              (   T-bottom-right-1     (state-keys-T    bottom-key-package-right-1))
+              (   z-bottom-right-1     (state-keys-z    bottom-key-package-right-1))
+              (flag-bottom-right-1     (state-keys-flag bottom-key-package-right-1))
+              (   T-bottom-right-neu   (state-keys-T    bottom-key-package-right-neu))
+              (   z-bottom-right-neu   (state-keys-z    bottom-key-package-right-neu))
+              (flag-bottom-right-neu   (state-keys-flag bottom-key-package-right-neu))
+)
+
+;;; characerization of bottom key package state
+(forall ((h Int))
+     (ite 
+     (= h j)
+     (and
+     (= (select    T-bottom-right-neu h) (mk-some Z-right))
+     (= (select flag-bottom-right-neu h) (mk-some true  ))
+     )
+     (and
+     (= (select    T-bottom-right-neu h) (select    T-bottom-right-1 h))
+     (= (select    z-bottom-right-neu h) (select    z-bottom-right-1 h))
+     (= (select flag-bottom-right-neu h) (select flag-bottom-right-1 h))
+     )))
+)))))
+
+(define-fun temp         (
+        (state-left  (Array Int CompositionState-Left))
+        (state-right (Array Int CompositionState-Right))
+        (state-length-left Int)  ; old index
+        (state-length-right Int) ; old index
+        (state-left-NEU  Return_Left_gate_GBLG)    
+        (state-right-NEU Return_Right_simgate_GBLG)
+        (h Int)
+        (l Int)
+        (r Int)
+        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
+        (j Int))
+        Bool
+
+
+    (let (
+      (state-left-neu  (select  (return-Left-gate-GBLG-state            state-left-NEU)
+                                (return-Left-gate-GBLG-state-length     state-left-NEU)))
+      (state-right-neu (select  (return-Right-simgate-GBLG-state        state-right-NEU)
+                                (return-Right-simgate-GBLG-state-length state-right-NEU)))
+         )   
+
+  (let
+
+; state of the bottom key packages
+(
+(bottom-key-package-left-neu    (project-State_Left_keys_bottom   (composition-pkgstate-Left-keys_bottom   state-left-neu)))
+(bottom-key-package-right-neu   (project-State_Right_keys_bottom  (composition-pkgstate-Right-keys_bottom  state-right-neu)))
+)
+
+
+(let
+(
+              ; table of the bottom key package
+              (T-bottom-right-neu   (state-keys-T    bottom-key-package-right-neu))
+              (T-bottom-left-neu    (state-keys-T    bottom-key-package-left-neu))
+)
+
+;;; characerization of bottom key package state
+     (= T-bottom-left-neu T-bottom-right-neu)
+))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+;  OLD
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;  Old Implementation:
 ;                  bot-Z-left-2: After first call, Z is stored at h. 23:07
 ;  bot-except-left-neu-left-alt: Same as before except for h.        seconds
 ;     bot-table-left-2-left-neu: Does not change later.              seconds
-;
-;    todo: What about other state, z and flag?
 
-(declare-const Z (Array Bool (Maybe Bits_n)))
+
 
 (define-fun bot-Z-left-2          (
         (state-left  (Array Int CompositionState-Left))
@@ -774,691 +1093,12 @@
 )))
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
-;    State lemmas
+; Same Output
 ;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-; top left = top right
-
-(define-fun top-whole-left-neu-right-neu          (
-        (state-left (Array Int CompositionState-Left))
-        (state-right (Array Int CompositionState-Right))
-        (state-length-left  Int) ;old index
-        (state-length-right Int) ;old index
-        (state-left-NEU Return_Left_gate_GBLG)
-        (state-right-NEU Return_Right_simgate_GBLG)
-        (h Int)
-        (l Int)
-        (r Int)
-        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
-        (j Int))
-        Bool
-
-
-    (let (
-      (state-left-neu (select   (return-Left-gate-GBLG-state state-left-NEU)
-                                (return-Left-gate-GBLG-state-length state-left-NEU)))
-      (state-right-neu (select  (return-Right-simgate-GBLG-state state-right-NEU)
-                                (return-Right-simgate-GBLG-state-length state-right-NEU)))
-    )
-
-  (let
-
-; state of the key packages
-(
-(   top-key-package-left-neu  (project-State_Left_keys_top     (composition-pkgstate-Left-keys_top     state-left-neu)))
-(   top-key-package-right-neu (project-State_Right_keys_top    (composition-pkgstate-Right-keys_top    state-right-neu)))
-(bottom-key-package-left-neu  (project-State_Left_keys_bottom  (composition-pkgstate-Left-keys_bottom  state-left-neu)))
-(bottom-key-package-right-neu (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-neu)))
-)
-
-
-;;; top key packages have equal state
-(= top-key-package-left-neu top-key-package-right-neu)
-
-
-)))
-
-
-
-
-
-
-
-
-(define-fun well-bot-left-NEU          (
-        (state-left (Array Int CompositionState-Left))
-        (state-right (Array Int CompositionState-Right))
-        (state-length-left  Int) ;length of old state
-        (state-length-right Int) ;length of old state
-        (state-left-NEU Return_Left_gate_GBLG)
-        (state-right-NEU Return_Right_simgate_GBLG)
-        (h Int)
-        (l Int)
-        (r Int)
-        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
-        (j Int))
-        Bool
-
-
-    (let (
-      (state-left-neu (select  (return-Left-gate-GBLG-state        state-left-NEU)
-                               (return-Left-gate-GBLG-state-length state-left-NEU)))
-    )
-
-  (let
-
-; state of the key packages
-(
-(bottom-key-package-left-neu  (project-State_Left_keys_bottom (composition-pkgstate-Left-keys_bottom state-left-neu)))
-;(bottom-key-package-right-alt  (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom (select state-right state-length-right))))
-)
-
-;;; bot left key package is well-formed
-(and
-(well-defined-Key-bool bottom-key-package-left-neu)
-))))
-
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;
-;    RIGHT AND MESSY STUFF
-;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(define-fun bot-table-right-alt-right-1
-          (
-        (state-left (Array Int CompositionState-Left))
-        (state-right (Array Int CompositionState-Right))
-        (state-length-left-old Int)
-        (state-length-right-old Int)
-        (state-left-NEU Return_Left_gate_GBLG)
-        (state-right-NEU Return_Right_simgate_GBLG)
-        (h Int)
-        (l Int)
-        (r Int)
-        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
-        (j Int))
-        Bool
-
-
-    (let (
-      (state-left-1  (select  (return-Left-gate-GBLG-state state-left-NEU)
-                                ;(return-Left-gate-GBLG-state-length state-left-NEU)
-                                1))
-      (state-right-1 (select  (return-Right-simgate-GBLG-state state-right-NEU)
-                                ;(return-Right-simgate-GBLG-state-length state-right-NEU)
-                                1))
-    )
-
-  (let
-
-; state of the key packages
-(
-(bottom-key-package-left-alt  (project-State_Left_keys_bottom (composition-pkgstate-Left-keys_bottom (select state-left state-length-left-old))))
-(bottom-key-package-right-alt  (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom (select state-right state-length-right-old))))
-(bottom-key-package-left-1  (project-State_Left_keys_bottom (composition-pkgstate-Left-keys_bottom state-left-1)))
-(bottom-key-package-right-1 (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-1)))
-)
-
-;; bottom key packages have equal state
-(and
-(= bottom-key-package-left-1 bottom-key-package-left-alt)
-(= bottom-key-package-right-1 bottom-key-package-right-alt)
-)
-
-)))
-
-
-(define-fun well-bot-right-NEU          (
-        (state-left (Array Int CompositionState-Left))
-        (state-right (Array Int CompositionState-Right))
-        (state-length-left-old Int)
-        (state-length-right-old Int)
-        (state-left-NEU Return_Left_gate_GBLG)
-        (state-right-NEU Return_Right_simgate_GBLG)
-        (h Int)
-        (l Int)
-        (r Int)
-        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
-        (j Int))
-        Bool
-
-
-    (let (
-       (state-right-neu (select  (return-Right-simgate-GBLG-state state-right-NEU)
-                                 (return-Right-simgate-GBLG-state-length state-right-NEU)))
-
-
-    )
-
-  (let
-
-; state of the key packages
-(
-(bottom-key-package-right-neu  (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-neu)))
-;(bottom-key-package-right-alt  (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom (select state-right state-length-right))))
-)
-
-
-
-;;; bot right key package is well-formed
-(and
-(well-defined-Key-active bottom-key-package-right-neu)
-;(= bottom-key-package-left-2 bottom-key-package-left-1)
-;(= bottom-key-package-right-2 bottom-key-package-right-1)
-))))
-
-(define-fun well-bot-right-1          (
-        (state-left (Array Int CompositionState-Left))
-        (state-right (Array Int CompositionState-Right))
-        (state-length-left-old Int)
-        (state-length-right-old Int)
-        (state-left-NEU Return_Left_gate_GBLG)
-        (state-right-NEU Return_Right_simgate_GBLG)
-        (h Int)
-        (l Int)
-        (r Int)
-        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
-        (j Int))
-        Bool
-
-
-    (let (
-      (state-right-1 (select  (return-Right-simgate-GBLG-state state-right-NEU) 
-                   1))
-      (state-right-neu (select  (return-Right-simgate-GBLG-state state-right-NEU)
-                                (return-Right-simgate-GBLG-state-length state-right-NEU)))
-
-
-    )
-
-  (let
-
-; state of the key packages
-(
-(bottom-key-package-right-1    (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-1)))
-(bottom-key-package-right-neu  (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-neu)))
-;(bottom-key-package-right-alt  (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom (select state-right state-length-right))))
-)
-
-
-
-;;; bot right key package is defined
-(and
-(well-defined-Key-active bottom-key-package-right-1)
-;(well-defined-Key-bool bottom-key-package-right-neu)
-))))
-
-
-(define-fun pre-right         (
-        (state-left (Array Int CompositionState-Left))
-        (state-right (Array Int CompositionState-Right))
-        (state-length-left-old Int)
-        (state-length-right-old Int)
-        (state-left-NEU Return_Left_gate_GBLG)
-        (state-right-NEU Return_Right_simgate_GBLG)
-        (h Int)
-        (l Int)
-        (r Int)
-        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
-        (j Int))
-        Bool
-
-
-    (let (
-      (state-right-1 (select  (return-Right-simgate-GBLG-state state-right-NEU) 
-                   1))
-;      (state-right-2 (select  (return-Right-simgate-GBLG-state state-right-NEU)
-;                   2))
-;      (state-right-3 (select  (return-Right-simgate-GBLG-state state-right-NEU)
-;                   3))
-;      (state-right-4 (select  (return-Right-simgate-GBLG-state state-right-NEU)
-;                   4))
-;      (state-right-5 (select  (return-Right-simgate-GBLG-state state-right-NEU)
-;                   5))
-;      (state-right-6 (select  (return-Right-simgate-GBLG-state state-right-NEU)
-;                   6))
-;      (state-right-7 (select  (return-Right-simgate-GBLG-state state-right-NEU)
-;                   7))
-;      (state-right-8 (select  (return-Right-simgate-GBLG-state state-right-NEU)
-;                   8))
-;      (state-right-9 (select  (return-Right-simgate-GBLG-state state-right-NEU)
-;                   9))
-;      (state-right-10 (select  (return-Right-simgate-GBLG-state state-right-NEU)
-;                   10))
-;      (state-right-11 (select  (return-Right-simgate-GBLG-state state-right-NEU)
-;                   11))
-;      (state-right-12 (select  (return-Right-simgate-GBLG-state state-right-NEU)
-;                   12))
-;      (state-right-13 (select  (return-Right-simgate-GBLG-state state-right-NEU)
-;                   13))
-;      (state-right-14 (select  (return-Right-simgate-GBLG-state state-right-NEU)
-;                   14))
-;      (state-right-15 (select  (return-Right-simgate-GBLG-state state-right-NEU)
-;                   15))
-      (state-right-neu (select   (return-Right-simgate-GBLG-state        state-right-NEU)
-                                 (return-Right-simgate-GBLG-state-length state-right-NEU)))
-
-
-    )
-
-  (let
-
-; state of the key packages
-(
-(top-key-package-right-neu     (project-State_Right_keys_top (composition-pkgstate-Right-keys_top state-right-neu)))
-(top-key-package-right-alt     (project-State_Right_keys_top (composition-pkgstate-Right-keys_top (select state-right state-length-right-old))))
-(bottom-key-package-right-alt  (project-State_Right_keys_bottom  (composition-pkgstate-Right-keys_bottom (select state-right state-length-right-old))))
-(bottom-key-package-right-1    (project-State_Right_keys_bottom  (composition-pkgstate-Right-keys_bottom state-right-1)))
-;(bottom-key-package-right-2    (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-2)))
-;(bottom-key-package-right-3    (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-3)))
-;(bottom-key-package-right-4    (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-4)))
-;(bottom-key-package-right-5    (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-5)))
-;(bottom-key-package-right-6    (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-6)))
-;(bottom-key-package-right-7    (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-7)))
-;(bottom-key-package-right-8    (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-8)))
-;(bottom-key-package-right-9    (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-9)))
-;(bottom-key-package-right-10    (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-10)))
-;(bottom-key-package-right-11    (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-11)))
-;(bottom-key-package-right-12    (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-12)))
-;(bottom-key-package-right-13    (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-13)))
-;(bottom-key-package-right-14    (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-14)))
-;(bottom-key-package-right-15    (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-15)))
-(bottom-key-package-right-neu  (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-neu)))
-;(bottom-key-package-right-alt  (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom (select state-right state-length-right))))
-)
-
-
-
-;;; bot right key package is defined
-(and
-(not (= (select (state-keys-T top-key-package-right-alt) l) (as mk-none (Maybe (Array Bool (Maybe Bits_n))))))
-(not (= (select (state-keys-T top-key-package-right-alt) r) (as mk-none (Maybe (Array Bool (Maybe Bits_n))))))
-(=      (select (state-keys-T bottom-key-package-right-alt) j) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
-;(well-defined-Key-bool bottom-key-package-right-neu)
-))))
-
-(define-fun lemma2-keys-2          (
-        (state-left (Array Int CompositionState-Left))
-        (state-right (Array Int CompositionState-Right))
-        (state-length-left-old Int)
-        (state-length-right-old Int)
-        (state-left-NEU Return_Left_gate_GBLG)
-        (state-right-NEU Return_Right_simgate_GBLG)
-        (h Int)
-        (l Int)
-        (r Int)
-        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
-        (j Int))
-        Bool
-
-
-    (let (
-      (state-left-1  (select  (return-Left-gate-GBLG-state state-left-NEU)
-                                ;(return-Left-gate-GBLG-state-length state-left-NEU)
-                                1))
-      (state-right-1 (select  (return-Right-simgate-GBLG-state state-right-NEU)
-                                ;(return-Right-simgate-GBLG-state-length state-right-NEU)
-                                1))
-      (state-left-2  (select  (return-Left-gate-GBLG-state state-left-NEU)
-                                ;(return-Left-gate-GBLG-state-length state-left-NEU)
-                                2))
-      (state-right-2 (select  (return-Right-simgate-GBLG-state state-right-NEU)
-                                ;(return-Right-simgate-GBLG-state-length state-right-NEU)
-                                2))
-      (state-left-3  (select  (return-Left-gate-GBLG-state state-left-NEU)
-                                ;(return-Left-gate-GBLG-state-length state-left-NEU)
-                                3))
-      (state-right-3 (select  (return-Right-simgate-GBLG-state state-right-NEU)
-                                ;(return-Right-simgate-GBLG-state-length state-right-NEU)
-                                3))
-      (state-right-4 (select  (return-Right-simgate-GBLG-state state-right-NEU)
-                                ;(return-Right-simgate-GBLG-state-length state-right-NEU)
-                                4))
-      (state-right-5 (select  (return-Right-simgate-GBLG-state state-right-NEU)
-                                ;(return-Right-simgate-GBLG-state-length state-right-NEU)
-                                5))
-    )
-
-  (let
-
-; state of the key packages
-(
-(bottom-key-package-left-alt  (project-State_Left_keys_bottom (composition-pkgstate-Left-keys_bottom (select state-left state-length-left-old))))
-(bottom-key-package-right-alt  (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom (select state-right state-length-right-old))))
-(bottom-key-package-left-1  (project-State_Left_keys_bottom  (composition-pkgstate-Left-keys_bottom state-left-1)))
-(bottom-key-package-right-1 (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-1)))
-(bottom-key-package-left-2  (project-State_Left_keys_bottom  (composition-pkgstate-Left-keys_bottom state-left-2)))
-(bottom-key-package-right-2 (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-2)))
-(bottom-key-package-left-3  (project-State_Left_keys_bottom  (composition-pkgstate-Left-keys_bottom state-left-3)))
-(bottom-key-package-right-3 (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-3)))
-(bottom-key-package-right-4 (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-4)))
-(bottom-key-package-right-5 (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-5)))
-)
-
-
-
-;;; top key packages have equal state
-(and
-;(= bottom-key-package-left-2 bottom-key-package-left-1)
-(= bottom-key-package-right-2 bottom-key-package-right-1)
-))))
-
-(define-fun lemma2-keys-3          (
-        (state-left (Array Int CompositionState-Left))
-        (state-right (Array Int CompositionState-Right))
-        (state-length-left-old Int)
-        (state-length-right-old Int)
-        (state-left-NEU Return_Left_gate_GBLG)
-        (state-right-NEU Return_Right_simgate_GBLG)
-        (h Int)
-        (l Int)
-        (r Int)
-        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
-        (j Int))
-        Bool
-
-
-    (let (
-      (state-left-1  (select  (return-Left-gate-GBLG-state state-left-NEU)
-                                ;(return-Left-gate-GBLG-state-length state-left-NEU)
-                                1))
-      (state-right-1 (select  (return-Right-simgate-GBLG-state state-right-NEU)
-                                ;(return-Right-simgate-GBLG-state-length state-right-NEU)
-                                1))
-      (state-left-2  (select  (return-Left-gate-GBLG-state state-left-NEU)
-                                ;(return-Left-gate-GBLG-state-length state-left-NEU)
-                                2))
-      (state-right-2 (select  (return-Right-simgate-GBLG-state state-right-NEU)
-                                ;(return-Right-simgate-GBLG-state-length state-right-NEU)
-                                2))
-      (state-left-3  (select  (return-Left-gate-GBLG-state state-left-NEU)
-                                ;(return-Left-gate-GBLG-state-length state-left-NEU)
-                                3))
-      (state-right-3 (select  (return-Right-simgate-GBLG-state state-right-NEU)
-                                ;(return-Right-simgate-GBLG-state-length state-right-NEU)
-                                3))
-      (state-right-4 (select  (return-Right-simgate-GBLG-state state-right-NEU)
-                                ;(return-Right-simgate-GBLG-state-length state-right-NEU)
-                                4))
-      (state-right-5 (select  (return-Right-simgate-GBLG-state state-right-NEU)
-                                ;(return-Right-simgate-GBLG-state-length state-right-NEU)
-                                5))
-    )
-
-  (let
-
-; state of the key packages
-(
-(bottom-key-package-left-alt   (project-State_Left_keys_bottom  (composition-pkgstate-Left-keys_bottom  (select state-left  state-length-left-old))))
-(bottom-key-package-right-alt  (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom (select state-right state-length-right-old))))
-(bottom-key-package-left-1     (project-State_Left_keys_bottom  (composition-pkgstate-Left-keys_bottom  state-left-1)))
-(bottom-key-package-right-1    (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-1)))
-(bottom-key-package-left-2     (project-State_Left_keys_bottom  (composition-pkgstate-Left-keys_bottom  state-left-2)))
-(bottom-key-package-right-2    (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-2)))
-(top-key-package-right-2       (project-State_Right_keys_top    (composition-pkgstate-Right-keys_top    state-right-2)))
-(bottom-key-package-left-3     (project-State_Left_keys_bottom  (composition-pkgstate-Left-keys_bottom  state-left-3)))
-(bottom-key-package-right-3    (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-3)))
-(bottom-key-package-right-4    (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-4)))
-(bottom-key-package-right-5    (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-5)))
-)
-
-
-(let
-
-; table of the bottom key package
-(
-(flag-top-right-2 (state-keys-flag top-key-package-right-2))
-(T-top-right-2    (state-keys-T top-key-package-right-2))
-)
-
-
-
-;;; top key packages have equal state
-(=>
-(and
-(= (select flag-top-right-2 l) (mk-some true))
-(not (= (select T-top-right-2 l) (as mk-none (Maybe (Array Bool (Maybe Bits_n))))))
-)
-(= bottom-key-package-right-3 bottom-key-package-right-2)
-)))))
-
-
-
-
-
-(define-fun lemma2-left-keys-b          (
-        (state-left-alt (Array Int CompositionState-Left))
-        (state-right (Array Int CompositionState-Right))
-        (state-length-left-old Int)
-        (state-length-right-old Int)
-        (state-left-NEU Return_Left_gate_GBLG)
-        (state-right-NEU Return_Right_simgate_GBLG)
-        (h Int)
-        (l Int)
-        (r Int)
-        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
-        (j Int))
-    Bool
-
-    (let (
-      (state-left-neu (select   (return-Left-gate-GBLG-state state-left-NEU)
-                                (return-Left-gate-GBLG-state-length state-left-NEU)))
-      (state-right-neu (select  (return-Right-simgate-GBLG-state state-right-NEU)
-                                (return-Right-simgate-GBLG-state-length state-right-NEU)))
-    )
-
-    (let
-
-; state of the key packages
-(
-(top-key-package-left-alt (project-State_Left_keys_top (composition-pkgstate-Left-keys_top (select state-left-alt state-length-left-old))))
-(top-key-package-left-neu (project-State_Left_keys_top (composition-pkgstate-Left-keys_top state-left-neu)))
-(bottom-key-package-left-alt (project-State_Left_keys_bottom (composition-pkgstate-Left-keys_bottom (select state-left-alt state-length-left-old))))
-(bottom-key-package-left-neu (project-State_Left_keys_bottom (composition-pkgstate-Left-keys_bottom state-left-neu)))
-)
-
-(let
-
-; table of the bottom key package
-(
-(table-top-left-alt (state-keys-T top-key-package-left-alt))
-(table-top-left-neu (state-keys-T top-key-package-left-neu))
-(table-bottom-left-alt (state-keys-T bottom-key-package-left-alt))
-(table-bottom-left-neu (state-keys-T bottom-key-package-left-neu))
-)
-
-(let
-(
-              ;assignment of the sampled values for the lower Key package as a table
-                (Z-left (store (store Z
-                    false (mk-some randval-left-6))
-                  true (mk-some randval-left-5)))
-)
-
-;;; bottom key packages equal except for position j
-;;; and where there is j, there is the same or Z
-( =>
-(and (= (select table-bottom-left-alt j) (as mk-none (Maybe (Array Bool (Maybe Bits_n))))))
-(= (select table-bottom-left-neu j) (mk-some Z-left)) ;this is the hard part in the proof
-))))))
-
-(define-fun bot-except-right-neu-right-alt          (
-        (state-left (Array Int CompositionState-Left))
-        (state-right (Array Int CompositionState-Right))
-        (state-length-left-old Int)
-        (state-length-right-old Int)
-        (state-left-NEU Return_Left_gate_GBLG)
-        (state-right-NEU Return_Right_simgate_GBLG) 
-        (h Int)
-        (l Int)
-        (r Int)
-        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
-        (j Int))
-    Bool
-
-
-    (let (
-      (state-left-neu (select   (return-Left-gate-GBLG-state state-left-NEU)
-                                (return-Left-gate-GBLG-state-length state-left-NEU)))
-      (state-right-neu (select  (return-Right-simgate-GBLG-state state-right-NEU)
-                                (return-Right-simgate-GBLG-state-length state-right-NEU)))
-    )
-    (let
-
-; state of the key packages
-(
-(top-key-package-right-alt (project-State_Right_keys_top (composition-pkgstate-Right-keys_top (select state-right state-length-right-old))))
-(top-key-package-right-neu (project-State_Right_keys_top (composition-pkgstate-Right-keys_top state-right-neu)))
-(bottom-key-package-right-alt (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom (select state-right state-length-right-old))))
-(bottom-key-package-right-neu (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-neu)))
-
-
-)
-
-(let
-
-; table of the bottom key package
-(
-(table-top-right-alt    (state-keys-T top-key-package-right-alt))
-(table-top-right-neu    (state-keys-T top-key-package-right-neu))
-(table-bottom-right-alt (state-keys-T bottom-key-package-right-alt))
-(table-bottom-right-neu (state-keys-T bottom-key-package-right-neu))
-
-
-)
-
-(let
-(
-              ;assignment of the sampled values for the lower Key package as a table
-              (Z-right (store (store Z
-                    false (mk-some randval-right-8))
-                  true (mk-some randval-right-7)))
-)
-
-
-;;; bottom key packages equal except for position j
-;;; and where there is j, there is the same or Z
-(forall ((hh Int))
-(=> (not
-(and (= j hh) (= (select table-bottom-right-alt hh) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))))
-(= (select table-bottom-right-alt hh) (select table-bottom-right-neu hh))
-;(= (select table-bottom-right-neu hh) (mk-some Z-right)) ;this is the hard part in the proof
-)))))))
-
-(define-fun lemma2-right-keys-b          (
-        (state-left (Array Int CompositionState-Left))
-        (state-right (Array Int CompositionState-Right))
-        (state-length-left-old Int)
-        (state-length-right-old Int)
-        (state-left-NEU Return_Left_gate_GBLG)
-        (state-right-NEU Return_Right_simgate_GBLG)
-        (h Int)
-        (l Int)
-        (r Int)
-        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
-        (j Int))
-    Bool
-
-
-    (let (
-      (state-left-neu (select   (return-Left-gate-GBLG-state state-left-NEU)
-                                (return-Left-gate-GBLG-state-length state-left-NEU)))
-      (state-right-neu (select  (return-Right-simgate-GBLG-state state-right-NEU)
-                                (return-Right-simgate-GBLG-state-length state-right-NEU)))
-    )
-
-    (let
-
-; state of the key packages
-(
-(top-key-package-right-alt (project-State_Right_keys_top (composition-pkgstate-Right-keys_top (select state-right state-length-right-old))))
-(top-key-package-right-neu (project-State_Right_keys_top (composition-pkgstate-Right-keys_top state-right-neu)))
-(bottom-key-package-right-alt (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom (select state-right state-length-right-old))))
-(bottom-key-package-right-neu (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-neu)))
-
-)
-
-(let
-
-; table of the bottom key package
-(
-(table-top-right-alt    (state-keys-T top-key-package-right-alt))
-(table-top-right-neu    (state-keys-T top-key-package-right-neu))
-(table-bottom-right-alt (state-keys-T bottom-key-package-right-alt))
-(table-bottom-right-neu (state-keys-T bottom-key-package-right-neu))
-
-
-)
-
-(let
-(
-              ;assignment of the sampled values for the lower Key package as a table
-              (Z-right (store (store Z
-                    false (mk-some randval-right-8))
-                  true (mk-some randval-right-7)))
-)
-
-
-;;; bottom key packages equal except for position j
-;;; and where there is j, there is the same or Z
-( =>
-(and (= (select table-bottom-right-alt j) (as mk-none (Maybe (Array Bool (Maybe Bits_n))))))
-(= (select table-bottom-right-neu j) (mk-some Z-right))) ;this is the hard part in the proof
-)))))
-
-(define-fun lemma2-keys          (
-        (state-left (Array Int CompositionState-Left))
-        (state-right (Array Int CompositionState-Right))
-        (state-length-left-old Int)
-        (state-length-right-old Int)
-        (state-left-NEU Return_Left_gate_GBLG)
-        (state-right-NEU Return_Right_simgate_GBLG)
-        (h Int)
-        (l Int)
-        (r Int)
-        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
-        (j Int))
-        Bool
-
-
-    (let (
-      (state-left-neu (select   (return-Left-gate-GBLG-state state-left-NEU)
-                                (return-Left-gate-GBLG-state-length state-left-NEU)))
-      (state-right-neu (select  (return-Right-simgate-GBLG-state state-right-NEU)
-                                (return-Right-simgate-GBLG-state-length state-right-NEU)))
-    )
-
-  (let
-
-; state of the key packages
-(
-(top-key-package-left-neu  (project-State_Left_keys_top  (composition-pkgstate-Left-keys_top  state-left-neu)))
-(top-key-package-right-neu (project-State_Right_keys_top (composition-pkgstate-Right-keys_top state-right-neu)))
-(bottom-key-package-left-neu  (project-State_Left_keys_bottom (composition-pkgstate-Left-keys_bottom state-left-neu)))
-(bottom-key-package-right-neu (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-neu)))
-)
-
-(let
-
-; table of the bottom key package
-(
-(table-bottom-left-neu (state-keys-T bottom-key-package-left-neu))
-(table-bottom-right-neu (state-keys-T bottom-key-package-right-neu))
-
-
-)
-
-
-;;; top key packages have equal state
-(= table-bottom-left-neu table-bottom-right-neu)
-
-
-))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define-fun same-output          (
         (state-left (Array Int CompositionState-Left))
