@@ -1,6 +1,8 @@
 use crate::package::{Composition, Export};
 use crate::proof::{Proof, Resolver, SliceResolver};
+use crate::transforms::proof_transforms::EquivanceTransform;
 use crate::transforms::samplify::SampleInfo;
+use crate::transforms::ProofTransform;
 use crate::util::prover_process::{Communicator, ProverResponse};
 use crate::writers::smt::exprs::{SmtAnd, SmtAssert, SmtEq2, SmtExpr, SmtImplies, SmtNot};
 use crate::writers::smt::writer::CompositionSmtWriter;
@@ -16,17 +18,19 @@ use std::fmt::{Display, Write};
 use std::io::Write as IOWrite;
 use std::iter::FromIterator;
 
-use serde_derive::{Deserialize, Serialize};
+//use serde_derive::{Deserialize, Serialize};
 
 use super::load::ProofTreeSpec;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+use crate::proof::Equivalence;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 enum ProverThingyState {
     EmitBaseDeclarations,
     EmitGameInstances,
     EmitConstantDeclarations,
     EmitInvariant(usize),
-    EmitLemmaAssert(usize),
+    EmitLemmaAssert(String, usize),
     Done,
 }
 
@@ -74,7 +78,7 @@ impl<'a> ProverThingy<'a> {
     }
 
     pub fn next(&mut self, resp: Option<ProverResponse>) -> ProverThingyOutput {
-        match self.state {
+        match &self.state {
             ProverThingyState::EmitBaseDeclarations => {
                 let resp = self.emit_base_declarations();
                 self.state = ProverThingyState::EmitGameInstances;
@@ -91,8 +95,27 @@ impl<'a> ProverThingy<'a> {
                 resp
             }
             ProverThingyState::EmitInvariant(_) => todo!(),
-            ProverThingyState::EmitLemmaAssert(_) => todo!(),
-            ProverThingyState::Done => todo!(),
+            ProverThingyState::EmitLemmaAssert(oracle_name, offs) => {
+                let resp = self.emit_lemma_assert();
+                let next_offs = offs + 1;
+                let tree_resolver = SliceResolver(self.eq.trees());
+                let (_, proof_tree_records) = tree_resolver.resolve(&oracle_name).unwrap();
+
+                self.state = if next_offs == proof_tree_records.len() {
+                    let next_oracle_offset = 1 + tree_resolver.resolve_index(&oracle_name).unwrap();
+                    if next_oracle_offset == self.eq.trees().len() {
+                        ProverThingyState::Done
+                    } else {
+                        let (next_oracle_name, _) = &self.eq.trees()[next_oracle_offset];
+                        ProverThingyState::EmitLemmaAssert(next_oracle_name.clone(), 0)
+                    }
+                } else {
+                    ProverThingyState::EmitLemmaAssert(oracle_name.to_string(), offs + 1)
+                };
+
+                resp
+            }
+            ProverThingyState::Done => unreachable!(),
         }
     }
 
@@ -118,8 +141,8 @@ impl<'a> ProverThingy<'a> {
 
     fn emit_game_definitions(&self) -> ProverThingyOutput {
         let instance_resolver = SliceResolver(self.proof.instances());
-        let left = instance_resolver.resolve(&self.eq.left).unwrap();
-        let right = instance_resolver.resolve(&self.eq.right).unwrap();
+        let left = instance_resolver.resolve(&self.eq.left_name()).unwrap();
+        let right = instance_resolver.resolve(&self.eq.right_name()).unwrap();
 
         let mut left_writer = CompositionSmtWriter::new(left.as_game(), &self.sample_info_left);
         let mut right_writer = CompositionSmtWriter::new(right.as_game(), &self.sample_info_right);
@@ -139,8 +162,8 @@ impl<'a> ProverThingy<'a> {
 
     fn emit_constant_declarations(&self) -> ProverThingyOutput {
         let instance_resolver = SliceResolver(self.proof.instances());
-        let left = instance_resolver.resolve(&self.eq.left).unwrap();
-        let right = instance_resolver.resolve(&self.eq.right).unwrap();
+        let left = instance_resolver.resolve(&self.eq.left_name()).unwrap();
+        let right = instance_resolver.resolve(&self.eq.right_name()).unwrap();
 
         let gctx_left = contexts::GameContext::new(left.as_game());
         let gctx_right = contexts::GameContext::new(right.as_game());
@@ -220,17 +243,24 @@ impl<'a> ProverThingy<'a> {
             expect: None,
         }
     }
+
+    fn emit_lemma_assert(&self) -> ProverThingyOutput {
+        ProverThingyOutput {
+            output_type: ProverThingyOutputType::End,
+            smt: vec![],
+            expect: None,
+        }
+    }
 }
 
-fn verify(
-    eq: &Equivalence,
-    proof: &Proof,
-    types: &[Type],
-    sample_info_left: &SampleInfo,
-    sample_info_right: &SampleInfo,
-) -> Result<()> {
+pub fn verify(eq: &Equivalence, proof: &Proof) -> Result<()> {
+    let (proof, auxs) = EquivanceTransform.transform_proof(proof)?;
+    let aux_resolver = SliceResolver(&auxs);
+    let (_, (_, types_left, sample_info_left)) = aux_resolver.resolve(eq.left_name()).unwrap();
+    let (_, (_, types_right, sample_info_right)) = aux_resolver.resolve(eq.right_name()).unwrap();
+    let types: Vec<_> = types_left.union(types_right).cloned().collect();
     let mut prover = Communicator::new_cvc5()?;
-    let mut thingy = ProverThingy::new(eq, proof, types, sample_info_left, sample_info_right);
+    let mut thingy = ProverThingy::new(eq, &proof, &types, sample_info_left, sample_info_right);
     let mut resp = None;
 
     loop {
@@ -240,8 +270,10 @@ fn verify(
             output_type,
         } = thingy.next(resp);
 
-        if output_type == ProverThingyOutputType::End {
-            return Ok(());
+        match &output_type {
+            ProverThingyOutputType::End => return Ok(()),
+            ProverThingyOutputType::LemmaAssert { .. } => write!(prover, "(push 1)")?,
+            _ => {}
         }
 
         for smt_expr in smt_exprs {
@@ -260,6 +292,10 @@ fn verify(
         } else {
             None
         };
+
+        if let ProverThingyOutputType::LemmaAssert { .. } = &output_type {
+            write!(prover, "(pop 1)")?;
+        }
     }
 }
 
@@ -347,7 +383,7 @@ else
 
 
  */
-
+/*
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Equivalence {
     pub left: String,
@@ -355,6 +391,7 @@ pub struct Equivalence {
     pub invariant_path: String,
     pub trees: HashMap<String, ProofTreeSpec>,
 }
+*/
 
 // ResolvedEquivalence contains the composisitions/games and the invariant data,
 // whereas the pure Equivalence just contains the names and file paths.
@@ -373,6 +410,7 @@ pub struct ResolvedEquivalence {
     pub joined_smt_file: std::fs::File,
 }
 
+/*
 impl ResolvedEquivalence {
     pub fn prove(&mut self) -> Result<()> {
         //let context = ProofContext::new(self);
@@ -701,6 +739,8 @@ impl ResolvedEquivalence {
         Ok(())
     }
 }
+
+ */
 
 fn expect_sat(comm: &mut Communicator) -> Result<()> {
     match comm.check_sat()? {

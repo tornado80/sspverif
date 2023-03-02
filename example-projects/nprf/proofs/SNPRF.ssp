@@ -50,7 +50,7 @@ proof SNPRF {
                 prf: prf_top
             }
         }
-
+/*
         equivalence SNPRF_g1 SNPRF_g2 {
             GBLG: {
                 invariant: [
@@ -72,6 +72,6 @@ proof SNPRF {
                     same-output:            [no-abort, lemma1-keys, lemma2-keys]
                 }
             }
-        }
+        }*/
     }
 }

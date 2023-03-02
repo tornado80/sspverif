@@ -158,3 +158,45 @@ impl Composition {
         result
     }
 }
+
+impl Composition {
+    pub fn map_pkg_inst<E, F>(&self, mut f: F) -> Result<Composition, E>
+    where
+        F: FnMut(&PackageInstance) -> Result<PackageInstance, E>,
+    {
+        Ok(Composition {
+            pkgs: {
+                let res: Result<Vec<_>, E> = self.pkgs.iter().map(f).collect();
+                res?
+            },
+            ..self.clone()
+        })
+    }
+
+    pub fn map_oracle<E>(
+        &self,
+        f: &mut impl FnMut(&OracleDef) -> Result<OracleDef, E>,
+    ) -> Result<Composition, E> {
+        self.map_pkg_inst(|pkg_inst| {
+            Ok(PackageInstance {
+                pkg: pkg_inst.pkg.map_oracle(f)?,
+                ..pkg_inst.clone()
+            })
+        })
+    }
+}
+
+impl Package {
+    pub fn map_oracle<E>(
+        &self,
+        f: &mut impl FnMut(&OracleDef) -> Result<OracleDef, E>,
+    ) -> Result<Package, E> {
+        Ok(Package {
+            oracles: {
+                let res: Result<Vec<_>, E> = self.oracles.iter().map(f).collect();
+                res?
+            },
+            ..self.clone()
+        })
+    }
+}

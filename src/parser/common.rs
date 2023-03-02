@@ -217,11 +217,9 @@ pub fn handle_types_def_list(ast: Pair<Rule>, inst_name: &str) -> Result<Vec<(Ty
 }
 
 pub fn handle_types_def_spec(ast: Pair<Rule>, inst_name: &str) -> Result<(Type, Type)> {
-    println!(">>>> {}", ast.as_str());
     let mut iter = ast.into_inner();
 
     let fst = iter.next().unwrap();
-    println!(">>>>>> {}", fst.as_str());
 
     let snd = iter.next().unwrap();
 

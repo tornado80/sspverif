@@ -34,8 +34,8 @@ mod resolve;
 //mod util;
 
 pub use crate::proof::Assumption;
-pub use equivalence::Equivalence;
-pub use reduction::Reduction;
+//pub use equivalence::Equivalence;
+//pub use reduction::Reduction;
 /*
 impl From<load::TomlGameHop> for GameHop {
     fn from(toml_hop: load::TomlGameHop) -> Self {
@@ -114,22 +114,21 @@ impl Project {
         Ok(project)
     }
 
-    /*
     // we might want to return a proof trace here instead
     // we could then extract the proof viewer output and other useful info trom the trace
     pub fn prove(&self) -> Result<()> {
-        for (_, proof) in self.proofs {
+        for (_, proof) in &self.proofs {
             for (i, game_hop) in proof.game_hops().iter().enumerate() {
                 match game_hop {
-                    GameHop::Reduction(red) => red.prove()?,
-                    GameHop::Equivalence(eq) => eq.prove()?,
+                    GameHop::Reduction(red) => reduction::verify(red, proof)?,
+                    GameHop::Equivalence(eq) => equivalence::verify(eq, proof)?,
                 }
             }
         }
 
         Ok(())
     }
-    */
+    /*
 
     pub fn explain_game(&self, game_name: &str) -> Result<String> {
         let game = self.get_game(game_name).ok_or(Error::UndefinedGame(
@@ -150,6 +149,8 @@ impl Project {
         Ok(buf)
         //tex_write_composition(&comp, Path::new(&args.output));
     }
+
+    */
     pub fn get_game<'b>(&'b self, name: &str) -> Option<&'b Composition> {
         self.games.get(name)
     }

@@ -31,7 +31,7 @@ impl<W: Write> Writer<W> {
                 self.write_string(x)?;
                 self.write_string(" /* local identifier */ ")?;
             }
-            Identifier::Params { name_in_pkg, .. } => {
+            Identifier::Parameter { name_in_pkg, .. } => {
                 self.write_string(name_in_pkg)?;
                 self.write_string(&format!(" /* param identifier */ "))?;
             }

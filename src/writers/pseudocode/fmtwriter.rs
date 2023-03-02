@@ -37,7 +37,7 @@ impl<W: Write> FmtWriter<W> {
                     self.write_string(" /* local identifier */ ")?;
                 }
             }
-            Identifier::Params {
+            Identifier::Parameter {
                 name_in_pkg: name, ..
             } => {
                 self.write_string(name)?;

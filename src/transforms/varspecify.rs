@@ -1,13 +1,17 @@
 use std::collections::HashMap;
+use std::hint::unreachable_unchecked;
 use std::iter::FromIterator;
 
 use crate::expressions::Expression;
 use crate::identifier::Identifier;
 use crate::package::{Composition, OracleDef, Package, PackageInstance};
+use crate::proof::{GameInstance, Resolver, SliceResolver};
 use crate::statement::{CodeBlock, Statement};
+use crate::types::Type;
 
 pub struct Transformation<'a>(pub &'a Composition);
 
+/*
 impl<'a> super::Transformation for Transformation<'a> {
     type Err = ();
     type Aux = ();
@@ -27,111 +31,106 @@ impl<'a> super::Transformation for Transformation<'a> {
         ))
     }
 }
+*/
 
-fn var_specify_helper(inst: &PackageInstance, block: CodeBlock, comp_name: &str) -> CodeBlock {
+// TODO: add support for resolving to expression literals
+fn resolve_var(
+    pkg_state: &[(String, Type)],
+    pkg_inst_params: &[(String, Expression)],
+    game_inst_params: &[(String, Expression)],
+    name: String,
+    pkg_name: &str,
+    game_name: &str,
+) -> Identifier {
+    let pkg_state = SliceResolver(pkg_state);
+    let pkg_inst_params = SliceResolver(pkg_inst_params);
+    let game_inst_params = SliceResolver(game_inst_params);
+
+    if let Some(_) = pkg_state.resolve(&name) {
+        Identifier::State {
+            name: name.to_string(),
+            pkgname: pkg_name.to_string(),
+            compname: game_name.to_string(),
+        }
+    } else if let Some(expr) = &pkg_inst_params.resolve(&name) {
+        let id = if let Expression::Identifier(id) = expr {
+            id
+        } else {
+            unreachable!()
+        };
+
+        let id_in_proof = if let Some(Expression::Identifier(id_in_proof)) =
+            game_inst_params.resolve(&id.ident())
+        {
+            id_in_proof
+        } else {
+            unreachable!()
+        };
+
+        Identifier::Parameter {
+            name_in_pkg: name.to_string(),
+            pkgname: pkg_name.to_string(),
+            name_in_comp: id.ident(),
+            compname: game_name.to_string(),
+            name_in_proof: id_in_proof.ident(),
+        }
+    } else {
+        Identifier::Local(name)
+    }
+}
+
+fn var_specify_helper(
+    game_inst: &GameInstance,
+    pkg_inst: &PackageInstance,
+    block: CodeBlock,
+) -> CodeBlock {
     let PackageInstance {
         name,
-        pkg: Package { state, params, .. },
-        params: inst_params,
+        pkg:
+            Package {
+                state: pkg_state,
+                params,
+                name: pkg_name,
+                ..
+            },
+        params: pkg_inst_params,
         ..
-    } = inst;
+    } = pkg_inst;
 
-    let inst_params: HashMap<_, _> = HashMap::from_iter(inst_params.iter().cloned());
+    let game_inst_params = game_inst.as_consts();
+    let comp_name = game_inst.as_game_name();
 
     let fixup = |expr| match expr {
-        Expression::FnCall(Identifier::Scalar(id), args) => {
-            if state.clone().iter().any(|(id_, _)| id == *id_) {
-                Expression::FnCall(
-                    Identifier::State {
-                        name: id,
-                        pkgname: name.clone(),
-                        compname: comp_name.into(),
-                    },
-                    args,
-                )
-            } else if params.clone().iter().any(|(id_, _param_type)| id == *id_) {
-                match inst_params.get(&id) {
-                    Some(Expression::Identifier(id_resolved)) => Expression::FnCall(
-                        Identifier::Params {
-                            name_in_pkg: id.clone(),
-                            pkgname: name.clone(),
-
-                            name_in_comp: id_resolved.ident(),
-                            compname: comp_name.into(),
-                        },
-                        args,
-                    ),
-                    _ => {
-                        unreachable!()
-                    }
-                }
-            } else {
-                Expression::FnCall(Identifier::Local(id), args)
-            }
-        }
-        Expression::Identifier(Identifier::Scalar(id)) => {
-            if state.clone().iter().any(|(id_, _)| id == *id_) {
-                Expression::Identifier(Identifier::State {
-                    name: id,
-                    pkgname: name.clone(),
-                    compname: comp_name.into(),
-                })
-            } else if params.clone().iter().any(|(id_, _name_in_comp)| id == *id_) {
-                match inst_params.get(&id) {
-                    Some(Expression::Identifier(id_resolved)) => {
-                        Expression::Identifier(Identifier::Params {
-                            name_in_pkg: id.clone(),
-                            pkgname: name.clone(),
-
-                            name_in_comp: id_resolved.ident(),
-                            compname: comp_name.into(),
-                        })
-                    }
-                    Some(expr) => expr.clone(),
-                    None => unreachable!(),
-                }
-
-                // Expression::Identifier(Identifier::Params {
-                //     name_in_pkg: id.clone(),
-                //     pkgname: name.clone(),
-
-                //     name_in_comp: inst_params[&id].clone(),
-                //     compname: comp_name.into(),
-                // })
-            } else {
-                Expression::Identifier(Identifier::Local(id))
-            }
-        }
-        Expression::TableAccess(Identifier::Scalar(id), expr) => {
-            if state.clone().iter().any(|(id_, _)| id == *id_) {
-                Expression::TableAccess(
-                    Identifier::State {
-                        name: id,
-                        pkgname: name.clone(),
-                        compname: comp_name.into(),
-                    },
-                    expr,
-                )
-            } else if params.clone().iter().any(|(id_, _)| id == *id_) {
-                match inst_params.get(&id) {
-                    Some(Expression::Identifier(id_resolved)) => Expression::TableAccess(
-                        Identifier::Params {
-                            name_in_pkg: id.clone(),
-                            pkgname: name.clone(),
-
-                            name_in_comp: id_resolved.ident(),
-                            compname: comp_name.into(),
-                        },
-                        expr,
-                    ),
-                    _ => {
-                        unreachable!()
-                    }
-                }
-            } else {
-                Expression::TableAccess(Identifier::Local(id), expr)
-            }
-        }
+        Expression::FnCall(Identifier::Scalar(id), args) => Expression::FnCall(
+            resolve_var(
+                pkg_state,
+                pkg_inst_params,
+                game_inst_params,
+                id,
+                pkg_name,
+                game_inst.as_game_name(),
+            ),
+            args,
+        ),
+        Expression::Identifier(Identifier::Scalar(id)) => Expression::Identifier(resolve_var(
+            pkg_state,
+            pkg_inst_params,
+            game_inst_params,
+            id,
+            pkg_name,
+            game_inst.as_game_name(),
+        )),
+        Expression::TableAccess(Identifier::Scalar(id), expr) => Expression::TableAccess(
+            resolve_var(
+                pkg_state,
+                pkg_inst_params,
+                game_inst_params,
+                id,
+                pkg_name,
+                game_inst.as_game_name(),
+            ),
+            expr,
+        ),
         _ => expr,
     };
     CodeBlock(
@@ -203,32 +202,39 @@ fn var_specify_helper(inst: &PackageInstance, block: CodeBlock, comp_name: &str)
                 }
                 Statement::IfThenElse(expr, ifcode, elsecode) => Statement::IfThenElse(
                     expr.map(fixup),
-                    var_specify_helper(inst, ifcode.clone(), comp_name),
-                    var_specify_helper(inst, elsecode.clone(), comp_name),
+                    var_specify_helper(game_inst, pkg_inst, ifcode.clone()),
+                    var_specify_helper(game_inst, pkg_inst, elsecode.clone()),
                 ),
             })
             .collect(),
     )
 }
 
-fn var_specify(inst: &PackageInstance, comp_name: &str) -> PackageInstance {
+fn var_specify_pkg_inst(game_inst: &GameInstance, pkg_inst: &PackageInstance) -> PackageInstance {
     PackageInstance {
         pkg: Package {
-            oracles: inst
+            oracles: pkg_inst
                 .pkg
                 .oracles
                 .iter()
                 .map(|def| OracleDef {
                     sig: def.sig.clone(),
-                    code: var_specify_helper(inst, def.code.clone(), comp_name),
+                    code: var_specify_helper(game_inst, pkg_inst, def.code.clone()),
                 })
                 .collect(),
-            ..inst.pkg.clone()
+            ..pkg_inst.pkg.clone()
         },
-        ..inst.clone()
+        ..pkg_inst.clone()
     }
 }
 
+pub fn var_specify_game_inst(game_inst: &GameInstance) -> Result<Composition, ()> {
+    game_inst
+        .as_game()
+        .map_pkg_inst(|pkg_inst| Ok(var_specify_pkg_inst(game_inst, pkg_inst)))
+}
+
+/*
 #[cfg(test)]
 mod test {
     use super::var_specify;
@@ -392,7 +398,7 @@ mod test {
         param_t.push(("v".to_string(), Type::Integer));
 
         let source_id = Identifier::Scalar("v".to_string());
-        let target_id = Identifier::Params {
+        let target_id = Identifier::Parameter {
             name_in_pkg: "v".to_string(),
             pkgname: "testpkg".to_string(),
 
@@ -429,3 +435,6 @@ mod test {
         })
     }
 }
+
+
+*/

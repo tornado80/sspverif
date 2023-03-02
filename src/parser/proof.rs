@@ -56,7 +56,7 @@ pub fn handle_proof<'a>(ast: Pair<Rule>, pkgs: &[Package], games: &[Composition]
         instances,
         assumptions,
         game_hops,
-        games.to_vec(),
+        //games.to_vec(),
         pkgs.to_vec(),
     ))
 }
@@ -269,14 +269,10 @@ fn handle_equivalence<'a>(ast: Pair<Rule>, games: &[Composition]) -> Result<Vec<
     }
 
     let invariant = ();
-    let trees = ();
+    let trees = vec![];
+    let eq = GameHop::Equivalence(Equivalence::new(left_name, right_name, trees));
 
-    equivalences.push(GameHop::Equivalence(Equivalence {
-        left_name,
-        right_name,
-        invariant,
-        trees,
-    }));
+    equivalences.push(eq);
 
     Ok(equivalences)
 }

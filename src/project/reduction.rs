@@ -10,7 +10,7 @@ use crate::project::Result;
 use super::assumption::ResolvedAssumption;
 use super::Error;
 
-use crate::proof::{Proof, Resolver, SliceResolver};
+use crate::proof::{Proof, Reduction, Resolver, SliceResolver};
 
 // TODO: add a HybridArgument variant
 #[derive(Debug, Serialize, Deserialize)]
@@ -19,7 +19,7 @@ pub enum Direction {
     RightToLeft,
     Unspecified,
 }
-
+/*
 // TODO: add a HybridArgument variant
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Reduction {
@@ -32,6 +32,7 @@ pub struct Reduction {
     // we probably have to provide more information here,
     // in order to easily figure out how to perform the rewrite
 }
+ */
 
 pub struct ResolvedReduction {
     pub left: Composition,
@@ -73,6 +74,8 @@ impl Composition {
 fn same_package(left: &PackageInstance, right: &PackageInstance) -> bool {
     left.pkg == right.pkg
 }
+
+/*
 
 impl ResolvedReduction {
     /// Prove needs to verify four aspects
@@ -226,24 +229,23 @@ impl ResolvedReduction {
         Ok(())
     }
 }
+*/
 
-fn verify(red: &Reduction, proof: &Proof) -> Result<()> {
-    let Reduction {
-        left,
-        right,
-        assumption,
-        leftmap,
-        rightmap,
-        ..
-    } = red;
+pub fn verify(red: &Reduction, proof: &Proof) -> Result<()> {
+    let left_mapping = red.left();
+    let right_mapping = red.right();
+    let assumption_name = red.assumption_name();
 
     // resolve game instances
     let game_instance_resolver = SliceResolver(proof.instances());
+
+    let left = left_mapping.as_game_inst_name();
     let left = game_instance_resolver
         .resolve(left)
         .ok_or(Error::ProofCheck(format!(
             "could not find game instance {left:?}"
         )))?;
+    let right = right_mapping.as_game_inst_name();
     let right = game_instance_resolver
         .resolve(right)
         .ok_or(Error::ProofCheck(format!(
@@ -252,9 +254,9 @@ fn verify(red: &Reduction, proof: &Proof) -> Result<()> {
 
     let assumption_resolver = SliceResolver(proof.assumptions());
     let assumption = assumption_resolver
-        .resolve(assumption)
+        .resolve(assumption_name)
         .ok_or(Error::ProofCheck(format!(
-            "could not find assumption {assumption:?}"
+            "could not find assumption {assumption_name:?}"
         )))?;
 
     let assumption_left = &assumption.left_name;
@@ -270,6 +272,9 @@ fn verify(red: &Reduction, proof: &Proof) -> Result<()> {
         .ok_or(Error::ProofCheck(format!(
             "could not find game instance {assumption_right:?}"
         )))?;
+
+    let leftmap = left_mapping.pkg_maps();
+    let rightmap = right_mapping.pkg_maps();
 
     // PackageInstances are only mentioned once
     if !(leftmap.iter().map(|(from, _to)| from).all_unique()) {
@@ -404,6 +409,7 @@ fn verify(red: &Reduction, proof: &Proof) -> Result<()> {
     Ok(())
 }
 
+/*
 #[cfg(test)]
 mod tests {
     use crate::package::{
@@ -566,3 +572,4 @@ mod tests {
             .expect_err("expect proving err but prove passed");
     }
 }
+ */

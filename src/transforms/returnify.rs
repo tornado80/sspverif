@@ -6,9 +6,7 @@ use crate::types::Type;
 #[derive(Debug, Clone)]
 pub struct Error(pub String);
 
-pub struct TransformNg {
-    //proof: &'a Proof,
-}
+pub struct TransformNg;
 
 impl<'a> super::GameTransform for TransformNg {
     type Err = Error;

@@ -1,6 +1,6 @@
 use crate::{
     package::{Composition, Package, PackageInstance},
-    proof::GameInstance,
+    proof::{GameInstance, Proof},
     types::Type,
 };
 
@@ -15,11 +15,14 @@ pub mod typecheck;
 pub mod unwrapify;
 pub mod varspecify;
 
+pub mod game_inst;
+pub mod proof_transforms;
+
 pub trait PackageTransform {
     type Err;
     type Aux;
 
-    fn transform_package(&self) -> Result<(Package, Self::Aux), Self::Err>;
+    fn transform_package(&self, pkg: &Package) -> Result<(Package, Self::Aux), Self::Err>;
 }
 
 pub trait PackageInstanceTransform {
@@ -54,13 +57,21 @@ pub trait GameTransform {
 
     fn transform_game(&self, game: &Composition) -> Result<(Composition, Self::Aux), Self::Err>;
 }
+
+pub trait ProofTransform {
+    type Err;
+    type Aux;
+
+    fn transform_proof(&self, proof: &Proof) -> Result<(Proof, Self::Aux), Self::Err>;
+}
+
 pub trait Transformation {
     type Err;
     type Aux;
 
     fn transform(&self) -> Result<(Composition, Self::Aux), Self::Err>;
 }
-
+/*
 pub fn transform_all(
     comp: &Composition,
 ) -> Result<
@@ -85,7 +96,7 @@ pub fn transform_all(
     let (comp, _) = unwrapify::Transformation(&comp)
         .transform()
         .expect("unwrapify transformation failed unexpectedly");
-    let (comp, _) = returnify::TransformNg {}
+    let (comp, _) = returnify::TransformNg
         .transform_game(&comp)
         .expect("returnify transformation failed unexpectedly");
     let (comp, _) = varspecify::Transformation(&comp)
@@ -130,3 +141,4 @@ pub fn transform_explain(
 
     Ok((comp, scope, samplinginfo))
 }
+*/

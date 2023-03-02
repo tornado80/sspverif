@@ -144,13 +144,14 @@ fn prove() -> Result<()> {
 }
 
 fn explain(game_name: &str, dst: &Option<String>) -> Result<()> {
-    let data = project::Project::load()?.explain_game(game_name)?;
+    /*
+        let data = project::Project::load()?.explain_game(game_name)?;
 
-    match dst {
-        Some(dst) => std::fs::write(dst, data)?,
-        None => println!("{data}"),
-    }
-
+        match dst {
+            Some(dst) => std::fs::write(dst, data)?,
+            None => println!("{data}"),
+        }
+    */
     Ok(())
 }
 

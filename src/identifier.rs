@@ -8,15 +8,17 @@ pub enum Identifier {
         pkgname: String,
         compname: String,
     },
-    Params {
+    Parameter {
         name_in_pkg: String,
         pkgname: String,
 
         name_in_comp: String,
         compname: String,
+
+        name_in_proof: String,
     },
     Local(String),
-    //    Bracket(Box<Identifier>, Expression),
+    // TODO add parameter identifiers for each place of definition (package/game/proof)
 }
 
 impl Identifier {
@@ -34,7 +36,7 @@ impl Identifier {
             Identifier::Scalar(ident) => ident.clone(),
             Identifier::Local(ident) => ident.clone(),
             Identifier::State { name, .. } => name.clone(),
-            Identifier::Params { name_in_pkg, .. } => name_in_pkg.clone(),
+            Identifier::Parameter { name_in_pkg, .. } => name_in_pkg.clone(),
         }
     }
 }

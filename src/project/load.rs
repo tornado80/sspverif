@@ -147,7 +147,6 @@ pub(crate) fn games(
                     return Err((name, e).into());
                 }
 
-                println!("parsed.");
                 let mut ast = parse_result.unwrap();
                 let comp = match handle_composition(ast.next().unwrap(), pkgs) {
                     Ok(game) => game,
@@ -157,7 +156,6 @@ pub(crate) fn games(
                     }
                 };
                 let comp_name = comp.name.clone();
-                println!("ast built.");
 
                 games.insert(comp_name, comp);
             }

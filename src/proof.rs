@@ -8,6 +8,7 @@ use crate::{
 
 pub trait Resolver<T> {
     fn resolve(&self, name: &str) -> Option<&T>;
+    fn resolve_index(&self, name: &str) -> Option<usize>;
 }
 
 pub trait Named {
@@ -19,6 +20,20 @@ pub struct SliceResolver<'a, T>(pub &'a [T]);
 impl<'a, T: Named> Resolver<T> for SliceResolver<'a, T> {
     fn resolve(&self, name: &str) -> Option<&T> {
         self.0.iter().find(|v| v.as_name() == name)
+    }
+
+    fn resolve_index(&self, name: &str) -> Option<usize> {
+        self.0
+            .iter()
+            .enumerate()
+            .find(|(i, v)| v.as_name() == name)
+            .map(|(i, v)| i)
+    }
+}
+
+impl<T> Named for (String, T) {
+    fn as_name(&self) -> &str {
+        &self.0
     }
 }
 
@@ -46,6 +61,14 @@ impl<'a> Resolver<Expression> for SliceResolver<'a, (String, Expression)> {
             .iter()
             .find(|(item_name, _)| item_name == name)
             .map(|(_, v)| v)
+    }
+
+    fn resolve_index(&self, name: &str) -> Option<usize> {
+        self.0
+            .iter()
+            .enumerate()
+            .find(|(i, (item_name, _))| item_name == name)
+            .map(|(i, _)| i)
     }
 }
 
@@ -94,6 +117,10 @@ impl GameInstance {
         &self.consts
     }
 
+    pub fn types(&self) -> &[(Type, Type)] {
+        &self.types
+    }
+
     pub fn as_game_name(&self) -> &str {
         &self.game_name
     }
@@ -133,6 +160,10 @@ impl Mapping {
     pub fn as_assumption_game_inst_name(&self) -> &str {
         &self.assumption_game_inst_name
     }
+
+    pub fn pkg_maps(&self) -> &[(String, String)] {
+        &self.pkg_maps
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -158,6 +189,18 @@ impl Reduction {
             assumption_name,
         }
     }
+
+    pub fn left(&self) -> &Mapping {
+        &self.left
+    }
+
+    pub fn right(&self) -> &Mapping {
+        &self.right
+    }
+
+    pub fn assumption_name(&self) -> &str {
+        &self.assumption_name
+    }
 }
 
 // Equivalence contains the composisitions/games and the invariant data,
@@ -165,13 +208,44 @@ impl Reduction {
 // TODO: explore if we can keep references to the games in the project hashmap
 #[derive(Debug, Clone)]
 pub struct Equivalence {
-    pub left_name: String,
-    pub right_name: String,
+    left_name: String,
+    right_name: String,
+    invariant: (),
+    trees: Vec<(String, Vec<ProofTreeRecord>)>,
+}
 
-    pub invariant: (),
+impl Equivalence {
+    pub fn new(
+        left_name: String,
+        right_name: String,
+        mut trees: Vec<(String, Vec<ProofTreeRecord>)>,
+    ) -> Self {
+        trees.sort();
+        Equivalence {
+            left_name,
+            right_name,
+            invariant: (),
+            trees,
+        }
+    }
 
-    // TODO The value should be a ProofTreeSpec, bvut we don't parse that yet I think
-    pub trees: (),
+    pub fn trees(&self) -> &[(String, Vec<ProofTreeRecord>)] {
+        &self.trees
+    }
+
+    pub fn left_name(&self) -> &str {
+        &self.left_name
+    }
+
+    pub fn right_name(&self) -> &str {
+        &self.right_name
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, PartialOrd, Ord, Eq)]
+pub struct ProofTreeRecord {
+    lemma: String,
+    dependencies: Vec<String>,
 }
 
 // TODO: add a HybridArgument variant
@@ -188,7 +262,7 @@ pub struct Proof {
     instances: Vec<GameInstance>,
     assumptions: Vec<Assumption>,
     game_hops: Vec<GameHop>,
-    games: Vec<Composition>,
+    //games: Vec<Composition>,
     pkgs: Vec<Package>,
 }
 
@@ -199,7 +273,6 @@ impl Proof {
         instances: Vec<GameInstance>,
         assumptions: Vec<Assumption>,
         game_hops: Vec<GameHop>,
-        games: Vec<Composition>,
         pkgs: Vec<Package>,
     ) -> Proof {
         Proof {
@@ -208,8 +281,14 @@ impl Proof {
             instances,
             assumptions,
             game_hops,
-            games,
             pkgs,
+        }
+    }
+
+    pub fn with_new_instances(&self, instances: Vec<GameInstance>) -> Proof {
+        Proof {
+            instances,
+            ..self.clone()
         }
     }
 
@@ -227,10 +306,6 @@ impl Proof {
 
     pub fn assumptions(&self) -> &[Assumption] {
         &self.assumptions
-    }
-
-    pub fn games(&self) -> &[Composition] {
-        &self.games
     }
 
     pub fn packages(&self) -> &[Package] {
