@@ -18,7 +18,17 @@ rightmap = [["keys_top", "keys_top"], ["keys_bottom", "keys_bottom"],["simgate",
 left = "Left"
 right = "Right"
 invariant_path = "./invariant-GBLG.smt2"
-trees.SETBIT = [ ["invariant-SETBIT-post", []]
+trees.GETAOUT = [ ["invariant-GETAOUT-post", []],
+                  ["aborts-equal-GETAOUT", []],
+                  ["same-output-GETAOUT", ["no-abort-GETAOUT"]]
+                ]
+trees.SETBIT = [ ["invariant-SETBIT-post", []],
+                  ["aborts-equal-SETBIT", []],
+                  ["same-output-SETBIT", ["no-abort-SETBIT"]]
+             ]
+trees.GETKEYSIN = [ ["invariant-GETKEYSIN-post", []],
+                  ["aborts-equal-GETKEYSIN", []],
+                  ["same-output-GETKEYSIN", ["no-abort-GETKEYSIN"]]
              ]
 trees.GBLG = [ ["right-all-aborts", []],
                ["right-all-aborts-inverse", []],
