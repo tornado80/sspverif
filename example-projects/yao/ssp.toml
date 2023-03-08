@@ -1,16 +1,17 @@
+
 [assumptions]
-[assumptions.LeftRight]
-left = "Left"
-right = "Right"
+[assumptions.Indcpa]
+left = "Indcpa0"
+right = "Indcpa1"
 
 [[game_hops]]
 [game_hops.Reduction]
 
-left = "Left"
-right = "Right"
-assumption = "LeftRight"
-leftmap = [["keys_top", "keys_top"], ["keys_bottom", "keys_bottom"],["gate","gate"], ["enc", "enc"]]
-rightmap = [["keys_top", "keys_top"], ["keys_bottom", "keys_bottom"],["simgate", "simgate"],["ev", "ev"]]
+left = "VeryLeft"
+right = "Left"
+assumption = "Indcpa"
+leftmap = [["keys_top", "keys_top"], ["enc", "enc"]]
+rightmap = [["keys_top", "keys_top"], ["enc", "enc"]]
 
 [[game_hops]]
 [game_hops.Equivalence]
