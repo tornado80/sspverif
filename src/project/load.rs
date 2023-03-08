@@ -138,8 +138,6 @@ pub(crate) fn games(
         if let Some(name) = dir_entry.file_name().to_str() {
             if name.ends_with(GAME_EXT) {
                 let path = &dir_entry.path();
-                let path_str = path.to_str().unwrap();
-                println!("reading {path_str}");
 
                 let filecontent = std::fs::read_to_string(dir_entry.path())?;
                 let parse_result = SspParser::parse_composition(&filecontent);
@@ -185,8 +183,6 @@ pub(crate) fn proofs(
             if name.ends_with(".ssp") {
                 // TODO make a constant and figure out if we really need the sub-extensions
                 let path = &dir_entry.path();
-                let path_str = path.to_str().unwrap();
-                println!("reading {path_str}");
 
                 let filecontent = std::fs::read_to_string(dir_entry.path())?;
                 let parse_result = SspParser::parse_proof(&filecontent);
@@ -194,17 +190,14 @@ pub(crate) fn proofs(
                     return Err((name, e).into());
                 }
 
-                println!("parsed.");
                 let mut ast = parse_result.unwrap();
                 let proof = match handle_proof(ast.next().unwrap(), &pkgs, &games) {
                     Ok(proof) => proof,
                     Err(err) => {
-                        println!("printing error...");
                         return Err(err.with_source(filecontent).into());
                     }
                 };
                 let proof_name = proof.as_name().to_string();
-                println!("ast built.");
 
                 proofs.insert(proof_name, proof);
             }

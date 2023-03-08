@@ -160,8 +160,6 @@ pub fn handle_comp_spec_list(
         }
     }
 
-    println!("handled const, instance, compose.");
-
     let (edges, exports) = match (edges, exports) {
         (None, None) => Err(error::Error::MissingComposeBlock {
             game_name: comp_name.to_string(),
@@ -235,7 +233,10 @@ pub fn handle_instance_decl(
         .map(|(name, tipe)| (name.clone(), tipe.clone()))
         .collect();
 
-    let (param_list, type_list) = handle_instance_assign_list(data, inst_name, &defined_consts)?;
+    let (mut param_list, type_list) =
+        handle_instance_assign_list(data, inst_name, &defined_consts)?;
+
+    param_list.sort();
 
     // check that const param lists match
     let mut typed_params: Vec<_> = param_list

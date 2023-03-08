@@ -1,20 +1,19 @@
 package XOR3 {
     types {
         HandleIn,
-        /* HandleOut = (String, HandleIn, HandleIn, HandleIn), */
+        /* HandleOut = (HandleIn, HandleIn, HandleIn), */
         /* Key = Bits(n), */
     }
 
     params {
         sort3hdl: fn HandleIn, HandleIn, HandleIn -> (HandleIn, HandleIn, HandleIn),
-        hdl_type: String,
         n: Integer,
     }
 
     import oracles {
         Get(hdl: HandleIn) -> Bits(n),
         PR(hdl: HandleIn) -> Bool,
-        Set(hdl: (String, (HandleIn, HandleIn, HandleIn)), k: Bits(n), pr: Bool),
+        Set(hdl: (HandleIn, HandleIn, HandleIn), k: Bits(n), pr: Bool),
     }
 
     oracle Xor(hdl1: HandleIn, hdl2: HandleIn, hdl3: HandleIn) {
@@ -28,7 +27,7 @@ package XOR3 {
 
         k_out  <-  (k1 xor  (k2 xor  k3));
         pr_out <- (pr1  or (pr2  or pr3));
-        hdl_out <- (hdl_type, sort3hdl(hdl1, hdl2, hdl3));
+        hdl_out <- sort3hdl(hdl1, hdl2, hdl3);
 
         _ <- invoke Set(hdl_out, k_out, pr_out);
     }

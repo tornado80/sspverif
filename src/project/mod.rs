@@ -123,6 +123,10 @@ impl Project {
                     GameHop::Reduction(red) => reduction::verify(red, proof)?,
                     GameHop::Equivalence(eq) => equivalence::verify(eq, proof)?,
                 }
+
+                let proof_name = proof.as_name();
+
+                println!("proof {proof_name}: step {i}: checked");
             }
         }
 

@@ -2,13 +2,9 @@ composition SNPRF_g1 {
     const n: Integer; /* key length */
     const m: Integer; /* message length */
 
-    const prf_hdl_type_top: String;
-    const prf_hdl_type_bottom: String;
-    const xor3_hdl_type: String;
-
     const f: fn Bits(n), Message -> Bits(n); /* PRF */
     
-    /* sorting function; needs to be adequately constrained in SMT code.*/
+    /* sorting function; needs to be adequately constrained in SMT code. */
     const sort3hdl: fn HandleIn, HandleIn, HandleIn -> (HandleIn, HandleIn, HandleIn); 
 
     instance key_one = Key {
@@ -24,18 +20,18 @@ composition SNPRF_g1 {
 
     instance key_two = Key {
         types {
-            Handle: (String, Integer, Bits(m)),
+            Handle: (Integer, Bits(m)),
         }
 
         params {
             ideal: true,
-            n:n,
+            n: n,
         }
     }
 
     instance key_three = Key {
         types {
-            Handle: (String, ((String, Integer, Bits(m)), (String, Integer, Bits(m)), (String, Integer, Bits(m)))),
+            Handle: ((Integer, Bits(m)), (Integer, Bits(m)), (Integer, Bits(m))),
         }
 
         params {
@@ -46,7 +42,7 @@ composition SNPRF_g1 {
 
     instance key_four = Key {
         types {
-            Handle: (String, (String, ((String, Integer, Bits(m)), (String, Integer, Bits(m)), (String, Integer, Bits(m)))), Bits(m)),
+            Handle: (((Integer, Bits(m)), (Integer, Bits(m)), (Integer, Bits(m))), Bits(m)),
         }
 
         params {
@@ -63,39 +59,36 @@ composition SNPRF_g1 {
 
         params {
             f: f,
-            hdl_type: prf_hdl_type_top,
             n:n,
         }
     }
 
     instance xor = XOR3 {
         types {
-            HandleIn:   (String, Integer, Bits(m)),
+            HandleIn:   (Integer, Bits(m)),
         }
 
         params {
-            sort3hdl: sort3hdl,
-            hdl_type: xor3_hdl_type,
             n:n,
+            sort3hdl: sort3hdl,
         }
     }
 
     instance prf2 = PRF2 {
         types {
             Message: Bits(m),
-            HandleIn: (String, ((String, Integer, Bits(m)), (String, Integer, Bits(m)), (String, Integer, Bits(m)))),
+            HandleIn: ((Integer, Bits(m)), (Integer, Bits(m)), (Integer, Bits(m))),
         }
     }
 
     instance prf_bottom = PRF {
         types {
             Message: Bits(m),
-            HandleIn: (String, ((String, Integer, Bits(m)), (String, Integer, Bits(m)), (String, Integer, Bits(m)))),
+            HandleIn: ((Integer, Bits(m)), (Integer, Bits(m)), (Integer, Bits(m))),
         }
 
         params {
             f: f,
-            hdl_type: prf_hdl_type_bottom,
             n:n,
         }
     }

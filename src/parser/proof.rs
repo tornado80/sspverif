@@ -11,6 +11,7 @@ use crate::{
     types::Type,
 };
 
+use itertools::Itertools;
 use pest::{
     iterators::{Pair, Pairs},
     Span,
@@ -347,9 +348,6 @@ fn handle_reduction_body(
     let map1_ast = ast.next().unwrap();
     let map2_ast = ast.next().unwrap();
 
-    println!("map block 1: {}", map1_ast.as_str());
-    println!("map block 2: {}", map2_ast.as_str());
-
     let mapping1 = handle_mapspec(map1_ast, &assumption, game_instances, left_name, right_name)?;
     let mapping2 = handle_mapspec(map2_ast, &assumption, game_instances, left_name, right_name)?;
 
@@ -418,8 +416,12 @@ fn handle_mapspec<'a>(
         );
     }
 
-    let mappings: Vec<_> = ast
-        .map(|pair| handle_string_pair(&mut pair.into_inner()))
+    let mappings: Vec<(String, String)> = ast
+        .map(Pair::into_inner)
+        .flatten()
+        .map(|pair| pair.as_str())
+        .map(str::to_string)
+        .tuples()
         .collect();
 
     // TODO check mappings are valid
@@ -448,7 +450,6 @@ fn handle_string_triplet(ast: &mut Pairs<Rule>) -> (String, String, String) {
 
 fn handle_string_pair(ast: &mut Pairs<Rule>) -> (String, String) {
     let strs: Vec<_> = ast.take(2).map(|str| str.as_str()).collect();
-
     (strs[0].to_string(), strs[1].to_string())
 }
 

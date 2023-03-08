@@ -159,7 +159,14 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
 
     match &cli.command {
-        Commands::Prove => prove(),
+        Commands::Prove => match prove() {
+            Err(crate::project::error::Error::ProofCheck(string)) => {
+                print!("{}", string);
+                Err(crate::project::error::Error::ProofCheck(string))
+            }
+            Err(x) => Err(x),
+            Ok(_) => Ok(()),
+        },
         Commands::Explain(Explain { game_name, output }) => explain(game_name, output),
     }
 }

@@ -1,6 +1,8 @@
 use itertools::Itertools;
 use serde_derive::{Deserialize, Serialize};
+use std::collections::hash_map::DefaultHasher;
 use std::collections::{HashMap, HashSet};
+use std::hash::{Hash, Hasher};
 use std::iter::FromIterator;
 
 use crate::package::{Composition, Edge, PackageInstance};
@@ -10,7 +12,7 @@ use crate::project::Result;
 use super::assumption::ResolvedAssumption;
 use super::Error;
 
-use crate::proof::{Proof, Reduction, Resolver, SliceResolver};
+use crate::proof::{Named, Proof, Reduction, Resolver, SliceResolver};
 
 // TODO: add a HybridArgument variant
 #[derive(Debug, Serialize, Deserialize)]
@@ -300,30 +302,83 @@ pub fn verify(red: &Reduction, proof: &Proof) -> Result<()> {
     // Mapping may only occure with the same package type
     let mismatches_left: Vec<_> = leftmap
         .iter()
-        .filter(|(from, to)| {
-            !same_package(
-                &left_package_resolver.resolve(from).unwrap(),
-                &assumption_left_package_resolver.resolve(to).unwrap(),
-            )
+        .map(|(from, to)| {
+            let assumption_left_pkg_inst =
+                assumption_left_package_resolver
+                    .resolve(from)
+                    .ok_or(Error::ProofCheck(format!(
+                        "error resolving package {from} in left game {}",
+                        assumption_left.as_name()
+                    )))?;
+
+            let left_pkg_inst =
+                left_package_resolver
+                    .resolve(to)
+                    .ok_or(Error::ProofCheck(format!(
+                        "error resolving package {to} in left assumption game {}",
+                        left.as_name()
+                    )))?;
+
+            Ok((left_pkg_inst, assumption_left_pkg_inst))
         })
-        .map(|(from, to)| format!("{from} and {to} have different types",))
-        .collect();
+        .filter(|to| match to {
+            Ok((from, to)) => !same_package(from, to),
+            Err(_) => true,
+        })
+        .map(|res| {
+            res.map(|(from, to)| {
+                format!(
+                    "{} and {} have different types",
+                    from.as_name(),
+                    to.as_name()
+                )
+            })
+        })
+        .collect::<Result<_>>()?;
+
     if !mismatches_left.is_empty() {
         return Err(Error::ProofCheck(format!(
             "leftmap has incompatible package instances: {}",
             mismatches_left.join(", ")
         )));
     }
+
     let mismatches_right: Vec<_> = rightmap
         .iter()
-        .filter(|(from, to)| {
-            !same_package(
-                &right_package_resolver.resolve(from).unwrap(),
-                &assumption_right_package_resolver.resolve(to).unwrap(),
-            )
+        .map(|(from, to)| {
+            let assumption_right_pkg_inst =
+                assumption_right_package_resolver
+                    .resolve(from)
+                    .ok_or(Error::ProofCheck(format!(
+                        "error resolving package {from} in right game {}",
+                        assumption_right.as_name()
+                    )))?;
+
+            let right_pkg_inst =
+                right_package_resolver
+                    .resolve(to)
+                    .ok_or(Error::ProofCheck(format!(
+                        "error resolving package {to} in right assumption game {}",
+                        right.as_name()
+                    )))?;
+
+            Ok((right_pkg_inst, assumption_right_pkg_inst))
         })
-        .map(|(from, to)| format!("{from} and {to} have different types",))
-        .collect();
+        .filter(|to| match to {
+            Ok((from, to)) => !same_package(from, to),
+            Err(_) => true,
+        })
+        .map(|res| {
+            res.map(|(from, to)| {
+                format!(
+                    "{} and {} have different types",
+                    from.as_name(),
+                    to.as_name()
+                )
+            })
+        })
+        .collect::<Result<_>>()?;
+
     if !mismatches_right.is_empty() {
         return Err(Error::ProofCheck(format!(
             "rightmap has incompatible package instances: {}",
@@ -334,12 +389,14 @@ pub fn verify(red: &Reduction, proof: &Proof) -> Result<()> {
     // Every PackageInstance in the assumptions is mapped
     if assumption_left.as_game().pkgs.len() != leftmap.len() {
         return Err(Error::ProofCheck(format!(
-            "Some package instances in leftasusmption are not mapped"
+            "Some package instances in left assumption are not mapped: {} != {:?}",
+            assumption_left.as_game().pkgs.len(),
+            leftmap
         )));
     }
     if assumption_right.as_game().pkgs.len() != rightmap.len() {
         return Err(Error::ProofCheck(format!(
-            "Some package instances in rightasusmption are not mapped"
+            "Some package instances in right assumption are not mapped"
         )));
     }
 
@@ -349,13 +406,13 @@ pub fn verify(red: &Reduction, proof: &Proof) -> Result<()> {
         let from = &left.as_game().pkgs[*from].name;
         let from_is_mapped = leftmap
             .iter()
-            .find(|(game_inst_name, _)| game_inst_name == from)
+            .find(|(_, game_inst_name)| game_inst_name == from)
             .is_some();
 
         let to = &left.as_game().pkgs[*to].name;
         let to_is_mapped = leftmap
             .iter()
-            .find(|(game_inst_name, _)| game_inst_name == to)
+            .find(|(_, game_inst_name)| game_inst_name == to)
             .is_some();
 
         if from_is_mapped && !to_is_mapped {
@@ -368,13 +425,13 @@ pub fn verify(red: &Reduction, proof: &Proof) -> Result<()> {
         let from = &right.as_game().pkgs[*from].name;
         let from_is_mapped = rightmap
             .iter()
-            .find(|(game_inst_name, _)| game_inst_name == from)
+            .find(|(_, game_inst_name)| game_inst_name == from)
             .is_some();
 
         let to = &right.as_game().pkgs[*to].name;
         let to_is_mapped = rightmap
             .iter()
-            .find(|(game_inst_name, _)| game_inst_name == to)
+            .find(|(_, game_inst_name)| game_inst_name == to)
             .is_some();
 
         if from_is_mapped && !to_is_mapped {
@@ -389,20 +446,53 @@ pub fn verify(red: &Reduction, proof: &Proof) -> Result<()> {
         HashSet::from_iter(left.as_game().pkgs.iter().filter(|pkg_inst| {
             leftmap
                 .iter()
-                .find(|(game_inst_name, _)| game_inst_name == &pkg_inst.name)
+                .find(|(_, game_inst_name)| game_inst_name == &pkg_inst.name)
                 .is_none()
         }));
     let unmapped_right = HashSet::from_iter(right.as_game().pkgs.iter().filter(|pkg_inst| {
         rightmap
             .iter()
-            .find(|(game_inst_name, _)| game_inst_name == &pkg_inst.name)
+            .find(|(_, game_inst_name)| game_inst_name == &pkg_inst.name)
             .is_none()
     }));
 
     if unmapped_left != unmapped_right {
+        let mut left_summary = unmapped_left
+            .iter()
+            .map(|pkg_inst| {
+                let mut hasher = DefaultHasher::new();
+                pkg_inst.hash(&mut hasher);
+                (pkg_inst.as_name(), hasher.finish())
+            })
+            .collect::<Vec<_>>();
+
+        let mut right_summary = unmapped_right
+            .iter()
+            .map(|pkg_inst| {
+                let mut hasher = DefaultHasher::new();
+                pkg_inst.hash(&mut hasher);
+                (pkg_inst.as_name(), hasher.finish())
+            })
+            .collect::<Vec<_>>();
+
+        left_summary.sort();
+        right_summary.sort();
+
+        let example_left: &PackageInstance = unmapped_left
+            .iter()
+            .filter(|inst| inst.as_name() == "xor")
+            .take(1)
+            .collect::<Vec<_>>()[0];
+
+        let example_right: &PackageInstance = unmapped_right
+            .iter()
+            .filter(|inst| inst.as_name() == "xor")
+            .take(1)
+            .collect::<Vec<_>>()[0];
+
         return Err(Error::ProofCheck(format!(
-            "unmapped package instances not equal: {:?} and {:?}",
-            unmapped_left, unmapped_right
+            "unmapped package instances not equal: \n{:#?} and \n{:#?}.\nexample: \n {:#?}\n {:#?}",
+            left_summary, right_summary, example_left, example_right
         )));
     }
 

@@ -2,8 +2,6 @@ composition PRF_ideal {
     const n: Integer; /* key length */
     const m: Integer; /* message length */
 
-    const hdl_type: String;
-
     const f: fn Bits(n), Message -> Bits(n); /* PRF */
 
     instance key_top = Key {
@@ -19,7 +17,7 @@ composition PRF_ideal {
 
     instance key_bottom = Key {
         types {
-            Handle: (String, Integer, Bits(m)),
+            Handle: (Integer, Bits(m)),
         }
 
         params {
@@ -37,7 +35,6 @@ composition PRF_ideal {
         params {
             n:n,
             f: f,
-            hdl_type: hdl_type,
         }
     }
 

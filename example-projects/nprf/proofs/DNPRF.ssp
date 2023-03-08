@@ -1,8 +1,11 @@
 proof DNPRF_pseudorandom {
     const m: Integer;
     const n: Integer;
-    const hdl_type_PRF: String;
+    
     const f_prf: fn Bits(n), Bits(m) -> Bits(n);
+
+    /* sorting function; needs to be adequately constrained in SMT code. */
+    const sort3hdl: fn HandleIn, HandleIn, HandleIn -> (HandleIn, HandleIn, HandleIn); 
 
     instance PRF_real_Integer = PRF_real {
         types {
@@ -11,7 +14,6 @@ proof DNPRF_pseudorandom {
 
         params {
             f: f_prf,
-            hdl_type: hdl_type_PRF,
             m: m,
             n:n,
         }
@@ -24,11 +26,29 @@ proof DNPRF_pseudorandom {
 
         params {
             f: f_prf,
-            hdl_type: hdl_type_PRF,
             m: m,
             n:n,
         }
     }
+
+    instance SNPRF_real_inst = SNPRF_real {
+        params {
+            n: n,
+            m: m,
+            f: f_prf,
+            sort3hdl:sort3hdl,
+        }
+    }
+
+    instance SNPRF_g1_inst = SNPRF_g1 {
+        params {
+            n: n,
+            m: m,
+            f: f_prf,
+            sort3hdl:sort3hdl,
+        }
+    }
+
 
     assumptions {
         PRF_Integer: PRF_real_Integer ~ PRF_ideal_Integer
@@ -38,13 +58,13 @@ proof DNPRF_pseudorandom {
         reduction SNPRF_real SNPRF_g1 {
             assumption PRF_Integer
 
-            map PRF_real_Integer SNPRF_real {
+            map PRF_real_Integer SNPRF_real_inst {
                 key_top: key_one
                 key_bottom: key_two
                 prf: prf_top
             }
 
-            map PRF_ideal_Integer SNPRF_g1 {
+            map PRF_ideal_Integer SNPRF_g1_inst {
                 key_top: key_one
                 key_bottom: key_two
                 prf: prf_top
