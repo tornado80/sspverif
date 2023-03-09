@@ -39,11 +39,12 @@ impl super::ProofTransform for EquivanceTransform {
         let new_game_instances: Vec<_> = proof
             .instances()
             .iter()
+            //  .map(|game_inst| Ok(game_inst.with_other_game(var_specify_game_inst(game_inst)?)))
+            //.collect::<Result<Vec<&GameInstance>, _>>()?;
             .map(|game_inst| (game_inst, var_specify_game_inst(game_inst)))
             .map(|(game_inst, new_game)| (game_inst, Result::unwrap(new_game)))
             .map(|(game_inst, new_game)| game_inst.with_other_game(new_game))
             .collect();
-
         // 2. check that game have matching types
         //  needs to be done for every game hop
 

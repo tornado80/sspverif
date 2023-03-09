@@ -1,5 +1,5 @@
 use crate::package::{Composition, Export};
-use crate::proof::{Proof, Resolver, SliceResolver};
+use crate::proof::{Named, Proof, Resolver, SliceResolver};
 use crate::transforms::proof_transforms::EquivanceTransform;
 use crate::transforms::samplify::SampleInfo;
 use crate::transforms::ProofTransform;
@@ -272,12 +272,12 @@ pub fn verify(eq: &Equivalence, proof: &Proof) -> Result<()> {
 
         match &output_type {
             ProverThingyOutputType::End => return Ok(()),
-            ProverThingyOutputType::LemmaAssert { .. } => write!(prover, "(push 1)")?,
+            ProverThingyOutputType::LemmaAssert { .. } => write!(prover, "(push 1)").unwrap(),
             _ => {}
         }
 
         for smt_expr in smt_exprs {
-            write!(prover, "{smt_expr}")?;
+            write!(prover, "{smt_expr}").expect("grrr");
         }
 
         resp = if let Some(expected) = expect {
@@ -294,7 +294,7 @@ pub fn verify(eq: &Equivalence, proof: &Proof) -> Result<()> {
         };
 
         if let ProverThingyOutputType::LemmaAssert { .. } = &output_type {
-            write!(prover, "(pop 1)")?;
+            write!(prover, "(pop 1)").unwrap();
         }
     }
 }

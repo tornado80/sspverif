@@ -23,7 +23,7 @@ pub struct Position {
     pub tipe: Type,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct SampleInfo {
     pub tipes: Vec<Type>,
     pub count: usize,

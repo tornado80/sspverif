@@ -229,7 +229,7 @@ fn handle_game_hops(
 
     for hop_ast in ast {
         let game_hop = match hop_ast.as_rule() {
-            Rule::equivalence => handle_equivalence(hop_ast, games)?,
+            Rule::equivalence => handle_equivalence(hop_ast, games, game_instances)?,
             Rule::reduction => handle_reduction(hop_ast, assumptions, game_instances)?,
             otherwise => unreachable!("found {:?} in game_hops", otherwise),
         };
@@ -239,7 +239,11 @@ fn handle_game_hops(
     Ok(out)
 }
 
-fn handle_equivalence<'a>(ast: Pair<Rule>, games: &[Composition]) -> Result<Vec<GameHop>> {
+fn handle_equivalence<'a>(
+    ast: Pair<Rule>,
+    games: &[Composition],
+    game_instances: &[GameInstance],
+) -> Result<Vec<GameHop>> {
     let span = ast.as_span();
     let mut ast = ast.into_inner();
     let (left_name, right_name) = handle_string_pair(&mut ast);
@@ -262,11 +266,11 @@ fn handle_equivalence<'a>(ast: Pair<Rule>, games: &[Composition]) -> Result<Vec<
     // TODO once we actually support more than one file, insert it here
     let invariant_path = inv_paths[0].to_owned();
 
-    if SliceResolver(games).resolve(&left_name).is_none() {
-        return Err(Error::UndefinedGame(left_name).with_span(span));
+    if SliceResolver(game_instances).resolve(&left_name).is_none() {
+        return Err(Error::UndefinedGameInstance(left_name).with_span(span));
     }
-    if SliceResolver(games).resolve(&right_name).is_none() {
-        return Err(Error::UndefinedGame(right_name).with_span(span));
+    if SliceResolver(game_instances).resolve(&right_name).is_none() {
+        return Err(Error::UndefinedGameInstance(right_name).with_span(span));
     }
 
     let invariant = ();

@@ -586,11 +586,17 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                 Some(id.to_expression()),
                 t,
             )),
-            _ => Err(TypeCheckError::Undefined(
-                ErrorLocation::Unknown,
-                "accessing undefined table".to_string(),
-                id.clone(),
-            )),
+            x => {
+                println!("scope.lookup({id:?}) -> {x:?}");
+
+                println!("{scope:#?}");
+
+                Err(TypeCheckError::Undefined(
+                    ErrorLocation::Unknown,
+                    "accessing undefined table".to_string(),
+                    id.clone(),
+                ))
+            }
         },
         Expression::List(exprs) => {
             let outer_expr = expr;

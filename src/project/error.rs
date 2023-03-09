@@ -53,8 +53,8 @@ pub enum Error {
     ProverProcessError(#[from] crate::util::prover_process::Error),
     #[error("unexpected prover response {0}, expected {1}")]
     UnexpectedProverResponseError(ProverResponse, ProverResponse),
-    #[error("got a formatting error")]
-    FmtError(#[from] std::fmt::Error),
+    //#[error("got a formatting error")]
+    //FmtError(#[from] std::fmt::Error),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;

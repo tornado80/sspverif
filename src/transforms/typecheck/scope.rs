@@ -115,6 +115,9 @@ impl Scope {
             if let Some(t) = table.get(id) {
                 return Some(t.clone());
             }
+            if let Some(t) = table.get(&Identifier::Scalar(id.ident())) {
+                return Some(t.clone());
+            }
         }
 
         None

@@ -156,8 +156,9 @@ impl Communicator {
 
 impl std::fmt::Write for Communicator {
     fn write_str(&mut self, s: &str) -> std::fmt::Result {
-        if let Some(ref chan) = self.chan {
-            if let Err(_) = chan.send(s.to_string()) {
+        if let Some(chan) = &self.chan {
+            if let Err(err) = chan.send(s.to_string()) {
+                eprintln!("communication error: {err}");
                 return Err(std::fmt::Error);
             } else {
                 return Ok(());

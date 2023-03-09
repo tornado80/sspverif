@@ -48,7 +48,7 @@ fn replace_unwrap(expr: &Expression, ctr: &mut usize) -> (Expression, Vec<(Expre
                     ac.push((e, varname.clone()));
                     (
                         (map_ctr + 1, ac),
-                        Expression::Typed(t, Box::new(Identifier::Scalar(varname).to_expression())),
+                        Expression::Typed(t, Box::new(Identifier::Local(varname).to_expression())),
                     )
                 } else {
                     ((map_ctr, ac), e)
@@ -65,7 +65,7 @@ fn create_unwrap_stmts(unwraps: Vec<(Expression, String)>) -> Vec<Statement> {
     unwraps
         .iter()
         .map(|(expr, varname)| {
-            Statement::Assign(Identifier::Scalar(varname.clone()), None, expr.clone())
+            Statement::Assign(Identifier::Local(varname.clone()), None, expr.clone())
         })
         .collect()
 }
