@@ -429,7 +429,11 @@ impl<'a> CompositionSmtWriter<'a> {
                     // then build the table store smt expression, in case we have to
                     let outexpr = if let Some(idx) = opt_idx {
                         let oldvalue = match &ident {
-                            &Identifier::State { name, pkgname, .. } => {
+                            &Identifier::State {
+                                name,
+                                pkg_inst_name: pkgname,
+                                ..
+                            } => {
                                 //assert_eq!(pkgname, inst_name, "failed assertion: in an oracle in instance {inst_name} I found a state identifier with {pkgname}. I assumed these would always be equal.");
                                 inst_context
                                     .smt_access_pkgstate(names::var_selfstate_name(), name)
@@ -448,7 +452,11 @@ impl<'a> CompositionSmtWriter<'a> {
 
                     // build the actual smt assignment
                     let smtout = match ident {
-                        Identifier::State { name, pkgname, .. } => {
+                        Identifier::State {
+                            name,
+                            pkg_inst_name: pkgname,
+                            ..
+                        } => {
                             //assert_eq!(pkgname, inst_name, "failed assertion: in an oracle in instance {inst_name} I found a state identifier with {pkgname}. I assumed these would always be equal.");
                             SmtLet {
                                 bindings: vec![(

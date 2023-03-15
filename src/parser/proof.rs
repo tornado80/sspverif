@@ -5,8 +5,8 @@ use crate::{
     package::{Composition, Package},
     parser::Rule,
     proof::{
-        Assumption, Equivalence, GameHop, GameInstance, Mapping, Proof, Reduction, Resolver,
-        SliceResolver,
+        Assumption, Equivalence, GameHop, GameInstance, Mapping, Proof, ProofTreeRecord, Reduction,
+        Resolver, SliceResolver,
     },
     types::Type,
 };
@@ -250,21 +250,27 @@ fn handle_equivalence<'a>(
 
     let mut equivalences = vec![];
 
-    let x: Vec<_> = ast.map(handle_equivalence_oracle).collect();
+    let equivalence_data: Vec<_> = ast.map(handle_equivalence_oracle).collect();
 
-    let trees: HashMap<_, _> = x
+    let trees: Vec<_> = equivalence_data
         .iter()
         .cloned()
-        .map(|(oracle_name, _, lemmas)| (oracle_name, lemmas))
-        .collect();
-    let inv_paths: Vec<_> = x
-        .iter()
-        .map(|(_, inv_paths, _)| inv_paths)
-        .flatten()
+        .map(|(oracle_name, _, lemmas)| {
+            (
+                oracle_name,
+                lemmas
+                    .into_iter()
+                    .map(ProofTreeRecord::from_tuple)
+                    .collect(),
+            )
+        })
         .collect();
 
-    // TODO once we actually support more than one file, insert it here
-    let invariant_path = inv_paths[0].to_owned();
+    let invariants: Vec<_> = equivalence_data
+        .iter()
+        .cloned()
+        .map(|(oracle_name, inv_paths, _)| (oracle_name, inv_paths))
+        .collect();
 
     if SliceResolver(game_instances).resolve(&left_name).is_none() {
         return Err(Error::UndefinedGameInstance(left_name).with_span(span));
@@ -273,9 +279,7 @@ fn handle_equivalence<'a>(
         return Err(Error::UndefinedGameInstance(right_name).with_span(span));
     }
 
-    let invariant = ();
-    let trees = vec![];
-    let eq = GameHop::Equivalence(Equivalence::new(left_name, right_name, trees));
+    let eq = GameHop::Equivalence(Equivalence::new(left_name, right_name, invariants, trees));
 
     equivalences.push(eq);
 

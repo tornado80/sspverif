@@ -96,7 +96,7 @@ impl From<Expression> for SmtExpr {
             Expression::Identifier(Identifier::Local(identname)) => SmtExpr::Atom(identname),
             Expression::Identifier(Identifier::State {
                 name: identname,
-                pkgname,
+                pkg_inst_name: pkgname,
                 compname,
             }) => SmtExpr::List(vec![
                 SmtExpr::Atom(format!("state-{}-{}-{}", compname, pkgname, identname)),

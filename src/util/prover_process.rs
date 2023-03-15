@@ -20,7 +20,7 @@ pub enum Error {
     ProverError(String),
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ProverResponse {
     Sat,
     Unsat,
@@ -107,6 +107,13 @@ impl Communicator {
             cmd,
             Some(transcript),
         )?))
+    }
+
+    pub fn get_model(&mut self) -> Result<String> {
+        writeln!(self, "(get-model)")?;
+        self.close();
+        let resp = self.0.read_until_end()?;
+        Ok(resp)
     }
 
     #[cfg(not(target_os = "windows"))]

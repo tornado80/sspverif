@@ -1,9 +1,10 @@
-use crate::package::{Composition, Export};
+use crate::package::{Composition, Export, OracleDef};
 use crate::proof::{Named, Proof, Resolver, SliceResolver};
 use crate::transforms::proof_transforms::EquivanceTransform;
 use crate::transforms::samplify::SampleInfo;
 use crate::transforms::ProofTransform;
 use crate::util::prover_process::{Communicator, ProverResponse};
+use crate::writers::smt::contexts::GameContext;
 use crate::writers::smt::exprs::{SmtAnd, SmtAssert, SmtEq2, SmtExpr, SmtImplies, SmtNot};
 use crate::writers::smt::writer::CompositionSmtWriter;
 use crate::writers::smt::{contexts, declare};
@@ -29,11 +30,12 @@ enum ProverThingyState {
     EmitBaseDeclarations,
     EmitGameInstances,
     EmitConstantDeclarations,
-    EmitInvariant(usize),
-    EmitLemmaAssert(String, usize),
+    EmitInvariants(usize),
+    EmitLemmaAssert(usize, usize),
     Done,
 }
 
+#[derive(Debug, Clone)]
 struct ProverThingyOutput {
     output_type: ProverThingyOutputType,
     smt: Vec<SmtExpr>,
@@ -45,8 +47,8 @@ enum ProverThingyOutputType {
     BaseDeclarations,
     Games,
     ConstantDeclarations,
-    Invariant { file_name: String },
-    LemmaAssert { lemma_name: String },
+    Invariants { file_names: Vec<String> },
+    LemmaAssert { lemma_name: String, is_last: bool },
     End,
 }
 
@@ -77,8 +79,10 @@ impl<'a> ProverThingy<'a> {
         }
     }
 
-    pub fn next(&mut self, resp: Option<ProverResponse>) -> ProverThingyOutput {
-        match &self.state {
+    pub fn next(&mut self, resp: Option<ProverResponse>) -> Result<ProverThingyOutput> {
+        //eprintln!("called next.");
+        //eprintln!("  state: {:?}", self.state);
+        let resp = match &self.state {
             ProverThingyState::EmitBaseDeclarations => {
                 let resp = self.emit_base_declarations();
                 self.state = ProverThingyState::EmitGameInstances;
@@ -90,33 +94,45 @@ impl<'a> ProverThingy<'a> {
                 resp
             }
             ProverThingyState::EmitConstantDeclarations => {
-                let resp = self.emit_base_declarations();
-                self.state = ProverThingyState::EmitInvariant(0);
+                let resp = self.emit_constant_declarations();
+                self.state = ProverThingyState::EmitInvariants(0);
                 resp
             }
-            ProverThingyState::EmitInvariant(_) => todo!(),
-            ProverThingyState::EmitLemmaAssert(oracle_name, offs) => {
-                let resp = self.emit_lemma_assert();
-                let next_offs = offs + 1;
-                let tree_resolver = SliceResolver(self.eq.trees());
-                let (_, proof_tree_records) = tree_resolver.resolve(&oracle_name).unwrap();
-
-                self.state = if next_offs == proof_tree_records.len() {
-                    let next_oracle_offset = 1 + tree_resolver.resolve_index(&oracle_name).unwrap();
-                    if next_oracle_offset == self.eq.trees().len() {
-                        ProverThingyState::Done
-                    } else {
-                        let (next_oracle_name, _) = &self.eq.trees()[next_oracle_offset];
-                        ProverThingyState::EmitLemmaAssert(next_oracle_name.clone(), 0)
-                    }
+            ProverThingyState::EmitInvariants(oracle_offs) => {
+                if self.eq.get_invariants(*oracle_offs).is_some() {
+                    let resp = self.emit_invariant();
+                    self.state = ProverThingyState::EmitLemmaAssert(*oracle_offs, 0);
+                    resp
                 } else {
-                    ProverThingyState::EmitLemmaAssert(oracle_name.to_string(), offs + 1)
+                    unreachable!();
+                }
+            }
+            ProverThingyState::EmitLemmaAssert(oracle_offs, offs) => {
+                let mut resp = self.emit_lemma_assert();
+                let trees = self.eq.trees();
+
+                let (oracle_name, proof_tree_records) = &trees[*oracle_offs];
+                let lemma_name = proof_tree_records[*offs].lemma_name();
+                eprintln!("checking lemma {lemma_name} for oracle {oracle_name}...");
+
+                self.state = match proof_tree_records.get(offs + 1) {
+                    Some(_) => ProverThingyState::EmitLemmaAssert(*oracle_offs, offs + 1),
+                    None => match trees.get(oracle_offs + 1) {
+                        Some(_) => ProverThingyState::EmitInvariants(oracle_offs + 1),
+                        None => ProverThingyState::Done,
+                    },
                 };
 
                 resp
             }
-            ProverThingyState::Done => unreachable!(),
-        }
+            ProverThingyState::Done => ProverThingyOutput {
+                output_type: ProverThingyOutputType::End,
+                smt: vec![],
+                expect: None,
+            },
+        };
+
+        Ok(resp)
     }
 
     fn emit_base_declarations(&self) -> ProverThingyOutput {
@@ -244,12 +260,164 @@ impl<'a> ProverThingy<'a> {
         }
     }
 
-    fn emit_lemma_assert(&self) -> ProverThingyOutput {
+    fn emit_invariant(&self) -> ProverThingyOutput {
+        let offs = match &self.state {
+            ProverThingyState::EmitInvariants(offs) => *offs,
+            _ => unreachable!(),
+        };
+
+        let file_names = self.eq.get_invariants(offs).unwrap().to_vec();
+
         ProverThingyOutput {
-            output_type: ProverThingyOutputType::End,
+            output_type: ProverThingyOutputType::Invariants { file_names },
             smt: vec![],
-            expect: None,
+            expect: Some(ProverResponse::Sat),
         }
+    }
+
+    fn emit_lemma_assert(&self) -> ProverThingyOutput {
+        let left = self.left_game();
+        let right = self.right_game();
+
+        let (oracle_offs, lemma_offs) = match &self.state {
+            ProverThingyState::EmitLemmaAssert(oracle_offs, lemma_offs) => {
+                (*oracle_offs, *lemma_offs)
+            }
+            _ => unreachable!(),
+        };
+
+        let trees = self.eq.trees();
+        let (oracle_name, oracle_lemmas) = &trees[oracle_offs];
+        let lemma = &oracle_lemmas[lemma_offs];
+
+        let is_last = lemma_offs == oracle_lemmas.len() - 1;
+
+        let lemma_name = lemma.lemma_name();
+        let deps = lemma.dependencies();
+
+        let gctx_left = GameContext::new(&left);
+        let gctx_right = GameContext::new(&right);
+
+        // the oracle definition
+        let sig = left
+            .exports
+            .iter()
+            .find(|Export(_, sig)| &sig.name == oracle_name)
+            .map(|Export(inst_idx, _)| {
+                left.pkgs[*inst_idx]
+                    .pkg
+                    .oracles
+                    .iter()
+                    .find(|odef| &odef.sig.name == oracle_name)
+                    .map(|odef| odef.sig.clone())
+            })
+            .flatten()
+            .unwrap();
+
+        let args: Vec<_> = sig
+            .args
+            .iter()
+            .map(|(arg_name, _)| format!("arg-{oracle_name}-{arg_name}"))
+            .collect();
+
+        // find the package instance which is marked as exporting
+        // the oracle of this name, both left and right.
+        let left_return_name = left
+            .exports
+            .iter()
+            .find(|Export(_, sig)| &sig.name == oracle_name)
+            .map(|Export(inst_idx, _)| {
+                let inst_name = &left.pkgs[*inst_idx].name;
+                format!("return-left-{inst_name}-{oracle_name}")
+            })
+            .unwrap();
+
+        let right_return_name = right
+            .exports
+            .iter()
+            .find(|Export(_, sig)| &sig.name == oracle_name)
+            .map(|Export(inst_idx, _)| {
+                let inst_name = &right.pkgs[*inst_idx].name;
+                format!("return-right-{inst_name}-{oracle_name}")
+            })
+            .unwrap();
+
+        // this helper builds an smt expression that calls the
+        // function with the given name with the old states,
+        // return values and the respective arguments.
+        // We expect that function to return a boolean, which makes
+        // it a relation.
+        let build_lemma_call = |name: String| {
+            let mut tmp: Vec<SmtExpr> = vec![
+                name.into(),
+                "state-left".into(),
+                "state-right".into(),
+                "state-length-left-old".into(),
+                "state-length-right-old".into(),
+                left_return_name.clone().into(),
+                right_return_name.clone().into(),
+            ];
+
+            for arg in args {
+                tmp.push(arg.clone().into());
+            }
+
+            SmtExpr::List(tmp)
+        };
+
+        let octx_left = gctx_left.exported_oracle_ctx_by_name(oracle_name).unwrap();
+        let inst_name_left = octx_left.pkg_inst_ctx().pkg_inst_name();
+
+        let octx_right = gctx_right.exported_oracle_ctx_by_name(oracle_name).unwrap();
+        let inst_name_right = octx_right.pkg_inst_ctx().pkg_inst_name();
+
+        let left_return_name = format!("return-left-{inst_name_left}-{oracle_name}");
+        let state_length_left_new = octx_left.smt_access_return_state_length(left_return_name);
+
+        let right_return_name = format!("return-right-{inst_name_right}-{oracle_name}");
+        let state_length_right_new = octx_right.smt_access_return_state_length(right_return_name);
+
+        let mut dependencies_code: Vec<SmtExpr> = vec![
+            format!("randomness-mapping-{oracle_name}").into(),
+            ("=", "state-length-left-new", state_length_left_new).into(),
+            ("=", "state-length-right-new", state_length_right_new).into(),
+            build_lemma_call.clone()(format!("invariant-{oracle_name}")),
+        ];
+
+        for dep_name in deps {
+            dependencies_code.push(build_lemma_call.clone()(dep_name.clone()))
+        }
+
+        let code: SmtExpr = crate::writers::smt::exprs::SmtAssert(SmtNot(SmtImplies(
+            SmtAnd(dependencies_code),
+            build_lemma_call(lemma_name.to_string()),
+        )))
+        .into();
+
+        //epilogue.push((oracle_name, lemma_name, code));
+
+        ProverThingyOutput {
+            output_type: ProverThingyOutputType::LemmaAssert {
+                lemma_name: lemma_name.to_string(),
+                is_last,
+            },
+            smt: vec![code],
+            expect: Some(ProverResponse::Unsat),
+        }
+    }
+
+    fn left_game(&self) -> Composition {
+        let left = self.eq.left_name();
+        let insts = SliceResolver(self.proof.instances());
+        let left_game_inst = insts.resolve(left).unwrap();
+        left_game_inst.as_game().clone()
+    }
+
+    fn right_game(&self) -> Composition {
+        let right = self.eq.right_name();
+        let insts = SliceResolver(self.proof.instances());
+        let right_game_inst = insts.resolve(right).unwrap();
+        right_game_inst.as_game().clone()
     }
 }
 
@@ -259,19 +427,38 @@ pub fn verify(eq: &Equivalence, proof: &Proof) -> Result<()> {
     let (_, (_, types_left, sample_info_left)) = aux_resolver.resolve(eq.left_name()).unwrap();
     let (_, (_, types_right, sample_info_right)) = aux_resolver.resolve(eq.right_name()).unwrap();
     let types: Vec<_> = types_left.union(types_right).cloned().collect();
-    let mut prover = Communicator::new_cvc5()?;
+
+    //let transcript_path = std::path::PathBuf::from("/tmp/transcript");
+    let mut transcript_file = std::fs::File::create("/tmp/transcript")?;
+
+    let mut prover = Communicator::new_cvc5_with_transcript(transcript_file)?;
     let mut thingy = ProverThingy::new(eq, &proof, &types, sample_info_left, sample_info_right);
     let mut resp = None;
 
+    let mut i = 0;
+
     loop {
+        i = i + 1;
+        let out = thingy.next(resp)?;
+
+        // eprintln!("call returned.");
+        // eprintln!("  type: {:?}", out.output_type);
+
         let ProverThingyOutput {
             smt: smt_exprs,
             expect,
             output_type,
-        } = thingy.next(resp);
+        } = out;
 
         match &output_type {
             ProverThingyOutputType::End => return Ok(()),
+            ProverThingyOutputType::Invariants { file_names } => {
+                write!(prover, "(push 1)").unwrap();
+                for file_name in file_names {
+                    let file_contents = std::fs::read_to_string(file_name)?;
+                    write!(prover, "{file_contents}").unwrap();
+                }
+            }
             ProverThingyOutputType::LemmaAssert { .. } => write!(prover, "(push 1)").unwrap(),
             _ => {}
         }
@@ -281,10 +468,10 @@ pub fn verify(eq: &Equivalence, proof: &Proof) -> Result<()> {
         }
 
         resp = if let Some(expected) = expect {
+            write!(prover, ";;;i: {i}\n");
             let resp: ProverResponse = prover.check_sat()?;
             if resp != expected {
-                //let model = prover.get_model();
-                let model = ();
+                let model = prover.get_model()?;
                 return Err(Error::ProofCheck(format!("expected prover result {expected}, got {resp} at output type {output_type:?}. model: {model:?}")));
             }
 
@@ -293,10 +480,22 @@ pub fn verify(eq: &Equivalence, proof: &Proof) -> Result<()> {
             None
         };
 
-        if let ProverThingyOutputType::LemmaAssert { .. } = &output_type {
-            write!(prover, "(pop 1)").unwrap();
+        match &output_type {
+            ProverThingyOutputType::End => writeln!(prover, "(pop 1) ; for end; i: {i}").unwrap(),
+            ProverThingyOutputType::LemmaAssert {
+                lemma_name,
+                is_last,
+            } => {
+                writeln!(prover, "(pop 1) ; for lemma; i: {i}").unwrap();
+                if *is_last {
+                    writeln!(prover, "(pop 1) ; for last lemma; i: {i}").unwrap();
+                }
+            }
+            _ => {}
         }
     }
+
+    Ok(())
 }
 
 /*

@@ -107,7 +107,7 @@ proof Yao {
                     same-output-SETBIT:    [no-abort-SETBIT]
                 }
             }
-            GETAOUT: {
+            GETKEYSIN: {
                 invariant: [
                     ./invariant-GBLG.smt2
                 ]

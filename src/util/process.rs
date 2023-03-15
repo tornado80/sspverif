@@ -63,18 +63,22 @@ impl Communicator {
         let (send, recv) = std::sync::mpsc::channel();
 
         let mut stdin = cmd.stdin.unwrap();
-        let stdout = cmd.stdout.unwrap();
+        let mut stdout = cmd.stdout.unwrap();
 
         let thrd = std::thread::spawn(move || {
             writeln!(stdin, "")?;
             for data in recv {
                 if let Some(ref mut transcript) = transcript {
-                    write!(transcript, "{data}")?;
+                    write!(transcript, "{data}").unwrap();
                     transcript.flush()?;
                 }
 
-                write!(stdin, "{data}")?;
-                stdin.flush()?;
+                if let Err(err) = write!(stdin, "{data}") {
+                    eprintln!("write error: {err}");
+                    Err(err)?;
+                }
+
+                stdin.flush().unwrap();
             }
             Ok(())
         });
@@ -152,13 +156,45 @@ impl Communicator {
 
         thrd.unwrap().join().expect("error joining thread")
     }
+
+    pub fn child_is_finished(&self) -> bool {
+        if let Some(thrd) = &self.thrd {
+            thrd.is_finished()
+        } else {
+            false
+        }
+    }
 }
 
 impl std::fmt::Write for Communicator {
     fn write_str(&mut self, s: &str) -> std::fmt::Result {
+        if self.child_is_finished() {
+            if let Err(e) = self.join() {
+                eprintln!("client finished with a error {e}. last output:");
+                std::io::copy(&mut self.stdout, &mut std::io::stderr()).unwrap();
+                std::io::stderr().flush();
+            }
+        }
+
         if let Some(chan) = &self.chan {
             if let Err(err) = chan.send(s.to_string()) {
                 eprintln!("communication error: {err}");
+                let rest = self.read_until_end().unwrap();
+                eprintln!("rest of data from prover: {rest}");
+
+                if self.child_is_finished() {
+                    if let Err(e) = self.join() {
+                        eprintln!("client finished with a error {e}. last output:");
+                        std::io::copy(&mut self.stdout, &mut std::io::stderr()).unwrap();
+                    } else {
+                        eprintln!("weird...");
+                    }
+                } else {
+                    eprintln!("weird!!!");
+                }
+
+                std::io::stderr().flush();
+
                 return Err(std::fmt::Error);
             } else {
                 return Ok(());

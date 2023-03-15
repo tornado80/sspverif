@@ -68,10 +68,12 @@ impl Into<Vec<SmtExpr>> for TupleDeclaration {
     fn into(self) -> Vec<SmtExpr> {
         let TupleDeclaration(n) = self;
 
-        let types: Vec<SmtExpr> = (1..n + 1).map(|i| "T{i}".into()).collect::<Vec<_>>();
+        let types: Vec<SmtExpr> = (1..n + 1)
+            .map(|i| format!("T{i}").into())
+            .collect::<Vec<_>>();
 
         let ds: Vec<SmtExpr> = (1..n + 1)
-            .map(|i| (format!("(el{i}"), format!("T{i})")).into())
+            .map(|i| (format!("el{i}"), format!("T{i}")).into())
             .collect::<Vec<_>>();
 
         let mut fns = vec![format!("mk-tuple{n}").into()];
@@ -80,7 +82,7 @@ impl Into<Vec<SmtExpr>> for TupleDeclaration {
         vec![(
             "declare-datatypes",
             ((format!("Tuple{n}"), n),),
-            (("par", SmtExpr::List(types), (SmtExpr::List(fns),))),
+            (("par", SmtExpr::List(types), (SmtExpr::List(fns),)),),
         )
             .into()]
     }

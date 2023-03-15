@@ -5,7 +5,7 @@ pub enum Identifier {
     Scalar(String),
     State {
         name: String,
-        pkgname: String,
+        pkg_inst_name: String,
         compname: String,
     },
     Parameter {

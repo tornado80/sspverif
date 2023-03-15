@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use crate::{
     expressions::Expression,
     package::{Composition, Package, PackageInstance},
@@ -210,7 +208,7 @@ impl Reduction {
 pub struct Equivalence {
     left_name: String,
     right_name: String,
-    invariant: (),
+    invariants: Vec<(String, Vec<String>)>,
     trees: Vec<(String, Vec<ProofTreeRecord>)>,
 }
 
@@ -218,13 +216,16 @@ impl Equivalence {
     pub fn new(
         left_name: String,
         right_name: String,
+        mut invariants: Vec<(String, Vec<String>)>,
         mut trees: Vec<(String, Vec<ProofTreeRecord>)>,
     ) -> Self {
         trees.sort();
+        invariants.sort();
+
         Equivalence {
             left_name,
             right_name,
-            invariant: (),
+            invariants, // TODO INV
             trees,
         }
     }
@@ -240,12 +241,42 @@ impl Equivalence {
     pub fn right_name(&self) -> &str {
         &self.right_name
     }
+
+    pub fn get_invariants(&self, offs: usize) -> Option<&[String]> {
+        self.invariants
+            .get(offs)
+            .map(|(_name, invariants)| invariants.as_slice())
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, PartialOrd, Ord, Eq)]
 pub struct ProofTreeRecord {
     lemma: String,
     dependencies: Vec<String>,
+}
+
+impl ProofTreeRecord {
+    pub fn from_tuple(data: (String, Vec<String>)) -> Self {
+        let (lemma, dependencies) = data;
+        Self {
+            lemma,
+            dependencies,
+        }
+    }
+
+    pub fn lemma_name(&self) -> &str {
+        &self.lemma
+    }
+
+    pub fn dependencies(&self) -> &[String] {
+        &self.dependencies
+    }
+}
+
+impl Named for ProofTreeRecord {
+    fn as_name(&self) -> &str {
+        self.lemma_name()
+    }
 }
 
 // TODO: add a HybridArgument variant
