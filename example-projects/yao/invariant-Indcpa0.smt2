@@ -76,20 +76,20 @@ true
                  (state-Indcpamod0-keys_top-z    in)
                  (state-Indcpamod0-keys_top-flag in)))
 
-(define-fun project-State_Indcpamon0_keys_top ((in State_Indcpamon0_keys_top)) State_keys
-  (mk-state-keys (state-Indcpamon0-keys_top-T    in)
-                 (state-Indcpamon0-keys_top-z    in)
-                 (state-Indcpamon0-keys_top-flag in)))
+(define-fun project-State_Indcpamon0_indcpamon0 ((in State_Indcpamon0_indcpamon0)) State_keys
+  (mk-state-keys (state-Indcpamon0-indcpamon0-T    in)
+                 (state-Indcpamon0-indcpamon0-z    in)
+                 (state-Indcpamon0-indcpamon0-flag in)))
 
 (define-fun project-State_Indcpamod0_keys_bottom ((in State_Indcpamod0_keys_bottom)) State_keys
   (mk-state-keys (state-Indcpamod0-keys_bottom-T    in)
                  (state-Indcpamod0-keys_bottom-z    in)
                  (state-Indcpamod0-keys_bottom-flag in)))
 
-(define-fun project-State_Indcpamon0_keys_bottom ((in State_Indcpamon0_keys_bottom)) State_keys
-  (mk-state-keys (state-Indcpamon0-keys_bottom-T    in)
-                 (state-Indcpamon0-keys_bottom-z    in)
-                 (state-Indcpamon0-keys_bottom-flag in)))
+(define-fun project-State_Indcpamon0_indcpamon0 ((in State_Indcpamon0_indcpamon0)) State_keys
+  (mk-state-keys (state-Indcpamon0-indcpamon0-T    in)
+                 (state-Indcpamon0-indcpamon0-z    in)
+                 (state-Indcpamon0-indcpamon0-flag in)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
@@ -204,9 +204,9 @@ true
 ; state of the key packages
 (
 (top-key-package-left  (project-State_Indcpamod0_keys_top      (composition-pkgstate-Indcpamod0-keys_top     (select state-left  state-length-left))))
-(top-key-package-right (project-State_Indcpamon0_keys_top     (composition-pkgstate-Indcpamon0-keys_top    (select state-right state-length-right))))
+(top-key-package-right (project-State_Indcpamon0_indcpamon0     (composition-pkgstate-Indcpamon0-indcpamon0    (select state-right state-length-right))))
 (bot-key-package-left  (project-State_Indcpamod0_keys_bottom   (composition-pkgstate-Indcpamod0-keys_bottom  (select state-left  state-length-left))))
-(bot-key-package-right (project-State_Indcpamon0_keys_bottom  (composition-pkgstate-Indcpamon0-keys_bottom (select state-right state-length-right))))
+(bot-key-package-right (project-State_Indcpamon0_indcpamon0  (composition-pkgstate-Indcpamon0-indcpamon0 (select state-right state-length-right))))
 )
 
 (let
@@ -256,7 +256,7 @@ true
         (state-length-left  Int) ;old index
         (state-length-right Int) ;old index
         (state-left-new  Return_Indcpamod0_keys_top_SETBIT)
-        (state-right-new Return_Indcpamon0_keys_top_SETBIT)
+        (state-right-new Return_Indcpamon0_indcpamon0_SETBIT)
         (h Int)
         (zz Bool))
     Bool
@@ -265,9 +265,9 @@ true
 ; state of the key packages
 (
 (top-key-package-left  (project-State_Indcpamod0_keys_top      (composition-pkgstate-Indcpamod0-keys_top     (select state-left  state-length-left))))
-(top-key-package-right (project-State_Indcpamon0_keys_top     (composition-pkgstate-Indcpamon0-keys_top    (select state-right state-length-right))))
+(top-key-package-right (project-State_Indcpamon0_indcpamon0     (composition-pkgstate-Indcpamon0-indcpamon0    (select state-right state-length-right))))
 (bot-key-package-left  (project-State_Indcpamod0_keys_bottom   (composition-pkgstate-Indcpamod0-keys_bottom  (select state-left  state-length-left))))
-(bot-key-package-right (project-State_Indcpamon0_keys_bottom  (composition-pkgstate-Indcpamon0-keys_bottom (select state-right state-length-right))))
+(bot-key-package-right (project-State_Indcpamon0_indcpamon0  (composition-pkgstate-Indcpamon0-indcpamon0 (select state-right state-length-right))))
 )
 
 (let
@@ -317,7 +317,7 @@ true
         (state-length-left  Int) ;old index
         (state-length-right Int) ;old index
         (state-left-new  Return_Indcpamod0_keys_top_SETBIT)
-        (state-right-new Return_Indcpamon0_keys_top_SETBIT)
+        (state-right-new Return_Indcpamon0_indcpamon0_SETBIT)
         (h Int)
         (zz Bool))
     Bool
@@ -325,8 +325,8 @@ true
       (state-left-nov  (select  (return-Indcpamod0-keys_top-SETBIT-state        state-left-new)
                                 (return-Indcpamod0-keys_top-SETBIT-state-length state-left-new)
                                 ))
-      (state-right-nov (select  (return-Indcpamon0-keys_top-SETBIT-state        state-right-new)
-                                (return-Indcpamon0-keys_top-SETBIT-state-length state-right-new)
+      (state-right-nov (select  (return-Indcpamon0-indcpamon0-SETBIT-state        state-right-new)
+                                (return-Indcpamon0-indcpamon0-SETBIT-state-length state-right-new)
                                 ))
      )
 
@@ -335,9 +335,9 @@ true
 ; state of the key packages
 (
 (top-key-package-left  (project-State_Indcpamod0_keys_top      (composition-pkgstate-Indcpamod0-keys_top     state-left-nov  )))
-(top-key-package-right (project-State_Indcpamon0_keys_top     (composition-pkgstate-Indcpamon0-keys_top    state-right-nov )))
+(top-key-package-right (project-State_Indcpamon0_indcpamon0     (composition-pkgstate-Indcpamon0-indcpamon0    state-right-nov )))
 (bot-key-package-left  (project-State_Indcpamod0_keys_bottom   (composition-pkgstate-Indcpamod0-keys_bottom  state-left-nov  )))
-(bot-key-package-right (project-State_Indcpamon0_keys_bottom  (composition-pkgstate-Indcpamon0-keys_bottom state-right-nov )))
+(bot-key-package-right (project-State_Indcpamon0_indcpamon0  (composition-pkgstate-Indcpamon0-indcpamon0 state-right-nov )))
 )
 
 (let
@@ -386,7 +386,7 @@ true
         (state-length-left  Int) ;old index
         (state-length-right Int) ;old index
         (state-left-new  Return_Indcpamod0_keys_top_GETAOUT)
-        (state-right-new Return_Indcpamon0_keys_top_GETAOUT)
+        (state-right-new Return_Indcpamon0_indcpamon0_GETAOUT)
         (h Int))
     Bool
     (let
@@ -394,9 +394,9 @@ true
 ; state of the key packages
 (
 (top-key-package-left  (project-State_Indcpamod0_keys_top      (composition-pkgstate-Indcpamod0-keys_top     (select state-left  state-length-left))))
-(top-key-package-right (project-State_Indcpamon0_keys_top     (composition-pkgstate-Indcpamon0-keys_top    (select state-right state-length-right))))
+(top-key-package-right (project-State_Indcpamon0_indcpamon0     (composition-pkgstate-Indcpamon0-indcpamon0    (select state-right state-length-right))))
 (bot-key-package-left  (project-State_Indcpamod0_keys_bottom   (composition-pkgstate-Indcpamod0-keys_bottom  (select state-left  state-length-left))))
-(bot-key-package-right (project-State_Indcpamon0_keys_bottom  (composition-pkgstate-Indcpamon0-keys_bottom (select state-right state-length-right))))
+(bot-key-package-right (project-State_Indcpamon0_indcpamon0  (composition-pkgstate-Indcpamon0-indcpamon0 (select state-right state-length-right))))
 )
 
 (let
@@ -446,15 +446,15 @@ true
         (state-length-left  Int) ;old index
         (state-length-right Int) ;old index
         (state-left-new  Return_Indcpamod0_keys_top_GETAOUT)
-        (state-right-new Return_Indcpamon0_keys_top_GETAOUT)
+        (state-right-new Return_Indcpamon0_indcpamon0_GETAOUT)
         (h Int))
     Bool
 (let (
       (state-left-nov  (select  (return-Indcpamod0-keys_top-GETAOUT-state        state-left-new)
                                 (return-Indcpamod0-keys_top-GETAOUT-state-length state-left-new)
                                 ))
-      (state-right-nov (select  (return-Indcpamon0-keys_top-GETAOUT-state        state-right-new)
-                                (return-Indcpamon0-keys_top-GETAOUT-state-length state-right-new)
+      (state-right-nov (select  (return-Indcpamon0-indcpamon0-GETAOUT-state        state-right-new)
+                                (return-Indcpamon0-indcpamon0-GETAOUT-state-length state-right-new)
                                 ))
      )
 
@@ -463,9 +463,9 @@ true
 ; state of the key packages
 (
 (top-key-package-left  (project-State_Indcpamod0_keys_top      (composition-pkgstate-Indcpamod0-keys_top     state-left-nov  )))
-(top-key-package-right (project-State_Indcpamon0_keys_top     (composition-pkgstate-Indcpamon0-keys_top    state-right-nov )))
+(top-key-package-right (project-State_Indcpamon0_indcpamon0     (composition-pkgstate-Indcpamon0-indcpamon0    state-right-nov )))
 (bot-key-package-left  (project-State_Indcpamod0_keys_bottom   (composition-pkgstate-Indcpamod0-keys_bottom  state-left-nov  )))
-(bot-key-package-right (project-State_Indcpamon0_keys_bottom  (composition-pkgstate-Indcpamon0-keys_bottom state-right-nov )))
+(bot-key-package-right (project-State_Indcpamon0_indcpamon0  (composition-pkgstate-Indcpamon0-indcpamon0 state-right-nov )))
 )
 
 (let
@@ -662,8 +662,8 @@ true
 
 ; state of the key packages
 (
-(bottom-key-package-right-1    (project-State_Indcpamon0_keys_bottom  (composition-pkgstate-Indcpamon0-keys_bottom  state-right-1)))
-(top-key-package-right-1       (project-State_Indcpamon0_keys_top     (composition-pkgstate-Indcpamon0-keys_top     state-right-1)))
+(bottom-key-package-right-1    (project-State_Indcpamon0_indcpamon0  (composition-pkgstate-Indcpamon0-indcpamon0  state-right-1)))
+(top-key-package-right-1       (project-State_Indcpamon0_indcpamon0     (composition-pkgstate-Indcpamon0-indcpamon0     state-right-1)))
 )
 
 
@@ -713,8 +713,8 @@ true
 
 ; state of the key packages
 (
-(bottom-key-package-right-1    (project-State_Indcpamon0_keys_bottom  (composition-pkgstate-Indcpamon0-keys_bottom  (select state-right state-length-right))))
-(   top-key-package-right-1    (project-State_Indcpamon0_keys_top     (composition-pkgstate-Indcpamon0-keys_top     (select state-right state-length-right))))
+(bottom-key-package-right-1    (project-State_Indcpamon0_indcpamon0  (composition-pkgstate-Indcpamon0-indcpamon0  (select state-right state-length-right))))
+(   top-key-package-right-1    (project-State_Indcpamon0_indcpamon0     (composition-pkgstate-Indcpamon0-indcpamon0     (select state-right state-length-right))))
 )
 
 
@@ -776,14 +776,14 @@ true
         (state-length-left  Int) ; old index = 1
         (state-length-right Int) ; old index = 1
         (state-left-NEU Return_Indcpamod0_keys_top_SETBIT)      ; also contains new index    
-        (state-right-NEU Return_Indcpamon0_keys_top_SETBIT) ; also contains new index
+        (state-right-NEU Return_Indcpamon0_indcpamon0_SETBIT) ; also contains new index
         (h Int)
         (zz Bool))
         Bool
 
 
 (= (return-Indcpamod0-keys_top-SETBIT-is-abort     state-left-NEU)
-   (return-Indcpamon0-keys_top-SETBIT-is-abort state-right-NEU))
+   (return-Indcpamon0-indcpamon0-SETBIT-is-abort state-right-NEU))
 )
 
 (define-fun aborts-equal-GETAOUT          (
@@ -792,13 +792,13 @@ true
         (state-length-left  Int) ; old index = 1
         (state-length-right Int) ; old index = 1
         (state-left-NEU Return_Indcpamod0_keys_top_GETAOUT)      ; also contains new index    
-        (state-right-NEU Return_Indcpamon0_keys_top_GETAOUT) ; also contains new index
+        (state-right-NEU Return_Indcpamon0_indcpamon0_GETAOUT) ; also contains new index
         (h Int))
         Bool
 
 
 (= (return-Indcpamod0-keys_top-GETAOUT-is-abort  state-left-NEU)
-   (return-Indcpamon0-keys_top-GETAOUT-is-abort state-right-NEU))
+   (return-Indcpamon0-indcpamon0-GETAOUT-is-abort state-right-NEU))
 )
 
 
@@ -833,7 +833,7 @@ true
         (state-length-left  Int) ; old index = 1
         (state-length-right Int) ; old index = 1
         (state-left-NEU  Return_Indcpamod0_keys_top_SETBIT)  ; also contains new index    
-        (state-right-NEU Return_Indcpamon0_keys_top_SETBIT) ; also contains new index
+        (state-right-NEU Return_Indcpamon0_indcpamon0_SETBIT) ; also contains new index
         (h Int)
         (zz Bool))
         Bool
@@ -841,7 +841,7 @@ true
 (and
 (= (return-Indcpamod0-keys_top-SETBIT-is-abort     state-left-NEU)
    false)
-(= (return-Indcpamon0-keys_top-SETBIT-is-abort     state-right-NEU)
+(= (return-Indcpamon0-indcpamon0-SETBIT-is-abort     state-right-NEU)
    false)
 ))
 
@@ -851,14 +851,14 @@ true
         (state-length-left  Int) ; old index = 1
         (state-length-right Int) ; old index = 1
         (state-left-NEU  Return_Indcpamod0_keys_top_GETAOUT)  ; also contains new index    
-        (state-right-NEU Return_Indcpamon0_keys_top_GETAOUT) ; also contains new index
+        (state-right-NEU Return_Indcpamon0_indcpamon0_GETAOUT) ; also contains new index
         (h Int))
         Bool
 
 (and
 (= (return-Indcpamod0-keys_top-GETAOUT-is-abort     state-left-NEU)
    false)
-(= (return-Indcpamon0-keys_top-GETAOUT-is-abort     state-right-NEU)
+(= (return-Indcpamon0-indcpamon0-GETAOUT-is-abort     state-right-NEU)
    false)
 ))
 
@@ -898,10 +898,10 @@ true
 
 ; state of the key packages
 (
-(   top-key-package-left-neu  (project-State_Indcpamod0_keys_top     (composition-pkgstate-Indcpamod0-keys_top     state-left-neu)))
-(   top-key-package-right-neu (project-State_Indcpamon0_keys_top    (composition-pkgstate-Indcpamon0-keys_top    state-right-neu)))
-(bottom-key-package-left-neu  (project-State_Indcpamod0_keys_bottom  (composition-pkgstate-Indcpamod0-keys_bottom  state-left-neu)))
-(bottom-key-package-right-neu (project-State_Indcpamon0_keys_bottom (composition-pkgstate-Indcpamon0-keys_bottom state-right-neu)))
+(   top-key-package-left-neu  (project-State_Indcpamod0_keys_top    (composition-pkgstate-Indcpamod0-keys_top     state-left-neu)))
+(   top-key-package-right-neu (project-State_Indcpamon0_indcpamon0  (composition-pkgstate-Indcpamon0-indcpamon0   state-right-neu)))
+(bottom-key-package-left-neu  (project-State_Indcpamod0_keys_bottom (composition-pkgstate-Indcpamod0-keys_bottom  state-left-neu)))
+(bottom-key-package-right-neu (project-State_Indcpamon0_indcpamon0  (composition-pkgstate-Indcpamon0-indcpamon0   state-right-neu)))
 )
 
 
@@ -962,13 +962,13 @@ true
         (state-length-left-old Int)
         (state-length-right-old Int)
         (state-left-NEU Return_Indcpamod0_keys_top_SETBIT)
-        (state-right-NEU Return_Indcpamon0_keys_top_SETBIT)
+        (state-right-NEU Return_Indcpamon0_indcpamon0_SETBIT)
         (h Int)
         (zz Bool))
         Bool
 (=
 (return-Indcpamod0-keys_top-SETBIT-value return-left-keys_top-SETBIT)
-(return-Indcpamon0-keys_top-SETBIT-value return-right-keys_top-SETBIT)
+(return-Indcpamon0-indcpamon0-SETBIT-value return-right-keys_top-SETBIT)
 )
 )
 
@@ -978,11 +978,11 @@ true
         (state-length-left-old Int)
         (state-length-right-old Int)
         (state-left-NEU Return_Indcpamod0_keys_top_GETAOUT)
-        (state-right-NEU Return_Indcpamon0_keys_top_GETAOUT)
+        (state-right-NEU Return_Indcpamon0_indcpamon0_GETAOUT)
         (h Int))
         Bool
 (=
 (return-Indcpamod0-keys_top-GETAOUT-value return-left-keys_top-GETAOUT)
-(return-Indcpamon0-keys_top-GETAOUT-value return-right-keys_top-GETAOUT)
+(return-Indcpamon0-indcpamon0-GETAOUT-value return-right-keys_top-GETAOUT)
 )
 )

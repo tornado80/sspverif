@@ -16,12 +16,31 @@ composition Indcpamon0 {
         encm: encm,
       }
     }
+
+    instance red = Red {
+      params {
+        n: n,
+        m: m,
+        p: p,
+        encn: encn,
+        encm: encm,
+      }
+
+    }
   
+
+
     compose { 
-      adversary: {
+      red: {
         SMP:  indcpamon0,
         ENCN: indcpamon0,
         ENCM: indcpamon0,
+      },
+      adversary: {
+        GETAOUT: red,
+        SETBIT:  red,
+        ENCN:    red,
+        ENCM:    red,
       },
     }
   }
