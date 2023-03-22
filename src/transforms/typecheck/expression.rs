@@ -106,19 +106,19 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                         ))
                     }
                 }
-                Expression::TableAccess(id, _) => {
-                    if let Some(ScopeType::Type(Type::Table(_, t_val))) = scope.lookup(id) {
-                        //eprintln!("DEBUG typify Unwrap of TableAccess on Identifier({id:?}) that maps to {t_val:?}");
-                        Ok(Expression::Typed(*t_val, Box::new(expr.clone())))
-                    } else {
-                        Err(TypeCheckError::Undefined(
+                Expression::TableAccess(id, _) => match scope.lookup(id) {
+                        Some(ScopeType::Type(Type::Table(_, t_val))) => Ok(Expression::Typed(*t_val, Box::new(expr.clone()))),
+                        Some(other) => Err(TypeCheckError::Undefined(
                             ErrorLocation::Unknown,
-                            "type error: Unwrap contains access to table that is not in scope"
-                                .to_string(),
+                            format!("type error: Unwrap contains table access to a value that is not a table: {other:?}"),
+                            id.clone(),
+                        )),
+                        None => Err(TypeCheckError::Undefined(
+                            ErrorLocation::Unknown,
+                            format!("type error: Unwrap contains access to table that is not in scope: {v:?}"),
                             id.clone(),
                         ))
-                    }
-                }
+                },
                 _ => Err(TypeCheckError::ShouldBeMaybe(
                     ErrorLocation::Unknown,
                     "type error: Unwrap contains identifier with non-Maybe type".to_string(),

@@ -31,7 +31,7 @@ composition Indcpamod1 {
         ENCM:    enc,
       },
       enc: {
-        GETBIT: keys_top,
+        /*GETBIT: keys_top,*/
      GETKEYSIN: keys_top,      },
     }
   }

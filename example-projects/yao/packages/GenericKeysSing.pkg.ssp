@@ -4,9 +4,9 @@ package GenericKeysSing {
     }
 
     state {
-        T: Table(Bool,Bits(n)),
-        z: Bool,
-        flag: Bool,
+        T: Maybe(Table(Bool,Bits(n))),
+        z: Maybe(Bool),
+        flag: Maybe(Bool),
     }
 
     oracle GETKEYSIN() -> Table(Bool,Bits(n)) {

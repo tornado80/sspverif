@@ -8,22 +8,18 @@ package Indcpamon0 {
 
     }
 
-    import oracles {
-        ENCN(d: Bool, nzero: Bits(n), none: Bits(n)) -> Bits(m),
-        ENCM(d: Bool, mzero: Bits(m), mone: Bits(m)) -> Bits(p),
-    }
-
     types {
     }
 
     state {
-        k: Bits(n),
+        k: Maybe(Bits(n)),
     }
 
-    oracle SMP() -> Bits(n) {
+    oracle SMP() {
         assert (k == None as Bits(n));
-        k <-$ Bits(n);
-        return ;
+        k_ <-$ Bits(n);
+        k <- Some(k_);
+        return;
     }
 
     oracle ENCN(nzero: Bits(n), none: Bits(n)) -> Bits(m) {
