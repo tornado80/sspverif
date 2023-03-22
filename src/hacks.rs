@@ -47,6 +47,10 @@ impl Display for TupleDeclaration {
         let TupleDeclaration(n) = self;
         let n = *n;
 
+        if n == 0 {
+            return writeln!(f, "(declare-datatypes ((Tuple0 0)) ((mk-tuple0))))");
+        }
+
         let types: String = (1..n + 1)
             .map(|i| format!("T{i}"))
             .collect::<Vec<_>>()
@@ -67,6 +71,15 @@ impl Display for TupleDeclaration {
 impl Into<Vec<SmtExpr>> for TupleDeclaration {
     fn into(self) -> Vec<SmtExpr> {
         let TupleDeclaration(n) = self;
+
+        if n == 0 {
+            return vec![(
+                "declare-datatypes",
+                ((format!("Tuple0"), n),),
+                ((("mk-typle0",),)),
+            )
+                .into()];
+        }
 
         let types: Vec<SmtExpr> = (1..n + 1)
             .map(|i| format!("T{i}").into())
