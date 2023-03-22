@@ -15,8 +15,8 @@ rightmap = [["keys_top", "keys_top"], ["keys_bottom", "keys_bottom"],["simgate",
 
 [[game_hops]]
 [game_hops.Equivalence]
-left  = Indcpamod0
-right = Indcpamon0
+left  = "Indcpamod0"
+right = "Indcpamon0"
 invariant_path = "./invariant-Indcpa0.smt2"
 trees.SETBIT = [ ["invariant-SETBIT-post", []],
                   ["aborts-equal-SETBIT", []],
@@ -24,7 +24,7 @@ trees.SETBIT = [ ["invariant-SETBIT-post", []],
                 ]
 
 
-
+[[game_hops]]
 [game_hops.Equivalence]
 
 left = "Left"
