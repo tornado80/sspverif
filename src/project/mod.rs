@@ -121,7 +121,11 @@ impl Project {
             for (i, game_hop) in proof.game_hops().iter().enumerate() {
                 match game_hop {
                     GameHop::Reduction(red) => reduction::verify(red, proof)?,
-                    GameHop::Equivalence(eq) => equivalence::verify(eq, proof)?,
+                    GameHop::Equivalence(eq) => {
+                        let transcript_file =
+                            self.get_joined_smt_file(eq.left_name(), eq.right_name())?;
+                        equivalence::verify(eq, proof, transcript_file)?
+                    }
                 }
 
                 let proof_name = proof.as_name();

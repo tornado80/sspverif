@@ -16,6 +16,7 @@ use crate::{
 
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Write};
+use std::fs::File;
 use std::io::Write as IOWrite;
 use std::iter::FromIterator;
 
@@ -421,15 +422,12 @@ impl<'a> ProverThingy<'a> {
     }
 }
 
-pub fn verify(eq: &Equivalence, proof: &Proof) -> Result<()> {
+pub fn verify(eq: &Equivalence, proof: &Proof, transcript_file: File) -> Result<()> {
     let (proof, auxs) = EquivanceTransform.transform_proof(proof)?;
     let aux_resolver = SliceResolver(&auxs);
     let (_, (_, types_left, sample_info_left)) = aux_resolver.resolve(eq.left_name()).unwrap();
     let (_, (_, types_right, sample_info_right)) = aux_resolver.resolve(eq.right_name()).unwrap();
     let types: Vec<_> = types_left.union(types_right).cloned().collect();
-
-    //let transcript_path = std::path::PathBuf::from("/tmp/transcript");
-    let mut transcript_file = std::fs::File::create("/tmp/transcript")?;
 
     let mut prover = Communicator::new_cvc5_with_transcript(transcript_file)?;
     let mut thingy = ProverThingy::new(eq, &proof, &types, sample_info_left, sample_info_right);
