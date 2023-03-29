@@ -76,20 +76,23 @@ true
                  (state-Indcpamod0-keys_top-z    in)
                  (state-Indcpamod0-keys_top-flag in)))
 
-(define-fun project-State_Indcpamon0_indcpamon0 ((in State_Indcpamon0_indcpamon0)) State_keys
-  (mk-state-keys (state-Indcpamon0-indcpamon0-T    in)
-                 (state-Indcpamon0-indcpamon0-z    in)
-                 (state-Indcpamon0-indcpamon0-flag in)))
 
-(define-fun project-State_Indcpamod0_keys_bottom ((in State_Indcpamod0_keys_bottom)) State_keys
-  (mk-state-keys (state-Indcpamod0-keys_bottom-T    in)
-                 (state-Indcpamod0-keys_bottom-z    in)
-                 (state-Indcpamod0-keys_bottom-flag in)))
+(declare-datatype
+  State_game
+  (
+    (mk-state-game
+      (state-game-ka   (Maybe Bits_n))
+      (state-game-kina (Maybe Bits_n))
+      (state-game-z    (Maybe Bool))
+      (state-game-flag (Maybe Bool)))))
 
-(define-fun project-State_Indcpamon0_indcpamon0 ((in State_Indcpamon0_indcpamon0)) State_keys
-  (mk-state-keys (state-Indcpamon0-indcpamon0-T    in)
-                 (state-Indcpamon0-indcpamon0-z    in)
-                 (state-Indcpamon0-indcpamon0-flag in)))
+
+(define-fun project-State_Indcpamon0_indcpamon0 ((in State_Indcpamon0_indcpamon0)) State_game
+  (mk-state-game (state-Indcpamon0-red-k   in)
+                 (state-Indcpamon0-indcpamon0-k in)
+                 (state-Indcpamon0-red-z    in)
+                 (state-Indcpamon0-red-flag in)))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
@@ -184,6 +187,43 @@ true
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(define-fun invariant-ENCN          (
+        (state-left  (Array Int CompositionState-Indcpamod0 ))
+        (state-right (Array Int CompositionState-Indcpamon0))
+        (state-length-left  Int) ;old index
+        (state-length-right Int) ;old index
+        (state-left-new  Return_Indcpamod0_enc_ENCN)
+        (state-right-new Return_Indcpamon0_red_ENCN)
+        (j Int)
+        (d Bool)
+        (nzero Bits_n)
+        (none  Bits_n)
+    Bits_m
+   (let
+
+; state of the mon0 package state
+(
+(top-key-package-left  (project-State_Indcpamod0_keys_top      (composition-pkgstate-Indcpamod0-keys_top     (select state-left  state-length-left))))
+)
+
+   (let
+
+
+(and
+
+;top key package state is "good"
+(well-defined-Key-active top-key-package-left )
+
+)))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; Invariant OLD
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 ; This is supposed to be an invariant
 (define-fun invariant-GBLG          (
@@ -205,49 +245,17 @@ true
 (
 (top-key-package-left  (project-State_Indcpamod0_keys_top      (composition-pkgstate-Indcpamod0-keys_top     (select state-left  state-length-left))))
 (top-key-package-right (project-State_Indcpamon0_indcpamon0     (composition-pkgstate-Indcpamon0-indcpamon0    (select state-right state-length-right))))
-(bot-key-package-left  (project-State_Indcpamod0_keys_bottom   (composition-pkgstate-Indcpamod0-keys_bottom  (select state-left  state-length-left))))
-(bot-key-package-right (project-State_Indcpamon0_indcpamon0  (composition-pkgstate-Indcpamon0-indcpamon0 (select state-right state-length-right))))
-)
-
-(let
-
-; table of the bottom key package
-(
-(table-bot-left  (state-keys-T    bot-key-package-left))
-(table-bot-right (state-keys-T    bot-key-package-right))
-(    z-bot-left  (state-keys-z    bot-key-package-left))
-(    z-bot-right (state-keys-z    bot-key-package-right))
-(flag-bot-left   (state-keys-flag bot-key-package-left))
-(flag-bot-right  (state-keys-flag bot-key-package-right))
 )
 
 (and
 ;top key package states are equal
 (= top-key-package-left top-key-package-right)
 
-;for bottom key package, tables are equal
-(= table-bot-left table-bot-right)
-
 ;top key package state is "good"
 (well-defined-Key-active top-key-package-left )
 (well-defined-Key-active top-key-package-right)
 
-;bottom key packages state is "good"
-(well-defined-Key-bool   bot-key-package-left )
-(well-defined-Key-active bot-key-package-right)
-(forall ((h Int))
-(and
-    (= (select  flag-bot-left  h) 
-       (select  flag-bot-right h))
-(=> (= (select table-bot-left  h) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
-    (= (select  flag-bot-left  h) (   mk-some        false)))
-(=> (= (select table-bot-right h) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
-    (and
-    (= (select  flag-bot-right h) (   mk-some        false))
-    (= (select     z-bot-right h) (as mk-none (Maybe Bool )))))
-(=> (= (select  flag-bot-right h) (   mk-some        false))
-    (= (select     z-bot-right h) (as mk-none (Maybe Bool ))))
-))))))
+)))
 
 
 (define-fun invariant-SETBIT      (
@@ -266,49 +274,18 @@ true
 (
 (top-key-package-left  (project-State_Indcpamod0_keys_top      (composition-pkgstate-Indcpamod0-keys_top     (select state-left  state-length-left))))
 (top-key-package-right (project-State_Indcpamon0_indcpamon0     (composition-pkgstate-Indcpamon0-indcpamon0    (select state-right state-length-right))))
-(bot-key-package-left  (project-State_Indcpamod0_keys_bottom   (composition-pkgstate-Indcpamod0-keys_bottom  (select state-left  state-length-left))))
-(bot-key-package-right (project-State_Indcpamon0_indcpamon0  (composition-pkgstate-Indcpamon0-indcpamon0 (select state-right state-length-right))))
-)
-
-(let
-
-; table of the bottom key package
-(
-(table-bot-left  (state-keys-T    bot-key-package-left))
-(table-bot-right (state-keys-T    bot-key-package-right))
-(    z-bot-left  (state-keys-z    bot-key-package-left))
-(    z-bot-right (state-keys-z    bot-key-package-right))
-(flag-bot-left   (state-keys-flag bot-key-package-left))
-(flag-bot-right  (state-keys-flag bot-key-package-right))
 )
 
 (and
 ;top key package states are equal
 (= top-key-package-left top-key-package-right)
 
-;for bottom key package, tables are equal
-(= table-bot-left table-bot-right)
 
 ;top key package state is "good"
 (well-defined-Key-active top-key-package-left )
 (well-defined-Key-active top-key-package-right)
 
-;bottom key packages state is "good"
-(well-defined-Key-bool   bot-key-package-left )
-(well-defined-Key-active bot-key-package-right)
-(forall ((h Int))
-(and
-    (= (select  flag-bot-left  h) 
-       (select  flag-bot-right h))
-(=> (= (select table-bot-left  h) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
-    (= (select  flag-bot-left  h) (   mk-some        false)))
-(=> (= (select table-bot-right h) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
-    (and
-    (= (select  flag-bot-right h) (   mk-some        false))
-    (= (select     z-bot-right h) (as mk-none (Maybe Bool )))))
-(=> (= (select  flag-bot-right h) (   mk-some        false))
-    (= (select     z-bot-right h) (as mk-none (Maybe Bool ))))
-))))))
+)))
 
 
 (define-fun invariant-SETBIT-post          (
@@ -336,49 +313,18 @@ true
 (
 (top-key-package-left  (project-State_Indcpamod0_keys_top      (composition-pkgstate-Indcpamod0-keys_top     state-left-nov  )))
 (top-key-package-right (project-State_Indcpamon0_indcpamon0     (composition-pkgstate-Indcpamon0-indcpamon0    state-right-nov )))
-(bot-key-package-left  (project-State_Indcpamod0_keys_bottom   (composition-pkgstate-Indcpamod0-keys_bottom  state-left-nov  )))
-(bot-key-package-right (project-State_Indcpamon0_indcpamon0  (composition-pkgstate-Indcpamon0-indcpamon0 state-right-nov )))
-)
-
-(let
-
-; table of the bottom key package
-(
-(table-bot-left  (state-keys-T    bot-key-package-left))
-(table-bot-right (state-keys-T    bot-key-package-right))
-(    z-bot-left  (state-keys-z    bot-key-package-left))
-(    z-bot-right (state-keys-z    bot-key-package-right))
-(flag-bot-left   (state-keys-flag bot-key-package-left))
-(flag-bot-right  (state-keys-flag bot-key-package-right))
 )
 
 (and
 ;top key package states are equal
 (= top-key-package-left top-key-package-right)
 
-;for bottom key package, tables are equal
-(= table-bot-left table-bot-right)
 
 ;top key package state is "good"
 (well-defined-Key-active top-key-package-left )
 (well-defined-Key-active top-key-package-right)
 
-;bottom key packages state is "good"
-(well-defined-Key-bool   bot-key-package-left )
-(well-defined-Key-active bot-key-package-right)
-(forall ((h Int))
-(and
-    (= (select  flag-bot-left  h) 
-       (select  flag-bot-right h))
-(=> (= (select table-bot-left  h) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
-    (= (select  flag-bot-left  h) (   mk-some        false)))
-(=> (= (select table-bot-right h) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
-    (and
-    (= (select  flag-bot-right h) (   mk-some        false))
-    (= (select     z-bot-right h) (as mk-none (Maybe Bool )))))
-(=> (= (select  flag-bot-right h) (   mk-some        false))
-    (= (select     z-bot-right h) (as mk-none (Maybe Bool ))))
-)))))))
+))))
 
 (define-fun invariant-GETAOUT      (
         (state-left  (Array Int CompositionState-Indcpamod0 ))
@@ -395,49 +341,18 @@ true
 (
 (top-key-package-left  (project-State_Indcpamod0_keys_top      (composition-pkgstate-Indcpamod0-keys_top     (select state-left  state-length-left))))
 (top-key-package-right (project-State_Indcpamon0_indcpamon0     (composition-pkgstate-Indcpamon0-indcpamon0    (select state-right state-length-right))))
-(bot-key-package-left  (project-State_Indcpamod0_keys_bottom   (composition-pkgstate-Indcpamod0-keys_bottom  (select state-left  state-length-left))))
-(bot-key-package-right (project-State_Indcpamon0_indcpamon0  (composition-pkgstate-Indcpamon0-indcpamon0 (select state-right state-length-right))))
-)
-
-(let
-
-; table of the bottom key package
-(
-(table-bot-left  (state-keys-T    bot-key-package-left))
-(table-bot-right (state-keys-T    bot-key-package-right))
-(    z-bot-left  (state-keys-z    bot-key-package-left))
-(    z-bot-right (state-keys-z    bot-key-package-right))
-(flag-bot-left   (state-keys-flag bot-key-package-left))
-(flag-bot-right  (state-keys-flag bot-key-package-right))
 )
 
 (and
 ;top key package states are equal
 (= top-key-package-left top-key-package-right)
 
-;for bottom key package, tables are equal
-(= table-bot-left table-bot-right)
 
 ;top key package state is "good"
 (well-defined-Key-active top-key-package-left )
 (well-defined-Key-active top-key-package-right)
 
-;bottom key packages state is "good"
-(well-defined-Key-bool   bot-key-package-left )
-(well-defined-Key-active bot-key-package-right)
-(forall ((h Int))
-(and
-    (= (select  flag-bot-left  h) 
-       (select  flag-bot-right h))
-(=> (= (select table-bot-left  h) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
-    (= (select  flag-bot-left  h) (   mk-some        false)))
-(=> (= (select table-bot-right h) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
-    (and
-    (= (select  flag-bot-right h) (   mk-some        false))
-    (= (select     z-bot-right h) (as mk-none (Maybe Bool )))))
-(=> (= (select  flag-bot-right h) (   mk-some        false))
-    (= (select     z-bot-right h) (as mk-none (Maybe Bool ))))
-))))))
+)))
 
 
 (define-fun invariant-GETAOUT-post          (
@@ -464,49 +379,17 @@ true
 (
 (top-key-package-left  (project-State_Indcpamod0_keys_top      (composition-pkgstate-Indcpamod0-keys_top     state-left-nov  )))
 (top-key-package-right (project-State_Indcpamon0_indcpamon0     (composition-pkgstate-Indcpamon0-indcpamon0    state-right-nov )))
-(bot-key-package-left  (project-State_Indcpamod0_keys_bottom   (composition-pkgstate-Indcpamod0-keys_bottom  state-left-nov  )))
-(bot-key-package-right (project-State_Indcpamon0_indcpamon0  (composition-pkgstate-Indcpamon0-indcpamon0 state-right-nov )))
-)
-
-(let
-
-; table of the bottom key package
-(
-(table-bot-left  (state-keys-T    bot-key-package-left))
-(table-bot-right (state-keys-T    bot-key-package-right))
-(    z-bot-left  (state-keys-z    bot-key-package-left))
-(    z-bot-right (state-keys-z    bot-key-package-right))
-(flag-bot-left   (state-keys-flag bot-key-package-left))
-(flag-bot-right  (state-keys-flag bot-key-package-right))
 )
 
 (and
 ;top key package states are equal
 (= top-key-package-left top-key-package-right)
 
-;for bottom key package, tables are equal
-(= table-bot-left table-bot-right)
-
 ;top key package state is "good"
 (well-defined-Key-active top-key-package-left )
 (well-defined-Key-active top-key-package-right)
 
-;bottom key packages state is "good"
-(well-defined-Key-bool   bot-key-package-left )
-(well-defined-Key-active bot-key-package-right)
-(forall ((h Int))
-(and
-    (= (select  flag-bot-left  h) 
-       (select  flag-bot-right h))
-(=> (= (select table-bot-left  h) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
-    (= (select  flag-bot-left  h) (   mk-some        false)))
-(=> (= (select table-bot-right h) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
-    (and
-    (= (select  flag-bot-right h) (   mk-some        false))
-    (= (select     z-bot-right h) (as mk-none (Maybe Bool )))))
-(=> (= (select  flag-bot-right h) (   mk-some        false))
-    (= (select     z-bot-right h) (as mk-none (Maybe Bool ))))
-)))))))
+))))
 
 
 
@@ -544,7 +427,6 @@ true
 ; state of the key packages
 (
 (top-key-package-left-1     (project-State_Indcpamod0_keys_top     (composition-pkgstate-Indcpamod0-keys_top     state-left-1)))
-(bottom-key-package-left-1  (project-State_Indcpamod0_keys_bottom  (composition-pkgstate-Indcpamod0-keys_bottom  state-left-1)))
 )
 
 (let
@@ -556,7 +438,6 @@ true
 (T-top-left-1        (state-keys-T       top-key-package-left-1))
 (z-top-left-1        (state-keys-z       top-key-package-left-1))
 (flag-top-left-1     (state-keys-flag    top-key-package-left-1))
-(flag-bot-left-1     (state-keys-flag bottom-key-package-left-1))
 )
 
 ;;; if l is undefined, then abort
@@ -599,7 +480,6 @@ true
 ; state of the key packages
 (
 (top-key-package-left-1     (project-State_Indcpamod0_keys_top     (composition-pkgstate-Indcpamod0-keys_top     state-left-1)))
-(bottom-key-package-left-1  (project-State_Indcpamod0_keys_bottom  (composition-pkgstate-Indcpamod0-keys_bottom  state-left-1)))
 ;(top-key-package-left-2     (project-State_Indcpamod0_keys_top  (composition-pkgstate-Indcpamod0-keys_top state-left-2)))
 )
 
@@ -612,7 +492,6 @@ true
 (T-top-left-1        (state-keys-T    top-key-package-left-1))
 (z-top-left-1        (state-keys-z    top-key-package-left-1))
 (flag-top-left-1     (state-keys-flag top-key-package-left-1))
-(flag-bot-left-1  (state-keys-flag bottom-key-package-left-1))
 )
 
 ;;; abort => z[l] or z[r] is undefined or flag[j]=true
@@ -625,7 +504,6 @@ true
 (= (select    z-top-left-1 r) (as mk-none (Maybe Bool)))
 (= (select flag-top-left-1 r) (as mk-none (Maybe Bool)))
 (= (select flag-top-left-1 r)    (mk-some        false))
-(= (select flag-bot-left-1 j)    (mk-some        true ))
 )
 )))))
 
@@ -662,20 +540,17 @@ true
 
 ; state of the key packages
 (
-(bottom-key-package-right-1    (project-State_Indcpamon0_indcpamon0  (composition-pkgstate-Indcpamon0-indcpamon0  state-right-1)))
 (top-key-package-right-1       (project-State_Indcpamon0_indcpamon0     (composition-pkgstate-Indcpamon0-indcpamon0     state-right-1)))
 )
 
 
 (let
 
-; tables of the top and bottom key package
+; tables of the top key package
 (
 (   T-top-right-1  (state-keys-T       top-key-package-right-1))
 (   z-top-right-1  (state-keys-z       top-key-package-right-1))
 (flag-top-right-1  (state-keys-flag    top-key-package-right-1))
-(flag-bot-right-1  (state-keys-flag bottom-key-package-right-1))
-(   z-bot-right-1  (state-keys-z    bottom-key-package-right-1))
 )
 
 ;;; if j is true, then abort
@@ -687,9 +562,6 @@ true
 (= (select    z-top-right-1 r) (as mk-none (Maybe Bool)))
 (= (select flag-top-right-1 r) (as mk-none (Maybe Bool)))
 (= (select flag-top-right-1 r)    (mk-some        false))
-(= (select flag-bot-right-1 j)    (mk-some        true ))
-(= (select    z-bot-right-1 j)    (mk-some        true ))
-(= (select    z-bot-right-1 j)    (mk-some        false))
 )
 (= (return-Indcpamon0-simgate-GBLG-is-abort state-right-NEU) true)
 )))))
@@ -713,20 +585,17 @@ true
 
 ; state of the key packages
 (
-(bottom-key-package-right-1    (project-State_Indcpamon0_indcpamon0  (composition-pkgstate-Indcpamon0-indcpamon0  (select state-right state-length-right))))
 (   top-key-package-right-1    (project-State_Indcpamon0_indcpamon0     (composition-pkgstate-Indcpamon0-indcpamon0     (select state-right state-length-right))))
 )
 
 
 (let
 
-; table of the bottom key package
+; table of the top key package
 (
 (   T-top-right-1     (state-keys-T       top-key-package-right-1))
 (   z-top-right-1     (state-keys-z       top-key-package-right-1))
 (flag-top-right-1     (state-keys-flag    top-key-package-right-1))
-(flag-bottom-right-1  (state-keys-flag bottom-key-package-right-1))
-(   z-bottom-right-1  (state-keys-z    bottom-key-package-right-1))
 )
 
 ;;; abort => input on l or z not defined or output was already defined.
@@ -739,9 +608,6 @@ true
 (= (select    z-top-right-1    r)    (as mk-none (Maybe Bool)))
 (= (select flag-top-right-1    r)    (as mk-none (Maybe Bool)))
 (= (select flag-top-right-1    r)       (mk-some        false))
-(= (select flag-bottom-right-1 j)       (mk-some        true ))
-(= (select    z-bottom-right-1 j)       (mk-some        true ))
-(= (select    z-bottom-right-1 j)       (mk-some        false))
 )
 ))))
 
@@ -900,8 +766,6 @@ true
 (
 (   top-key-package-left-neu  (project-State_Indcpamod0_keys_top    (composition-pkgstate-Indcpamod0-keys_top     state-left-neu)))
 (   top-key-package-right-neu (project-State_Indcpamon0_indcpamon0  (composition-pkgstate-Indcpamon0-indcpamon0   state-right-neu)))
-(bottom-key-package-left-neu  (project-State_Indcpamod0_keys_bottom (composition-pkgstate-Indcpamod0-keys_bottom  state-left-neu)))
-(bottom-key-package-right-neu (project-State_Indcpamon0_indcpamon0  (composition-pkgstate-Indcpamon0-indcpamon0   state-right-neu)))
 )
 
 
