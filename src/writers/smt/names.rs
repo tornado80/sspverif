@@ -116,7 +116,7 @@ pub fn intermediate_package_instance_state_constructor_name(
     format!("intermediate-package-instance-state_{game_name}_{inst_name}_{oracle_name}")
 }
 
-pub fn intermediate_package_instance_state_constructor_name_none(
+pub fn intermediate_package_instance_state_no_constructor_name(
     game_name: &str,
     inst_name: &str,
 ) -> String {

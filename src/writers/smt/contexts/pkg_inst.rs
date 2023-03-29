@@ -145,12 +145,16 @@ impl<'a> PackageInstanceContext<'a> {
         let mut constructor_fncall =
             vec![names::pkgstate_constructor_name(game_name, inst_name).into()];
         constructor_fncall.extend(args);
+        constructor_fncall.push(
+            names::intermediate_package_instance_state_no_constructor_name(game_name, inst_name)
+                .into(),
+        );
 
         Some(SmtExpr::List(constructor_fncall))
     }
 
     // we need a type that has all the oracle intermediate states as as sumtype sort
-    fn smt_declare_intermediate_oraclestates(&self) -> SmtExpr {
+    pub fn smt_declare_intermediate_oraclestates(&self) -> SmtExpr {
         let game = self.game_ctx.game;
         let inst = &game.pkgs[self.inst_offs];
 
@@ -158,7 +162,7 @@ impl<'a> PackageInstanceContext<'a> {
         let inst_name = &inst.name;
 
         let mut fields = vec![(
-            names::intermediate_package_instance_state_constructor_name_none(game_name, inst_name),
+            names::intermediate_package_instance_state_no_constructor_name(game_name, inst_name),
             vec![],
         )];
 

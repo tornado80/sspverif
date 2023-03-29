@@ -14,6 +14,7 @@ type Result<T> = std::result::Result<T, Error>;
 use std::io::Read;
 use std::io::Write as IOWrite;
 use std::mem::swap;
+use std::sync::mpsc::Sender;
 
 pub struct Communicator {
     stdout: std::process::ChildStdout,
@@ -63,18 +64,17 @@ impl Communicator {
         let (send, recv) = std::sync::mpsc::channel();
 
         let mut stdin = cmd.stdin.unwrap();
-        let mut stdout = cmd.stdout.unwrap();
+        let stdout = cmd.stdout.unwrap();
 
         let thrd = std::thread::spawn(move || {
             writeln!(stdin, "")?;
             for data in recv {
                 if let Some(ref mut transcript) = transcript {
-                    write!(transcript, "{data}").unwrap();
+                    write!(transcript, "{data}")?;
                     transcript.flush()?;
                 }
 
                 if let Err(err) = write!(stdin, "{data}") {
-                    eprintln!("write error: {err}");
                     Err(err)?;
                 }
 
@@ -161,7 +161,8 @@ impl Communicator {
         if let Some(thrd) = &self.thrd {
             thrd.is_finished()
         } else {
-            false
+            // this is only None if we have already joined
+            true
         }
     }
 }
@@ -172,35 +173,28 @@ impl std::fmt::Write for Communicator {
             if let Err(e) = self.join() {
                 eprintln!("client finished with a error {e}. last output:");
                 std::io::copy(&mut self.stdout, &mut std::io::stderr()).unwrap();
-                std::io::stderr().flush();
-            }
-        }
-
-        if let Some(chan) = &self.chan {
-            if let Err(err) = chan.send(s.to_string()) {
-                eprintln!("communication error: {err}");
-                let rest = self.read_until_end().unwrap();
-                eprintln!("rest of data from prover: {rest}");
-
-                if self.child_is_finished() {
-                    if let Err(e) = self.join() {
-                        eprintln!("client finished with a error {e}. last output:");
-                        std::io::copy(&mut self.stdout, &mut std::io::stderr()).unwrap();
-                    } else {
-                        eprintln!("weird...");
-                    }
-                } else {
-                    eprintln!("weird!!!");
-                }
-
-                std::io::stderr().flush();
+                std::io::stderr().flush().expect("error flushing stderr");
 
                 return Err(std::fmt::Error);
-            } else {
-                return Ok(());
             }
         }
 
-        panic!("writing to closed communicator");
+        let chan: &Sender<String> = self.chan.as_ref().expect("writing to closed communicator");
+
+        if chan.send(s.to_string()).is_err() {
+            // this means the prover process has quit.
+            // it's time to join our thread to get the actual error.
+
+            let thread_result = self.join();
+            let rest = self.read_until_end().unwrap();
+
+            eprintln!("result from prover communication thread:\n  {thread_result:?}");
+            eprintln!("rest of data from prover:\n  {rest}");
+            std::io::stderr().flush().expect("error flushing stderr");
+
+            return Err(std::fmt::Error);
+        } else {
+            return Ok(());
+        }
     }
 }

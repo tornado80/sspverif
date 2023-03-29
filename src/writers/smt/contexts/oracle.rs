@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use crate::expressions::Expression;
 use crate::identifier::Identifier;
 use crate::package::OracleDef;
@@ -257,7 +259,7 @@ impl<'a> OracleContext<'a> {
         let odef = &inst.pkg.oracles[self.oracle_offs];
         let CodeBlock(code) = &odef.code;
 
-        let mut locals = vec![];
+        let mut locals = HashSet::new();
         let mut checkpoints = vec![];
 
         self.checkpoints_inner(code, &mut locals, &mut checkpoints, &[]);
@@ -269,7 +271,8 @@ impl<'a> OracleContext<'a> {
     pub fn smt_declare_intermediate_states(&self) -> SmtExpr {
         let game = self.game_ctx.game;
         let inst = &game.pkgs[self.inst_offs];
-        let osig = &inst.pkg.oracles[self.oracle_offs].sig;
+        let odef = &inst.pkg.oracles[self.oracle_offs];
+        let osig = &odef.sig;
 
         let game_name = &game.name;
         let inst_name = &inst.name;
@@ -277,16 +280,26 @@ impl<'a> OracleContext<'a> {
 
         let checkpoints = self.checkpoints();
 
+        #[cfg(debug)]
+        if oracle_name == "GETAOUT" && inst_name == "keys_top" {
+            let code = &odef.code.0;
+            eprintln!("{game_name}/{inst_name}/{oracle_name}:");
+            eprintln!("    checkpoints: {checkpoints:#?}");
+            eprintln!("    code: {code:#?}");
+        }
+
         declare::declare_datatype(
             &names::intermediate_oracle_state_sort_name(game_name, inst_name, oracle_name),
             checkpoints.into_iter(),
         )
     }
 
+    // TODO: make sure the checkpoint locals have a conanocical order at some point
+
     fn checkpoints_inner(
         &self,
         code: &[Statement],
-        locals: &mut Vec<(String, SmtExpr)>,
+        locals: &mut HashSet<(String, SmtExpr)>,
         checkpoints: &mut Vec<(String, Vec<(String, SmtExpr)>)>,
         path: &[usize],
     ) {
@@ -305,6 +318,15 @@ impl<'a> OracleContext<'a> {
             let path_str: Vec<String> = new_path.iter().map(usize::to_string).collect();
             let path_str = path_str.join("-");
 
+            #[cfg(debug)]
+            if oracle_name == "GETAOUT"
+                && inst_name == "keys_top"
+                && path_str.starts_with("0-42-2-42")
+            {
+                eprintln!("{game_name}/{inst_name}/{oracle_name}/{path_str:#?}");
+                eprintln!("    stmt: {stmt:#?}");
+            }
+
             match &stmt {
                 Statement::Sample(id, opt_idx, _, tipe)
                 | Statement::InvokeOracle {
@@ -313,23 +335,36 @@ impl<'a> OracleContext<'a> {
                     tipe: Some(tipe),
                     ..
                 } => match opt_idx {
-                    Some(Expression::Typed(idx_type, _)) => locals.push((
-                        id.ident(),
-                        Type::Table(Box::new(tipe.clone()), Box::new(idx_type.clone())).into(),
-                    )),
-
-                    None => locals.push((id.ident(), tipe.into())),
+                    Some(Expression::Typed(idx_type, _)) => {
+                        locals.insert((
+                            id.ident(),
+                            Type::Table(Box::new(idx_type.clone()), Box::new(tipe.clone())).into(),
+                        ));
+                    }
+                    None => {
+                        locals.insert((id.ident(), tipe.into()));
+                    }
                     Some(_) => unreachable!(),
                 },
 
                 Statement::Assign(id, opt_idx, value) => match (opt_idx, value) {
-                    (Some(Expression::Typed(idx_type, _)), Expression::Typed(tipe, _)) => locals
-                        .push((
+                    (
+                        Some(Expression::Typed(idx_type, _)),
+                        Expression::Typed(Type::Maybe(tipe), _),
+                    ) => {
+                        locals.insert((
                             id.ident(),
-                            Type::Table(Box::new(tipe.clone()), Box::new(idx_type.clone())).into(),
-                        )),
+                            Type::Table(
+                                Box::new(idx_type.clone()),
+                                Box::new(tipe.as_ref().clone()),
+                            )
+                            .into(),
+                        ));
+                    }
 
-                    (None, Expression::Typed(tipe, _)) => locals.push((id.ident(), tipe.into())),
+                    (None, Expression::Typed(tipe, _)) => {
+                        locals.insert((id.ident(), tipe.into()));
+                    }
                     (Some(_), _) => unreachable!(),
                     (None, _) => unreachable!(),
                 },
@@ -345,8 +380,17 @@ impl<'a> OracleContext<'a> {
                 Statement::Parse(ids, _) => unreachable!(),
 
                 Statement::IfThenElse(_, CodeBlock(ifcode), CodeBlock(elsecode)) => {
-                    self.checkpoints_inner(ifcode, locals, checkpoints, &new_path);
-                    self.checkpoints_inner(elsecode, locals, checkpoints, &new_path);
+                    let mut if_path = new_path.clone();
+                    let mut else_path = new_path.clone();
+
+                    if_path.push(42);
+                    else_path.push(37);
+
+                    let mut if_locals = locals.clone();
+                    let mut else_locals = locals.clone();
+
+                    self.checkpoints_inner(ifcode, &mut if_locals, checkpoints, &if_path);
+                    self.checkpoints_inner(elsecode, &mut else_locals, checkpoints, &else_path);
                 }
 
                 Statement::Abort => checkpoints.push((
@@ -391,6 +435,7 @@ impl<'a> OracleContext<'a> {
                         })
                         .collect(),
                 )),
+                // TODO: these should probably push to local
                 Statement::InvokeOracle {
                     tipe: None, name, ..
                 } => checkpoints.push((

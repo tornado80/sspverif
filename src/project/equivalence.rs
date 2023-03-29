@@ -465,6 +465,8 @@ pub fn verify(eq: &Equivalence, proof: &Proof, transcript_file: File) -> Result<
             write!(prover, "{smt_expr}").expect("grrr");
         }
 
+        std::thread::sleep(std::time::Duration::from_millis(100));
+
         resp = if let Some(expected) = expect {
             write!(prover, ";;;i: {i}\n");
             let resp: ProverResponse = prover.check_sat()?;

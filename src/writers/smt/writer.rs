@@ -96,6 +96,8 @@ impl<'a> CompositionSmtWriter<'a> {
             declares.push(octx.smt_declare_intermediate_states());
         }
 
+        declares.push(pkg_inst_ctx.smt_declare_intermediate_oraclestates());
+
         return declares;
     }
 
@@ -513,7 +515,7 @@ impl<'a> CompositionSmtWriter<'a> {
                     // TODO: are we sure we don't want to deconstruct `inner` here?
                     // it seems impossible to me that expr ever matches here,
                     // because above we make sure it's an Expression::Typed.
-                    if let Expression::Unwrap(inner) = expr {
+                    if let Expression::Unwrap(inner) = inner {
                         SmtIte {
                             cond: SmtEq2 {
                                 lhs: *inner.clone(),

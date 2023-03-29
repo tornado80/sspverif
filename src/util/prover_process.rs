@@ -97,6 +97,9 @@ impl Communicator {
     }
 
     pub fn new_cvc5_with_transcript(transcript: std::fs::File) -> Result<Self> {
+        //let mut cmd = std::process::Command::new("cat");
+        //cmd.stdin(std::process::Stdio::piped())
+
         let mut cmd = std::process::Command::new("cvc5");
         cmd.args(["--lang=smt2", "--incremental", "--produce-models"])
             .stdin(std::process::Stdio::piped())
