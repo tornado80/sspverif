@@ -108,20 +108,6 @@ proof Yao {
             }
         }
 
-        equivalence Indcpamod0_inst Indcpamon0_inst {
-            SETBIT: {
-                invariant: [
-                    ./invariant-Indcpa0.smt2
-                ]
-
-                lemmas {
-                    invariant-SETBIT-post: []
-                    aborts-equal-SETBIT: []
-                    same-output-SETBIT: [no-abort-SETBIT]
-                }
-            }
-        }
-
         equivalence Left_inst Right_inst {
             GETAOUT: {
                 invariant: [
@@ -176,6 +162,20 @@ proof Yao {
                 }
             }
         }
+                equivalence Indcpamod0_inst Indcpamon0_inst {
+            SETBIT: {
+                invariant: [
+                    ./invariant-Indcpa0.smt2
+                ]
+
+                lemmas {
+                    invariant-SETBIT-post: []
+                    aborts-equal-SETBIT: []
+                    same-output-SETBIT: [no-abort-SETBIT]
+                }
+            }
+        }
+
     }
 
 }
