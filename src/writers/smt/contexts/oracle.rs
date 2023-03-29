@@ -342,7 +342,9 @@ impl<'a> OracleContext<'a> {
                         ));
                     }
                     None => {
-                        locals.insert((id.ident(), tipe.into()));
+                        if tipe != &Type::Empty {
+                            locals.insert((id.ident(), tipe.into()));
+                        }
                     }
                     Some(_) => unreachable!(),
                 },
