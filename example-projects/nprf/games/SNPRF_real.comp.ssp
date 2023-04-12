@@ -5,7 +5,10 @@ composition SNPRF_real {
     const f: fn Bits(n), Message -> Bits(n); /* PRF */
     
     /* sorting function; needs to be adequately constrained in SMT code. */
-    const sort3hdl: fn HandleIn, HandleIn, HandleIn -> (HandleIn, HandleIn, HandleIn); 
+    const sortnhdl: fn Table(Integer, HandleIn) -> Table(Integer, HandleIn);
+
+    /* array length function; also needs to be contrained */
+    const len: fn Table(Integer, HandleIn) -> Integer;
 
     instance key_one = Key {
         types {
@@ -31,7 +34,7 @@ composition SNPRF_real {
 
     instance key_three = Key {
         types {
-            Handle: ((Integer, Bits(m)), (Integer, Bits(m)), (Integer, Bits(m))),
+            Handle: Table(Integer, (Integer, Bits(m))),
         }
 
         params {
@@ -42,7 +45,7 @@ composition SNPRF_real {
 
     instance key_four = Key {
         types {
-            Handle: (((Integer, Bits(m)), (Integer, Bits(m)), (Integer, Bits(m))), Bits(m)),
+            Handle: (Table(Integer, (Integer, Bits(m))), Bits(m)),
         }
 
         params {
@@ -63,28 +66,29 @@ composition SNPRF_real {
         }
     }
 
-    instance xor = XOR3 {
+    instance xor = NXOR {
         types {
             HandleIn:   (Integer, Bits(m)),
         }
 
         params {
             n: n,
-            sort3hdl: sort3hdl,
+            sortnhdl: sortnhdl,
+            len: len,
         }
     }
 
     instance prf2 = PRF2 {
         types {
             Message: Bits(m),
-            HandleIn: ((Integer, Bits(m)), (Integer, Bits(m)), (Integer, Bits(m))),
+            HandleIn: Table(Integer, (Integer, Bits(m))),
         }
     }
 
     instance prf_bottom = PRF {
         types {
             Message: Bits(m),
-            HandleIn: ((Integer, Bits(m)), (Integer, Bits(m)), (Integer, Bits(m))),
+            HandleIn: Table(Integer, (Integer, Bits(m))),
         }
 
         params {

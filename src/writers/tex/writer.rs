@@ -143,6 +143,7 @@ impl<'a> BlockWriter<'a> {
                     self.write_codeblock(&elsecode, indentation + 1)?;
                 }
             }
+            Statement::For(_, _, _, _) => todo!(),
             Statement::Sample(ident, None, maybecnt, tipe) => {
                 let cnt = maybecnt.expect("Expected samplified input");
 

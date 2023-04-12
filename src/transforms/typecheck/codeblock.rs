@@ -405,6 +405,49 @@ impl TypedCodeBlock {
                         typed_elsecode.block,
                     ));
                 }
+                Statement::For(for_ident, lower_bound, upper_bound, body) => {
+                    let typed_lower_bound = typify(lower_bound, scope)?;
+                    let typed_upper_bound = typify(upper_bound, scope)?;
+
+                    let lower_bound_type = get_type(&typed_lower_bound, scope)?;
+                    let upper_bound_type = get_type(&typed_upper_bound, scope)?;
+
+                    if lower_bound_type != Type::Integer {
+                        return Err(TypeCheckError::TypeMismatch(
+                            ErrorLocation::Unknown,
+                            "lower bound of for loop is not an integer".to_string(),
+                            Some(lower_bound.clone()),
+                            lower_bound_type,
+                            Type::Integer,
+                        ));
+                    }
+
+                    if upper_bound_type != Type::Integer {
+                        return Err(TypeCheckError::TypeMismatch(
+                            ErrorLocation::Unknown,
+                            "upper bound of for loop is not an integer".to_string(),
+                            Some(upper_bound.clone()),
+                            upper_bound_type,
+                            Type::Integer,
+                        ));
+                    }
+
+                    scope.enter();
+                    scope.declare(for_ident.clone(), Type::Integer);
+
+                    let typed_body = TypedCodeBlock {
+                        expected_return_type: Type::Empty,
+                        block: body.clone(),
+                    }
+                    .typecheck(scope)?;
+
+                    new_block.push(Statement::For(
+                        for_ident.clone(),
+                        typed_lower_bound,
+                        typed_upper_bound,
+                        typed_body.block,
+                    ))
+                }
             }
         }
 

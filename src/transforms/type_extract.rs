@@ -46,6 +46,11 @@ fn extract_types_from_codeblock(set: &mut HashSet<Type>, cb: CodeBlock) {
                 extract_types_from_codeblock(set, cb_left);
                 extract_types_from_codeblock(set, cb_right);
             }
+            Statement::For(_, lower_bound, upper_bound, body) => {
+                extract_types_from_expression(set, &lower_bound);
+                extract_types_from_expression(set, &upper_bound);
+                extract_types_from_codeblock(set, body)
+            }
             Statement::Sample(_, Some(expr_idx), _, t) => {
                 extract_types_from_expression(set, &expr_idx);
                 set.insert(t);

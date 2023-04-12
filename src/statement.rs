@@ -21,6 +21,7 @@ pub enum Statement {
         target_inst_name: Option<String>,
         tipe: Option<Type>,
     },
+    For(Identifier, Expression, Expression, CodeBlock),
 }
 
 #[macro_export]

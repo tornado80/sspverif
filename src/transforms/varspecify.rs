@@ -209,6 +209,12 @@ fn var_specify_helper(
                     var_specify_helper(game_inst, pkg_inst, ifcode.clone()),
                     var_specify_helper(game_inst, pkg_inst, elsecode.clone()),
                 ),
+                Statement::For(ident, lower_bound, upper_bound, body) => Statement::For(
+                    ident.clone(),
+                    lower_bound.map(fixup),
+                    upper_bound.map(fixup),
+                    var_specify_helper(game_inst, pkg_inst, body.clone()),
+                ),
             })
             .collect(),
     )

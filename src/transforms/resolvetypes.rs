@@ -279,6 +279,11 @@ fn codeblock_walker(
                 codeblock_walker(type_mapping, place.clone(), ifcode)?;
                 codeblock_walker(type_mapping, place.clone(), elsecode)?;
             }
+            Statement::For(_, lower_bound, upper_bound, body) => {
+                expression_walker(type_mapping, place.clone(), lower_bound)?;
+                expression_walker(type_mapping, place.clone(), upper_bound)?;
+                codeblock_walker(type_mapping, place.clone(), body)?;
+            }
             Statement::Sample(_id, opt_idx, _, tipe) => {
                 if let Some(idx) = opt_idx {
                     expression_walker(type_mapping, place.clone(), idx)?;

@@ -10,7 +10,9 @@ proof SNPRF {
     const f: fn Bits(n), Message -> Bits(n); /* PRF */
     
     /* sorting function; needs to be adequately constrained in SMT code. */
-    const sort3hdl: fn HandleIn, HandleIn, HandleIn -> (HandleIn, HandleIn, HandleIn); 
+    const sortnhdl: fn Table(Integer, HandleIn) -> Table(Integer, HandleIn);
+
+    const len: fn Table(Integer, HandleIn) -> Integer; 
 
 
     instance PRF_real_Integer = PRF_real {
@@ -42,7 +44,8 @@ proof SNPRF {
             n: n,
             m: m,
             f: f_prf,
-            sort3hdl:sort3hdl,
+            sortnhdl:sortnhdl,
+            len: len,
         }
     }
 
@@ -51,7 +54,8 @@ proof SNPRF {
             n: n,
             m: m,
             f: f_prf,
-            sort3hdl:sort3hdl,
+            sortnhdl:sortnhdl,
+            len: len,
         }
     }
 

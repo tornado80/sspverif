@@ -1,3 +1,5 @@
+use std::mem::replace;
+
 use crate::expressions::Expression;
 use crate::identifier::Identifier;
 use crate::package::Composition;
@@ -120,6 +122,18 @@ pub fn unwrapify(cb: &CodeBlock, ctr: &mut usize) -> Result<CodeBlock, Error> {
                     unwrapify(&ifcode, ctr)?,
                     unwrapify(&elsecode, ctr)?,
                 ));
+            }
+            Statement::For(ident, lower_bound, upper_bound, body) => {
+                let (new_lower_bound, unwraps) = replace_unwrap(&lower_bound, ctr);
+                newcode.extend(create_unwrap_stmts(unwraps));
+                let (new_upper_bound, unwraps) = replace_unwrap(&upper_bound, ctr);
+                newcode.extend(create_unwrap_stmts(unwraps));
+                newcode.push(Statement::For(
+                    ident,
+                    new_lower_bound,
+                    new_upper_bound,
+                    unwrapify(&body, ctr)?,
+                ))
             }
             Statement::Sample(ref id, Some(ref expr), ref sample_id, ref tipe) => {
                 let (newexpr, unwraps) = replace_unwrap(expr, ctr);

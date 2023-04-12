@@ -78,6 +78,7 @@ fn statement_walker(stmt: &mut Statement) -> Result<(), typecheck::TypeCheckErro
         Statement::Parse(_, _) => todo!(),
         Statement::IfThenElse(_, _, _) => todo!(),
         Statement::Sample(_, _, _, _) => todo!(),
+        Statement::For(_, _, _, _) => todo!(),
         Statement::InvokeOracle {
             id,
             opt_idx,

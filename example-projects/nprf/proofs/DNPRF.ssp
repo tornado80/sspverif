@@ -5,7 +5,9 @@ proof DNPRF_pseudorandom {
     const f_prf: fn Bits(n), Bits(m) -> Bits(n);
 
     /* sorting function; needs to be adequately constrained in SMT code. */
-    const sort3hdl: fn HandleIn, HandleIn, HandleIn -> (HandleIn, HandleIn, HandleIn); 
+    const sortnhdl: fn Table(Integer, HandleIn) -> Table(Integer, HandleIn);
+
+    const len: fn Table(Integer, HandleIn) -> Integer; 
 
     instance PRF_real_Integer = PRF_real {
         types {
@@ -36,7 +38,8 @@ proof DNPRF_pseudorandom {
             n: n,
             m: m,
             f: f_prf,
-            sort3hdl:sort3hdl,
+            sortnhdl:sortnhdl,
+            len: len,
         }
     }
 
@@ -45,7 +48,8 @@ proof DNPRF_pseudorandom {
             n: n,
             m: m,
             f: f_prf,
-            sort3hdl:sort3hdl,
+            sortnhdl:sortnhdl,
+            len: len,
         }
     }
 

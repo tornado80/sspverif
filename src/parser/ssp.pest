@@ -20,6 +20,7 @@ kw_return = _{ "return" }
 kw_assert = _{ "assert" }
 kw_abort = _{ "abort" }
 kw_invoke = _{ "invoke" }
+kw_for = _{ "for" }
 
 kw_true  = _{ "true" }
 kw_false = _{ "false" }
@@ -134,7 +135,7 @@ literal = _{ literal_boolean | literal_emptyset | literal_integer }
 
 
 code = { (stmt )* }
-stmt = _{ table_sample | table_assign | sample | parse | invocation | assign | return_stmt | assert | abort | ite}
+stmt = _{ table_sample | table_assign | sample | parse | invocation | assign | return_stmt | assert | abort | ite | for_ }
 
 ite = {"if" ~ expression ~ "{" ~ code ~ "}" ~ ( "else" ~ "{" ~ code ~ "}" )? }
 
@@ -148,7 +149,8 @@ table_assign = { identifier ~ "[" ~ expression ~ "]" ~ "<-" ~ expression ~ ";" }
 return_stmt = { kw_return ~ expression? ~ ";" }
 assert = { kw_assert ~ expression ~ ";" }
 abort = { kw_abort ~ ";" }
-
+for_ = { kw_for ~ identifier ~ ":" ~ expression ~ for_comp ~ identifier ~ for_comp ~ expression ~ "{" ~ code ~ "}" }
+for_comp = { ( "<" | "<=" )}
 table_index = { expression }
 
 expression = _{ expr_list | expr_set | expr_none | expr_some | expr_unwrap | expr_add | expr_sub | expr_mul | expr_div | expr_or | expr_and | expr_xor | expr_not | expr_tuple | expr_equals | expr_not_equals | expr_newtable | fn_call | table_access | literal | identifier }

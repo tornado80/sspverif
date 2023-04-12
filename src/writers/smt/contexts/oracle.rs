@@ -395,6 +395,8 @@ impl<'a> OracleContext<'a> {
                     self.checkpoints_inner(elsecode, &mut else_locals, checkpoints, &else_path);
                 }
 
+                Statement::For(_, _, _, _) => todo!(),
+
                 Statement::Abort => checkpoints.push((
                     names::oracle_intermediate_state_abort_constructor_name(
                         game_name,

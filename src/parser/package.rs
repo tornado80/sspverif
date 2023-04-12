@@ -268,6 +268,40 @@ pub fn handle_code(code: Pair<Rule>) -> CodeBlock {
 
                         Statement::Parse(idents, expr)
                     }
+                    Rule::for_ => {
+                        let span = stmt.as_span();
+                        let mut parsed: Vec<Pair<Rule>> = stmt.into_inner().collect();
+                        let decl_var_name = parsed[0].as_str();
+                        let lower_bound = handle_expression(parsed.remove(1));
+                        let lower_bound_type = parsed[1].as_str();
+                        let bound_var_name = parsed[2].as_str();
+                        let upper_bound_type = parsed[3].as_str();
+                        let upper_bound = handle_expression(parsed.remove(4));
+                        let body = handle_code(parsed.remove(4));
+
+                        if decl_var_name != bound_var_name {}
+
+                        let lower_bound = match lower_bound_type {
+                            "<" => Expression::Add(
+                                Box::new(lower_bound),
+                                Box::new(Expression::IntegerLiteral("1".to_string())),
+                            ),
+                            "<=" => lower_bound,
+                            _ => panic!(),
+                        };
+
+                        let upper_bound = match upper_bound_type {
+                            "<" => upper_bound,
+                            "<=" => Expression::Add(
+                                Box::new(upper_bound),
+                                Box::new(Expression::IntegerLiteral("1".to_string())),
+                            ),
+                            _ => panic!(),
+                        };
+
+                        let ident = Identifier::new_scalar(decl_var_name);
+                        Statement::For(ident, lower_bound, upper_bound, body)
+                    }
                     _ => {
                         unreachable!("{:#?}", stmt)
                     }

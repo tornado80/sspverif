@@ -318,6 +318,7 @@ impl<W: Write> FmtWriter<W> {
 
                 self.write_string("\n")?;
             }
+            Statement::For(_, _, _, _) => todo!(),
             Statement::Abort => {
                 self.write_string("abort;\n")?;
             }
