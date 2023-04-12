@@ -1,0 +1,18 @@
+composition Normal {
+    const n: Integer; /* key length */
+    const m: Integer; /* table size */
+
+    instance pkg = Normal {
+        
+        params {
+            n:n,
+            m:m,
+        }
+    }
+
+    compose {
+        adversary: {
+            Eval: pkg,
+        },
+    }
+}

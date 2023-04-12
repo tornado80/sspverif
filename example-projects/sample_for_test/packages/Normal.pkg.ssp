@@ -1,0 +1,17 @@
+package Normal {
+    params {
+        n: Integer,
+        m: Integer,
+    }
+
+    state {
+        T: Table(Integer, Bits(n)),
+    }
+
+    oracle Eval() {
+        for i: 0 <= i < m {
+            rand <-$ Bits(n);
+            T[i] <- Some(rand);
+        }
+    }
+}
