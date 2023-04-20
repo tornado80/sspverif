@@ -379,14 +379,14 @@ impl<'a> OracleContext<'a> {
                         .zip(tipes.iter().map(|t| t.into()));
                     locals.extend(pairs);
                 }
-                Statement::Parse(ids, _) => unreachable!(),
+                Statement::Parse(_ids, _) => unreachable!(),
 
                 Statement::IfThenElse(_, CodeBlock(ifcode), CodeBlock(elsecode)) => {
                     let mut if_path = new_path.clone();
                     let mut else_path = new_path.clone();
 
-                    if_path.push(42);
-                    else_path.push(37);
+                    if_path.push(17);
+                    else_path.push(3153);
 
                     let mut if_locals = locals.clone();
                     let mut else_locals = locals.clone();

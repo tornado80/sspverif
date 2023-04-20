@@ -8,6 +8,7 @@ pub mod resolveoracles;
 pub mod resolvetypes;
 pub mod returnify;
 pub mod samplify;
+pub mod split_partial;
 pub mod tableinitialize;
 pub mod treeify;
 pub mod type_extract;
