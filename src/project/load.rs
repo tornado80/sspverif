@@ -1,12 +1,10 @@
-use std::collections::HashSet;
 use std::iter::FromIterator;
 use std::{collections::HashMap, path::PathBuf};
 
 use super::*;
 use error::{Error, Result};
-use itertools::Itertools;
 
-use crate::package::{Composition, Export, Package};
+use crate::package::{Composition, Package};
 use crate::parser::composition::handle_composition;
 use crate::parser::package::handle_pkg;
 use crate::parser::proof::handle_proof;

@@ -90,7 +90,6 @@ fn var_specify_helper(
         pkg:
             Package {
                 state: pkg_state,
-                params,
                 name: pkg_name,
                 ..
             },
@@ -99,7 +98,6 @@ fn var_specify_helper(
     } = pkg_inst;
 
     let game_inst_params = game_inst.as_consts();
-    let comp_name = game_inst.as_game_name();
 
     let fixup = |expr| match expr {
         Expression::FnCall(Identifier::Scalar(id), args) => Expression::FnCall(
@@ -209,12 +207,20 @@ fn var_specify_helper(
                     var_specify_helper(game_inst, pkg_inst, ifcode.clone()),
                     var_specify_helper(game_inst, pkg_inst, elsecode.clone()),
                 ),
-                Statement::For(ident, lower_bound, upper_bound, body) => Statement::For(
-                    ident.clone(),
-                    lower_bound.map(fixup),
-                    upper_bound.map(fixup),
-                    var_specify_helper(game_inst, pkg_inst, body.clone()),
-                ),
+                Statement::For(ident, lower_bound, upper_bound, body) => {
+                    let resolved_ident =
+                        if let Expression::Identifier(ident) = fixup(ident.to_expression()) {
+                            ident
+                        } else {
+                            unreachable!()
+                        };
+                    Statement::For(
+                        resolved_ident,
+                        lower_bound.map(fixup),
+                        upper_bound.map(fixup),
+                        var_specify_helper(game_inst, pkg_inst, body.clone()),
+                    )
+                }
             })
             .collect(),
     )

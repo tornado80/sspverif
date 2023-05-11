@@ -3,16 +3,15 @@ use std::collections::HashSet;
 use crate::{
     expressions::Expression,
     identifier::Identifier,
-    proof::{Equivalence, GameInstance},
+    proof::GameInstance,
     statement::{CodeBlock, Statement},
     types::Type,
 };
 
 use super::{
     resolveoracles, resolvetypes, returnify, samplify, split_partial, tableinitialize, treeify,
-    type_extract, typecheck, unwrapify,
-    varspecify::{self, var_specify_game_inst},
-    GameTransform, Transformation,
+    type_extract, typecheck, unwrapify, varspecify::var_specify_game_inst, GameTransform,
+    Transformation,
 };
 
 pub struct EquivanceTransform;

@@ -7,6 +7,7 @@ use crate::identifier::Identifier;
 use crate::statement::{CodeBlock, Statement};
 use crate::types::Type;
 
+#[derive(Debug)]
 pub struct TypedCodeBlock {
     pub expected_return_type: Type,
     pub block: CodeBlock,
@@ -435,18 +436,23 @@ impl TypedCodeBlock {
                     scope.enter();
                     scope.declare(for_ident.clone(), Type::Integer)?;
 
-                    let typed_body = TypedCodeBlock {
+                    let tcb = TypedCodeBlock {
                         expected_return_type: Type::Empty,
                         block: body.clone(),
-                    }
-                    .typecheck(scope)?;
+                    };
 
-                    new_block.push(Statement::For(
-                        for_ident.clone(),
-                        typed_lower_bound,
-                        typed_upper_bound,
-                        typed_body.block,
-                    ))
+                    match tcb.typecheck(scope) {
+                        Ok(typed_body) => new_block.push(Statement::For(
+                            for_ident.clone(),
+                            typed_lower_bound,
+                            typed_upper_bound,
+                            typed_body.block,
+                        )),
+                        Err(e) => {
+                            println!("{e:?}:\n{tcb:?}");
+                            return Err(e);
+                        }
+                    }
                 }
             }
         }

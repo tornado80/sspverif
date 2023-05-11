@@ -554,6 +554,7 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                     Box::new(Expression::Identifier(id.clone())),
                 ))
             } else {
+                panic!("blubb");
                 Err(TypeCheckError::Undefined(
                     ErrorLocation::Unknown,
                     "identifier not found in scope".to_owned(),
