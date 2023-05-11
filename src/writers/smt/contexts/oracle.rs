@@ -385,8 +385,8 @@ impl<'a> OracleContext<'a> {
                     let mut if_path = new_path.clone();
                     let mut else_path = new_path.clone();
 
-                    if_path.push(17);
-                    else_path.push(3153);
+                    if_path.push(99917);
+                    else_path.push(93153);
 
                     let mut if_locals = locals.clone();
                     let mut else_locals = locals.clone();
@@ -395,7 +395,48 @@ impl<'a> OracleContext<'a> {
                     self.checkpoints_inner(elsecode, &mut else_locals, checkpoints, &else_path);
                 }
 
-                Statement::For(_, _, _, _) => todo!(),
+                Statement::For(iter_id, from, to, code) => {
+                    let mut before_path = new_path.clone();
+                    let mut step_path = new_path.clone();
+
+                    before_path.push(88880);
+                    step_path.push(88881);
+
+                    checkpoints.push((
+                        names::oracle_intermediate_state_for_constructor_name(
+                            game_name,
+                            inst_name,
+                            oracle_name,
+                            &before_path,
+                        ),
+                        locals.iter().cloned().collect(),
+                    ));
+
+                    let mut step_locals = locals.clone();
+
+                    let from_type = match from {
+                        Expression::Typed(tipe, _) => tipe,
+                        _ => unreachable!(),
+                    };
+                    step_locals.insert((
+                        iter_id.ident(),
+                        Expression::Typed(
+                            from_type.clone(),
+                            Box::new(Expression::Identifier(iter_id.clone())),
+                        )
+                        .into(),
+                    ));
+
+                    checkpoints.push((
+                        names::oracle_intermediate_state_for_constructor_name(
+                            game_name,
+                            inst_name,
+                            oracle_name,
+                            &step_path,
+                        ),
+                        locals.iter().cloned().collect(),
+                    ));
+                }
 
                 Statement::Abort => checkpoints.push((
                     names::oracle_intermediate_state_abort_constructor_name(

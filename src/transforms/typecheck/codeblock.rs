@@ -433,7 +433,7 @@ impl TypedCodeBlock {
                     }
 
                     scope.enter();
-                    scope.declare(for_ident.clone(), Type::Integer);
+                    scope.declare(for_ident.clone(), Type::Integer)?;
 
                     let typed_body = TypedCodeBlock {
                         expected_return_type: Type::Empty,

@@ -5,10 +5,10 @@ use crate::package::{Composition, Edge, OracleDef, OracleSig};
 use crate::statement::{CodeBlock, Statement};
 use crate::types::Type;
 
-struct SplitPartial;
+pub struct SplitPartial;
 
 #[derive(Debug)]
-enum Error {}
+pub enum Error {}
 
 type Result<T> = std::result::Result<T, Error>;
 

@@ -299,7 +299,7 @@ pub fn handle_code(code: Pair<Rule>) -> CodeBlock {
                             _ => panic!(),
                         };
 
-                        let ident = Identifier::new_scalar(decl_var_name);
+                        let ident = Identifier::Local(decl_var_name.to_string());
                         Statement::For(ident, lower_bound, upper_bound, body)
                     }
                     _ => {

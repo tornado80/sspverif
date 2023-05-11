@@ -161,6 +161,21 @@ pub fn oracle_intermediate_state_abort_constructor_name(
     format!("oracle-intermediate-state-abort_{game_name}_{inst_name}_{oracle_name}_{path_str}")
 }
 
+pub fn oracle_intermediate_state_for_constructor_name(
+    game_name: &str,
+    inst_name: &str,
+    oracle_name: &str,
+    path: &[usize],
+) -> String {
+    let path_str: String = path
+        .iter()
+        .map(usize::to_string)
+        .collect::<Vec<_>>()
+        .join("-");
+
+    format!("oracle-intermediate-state-for_{game_name}_{inst_name}_{oracle_name}_{path_str}")
+}
+
 pub fn oracle_intermediate_state_oracleinvoc_constructor_name(
     game_name: &str,
     inst_name: &str,

@@ -9,8 +9,8 @@ use crate::{
 };
 
 use super::{
-    resolveoracles, resolvetypes, returnify, samplify, tableinitialize, treeify, type_extract,
-    typecheck, unwrapify,
+    resolveoracles, resolvetypes, returnify, samplify, split_partial, tableinitialize, treeify,
+    type_extract, typecheck, unwrapify,
     varspecify::{self, var_specify_game_inst},
     GameTransform, Transformation,
 };
@@ -29,31 +29,17 @@ impl super::ProofTransform for EquivanceTransform {
         &self,
         proof: &crate::proof::Proof,
     ) -> Result<(crate::proof::Proof, Self::Aux), Self::Err> {
-        // 1. resolve game instances into games
-
-        // we havne't implemented type params for games yet
-        // so we only can resolve value params for now
-
-        //proof.games()[0].pkgs[0].params;
-
         let new_game_instances: Vec<_> = proof
             .instances()
             .iter()
-            //  .map(|game_inst| Ok(game_inst.with_other_game(var_specify_game_inst(game_inst)?)))
-            //.collect::<Result<Vec<&GameInstance>, _>>()?;
-            .map(|game_inst| (game_inst, var_specify_game_inst(game_inst)))
-            .map(|(game_inst, new_game)| (game_inst, Result::unwrap(new_game)))
-            .map(|(game_inst, new_game)| game_inst.with_other_game(new_game))
+            .map(|game_inst| {
+                let new_game = var_specify_game_inst(game_inst).unwrap();
+                game_inst.with_other_game(new_game)
+            })
             .collect();
-        // 2. check that game have matching types
-        //  needs to be done for every game hop
-
-        // 3. transform the games
 
         let results = new_game_instances.iter().map(transform_game_inst);
-
         let (instances, auxs) = itertools::process_results(results, |res| res.unzip())?;
-
         let proof = proof.with_new_instances(instances);
 
         Ok((proof, auxs))
@@ -126,6 +112,9 @@ fn transform_game_inst(
     let (comp, _) = treeify::Transformation(&comp)
         .transform()
         .expect("treeify transformation failed unexpectedly");
+    let (comp, _) = split_partial::SplitPartial
+        .transform_game(&comp)
+        .expect("split_partial transform failed unexpectedly");
     let (comp, _) = tableinitialize::Transformation(&comp)
         .transform()
         .expect("tableinitialize transformation failed unexpectedly");
