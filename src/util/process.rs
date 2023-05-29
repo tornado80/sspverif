@@ -69,16 +69,14 @@ impl Communicator {
         let thrd = std::thread::spawn(move || {
             writeln!(stdin, "")?;
             for data in recv {
+                println!("THRD writes {data}.. now");
                 if let Some(ref mut transcript) = transcript {
                     write!(transcript, "{data}")?;
                     transcript.flush()?;
                 }
 
-                if let Err(err) = write!(stdin, "{data}") {
-                    Err(err)?;
-                }
-
-                stdin.flush().unwrap();
+                write!(stdin, "{data}")?;
+                stdin.flush()?;
             }
             Ok(())
         });

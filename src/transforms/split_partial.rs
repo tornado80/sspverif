@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::identifier::Identifier;
-use crate::package::{Composition, Edge, OracleDef, OracleSig};
+use crate::package::{Composition, Edge, Export, OracleDef, OracleSig};
 use crate::statement::{CodeBlock, Statement};
 use crate::types::Type;
 
@@ -31,6 +31,10 @@ impl super::GameTransform for SplitPartial {
                 .entry((*to, sig.clone()))
                 .or_default()
                 .push(*from);
+        }
+
+        for Export(pkg_offs, sig) in &game.exports {
+            dependencies.entry((*pkg_offs, sig.clone())).or_default();
         }
 
         while !dependencies.is_empty() {
@@ -86,6 +90,8 @@ fn transform_oracle(
     sig_mapping: &mut HashMap<(String, OracleSig), Vec<OracleSig>>,
 ) -> Result<()> {
     let pkg = &mut game.pkgs[pkg_offs];
+    let game_name = &game.name;
+    let inst_name = &pkg.name;
     let oracle_offs = pkg
         .pkg
         .oracles
@@ -93,22 +99,32 @@ fn transform_oracle(
         .position(|OracleDef { sig, .. }| sig == osig)
         .expect("there should be an oracle with this signature");
     let odef = &pkg.pkg.oracles[oracle_offs];
+    let oracle_name = &odef.sig.name;
+
+    println!(
+        "transforming {game_name}.{inst_name}.{oracle_name}: {:?}",
+        odef.code
+    );
 
     let mut result = vec![];
 
-    let mut transformed = transform_codeblock(&odef.code, sig_mapping);
-    let (last_name, last_code) = transformed.remove(transformed.len() - 1);
+    let mut transformed = transform_codeblock(&odef.code, &odef.sig.name, sig_mapping);
 
     let inst_name = &pkg.name;
     let entry = sig_mapping
         .entry((inst_name.to_string(), osig.clone()))
         .or_default();
 
+    // we treat the last item differently:
+    // intermediate items get an empty return type,
+    // the last item gets the original return type.
+    let (last_name, last_code) = transformed.pop().unwrap();
+
     for (oracle_name, oracle_code) in transformed.into_iter() {
         let sig = OracleSig {
             name: oracle_name,
             args: osig.args.clone(),
-            tipe: Type::Empty,
+            tipe: Type::Empty, // <-- note the difference
         };
         result.push(OracleDef {
             sig: sig.clone(),
@@ -120,7 +136,7 @@ fn transform_oracle(
     let sig = OracleSig {
         name: last_name,
         args: osig.args.clone(),
-        tipe: osig.tipe.clone(),
+        tipe: osig.tipe.clone(), // <-- note the difference
     };
     result.push(OracleDef {
         sig: sig.clone(),
@@ -136,6 +152,7 @@ fn transform_oracle(
 
 fn transform_codeblock(
     code: &CodeBlock,
+    oracle_name: &str,
     sig_mapping: &mut HashMap<(String, OracleSig), Vec<OracleSig>>,
 ) -> Vec<(String, CodeBlock)> {
     let mut result = vec![];
@@ -161,7 +178,7 @@ fn transform_codeblock(
         if split_idx != cur_idx {
             let range = cur_idx..split_idx;
             result.push((
-                format!("range{cur_idx}-{split_idx}"),
+                format!("{oracle_name}-range{cur_idx}-{split_idx}"),
                 CodeBlock(code.0[range].to_vec()),
             ))
         }
@@ -169,21 +186,27 @@ fn transform_codeblock(
         match &code.0[split_idx] {
             Statement::IfThenElse(_cond, ifcode, elsecode) => {
                 result.extend(
-                    transform_codeblock(ifcode, sig_mapping)
+                    transform_codeblock(ifcode, oracle_name, sig_mapping)
                         .into_iter()
-                        .map(|(name, code)| (format!("ifbranch{split_idx}-{name}"), code)),
+                        .map(|(name, code)| {
+                            (format!("{oracle_name}-ifbranch{split_idx}-{name}"), code)
+                        }),
                 );
                 result.extend(
-                    transform_codeblock(elsecode, sig_mapping)
+                    transform_codeblock(elsecode, oracle_name, sig_mapping)
                         .into_iter()
-                        .map(|(name, code)| (format!("elsebranch{split_idx}-{name}"), code)),
+                        .map(|(name, code)| {
+                            (format!("{oracle_name}-elsebranch{split_idx}-{name}"), code)
+                        }),
                 );
             }
             Statement::For(_id_iter, _from, _to, code) => {
                 result.extend(
-                    transform_codeblock(code, sig_mapping)
+                    transform_codeblock(code, oracle_name, sig_mapping)
                         .into_iter()
-                        .map(|(name, code)| (format!("forstep{split_idx}-{name}"), code)),
+                        .map(|(name, code)| {
+                            (format!("{oracle_name}-forstep{split_idx}-{name}"), code)
+                        }),
                 );
             }
             Statement::InvokeOracle {
@@ -207,7 +230,7 @@ fn transform_codeblock(
                 result.extend(splits.into_iter().take(splits.len() - 1).map(
                     |OracleSig { name, .. }| {
                         (
-                            format!("oracle{split_idx}-{name}"),
+                            format!("{oracle_name}-oracle{split_idx}-{name}"),
                             CodeBlock(vec![Statement::InvokeOracle {
                                 id: Identifier::new_scalar("_"),
                                 name: name.to_string(),
@@ -221,7 +244,7 @@ fn transform_codeblock(
                 ));
 
                 result.push((
-                    format!("oracle{split_idx}-{name}"),
+                    format!("{oracle_name}-oracle{split_idx}-{name}"),
                     CodeBlock(vec![Statement::InvokeOracle {
                         id: id.clone(),
                         opt_idx: opt_idx.clone(),
@@ -243,9 +266,20 @@ fn transform_codeblock(
     } else {
         &code.0[cur_idx..]
     };
+
     if !rest.is_empty() {
-        result.push((format!("rest"), CodeBlock(rest.to_vec())));
+        result.push((format!("{oracle_name}-rest"), CodeBlock(rest.to_vec())));
     }
+
+    // if an oracle is not split, the rest should be the whole oracle code, and not be empty.
+    // otherwise we don't add _anything_ in this round
+    // !did_split ==> (rest == original code)
+    assert!(did_split || (rest == &code.0));
+
+    println!("-------------");
+    println!("oracle name: {oracle_name}");
+    println!("original code: {code:?}");
+    println!("result: {result:?}");
 
     result
 }
@@ -290,7 +324,7 @@ mod test {
 
         let mut sig_mapping = Default::default();
 
-        let out = transform_codeblock(&code, &mut sig_mapping);
+        let out = transform_codeblock(&code, "Eval", &mut sig_mapping);
 
         println!("{out:#?}");
     }

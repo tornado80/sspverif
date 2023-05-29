@@ -1,6 +1,6 @@
 use crate::package::{Composition, Export, OracleDef};
 use crate::proof::{Named, Proof, Resolver, SliceResolver};
-use crate::transforms::proof_transforms::EquivanceTransform;
+use crate::transforms::proof_transforms::EquivalenceTransform;
 use crate::transforms::samplify::SampleInfo;
 use crate::transforms::ProofTransform;
 use crate::util::prover_process::{Communicator, ProverResponse};
@@ -423,7 +423,7 @@ impl<'a> ProverThingy<'a> {
 }
 
 pub fn verify(eq: &Equivalence, proof: &Proof, transcript_file: File) -> Result<()> {
-    let (proof, auxs) = EquivanceTransform.transform_proof(proof)?;
+    let (proof, auxs) = EquivalenceTransform.transform_proof(proof)?;
     let aux_resolver = SliceResolver(&auxs);
     let (_, (_, types_left, sample_info_left)) = aux_resolver.resolve(eq.left_name()).unwrap();
     let (_, (_, types_right, sample_info_right)) = aux_resolver.resolve(eq.right_name()).unwrap();
@@ -434,6 +434,8 @@ pub fn verify(eq: &Equivalence, proof: &Proof, transcript_file: File) -> Result<
     let mut resp = None;
 
     let mut i = 0;
+
+    println!("====================");
 
     loop {
         i = i + 1;
@@ -462,7 +464,9 @@ pub fn verify(eq: &Equivalence, proof: &Proof, transcript_file: File) -> Result<
         }
 
         for smt_expr in smt_exprs {
-            write!(prover, "{smt_expr}").expect("grrr");
+            println!("sending: {smt_expr}");
+            write!(prover, "{smt_expr}").expect(&format!("error writing expression {smt_expr}"));
+            std::thread::sleep(std::time::Duration::from_millis(1));
         }
 
         std::thread::sleep(std::time::Duration::from_millis(100));
@@ -494,8 +498,6 @@ pub fn verify(eq: &Equivalence, proof: &Proof, transcript_file: File) -> Result<
             _ => {}
         }
     }
-
-    Ok(())
 }
 
 /*

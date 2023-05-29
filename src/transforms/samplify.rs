@@ -113,6 +113,21 @@ pub fn samplify(
                     )?,
                 ));
             }
+            Statement::For(iter, start, end, code) => newcode.push(Statement::For(
+                iter,
+                start,
+                end,
+                samplify(
+                    &code,
+                    game_name,
+                    pkg_name,
+                    inst_name,
+                    ctr,
+                    sampletypes,
+                    positions,
+                )?,
+            )),
+
             Statement::Sample(id, expr, None, tipe) => {
                 let pos = Position {
                     game_name: game_name.to_string(),

@@ -160,7 +160,7 @@ impl<'a> CompositionSmtWriter<'a> {
                     els: self.code_smt_helper(elsecode.clone(), sig, inst),
                 }
                 .into(),
-                Statement::For(_, _, _, _) => todo!(),
+                Statement::For(_, _, _, _) => unreachable!("found a for statement in the smt writer stage. this should have been eliminated by now and can't be handled here."),
                 Statement::Return(None) => {
                     // (mk-return-{name} statevarname expr)
                     let var_gamestates = names::var_globalstate_name();

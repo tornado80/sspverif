@@ -3,7 +3,6 @@ composition Shifted {
     const m: Integer; /* table size */
 
     instance pkg = Shifted {
-        
         params {
             n:n,
             m:m,

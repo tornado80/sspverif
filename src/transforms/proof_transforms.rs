@@ -14,9 +14,9 @@ use super::{
     Transformation,
 };
 
-pub struct EquivanceTransform;
+pub struct EquivalenceTransform;
 
-impl super::ProofTransform for EquivanceTransform {
+impl super::ProofTransform for EquivalenceTransform {
     type Err = typecheck::TypeCheckError;
 
     type Aux = Vec<(
@@ -102,18 +102,21 @@ fn transform_game_inst(
     let (comp, _) = unwrapify::Transformation(&comp)
         .transform()
         .expect("unwrapify transformation failed unexpectedly");
-    let (comp, _) = returnify::TransformNg
-        .transform_game(&comp)
-        .expect("returnify transformation failed unexpectedly");
     let (comp, _) = resolveoracles::Transformation(&comp)
         .transform()
         .expect("resolveoracles transformation failed unexpectedly");
-    let (comp, _) = treeify::Transformation(&comp)
-        .transform()
-        .expect("treeify transformation failed unexpectedly");
     let (comp, _) = split_partial::SplitPartial
         .transform_game(&comp)
         .expect("split_partial transform failed unexpectedly");
+    let (comp, _) = returnify::TransformNg
+        .transform_game(&comp)
+        .expect("returnify transformation failed unexpectedly");
+    let (comp, _) = treeify::Transformation(&comp)
+        .transform()
+        .expect("treeify transformation failed unexpectedly");
+    println!("#####################");
+    println!("{:#?}", comp);
+    println!("$$$$$$$$$$$$$$$$$$$$$");
     let (comp, _) = tableinitialize::Transformation(&comp)
         .transform()
         .expect("tableinitialize transformation failed unexpectedly");

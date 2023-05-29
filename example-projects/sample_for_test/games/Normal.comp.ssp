@@ -3,7 +3,6 @@ composition Normal {
     const m: Integer; /* table size */
 
     instance pkg = Normal {
-        
         params {
             n:n,
             m:m,
