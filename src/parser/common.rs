@@ -38,6 +38,7 @@ pub fn handle_oracle_sig(oracle_sig: Pair<Rule>) -> OracleSig {
         name: name.to_string(),
         tipe,
         args,
+        partial_vars: vec![],
     }
 }
 

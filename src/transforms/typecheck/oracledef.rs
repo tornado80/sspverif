@@ -8,11 +8,13 @@ use crate::identifier::Identifier;
 
 pub fn typecheck_odef(odef: &OracleDef, scope: &mut Scope) -> Result<OracleDef, TypeCheckError> {
     let OracleDef {
-        sig: OracleSig {
-            name: _name,
-            args,
-            tipe,
-        },
+        sig:
+            OracleSig {
+                name: _name,
+                args,
+                tipe,
+                ..
+            },
         code,
     } = odef;
     scope.enter();

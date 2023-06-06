@@ -108,7 +108,7 @@ fn transform_oracle(
 
     let mut result = vec![];
 
-    let mut transformed = transform_codeblock(&odef.code, &odef.sig.name, sig_mapping);
+    let mut transformed = transform_codeblock(&odef.code, &odef.sig.name, vec![], sig_mapping);
 
     let inst_name = &pkg.name;
     let entry = sig_mapping
@@ -118,13 +118,14 @@ fn transform_oracle(
     // we treat the last item differently:
     // intermediate items get an empty return type,
     // the last item gets the original return type.
-    let (last_name, last_code) = transformed.pop().unwrap();
+    let (last_name, last_code, last_locals) = transformed.pop().unwrap();
 
-    for (oracle_name, oracle_code) in transformed.into_iter() {
+    for (oracle_name, oracle_code, oracle_locals) in transformed.into_iter() {
         let sig = OracleSig {
-            name: oracle_name,
+            name: oracle_name.clone(),
             args: osig.args.clone(),
             tipe: Type::Empty, // <-- note the difference
+            partial_vars: oracle_locals.clone(),
         };
         result.push(OracleDef {
             sig: sig.clone(),
@@ -134,9 +135,10 @@ fn transform_oracle(
     }
 
     let sig = OracleSig {
-        name: last_name,
+        name: last_name.clone(),
         args: osig.args.clone(),
         tipe: osig.tipe.clone(), // <-- note the difference
+        partial_vars: last_locals.clone(),
     };
     result.push(OracleDef {
         sig: sig.clone(),
@@ -152,62 +154,97 @@ fn transform_oracle(
 
 fn transform_codeblock(
     code: &CodeBlock,
-    oracle_name: &str,
+    prefix: &str,
+    mut locals: Vec<(String, Type)>,
     sig_mapping: &mut HashMap<(String, OracleSig), Vec<OracleSig>>,
-) -> Vec<(String, CodeBlock)> {
+) -> Vec<(String, CodeBlock, Vec<(String, Type)>)> {
     let mut result = vec![];
 
-    let split_indices: Vec<usize> = code
-        .0
-        .iter()
-        .enumerate()
-        .filter_map(|(i, stmt)| {
-            if stmt.needs_split(sig_mapping) {
-                Some(i)
-            } else {
-                None
+    let mut split_indices = vec![];
+    for i in 0..code.0.len() {
+        if code.0[i].needs_split(sig_mapping) {
+            split_indices.push((i, locals.clone()));
+        }
+        match &code.0[i] {
+            Statement::Parse(ids, expr) => {
+                todo!()
             }
-        })
-        .collect();
+            Statement::Assign(Identifier::Local(id_name), Some(idx), expr) => {
+                locals.push((
+                    id_name.to_string(),
+                    Type::Table(
+                        Box::new(idx.get_type().unwrap().clone()),
+                        Box::new(expr.get_type().unwrap().clone()),
+                    ),
+                ));
+            }
+            Statement::Assign(Identifier::Local(id_name), None, expr) => {
+                locals.push((id_name.to_string(), expr.get_type().unwrap().clone()));
+            }
+            Statement::InvokeOracle {
+                id: Identifier::Local(id_name),
+                tipe: Some(tipe),
+                opt_idx: Some(idx),
+                ..
+            }
+            | Statement::Sample(Identifier::Local(id_name), Some(idx), _, tipe) => {
+                locals.push((
+                    id_name.to_string(),
+                    Type::Table(
+                        Box::new(idx.get_type().unwrap().clone()),
+                        Box::new(tipe.clone()),
+                    ),
+                ));
+            }
+            Statement::InvokeOracle {
+                id: Identifier::Local(id_name),
+                tipe: Some(tipe),
+                opt_idx: None,
+                ..
+            }
+            | Statement::Sample(Identifier::Local(id_name), None, _, tipe) => {
+                locals.push((id_name.to_string(), tipe.clone()))
+            }
+            _ => {}
+        }
+    }
 
     let mut cur_idx = 0;
     let mut did_split = false;
 
-    for split_idx in split_indices {
+    for (split_idx, split_locals) in split_indices {
         did_split = true;
         if split_idx != cur_idx {
             let range = cur_idx..split_idx;
             result.push((
-                format!("{oracle_name}-range{cur_idx}-{split_idx}"),
+                format!("{prefix}-range{cur_idx}-{split_idx}"),
                 CodeBlock(code.0[range].to_vec()),
+                split_locals.clone(),
             ))
         }
 
         match &code.0[split_idx] {
             Statement::IfThenElse(_cond, ifcode, elsecode) => {
-                result.extend(
-                    transform_codeblock(ifcode, oracle_name, sig_mapping)
-                        .into_iter()
-                        .map(|(name, code)| {
-                            (format!("{oracle_name}-ifbranch{split_idx}-{name}"), code)
-                        }),
-                );
-                result.extend(
-                    transform_codeblock(elsecode, oracle_name, sig_mapping)
-                        .into_iter()
-                        .map(|(name, code)| {
-                            (format!("{oracle_name}-elsebranch{split_idx}-{name}"), code)
-                        }),
-                );
+                result.extend(transform_codeblock(
+                    ifcode,
+                    &format!("{prefix}-ifbranch{split_idx}"),
+                    split_locals.clone(),
+                    sig_mapping,
+                ));
+                result.extend(transform_codeblock(
+                    elsecode,
+                    &format!("{prefix}-elsebranch{split_idx}"),
+                    split_locals.clone(),
+                    sig_mapping,
+                ));
             }
             Statement::For(_id_iter, _from, _to, code) => {
-                result.extend(
-                    transform_codeblock(code, oracle_name, sig_mapping)
-                        .into_iter()
-                        .map(|(name, code)| {
-                            (format!("{oracle_name}-forstep{split_idx}-{name}"), code)
-                        }),
-                );
+                result.extend(transform_codeblock(
+                    code,
+                    &format!("{prefix}-forstep{split_idx}"),
+                    split_locals,
+                    sig_mapping,
+                ));
             }
             Statement::InvokeOracle {
                 id,
@@ -230,7 +267,7 @@ fn transform_codeblock(
                 result.extend(splits.into_iter().take(splits.len() - 1).map(
                     |OracleSig { name, .. }| {
                         (
-                            format!("{oracle_name}-oracle{split_idx}-{name}"),
+                            format!("{prefix}-oracle{split_idx}-{name}"),
                             CodeBlock(vec![Statement::InvokeOracle {
                                 id: Identifier::new_scalar("_"),
                                 name: name.to_string(),
@@ -239,12 +276,13 @@ fn transform_codeblock(
                                 target_inst_name: Some(target_inst_name.to_string()),
                                 tipe: None,
                             }]),
+                            split_locals.clone(),
                         )
                     },
                 ));
 
                 result.push((
-                    format!("{oracle_name}-oracle{split_idx}-{name}"),
+                    format!("{prefix}-oracle{split_idx}-{name}"),
                     CodeBlock(vec![Statement::InvokeOracle {
                         id: id.clone(),
                         opt_idx: opt_idx.clone(),
@@ -253,6 +291,7 @@ fn transform_codeblock(
                         target_inst_name: Some(target_inst_name.to_string()),
                         tipe: tipe.clone(),
                     }]),
+                    split_locals,
                 ))
             }
             _ => unreachable!(),
@@ -261,25 +300,14 @@ fn transform_codeblock(
         cur_idx = split_idx;
     }
 
-    let rest = if did_split {
-        &code.0[cur_idx + 1..]
+    if did_split {
+        let rest = &code.0[cur_idx + 1..];
+        if !rest.is_empty() {
+            result.push((format!("{prefix}-rest"), CodeBlock(rest.to_vec()), locals));
+        }
     } else {
-        &code.0[cur_idx..]
-    };
-
-    if !rest.is_empty() {
-        result.push((format!("{oracle_name}-rest"), CodeBlock(rest.to_vec())));
+        result.push((format!("{prefix}"), CodeBlock(code.0.clone()), locals));
     }
-
-    // if an oracle is not split, the rest should be the whole oracle code, and not be empty.
-    // otherwise we don't add _anything_ in this round
-    // !did_split ==> (rest == original code)
-    assert!(did_split || (rest == &code.0));
-
-    println!("-------------");
-    println!("oracle name: {oracle_name}");
-    println!("original code: {code:?}");
-    println!("result: {result:?}");
 
     result
 }
@@ -324,7 +352,7 @@ mod test {
 
         let mut sig_mapping = Default::default();
 
-        let out = transform_codeblock(&code, "Eval", &mut sig_mapping);
+        let out = transform_codeblock(&code, "Eval", vec![], &mut sig_mapping);
 
         println!("{out:#?}");
     }

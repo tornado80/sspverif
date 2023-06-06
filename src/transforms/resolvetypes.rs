@@ -56,6 +56,7 @@ impl super::PackageInstanceTransform for ResolveTypesPackageInstanceTransform {
                 name: oracle_name,
                 args,
                 tipe,
+                ..
             } = sig;
 
             // resolve return type
@@ -90,6 +91,7 @@ impl super::PackageInstanceTransform for ResolveTypesPackageInstanceTransform {
             name: oracle_name,
             args,
             tipe,
+            ..
         } in &mut inst.pkg.imports
         {
             let place = Place::ImportReturn {

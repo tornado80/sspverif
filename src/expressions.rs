@@ -333,6 +333,13 @@ impl Expression {
     pub fn new_equals(exprs: Vec<&Expression>) -> Expression {
         Expression::Equals(exprs.into_iter().cloned().collect())
     }
+
+    pub fn get_type(&self) -> Option<&Type> {
+        match self {
+            Expression::Typed(t, _expr) => Some(t),
+            _ => None,
+        }
+    }
 }
 
 #[macro_export]

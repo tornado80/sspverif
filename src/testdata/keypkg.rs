@@ -24,6 +24,7 @@ pub fn key_pkg(params: &HashMap<String, Expression>) -> PackageInstance {
                         name: "Set".to_string(),
                         args: vec![("k_".to_string(), Type::new_bits("n"))],
                         tipe: Type::Empty,
+                        partial_vars: vec![],
                     },
                     code: block! {
                         Statement::IfThenElse(
@@ -49,6 +50,7 @@ pub fn key_pkg(params: &HashMap<String, Expression>) -> PackageInstance {
                         name: "Get".to_string(),
                         args: vec![],
                         tipe: Type::new_bits("n"),
+                        partial_vars: vec![],
                     },
                     code: block! {
                         Statement::IfThenElse(

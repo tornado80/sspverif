@@ -2,7 +2,6 @@ use crate::expressions::Expression;
 use crate::statement::{CodeBlock, Statement};
 use crate::types::Type;
 
-use std::collections::HashMap;
 use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -16,6 +15,7 @@ pub struct FnSig {
 pub struct OracleSig {
     pub name: String,
     pub args: Vec<(String, Type)>,
+    pub partial_vars: Vec<(String, Type)>,
     pub tipe: Type,
 }
 

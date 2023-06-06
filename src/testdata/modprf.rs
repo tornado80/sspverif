@@ -32,6 +32,7 @@ pub fn mod_prf(params: &HashMap<String, Expression>) -> PackageInstance {
                     name: "Eval".to_string(),
                     args: vec![("msg".to_string(), Type::new_bits("*"))],
                     tipe: Type::new_bits("*"),
+                    partial_vars: vec![],
                 },
                 code: block! {
                     Statement::InvokeOracle{
