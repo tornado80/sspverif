@@ -279,7 +279,7 @@ pub fn tex_write_composition(
     let fname = target.join(format!("Composition_{}.tex", name));
     let mut file = File::create(fname)?;
 
-    writeln!(file, "\\documentclass[a4paper]{{article}}")?;
+    writeln!(file, "\\documentclass[a4paper,landscape]{{article}}")?;
     writeln!(file, "\\usepackage[operators]{{cryptocode}}")?;
     writeln!(file, "\\usepackage{{tikz}}")?;
     writeln!(
