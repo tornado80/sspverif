@@ -4,6 +4,7 @@ use crate::identifier::Identifier;
 use crate::package::{Composition, Edge, Export, OracleDef, OracleSig};
 use crate::statement::{CodeBlock, Statement};
 use crate::types::Type;
+use std::fmt::Write;
 
 pub struct SplitPartial;
 
@@ -12,17 +13,76 @@ pub enum Error {}
 
 type Result<T> = std::result::Result<T, Error>;
 
+#[derive(Clone,Copy,Debug)]
+enum SplitType {
+    Plain,  // before anything interesting happens
+    Invoc,   // called a child oracle
+    Step,    // in a loop
+    If,
+    Else,
+}
+
+impl std::fmt::Display for SplitType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
+        write!(f, "{:?}", self)
+    }
+}
+
+#[derive(Clone,Debug)]
+struct SplitPathComponent {
+    pkginstname: String,
+    oraclename: String,
+    splittype: SplitType,
+    splitrange: std::ops::Range<usize>,
+}
+
+impl SplitPathComponent {
+    pub fn new(pkginstname: &str, oraclename: &str, splittype: SplitType, splitrange:std::ops::Range<usize>) -> Self {
+        SplitPathComponent{
+            pkginstname: pkginstname.to_string(),
+            oraclename: oraclename.to_string(),
+            splittype,
+            splitrange
+        }
+    }
+}
+
+#[derive(Clone,Debug)]
+struct SplitPath (
+    Vec<SplitPathComponent>
+);
+
+impl SplitPath {
+    pub fn extended(&self, component: SplitPathComponent) -> Self {
+        let mut result = self.clone();
+        result.0.push(component);
+        result
+    }
+
+    pub fn smt_name(&self) -> String {
+        let mut result = String::new();
+        for component in self.0 {
+            if result != "" {
+                write!(result, "/");
+            } 
+            write!(result, "{}!{}!{}{:?}",
+                   component.pkginstname, component.oraclename, component.splittype, component.splitrange);
+        }
+        result
+    }
+}
+    
 impl super::GameTransform for SplitPartial {
     type Err = Error;
 
-    type Aux = ();
+    type Aux = Vec<SplitPath>;
 
     fn transform_game(
         &self,
         game: &Composition,
     ) -> std::result::Result<(crate::package::Composition, Self::Aux), Self::Err> {
         let mut new_game = game.clone();
-        let mut sig_mapping: HashMap<(String, OracleSig), Vec<OracleSig>> = Default::default();
+        let mut sig_mapping: HashMap<(String, OracleSig), Vec<(SplitPath, OracleSig)>> = Default::default();
 
         let mut dependencies: HashMap<(usize, OracleSig), Vec<usize>> = HashMap::new();
 
@@ -55,12 +115,12 @@ impl super::GameTransform for SplitPartial {
             }
         }
 
-        Ok((new_game, ()))
+        Ok((new_game, vec![]))
     }
 }
 
 impl Statement {
-    fn needs_split(&self, sig_mapping: &HashMap<(String, OracleSig), Vec<OracleSig>>) -> bool {
+    fn needs_split(&self, sig_mapping: &HashMap<(String, OracleSig), Vec<(SplitPath, OracleSig)>>) -> bool {
         match self {
             Statement::For(_, _, _, _) => true,
             Statement::IfThenElse(_cond, ifcode, elsecode) => {
@@ -87,7 +147,7 @@ fn transform_oracle(
     game: &mut Composition,
     pkg_offs: usize,
     osig: &OracleSig,
-    sig_mapping: &mut HashMap<(String, OracleSig), Vec<OracleSig>>,
+    sig_mapping: &mut HashMap<(String, OracleSig), Vec<(SplitPath, OracleSig)>>,
 ) -> Result<()> {
     let pkg = &mut game.pkgs[pkg_offs];
     let game_name = &game.name;
@@ -108,7 +168,7 @@ fn transform_oracle(
 
     let mut result = vec![];
 
-    let mut transformed = transform_codeblock(&odef.code, &odef.sig.name, vec![], sig_mapping);
+    let mut transformed = transform_codeblock(&odef.code, SplitPath(vec![]), vec![], sig_mapping);
 
     let inst_name = &pkg.name;
     let entry = sig_mapping
@@ -118,11 +178,11 @@ fn transform_oracle(
     // we treat the last item differently:
     // intermediate items get an empty return type,
     // the last item gets the original return type.
-    let (last_name, last_code, last_locals) = transformed.pop().unwrap();
+    let (last_splitpath, last_code, last_locals) = transformed.pop().unwrap();
 
-    for (oracle_name, oracle_code, oracle_locals) in transformed.into_iter() {
+    for (splitpath, oracle_code, oracle_locals) in transformed.into_iter() {
         let sig = OracleSig {
-            name: oracle_name.clone(),
+            name: splitpath.smt_name(),
             args: osig.args.clone(),
             tipe: Type::Empty, // <-- note the difference
             partial_vars: oracle_locals.clone(),
@@ -131,11 +191,11 @@ fn transform_oracle(
             sig: sig.clone(),
             code: oracle_code,
         });
-        entry.push(sig)
+        entry.push((SplitPath(vec![]), sig))
     }
 
     let sig = OracleSig {
-        name: last_name.clone(),
+        name: last_splitpath.smt_name(),
         args: osig.args.clone(),
         tipe: osig.tipe.clone(), // <-- note the difference
         partial_vars: last_locals.clone(),
@@ -144,7 +204,7 @@ fn transform_oracle(
         sig: sig.clone(),
         code: last_code,
     });
-    entry.push(sig);
+    entry.push((SplitPath(vec![]), sig));
 
     pkg.pkg.oracles.remove(oracle_offs);
     pkg.pkg.oracles.extend(result);
@@ -154,10 +214,10 @@ fn transform_oracle(
 
 fn transform_codeblock(
     code: &CodeBlock,
-    prefix: &str,
+    prefix: SplitPath,
     mut locals: Vec<(String, Type)>,
-    sig_mapping: &mut HashMap<(String, OracleSig), Vec<OracleSig>>,
-) -> Vec<(String, CodeBlock, Vec<(String, Type)>)> {
+    sig_mapping: &mut HashMap<(String, OracleSig), Vec<(SplitPath, OracleSig)>>,
+) -> Vec<(SplitPath, CodeBlock, Vec<(String, Type)>)> {
     let mut result = vec![];
 
     let mut split_indices = vec![];
@@ -217,7 +277,7 @@ fn transform_codeblock(
         if split_idx != cur_idx {
             let range = cur_idx..split_idx;
             result.push((
-                format!("{prefix}-range{cur_idx}-{split_idx}"),
+                prefix.extended(SplitPathComponent::new("", "", SplitType::Plain, range)),
                 CodeBlock(code.0[range].to_vec()),
                 split_locals.clone(),
             ))
@@ -227,13 +287,13 @@ fn transform_codeblock(
             Statement::IfThenElse(_cond, ifcode, elsecode) => {
                 result.extend(transform_codeblock(
                     ifcode,
-                    &format!("{prefix}-ifbranch{split_idx}"),
+                    prefix.extended(SplitPathComponent::new("", "", SplitType::If, split_idx..(split_idx+1))),
                     split_locals.clone(),
                     sig_mapping,
                 ));
                 result.extend(transform_codeblock(
                     elsecode,
-                    &format!("{prefix}-elsebranch{split_idx}"),
+                    prefix.extended(SplitPathComponent::new("", "", SplitType::Else, split_idx..(split_idx+1))),
                     split_locals.clone(),
                     sig_mapping,
                 ));
@@ -241,7 +301,7 @@ fn transform_codeblock(
             Statement::For(_id_iter, _from, _to, code) => {
                 result.extend(transform_codeblock(
                     code,
-                    &format!("{prefix}-forstep{split_idx}"),
+                    prefix.extended(SplitPathComponent::new("", "", SplitType::Else, split_idx..(split_idx+1))),
                     split_locals,
                     sig_mapping,
                 ));
@@ -265,9 +325,11 @@ fn transform_codeblock(
                 let last_split = splits.last().unwrap();
 
                 result.extend(splits.into_iter().take(splits.len() - 1).map(
-                    |OracleSig { name, .. }| {
+                    |(splitpath, OracleSig { name, .. })| {
+                        let mut newpath = prefix.extended(SplitPathComponent::new("", "", SplitType::Invoc, split_idx..(split_idx+1))) ;
+                        newpath.0.extend(splitpath.0);
                         (
-                            format!("{prefix}-oracle{split_idx}-{name}"),
+                            newpath,
                             CodeBlock(vec![Statement::InvokeOracle {
                                 id: Identifier::new_scalar("_"),
                                 name: name.to_string(),
@@ -282,11 +344,11 @@ fn transform_codeblock(
                 ));
 
                 result.push((
-                    format!("{prefix}-oracle{split_idx}-{name}"),
+                    prefix.extended(SplitPathComponent::new("", "", SplitType::Invoc, split_idx..(split_idx+1))),
                     CodeBlock(vec![Statement::InvokeOracle {
                         id: id.clone(),
                         opt_idx: opt_idx.clone(),
-                        name: last_split.name.clone(),
+                        name: last_split.1.name.clone(),
                         args: args.clone(),
                         target_inst_name: Some(target_inst_name.to_string()),
                         tipe: tipe.clone(),
@@ -303,10 +365,13 @@ fn transform_codeblock(
     if did_split {
         let rest = &code.0[cur_idx + 1..];
         if !rest.is_empty() {
-            result.push((format!("{prefix}-rest"), CodeBlock(rest.to_vec()), locals));
+            result.push((
+                prefix.extended(SplitPathComponent::new("", "", SplitType::Plain, (cur_idx+1)..code.0.len())),
+                CodeBlock(rest.to_vec()), locals));
         }
     } else {
-        result.push((format!("{prefix}"), CodeBlock(code.0.clone()), locals));
+        result.push((prefix.extended(SplitPathComponent::new("", "", SplitType::Plain, 0..code.0.len())),
+                     CodeBlock(code.0.clone()), locals));
     }
 
     result
