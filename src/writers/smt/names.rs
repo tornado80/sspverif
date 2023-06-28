@@ -60,6 +60,10 @@ pub fn gamestate_selector_rand_name(game_name: &str, sample_id: usize) -> String
     format!("composition-rand-{game_name}-{sample_id}")
 }
 
+pub fn gamestate_selector_partialstate_name(game_name: &str) -> String {
+    format!("composition-partialstate-{game_name}")
+}
+
 pub fn pkgstate_sort_name(game_name: &str, inst_name: &str) -> String {
     format!("State_{game_name}_{inst_name}")
 }
@@ -74,6 +78,10 @@ pub fn pkgstate_selector_intermediate_name(game_name: &str, inst_name: &str) -> 
 
 pub fn pkgstate_constructor_name(game_name: &str, inst_name: &str) -> String {
     format!("mk-state-{game_name}-{inst_name}")
+}
+
+pub fn partialstate_sort_name(game_name: &str) -> String {
+    format!("IntermediateState_{}", game_name)
 }
 
 pub fn var_selfstate_name() -> String {
