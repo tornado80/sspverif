@@ -21,7 +21,7 @@ impl super::ProofTransform for EquivalenceTransform {
 
     type Aux = Vec<(
         String,
-        (typecheck::Scope, HashSet<Type>, samplify::SampleInfo),
+        (typecheck::Scope, HashSet<Type>, samplify::SampleInfo, split_partial::SplitInfo),
     )>;
 
     fn transform_proof(
@@ -82,7 +82,7 @@ fn transform_game_inst(
         GameInstance,
         (
             String,
-            (typecheck::Scope, HashSet<Type>, samplify::SampleInfo),
+            (typecheck::Scope, HashSet<Type>, samplify::SampleInfo, split_partial::SplitInfo),
         ),
     ),
     typecheck::TypeCheckError,
@@ -105,7 +105,7 @@ fn transform_game_inst(
     let (comp, _) = resolveoracles::Transformation(&comp)
         .transform()
         .expect("resolveoracles transformation failed unexpectedly");
-    let (comp, _) = split_partial::SplitPartial
+    let (comp, splits) = split_partial::SplitPartial
         .transform_game(&comp)
         .expect("split_partial transform failed unexpectedly");
     let (comp, _) = returnify::TransformNg
@@ -125,7 +125,7 @@ fn transform_game_inst(
         game_inst.with_other_game(comp),
         (
             game_inst.as_name().to_string(),
-            (scope, types, samplinginfo),
+            (scope, types, samplinginfo, splits),
         ),
     ))
 }

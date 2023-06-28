@@ -88,10 +88,12 @@ impl SplitPath {
     }
 }
 
+pub type SplitInfo = Vec<(SplitPath, Vec<(String, Type)>)>;
+
 impl super::GameTransform for SplitPartial {
     type Err = Error;
 
-    type Aux = Vec<SplitPath>;
+    type Aux = SplitInfo;
 
     fn transform_game(
         &self,
@@ -138,7 +140,8 @@ impl super::GameTransform for SplitPartial {
             partials.extend(
                 sig_mapping[&(pkg_inst_name, sig.clone())]
                     .iter()
-                    .map(|(path, _)| path.clone()),
+                    .map(|(path, sig)| (path.clone(),
+                                        sig.partial_vars.clone())),
             );
         }
 
@@ -262,6 +265,9 @@ fn transform_codeblock(
                 todo!()
             }
             Statement::Assign(Identifier::Local(id_name), Some(idx), expr) => {
+                if locals.iter().find(|(localname, _)| localname == id_name).is_some() {
+                    continue
+                }
                 locals.push((
                     id_name.to_string(),
                     Type::Table(
@@ -271,15 +277,21 @@ fn transform_codeblock(
                 ));
             }
             Statement::Assign(Identifier::Local(id_name), None, expr) => {
+                if locals.iter().find(|(localname, _)| localname == id_name).is_some() {
+                    continue
+                }
                 locals.push((id_name.to_string(), expr.get_type().unwrap().clone()));
             }
             Statement::InvokeOracle {
                 id: Identifier::Local(id_name),
                 tipe: Some(tipe),
-                opt_idx: Some(idx),
+                 opt_idx: Some(idx),
                 ..
             }
             | Statement::Sample(Identifier::Local(id_name), Some(idx), _, tipe) => {
+                if locals.iter().find(|(localname, _)| localname == id_name).is_some() {
+                    continue
+                }
                 locals.push((
                     id_name.to_string(),
                     Type::Table(
@@ -295,6 +307,9 @@ fn transform_codeblock(
                 ..
             }
             | Statement::Sample(Identifier::Local(id_name), None, _, tipe) => {
+                if locals.iter().find(|(localname, _)| localname == id_name).is_some() {
+                    continue
+                }
                 locals.push((id_name.to_string(), tipe.clone()))
             }
             _ => {}

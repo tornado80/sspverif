@@ -2,6 +2,7 @@ use crate::package::{Composition, Export, OracleDef};
 use crate::proof::{Named, Proof, Resolver, SliceResolver};
 use crate::transforms::proof_transforms::EquivalenceTransform;
 use crate::transforms::samplify::SampleInfo;
+use crate::transforms::split_partial::SplitInfo;
 use crate::transforms::ProofTransform;
 use crate::util::prover_process::{Communicator, ProverResponse};
 use crate::writers::smt::contexts::GameContext;
@@ -30,6 +31,7 @@ use crate::proof::Equivalence;
 enum ProverThingyState {
     EmitBaseDeclarations,
     EmitGameInstances,
+    EmitPartialInformation,
     EmitConstantDeclarations,
     EmitInvariants(usize),
     EmitLemmaAssert(usize, usize),
@@ -47,6 +49,7 @@ struct ProverThingyOutput {
 enum ProverThingyOutputType {
     BaseDeclarations,
     Games,
+    Partials,
     ConstantDeclarations,
     Invariants { file_names: Vec<String> },
     LemmaAssert { lemma_name: String, is_last: bool },
@@ -60,6 +63,8 @@ struct ProverThingy<'a> {
     types: &'a [Type],
     sample_info_left: &'a SampleInfo,
     sample_info_right: &'a SampleInfo,
+    split_info_left: &'a SplitInfo,
+    split_info_right: &'a SplitInfo,
 }
 
 impl<'a> ProverThingy<'a> {
@@ -69,6 +74,8 @@ impl<'a> ProverThingy<'a> {
         types: &'a [Type],
         sample_info_left: &'a SampleInfo,
         sample_info_right: &'a SampleInfo,
+        split_info_left: &'a SplitInfo,
+        split_info_right: &'a SplitInfo
     ) -> ProverThingy<'a> {
         ProverThingy {
             state: ProverThingyState::EmitBaseDeclarations,
@@ -77,6 +84,8 @@ impl<'a> ProverThingy<'a> {
             types,
             sample_info_left,
             sample_info_right,
+            split_info_left,
+            split_info_right
         }
     }
 
@@ -86,12 +95,17 @@ impl<'a> ProverThingy<'a> {
         let resp = match &self.state {
             ProverThingyState::EmitBaseDeclarations => {
                 let resp = self.emit_base_declarations();
-                self.state = ProverThingyState::EmitGameInstances;
+                self.state = ProverThingyState::EmitPartialInformation;
                 resp
             }
             ProverThingyState::EmitGameInstances => {
                 let resp = self.emit_game_definitions();
                 self.state = ProverThingyState::EmitConstantDeclarations;
+                resp
+            }
+            ProverThingyState::EmitPartialInformation => {
+                let resp = self.emit_split_enum();
+                self.state = ProverThingyState::EmitGameInstances;
                 resp
             }
             ProverThingyState::EmitConstantDeclarations => {
@@ -177,6 +191,26 @@ impl<'a> ProverThingy<'a> {
         }
     }
 
+    fn emit_split_enum(&self) -> ProverThingyOutput {
+        let instance_resolver = SliceResolver(self.proof.instances());
+        let left = instance_resolver.resolve(&self.eq.left_name()).unwrap();
+        let right = instance_resolver.resolve(&self.eq.right_name()).unwrap();
+
+        let gctx_left = contexts::GameContext::new(left.as_game());
+        let gctx_right = contexts::GameContext::new(right.as_game());
+
+        let out = vec![
+            gctx_left.smt_declare_intermediate_state_enum(self.split_info_left),
+            gctx_right.smt_declare_intermediate_state_enum(self.split_info_right),
+        ];
+        
+        ProverThingyOutput {
+            output_type: ProverThingyOutputType::Partials,
+            smt: out,
+            expect: None,
+        }
+    }
+    
     fn emit_constant_declarations(&self) -> ProverThingyOutput {
         let instance_resolver = SliceResolver(self.proof.instances());
         let left = instance_resolver.resolve(&self.eq.left_name()).unwrap();
@@ -425,12 +459,12 @@ impl<'a> ProverThingy<'a> {
 pub fn verify(eq: &Equivalence, proof: &Proof, transcript_file: File) -> Result<()> {
     let (proof, auxs) = EquivalenceTransform.transform_proof(proof)?;
     let aux_resolver = SliceResolver(&auxs);
-    let (_, (_, types_left, sample_info_left)) = aux_resolver.resolve(eq.left_name()).unwrap();
-    let (_, (_, types_right, sample_info_right)) = aux_resolver.resolve(eq.right_name()).unwrap();
+    let (_, (_, types_left, sample_info_left, split_info_left)) = aux_resolver.resolve(eq.left_name()).unwrap();
+    let (_, (_, types_right, sample_info_right, split_info_right)) = aux_resolver.resolve(eq.right_name()).unwrap();
     let types: Vec<_> = types_left.union(types_right).cloned().collect();
 
     let mut prover = Communicator::new_cvc5_with_transcript(transcript_file)?;
-    let mut thingy = ProverThingy::new(eq, &proof, &types, sample_info_left, sample_info_right);
+    let mut thingy = ProverThingy::new(eq, &proof, &types, sample_info_left, sample_info_right, split_info_left, split_info_right);
     let mut resp = None;
 
     let mut i = 0;
