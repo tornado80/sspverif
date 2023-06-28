@@ -1,6 +1,6 @@
 use crate::{
     package::{Composition, Export},
-    transforms::samplify::SampleInfo,
+    transforms::{samplify::SampleInfo, split_partial::SplitPath},
     types::Type,
     writers::smt::{
         declare,
@@ -119,6 +119,25 @@ impl<'a> GameContext<'a> {
             )],
             body,
         }
+        .into()
+    }
+
+    pub fn smt_declare_intermediate_state_enum(
+        &self,
+        splitinfo: Vec<(SplitPath, Vec<(String, Type)>)>,
+    ) -> SmtExpr {
+        declare::declare_datatype(
+            &format!("IntermediateState_{}", self.game.name),
+            splitinfo.iter().map(|(path, locals)| {
+                (
+                    path.smt_name(),
+                    locals
+                        .iter()
+                        .map(|(localname, localtype)| (localname.clone(), localtype.into()))
+                        .collect(),
+                )
+            }),
+        )
         .into()
     }
 
