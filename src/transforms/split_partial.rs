@@ -53,24 +53,27 @@ impl SplitPathComponent {
 }
 
 #[derive(Clone, Debug)]
-pub struct SplitPath(Vec<SplitPathComponent>);
+pub struct SplitPath {
+    gamename: String,
+    path: Vec<SplitPathComponent>
+}
 
 impl SplitPath {
-    pub fn empty() -> Self {
-        Self(vec![])
+    pub fn empty(gamename: String) -> Self {
+        Self {path: vec![],
+              gamename}
     }
     pub fn extended(&self, component: SplitPathComponent) -> Self {
         let mut result = self.clone();
-        result.0.push(component);
+        result.path.push(component);
         result
     }
 
     pub fn smt_name(&self) -> String {
         let mut result = String::new();
-        for component in &self.0 {
-            if result != "" {
-                write!(result, "/").unwrap();
-            }
+        write!(result, "{}", self.gamename).unwrap();
+        for component in &self.path {
+            write!(result, "/").unwrap();
             write!(
                 result,
                 "{}!{}!{}{:?}",
@@ -192,7 +195,7 @@ fn transform_oracle(
         &pkg.name,
         oracle_name,
         &odef.code,
-        SplitPath(vec![]),
+        SplitPath::empty(game.name.clone()),
         vec![],
         sig_mapping,
     );
@@ -387,7 +390,7 @@ fn transform_codeblock(
                             SplitType::Invoc,
                             split_idx..(split_idx + 1),
                         ));
-                        newpath.0.extend(splitpath.0.clone());
+                        newpath.path.extend(splitpath.path.clone());
                         (
                             newpath,
                             CodeBlock(vec![Statement::InvokeOracle {
