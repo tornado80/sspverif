@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use crate::identifier::Identifier;
 use crate::package::{Composition, Edge, Export, OracleDef, OracleSig};
 use crate::statement::{CodeBlock, Statement};
+use crate::expressions::Expression;
 use crate::types::Type;
 use std::fmt::Write;
 
@@ -13,11 +14,11 @@ pub enum Error {}
 
 type Result<T> = std::result::Result<T, Error>;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 pub enum SplitType {
     Plain,   // before anything interesting happens
     Invoc,   // called a child oracle
-    ForStep, // in a loop
+    ForStep(Expression, Expression), // in a loop
     If,
     Else,
 }
@@ -364,7 +365,7 @@ fn transform_codeblock(
                     sig_mapping,
                 ));
             }
-            Statement::For(_id_iter, _from, _to, code) => {
+            Statement::For(_id_iter, from, to, code) => {
                 result.extend(transform_codeblock(
                     pkg_inst_name,
                     oracle_name,
@@ -372,7 +373,7 @@ fn transform_codeblock(
                     prefix.extended(SplitPathComponent::new(
                         pkg_inst_name,
                         oracle_name,
-                        SplitType::ForStep,
+                        SplitType::ForStep(from.clone(), to.clone()),
                         split_idx..(split_idx + 1),
                     )),
                     split_locals,
