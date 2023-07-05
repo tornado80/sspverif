@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
+use crate::expressions::Expression;
 use crate::identifier::Identifier;
 use crate::package::{Composition, Edge, Export, OracleDef, OracleSig};
 use crate::statement::{CodeBlock, Statement};
-use crate::expressions::Expression;
 use crate::types::Type;
 use std::fmt::Write;
 
@@ -14,22 +14,42 @@ pub enum Error {}
 
 type Result<T> = std::result::Result<T, Error>;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum SplitType {
-    Plain,   // before anything interesting happens
-    Invoc,   // called a child oracle
+    Plain,                           // before anything interesting happens
+    Phantom,                         // Empty auxilliary function
+    Invoc,                           // called a child oracle
     ForStep(Expression, Expression), // in a loop
-    If,
-    Else,
+    IfCondition(Expression),
+    IfBranch,
+    ElseBranch,
 }
+
+/*
+
+adv -> A:O1 -> B:O2 -> C:O3
+
+A:O1:Invoc(locals)
+A:O1:Invoc(locals)/B:O2:Invoc(locals)
+
+ */
+
+/*
+ * ForStep/ForStep/IfBranch/{locals1}Invoc , {inner_locals}
+ * |---------locals1-------|
+ */
 
 impl std::fmt::Display for SplitType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
-        write!(f, "{:?}", self)
+        match self {
+            SplitType::ForStep(_, _) => write!(f, "ForStep"),
+            SplitType::IfCondition(_) => write!(f, "IfCondition"),
+            _ => write!(f, "{}", &self),
+        }
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SplitPathComponent {
     pkginstname: String,
     oraclename: String,
@@ -56,14 +76,41 @@ impl SplitPathComponent {
 #[derive(Clone, Debug)]
 pub struct SplitPath {
     gamename: String,
-    path: Vec<SplitPathComponent>
+    path: Vec<SplitPathComponent>,
 }
 
 impl SplitPath {
     pub fn empty(gamename: String) -> Self {
-        Self {path: vec![],
-              gamename}
+        Self {
+            path: vec![],
+            gamename,
+        }
     }
+
+    pub fn has_prefix(&self, prefix: &SplitPath) -> bool {
+        if self.gamename != prefix.gamename {
+            return false;
+        }
+
+        if prefix.path.len() > self.path.len() {
+            return false;
+        }
+
+        for i in 0..prefix.path.len() {
+            if prefix.path[i] != self.path[i] {
+                return false;
+            }
+        }
+
+        true
+    }
+
+    pub fn basename(&self) -> (Option<SplitPathComponent>, Self) {
+        let mut result = self.clone();
+        let tail = result.path.pop();
+        (tail, result)
+    }
+
     pub fn extended(&self, component: SplitPathComponent) -> Self {
         let mut result = self.clone();
         result.path.push(component);
@@ -89,7 +136,23 @@ impl SplitPath {
     }
 }
 
-pub type SplitInfo = Vec<(SplitPath, Vec<(String, Type)>)>;
+pub struct SplitInfoEntry {
+    path: SplitPath,
+    locals: Vec<(String, Type)>,
+    next: Option<SplitPath>,
+    elsenext: Option<SplitPath>,
+}
+
+impl SplitInfoEntry {
+    pub fn path(&self) -> &SplitPath {
+        &self.path
+    }
+    pub fn locals(&self) -> &Vec<(String, Type)> {
+        &self.locals
+    }
+}
+
+pub type SplitInfo = Vec<SplitInfoEntry>;
 
 impl super::GameTransform for SplitPartial {
     type Err = Error;
@@ -138,13 +201,83 @@ impl super::GameTransform for SplitPartial {
         let mut partials = vec![];
         for Export(pkg_offs, sig) in &game.exports {
             let pkg_inst_name = game.pkgs[*pkg_offs].name.clone();
-            partials.extend(
-                sig_mapping[&(pkg_inst_name, sig.clone())]
-                    .iter()
-                    .map(|(path, sig)| (path.clone(),
-                                        sig.partial_vars.clone())),
-            );
+            let mut one_oracle_partials: Vec<_> = sig_mapping[&(pkg_inst_name, sig.clone())]
+                .iter()
+                .map(|(path, sig)| SplitInfoEntry {
+                    path: path.clone(),
+                    locals: sig.partial_vars.clone(),
+                    next: None,
+                    elsenext: None,
+                })
+                .collect();
+
+            for i in 0..(one_oracle_partials.len() - 1) {
+                let (head, basename) = one_oracle_partials[i].path.basename();
+                let head = head.unwrap();
+                let split_type = head.splittype.clone();
+
+                match split_type {
+                    SplitType::IfBranch
+                    | SplitType::ElseBranch
+                    | SplitType::Plain
+                    | SplitType::ForStep(_, _)
+                    | SplitType::Invoc => {
+                        one_oracle_partials[i].next = Some(one_oracle_partials[i + 1].path.clone())
+                    }
+                    SplitType::Phantom => {
+                        // Decide if we are leaving a for loop at this point
+                        //  - At the end of the path is a ForStep , i.e. .../ForStep/Phantom
+                        //  - i+1 does not have *that* ForStep
+                        if let SplitType::ForStep(_, _) =
+                            basename.path.iter().last().unwrap().splittype
+                        {
+                            // Forward search first element with *this* forstep
+                            for j in 0..i {
+                                if one_oracle_partials[j].path.has_prefix(&basename) {
+                                    one_oracle_partials[i].next =
+                                        Some(one_oracle_partials[j].path.clone())
+                                }
+                            }
+                            one_oracle_partials[i].elsenext =
+                                Some(one_oracle_partials[i + 1].path.clone())
+                        } else {
+                            // Non-for-loop-related phantom
+                            one_oracle_partials[i].next =
+                                Some(one_oracle_partials[i + 1].path.clone())
+                        }
+                    }
+                    SplitType::IfCondition(_) => {
+                        one_oracle_partials[i].next = Some(one_oracle_partials[i + 1].path.clone());
+                        let prefix = basename.extended(SplitPathComponent {
+                            splittype: SplitType::ElseBranch,
+                            ..head.clone()
+                        });
+
+                        for j in i..one_oracle_partials.len() {
+                            if one_oracle_partials[j].path.has_prefix(&prefix) {
+                                one_oracle_partials[i].elsenext =
+                                    Some(one_oracle_partials[j].path.clone());
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            partials.extend(one_oracle_partials.into_iter());
         }
+
+        // InvokeOracle/InvokeOracle/ForStep {locals of innermost oracle}
+        // InvokeOracle/InvokeOracle/ForStep {stack of locals of oracles}
+
+        /* (a) InvokeOracle/Plain                // latest
+         * (b) InvokeOracle/InvokeOracle/Plain   // locals + {}
+         * (c) InvokeOracle/InvokeOracle/ForStep
+         * (d) InvokeOracle/InvokeOracle/Plain   // locals.pop()
+         * (e) InvokeOracle/Plain                //
+         *
+         * (a) (define-fun ... -> intermediateState_?) // will be consumed by (b)
+         * (d) (define-fun ... -> intermediateState_?) // please_pop
+         */
 
         Ok((new_game, partials))
     }
@@ -266,8 +399,12 @@ fn transform_codeblock(
                 todo!()
             }
             Statement::Assign(Identifier::Local(id_name), Some(idx), expr) => {
-                if locals.iter().find(|(localname, _)| localname == id_name).is_some() {
-                    continue
+                if locals
+                    .iter()
+                    .find(|(localname, _)| localname == id_name)
+                    .is_some()
+                {
+                    continue;
                 }
                 locals.push((
                     id_name.to_string(),
@@ -278,20 +415,28 @@ fn transform_codeblock(
                 ));
             }
             Statement::Assign(Identifier::Local(id_name), None, expr) => {
-                if locals.iter().find(|(localname, _)| localname == id_name).is_some() {
-                    continue
+                if locals
+                    .iter()
+                    .find(|(localname, _)| localname == id_name)
+                    .is_some()
+                {
+                    continue;
                 }
                 locals.push((id_name.to_string(), expr.get_type().unwrap().clone()));
             }
             Statement::InvokeOracle {
                 id: Identifier::Local(id_name),
                 tipe: Some(tipe),
-                 opt_idx: Some(idx),
+                opt_idx: Some(idx),
                 ..
             }
             | Statement::Sample(Identifier::Local(id_name), Some(idx), _, tipe) => {
-                if locals.iter().find(|(localname, _)| localname == id_name).is_some() {
-                    continue
+                if locals
+                    .iter()
+                    .find(|(localname, _)| localname == id_name)
+                    .is_some()
+                {
+                    continue;
                 }
                 locals.push((
                     id_name.to_string(),
@@ -308,8 +453,12 @@ fn transform_codeblock(
                 ..
             }
             | Statement::Sample(Identifier::Local(id_name), None, _, tipe) => {
-                if locals.iter().find(|(localname, _)| localname == id_name).is_some() {
-                    continue
+                if locals
+                    .iter()
+                    .find(|(localname, _)| localname == id_name)
+                    .is_some()
+                {
+                    continue;
                 }
                 locals.push((id_name.to_string(), tipe.clone()))
             }
@@ -337,7 +486,17 @@ fn transform_codeblock(
         }
 
         match &code.0[split_idx] {
-            Statement::IfThenElse(_cond, ifcode, elsecode) => {
+            Statement::IfThenElse(cond, ifcode, elsecode) => {
+                result.push((
+                    prefix.extended(SplitPathComponent::new(
+                        pkg_inst_name,
+                        oracle_name,
+                        SplitType::IfCondition(cond.clone()),
+                        split_idx..(split_idx + 1),
+                    )),
+                    CodeBlock(vec![]),
+                    split_locals.clone(),
+                ));
                 result.extend(transform_codeblock(
                     pkg_inst_name,
                     oracle_name,
@@ -345,7 +504,7 @@ fn transform_codeblock(
                     prefix.extended(SplitPathComponent::new(
                         pkg_inst_name,
                         oracle_name,
-                        SplitType::If,
+                        SplitType::IfBranch,
                         split_idx..(split_idx + 1),
                     )),
                     split_locals.clone(),
@@ -358,7 +517,7 @@ fn transform_codeblock(
                     prefix.extended(SplitPathComponent::new(
                         pkg_inst_name,
                         oracle_name,
-                        SplitType::Else,
+                        SplitType::ElseBranch,
                         split_idx..(split_idx + 1),
                     )),
                     split_locals.clone(),

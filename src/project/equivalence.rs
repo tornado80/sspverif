@@ -75,7 +75,7 @@ impl<'a> ProverThingy<'a> {
         sample_info_left: &'a SampleInfo,
         sample_info_right: &'a SampleInfo,
         split_info_left: &'a SplitInfo,
-        split_info_right: &'a SplitInfo
+        split_info_right: &'a SplitInfo,
     ) -> ProverThingy<'a> {
         ProverThingy {
             state: ProverThingyState::EmitBaseDeclarations,
@@ -85,7 +85,7 @@ impl<'a> ProverThingy<'a> {
             sample_info_left,
             sample_info_right,
             split_info_left,
-            split_info_right
+            split_info_right,
         }
     }
 
@@ -203,14 +203,14 @@ impl<'a> ProverThingy<'a> {
             gctx_left.smt_declare_intermediate_state_enum(self.split_info_left),
             gctx_right.smt_declare_intermediate_state_enum(self.split_info_right),
         ];
-        
+
         ProverThingyOutput {
             output_type: ProverThingyOutputType::Partials,
             smt: out,
             expect: None,
         }
     }
-    
+
     fn emit_constant_declarations(&self) -> ProverThingyOutput {
         let instance_resolver = SliceResolver(self.proof.instances());
         let left = instance_resolver.resolve(&self.eq.left_name()).unwrap();
@@ -459,12 +459,22 @@ impl<'a> ProverThingy<'a> {
 pub fn verify(eq: &Equivalence, proof: &Proof, transcript_file: File) -> Result<()> {
     let (proof, auxs) = EquivalenceTransform.transform_proof(proof)?;
     let aux_resolver = SliceResolver(&auxs);
-    let (_, (_, types_left, sample_info_left, split_info_left)) = aux_resolver.resolve(eq.left_name()).unwrap();
-    let (_, (_, types_right, sample_info_right, split_info_right)) = aux_resolver.resolve(eq.right_name()).unwrap();
+    let (_, (_, types_left, sample_info_left, split_info_left)) =
+        aux_resolver.resolve(eq.left_name()).unwrap();
+    let (_, (_, types_right, sample_info_right, split_info_right)) =
+        aux_resolver.resolve(eq.right_name()).unwrap();
     let types: Vec<_> = types_left.union(types_right).cloned().collect();
 
     let mut prover = Communicator::new_cvc5_with_transcript(transcript_file)?;
-    let mut thingy = ProverThingy::new(eq, &proof, &types, sample_info_left, sample_info_right, split_info_left, split_info_right);
+    let mut thingy = ProverThingy::new(
+        eq,
+        &proof,
+        &types,
+        sample_info_left,
+        sample_info_right,
+        split_info_left,
+        split_info_right,
+    );
     let mut resp = None;
 
     let mut i = 0;

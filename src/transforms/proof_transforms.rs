@@ -21,7 +21,12 @@ impl super::ProofTransform for EquivalenceTransform {
 
     type Aux = Vec<(
         String,
-        (typecheck::Scope, HashSet<Type>, samplify::SampleInfo, split_partial::SplitInfo),
+        (
+            typecheck::Scope,
+            HashSet<Type>,
+            samplify::SampleInfo,
+            split_partial::SplitInfo,
+        ),
     )>;
 
     fn transform_proof(
@@ -82,7 +87,12 @@ fn transform_game_inst(
         GameInstance,
         (
             String,
-            (typecheck::Scope, HashSet<Type>, samplify::SampleInfo, split_partial::SplitInfo),
+            (
+                typecheck::Scope,
+                HashSet<Type>,
+                samplify::SampleInfo,
+                split_partial::SplitInfo,
+            ),
         ),
     ),
     typecheck::TypeCheckError,

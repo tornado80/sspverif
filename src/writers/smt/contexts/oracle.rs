@@ -288,12 +288,10 @@ impl<'a> OracleContext<'a> {
             eprintln!("    code: {code:#?}");
         }
 
-        
         declare::declare_datatype(
             &names::intermediate_oracle_state_sort_name(game_name, inst_name, oracle_name),
             checkpoints.into_iter(),
         )
-        
     }
 
     // TODO: make sure the checkpoint locals have a conanocical order at some point

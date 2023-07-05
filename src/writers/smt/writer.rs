@@ -582,14 +582,11 @@ impl<'a> CompositionSmtWriter<'a> {
 
         let game_context = GameContext::new(&self.comp);
 
-
-        let partial_state = game_context.smt_access_gamestate_partialstate(
-            (
-                "select",
-                names::var_globalstate_name(),
-                names::var_state_length_name(),
-            )
-        );
+        let partial_state = game_context.smt_access_gamestate_partialstate((
+            "select",
+            names::var_globalstate_name(),
+            names::var_state_length_name(),
+        ));
 
         (
             "define-fun",
@@ -597,15 +594,17 @@ impl<'a> CompositionSmtWriter<'a> {
             SmtExpr::List(args.clone()),
             names::return_sort_name(game_name, inst_name, oracle_name),
             SmtLet {
-                bindings: def.sig.partial_vars.iter().map(
-                    |(name, tipe)| {
-                        (name.clone(), (
-                            format!("{}-{}", oracle_name, name),
-                            partial_state.clone()
-                        ).into())
-                    }
-                ).chain(
-                    vec![(
+                bindings: def
+                    .sig
+                    .partial_vars
+                    .iter()
+                    .map(|(name, tipe)| {
+                        (
+                            name.clone(),
+                            (format!("{}-{}", oracle_name, name), partial_state.clone()).into(),
+                        )
+                    })
+                    .chain(vec![(
                         names::var_selfstate_name(),
                         game_context
                             .smt_access_gamestate_pkgstate(
@@ -617,11 +616,9 @@ impl<'a> CompositionSmtWriter<'a> {
                                 inst_name,
                             )
                             .unwrap(),
-                    )]).collect(),
-                body:
-                    
-            
-            self.code_smt_helper(code.clone(), &def.sig, inst),
+                    )])
+                    .collect(),
+                body: self.code_smt_helper(code.clone(), &def.sig, inst),
             },
         )
             .into()

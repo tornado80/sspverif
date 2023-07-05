@@ -1,6 +1,9 @@
 use crate::{
     package::{Composition, Export},
-    transforms::{samplify::SampleInfo, split_partial::{SplitInfo, SplitPath}},
+    transforms::{
+        samplify::SampleInfo,
+        split_partial::{SplitInfo, SplitInfoEntry, SplitPath},
+    },
     types::Type,
     writers::smt::{
         declare,
@@ -122,23 +125,31 @@ impl<'a> GameContext<'a> {
         .into()
     }
 
-    pub fn smt_declare_intermediate_state_enum(
-        &self,
-        splitinfo: &SplitInfo,
-    ) -> SmtExpr {
+    pub fn smt_declare_intermediate_state_enum(&self, splitinfo: &SplitInfo) -> SmtExpr {
         declare::declare_datatype(
             &names::partialstate_sort_name(&self.game.name),
-            splitinfo.iter().map(|(path, locals)| {
-                (
-                    path.smt_name(),
-                    locals
-                        .iter()
-                        .map(|(localname, localtype)| (format!("{}-{localname}", path.smt_name()), localtype.into()))
-                        .collect(),
-                )
-            }).chain(
-                vec![(format!("{}/None", self.game.name), vec![])].into_iter()
-            ),
+            splitinfo
+                .iter()
+                .map(|info_entry| {
+                    (
+                        info_entry.path().smt_name(),
+                        info_entry
+                            .locals()
+                            .iter()
+                            .map(|(localname, localtype)| {
+                                (
+                                    format!("{}-local-{localname}", info_entry.path().smt_name()),
+                                    localtype.into(),
+                                )
+                            })
+                            .chain(vec![(
+                                format!("{}-parent", info_entry.path().smt_name()),
+                                names::partialstate_sort_name(&self.game.name).into(),
+                            )])
+                            .collect(),
+                    )
+                })
+                .chain(vec![(format!("{}/None", self.game.name), vec![])].into_iter()),
         )
         .into()
     }
@@ -173,10 +184,13 @@ impl<'a> GameContext<'a> {
 
         let partial_field = [(
             names::gamestate_selector_partialstate_name(game_name),
-            names::partialstate_sort_name(game_name).into()
+            names::partialstate_sort_name(game_name).into(),
         )];
-        
-        let fields = pkgstate_fields.chain(const_fields).chain(rand_fields).chain(partial_field);
+
+        let fields = pkgstate_fields
+            .chain(const_fields)
+            .chain(rand_fields)
+            .chain(partial_field);
 
         declare::declare_single_constructor_datatype(
             &names::gamestate_sort_name(game_name),
@@ -204,10 +218,7 @@ impl<'a> GameContext<'a> {
         )
     }
 
-    pub fn smt_access_gamestate_partialstate<S: Into<SmtExpr>>(
-        &self,
-        state: S,
-    ) -> SmtExpr {
+    pub fn smt_access_gamestate_partialstate<S: Into<SmtExpr>>(&self, state: S) -> SmtExpr {
         let game_name = &self.game.name;
 
         (
@@ -216,7 +227,7 @@ impl<'a> GameContext<'a> {
         )
             .into()
     }
-    
+
     pub fn smt_update_gamestate_pkgstate<S, V>(
         &self,
         gamestate: S,
