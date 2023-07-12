@@ -269,8 +269,11 @@ impl<'a> GameContext<'a> {
             self.smt_access_gamestate_rand(sample_info, gamestate.clone(), sample_id)
                 .unwrap()
         });
+        let partial_field = [
+            self.smt_access_gamestate_partialstate(gamestate.clone())
+        ];
 
-        let fields = pkgstate_fields.chain(const_fields).chain(rand_fields);
+        let fields = pkgstate_fields.chain(const_fields).chain(rand_fields).chain(partial_field);
 
         let mut fncall = vec![names::gamestate_constructor_name(game_name).into()];
         fncall.extend(fields);
@@ -365,7 +368,11 @@ impl<'a> GameContext<'a> {
             }
         });
 
-        let fields = pkgstate_fields.chain(const_fields).chain(rand_fields);
+        let partial_field = [
+            self.smt_access_gamestate_partialstate(state.clone())
+        ];
+
+        let fields = pkgstate_fields.chain(const_fields).chain(rand_fields).chain(partial_field);
 
         let mut fncall = vec![names::gamestate_constructor_name(game_name).into()];
         fncall.extend(fields);
