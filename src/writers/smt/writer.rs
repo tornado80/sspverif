@@ -601,7 +601,11 @@ impl<'a> CompositionSmtWriter<'a> {
                     .map(|(name, tipe)| {
                         (
                             name.clone(),
-                            (format!("{}-{}", oracle_name, name), partial_state.clone()).into(),
+                            (
+                                names::partialstate_selector_variable(oracle_name, name),
+                                partial_state.clone(),
+                            )
+                                .into(),
                         )
                     })
                     .chain(vec![(

@@ -138,7 +138,10 @@ impl<'a> GameContext<'a> {
                             .iter()
                             .map(|(localname, localtype)| {
                                 (
-                                    format!("{}-local-{localname}", info_entry.path().smt_name()),
+                                    names::partialstate_selector_variable(
+                                        &info_entry.path().smt_name(),
+                                        localname,
+                                    ),
                                     localtype.into(),
                                 )
                             })

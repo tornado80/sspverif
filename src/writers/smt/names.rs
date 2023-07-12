@@ -64,6 +64,10 @@ pub fn gamestate_selector_partialstate_name(game_name: &str) -> String {
     format!("composition-partialstate-{game_name}")
 }
 
+pub fn partialstate_selector_variable(oracle_name: &str, variable_name: &str) -> String {
+    format!("{oracle_name}-local-{variable_name}")
+}
+
 pub fn pkgstate_sort_name(game_name: &str, inst_name: &str) -> String {
     format!("State_{game_name}_{inst_name}")
 }
