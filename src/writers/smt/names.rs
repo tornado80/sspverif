@@ -76,9 +76,9 @@ pub fn pkgstate_selector_name(game_name: &str, inst_name: &str, field_name: &str
     format!("state-{game_name}-{inst_name}-{field_name}")
 }
 
-pub fn pkgstate_selector_intermediate_name(game_name: &str, inst_name: &str) -> String {
-    format!("state--intermediate-{game_name}-{inst_name}")
-}
+// pub fn pkgstate_selector_intermediate_name(game_name: &str, inst_name: &str) -> String {
+//     format!("state--intermediate-{game_name}-{inst_name}")
+// }
 
 pub fn pkgstate_constructor_name(game_name: &str, inst_name: &str) -> String {
     format!("mk-state-{game_name}-{inst_name}")

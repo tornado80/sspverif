@@ -87,18 +87,19 @@ impl<'a> CompositionSmtWriter<'a> {
     }
 
     fn smt_pkg_intermediate_state(&self, inst: &PackageInstance) -> Vec<SmtExpr> {
-        let pkg_inst_ctx = self.get_package_instance_context(&inst.name).unwrap();
+        // let pkg_inst_ctx = self.get_package_instance_context(&inst.name).unwrap();
 
-        let mut declares = vec![];
+        // let mut declares = vec![];
 
-        for i in 0..inst.pkg.oracles.len() {
-            let octx = pkg_inst_ctx.oracle_ctx_by_oracle_offs(i).unwrap();
-            declares.push(octx.smt_declare_intermediate_states());
-        }
+        // for i in 0..inst.pkg.oracles.len() {
+        //     let octx = pkg_inst_ctx.oracle_ctx_by_oracle_offs(i).unwrap();
+        //     declares.push(octx.smt_declare_intermediate_states());
+        // }
 
-        declares.push(pkg_inst_ctx.smt_declare_intermediate_oraclestates());
+        // declares.push(pkg_inst_ctx.smt_declare_intermediate_oraclestates());
 
-        return declares;
+        // return declares;
+        vec![]
     }
 
     fn smt_pkg_return(&self, inst: &PackageInstance) -> Vec<SmtExpr> {
@@ -125,12 +126,13 @@ impl<'a> CompositionSmtWriter<'a> {
     }
 
     pub fn smt_composition_intermediate_state(&self) -> Vec<SmtExpr> {
-        self.comp
-            .pkgs
-            .clone()
-            .iter()
-            .flat_map(|inst| self.smt_pkg_intermediate_state(inst))
-            .collect()
+        // self.comp
+        //     .pkgs
+        //     .clone()
+        //     .iter()
+        //     .flat_map(|inst| self.smt_pkg_intermediate_state(inst))
+        //     .collect()
+        vec![]
     }
 
     fn code_smt_helper(

@@ -65,13 +65,13 @@ impl<'a> PackageInstanceContext<'a> {
             )
         });
 
-        let fields = fields.chain(
-            vec![(
-                names::pkgstate_selector_intermediate_name(game_name, inst_name),
-                names::intermediate_package_instance_state_sort_name(game_name, inst_name).into(),
-            )]
-            .into_iter(),
-        );
+        // let fields = fields.chain(
+        //     vec![(
+        //         names::pkgstate_selector_intermediate_name(game_name, inst_name),
+        //         names::intermediate_package_instance_state_sort_name(game_name, inst_name).into(),
+        //     )]
+        //     .into_iter(),
+        // );
 
         declare::declare_single_constructor_datatype(
             &names::pkgstate_sort_name(game_name, inst_name),
