@@ -16,10 +16,10 @@ type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum SplitType {
-    Plain,                           // before anything interesting happens
-    Phantom,                         // Empty auxilliary function
-    Invoc,                           // called a child oracle
-    ForStep(Expression, Expression), // in a loop
+    Plain,                                       // before anything interesting happens
+    Phantom,                                     // Empty auxilliary function
+    Invoc,                                       // called a child oracle
+    ForStep(Identifier, Expression, Expression), // in a loop
     IfCondition(Expression),
     IfBranch,
     ElseBranch,
@@ -42,7 +42,7 @@ A:O1:Invoc(locals)/B:O2:Invoc(locals)
 impl std::fmt::Display for SplitType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
         match self {
-            SplitType::ForStep(_, _) => write!(f, "ForStep"),
+            SplitType::ForStep(var, _, _) => write!(f, "ForStep{}", var.ident()),
             SplitType::IfCondition(_) => write!(f, "IfCondition"),
             _ => write!(f, "{:?}", &self),
         }
@@ -164,8 +164,10 @@ impl super::GameTransform for SplitPartial {
         game: &Composition,
     ) -> std::result::Result<(crate::package::Composition, Self::Aux), Self::Err> {
         let mut new_game = game.clone();
-        let mut sig_mapping: HashMap<(String, OracleSig), Vec<(SplitPath, OracleSig)>> =
-            Default::default();
+        let mut sig_mapping: HashMap<
+            (String, OracleSig),
+            Vec<(Vec<Identifier>, SplitPath, OracleSig)>,
+        > = Default::default();
 
         let mut dependencies: HashMap<(usize, OracleSig), Vec<usize>> = HashMap::new();
 
@@ -203,7 +205,7 @@ impl super::GameTransform for SplitPartial {
             let pkg_inst_name = game.pkgs[*pkg_offs].name.clone();
             let mut one_oracle_partials: Vec<_> = sig_mapping[&(pkg_inst_name, sig.clone())]
                 .iter()
-                .map(|(path, sig)| SplitInfoEntry {
+                .map(|(_loopvars, path, sig)| SplitInfoEntry {
                     path: path.clone(),
                     locals: sig.partial_vars.clone(),
                     next: None,
@@ -220,7 +222,7 @@ impl super::GameTransform for SplitPartial {
                     SplitType::IfBranch
                     | SplitType::ElseBranch
                     | SplitType::Plain
-                    | SplitType::ForStep(_, _)
+                    | SplitType::ForStep(_, _, _)
                     | SplitType::Invoc => {
                         one_oracle_partials[i].next = Some(one_oracle_partials[i + 1].path.clone())
                     }
@@ -228,7 +230,7 @@ impl super::GameTransform for SplitPartial {
                         // Decide if we are leaving a for loop at this point
                         //  - At the end of the path is a ForStep , i.e. .../ForStep/Phantom
                         //  - i+1 does not have *that* ForStep
-                        if let SplitType::ForStep(_, _) =
+                        if let SplitType::ForStep(_, _, _) =
                             basename.path.iter().last().unwrap().splittype
                         {
                             // Forward search first element with *this* forstep
@@ -286,7 +288,7 @@ impl super::GameTransform for SplitPartial {
 impl Statement {
     fn needs_split(
         &self,
-        sig_mapping: &HashMap<(String, OracleSig), Vec<(SplitPath, OracleSig)>>,
+        sig_mapping: &HashMap<(String, OracleSig), Vec<(Vec<Identifier>, SplitPath, OracleSig)>>,
     ) -> bool {
         match self {
             Statement::For(_, _, _, _) => true,
@@ -314,7 +316,7 @@ fn transform_oracle(
     game: &mut Composition,
     pkg_offs: usize,
     osig: &OracleSig,
-    sig_mapping: &mut HashMap<(String, OracleSig), Vec<(SplitPath, OracleSig)>>,
+    sig_mapping: &mut HashMap<(String, OracleSig), Vec<(Vec<Identifier>, SplitPath, OracleSig)>>,
 ) -> Result<()> {
     let pkg = &mut game.pkgs[pkg_offs];
     let oracle_offs = pkg
@@ -334,6 +336,7 @@ fn transform_oracle(
         &odef.code,
         SplitPath::empty(game.name.clone()),
         vec![],
+        vec![],
         sig_mapping,
     );
 
@@ -345,12 +348,19 @@ fn transform_oracle(
     // we treat the last item differently:
     // intermediate items get an empty return type,
     // the last item gets the original return type.
-    let (last_splitpath, last_code, last_locals) = transformed.pop().unwrap();
+    let (last_loopvars, last_splitpath, last_code, last_locals) = transformed.pop().unwrap();
 
-    for (splitpath, oracle_code, oracle_locals) in transformed.into_iter() {
+    for (loopvars, splitpath, oracle_code, oracle_locals) in transformed.into_iter() {
+        let (last, _) = splitpath.basename();
+        let newargs = loopvars
+            .iter()
+            .map(|var| (var.ident(), Type::Integer).clone())
+            .chain(osig.args.clone().into_iter())
+            .collect();
+
         let sig = OracleSig {
             name: splitpath.smt_name(),
-            args: osig.args.clone(),
+            args: newargs,
             tipe: Type::Empty, // <-- note the difference
             partial_vars: oracle_locals.clone(),
         };
@@ -358,12 +368,18 @@ fn transform_oracle(
             sig: sig.clone(),
             code: oracle_code,
         });
-        entry.push((splitpath, sig))
+        entry.push((loopvars.clone(), splitpath, sig))
     }
+
+    let last_newargs = last_loopvars
+        .iter()
+        .map(|var| (var.ident(), Type::Integer).clone())
+        .chain(osig.args.clone().into_iter())
+        .collect();
 
     let sig = OracleSig {
         name: last_splitpath.smt_name(),
-        args: osig.args.clone(),
+        args: last_newargs,
         tipe: osig.tipe.clone(), // <-- note the difference
         partial_vars: last_locals.clone(),
     };
@@ -371,7 +387,7 @@ fn transform_oracle(
         sig: sig.clone(),
         code: last_code,
     });
-    entry.push((last_splitpath, sig));
+    entry.push((last_loopvars.clone(), last_splitpath, sig));
 
     pkg.pkg.oracles.remove(oracle_offs);
     pkg.pkg.oracles.extend(result);
@@ -385,8 +401,9 @@ fn transform_codeblock(
     code: &CodeBlock,
     prefix: SplitPath,
     mut locals: Vec<(String, Type)>,
-    sig_mapping: &mut HashMap<(String, OracleSig), Vec<(SplitPath, OracleSig)>>,
-) -> Vec<(SplitPath, CodeBlock, Vec<(String, Type)>)> {
+    loopvars: Vec<Identifier>,
+    sig_mapping: &mut HashMap<(String, OracleSig), Vec<(Vec<Identifier>, SplitPath, OracleSig)>>,
+) -> Vec<(Vec<Identifier>, SplitPath, CodeBlock, Vec<(String, Type)>)> {
     let mut result = vec![];
 
     let mut split_indices = vec![];
@@ -474,6 +491,7 @@ fn transform_codeblock(
         if split_idx != cur_idx {
             let range = cur_idx..split_idx;
             result.push((
+                loopvars.clone(),
                 prefix.extended(SplitPathComponent::new(
                     pkg_inst_name,
                     oracle_name,
@@ -488,6 +506,7 @@ fn transform_codeblock(
         match &code.0[split_idx] {
             Statement::IfThenElse(cond, ifcode, elsecode) => {
                 result.push((
+                    loopvars.clone(),
                     prefix.extended(SplitPathComponent::new(
                         pkg_inst_name,
                         oracle_name,
@@ -508,6 +527,7 @@ fn transform_codeblock(
                         split_idx..(split_idx + 1),
                     )),
                     split_locals.clone(),
+                    loopvars.clone(),
                     sig_mapping,
                 ));
                 result.extend(transform_codeblock(
@@ -521,10 +541,13 @@ fn transform_codeblock(
                         split_idx..(split_idx + 1),
                     )),
                     split_locals.clone(),
+                    loopvars.clone(),
                     sig_mapping,
                 ));
             }
-            Statement::For(_id_iter, from, to, code) => {
+            Statement::For(id_iter, from, to, code) => {
+                let mut newloopvars = loopvars.clone();
+                newloopvars.push(id_iter.clone());
                 result.extend(transform_codeblock(
                     pkg_inst_name,
                     oracle_name,
@@ -532,10 +555,11 @@ fn transform_codeblock(
                     prefix.extended(SplitPathComponent::new(
                         pkg_inst_name,
                         oracle_name,
-                        SplitType::ForStep(from.clone(), to.clone()),
+                        SplitType::ForStep(id_iter.clone(), from.clone(), to.clone()),
                         split_idx..(split_idx + 1),
                     )),
                     split_locals,
+                    newloopvars,
                     sig_mapping,
                 ));
             }
@@ -558,7 +582,7 @@ fn transform_codeblock(
                 let last_split = splits.last().unwrap();
 
                 result.extend(splits.into_iter().take(splits.len() - 1).map(
-                    |(splitpath, OracleSig { name, .. })| {
+                    |(loopvars, splitpath, OracleSig { name, .. })| {
                         let mut newpath = prefix.extended(SplitPathComponent::new(
                             pkg_inst_name,
                             oracle_name,
@@ -567,6 +591,7 @@ fn transform_codeblock(
                         ));
                         newpath.path.extend(splitpath.path.clone());
                         (
+                            loopvars.clone(),
                             newpath,
                             CodeBlock(vec![Statement::InvokeOracle {
                                 id: Identifier::new_scalar("_"),
@@ -582,6 +607,7 @@ fn transform_codeblock(
                 ));
 
                 result.push((
+                    loopvars.clone(),
                     prefix.extended(SplitPathComponent::new(
                         pkg_inst_name,
                         oracle_name,
@@ -591,7 +617,7 @@ fn transform_codeblock(
                     CodeBlock(vec![Statement::InvokeOracle {
                         id: id.clone(),
                         opt_idx: opt_idx.clone(),
-                        name: last_split.1.name.clone(),
+                        name: last_split.2.name.clone(),
                         args: args.clone(),
                         target_inst_name: Some(target_inst_name.to_string()),
                         tipe: tipe.clone(),
@@ -609,6 +635,7 @@ fn transform_codeblock(
         let rest = &code.0[cur_idx + 1..];
         if !rest.is_empty() {
             result.push((
+                loopvars.clone(),
                 prefix.extended(SplitPathComponent::new(
                     pkg_inst_name,
                     oracle_name,
@@ -621,6 +648,7 @@ fn transform_codeblock(
         }
     } else {
         result.push((
+            loopvars.clone(),
             prefix.extended(SplitPathComponent::new(
                 pkg_inst_name,
                 oracle_name,
