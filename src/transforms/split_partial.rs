@@ -44,7 +44,7 @@ impl std::fmt::Display for SplitType {
         match self {
             SplitType::ForStep(_, _) => write!(f, "ForStep"),
             SplitType::IfCondition(_) => write!(f, "IfCondition"),
-            _ => write!(f, "{}", &self),
+            _ => write!(f, "{:?}", &self),
         }
     }
 }
