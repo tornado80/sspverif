@@ -1,7 +1,7 @@
 (set-logic ALL)
+(declare-sort Bits_m 0)
 (declare-sort Bits_p 0)
 (declare-sort Bits_n 0)
-(declare-sort Bits_m 0)
 (declare-datatypes ((Maybe 1)
 )
  ((par (T)
@@ -19740,17 +19740,4 @@ true
 )
 )
 ;;;i: 8
-(check-sat)
-(pop 1) ; for lemma; i: 8
-(push 1)(assert (not (=> (and randomness-mapping-GBLG (= state-length-left-new (return-Left-gate-GBLG-state-length return-left-gate-GBLG)
-)
- (= state-length-right-new (return-Right-simgate-GBLG-state-length return-right-simgate-GBLG)
-)
- (invariant-GBLG state-left state-right state-length-left-old state-length-right-old return-left-gate-GBLG return-right-simgate-GBLG arg-GBLG-h arg-GBLG-l arg-GBLG-r arg-GBLG-op arg-GBLG-j)
-)
- (left-inverse-all-aborts state-left state-right state-length-left-old state-length-right-old return-left-gate-GBLG return-right-simgate-GBLG arg-GBLG-h arg-GBLG-l arg-GBLG-r arg-GBLG-op arg-GBLG-j)
-)
-)
-)
-;;;i: 9
 (check-sat)

@@ -216,6 +216,8 @@ impl super::GameTransform for SplitPartial {
             }
         }
 
+        println!("sig mapping after splitting: {sig_mapping:?}");
+
         let mut partials = vec![];
         for Export(pkg_offs, sig) in &game.exports {
             let pkg_inst_name = game.pkgs[*pkg_offs].name.clone();
@@ -332,6 +334,17 @@ impl Statement {
     }
 }
 
+fn is_actually_not_split(
+    transformed: &Vec<(Vec<Identifier>, SplitPath, CodeBlock, Vec<(String, Type)>)>,
+) -> bool {
+    if transformed.len() == 1 {
+        let (_, path, _, _) = &transformed[0];
+        path.path[0].splittype == SplitType::Plain
+    } else {
+        false
+    }
+}
+
 fn transform_oracle(
     game: &mut Composition,
     pkg_offs: usize,
@@ -361,7 +374,7 @@ fn transform_oracle(
     );
 
     // this means we are splitting into a single shard, i.e. not acutally splitting
-    if transformed.len() == 1 {
+    if is_actually_not_split(&transformed) {
         return Ok(());
     }
 
