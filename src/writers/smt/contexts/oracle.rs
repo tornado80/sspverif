@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use crate::expressions::Expression;
 use crate::identifier::Identifier;
-use crate::package::OracleDef;
+use crate::package::{Export, OracleDef};
 use crate::statement::{CodeBlock, Statement};
 use crate::types::Type;
 
@@ -17,6 +17,24 @@ impl<'a> OracleContext<'a> {
             game_ctx: self.game_ctx.clone(),
             inst_offs: self.inst_offs,
         }
+    }
+
+    pub fn is_exported(&self) -> bool {
+        let export_needle = Export(self.inst_offs, self.oracle_def().sig.clone());
+        self.game_ctx.game.exports.contains(&export_needle)
+    }
+
+    pub fn smt_arg_name(&self, arg_name: &str) -> SmtExpr {
+        let game = self.game_ctx.game;
+        let inst = &game.pkgs[self.inst_offs];
+        let odef = &inst.pkg.oracles[self.oracle_offs];
+
+        if odef.is_split {
+            names::oracle_split_arg_name(&game.name, &odef.sig.name, arg_name)
+        } else {
+            names::oracle_nonsplit_arg_name(&odef.sig.name, arg_name)
+        }
+        .into()
     }
 
     pub fn oracle_def(&self) -> &OracleDef {

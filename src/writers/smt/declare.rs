@@ -37,6 +37,6 @@ pub fn declare_datatype(
         .into()
 }
 
-pub fn declare_const<S: Into<SmtExpr>>(const_name: String, sort: S) -> SmtExpr {
+pub fn declare_const<N: Into<SmtExpr>, S: Into<SmtExpr>>(const_name: N, sort: S) -> SmtExpr {
     ("declare-const", const_name, sort).into()
 }

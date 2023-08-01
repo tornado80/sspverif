@@ -1,3 +1,5 @@
+use crate::package::PackageInstance;
+
 use super::super::exprs::SmtExpr;
 use super::super::{declare, names};
 
@@ -38,6 +40,10 @@ impl<'a> PackageInstanceContext<'a> {
 
     pub fn pkg_inst_name(&self) -> &'a str {
         &self.game_ctx.game.pkgs[self.inst_offs].name
+    }
+
+    pub fn pkg_inst(&self) -> &'a PackageInstance {
+        &self.game_ctx.game.pkgs[self.inst_offs]
     }
 
     pub fn smt_sorts_return(&self) -> Vec<SmtExpr> {

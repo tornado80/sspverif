@@ -15,10 +15,7 @@ pub struct Writer<W: Write> {
 
 impl<W: Write> Writer<W> {
     pub fn new(w: W) -> Self {
-        Writer {
-            w: w,
-            indent_lvl: 0,
-        }
+        Writer { w, indent_lvl: 0 }
     }
 
     pub fn write_identifier(&mut self, id: &Identifier) -> Result {
@@ -371,7 +368,7 @@ impl<W: Write> Writer<W> {
     }
 
     pub fn write_oracledef(&mut self, odef: &OracleDef) -> Result {
-        let OracleDef { sig, code } = odef;
+        let OracleDef { sig, code, .. } = odef;
 
         self.write_oraclesig(sig)?;
         self.write_string(" ")?;

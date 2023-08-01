@@ -20,17 +20,19 @@ mod game;
 mod oracle;
 mod pkg_inst;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct GameContext<'a> {
     game: &'a Composition,
 }
 
+#[derive(Clone, Debug)]
 pub struct OracleContext<'a> {
     game_ctx: GameContext<'a>,
     inst_offs: usize,
     oracle_offs: usize,
 }
 
+#[derive(Clone, Debug)]
 pub struct PackageInstanceContext<'a> {
     game_ctx: GameContext<'a>,
     inst_offs: usize,

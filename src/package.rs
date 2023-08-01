@@ -40,6 +40,7 @@ impl fmt::Display for OracleSig {
 pub struct OracleDef {
     pub sig: OracleSig,
     pub code: CodeBlock,
+    pub is_split: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]

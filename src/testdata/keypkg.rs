@@ -20,6 +20,7 @@ pub fn key_pkg(params: &HashMap<String, Expression>) -> PackageInstance {
             imports: vec![],
             oracles: vec![
                 OracleDef {
+                    is_split: false,
                     sig: OracleSig {
                         name: "Set".to_string(),
                         args: vec![("k_".to_string(), Type::new_bits("n"))],
@@ -46,6 +47,7 @@ pub fn key_pkg(params: &HashMap<String, Expression>) -> PackageInstance {
                     },
                 },
                 OracleDef {
+                    is_split: false,
                     sig: OracleSig {
                         name: "Get".to_string(),
                         args: vec![],

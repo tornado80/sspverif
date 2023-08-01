@@ -236,6 +236,7 @@ fn var_specify_pkg_inst(game_inst: &GameInstance, pkg_inst: &PackageInstance) ->
                 .map(|def| OracleDef {
                     sig: def.sig.clone(),
                     code: var_specify_helper(game_inst, pkg_inst, def.code.clone()),
+                    is_split: def.is_split,
                 })
                 .collect(),
             ..pkg_inst.pkg.clone()

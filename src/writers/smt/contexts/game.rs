@@ -19,6 +19,10 @@ impl<'a> GameContext<'a> {
         Self { game }
     }
 
+    pub fn game(&self) -> &Composition {
+        &self.game
+    }
+
     pub fn pkg_inst_ctx_by_name(&self, inst_name: &str) -> Option<PackageInstanceContext<'a>> {
         self.game
             .pkgs // we only want a single package, no sorting needed

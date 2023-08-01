@@ -381,7 +381,7 @@ impl<W: Write> FmtWriter<W> {
     }
 
     pub fn write_oracledef(&mut self, odef: &OracleDef) -> Result {
-        let OracleDef { sig, code } = odef;
+        let OracleDef { sig, code, .. } = odef;
 
         self.write_oraclesig(sig)?;
         self.write_string(" ")?;

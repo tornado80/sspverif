@@ -345,6 +345,10 @@ impl<'a> CompositionSmtWriter<'a> {
                     target_inst_name: Some(target),
                     tipe: Some(_),
                 } => {
+                    println!("target:{target}, oraclename:{name:?}, game_name:{:?}", self.get_game_context().game().name);
+                    println!("taget:{:?}",self.get_package_instance_context(target).unwrap().pkg_inst_name());
+                    println!("taget:{:?}",
+                             self.get_package_instance_context(target).unwrap().pkg_inst().pkg.oracles.iter().map(|OracleDef{sig,..}| sig.name.clone()).collect::<Vec<_>>());
                     let called_oracle_context = self.get_oracle_context(target, name).unwrap();
                     let this_oracle_context =
                         self.get_oracle_context(&inst.name, oracle_name).unwrap();

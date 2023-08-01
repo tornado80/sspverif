@@ -16,6 +16,7 @@ pub fn typecheck_odef(odef: &OracleDef, scope: &mut Scope) -> Result<OracleDef, 
                 ..
             },
         code,
+        ..
     } = odef;
     scope.enter();
     for (name, ntipe) in args {

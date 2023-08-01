@@ -204,6 +204,14 @@ pub fn oracle_intermediate_state_oracleinvoc_constructor_name(
     format!("oracle-intermediate-state-oracleinvoc_{game_name}_{inst_name}_{oracle_name}_{dst_oracle_name}_{path_str}")
 }
 
+pub fn oracle_nonsplit_arg_name(oracle_name: &str, arg_name: &str) -> String {
+    format!("arg-{oracle_name}-{arg_name}")
+}
+
+pub fn oracle_split_arg_name(game_name: &str, oracle_name: &str, arg_name: &str) -> String {
+    format!("arg-{game_name}-{oracle_name}-{arg_name}")
+}
+
 pub fn oracle_intermediate_state_return_selector_name(
     game_name: &str,
     inst_name: &str,

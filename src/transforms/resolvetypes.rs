@@ -51,7 +51,7 @@ impl super::PackageInstanceTransform for ResolveTypesPackageInstanceTransform {
         }
 
         // resolve oracle definitions
-        for OracleDef { sig, code } in &mut inst.pkg.oracles {
+        for OracleDef { sig, code, .. } in &mut inst.pkg.oracles {
             let OracleSig {
                 name: oracle_name,
                 args,

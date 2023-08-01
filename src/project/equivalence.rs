@@ -250,13 +250,28 @@ impl<'a> ProverThingy<'a> {
             out.push(decl_state_length);
         }
 
-        // write declarations of arguments
+        // write declarations of arguments for the exports in left
         for Export(_, sig) in &left.as_game().exports {
-            let oracle_name = &sig.name;
+            let orcl_ctx = gctx_left.exported_oracle_ctx_by_name(&sig.name).unwrap();
             for (arg_name, arg_type) in &sig.args {
-                let decl_arg =
-                    declare::declare_const(format!("arg-{oracle_name}-{arg_name}"), arg_type);
-                out.push(decl_arg);
+                out.push(declare::declare_const(
+                    orcl_ctx.smt_arg_name(arg_name),
+                    arg_type,
+                ));
+            }
+        }
+
+        // write declarations of arguments for the split of the right.
+        // these have to be added separately, and have already been added through left's loop
+        for Export(_, sig) in &right.as_game().exports {
+            let orcl_ctx = gctx_right.exported_oracle_ctx_by_name(&sig.name).unwrap();
+            if orcl_ctx.oracle_def().is_split {
+                for (arg_name, arg_type) in &sig.args {
+                    out.push(declare::declare_const(
+                        orcl_ctx.smt_arg_name(arg_name),
+                        arg_type,
+                    ));
+                }
             }
         }
 
@@ -1041,10 +1056,6 @@ fn check_matching_parameters(left: &Composition, right: &Composition) -> Result<
     Ok(())
 }
 
-fn oracle_arg_name(oracle_name: &str, arg_name: &str) -> String {
-    format!("arg-{oracle_name}-{arg_name}")
-}
-
 fn build_returns(game: &Composition, game_side: Side) -> Vec<(SmtExpr, SmtExpr)> {
     let gctx = contexts::GameContext::new(game);
 
@@ -1052,8 +1063,11 @@ fn build_returns(game: &Composition, game_side: Side) -> Vec<(SmtExpr, SmtExpr)>
     game.exports
         .iter()
         .map(|Export(inst_idx, sig)| {
-            let octx = gctx.exported_oracle_ctx_by_name(&sig.name).unwrap();
-
+            let oracle_name = &sig.name;
+            let game_name = &game.name;
+            let octx = gctx.exported_oracle_ctx_by_name(&sig.name).expect(&format!(
+                "error looking up exported oracle with name {oracle_name} in game {game_name}"
+            ));
             let inst_name = &game.pkgs[*inst_idx].name;
             let oracle_name = &sig.name;
             let return_name = format!("return-{game_side}-{inst_name}-{oracle_name}");
@@ -1063,7 +1077,7 @@ fn build_returns(game: &Composition, game_side: Side) -> Vec<(SmtExpr, SmtExpr)>
             let args = sig
                 .args
                 .iter()
-                .map(|(arg_name, _)| oracle_arg_name(oracle_name, arg_name).into());
+                .map(|(arg_name, _)| octx.smt_arg_name(arg_name));
 
             let invok = octx
                 .smt_invoke_oracle(

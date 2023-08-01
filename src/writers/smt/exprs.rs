@@ -2,6 +2,8 @@ use std::fmt::Display;
 
 use crate::{project::error::Error, types::Type};
 
+use super::names;
+
 pub fn smt_to_string<T: Into<SmtExpr>>(t: T) -> String {
     t.into().to_string()
 }
@@ -209,6 +211,7 @@ impl From<&Type> for SmtExpr {
                 }
                 els
             }),
+            Type::Empty => SmtExpr::List(vec![SmtExpr::Atom("Empty".to_string())]),
             _ => {
                 panic!("not implemented: {:?}", t)
             }

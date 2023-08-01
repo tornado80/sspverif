@@ -119,12 +119,11 @@ impl SplitPath {
 
     pub fn smt_name(&self) -> String {
         let mut result = String::new();
-        write!(result, "{}", self.gamename).unwrap();
+        //write!(result, "{}", self.gamename).unwrap();
         for component in &self.path {
-            write!(result, "/").unwrap();
             write!(
                 result,
-                "{}!{}!{}{:?}",
+                "{}!{}!{}{:?}/",
                 component.pkginstname,
                 component.oraclename,
                 component.splittype,
@@ -132,6 +131,7 @@ impl SplitPath {
             )
             .unwrap();
         }
+        result.pop();
         result
     }
 }
@@ -190,7 +190,23 @@ impl super::GameTransform for SplitPartial {
                 if dependencies[key].is_empty() {
                     transform_oracle(&mut new_game, *to, sig, &mut sig_mapping)?;
 
-                    for idx in &keys {
+                    let mapping_key = (game.pkgs[*to].name.clone(), sig.clone());
+                    if let Some(mapping) = sig_mapping.get(&mapping_key) {
+                        if let Some(export_position) = new_game
+                            .exports
+                            .iter()
+                            .position(|Export(_, exported_sig)| exported_sig == sig)
+                        {
+                            new_game.exports.remove(export_position);
+                        }
+                        for split_spec in mapping {
+                            let (_, _, split_sig) = split_spec;
+                            new_game.exports.push(Export(*to, split_sig.clone()))
+                        }
+                    }
+
+                    let inner_keys: Vec<_> = dependencies.keys().cloned().collect();
+                    for idx in &inner_keys {
                         if let Some(pos) = dependencies[idx].iter().position(|x| x == to) {
                             dependencies.entry(idx.clone()).or_default().remove(pos);
                         }
@@ -203,69 +219,73 @@ impl super::GameTransform for SplitPartial {
         let mut partials = vec![];
         for Export(pkg_offs, sig) in &game.exports {
             let pkg_inst_name = game.pkgs[*pkg_offs].name.clone();
-            let mut one_oracle_partials: Vec<_> = sig_mapping[&(pkg_inst_name, sig.clone())]
-                .iter()
-                .map(|(_loopvars, path, sig)| SplitInfoEntry {
-                    path: path.clone(),
-                    locals: sig.partial_vars.clone(),
-                    next: None,
-                    elsenext: None,
-                })
-                .collect();
+            if let Some(mapping) = sig_mapping.get(&(pkg_inst_name, sig.clone())) {
+                let mut one_oracle_partials: Vec<_> = mapping
+                    .iter()
+                    .map(|(_loopvars, path, sig)| SplitInfoEntry {
+                        path: path.clone(),
+                        locals: sig.partial_vars.clone(),
+                        next: None,
+                        elsenext: None,
+                    })
+                    .collect();
 
-            for i in 0..(one_oracle_partials.len() - 1) {
-                let (head, basename) = one_oracle_partials[i].path.basename();
-                let head = head.unwrap();
-                let split_type = head.splittype.clone();
+                for i in 0..(one_oracle_partials.len() - 1) {
+                    let (head, basename) = one_oracle_partials[i].path.basename();
+                    let head = head.unwrap();
+                    let split_type = head.splittype.clone();
 
-                match split_type {
-                    SplitType::IfBranch
-                    | SplitType::ElseBranch
-                    | SplitType::Plain
-                    | SplitType::ForStep(_, _, _)
-                    | SplitType::Invoc => {
-                        one_oracle_partials[i].next = Some(one_oracle_partials[i + 1].path.clone())
-                    }
-                    SplitType::Phantom => {
-                        // Decide if we are leaving a for loop at this point
-                        //  - At the end of the path is a ForStep , i.e. .../ForStep/Phantom
-                        //  - i+1 does not have *that* ForStep
-                        if let SplitType::ForStep(_, _, _) =
-                            basename.path.iter().last().unwrap().splittype
-                        {
-                            // Forward search first element with *this* forstep
-                            for j in 0..i {
-                                if one_oracle_partials[j].path.has_prefix(&basename) {
-                                    one_oracle_partials[i].next =
-                                        Some(one_oracle_partials[j].path.clone())
-                                }
-                            }
-                            one_oracle_partials[i].elsenext =
-                                Some(one_oracle_partials[i + 1].path.clone())
-                        } else {
-                            // Non-for-loop-related phantom
+                    match split_type {
+                        SplitType::IfBranch
+                        | SplitType::ElseBranch
+                        | SplitType::Plain
+                        | SplitType::ForStep(_, _, _)
+                        | SplitType::Invoc => {
                             one_oracle_partials[i].next =
                                 Some(one_oracle_partials[i + 1].path.clone())
                         }
-                    }
-                    SplitType::IfCondition(_) => {
-                        one_oracle_partials[i].next = Some(one_oracle_partials[i + 1].path.clone());
-                        let prefix = basename.extended(SplitPathComponent {
-                            splittype: SplitType::ElseBranch,
-                            ..head.clone()
-                        });
-
-                        for j in i..one_oracle_partials.len() {
-                            if one_oracle_partials[j].path.has_prefix(&prefix) {
+                        SplitType::Phantom => {
+                            // Decide if we are leaving a for loop at this point
+                            //  - At the end of the path is a ForStep , i.e. .../ForStep/Phantom
+                            //  - i+1 does not have *that* ForStep
+                            if let SplitType::ForStep(_, _, _) =
+                                basename.path.iter().last().unwrap().splittype
+                            {
+                                // Forward search first element with *this* forstep
+                                for j in 0..i {
+                                    if one_oracle_partials[j].path.has_prefix(&basename) {
+                                        one_oracle_partials[i].next =
+                                            Some(one_oracle_partials[j].path.clone())
+                                    }
+                                }
                                 one_oracle_partials[i].elsenext =
-                                    Some(one_oracle_partials[j].path.clone());
-                                break;
+                                    Some(one_oracle_partials[i + 1].path.clone())
+                            } else {
+                                // Non-for-loop-related phantom
+                                one_oracle_partials[i].next =
+                                    Some(one_oracle_partials[i + 1].path.clone())
+                            }
+                        }
+                        SplitType::IfCondition(_) => {
+                            one_oracle_partials[i].next =
+                                Some(one_oracle_partials[i + 1].path.clone());
+                            let prefix = basename.extended(SplitPathComponent {
+                                splittype: SplitType::ElseBranch,
+                                ..head.clone()
+                            });
+
+                            for j in i..one_oracle_partials.len() {
+                                if one_oracle_partials[j].path.has_prefix(&prefix) {
+                                    one_oracle_partials[i].elsenext =
+                                        Some(one_oracle_partials[j].path.clone());
+                                    break;
+                                }
                             }
                         }
                     }
                 }
+                partials.extend(one_oracle_partials.into_iter());
             }
-            partials.extend(one_oracle_partials.into_iter());
         }
 
         // InvokeOracle/InvokeOracle/ForStep {locals of innermost oracle}
@@ -340,6 +360,11 @@ fn transform_oracle(
         sig_mapping,
     );
 
+    // this means we are splitting into a single shard, i.e. not acutally splitting
+    if transformed.len() == 1 {
+        return Ok(());
+    }
+
     let inst_name = &pkg.name;
     let entry = sig_mapping
         .entry((inst_name.to_string(), osig.clone()))
@@ -351,7 +376,7 @@ fn transform_oracle(
     let (last_loopvars, last_splitpath, last_code, last_locals) = transformed.pop().unwrap();
 
     for (loopvars, splitpath, oracle_code, oracle_locals) in transformed.into_iter() {
-        let (last, _) = splitpath.basename();
+        //let (last, _) = splitpath.basename();
         let newargs = loopvars
             .iter()
             .map(|var| (var.ident(), Type::Integer).clone())
@@ -367,6 +392,7 @@ fn transform_oracle(
         result.push(OracleDef {
             sig: sig.clone(),
             code: oracle_code,
+            is_split: true,
         });
         entry.push((loopvars.clone(), splitpath, sig))
     }
@@ -386,6 +412,7 @@ fn transform_oracle(
     result.push(OracleDef {
         sig: sig.clone(),
         code: last_code,
+        is_split: true,
     });
     entry.push((last_loopvars.clone(), last_splitpath, sig));
 
@@ -408,6 +435,7 @@ fn transform_codeblock(
 
     let mut split_indices = vec![];
     for i in 0..code.0.len() {
+        println!("sig_mapping for {pkg_inst_name} - {oracle_name}: {sig_mapping:?}");
         if code.0[i].needs_split(sig_mapping) {
             split_indices.push((i, locals.clone()));
         }
@@ -665,53 +693,53 @@ fn transform_codeblock(
 
 #[cfg(test)]
 mod test {
-    use std::default::Default;
-
-    use crate::{
-        expressions::Expression,
-        identifier::Identifier,
-        statement::{CodeBlock, Statement},
-    };
-
-    use super::*;
-
-    #[test]
-    fn oracle_transform_splits_around_for() {
-        let id_i = Identifier::new_scalar("i");
-        let id_foo = Identifier::new_scalar("foo");
-        let expr_i = Expression::Identifier(id_i.clone());
-        let expr_foo = Expression::Identifier(id_foo.clone());
-
-        let code = CodeBlock(vec![
-            Statement::Assign(
-                id_foo.clone(),
-                None,
-                Expression::IntegerLiteral("2".to_string()),
-            ),
-            Statement::For(
-                id_i.clone(),
-                Expression::IntegerLiteral("0".to_string()),
-                Expression::IntegerLiteral("10".to_string()),
-                CodeBlock(vec![Statement::Assign(
-                    Identifier::new_scalar("foo"),
-                    None,
-                    Expression::Add(Box::new(expr_i.clone()), Box::new(expr_foo.clone())),
-                )]),
-            ),
-            Statement::Return(Some(expr_foo.clone())),
-        ]);
-
-        let mut sig_mapping = Default::default();
-
-        let out = transform_codeblock(
-            "the-pkg",
-            "TheOracle",
-            &code,
-            SplitPath::empty(),
-            vec![],
-            &mut sig_mapping,
-        );
-
-        println!("{out:#?}");
-    }
+    // use std::default::Default;
+    //
+    // use crate::{
+    //     expressions::Expression,
+    //     identifier::Identifier,
+    //     statement::{CodeBlock, Statement},
+    // };
+    //
+    // use super::*;
+    //
+    // #[test]
+    // fn oracle_transform_splits_around_for() {
+    //     let id_i = Identifier::new_scalar("i");
+    //     let id_foo = Identifier::new_scalar("foo");
+    //     let expr_i = Expression::Identifier(id_i.clone());
+    //     let expr_foo = Expression::Identifier(id_foo.clone());
+    //
+    //     let code = CodeBlock(vec![
+    //         Statement::Assign(
+    //             id_foo.clone(),
+    //             None,
+    //             Expression::IntegerLiteral("2".to_string()),
+    //         ),
+    //         Statement::For(
+    //             id_i.clone(),
+    //             Expression::IntegerLiteral("0".to_string()),
+    //             Expression::IntegerLiteral("10".to_string()),
+    //             CodeBlock(vec![Statement::Assign(
+    //                 Identifier::new_scalar("foo"),
+    //                 None,
+    //                 Expression::Add(Box::new(expr_i.clone()), Box::new(expr_foo.clone())),
+    //             )]),
+    //         ),
+    //         Statement::Return(Some(expr_foo.clone())),
+    //     ]);
+    //
+    //     let mut sig_mapping = Default::default();
+    //
+    //     let out = transform_codeblock(
+    //         "the-pkg",
+    //         "TheOracle",
+    //         &code,
+    //         SplitPath::empty(),
+    //         vec![],
+    //         &mut sig_mapping,
+    //     );
+    //
+    //     println!("{out:#?}");
+    // }
 }

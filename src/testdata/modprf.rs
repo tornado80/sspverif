@@ -28,6 +28,7 @@ pub fn mod_prf(params: &HashMap<String, Expression>) -> PackageInstance {
             state: vec![],
             imports: vec![],
             oracles: vec![OracleDef {
+                is_split: false,
                 sig: OracleSig {
                     name: "Eval".to_string(),
                     args: vec![("msg".to_string(), Type::new_bits("*"))],
