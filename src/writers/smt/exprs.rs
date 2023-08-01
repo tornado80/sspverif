@@ -1,8 +1,6 @@
 use std::fmt::Display;
 
-use crate::{project::error::Error, types::Type};
-
-use super::names;
+use crate::types::Type;
 
 pub fn smt_to_string<T: Into<SmtExpr>>(t: T) -> String {
     t.into().to_string()

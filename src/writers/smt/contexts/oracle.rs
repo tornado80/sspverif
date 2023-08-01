@@ -1,9 +1,5 @@
-use std::collections::HashSet;
-
 use crate::expressions::Expression;
-use crate::identifier::Identifier;
 use crate::package::{Export, OracleDef};
-use crate::statement::{CodeBlock, Statement};
 use crate::types::Type;
 
 use super::super::exprs::SmtExpr;
@@ -22,6 +18,10 @@ impl<'a> OracleContext<'a> {
     pub fn is_exported(&self) -> bool {
         let export_needle = Export(self.inst_offs, self.oracle_def().sig.clone());
         self.game_ctx.game.exports.contains(&export_needle)
+    }
+
+    pub fn is_split(&self) -> bool {
+        self.oracle_def().is_split
     }
 
     pub fn smt_arg_name(&self, arg_name: &str) -> SmtExpr {
@@ -61,8 +61,6 @@ impl<'a> OracleContext<'a> {
         let game_name = &game.name;
         let inst_name = &inst.name;
         let oracle_name = &osig.name;
-
-        use crate::types::Type;
 
         let fields = vec![
             (
@@ -105,11 +103,11 @@ impl<'a> OracleContext<'a> {
     {
         let game = self.game_ctx.game;
         let inst = &game.pkgs[self.inst_offs];
-        let osig = &inst.pkg.oracles[self.oracle_offs].sig;
+        let odef = &inst.pkg.oracles[self.oracle_offs];
 
         let game_name = &game.name;
         let inst_name = &inst.name;
-        let oracle_name = &osig.name;
+        let oracle_name = &odef.sig.name;
 
         (
             names::return_constructor_name(game_name, inst_name, oracle_name),
@@ -120,7 +118,6 @@ impl<'a> OracleContext<'a> {
         )
             .into()
     }
-
     pub fn smt_construct_abort<S, SL>(&self, state: S, state_len: SL) -> SmtExpr
     where
         S: Into<SmtExpr>,
@@ -267,264 +264,5 @@ impl<'a> OracleContext<'a> {
         }
 
         Some(SmtExpr::List(cmdline))
-    }
-
-    // funciton die fuer jeden checkpoint eine liste aller bisher definierten variablen zurueckgibt
-    // sounds like a job for scope, but that is long gone at this poitn...
-    pub fn checkpoints(&self) -> Vec<(String, Vec<(String, SmtExpr)>)> {
-        let game = self.game_ctx.game;
-        let inst = &game.pkgs[self.inst_offs];
-        let odef = &inst.pkg.oracles[self.oracle_offs];
-        let CodeBlock(code) = &odef.code;
-
-        let mut locals = HashSet::new();
-        let mut checkpoints = vec![];
-
-        self.checkpoints_inner(code, &mut locals, &mut checkpoints, &[]);
-
-        checkpoints
-    }
-
-    // function that generates a single datatype with one constructor per checkpoint (i.e. one of the above lists)
-    pub fn smt_declare_intermediate_states(&self) -> SmtExpr {
-        let game = self.game_ctx.game;
-        let inst = &game.pkgs[self.inst_offs];
-        let odef = &inst.pkg.oracles[self.oracle_offs];
-        let osig = &odef.sig;
-
-        let game_name = &game.name;
-        let inst_name = &inst.name;
-        let oracle_name = &osig.name;
-
-        let checkpoints = self.checkpoints();
-
-        #[cfg(debug)]
-        if oracle_name == "GETAOUT" && inst_name == "keys_top" {
-            let code = &odef.code.0;
-            eprintln!("{game_name}/{inst_name}/{oracle_name}:");
-            eprintln!("    checkpoints: {checkpoints:#?}");
-            eprintln!("    code: {code:#?}");
-        }
-
-        declare::declare_datatype(
-            &names::intermediate_oracle_state_sort_name(game_name, inst_name, oracle_name),
-            checkpoints.into_iter(),
-        )
-    }
-
-    // TODO: make sure the checkpoint locals have a conanocical order at some point
-
-    fn checkpoints_inner(
-        &self,
-        code: &[Statement],
-        locals: &mut HashSet<(String, SmtExpr)>,
-        checkpoints: &mut Vec<(String, Vec<(String, SmtExpr)>)>,
-        path: &[usize],
-    ) {
-        let gctx = &self.game_ctx;
-        let ictx = gctx.pkg_inst_ctx_by_offs(self.inst_offs).unwrap();
-        let octx = ictx.oracle_ctx_by_oracle_offs(self.oracle_offs).unwrap();
-
-        let game_name = &self.game_ctx.game.name;
-        let inst_name = ictx.pkg_inst_name();
-        let oracle_name = &octx.oracle_def().sig.name;
-
-        for (i, stmt) in code.iter().enumerate() {
-            let mut new_path = path.to_vec();
-            new_path.push(i);
-
-            let path_str: Vec<String> = new_path.iter().map(usize::to_string).collect();
-            let path_str = path_str.join("-");
-
-            #[cfg(debug)]
-            if oracle_name == "GETAOUT"
-                && inst_name == "keys_top"
-                && path_str.starts_with("0-42-2-42")
-            {
-                eprintln!("{game_name}/{inst_name}/{oracle_name}/{path_str:#?}");
-                eprintln!("    stmt: {stmt:#?}");
-            }
-
-            match &stmt {
-                Statement::Sample(id, opt_idx, _, tipe)
-                | Statement::InvokeOracle {
-                    id,
-                    opt_idx,
-                    tipe: Some(tipe),
-                    ..
-                } => match opt_idx {
-                    Some(Expression::Typed(idx_type, _)) => {
-                        locals.insert((
-                            id.ident(),
-                            Type::Table(Box::new(idx_type.clone()), Box::new(tipe.clone())).into(),
-                        ));
-                    }
-                    None => {
-                        if tipe != &Type::Empty {
-                            locals.insert((id.ident(), tipe.into()));
-                        }
-                    }
-                    Some(_) => unreachable!(),
-                },
-
-                Statement::Assign(id, opt_idx, value) => match (opt_idx, value) {
-                    (
-                        Some(Expression::Typed(idx_type, _)),
-                        Expression::Typed(Type::Maybe(tipe), _),
-                    ) => {
-                        locals.insert((
-                            id.ident(),
-                            Type::Table(
-                                Box::new(idx_type.clone()),
-                                Box::new(tipe.as_ref().clone()),
-                            )
-                            .into(),
-                        ));
-                    }
-
-                    (None, Expression::Typed(tipe, _)) => {
-                        locals.insert((id.ident(), tipe.into()));
-                    }
-                    (Some(_), _) => unreachable!(),
-                    (None, _) => unreachable!(),
-                },
-                Statement::Parse(ids, Expression::Typed(Type::Tuple(tipes), _)) => {
-                    assert_eq!(ids.len(), tipes.len());
-
-                    let pairs = ids
-                        .iter()
-                        .map(Identifier::ident)
-                        .zip(tipes.iter().map(|t| t.into()));
-                    locals.extend(pairs);
-                }
-                Statement::Parse(_ids, _) => unreachable!(),
-
-                Statement::IfThenElse(_, CodeBlock(ifcode), CodeBlock(elsecode)) => {
-                    let mut if_path = new_path.clone();
-                    let mut else_path = new_path.clone();
-
-                    if_path.push(99917);
-                    else_path.push(93153);
-
-                    let mut if_locals = locals.clone();
-                    let mut else_locals = locals.clone();
-
-                    self.checkpoints_inner(ifcode, &mut if_locals, checkpoints, &if_path);
-                    self.checkpoints_inner(elsecode, &mut else_locals, checkpoints, &else_path);
-                }
-
-                Statement::For(iter_id, from, to, code) => {
-                    let mut before_path = new_path.clone();
-                    let mut step_path = new_path.clone();
-
-                    before_path.push(88880);
-                    step_path.push(88881);
-
-                    checkpoints.push((
-                        names::oracle_intermediate_state_for_constructor_name(
-                            game_name,
-                            inst_name,
-                            oracle_name,
-                            &before_path,
-                        ),
-                        locals.iter().cloned().collect(),
-                    ));
-
-                    let mut step_locals = locals.clone();
-
-                    let from_type = match from {
-                        Expression::Typed(tipe, _) => tipe,
-                        _ => unreachable!(),
-                    };
-                    step_locals.insert((
-                        iter_id.ident(),
-                        Expression::Typed(
-                            from_type.clone(),
-                            Box::new(Expression::Identifier(iter_id.clone())),
-                        )
-                        .into(),
-                    ));
-
-                    checkpoints.push((
-                        names::oracle_intermediate_state_for_constructor_name(
-                            game_name,
-                            inst_name,
-                            oracle_name,
-                            &step_path,
-                        ),
-                        locals.iter().cloned().collect(),
-                    ));
-                }
-
-                Statement::Abort => checkpoints.push((
-                    names::oracle_intermediate_state_abort_constructor_name(
-                        game_name,
-                        inst_name,
-                        oracle_name,
-                        &new_path,
-                    ),
-                    locals
-                        .iter()
-                        .map(|(var_name, expr)| {
-                            let name = names::oracle_intermediate_state_abort_selector_name(
-                                game_name,
-                                inst_name,
-                                oracle_name,
-                                &new_path,
-                                var_name,
-                            );
-                            (name, expr.clone())
-                        })
-                        .collect(),
-                )),
-                Statement::Return(_) => checkpoints.push((
-                    names::oracle_intermediate_state_return_constructor_name(
-                        game_name,
-                        inst_name,
-                        oracle_name,
-                        &new_path,
-                    ),
-                    locals
-                        .iter()
-                        .map(|(var_name, expr)| {
-                            let name = names::oracle_intermediate_state_return_selector_name(
-                                game_name,
-                                inst_name,
-                                oracle_name,
-                                &new_path,
-                                var_name,
-                            );
-                            (name, expr.clone())
-                        })
-                        .collect(),
-                )),
-                // TODO: these should probably push to local
-                Statement::InvokeOracle {
-                    tipe: None, name, ..
-                } => checkpoints.push((
-                    names::oracle_intermediate_state_oracleinvoc_constructor_name(
-                        game_name,
-                        inst_name,
-                        &oracle_name,
-                        name,
-                        &path,
-                    ),
-                    locals
-                        .iter()
-                        .map(|(var_name, expr)| {
-                            let name = names::oracle_intermediate_state_oracleinvoc_selector_name(
-                                game_name,
-                                inst_name,
-                                oracle_name,
-                                name,
-                                &new_path,
-                                var_name,
-                            );
-                            (name, expr.clone())
-                        })
-                        .collect(),
-                )),
-            };
-        }
     }
 }

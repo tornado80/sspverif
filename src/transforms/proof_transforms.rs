@@ -1,12 +1,6 @@
 use std::collections::HashSet;
 
-use crate::{
-    expressions::Expression,
-    identifier::Identifier,
-    proof::GameInstance,
-    statement::{CodeBlock, Statement},
-    types::Type,
-};
+use crate::{proof::GameInstance, types::Type};
 
 use super::{
     resolveoracles, resolvetypes, returnify, samplify, split_partial, tableinitialize, treeify,
@@ -47,36 +41,6 @@ impl super::ProofTransform for EquivalenceTransform {
         let proof = proof.with_new_instances(instances);
 
         Ok((proof, auxs))
-    }
-}
-
-fn code_walker(code: &mut CodeBlock) -> Result<(), typecheck::TypeCheckError> {
-    code.0.iter_mut().map(statement_walker).collect()
-}
-
-fn statement_walker(stmt: &mut Statement) -> Result<(), typecheck::TypeCheckError> {
-    match stmt {
-        Statement::Abort | Statement::Return(None) => Ok(()),
-        Statement::Return(Some(expr)) => {
-            expr.walk(&mut |expr| {
-                if let Expression::Identifier(Identifier::Scalar(name)) = expr {};
-                true
-            });
-            Ok(())
-        }
-        Statement::Assign(_, _, _) => todo!(),
-        Statement::Parse(_, _) => todo!(),
-        Statement::IfThenElse(_, _, _) => todo!(),
-        Statement::Sample(_, _, _, _) => todo!(),
-        Statement::For(_, _, _, _) => todo!(),
-        Statement::InvokeOracle {
-            id,
-            opt_idx,
-            name,
-            args,
-            target_inst_name,
-            tipe,
-        } => todo!(),
     }
 }
 

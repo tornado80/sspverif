@@ -1,7 +1,3 @@
-use std::collections::HashMap;
-use std::hint::unreachable_unchecked;
-use std::iter::FromIterator;
-
 use crate::expressions::Expression;
 use crate::identifier::Identifier;
 use crate::package::{Composition, OracleDef, Package, PackageInstance};

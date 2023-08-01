@@ -1,5 +1,4 @@
 use crate::package::Composition;
-use crate::proof::{GameInstance, Proof};
 use crate::statement::{CodeBlock, Statement};
 use crate::types::Type;
 

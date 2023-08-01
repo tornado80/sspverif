@@ -3,6 +3,7 @@ use crate::identifier::Identifier;
 use crate::package::{Composition, OracleDef, OracleSig, PackageInstance};
 use crate::statement::{CodeBlock, Statement};
 use crate::transforms::samplify::SampleInfo;
+use crate::transforms::split_partial::SplitInfo;
 use crate::types::Type;
 
 use crate::writers::smt::exprs::{smt_to_string, SmtExpr, SmtIte, SmtLet};
@@ -15,13 +16,19 @@ pub struct CompositionSmtWriter<'a> {
     pub comp: &'a Composition,
 
     sample_info: &'a SampleInfo,
+    split_info: &'a SplitInfo,
 }
 
 impl<'a> CompositionSmtWriter<'a> {
-    pub fn new(comp: &'a Composition, samp: &'a SampleInfo) -> CompositionSmtWriter<'a> {
+    pub fn new(
+        comp: &'a Composition,
+        sample_info: &'a SampleInfo,
+        split_info: &'a SplitInfo,
+    ) -> CompositionSmtWriter<'a> {
         CompositionSmtWriter {
             comp,
-            sample_info: samp,
+            sample_info,
+            split_info,
         }
     }
 
@@ -86,22 +93,6 @@ impl<'a> CompositionSmtWriter<'a> {
         names::gamestate_sort_name(&self.comp.name).into()
     }
 
-    fn smt_pkg_intermediate_state(&self, inst: &PackageInstance) -> Vec<SmtExpr> {
-        // let pkg_inst_ctx = self.get_package_instance_context(&inst.name).unwrap();
-
-        // let mut declares = vec![];
-
-        // for i in 0..inst.pkg.oracles.len() {
-        //     let octx = pkg_inst_ctx.oracle_ctx_by_oracle_offs(i).unwrap();
-        //     declares.push(octx.smt_declare_intermediate_states());
-        // }
-
-        // declares.push(pkg_inst_ctx.smt_declare_intermediate_oraclestates());
-
-        // return declares;
-        vec![]
-    }
-
     fn smt_pkg_return(&self, inst: &PackageInstance) -> Vec<SmtExpr> {
         let pkg_inst_ctx = self.get_package_instance_context(&inst.name).unwrap();
 
@@ -125,41 +116,42 @@ impl<'a> CompositionSmtWriter<'a> {
             .collect()
     }
 
-    pub fn smt_composition_intermediate_state(&self) -> Vec<SmtExpr> {
-        // self.comp
-        //     .pkgs
-        //     .clone()
-        //     .iter()
-        //     .flat_map(|inst| self.smt_pkg_intermediate_state(inst))
-        //     .collect()
-        vec![]
-    }
-
     fn code_smt_helper(
         &self,
         block: CodeBlock,
-        sig: &OracleSig,
+        odef: &OracleDef,
         inst: &PackageInstance,
     ) -> SmtExpr {
         let PackageInstance {
             name: inst_name, ..
         } = inst;
-        let OracleSig {
-            tipe: oracle_return_tipe,
-            name: oracle_name,
+        let OracleDef {
+            is_split,
+            sig:
+                OracleSig {
+                    tipe: oracle_return_tipe,
+                    name: oracle_name,
+                    ..
+                },
             ..
-        } = sig;
+        } = odef;
 
         let game_context = self.get_game_context();
-        let oracle_context = self.get_oracle_context(&inst.name, &sig.name).unwrap();
+        let oracle_context = self.get_oracle_context(&inst.name, &oracle_name).unwrap();
 
         let mut result = None;
+
+        if *is_split {
+            println!("xxxxxx");
+            println!("{:?}", self.split_info);
+        }
+
         for stmt in block.0.iter().rev() {
             result = Some(match stmt {
                 Statement::IfThenElse(cond, ifcode, elsecode) => SmtIte {
                     cond: cond.clone(),
-                    then: self.code_smt_helper(ifcode.clone(), sig, inst),
-                    els: self.code_smt_helper(elsecode.clone(), sig, inst),
+                    then: self.code_smt_helper(ifcode.clone(), odef, inst),
+                    els: self.code_smt_helper(elsecode.clone(), odef, inst),
                 }
                 .into(),
                 Statement::For(_, _, _, _) => unreachable!("found a for statement in the smt writer stage. this should have been eliminated by now and can't be handled here. {}.{}({}).{}", self.comp.name, inst_name, inst.pkg.name, oracle_name),
@@ -462,7 +454,6 @@ impl<'a> CompositionSmtWriter<'a> {
                         let oldvalue = match &ident {
                             &Identifier::State {
                                 name,
-                                pkg_inst_name: pkgname,
                                 ..
                             } => {
                                 //assert_eq!(pkgname, inst_name, "failed assertion: in an oracle in instance {inst_name} I found a state identifier with {pkgname}. I assumed these would always be equal.");
@@ -485,7 +476,6 @@ impl<'a> CompositionSmtWriter<'a> {
                     let smtout = match ident {
                         Identifier::State {
                             name,
-                            pkg_inst_name: pkgname,
                             ..
                         } => {
                             //assert_eq!(pkgname, inst_name, "failed assertion: in an oracle in instance {inst_name} I found a state identifier with {pkgname}. I assumed these would always be equal.");
@@ -588,7 +578,7 @@ impl<'a> CompositionSmtWriter<'a> {
 
         let game_context = GameContext::new(&self.comp);
 
-        let partial_state = game_context.smt_access_gamestate_partialstate((
+        let partial_state = game_context.smt_access_gamestate_intermediate_state((
             "select",
             names::var_globalstate_name(),
             names::var_state_length_name(),
@@ -604,11 +594,15 @@ impl<'a> CompositionSmtWriter<'a> {
                     .sig
                     .partial_vars
                     .iter()
-                    .map(|(name, tipe)| {
+                    .map(|(name, _type)| {
                         (
                             name.clone(),
                             (
-                                names::partialstate_selector_variable(oracle_name, name),
+                                names::intermediate_state_selector_local(
+                                    game_name,
+                                    oracle_name,
+                                    name,
+                                ),
                                 partial_state.clone(),
                             )
                                 .into(),
@@ -628,7 +622,7 @@ impl<'a> CompositionSmtWriter<'a> {
                             .unwrap(),
                     )])
                     .collect(),
-                body: self.code_smt_helper(code.clone(), &def.sig, inst),
+                body: self.code_smt_helper(code.clone(), &def, inst),
             },
         )
             .into()
@@ -720,12 +714,10 @@ impl<'a> CompositionSmtWriter<'a> {
         let paramfuncs = self.smt_composition_paramfuncs();
         let state = self.smt_composition_state();
         let ret = self.smt_composition_return();
-        let interm = self.smt_composition_intermediate_state();
         let code = self.smt_composition_code();
 
         rand.into_iter()
             .chain(paramfuncs.into_iter())
-            .chain(interm.into_iter())
             .chain(state.into_iter())
             .chain(ret.into_iter())
             .chain(code.into_iter())

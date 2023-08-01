@@ -175,8 +175,16 @@ impl<'a> ProverThingy<'a> {
         let left = instance_resolver.resolve(&self.eq.left_name()).unwrap();
         let right = instance_resolver.resolve(&self.eq.right_name()).unwrap();
 
-        let mut left_writer = CompositionSmtWriter::new(left.as_game(), &self.sample_info_left);
-        let mut right_writer = CompositionSmtWriter::new(right.as_game(), &self.sample_info_right);
+        let mut left_writer = CompositionSmtWriter::new(
+            left.as_game(),
+            &self.sample_info_left,
+            &self.split_info_left,
+        );
+        let mut right_writer = CompositionSmtWriter::new(
+            right.as_game(),
+            &self.sample_info_right,
+            &self.split_info_right,
+        );
         // write left game code
         let mut out = left_writer.smt_composition_all();
         // write right game code

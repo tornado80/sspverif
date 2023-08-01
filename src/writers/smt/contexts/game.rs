@@ -1,9 +1,6 @@
 use crate::{
     package::{Composition, Export},
-    transforms::{
-        samplify::SampleInfo,
-        split_partial::{SplitInfo, SplitInfoEntry, SplitPath},
-    },
+    transforms::{samplify::SampleInfo, split_partial::SplitInfo},
     types::Type,
     writers::smt::{
         declare,
@@ -129,9 +126,9 @@ impl<'a> GameContext<'a> {
         .into()
     }
 
-    pub fn smt_declare_intermediate_state_enum(&self, splitinfo: &SplitInfo) -> SmtExpr {
+    pub(crate) fn smt_declare_intermediate_state_enum(&self, splitinfo: &SplitInfo) -> SmtExpr {
         declare::declare_datatype(
-            &names::partialstate_sort_name(&self.game.name),
+            &names::intermediate_state_sort_name(&self.game.name),
             splitinfo
                 .iter()
                 .map(|info_entry| {
@@ -142,7 +139,8 @@ impl<'a> GameContext<'a> {
                             .iter()
                             .map(|(localname, localtype)| {
                                 (
-                                    names::partialstate_selector_variable(
+                                    names::intermediate_state_selector_local(
+                                        &self.game().name,
                                         &info_entry.path().smt_name(),
                                         localname,
                                     ),
@@ -151,7 +149,7 @@ impl<'a> GameContext<'a> {
                             })
                             .chain(vec![(
                                 format!("{}-parent", info_entry.path().smt_name()),
-                                names::partialstate_sort_name(&self.game.name).into(),
+                                names::intermediate_state_sort_name(&self.game.name).into(),
                             )])
                             .collect(),
                     )
@@ -161,7 +159,7 @@ impl<'a> GameContext<'a> {
         .into()
     }
 
-    pub fn smt_declare_gamestate(&self, sample_info: &SampleInfo) -> SmtExpr {
+    pub(crate) fn smt_declare_gamestate(&self, sample_info: &SampleInfo) -> SmtExpr {
         let game_name: &str = &self.game.name;
 
         let pkgstate_fields = self.game.pkgs.iter().map(|inst| {
@@ -190,8 +188,8 @@ impl<'a> GameContext<'a> {
         });
 
         let partial_field = [(
-            names::gamestate_selector_partialstate_name(game_name),
-            names::partialstate_sort_name(game_name).into(),
+            names::gamestate_selector_intermediate_state_name(game_name),
+            names::intermediate_state_sort_name(game_name).into(),
         )];
 
         let fields = pkgstate_fields
@@ -225,14 +223,56 @@ impl<'a> GameContext<'a> {
         )
     }
 
-    pub fn smt_access_gamestate_partialstate<S: Into<SmtExpr>>(&self, state: S) -> SmtExpr {
+    pub(crate) fn smt_access_gamestate_intermediate_state<S: Into<SmtExpr>>(
+        &self,
+        state: S,
+    ) -> SmtExpr {
         let game_name = &self.game.name;
 
         (
-            names::gamestate_selector_partialstate_name(game_name),
+            names::gamestate_selector_intermediate_state_name(game_name),
             state,
         )
             .into()
+    }
+
+    pub fn smt_update_gamestate_intermediate_state<S, I>(
+        &self,
+        gamestate: S,
+        sample_info: &SampleInfo,
+        new_intermediate_state: I,
+    ) -> Option<SmtExpr>
+    where
+        S: Clone + Into<SmtExpr>,
+        I: Clone + Into<SmtExpr>,
+    {
+        let game_name: &str = &self.game.name;
+
+        let fncall_count =
+            1 + self.game.pkgs.len() + self.consts_except_fns().len() + sample_info.count + 1;
+
+        let mut fncall = Vec::with_capacity(fncall_count);
+        fncall.push(names::gamestate_constructor_name(game_name).into());
+
+        for pkg_inst in &self.game.pkgs {
+            fncall.push(self.smt_access_gamestate_pkgstate(gamestate.clone(), &pkg_inst.name)?);
+        }
+
+        for (param_name, _type) in self.consts_except_fns() {
+            fncall.push(self.smt_access_gamestate_const(gamestate.clone(), param_name)?);
+        }
+
+        for sample_id in 0..sample_info.count {
+            fncall.push(self.smt_access_gamestate_rand(
+                sample_info,
+                gamestate.clone(),
+                sample_id,
+            )?);
+        }
+
+        fncall.push(new_intermediate_state.into());
+
+        Some(SmtExpr::List(fncall))
     }
 
     pub fn smt_update_gamestate_pkgstate<S, V>(
@@ -273,7 +313,7 @@ impl<'a> GameContext<'a> {
             self.smt_access_gamestate_rand(sample_info, gamestate.clone(), sample_id)
                 .unwrap()
         });
-        let partial_field = [self.smt_access_gamestate_partialstate(gamestate.clone())];
+        let partial_field = [self.smt_access_gamestate_intermediate_state(gamestate.clone())];
 
         let fields = pkgstate_fields
             .chain(const_fields)
@@ -373,7 +413,7 @@ impl<'a> GameContext<'a> {
             }
         });
 
-        let partial_field = [self.smt_access_gamestate_partialstate(state.clone())];
+        let partial_field = [self.smt_access_gamestate_intermediate_state(state.clone())];
 
         let fields = pkgstate_fields
             .chain(const_fields)

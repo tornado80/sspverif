@@ -87,6 +87,10 @@ impl SplitPath {
         }
     }
 
+    pub fn last(&self) -> Option<&SplitPathComponent> {
+        self.path.last()
+    }
+
     pub fn has_prefix(&self, prefix: &SplitPath) -> bool {
         if self.gamename != prefix.gamename {
             return false;
@@ -136,6 +140,7 @@ impl SplitPath {
     }
 }
 
+#[derive(Clone, Debug)]
 pub struct SplitInfoEntry {
     path: SplitPath,
     locals: Vec<(String, Type)>,
@@ -453,7 +458,7 @@ fn transform_codeblock(
             split_indices.push((i, locals.clone()));
         }
         match &code.0[i] {
-            Statement::Parse(ids, expr) => {
+            Statement::Parse(_ids, _expr) => {
                 todo!()
             }
             Statement::Assign(Identifier::Local(id_name), Some(idx), expr) => {
