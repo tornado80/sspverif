@@ -73,7 +73,7 @@ impl SplitPathComponent {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SplitPath {
     gamename: String,
     path: Vec<SplitPathComponent>,
@@ -89,6 +89,10 @@ impl SplitPath {
 
     pub fn last(&self) -> Option<&SplitPathComponent> {
         self.path.last()
+    }
+
+    pub fn split_type(&self) -> Option<&SplitType> {
+        Some(&self.path.last()?.splittype)
     }
 
     pub fn has_prefix(&self, prefix: &SplitPath) -> bool {
@@ -142,6 +146,8 @@ impl SplitPath {
 
 #[derive(Clone, Debug)]
 pub struct SplitInfoEntry {
+    pkg_inst_name: String,
+    oracle_name: String,
     path: SplitPath,
     locals: Vec<(String, Type)>,
     next: Option<SplitPath>,
@@ -154,6 +160,26 @@ impl SplitInfoEntry {
     }
     pub fn locals(&self) -> &Vec<(String, Type)> {
         &self.locals
+    }
+
+    pub fn pkg_inst_name(&self) -> &str {
+        self.pkg_inst_name.as_ref()
+    }
+
+    pub fn oracle_name(&self) -> &str {
+        self.oracle_name.as_ref()
+    }
+
+    pub fn next(&self) -> Option<&SplitPath> {
+        self.next.as_ref()
+    }
+
+    pub fn elsenext(&self) -> Option<&SplitPath> {
+        self.elsenext.as_ref()
+    }
+
+    pub fn split_type(&self) -> Option<&SplitType> {
+        Some(&self.path.path.last()?.splittype)
     }
 }
 
@@ -225,11 +251,14 @@ impl super::GameTransform for SplitPartial {
 
         let mut partials = vec![];
         for Export(pkg_offs, sig) in &game.exports {
-            let pkg_inst_name = game.pkgs[*pkg_offs].name.clone();
-            if let Some(mapping) = sig_mapping.get(&(pkg_inst_name, sig.clone())) {
+            let pkg_inst_name = &game.pkgs[*pkg_offs].name;
+            if let Some(mapping) = sig_mapping.get(&(pkg_inst_name.clone(), sig.clone())) {
+                let oracle_name = &sig.name;
                 let mut one_oracle_partials: Vec<_> = mapping
                     .iter()
                     .map(|(_loopvars, path, sig)| SplitInfoEntry {
+                        pkg_inst_name: pkg_inst_name.clone(),
+                        oracle_name: oracle_name.clone(),
                         path: path.clone(),
                         locals: sig.partial_vars.clone(),
                         next: None,

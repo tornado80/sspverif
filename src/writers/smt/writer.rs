@@ -3,7 +3,7 @@ use crate::identifier::Identifier;
 use crate::package::{Composition, OracleDef, OracleSig, PackageInstance};
 use crate::statement::{CodeBlock, Statement};
 use crate::transforms::samplify::SampleInfo;
-use crate::transforms::split_partial::SplitInfo;
+use crate::transforms::split_partial::{SplitInfo, SplitType};
 use crate::types::Type;
 
 use crate::writers::smt::exprs::{smt_to_string, SmtExpr, SmtIte, SmtLet};
@@ -139,12 +139,21 @@ impl<'a> CompositionSmtWriter<'a> {
         let game_context = self.get_game_context();
         let oracle_context = self.get_oracle_context(&inst.name, &oracle_name).unwrap();
 
+        let game_name = &game_context.game().name;
+        let pkg_inst_name = oracle_context.pkg_inst_ctx().pkg_inst_name();
+        let oracle_name = &oracle_context.oracle_def().sig.name;
+
         let mut result = None;
 
+        let split_info_entry = self.split_info.iter().find(|entry| {
+            entry.pkg_inst_name() == pkg_inst_name && entry.oracle_name() == oracle_name
+        });
         if *is_split {
             println!("xxxxxx");
             println!("{:?}", self.split_info);
         }
+
+        assert_eq!(*is_split, split_info_entry.is_some());
 
         for stmt in block.0.iter().rev() {
             result = Some(match stmt {
@@ -168,6 +177,28 @@ impl<'a> CompositionSmtWriter<'a> {
                             var_selfstate,
                         )
                         .unwrap();
+
+                    let new_gamestate = if let Some(entry) = split_info_entry {
+                        if let Some(next_path) = entry.next() {
+                            let parent = match next_path.split_type().unwrap() {
+                                SplitType::Plain => "",
+                                SplitType::Phantom => todo!(),
+                                SplitType::Invoc => todo!(),
+                                SplitType::ForStep(_, _, _) => todo!(),
+                                SplitType::IfCondition(_) => todo!(),
+                                SplitType::IfBranch => todo!(),
+                                SplitType::ElseBranch => todo!(),
+                            };
+                            
+                            let new_intermediate_state = oracle_context.smt_construct_next_intermediate_state(self.split_info, parent).unwrap();
+                            let new_gamestate = game_context.smt_update_gamestate_intermediate_state(new_gamestate, self.sample_info, new_intermediate_state).unwrap();
+                            new_gamestate
+                        } else {
+                            new_gamestate
+                        }
+                    }  else {
+                        new_gamestate
+                    };
 
                     let some_empty = ("mk-some", "mk-empty");
                     let var_state_len = names::var_state_length_name();

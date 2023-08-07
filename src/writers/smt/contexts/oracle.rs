@@ -1,5 +1,6 @@
 use crate::expressions::Expression;
 use crate::package::{Export, OracleDef};
+use crate::transforms::split_partial::SplitInfo;
 use crate::types::Type;
 
 use super::super::exprs::SmtExpr;
@@ -118,6 +119,35 @@ impl<'a> OracleContext<'a> {
         )
             .into()
     }
+
+    pub(crate) fn smt_construct_next_intermediate_state<IS: Into<SmtExpr>>(
+        &self,
+        split_info: &SplitInfo,
+        parent: IS,
+    ) -> Option<SmtExpr> {
+        let pkg_inst_name = self.pkg_inst_ctx().pkg_inst_name();
+        let oracle_name = &self.oracle_def().sig.name;
+
+        let entry = split_info.iter().find(|entry| {
+            entry.pkg_inst_name() == pkg_inst_name && entry.oracle_name() == oracle_name
+        })?;
+
+        let next_path = entry.next()?;
+        let next_entry = split_info
+            .iter()
+            .find(|entry| entry.path() == next_path)
+            .unwrap();
+
+        let mut fn_call = vec![next_path.smt_name().into()];
+        for (local_name, _local_type) in next_entry.locals() {
+            fn_call.push(local_name.clone().into());
+        }
+
+        fn_call.push(parent.into());
+
+        Some(SmtExpr::List(fn_call))
+    }
+
     pub fn smt_construct_abort<S, SL>(&self, state: S, state_len: SL) -> SmtExpr
     where
         S: Into<SmtExpr>,

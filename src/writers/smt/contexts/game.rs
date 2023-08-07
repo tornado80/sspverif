@@ -1,6 +1,9 @@
 use crate::{
     package::{Composition, Export},
-    transforms::{samplify::SampleInfo, split_partial::SplitInfo},
+    transforms::{
+        samplify::SampleInfo,
+        split_partial::{SplitInfo, SplitInfoEntry},
+    },
     types::Type,
     writers::smt::{
         declare,
