@@ -178,8 +178,64 @@ impl<'a> CompositionSmtWriter<'a> {
                         )
                         .unwrap();
 
+
+                    /* TODO: for parent we need to do one of the following things:
+                     *
+                     * Claim by Christoph: same as below but we *need*
+                     * to ignore for/if: it should be possible to
+                     * *write* variables that already exist outside
+                     * (so we can't discard updates from within the
+                     * loop)
+                     * 
+                     * i <- 3
+                     * for ...
+                     *   i <- 5
+                     * i // should be 5
+                     *
+                     * and while *local* variables from within the
+                     * loops should be gone, the typechecker should
+                     * have made sure no unallowerd access happens.
+                     *
+                     * Jan's clean solution would be to *copy* the new
+                     * values selectively and indeed have a separate
+                     * scope for for/if/..
+                     *
+                     **********************************************
+                     * Old understanding
+                     *
+                     * - if we *invoke* an oracle we need to put our
+                     *   *current*, updated state in the parent and
+                     *   create an *empty* intermediate state for the
+                     *   child
+                     *
+                     * - if we *return* from an oracle we need to
+                     *   discard the current intermediate state and
+                     *   restore parent
+                     *
+                     * - same for entering/leaving for loops (though
+                     *   not an empty new state) -- should match the
+                     *   type checker and maybe also be added to the
+                     *   (user facing) documentation
+                     *   Detection: (else)next is a ForStep/.. and
+                     *              shares parent with the current
+                     *              state
+                     *
+                     * - what about ifs?
+                     */
+
                     let new_gamestate = if let Some(entry) = split_info_entry {
                         if let Some(next_path) = entry.next() {
+                            let (_, parent) = entry.path().basename();
+                            if next_path.has_prefix(&parent) {
+                                if matches!(next_path.path()[parent.len()].split_type(),
+                                            SplitType::ForStep(_,_,_)) {
+                                    // We are about to enter a for loop!
+                                    // parent is current intermediate state
+                                }
+                            }
+
+
+
                             let parent = match next_path.split_type().unwrap() {
                                 SplitType::Plain => "",
                                 SplitType::Phantom => todo!(),
@@ -189,7 +245,7 @@ impl<'a> CompositionSmtWriter<'a> {
                                 SplitType::IfBranch => todo!(),
                                 SplitType::ElseBranch => todo!(),
                             };
-                            
+
                             let new_intermediate_state = oracle_context.smt_construct_next_intermediate_state(self.split_info, parent).unwrap();
                             let new_gamestate = game_context.smt_update_gamestate_intermediate_state(new_gamestate, self.sample_info, new_intermediate_state).unwrap();
                             new_gamestate

@@ -71,6 +71,10 @@ impl SplitPathComponent {
             splitrange,
         }
     }
+
+    pub fn split_type(&self) -> &SplitType {
+        &self.splittype
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -87,6 +91,14 @@ impl SplitPath {
         }
     }
 
+    pub fn path(&self) -> &Vec<SplitPathComponent> {
+        &self.path
+    }
+
+    pub fn len(&self) -> usize {
+        self.path.len()
+    }
+    
     pub fn last(&self) -> Option<&SplitPathComponent> {
         self.path.last()
     }
