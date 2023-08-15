@@ -17,7 +17,6 @@ type Result<T> = std::result::Result<T, Error>;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum SplitType {
     Plain,                                       // before anything interesting happens
-    Phantom,                                     // Empty auxilliary function
     Invoc,                                       // called a child oracle
     ForStep(Identifier, Expression, Expression), // in a loop
     IfCondition(Expression),
@@ -98,7 +97,7 @@ impl SplitPath {
     pub fn len(&self) -> usize {
         self.path.len()
     }
-    
+
     pub fn last(&self) -> Option<&SplitPathComponent> {
         self.path.last()
     }
@@ -123,6 +122,40 @@ impl SplitPath {
         }
 
         true
+    }
+
+    // This doesn't support nested plain blocks, but we assume these don't exist anyway and would be a bug
+    fn strip_plain(&self) -> Option<SplitPath> {
+        let (head, basename) = self.basename();
+        if head?.splittype == SplitType::Plain {
+            Some(basename)
+        } else {
+            Some(self.clone())
+        }
+    }
+
+    fn longest_shared_prefix(&self, other: &SplitPath) -> Option<SplitPath> {
+        if self.gamename != other.gamename {
+            return None;
+        }
+
+        let mut shared_prefix = SplitPath {
+            gamename: self.gamename.clone(),
+            path: vec![],
+        };
+
+        let self_path = self.path();
+        let other_path = other.path();
+
+        for i in 0..(usize::min(self_path.len(), other_path.len())) {
+            if self_path[i] != other_path[i] {
+                break;
+            }
+
+            shared_prefix.path.push(self_path[i].clone())
+        }
+
+        Some(shared_prefix)
     }
 
     pub fn basename(&self) -> (Option<SplitPathComponent>, Self) {
@@ -212,6 +245,9 @@ impl super::GameTransform for SplitPartial {
             Vec<(Vec<Identifier>, SplitPath, OracleSig)>,
         > = Default::default();
 
+        // dependencies is the game graph in a form where we can start processing the call graph
+        // from the leaves, and then remove that leave from this map.
+        // We add all called oracles, first the edges and then the exports.
         let mut dependencies: HashMap<(usize, OracleSig), Vec<usize>> = HashMap::new();
 
         for Edge(from, to, sig) in &game.edges {
@@ -225,16 +261,22 @@ impl super::GameTransform for SplitPartial {
             dependencies.entry((*pkg_offs, sig.clone())).or_default();
         }
 
+        // as long as we haven't processed all called oracles, we keep going.
         while !dependencies.is_empty() {
             let keys: Vec<_> = dependencies.keys().cloned().collect();
 
             for key in &keys {
-                let (to, sig) = key;
+                let (pkg_inst_offs, sig) = key;
+                let pkg_inst = &game.pkgs[*pkg_inst_offs];
                 if dependencies[key].is_empty() {
-                    transform_oracle(&mut new_game, *to, sig, &mut sig_mapping)?;
+                    // found an oracle that doesn't have unprocessed callees.
+                    // transform it!
+                    transform_oracle(&mut new_game, *pkg_inst_offs, sig, &mut sig_mapping)?;
 
-                    let mapping_key = (game.pkgs[*to].name.clone(), sig.clone());
+                    // of the oracle needed transformation, update the game
+                    let mapping_key = (pkg_inst.name.clone(), sig.clone());
                     if let Some(mapping) = sig_mapping.get(&mapping_key) {
+                        // remove the old oracle from the exports
                         if let Some(export_position) = new_game
                             .exports
                             .iter()
@@ -242,35 +284,53 @@ impl super::GameTransform for SplitPartial {
                         {
                             new_game.exports.remove(export_position);
                         }
+
+                        // export all new split oracles
+                        // note that this is always needed, even if the oracle was not exported
+                        // before
                         for split_spec in mapping {
                             let (_, _, split_sig) = split_spec;
-                            new_game.exports.push(Export(*to, split_sig.clone()))
+                            new_game
+                                .exports
+                                .push(Export(*pkg_inst_offs, split_sig.clone()))
                         }
                     }
 
-                    let inner_keys: Vec<_> = dependencies.keys().cloned().collect();
-                    for idx in &inner_keys {
-                        if let Some(pos) = dependencies[idx].iter().position(|x| x == to) {
-                            dependencies.entry(idx.clone()).or_default().remove(pos);
+                    // remove current oracle from all other oracles dependency lists
+                    for dep_list in dependencies.values_mut() {
+                        if let Some(pos) = dep_list.iter().position(|x| x == pkg_inst_offs) {
+                            dep_list.remove(pos);
                         }
                     }
+
+                    // remove oracle from map to mark it as processed
                     dependencies.remove(key);
                 }
             }
         }
 
         println!("sig mapping after splitting: {sig_mapping:?}");
+        for (place, info) in sig_mapping.iter() {
+            for (_, split_path, _) in info {
+                println!("{place:?} :: {split_path:?} --> {}", split_path.smt_name());
+            }
+        }
+
+        /* build Aux data structure
+         *
+         * TODO
+         */
 
         let mut partials = vec![];
         for Export(pkg_offs, sig) in &game.exports {
             let pkg_inst_name = &game.pkgs[*pkg_offs].name;
             if let Some(mapping) = sig_mapping.get(&(pkg_inst_name.clone(), sig.clone())) {
                 let oracle_name = &sig.name;
-                let mut one_oracle_partials: Vec<_> = mapping
+                let mut oracle_partials: Vec<_> = mapping
                     .iter()
                     .map(|(_loopvars, path, sig)| SplitInfoEntry {
                         pkg_inst_name: pkg_inst_name.clone(),
-                        oracle_name: oracle_name.clone(),
+                        oracle_name: sig.name.clone(),
                         path: path.clone(),
                         locals: sig.partial_vars.clone(),
                         next: None,
@@ -278,76 +338,20 @@ impl super::GameTransform for SplitPartial {
                     })
                     .collect();
 
-                for i in 0..(one_oracle_partials.len() - 1) {
-                    let (head, basename) = one_oracle_partials[i].path.basename();
-                    let head = head.unwrap();
-                    let split_type = head.splittype.clone();
+                for i in 0..(oracle_partials.len() - 1) {
+                    let cur = &oracle_partials[i];
+                    let next = &oracle_partials[i + 1];
 
-                    match split_type {
-                        SplitType::IfBranch
-                        | SplitType::ElseBranch
-                        | SplitType::Plain
-                        | SplitType::ForStep(_, _, _)
-                        | SplitType::Invoc => {
-                            one_oracle_partials[i].next =
-                                Some(one_oracle_partials[i + 1].path.clone())
-                        }
-                        SplitType::Phantom => {
-                            // Decide if we are leaving a for loop at this point
-                            //  - At the end of the path is a ForStep , i.e. .../ForStep/Phantom
-                            //  - i+1 does not have *that* ForStep
-                            if let SplitType::ForStep(_, _, _) =
-                                basename.path.iter().last().unwrap().splittype
-                            {
-                                // Forward search first element with *this* forstep
-                                for j in 0..i {
-                                    if one_oracle_partials[j].path.has_prefix(&basename) {
-                                        one_oracle_partials[i].next =
-                                            Some(one_oracle_partials[j].path.clone())
-                                    }
-                                }
-                                one_oracle_partials[i].elsenext =
-                                    Some(one_oracle_partials[i + 1].path.clone())
-                            } else {
-                                // Non-for-loop-related phantom
-                                one_oracle_partials[i].next =
-                                    Some(one_oracle_partials[i + 1].path.clone())
-                            }
-                        }
-                        SplitType::IfCondition(_) => {
-                            one_oracle_partials[i].next =
-                                Some(one_oracle_partials[i + 1].path.clone());
-                            let prefix = basename.extended(SplitPathComponent {
-                                splittype: SplitType::ElseBranch,
-                                ..head.clone()
-                            });
-
-                            for j in i..one_oracle_partials.len() {
-                                if one_oracle_partials[j].path.has_prefix(&prefix) {
-                                    one_oracle_partials[i].elsenext =
-                                        Some(one_oracle_partials[j].path.clone());
-                                    break;
-                                }
-                            }
-                        }
+                    if let Some((next, maybe_elsenext)) = determine_next(cur, next) {
+                        let cur = &mut oracle_partials[i];
+                        cur.next = Some(next);
+                        cur.elsenext = maybe_elsenext;
                     }
                 }
-                partials.extend(one_oracle_partials.into_iter());
+
+                partials.extend(oracle_partials.into_iter());
             }
         }
-
-        // InvokeOracle/InvokeOracle/ForStep {locals of innermost oracle}
-        // InvokeOracle/InvokeOracle/ForStep {stack of locals of oracles}
-
-        /* (a) InvokeOracle/Plain                // latest
-         * (b) InvokeOracle/InvokeOracle/Plain   // locals + {}
-         * (c) InvokeOracle/InvokeOracle/ForStep
-         * (d) InvokeOracle/InvokeOracle/Plain   // locals.pop()
-         * (e) InvokeOracle/Plain                //
-         *
-         * (a) (define-fun ... -> intermediateState_?) // will be consumed by (b)
-         * (d) (define-fun ... -> intermediateState_?) // please_pop
-         */
 
         Ok((new_game, partials))
     }
@@ -397,20 +401,20 @@ fn transform_oracle(
     osig: &OracleSig,
     sig_mapping: &mut HashMap<(String, OracleSig), Vec<(Vec<Identifier>, SplitPath, OracleSig)>>,
 ) -> Result<()> {
-    let pkg = &mut game.pkgs[pkg_offs];
-    let oracle_offs = pkg
+    let pkg_inst = &mut game.pkgs[pkg_offs];
+    let pkg_inst_name = &pkg_inst.name;
+    let oracle_offs = pkg_inst
         .pkg
         .oracles
         .iter()
         .position(|OracleDef { sig, .. }| sig == osig)
         .expect("there should be an oracle with this signature");
-    let odef = &pkg.pkg.oracles[oracle_offs];
+    let odef = &pkg_inst.pkg.oracles[oracle_offs];
     let oracle_name = &odef.sig.name;
 
-    let mut result = vec![];
-
+    let mut new_oracles = vec![];
     let mut transformed = transform_codeblock(
-        &pkg.name,
+        pkg_inst_name,
         oracle_name,
         &odef.code,
         SplitPath::empty(game.name.clone()),
@@ -424,9 +428,8 @@ fn transform_oracle(
         return Ok(());
     }
 
-    let inst_name = &pkg.name;
-    let entry = sig_mapping
-        .entry((inst_name.to_string(), osig.clone()))
+    let mapping_entry = sig_mapping
+        .entry((pkg_inst_name.to_string(), osig.clone()))
         .or_default();
 
     // we treat the last item differently:
@@ -434,26 +437,26 @@ fn transform_oracle(
     // the last item gets the original return type.
     let (last_loopvars, last_splitpath, last_code, last_locals) = transformed.pop().unwrap();
 
-    for (loopvars, splitpath, oracle_code, oracle_locals) in transformed.into_iter() {
-        //let (last, _) = splitpath.basename();
-        let newargs = loopvars
+    for (loopvars, splitpath, oracle_code, oracle_locals) in transformed.clone().into_iter() {
+        let new_args = loopvars
             .iter()
             .map(|var| (var.ident(), Type::Integer).clone())
             .chain(osig.args.clone().into_iter())
             .collect();
 
-        let sig = OracleSig {
+        let new_sig = OracleSig {
             name: splitpath.smt_name(),
-            args: newargs,
+            args: new_args,
             tipe: Type::Empty, // <-- note the difference
             partial_vars: oracle_locals.clone(),
         };
-        result.push(OracleDef {
-            sig: sig.clone(),
+
+        new_oracles.push(OracleDef {
+            sig: new_sig.clone(),
             code: oracle_code,
             is_split: true,
         });
-        entry.push((loopvars.clone(), splitpath, sig))
+        mapping_entry.push((loopvars.clone(), splitpath, new_sig))
     }
 
     let last_newargs = last_loopvars
@@ -468,15 +471,15 @@ fn transform_oracle(
         tipe: osig.tipe.clone(), // <-- note the difference
         partial_vars: last_locals.clone(),
     };
-    result.push(OracleDef {
+    new_oracles.push(OracleDef {
         sig: sig.clone(),
         code: last_code,
         is_split: true,
     });
-    entry.push((last_loopvars.clone(), last_splitpath, sig));
+    mapping_entry.push((last_loopvars.clone(), last_splitpath, sig));
 
-    pkg.pkg.oracles.remove(oracle_offs);
-    pkg.pkg.oracles.extend(result);
+    pkg_inst.pkg.oracles.remove(oracle_offs);
+    pkg_inst.pkg.oracles.extend(new_oracles);
 
     Ok(())
 }
@@ -498,93 +501,52 @@ fn transform_codeblock(
         if code.0[i].needs_split(sig_mapping) {
             split_indices.push((i, locals.clone()));
         }
-        match &code.0[i] {
-            Statement::Parse(_ids, _expr) => {
-                todo!()
-            }
-            Statement::Assign(Identifier::Local(id_name), Some(idx), expr) => {
-                if locals
-                    .iter()
-                    .find(|(localname, _)| localname == id_name)
-                    .is_some()
-                {
-                    continue;
-                }
-                locals.push((
-                    id_name.to_string(),
-                    Type::Table(
-                        Box::new(idx.get_type().unwrap().clone()),
-                        Box::new(expr.get_type().unwrap().clone()),
-                    ),
-                ));
-            }
-            Statement::Assign(Identifier::Local(id_name), None, expr) => {
-                if locals
-                    .iter()
-                    .find(|(localname, _)| localname == id_name)
-                    .is_some()
-                {
-                    continue;
-                }
-                locals.push((id_name.to_string(), expr.get_type().unwrap().clone()));
-            }
-            Statement::InvokeOracle {
-                id: Identifier::Local(id_name),
-                tipe: Some(tipe),
-                opt_idx: Some(idx),
-                ..
-            }
-            | Statement::Sample(Identifier::Local(id_name), Some(idx), _, tipe) => {
-                if locals
-                    .iter()
-                    .find(|(localname, _)| localname == id_name)
-                    .is_some()
-                {
-                    continue;
-                }
-                locals.push((
-                    id_name.to_string(),
-                    Type::Table(
-                        Box::new(idx.get_type().unwrap().clone()),
-                        Box::new(tipe.clone()),
-                    ),
-                ));
-            }
-            Statement::InvokeOracle {
-                id: Identifier::Local(id_name),
-                tipe: Some(tipe),
-                opt_idx: None,
-                ..
-            }
-            | Statement::Sample(Identifier::Local(id_name), None, _, tipe) => {
-                if locals
-                    .iter()
-                    .find(|(localname, _)| localname == id_name)
-                    .is_some()
-                {
-                    continue;
-                }
-                locals.push((id_name.to_string(), tipe.clone()))
-            }
-            _ => {}
+        if let Some((decl_name, decl_type)) = get_declarations(&code.0[i]) {
+            locals.push((decl_name, decl_type));
         }
     }
 
+    if split_indices.is_empty() {
+        result.push((
+            loopvars,
+            prefix.extended(SplitPathComponent::new(
+                pkg_inst_name,
+                oracle_name,
+                SplitType::Plain,
+                0..code.0.len(),
+            )),
+            code.clone(),
+            locals,
+        ));
+
+        return result;
+    }
+
     let mut cur_idx = 0;
-    let mut did_split = false;
 
     for (split_idx, split_locals) in split_indices {
-        did_split = true;
+        let mk_single_split_path_component = |split_type| {
+            SplitPathComponent::new(
+                pkg_inst_name,
+                oracle_name,
+                split_type,
+                split_idx..(split_idx + 1),
+            )
+        };
+
+        // insert the plain oracles that contain the code between the statemnts that require a
+        // split -- but only if there would be statements in that plain oracle
         if split_idx != cur_idx {
             let range = cur_idx..split_idx;
+            let split_path_component = SplitPathComponent::new(
+                pkg_inst_name,
+                oracle_name,
+                SplitType::Plain,
+                range.clone(),
+            );
             result.push((
                 loopvars.clone(),
-                prefix.extended(SplitPathComponent::new(
-                    pkg_inst_name,
-                    oracle_name,
-                    SplitType::Plain,
-                    range.clone(),
-                )),
+                prefix.extended(split_path_component),
                 CodeBlock(code.0[range].to_vec()),
                 split_locals.clone(),
             ))
@@ -594,12 +556,9 @@ fn transform_codeblock(
             Statement::IfThenElse(cond, ifcode, elsecode) => {
                 result.push((
                     loopvars.clone(),
-                    prefix.extended(SplitPathComponent::new(
-                        pkg_inst_name,
-                        oracle_name,
-                        SplitType::IfCondition(cond.clone()),
-                        split_idx..(split_idx + 1),
-                    )),
+                    prefix.extended(mk_single_split_path_component(SplitType::IfCondition(
+                        cond.clone(),
+                    ))),
                     CodeBlock(vec![]),
                     split_locals.clone(),
                 ));
@@ -607,12 +566,7 @@ fn transform_codeblock(
                     pkg_inst_name,
                     oracle_name,
                     ifcode,
-                    prefix.extended(SplitPathComponent::new(
-                        pkg_inst_name,
-                        oracle_name,
-                        SplitType::IfBranch,
-                        split_idx..(split_idx + 1),
-                    )),
+                    prefix.extended(mk_single_split_path_component(SplitType::IfBranch)),
                     split_locals.clone(),
                     loopvars.clone(),
                     sig_mapping,
@@ -621,12 +575,7 @@ fn transform_codeblock(
                     pkg_inst_name,
                     oracle_name,
                     elsecode,
-                    prefix.extended(SplitPathComponent::new(
-                        pkg_inst_name,
-                        oracle_name,
-                        SplitType::ElseBranch,
-                        split_idx..(split_idx + 1),
-                    )),
+                    prefix.extended(mk_single_split_path_component(SplitType::ElseBranch)),
                     split_locals.clone(),
                     loopvars.clone(),
                     sig_mapping,
@@ -635,16 +584,16 @@ fn transform_codeblock(
             Statement::For(id_iter, from, to, code) => {
                 let mut newloopvars = loopvars.clone();
                 newloopvars.push(id_iter.clone());
+
                 result.extend(transform_codeblock(
                     pkg_inst_name,
                     oracle_name,
                     code,
-                    prefix.extended(SplitPathComponent::new(
-                        pkg_inst_name,
-                        oracle_name,
-                        SplitType::ForStep(id_iter.clone(), from.clone(), to.clone()),
-                        split_idx..(split_idx + 1),
-                    )),
+                    prefix.extended(mk_single_split_path_component(SplitType::ForStep(
+                        id_iter.clone(),
+                        from.clone(),
+                        to.clone(),
+                    ))),
                     split_locals,
                     newloopvars,
                     sig_mapping,
@@ -666,16 +615,12 @@ fn transform_codeblock(
                     })
                     .unwrap();
 
-                let last_split = splits.last().unwrap();
+                let (_, _, last_sig) = splits.last().unwrap();
 
                 result.extend(splits.into_iter().take(splits.len() - 1).map(
                     |(loopvars, splitpath, OracleSig { name, .. })| {
-                        let mut newpath = prefix.extended(SplitPathComponent::new(
-                            pkg_inst_name,
-                            oracle_name,
-                            SplitType::Invoc,
-                            split_idx..(split_idx + 1),
-                        ));
+                        let mut newpath =
+                            prefix.extended(mk_single_split_path_component(SplitType::Invoc));
                         newpath.path.extend(splitpath.path.clone());
                         (
                             loopvars.clone(),
@@ -695,16 +640,11 @@ fn transform_codeblock(
 
                 result.push((
                     loopvars.clone(),
-                    prefix.extended(SplitPathComponent::new(
-                        pkg_inst_name,
-                        oracle_name,
-                        SplitType::Invoc,
-                        split_idx..(split_idx + 1),
-                    )),
+                    prefix.extended(mk_single_split_path_component(SplitType::Invoc)),
                     CodeBlock(vec![Statement::InvokeOracle {
                         id: id.clone(),
                         opt_idx: opt_idx.clone(),
-                        name: last_split.2.name.clone(),
+                        name: last_sig.name.clone(),
                         args: args.clone(),
                         target_inst_name: Some(target_inst_name.to_string()),
                         tipe: tipe.clone(),
@@ -718,31 +658,17 @@ fn transform_codeblock(
         cur_idx = split_idx;
     }
 
-    if did_split {
-        let rest = &code.0[cur_idx + 1..];
-        if !rest.is_empty() {
-            result.push((
-                loopvars.clone(),
-                prefix.extended(SplitPathComponent::new(
-                    pkg_inst_name,
-                    oracle_name,
-                    SplitType::Plain,
-                    (cur_idx + 1)..code.0.len(),
-                )),
-                CodeBlock(rest.to_vec()),
-                locals,
-            ));
-        }
-    } else {
+    let rest = &code.0[cur_idx + 1..];
+    if !rest.is_empty() {
         result.push((
             loopvars.clone(),
             prefix.extended(SplitPathComponent::new(
                 pkg_inst_name,
                 oracle_name,
                 SplitType::Plain,
-                0..code.0.len(),
+                (cur_idx + 1)..code.0.len(),
             )),
-            CodeBlock(code.0.clone()),
+            CodeBlock(rest.to_vec()),
             locals,
         ));
     }
@@ -801,4 +727,194 @@ mod test {
     //
     //     println!("{out:#?}");
     // }
+}
+
+fn get_declarations(stmt: &Statement) -> Option<(String, Type)> {
+    match stmt {
+        Statement::Parse(_ids, _expr) => {
+            todo!()
+        }
+        Statement::Assign(Identifier::Local(id_name), Some(idx), expr) => Some((
+            id_name.to_string(),
+            Type::Table(
+                Box::new(idx.get_type().unwrap().clone()),
+                Box::new(expr.get_type().unwrap().clone()),
+            ),
+        )),
+        Statement::Assign(Identifier::Local(id_name), None, expr) => {
+            Some((id_name.to_string(), expr.get_type().unwrap().clone()))
+        }
+        Statement::InvokeOracle {
+            id: Identifier::Local(id_name),
+            tipe: Some(tipe),
+            opt_idx: Some(idx),
+            ..
+        }
+        | Statement::Sample(Identifier::Local(id_name), Some(idx), _, tipe) => Some((
+            id_name.to_string(),
+            Type::Table(
+                Box::new(idx.get_type().unwrap().clone()),
+                Box::new(tipe.clone()),
+            ),
+        )),
+        Statement::InvokeOracle {
+            id: Identifier::Local(id_name),
+            tipe: Some(tipe),
+            opt_idx: None,
+            ..
+        }
+        | Statement::Sample(Identifier::Local(id_name), None, _, tipe) => {
+            Some((id_name.to_string(), tipe.clone()))
+        }
+        _ => None,
+    }
+}
+
+/*
+ * fn strip_plain(path) -> Option<path>;
+ *
+ * fn determine_what_to_do(partials[i], partials[i+1]) -> (next, elsenext);
+ *
+ * for i in 0..(len-1)  {
+ *   (next, elsenext) = determine_what_to_do(oracle_partials[i], oracle_partials[i+1])
+ *   oracle_partials[i].next = next;
+ *   oracle_partials[i].elsenext = elsenext;
+ *
+ * }
+ *
+ * */
+
+/*
+ * /Plain
+ *   ->
+ * /Plain/ForStep/Plain
+ *
+ *
+ * /Plain/ForStep/Plain
+ *   ->
+ * /Plain/IfCondition
+ *
+ *
+ * /Plain/ForStep/Plain
+ *   ->
+ * /Plain/Invoc
+ *
+ *
+ * /Plain/Invoc/callee_path
+ *
+ *
+ * PRF.Eval:
+ *   k<-Get()
+ *   return f(k)
+ *   ->
+ *   Invoc/Invoc/Invoc/Forstep/Plain
+ *   Invoc/Invoc/Plain
+ *   Invoc/Plain
+ *   Plain
+ *
+ *
+ * KeyFilter.Get():
+ *   k<-Get()
+ *   if k == 0:
+ *     k' <-$ rand();
+ *     return k'
+ *   ->
+ *   Invoc/Invoc/Forstep/Plain
+ *   Invoc/Plain
+ *   Plain
+ *
+ *  Key.Get():
+ *    Log()
+ *    return k
+ *    ->
+ *    Invoc/ForStep/Plain
+ *    Invoc/Plain
+ *    Plain
+ *
+ *
+ * Log.Log():
+ *   for {...}
+ *   return
+ *   ->
+ *   ForStep/Plain
+ *   Plain
+ * */
+fn determine_next(
+    cur: &SplitInfoEntry,
+    next: &SplitInfoEntry,
+) -> Option<(SplitPath, Option<SplitPath>)> {
+    let mut cur_path = cur.path().clone();
+    let next_path = next.path();
+    let common_path = cur_path.longest_shared_prefix(next_path).unwrap();
+
+    // move up the tree
+    while cur_path != common_path {
+        let (head, basename) = cur_path.basename();
+        cur_path = basename;
+
+        let head = head.unwrap();
+
+        match head.split_type() {
+            SplitType::Plain => {
+                // just skip these
+            }
+            SplitType::IfCondition(_) => {
+                return Some((
+                    /* next: */
+                    cur_path.extended(SplitPathComponent::new(
+                        &head.pkginstname,
+                        &head.oraclename,
+                        SplitType::IfBranch,
+                        head.splitrange.clone(),
+                    )),
+                    /* elsenext: */
+                    Some(cur_path.extended(SplitPathComponent::new(
+                        &head.pkginstname,
+                        &head.oraclename,
+                        SplitType::ElseBranch,
+                        head.splitrange.clone(),
+                    ))),
+                ));
+            }
+            SplitType::Invoc => {
+                return Some((
+                    /* next: */ next_path.clone(),
+                    /* elsenext: */ None,
+                ));
+            }
+            SplitType::ForStep(_, _, _) => {
+                return Some((
+                    /* next: */ cur.path().clone(),
+                    /* elsenext: */ Some(next_path.clone()),
+                ));
+            }
+            // Due to treeification, we know that nothing comes after these:
+            SplitType::IfBranch | SplitType::ElseBranch => return None,
+        }
+    }
+
+    // move down the tree
+    while &cur_path != next_path {
+        let path_component = &next_path.path()[cur_path.len()];
+
+        match &path_component.splittype {
+            SplitType::Plain => {
+                // just skip these
+            }
+            SplitType::Invoc | SplitType::ForStep(_, _, _) | SplitType::IfCondition(_) => {
+                // enter these unconditionally
+                return Some((
+                    /* next: */ next_path.clone(),
+                    /* elsenext: */ None,
+                ));
+            }
+            SplitType::IfBranch | SplitType::ElseBranch => {
+                unreachable!("requires us to have left an IfCondition, which should have been caught earlier")
+            }
+        }
+
+        cur_path = cur_path.extended(path_component.clone())
+    }
+
+    None
 }

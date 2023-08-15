@@ -150,10 +150,15 @@ impl<'a> CompositionSmtWriter<'a> {
         });
         if *is_split {
             println!("xxxxxx");
-            println!("{:?}", self.split_info);
+            println!("game name: {game_name}");
+            println!("split_info: {:#?}", self.split_info);
         }
 
-        assert_eq!(*is_split, split_info_entry.is_some());
+        assert_eq!(
+            *is_split,
+            split_info_entry.is_some(),
+            "is_split != split_info_entry.is_some. \n\t pkg_inst_name:{pkg_inst_name} \n\t oracle_name:{oracle_name}",
+        );
 
         for stmt in block.0.iter().rev() {
             result = Some(match stmt {
@@ -238,7 +243,6 @@ impl<'a> CompositionSmtWriter<'a> {
 
                             let parent = match next_path.split_type().unwrap() {
                                 SplitType::Plain => "",
-                                SplitType::Phantom => todo!(),
                                 SplitType::Invoc => todo!(),
                                 SplitType::ForStep(_, _, _) => todo!(),
                                 SplitType::IfCondition(_) => todo!(),
