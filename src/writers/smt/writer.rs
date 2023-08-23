@@ -699,7 +699,7 @@ impl<'a> CompositionSmtWriter<'a> {
         entry: &SplitInfoEntry,
         ret_stmt: &Statement,
         old_gamestate: S,
-    ) {
+    ) -> SmtExpr {
         let oracle_name = &oracle_ctx.oracle_def().sig.name;
         let pkg_inst_name = oracle_ctx.pkg_inst_ctx().pkg_inst_name();
 
@@ -716,10 +716,27 @@ impl<'a> CompositionSmtWriter<'a> {
             .map(|next| cur_path.longest_shared_prefix(next));
 
         let shared_prefix_next = match shared_prefix_next {
-            None => return oracle_ctx.smt_access_intermeditate_parent(old_gamestate),
+            None => return oracle_ctx.smt_access_intermediate_parent(old_gamestate),
             Some(x) => x,
         };
 
+        todo!()
+
+        // x <- Foo() ---
+        // ----------   | next
+        // return x   <--
+
+
+        // .../Invoc():
+        //     invoke Oracle
+        //
+        // .../Plain
+        // .../Invoc/...
+        // .../Invoc/...
+        // .../Plain
+
+        
+        
         // We are in a partial function!
         //
         // what now?

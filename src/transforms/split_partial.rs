@@ -625,7 +625,7 @@ fn transform_codeblock(
                     })
                     .unwrap();
 
-                let (_, _, last_sig) = splits.last().unwrap();
+                let (_, last_splitpath, last_sig) = splits.last().unwrap();
 
                 result.extend(splits.into_iter().take(splits.len() - 1).map(
                     |(loopvars, splitpath, OracleSig { name, .. })| {
@@ -648,9 +648,12 @@ fn transform_codeblock(
                     },
                 ));
 
+                let mut newpath =
+                    prefix.extended(mk_single_split_path_component(SplitType::Invoc));
+                newpath.path.extend(last_splitpath.path.clone());
                 result.push((
                     loopvars.clone(),
-                    prefix.extended(mk_single_split_path_component(SplitType::Invoc)),
+                    newpath, 
                     CodeBlock(vec![Statement::InvokeOracle {
                         id: id.clone(),
                         opt_idx: opt_idx.clone(),

@@ -120,6 +120,23 @@ impl<'a> OracleContext<'a> {
             .into()
     }
 
+    pub(crate) fn smt_access_intermediate_parent<IS: Into<SmtExpr>>(
+        &self,
+        old_gamestate: IS
+    ) -> SmtExpr {
+        let game = self.game_ctx.game;
+        let inst = &game.pkgs[self.inst_offs];
+        let odef = &inst.pkg.oracles[self.oracle_offs];
+
+        let game_name = &game.name;
+        let oracle_name = &odef.sig.name;
+        
+        (
+            names::intermediate_state_selector_parent(game_name, oracle_name),
+            old_gamestate
+        ).into()
+    }
+    
     pub(crate) fn smt_construct_next_intermediate_state<IS: Into<SmtExpr> + std::fmt::Debug>(
         &self,
         split_info: &SplitInfo,
