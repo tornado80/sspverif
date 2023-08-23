@@ -3,7 +3,7 @@ use crate::identifier::Identifier;
 use crate::package::{Composition, OracleDef, OracleSig, PackageInstance};
 use crate::statement::{CodeBlock, Statement};
 use crate::transforms::samplify::SampleInfo;
-use crate::transforms::split_partial::{SplitInfo, SplitType};
+use crate::transforms::split_partial::{SplitInfo, SplitInfoEntry, SplitType};
 use crate::types::Type;
 
 use crate::writers::smt::exprs::{smt_to_string, SmtExpr, SmtIte, SmtLet};
@@ -229,6 +229,44 @@ impl<'a> CompositionSmtWriter<'a> {
                      */
 
                     let new_gamestate = if let Some(entry) = split_info_entry {
+                        // We are in a partial function!
+                        //
+                        // what now?
+                        // -> construct next partial state!
+                        //    what is the next parent?
+                        //    enter function: push!
+                        //    leave function: pop!
+                        //    else:           copy!
+                        //
+                        // complications:
+                        // - next or elsenext?
+                        // - what if we leave multiple functions at once?
+                        //   - this can't happen: after an invoc there definitely is a plain block
+                        //     with a return statement
+                        //     - TODO: partial_split transform: make sure there the is a return if
+                        //             invoc is last statement
+                        // - we also can't leave and enter at the same time
+                        //
+                        // so: same as determine_next, but return actual smt expression for the
+                        // next partial state?
+                        // - find common prefix path
+                        // - pop path until common prefix
+                        //   - match popped path element
+                        //     - plain: skip
+                        //     - ifcond:
+                        //     - ifbranch
+                        //     - elsebranch
+                        //     - invoc
+                        //     - forstep
+                        // - go down to next
+                        //
+
+
+
+
+
+
+
                         if let Some(next_path) = entry.next() {
                             let (_, parent) = entry.path().basename();
                             if next_path.has_prefix(&parent) {
@@ -240,7 +278,31 @@ impl<'a> CompositionSmtWriter<'a> {
                             }
 
 
-
+                            /*
+                             * problem: `parent` is an empty string, but should
+                             * be the smt expression of the parent intermediate state
+                             *
+                             * possible outputs:
+                             * - our parent (we stay at current level)
+                             * - our grandparent (we move up the stack )
+                             * - 
+                             *
+                             * /forstep -- parent: /
+                             * /invoc:foo/forstepi123/plain -- parent invoc:foo
+                             * /invoc:foo/plain -- 
+                             *
+                             * ---
+                             *
+                             * what do we use the stack for?
+                             *
+                             * - Christoph's claim:
+                             *   "the stack is only used for oracle invocations"
+                             *
+                             * - Jan's intuition:
+                             *   "at every step between partial functions, we "
+                             * 
+                             *
+                             * */
                             let parent = match next_path.split_type().unwrap() {
                                 SplitType::Plain => "",
                                 SplitType::Invoc => todo!(),
@@ -250,8 +312,12 @@ impl<'a> CompositionSmtWriter<'a> {
                                 SplitType::ElseBranch => todo!(),
                             };
 
-                            let new_intermediate_state = oracle_context.smt_construct_next_intermediate_state(self.split_info, parent).unwrap();
-                            let new_gamestate = game_context.smt_update_gamestate_intermediate_state(new_gamestate, self.sample_info, new_intermediate_state).unwrap();
+                            let new_intermediate_state =
+                                oracle_context
+                                .smt_construct_next_intermediate_state(self.split_info, parent).unwrap();
+                            let new_gamestate =
+                                game_context
+                                .smt_update_gamestate_intermediate_state(new_gamestate, self.sample_info, new_intermediate_state).unwrap();
                             new_gamestate
                         } else {
                             new_gamestate
@@ -626,6 +692,65 @@ impl<'a> CompositionSmtWriter<'a> {
             });
         }
         result.unwrap()
+    }
+
+    fn smt_next_gamestate<S: Into<SmtExpr>>(
+        oracle_ctx: &OracleContext,
+        entry: &SplitInfoEntry,
+        ret_stmt: &Statement,
+        old_gamestate: S,
+    ) {
+        let oracle_name = &oracle_ctx.oracle_def().sig.name;
+        let pkg_inst_name = oracle_ctx.pkg_inst_ctx().pkg_inst_name();
+
+        let mut cur_path = entry.path();
+
+        // we need to figure out the gamestates for both next and elsenext
+
+        let shared_prefix_next = entry
+            .next()
+            .map(|next| cur_path.longest_shared_prefix(next));
+
+        let shared_prefix_elsenext = entry
+            .elsenext()
+            .map(|next| cur_path.longest_shared_prefix(next));
+
+        let shared_prefix_next = match shared_prefix_next {
+            None => return oracle_ctx.smt_access_intermeditate_parent(old_gamestate),
+            Some(x) => x,
+        };
+
+        // We are in a partial function!
+        //
+        // what now?
+        // -> construct next partial state!
+        //    what is the next parent?
+        //    enter function: push!
+        //    leave function: pop!
+        //    else:           copy!
+        //
+        // complications:
+        // - next or elsenext?
+        // - what if we leave multiple functions at once?
+        //   - this can't happen: after an invoc there definitely is a plain block
+        //     with a return statement
+        //     - TODO: partial_split transform: make sure there the is a return if
+        //             invoc is last statement
+        // - we also can't leave and enter at the same time
+        //
+        // so: same as determine_next, but return actual smt expression for the
+        // next partial state?
+        // - find common prefix path
+        // - pop path until common prefix
+        //   - match popped path element
+        //     - plain: skip
+        //     - ifcond:
+        //     - ifbranch
+        //     - elsebranch
+        //     - invoc
+        //     - forstep
+        // - go down to next
+        //
     }
 
     /* example

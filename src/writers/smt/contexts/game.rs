@@ -130,20 +130,25 @@ impl<'a> GameContext<'a> {
     }
 
     pub(crate) fn smt_declare_intermediate_state_enum(&self, splitinfo: &SplitInfo) -> SmtExpr {
+        let game_name = &self.game().name;
+
         declare::declare_datatype(
             &names::intermediate_state_sort_name(&self.game.name),
             splitinfo
                 .iter()
                 .map(|info_entry| {
                     (
-                        info_entry.path().smt_name(),
+                        names::intermediate_state_constructor(
+                            game_name,
+                            &info_entry.path().smt_name(),
+                        ),
                         info_entry
                             .locals()
                             .iter()
                             .map(|(localname, localtype)| {
                                 (
                                     names::intermediate_state_selector_local(
-                                        &self.game().name,
+                                        game_name,
                                         &info_entry.path().smt_name(),
                                         localname,
                                     ),
@@ -151,13 +156,22 @@ impl<'a> GameContext<'a> {
                                 )
                             })
                             .chain(vec![(
-                                format!("{}-parent", info_entry.path().smt_name()),
+                                names::intermediate_state_selector_parent(
+                                    game_name,
+                                    &info_entry.path().smt_name(),
+                                ),
                                 names::intermediate_state_sort_name(&self.game.name).into(),
                             )])
                             .collect(),
                     )
                 })
-                .chain(vec![(format!("{}/None", self.game.name), vec![])].into_iter()),
+                .chain(
+                    vec![(
+                        names::intermediate_state_constructor_none(game_name),
+                        vec![],
+                    )]
+                    .into_iter(),
+                ),
         )
         .into()
     }

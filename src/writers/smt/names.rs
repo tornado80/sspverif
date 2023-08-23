@@ -96,12 +96,23 @@ pub(crate) fn intermediate_state_constructor_none(game_name: &str) -> String {
     format!("mk-intermediate-state-{game_name}-none")
 }
 
+pub(crate) fn intermediate_state_constructor(game_name: &str, split_oracle_name: &str) -> String {
+    format!("mk-intermediate-state-{game_name}-{split_oracle_name}")
+}
+
 pub(crate) fn intermediate_state_selector_local(
     game_name: &str,
-    oracle_name: &str,
+    split_oracle_name: &str,
     variable_name: &str,
 ) -> String {
-    format!("intermediate-state-{game_name}-{oracle_name}-local-{variable_name}")
+    format!("intermediate-state-{game_name}-{split_oracle_name}-local-{variable_name}")
+}
+
+pub(crate) fn intermediate_state_selector_parent(
+    game_name: &str,
+    split_oracle_name: &str,
+) -> String {
+    format!("intermediate-state-{game_name}-{split_oracle_name}-parent")
 }
 
 pub(crate) fn var_selfstate_name() -> String {

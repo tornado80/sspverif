@@ -134,7 +134,7 @@ impl SplitPath {
         }
     }
 
-    fn longest_shared_prefix(&self, other: &SplitPath) -> Option<SplitPath> {
+    pub(crate) fn longest_shared_prefix(&self, other: &SplitPath) -> Option<SplitPath> {
         if self.gamename != other.gamename {
             return None;
         }
@@ -328,13 +328,16 @@ impl super::GameTransform for SplitPartial {
                 let oracle_name = &sig.name;
                 let mut oracle_partials: Vec<_> = mapping
                     .iter()
-                    .map(|(_loopvars, path, sig)| SplitInfoEntry {
-                        pkg_inst_name: pkg_inst_name.clone(),
-                        oracle_name: sig.name.clone(),
-                        path: path.clone(),
-                        locals: sig.partial_vars.clone(),
-                        next: None,
-                        elsenext: None,
+                    .map(|(_loopvars, path, sig)| {
+                        println!("QQQQQ {sig:?}");
+                        SplitInfoEntry {
+                            pkg_inst_name: pkg_inst_name.clone(),
+                            oracle_name: sig.name.clone(),
+                            path: path.clone(),
+                            locals: sig.partial_vars.clone(),
+                            next: None,
+                            elsenext: None,
+                        }
                     })
                     .collect();
 
@@ -502,7 +505,14 @@ fn transform_codeblock(
             split_indices.push((i, locals.clone()));
         }
         if let Some((decl_name, decl_type)) = get_declarations(&code.0[i]) {
-            locals.push((decl_name, decl_type));
+            match locals
+                .iter()
+                .position(|(found_name, _)| found_name == &decl_name)
+            {
+                None => locals.push((decl_name, decl_type)),
+                // we already typechecked, so this must hold:
+                Some(idx) => assert_eq!(locals[idx].1, decl_type),
+            };
         }
     }
 

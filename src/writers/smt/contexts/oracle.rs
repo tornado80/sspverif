@@ -120,11 +120,12 @@ impl<'a> OracleContext<'a> {
             .into()
     }
 
-    pub(crate) fn smt_construct_next_intermediate_state<IS: Into<SmtExpr>>(
+    pub(crate) fn smt_construct_next_intermediate_state<IS: Into<SmtExpr> + std::fmt::Debug>(
         &self,
         split_info: &SplitInfo,
         parent: IS,
     ) -> Option<SmtExpr> {
+        let game_name = &self.game_ctx.game.name;
         let pkg_inst_name = self.pkg_inst_ctx().pkg_inst_name();
         let oracle_name = &self.oracle_def().sig.name;
 
@@ -138,11 +139,13 @@ impl<'a> OracleContext<'a> {
             .find(|entry| entry.path() == next_path)
             .unwrap();
 
-        let mut fn_call = vec![next_path.smt_name().into()];
+        let mut fn_call =
+            vec![names::intermediate_state_constructor(game_name, &next_path.smt_name()).into()];
         for (local_name, _local_type) in next_entry.locals() {
             fn_call.push(local_name.clone().into());
         }
 
+        println!("TTTTT {parent:?}");
         fn_call.push(parent.into());
 
         Some(SmtExpr::List(fn_call))
