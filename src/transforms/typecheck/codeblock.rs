@@ -179,6 +179,18 @@ impl TypedCodeBlock {
                                 scope.declare(ident.clone(), t.clone())?;
                             }
                         }
+                    } else {
+                        return Err(TypeCheckError::TypeMismatch(
+                            ErrorLocation::Unknown,
+                            format!(
+                                "calling parse on {:?} of type {:?} which is not a tuple",
+                                expr,
+                                expr_type
+                            ),
+                            Some(expr.clone()),
+                            Type::Empty,
+                            expr_type.clone(),
+                        ));
                     }
                     new_block.push(Statement::Parse(idents.clone(), typed_expr));
                 }
