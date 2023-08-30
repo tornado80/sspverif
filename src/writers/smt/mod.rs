@@ -6,4 +6,5 @@ pub mod expr_expr;
 pub mod contexts;
 pub mod declare;
 pub mod names;
+pub mod partials;
 pub mod sorts;

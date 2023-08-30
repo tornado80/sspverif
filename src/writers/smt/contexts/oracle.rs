@@ -6,9 +6,13 @@ use crate::types::Type;
 use super::super::exprs::SmtExpr;
 use super::super::{declare, names};
 
-use super::{OracleContext, PackageInstanceContext};
+use super::{GameContext, OracleContext, PackageInstanceContext};
 
 impl<'a> OracleContext<'a> {
+    pub fn game_ctx(&self) -> GameContext {
+        self.game_ctx.clone()
+    }
+
     pub fn pkg_inst_ctx(&self) -> PackageInstanceContext {
         PackageInstanceContext {
             game_ctx: self.game_ctx.clone(),

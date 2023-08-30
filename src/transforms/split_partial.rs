@@ -15,9 +15,15 @@ pub enum Error {}
 type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
+pub struct InvocTargetData {
+    pub pkg_inst_name: String,
+    pub oracle_name: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum SplitType {
     Plain,                                       // before anything interesting happens
-    Invoc,                                       // called a child oracle
+    Invoc(InvocTargetData),                      // called a child oracle
     ForStep(Identifier, Expression, Expression), // in a loop
     IfCondition(Expression),
     IfBranch,
@@ -176,11 +182,8 @@ impl SplitPath {
         for component in &self.path {
             write!(
                 result,
-                "{}!{}!{}{:?}/",
-                component.pkginstname,
-                component.oraclename,
-                component.splittype,
-                component.splitrange
+                "{:?}:{}/",
+                component.splitrange, component.splittype,
             )
             .unwrap();
         }
@@ -562,7 +565,8 @@ fn transform_codeblock(
             ))
         }
 
-        match &code.0[split_idx] {
+        let stmt = &code.0[split_idx];
+        match stmt {
             Statement::IfThenElse(cond, ifcode, elsecode) => {
                 result.push((
                     loopvars.clone(),
@@ -618,6 +622,7 @@ fn transform_codeblock(
                 tipe,
                 ..
             } => {
+                let oracle_name = name;
                 let (_, splits) = sig_mapping
                     .iter()
                     .find(|((inst_name, sig), _)| {
@@ -628,9 +633,14 @@ fn transform_codeblock(
                 let (_, last_splitpath, last_sig) = splits.last().unwrap();
 
                 result.extend(splits.into_iter().take(splits.len() - 1).map(
-                    |(loopvars, splitpath, OracleSig { name, .. })| {
-                        let mut newpath =
-                            prefix.extended(mk_single_split_path_component(SplitType::Invoc));
+                    |(loopvars, splitpath, name)| {
+                        let invoc_target_data = InvocTargetData {
+                            pkg_inst_name: target_inst_name.to_string(),
+                            oracle_name: oracle_name.to_string(),
+                        };
+                        let mut newpath = prefix.extended(mk_single_split_path_component(
+                            SplitType::Invoc(invoc_target_data),
+                        ));
                         newpath.path.extend(splitpath.path.clone());
                         (
                             loopvars.clone(),
@@ -648,12 +658,18 @@ fn transform_codeblock(
                     },
                 ));
 
-                let mut newpath =
-                    prefix.extended(mk_single_split_path_component(SplitType::Invoc));
+                let invoc_target_data = InvocTargetData {
+                    pkg_inst_name: target_inst_name.to_string(),
+                    oracle_name: oracle_name.to_string(),
+                };
+
+                let mut newpath = prefix.extended(mk_single_split_path_component(
+                    SplitType::Invoc(invoc_target_data),
+                ));
                 newpath.path.extend(last_splitpath.path.clone());
                 result.push((
                     loopvars.clone(),
-                    newpath, 
+                    newpath,
                     CodeBlock(vec![Statement::InvokeOracle {
                         id: id.clone(),
                         opt_idx: opt_idx.clone(),
@@ -889,7 +905,7 @@ fn determine_next(
                     ))),
                 ));
             }
-            SplitType::Invoc => {
+            SplitType::Invoc(_) => {
                 return Some((
                     /* next: */ next_path.clone(),
                     /* elsenext: */ None,
@@ -914,7 +930,7 @@ fn determine_next(
             SplitType::Plain => {
                 // just skip these
             }
-            SplitType::Invoc | SplitType::ForStep(_, _, _) | SplitType::IfCondition(_) => {
+            SplitType::Invoc(_) | SplitType::ForStep(_, _, _) | SplitType::IfCondition(_) => {
                 // enter these unconditionally
                 return Some((
                     /* next: */ next_path.clone(),

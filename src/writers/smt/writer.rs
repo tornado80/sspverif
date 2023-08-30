@@ -305,7 +305,7 @@ impl<'a> CompositionSmtWriter<'a> {
                              * */
                             let parent = match next_path.split_type().unwrap() {
                                 SplitType::Plain => "",
-                                SplitType::Invoc => todo!(),
+                                SplitType::Invoc(_) => todo!(),
                                 SplitType::ForStep(_, _, _) => todo!(),
                                 SplitType::IfCondition(_) => todo!(),
                                 SplitType::IfBranch => todo!(),
