@@ -27,13 +27,12 @@ pub fn mod_prf(params: &HashMap<String, Expression>) -> PackageInstance {
             types: vec![],
             state: vec![],
             imports: vec![],
+            split_oracles: vec![],
             oracles: vec![OracleDef {
-                is_split: false,
                 sig: OracleSig {
                     name: "Eval".to_string(),
                     args: vec![("msg".to_string(), Type::new_bits("*"))],
                     tipe: Type::new_bits("*"),
-                    partial_vars: vec![],
                 },
                 code: block! {
                     Statement::InvokeOracle{

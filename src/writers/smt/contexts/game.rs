@@ -1,9 +1,6 @@
 use crate::{
     package::{Composition, Export},
-    transforms::{
-        samplify::SampleInfo,
-        split_partial::{SplitInfo, SplitInfoEntry},
-    },
+    transforms::{samplify::SampleInfo, split_partial::SplitInfo},
     types::Type,
     writers::smt::{
         declare,
@@ -12,7 +9,7 @@ use crate::{
     },
 };
 
-use super::{GameContext, OracleContext, PackageInstanceContext};
+use super::{GameContext, OracleContext, PackageInstanceContext, SplitOracleContext};
 
 impl<'a> GameContext<'a> {
     pub fn new(game: &'a Composition) -> Self {
@@ -58,6 +55,24 @@ impl<'a> GameContext<'a> {
         };
 
         inst_ctx.oracle_ctx_by_name(oracle_name)
+    }
+
+    pub fn exported_split_oracle_ctx_by_name(
+        &self,
+        oracle_name: &str,
+    ) -> Option<SplitOracleContext<'a>> {
+        let Export(inst_offs, _) = *self
+            .game
+            .exports
+            .iter()
+            .find(|Export(_inst_offs, osig)| osig.name == oracle_name)?;
+
+        let inst_ctx = PackageInstanceContext {
+            game_ctx: self.clone(),
+            inst_offs,
+        };
+
+        inst_ctx.split_oracle_ctx_by_name(oracle_name)
     }
 
     fn consts_except_fns(&self) -> Vec<&'a (String, Type)> {

@@ -1,7 +1,5 @@
 struct ResolveGameInst;
 
-use super::super::GameInstanceTransform;
-
 /*
 impl GameInstanceTransform for ResolveGameInst {
     type Err;

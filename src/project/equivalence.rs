@@ -1,11 +1,11 @@
-use crate::package::{Composition, Export, OracleDef};
-use crate::proof::{Named, Proof, Resolver, SliceResolver};
+use crate::package::{Composition, Export};
+use crate::proof::{Proof, Resolver, SliceResolver};
 use crate::transforms::proof_transforms::EquivalenceTransform;
 use crate::transforms::samplify::SampleInfo;
 use crate::transforms::split_partial::SplitInfo;
 use crate::transforms::ProofTransform;
 use crate::util::prover_process::{Communicator, ProverResponse};
-use crate::writers::smt::contexts::GameContext;
+use crate::writers::smt::contexts::{GameContext, GenericOracleContext};
 use crate::writers::smt::exprs::{SmtAnd, SmtAssert, SmtEq2, SmtExpr, SmtImplies, SmtNot};
 use crate::writers::smt::writer::CompositionSmtWriter;
 use crate::writers::smt::{contexts, declare};
@@ -18,7 +18,6 @@ use crate::{
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Write};
 use std::fs::File;
-use std::io::Write as IOWrite;
 use std::iter::FromIterator;
 
 //use serde_derive::{Deserialize, Serialize};
@@ -260,20 +259,29 @@ impl<'a> ProverThingy<'a> {
 
         // write declarations of arguments for the exports in left
         for Export(_, sig) in &left.as_game().exports {
-            let orcl_ctx = gctx_left.exported_oracle_ctx_by_name(&sig.name).unwrap();
-            for (arg_name, arg_type) in &sig.args {
-                out.push(declare::declare_const(
-                    orcl_ctx.smt_arg_name(arg_name),
-                    arg_type,
-                ));
+            if let Some(orcl_ctx) = gctx_left.exported_oracle_ctx_by_name(&sig.name) {
+                for (arg_name, arg_type) in &sig.args {
+                    out.push(declare::declare_const(
+                        orcl_ctx.smt_arg_name(arg_name),
+                        arg_type,
+                    ));
+                }
+            }
+
+            if let Some(orcl_ctx) = gctx_left.exported_split_oracle_ctx_by_name(&sig.name) {
+                for (arg_name, arg_type) in &sig.args {
+                    out.push(declare::declare_const(
+                        orcl_ctx.smt_arg_name(arg_name),
+                        arg_type,
+                    ));
+                }
             }
         }
 
         // write declarations of arguments for the split of the right.
         // these have to be added separately, and have already been added through left's loop
         for Export(_, sig) in &right.as_game().exports {
-            let orcl_ctx = gctx_right.exported_oracle_ctx_by_name(&sig.name).unwrap();
-            if orcl_ctx.oracle_def().is_split {
+            if let Some(orcl_ctx) = gctx_right.exported_split_oracle_ctx_by_name(&sig.name) {
                 for (arg_name, arg_type) in &sig.args {
                     out.push(declare::declare_const(
                         orcl_ctx.smt_arg_name(arg_name),

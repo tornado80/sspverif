@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use crate::{
     expressions::Expression,
     package::{Composition, Package},

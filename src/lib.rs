@@ -4,6 +4,7 @@ extern crate pest_derive;
 pub mod expressions;
 pub mod identifier;
 pub mod package;
+pub mod split;
 pub mod statement;
 pub mod types;
 

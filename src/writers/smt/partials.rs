@@ -1,7 +1,10 @@
-use crate::transforms::split_partial::{InvocTargetData, SplitPath, SplitType};
+use std::collections::HashMap;
+
+use crate::split::{InvocTargetData, SplitPath, SplitType};
+use crate::transforms::split_partial::SplitInfo;
 use crate::{package::OracleSig, types::Type};
 
-use super::contexts::OracleContext;
+use super::contexts::PackageInstanceContext;
 use super::exprs::{SmtAnd, SmtEq2, SmtIte};
 use super::{declare::declare_datatype, exprs::SmtExpr};
 
@@ -81,14 +84,15 @@ fn partial_function_arg_intermediate_state_name() -> String {
 
 #[derive(Debug, Clone)]
 struct DatatypeDefinition {
-    sort_name: String,
-    constructors: Vec<(String, Vec<(String, SmtExpr)>)>,
+    pub sort_name: String,
+    pub constructors: Vec<(String, Vec<(String, SmtExpr)>)>,
 }
 
 #[derive(Debug, Clone)]
 pub(crate) struct PartialsDatatype {
-    real_oracle_sig: OracleSig,
-    partial_steps: Vec<PartialStep>,
+    pub pkg_inst_name: String,
+    pub real_oracle_sig: OracleSig,
+    pub partial_steps: Vec<PartialStep>,
 }
 
 #[derive(Debug, Clone)]
@@ -108,6 +112,33 @@ pub(crate) struct OraclePartSplitInfo {
     partial_oracle_sig: OracleSig,
     locals: Vec<(String, Type)>,
     invocation_target: Option<SmtExpr>,
+}
+
+pub(crate) fn into_partial_dtypes(splits: &SplitInfo) -> Vec<PartialsDatatype> {
+    let mut map: HashMap<_, Vec<_>> = HashMap::new();
+
+    for entry in splits {
+        map.entry(entry.original_sig()).or_default().push(entry);
+    }
+
+    let mut out = vec![];
+
+    for (real_oracle_sig, entries) in map {
+        let partials_dt = PartialsDatatype {
+            pkg_inst_name: entries[0].pkg_inst_name().to_string(),
+            real_oracle_sig: real_oracle_sig.clone(),
+            partial_steps: entries
+                .iter()
+                .map(|entry| PartialStep {
+                    path: entry.path().clone(),
+                    locals: entry.locals().clone(),
+                })
+                .collect(),
+        };
+        out.push(partials_dt);
+    }
+
+    out
 }
 
 impl PartialStep {
@@ -321,14 +352,67 @@ impl<'a> NameMapper for MatchBlockMapper<'a> {
  *
  * */
 
-impl<'a> OracleContext<'a> {
-    fn smt_declare_intermediate_state(&self, datatype: &PartialsDatatype) -> SmtExpr {
+use super::patterns::*;
+
+struct SmtDefineFunction<B: Into<SmtExpr>> {
+    name: String,
+    args: Vec<(String, SmtExpr)>,
+    ret_sort: SmtExpr,
+    body: B,
+}
+
+impl<B: Into<SmtExpr>> Into<SmtExpr> for SmtDefineFunction<B> {
+    fn into(self) -> SmtExpr {
+        (
+            "define-fun",
+            self.name,
+            {
+                let args: Vec<_> = self
+                    .args
+                    .into_iter()
+                    .map(|arg_spec| arg_spec.into())
+                    .collect();
+
+                SmtExpr::List(args)
+            },
+            self.ret_sort,
+            self.body,
+        )
+            .into()
+    }
+}
+
+impl<'a> PackageInstanceContext<'a> {
+    pub(crate) fn smt_declare_intermediate_state(&self, datatype: &PartialsDatatype) -> SmtExpr {
         let game_ctx = self.game_ctx();
         let game_name = &game_ctx.game().name;
-        let pkg_inst_name = &self.pkg_inst_ctx().pkg_inst_name();
-        let oracle_name = &self.oracle_def().sig.name;
+        let pkg_inst_name = &self.pkg_inst_name();
+        let oracle_name = &datatype.real_oracle_sig.name;
 
         let sort_name = intermediate_state_piece_sort_name(game_name, pkg_inst_name, oracle_name);
+
+        let intermediate_state_begin_pattern = DatastructurePattern::IntermediateState {
+            game_name,
+            pkg_inst_name,
+            oracle_name,
+            variant_name: DatastructurePattern::CONSTRUCTOR_INTERMEDIATE_STATE_BEGIN,
+        };
+
+        let intermediate_state_end_pattern = DatastructurePattern::IntermediateState {
+            game_name,
+            pkg_inst_name,
+            oracle_name,
+            variant_name: DatastructurePattern::CONSTRUCTOR_INTERMEDIATE_STATE_END,
+        };
+
+        let last_step = datatype.partial_steps.last().unwrap();
+        // path x oracle name x pkg_inst_ctx -> oracle_def
+        let return_pattern = DatastructurePattern::Return {
+            game_name,
+            pkg_inst_name,
+            oracle_name,
+            is_abort: false,
+        };
 
         let constructors = DeclareDatatypeNameMapper {
             game_name,
@@ -337,10 +421,24 @@ impl<'a> OracleContext<'a> {
         }
         .map(&datatype);
 
-        declare_datatype(&sort_name, constructors.into_iter())
-    }
+        let begin_constructor = (intermediate_state_begin_pattern.constructor_name(), vec![]);
+        let end_constructor = (
+            intermediate_state_end_pattern.constructor_name(),
+            vec![(
+                intermediate_state_end_pattern.selector_name(
+                    DatastructurePattern::SELECTOR_INTERMEDIATE_STATE_END_RETURN_VALUE,
+                ),
+                return_pattern.sort_name().into(),
+            )],
+        );
 
-    //fn smt_match_patterns(&self, datatype: &partialsDatatype) -> Vec<(String, SmtExpr)>
+        declare_datatype(
+            &sort_name,
+            constructors
+                .into_iter()
+                .chain(vec![begin_constructor, end_constructor].into_iter()),
+        )
+    }
 
     fn check_args_are_honest<B: Into<SmtExpr>>(&self, args: &[(String, Type)], body: B) -> SmtExpr {
         if args.is_empty() {
@@ -369,20 +467,26 @@ impl<'a> OracleContext<'a> {
     ) -> SmtExpr {
         let game_ctx = self.game_ctx();
         let game_name = &game_ctx.game().name;
-        let pkg_inst_name = &self.pkg_inst_ctx().pkg_inst_name();
-        let oracle_name = &self.oracle_def().sig.name;
+        let pkg_inst_name = &self.pkg_inst_name();
+        let oracle_name = &datatype.real_oracle_sig.name;
         let name_mapper = MatchBlockMapper {
             game_name,
             pkg_inst_name,
             oracle_name,
         };
 
+        let function_pattern = FunctionPattern::DispatchOracle {
+            game_name,
+            pkg_inst_name,
+            oracle_sig: &datatype.real_oracle_sig,
+        };
+
         let mut cases: Vec<SmtMatchCase<_>> = vec![];
 
         for ((cons, fun), sels) in &name_mapper.map(datatype) {
-            let if_body = if let Some(oracle_fun_name) = fun {
+            let dispatch_call = if let Some(oracle_fun_name) = fun {
                 let mut call: Vec<SmtExpr> = vec![oracle_fun_name.clone().into()];
-                call.extend(sels.iter().map(|x| x.clone().into()));
+                call.extend(sels.clone().into_iter().map(|x| x.into()));
                 SmtExpr::List(call)
             } else {
                 // create new return
@@ -396,15 +500,20 @@ impl<'a> OracleContext<'a> {
             let case = SmtMatchCase {
                 constructor: cons.clone(),
                 args: sels.clone(),
-                body: self.check_args_are_honest(oracle_args, if_body),
+                body: self.check_args_are_honest(oracle_args, dispatch_call),
             };
 
             cases.push(case);
         }
 
-        SmtMatch {
-            expr: partial_function_arg_intermediate_state_name(),
-            cases,
+        SmtDefineFunction {
+            name: function_pattern.function_name(),
+            args: function_pattern.function_argspec(),
+            ret_sort: function_pattern.function_return_sort_name().into(),
+            body: SmtMatch {
+                expr: partial_function_arg_intermediate_state_name(),
+                cases,
+            },
         }
         .into()
     }

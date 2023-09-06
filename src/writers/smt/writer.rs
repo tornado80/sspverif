@@ -3,12 +3,15 @@ use crate::identifier::Identifier;
 use crate::package::{Composition, OracleDef, OracleSig, PackageInstance};
 use crate::statement::{CodeBlock, Statement};
 use crate::transforms::samplify::SampleInfo;
-use crate::transforms::split_partial::{SplitInfo, SplitInfoEntry, SplitType};
+use crate::transforms::split_partial::{SplitInfo, SplitInfoEntry};
 use crate::types::Type;
 
 use crate::writers::smt::exprs::{smt_to_string, SmtExpr, SmtIte, SmtLet};
+use crate::writers::smt::partials::into_partial_dtypes;
 
-use super::contexts::{GameContext, GlobalContext, OracleContext, PackageInstanceContext};
+use super::contexts::{
+    GameContext, GenericOracleContext, GlobalContext, OracleContext, PackageInstanceContext,
+};
 use super::exprs::{SmtAs, SmtEq2};
 use super::{names, sorts};
 
@@ -126,7 +129,6 @@ impl<'a> CompositionSmtWriter<'a> {
             name: inst_name, ..
         } = inst;
         let OracleDef {
-            is_split,
             sig:
                 OracleSig {
                     tipe: oracle_return_tipe,
@@ -137,6 +139,8 @@ impl<'a> CompositionSmtWriter<'a> {
         } = odef;
 
         let game_context = self.get_game_context();
+        let inst_ctx = self.get_package_instance_context(&inst.name).unwrap();
+        let oracle_ctx = self.get_oracle_context(&inst.name, oracle_name).unwrap();
         let oracle_context = self.get_oracle_context(&inst.name, &oracle_name).unwrap();
 
         let game_name = &game_context.game().name;
@@ -148,17 +152,18 @@ impl<'a> CompositionSmtWriter<'a> {
         let split_info_entry = self.split_info.iter().find(|entry| {
             entry.pkg_inst_name() == pkg_inst_name && entry.oracle_name() == oracle_name
         });
-        if *is_split {
-            println!("xxxxxx");
-            println!("game name: {game_name}");
-            println!("split_info: {:#?}", self.split_info);
-        }
 
-        assert_eq!(
-            *is_split,
-            split_info_entry.is_some(),
-            "is_split != split_info_entry.is_some. \n\t pkg_inst_name:{pkg_inst_name} \n\t oracle_name:{oracle_name}",
-        );
+        // if *is_split {
+        //     println!("xxxxxx");
+        //     println!("game name: {game_name}");
+        //     println!("split_info: {:#?}", self.split_info);
+        // }
+        //
+        // assert_eq!(
+        //     *is_split,
+        //     split_info_entry.is_some(),
+        //     "is_split != split_info_entry.is_some. \n\t pkg_inst_name:{pkg_inst_name} \n\t oracle_name:{oracle_name}",
+        // );
 
         for stmt in block.0.iter().rev() {
             result = Some(match stmt {
@@ -171,311 +176,22 @@ impl<'a> CompositionSmtWriter<'a> {
                 Statement::For(_, _, _, _) => unreachable!("found a for statement in the smt writer stage. this should have been eliminated by now and can't be handled here. {}.{}({}).{}", self.comp.name, inst_name, inst.pkg.name, oracle_name),
                 Statement::Return(None) => {
                     // (mk-return-{name} statevarname expr)
-                    let var_gamestates = names::var_globalstate_name();
-                    let old_gamestate = GlobalContext::smt_latest_gamestate();
-                    let var_selfstate = names::var_selfstate_name();
-                    let new_gamestate = game_context
-                        .smt_update_gamestate_pkgstate(
-                            old_gamestate,
-                            self.sample_info,
-                            &inst.name,
-                            var_selfstate,
-                        )
-                        .unwrap();
-
-
-                    /* TODO: for parent we need to do one of the following things:
-                     *
-                     * Claim by Christoph: same as below but we *need*
-                     * to ignore for/if: it should be possible to
-                     * *write* variables that already exist outside
-                     * (so we can't discard updates from within the
-                     * loop)
-                     * 
-                     * i <- 3
-                     * for ...
-                     *   i <- 5
-                     * i // should be 5
-                     *
-                     * and while *local* variables from within the
-                     * loops should be gone, the typechecker should
-                     * have made sure no unallowerd access happens.
-                     *
-                     * Jan's clean solution would be to *copy* the new
-                     * values selectively and indeed have a separate
-                     * scope for for/if/..
-                     *
-                     **********************************************
-                     * Old understanding
-                     *
-                     * - if we *invoke* an oracle we need to put our
-                     *   *current*, updated state in the parent and
-                     *   create an *empty* intermediate state for the
-                     *   child
-                     *
-                     * - if we *return* from an oracle we need to
-                     *   discard the current intermediate state and
-                     *   restore parent
-                     *
-                     * - same for entering/leaving for loops (though
-                     *   not an empty new state) -- should match the
-                     *   type checker and maybe also be added to the
-                     *   (user facing) documentation
-                     *   Detection: (else)next is a ForStep/.. and
-                     *              shares parent with the current
-                     *              state
-                     *
-                     * - what about ifs?
-                     */
-
-                    let new_gamestate = if let Some(entry) = split_info_entry {
-                        // We are in a partial function!
-                        //
-                        // what now?
-                        // -> construct next partial state!
-                        //    what is the next parent?
-                        //    enter function: push!
-                        //    leave function: pop!
-                        //    else:           copy!
-                        //
-                        // complications:
-                        // - next or elsenext?
-                        // - what if we leave multiple functions at once?
-                        //   - this can't happen: after an invoc there definitely is a plain block
-                        //     with a return statement
-                        //     - TODO: partial_split transform: make sure there the is a return if
-                        //             invoc is last statement
-                        // - we also can't leave and enter at the same time
-                        //
-                        // so: same as determine_next, but return actual smt expression for the
-                        // next partial state?
-                        // - find common prefix path
-                        // - pop path until common prefix
-                        //   - match popped path element
-                        //     - plain: skip
-                        //     - ifcond:
-                        //     - ifbranch
-                        //     - elsebranch
-                        //     - invoc
-                        //     - forstep
-                        // - go down to next
-                        //
-
-
-
-
-
-
-
-                        if let Some(next_path) = entry.next() {
-                            let (_, parent) = entry.path().basename();
-                            if next_path.has_prefix(&parent) {
-                                if matches!(next_path.path()[parent.len()].split_type(),
-                                            SplitType::ForStep(_,_,_)) {
-                                    // We are about to enter a for loop!
-                                    // parent is current intermediate state
-                                }
-                            }
-
-
-                            /*
-                             * problem: `parent` is an empty string, but should
-                             * be the smt expression of the parent intermediate state
-                             *
-                             * possible outputs:
-                             * - our parent (we stay at current level)
-                             * - our grandparent (we move up the stack )
-                             * - 
-                             *
-                             * /forstep -- parent: /
-                             * /invoc:foo/forstepi123/plain -- parent invoc:foo
-                             * /invoc:foo/plain -- 
-                             *
-                             * ---
-                             *
-                             * what do we use the stack for?
-                             *
-                             * - Christoph's claim:
-                             *   "the stack is only used for oracle invocations"
-                             *
-                             * - Jan's intuition:
-                             *   "at every step between partial functions, we "
-                             * 
-                             *
-                             * */
-                            let parent = match next_path.split_type().unwrap() {
-                                SplitType::Plain => "",
-                                SplitType::Invoc(_) => todo!(),
-                                SplitType::ForStep(_, _, _) => todo!(),
-                                SplitType::IfCondition(_) => todo!(),
-                                SplitType::IfBranch => todo!(),
-                                SplitType::ElseBranch => todo!(),
-                            };
-
-                            let new_intermediate_state =
-                                oracle_context
-                                .smt_construct_next_intermediate_state(self.split_info, parent).unwrap();
-                            let new_gamestate =
-                                game_context
-                                .smt_update_gamestate_intermediate_state(new_gamestate, self.sample_info, new_intermediate_state).unwrap();
-                            new_gamestate
-                        } else {
-                            new_gamestate
-                        }
-                    }  else {
-                        new_gamestate
-                    };
-
-                    let some_empty = ("mk-some", "mk-empty");
-                    let var_state_len = names::var_state_length_name();
-                    let body = oracle_context.smt_construct_return(
-                        var_gamestates,
-                        var_state_len,
-                        some_empty,
-                        "false",
-                    );
-
-                    game_context.smt_push_global_gamestate(new_gamestate, body)
+                    self.smt_build_return_none(&oracle_ctx, result)
                 }
                 Statement::Return(Some(expr)) => {
                     // (mk-return-{name} statevarname expr)
-
-                    let var_gamestates = names::var_globalstate_name();
-                    let old_gamestate = GlobalContext::smt_latest_gamestate();
-                    let var_selfstate = names::var_selfstate_name();
-                    let new_gamestate = game_context
-                        .smt_update_gamestate_pkgstate(
-                            old_gamestate,
-                            self.sample_info,
-                            &inst.name,
-                            var_selfstate,
-                        )
-                        .unwrap();
-
-                    let var_state_len = names::var_state_length_name();
-                    let body = oracle_context.smt_construct_return(
-                        var_gamestates,
-                        var_state_len,
-                        Expression::Some(Box::new(expr.clone())),
-                        "false",
-                    );
-
-                    game_context.smt_push_global_gamestate(new_gamestate, body)
+                    self.smt_build_return_some(&oracle_ctx, result, expr)
                 }
                 Statement::Abort => {
                     // mk-abort-{name}
-
-                    let var_gamestates = names::var_globalstate_name();
-                    let old_gamestate = GlobalContext::smt_latest_gamestate();
-                    let var_selfstate = names::var_selfstate_name();
-                    let var_state_len = names::var_state_length_name();
-
-                    let new_gamestate = game_context
-                        .smt_update_gamestate_pkgstate(
-                            old_gamestate,
-                            self.sample_info,
-                            &inst.name,
-                            var_selfstate,
-                        )
-                        .unwrap();
-
-                    let none = Expression::None(oracle_return_tipe.clone());
-                    let body = oracle_context.smt_construct_return(
-                        var_gamestates,
-                        var_state_len,
-                        none,
-                        "true",
-                    );
-
-                    game_context.smt_push_global_gamestate(new_gamestate, body)
+                    self.smt_build_abort(&oracle_ctx, result)
                 }
                 // TODO actually use the type that we sample to know how far to advance the randomness tape
                 Statement::Sample(ident, opt_idx, sample_id, tipe) => {
-                    /*
-                     *   1. get counter
-                     *   2. assign ident
-                     *   3. overwrite state
-                     *   4. continue
-                     *
-                     * let
-                     *   ident = sample(ctr)
-                     *   __global = mk-compositionState ( mk-randomndess-state (ctr + 1) ... )
-                     *
-                     *
-                     * ,
-                     *   let (ident = rand(access(counter)) (
-                     *       // TODO update this to the new context-based helpers structure
-                     *       comp_helper.smt_set(counter, counter+1, body)
-                     * ))
-                     * )
-                     *
-                     */
-                    let sample_id = sample_id.expect("found a None sample_id");
-
-                    // ctr is the current "i-th sampling for sample id sample_id"
-                    let ctr = self.get_randomness(sample_id).unwrap_or_else(|| {
-                        let max_known_sample_id = self.sample_info.count;
-                        panic!(
-                            "found sample id {} that exceeds highest expected {}",
-                            sample_id, max_known_sample_id
-                        )
-                    });
-
-                    let rand_fn_name = names::fn_sample_rand_name(&self.comp.name, tipe);
-
-                    let rand_val: SmtExpr =
-                        (rand_fn_name, format!("{sample_id}"), ctr.clone()).into();
-
-                    let new_val = if let Some(idx) = opt_idx {
-                        (
-                            "store",
-                            ident.to_expression(),
-                            idx.clone(),
-                            rand_val.clone(),
-                        )
-                            .into()
-                    } else {
-                        rand_val
-                    };
-
-                    let bindings = vec![(ident.ident(), new_val)]
-                        .into_iter()
-                        .filter(|(x, _)| x != "_")
-                        .collect();
-
-                    let cur_gamestate = GlobalContext::smt_latest_gamestate();
-                    let new_gamestate = game_context
-                        .smt_increment_gamestate_rand(cur_gamestate, self.sample_info, sample_id)
-                        .unwrap();
-
-                    SmtLet {
-                        bindings,
-                        body: game_context
-                            .smt_overwrite_latest_global_gamestate(new_gamestate, result.unwrap()),
-                    }
-                    .into()
+                    self.smt_build_sample(&oracle_ctx, result, ident, opt_idx, sample_id, tipe)
                 }
                 Statement::Parse(idents, expr) => {
-                    let bindings = idents
-                        .iter()
-                        .filter(|ident| ident.ident() != "_")
-                        .enumerate()
-                        .map(|(i, ident)| {
-                            let ident = if let Identifier::Local(ident) = ident {
-                                ident
-                            } else {
-                                unreachable!()
-                            };
-
-                            (ident.clone(), (format!("el{}", i + 1), expr.clone()).into())
-                        })
-                        .collect();
-
-                    SmtLet {
-                        bindings,
-                        body: result.unwrap(),
-                    }
-                    .into()
+                    self.smt_build_parse(&oracle_ctx, result, idents, expr)
                 }
                 Statement::InvokeOracle {
                     target_inst_name: None,
@@ -494,204 +210,422 @@ impl<'a> CompositionSmtWriter<'a> {
                     target_inst_name: Some(target),
                     tipe: Some(_),
                 } => {
-                    println!("target:{target}, oraclename:{name:?}, game_name:{:?}", self.get_game_context().game().name);
-                    println!("taget:{:?}",self.get_package_instance_context(target).unwrap().pkg_inst_name());
-                    println!("taget:{:?}",
-                             self.get_package_instance_context(target).unwrap().pkg_inst().pkg.oracles.iter().map(|OracleDef{sig,..}| sig.name.clone()).collect::<Vec<_>>());
-                    let called_oracle_context = self.get_oracle_context(target, name).unwrap();
-                    let this_oracle_context =
-                        self.get_oracle_context(&inst.name, oracle_name).unwrap();
-
-                    let game_context = self.get_game_context();
-                    let then_body = game_context.smt_push_global_gamestate(
-                        game_context
-                            .smt_update_gamestate_pkgstate(
-                                GlobalContext::smt_latest_gamestate(),
-                                self.sample_info,
-                                &inst.name,
-                                names::var_selfstate_name(),
-                            )
-                            .unwrap(),
-                        this_oracle_context.smt_construct_abort(
-                            names::var_globalstate_name(),
-                            names::var_state_length_name(),
-                        ),
-                    );
-
-                    let let_bindings = vec![
-                        (
-                            names::var_globalstate_name(),
-                            called_oracle_context.smt_access_return_state(names::var_ret_name()),
-                        )
-                            .into(),
-                        (
-                            names::var_state_length_name(),
-                            called_oracle_context
-                                .smt_access_return_state_length(names::var_ret_name()),
-                        )
-                            .into(),
-                    ];
-
-                    let smt_expr = SmtLet {
-                        bindings: vec![(names::var_ret_name(), {
-                            let mut cmdline = vec![
-                                names::oracle_function_name(&self.comp.name, target, name).into(),
-                                names::var_globalstate_name().into(),
-                                names::var_state_length_name().into(),
-                            ];
-
-                            for arg in args {
-                                cmdline.push(arg.clone().into())
-                            }
-
-                            SmtExpr::List(cmdline)
-                        })],
-                        body: SmtIte {
-                            cond: called_oracle_context
-                                .smt_access_return_is_abort(names::var_ret_name()),
-                            then: SmtLet {
-                                bindings: let_bindings.clone(),
-                                body: then_body,
-                            },
-                            els: SmtLet {
-                                bindings: {
-                                    let mut bindings = let_bindings.clone();
-
-                                    if id.ident() != "_" {
-                                        bindings.push((
-                                            id.ident(),
-                                            SmtExpr::List(vec![
-                                                SmtExpr::Atom("maybe-get".into()),
-                                                called_oracle_context
-                                                    .smt_access_return_value(names::var_ret_name()),
-                                            ]),
-                                        ));
-                                    }
-
-                                    bindings
-                                },
-                                body: result.unwrap(),
-                            },
-                        },
-                    };
-
-                    if opt_idx.is_some() {
-                        (
-                            "store",
-                            id.to_expression(),
-                            opt_idx.clone().unwrap(),
-                            smt_expr,
-                        )
-                            .into()
-                    } else {
-                        smt_expr.into()
-                    }
+                    self.smt_build_invoke(&oracle_ctx, result, id, opt_idx, name, args, target)
                 }
                 Statement::Assign(ident, opt_idx, expr) => {
-                    let inst_context = self.get_package_instance_context(&inst.name).unwrap();
-                    let oracle_context = self.get_oracle_context(&inst.name, oracle_name).unwrap();
-
-                    let (t, inner) = if let Expression::Typed(t, i) = expr {
-                        (t.clone(), *i.clone())
-                    } else {
-                        unreachable!("we expect that this is typed")
-                    };
-
-                    //eprintln!(r#"DEBUG code_smt_helper Assign {expr:?} to identifier {ident:?}")"#);
-
-                    // first build the unwrap expression, if we have to
-                    let outexpr = if let Expression::Unwrap(inner) = &inner {
-                        ("maybe-get", *inner.clone()).into()
-                    } else {
-                        expr.clone().into() // TODO maybe this should be inner??
-                    };
-
-                    // then build the table store smt expression, in case we have to
-                    let outexpr = if let Some(idx) = opt_idx {
-                        let oldvalue = match &ident {
-                            &Identifier::State {
-                                name,
-                                ..
-                            } => {
-                                //assert_eq!(pkgname, inst_name, "failed assertion: in an oracle in instance {inst_name} I found a state identifier with {pkgname}. I assumed these would always be equal.");
-                                inst_context
-                                    .smt_access_pkgstate(names::var_selfstate_name(), name)
-                                    .unwrap()
-                            }
-                            Identifier::Local(_) => ident.to_expression().into(),
-                            _ => {
-                                unreachable!("")
-                            }
-                        };
-
-                        ("store", oldvalue, idx.clone(), outexpr).into()
-                    } else {
-                        outexpr
-                    };
-
-                    // build the actual smt assignment
-                    let smtout = match ident {
-                        Identifier::State {
-                            name,
-                            ..
-                        } => {
-                            //assert_eq!(pkgname, inst_name, "failed assertion: in an oracle in instance {inst_name} I found a state identifier with {pkgname}. I assumed these would always be equal.");
-                            SmtLet {
-                                bindings: vec![(
-                                    names::var_selfstate_name(),
-                                    inst_context
-                                        .smt_update_pkgstate(
-                                            names::var_selfstate_name(),
-                                            name,
-                                            outexpr,
-                                        )
-                                        .unwrap()
-                                        .into(),
-                                )],
-                                body: result.unwrap(),
-                            }
-                        }
-
-                        Identifier::Local(name) => SmtLet {
-                            bindings: vec![(name.clone(), outexpr)]
-                                .into_iter()
-                                .filter(|(name, _)| name != "_:")
-                                .collect(),
-                            body: result.unwrap(),
-                        },
-
-                        _ => {
-                            unreachable!("can't assign to {:#?}", ident)
-                        }
-                    };
-
-                    // if it's an unwrap, also wrap it with the unwrap check.
-                    // TODO: are we sure we don't want to deconstruct `inner` here?
-                    // it seems impossible to me that expr ever matches here,
-                    // because above we make sure it's an Expression::Typed.
-                    if let Expression::Unwrap(inner) = inner {
-                        SmtIte {
-                            cond: SmtEq2 {
-                                lhs: *inner.clone(),
-                                rhs: SmtAs {
-                                    name: "mk-none".into(),
-                                    tipe: Type::Maybe(Box::new(t)),
-                                },
-                            },
-                            then: oracle_context.smt_construct_abort(
-                                names::var_globalstate_name(),
-                                names::var_state_length_name(),
-                            ),
-                            els: smtout,
-                        }
-                        .into()
-                    } else {
-                        smtout.into()
-                    }
+                    self.smt_build_assign(&oracle_ctx, result, ident, opt_idx, expr)
                 }
             });
         }
         result.unwrap()
+    }
+
+    fn smt_build_return_none<OCTX: GenericOracleContext>(
+        &self,
+        oracle_ctx: &OCTX,
+        result: Option<SmtExpr>,
+    ) -> SmtExpr {
+        let game_ctx = oracle_ctx.game_ctx();
+        let inst = oracle_ctx.pkg_inst_ctx().pkg_inst();
+        let var_gamestates = names::var_globalstate_name();
+        let old_gamestate = GlobalContext::smt_latest_gamestate();
+        let var_selfstate = names::var_selfstate_name();
+        let new_gamestate = game_ctx
+            .smt_update_gamestate_pkgstate(
+                old_gamestate,
+                self.sample_info,
+                &inst.name,
+                var_selfstate,
+            )
+            .unwrap();
+
+        let some_empty = ("mk-some", "mk-empty");
+        let var_state_len = names::var_state_length_name();
+        let body = oracle_ctx.smt_construct_return(var_gamestates, var_state_len, some_empty);
+
+        game_ctx.smt_push_global_gamestate(new_gamestate, body)
+    }
+
+    fn smt_build_return_some<OCTX: GenericOracleContext>(
+        &self,
+        oracle_ctx: &OCTX,
+        result: Option<SmtExpr>,
+        expr: &Expression,
+    ) -> SmtExpr {
+        let game_ctx = oracle_ctx.game_ctx();
+        let inst = oracle_ctx.pkg_inst_ctx().pkg_inst();
+
+        let var_gamestates = names::var_globalstate_name();
+        let old_gamestate = GlobalContext::smt_latest_gamestate();
+        let var_selfstate = names::var_selfstate_name();
+        let new_gamestate = game_ctx
+            .smt_update_gamestate_pkgstate(
+                old_gamestate,
+                self.sample_info,
+                &inst.name,
+                var_selfstate,
+            )
+            .unwrap();
+
+        let var_state_len = names::var_state_length_name();
+        let body = oracle_ctx.smt_construct_return(
+            var_gamestates,
+            var_state_len,
+            Expression::Some(Box::new(expr.clone())),
+        );
+
+        game_ctx.smt_push_global_gamestate(new_gamestate, body)
+    }
+
+    fn smt_build_abort<OCTX: GenericOracleContext>(
+        &self,
+        oracle_ctx: &OCTX,
+        result: Option<SmtExpr>,
+    ) -> SmtExpr {
+        let game_ctx = oracle_ctx.game_ctx();
+        let inst = oracle_ctx.pkg_inst_ctx().pkg_inst();
+        let oracle_return_type = oracle_ctx.oracle_return_type();
+
+        let var_gamestates = names::var_globalstate_name();
+        let old_gamestate = GlobalContext::smt_latest_gamestate();
+        let var_selfstate = names::var_selfstate_name();
+        let var_state_len = names::var_state_length_name();
+
+        let new_gamestate = game_ctx
+            .smt_update_gamestate_pkgstate(
+                old_gamestate,
+                self.sample_info,
+                &inst.name,
+                var_selfstate,
+            )
+            .unwrap();
+
+        let none = Expression::None(oracle_return_type.clone());
+        let body = oracle_ctx.smt_construct_abort(var_gamestates, var_state_len);
+
+        game_ctx.smt_push_global_gamestate(new_gamestate, body)
+    }
+
+    /*
+     *   1. get counter
+     *   2. assign ident
+     *   3. overwrite state
+     *   4. continue
+     *
+     * let
+     *   ident = sample(ctr)
+     *   __global = mk-compositionState ( mk-randomndess-state (ctr + 1) ... )
+     *
+     *
+     * ,
+     *   let (ident = rand(access(counter)) (
+     *       // TODO update this to the new context-based helpers structure
+     *       comp_helper.smt_set(counter, counter+1, body)
+     * ))
+     * )
+     *
+     */
+
+    fn smt_build_sample<OCTX: GenericOracleContext>(
+        &self,
+        oracle_ctx: &OCTX,
+        result: Option<SmtExpr>,
+        ident: &Identifier,
+        opt_idx: &Option<Expression>,
+        sample_id: &Option<usize>,
+        tipe: &Type,
+    ) -> SmtExpr {
+        let sample_id = sample_id.expect("found a None sample_id");
+        let game_ctx = oracle_ctx.game_ctx();
+        // ctr is the current "i-th sampling for sample id sample_id"
+        let ctr = self.get_randomness(sample_id).unwrap_or_else(|| {
+            let max_known_sample_id = self.sample_info.count;
+            panic!(
+                "found sample id {} that exceeds highest expected {}",
+                sample_id, max_known_sample_id
+            )
+        });
+
+        let rand_fn_name = names::fn_sample_rand_name(&self.comp.name, tipe);
+
+        let rand_val: SmtExpr = (rand_fn_name, format!("{sample_id}"), ctr.clone()).into();
+
+        let new_val = if let Some(idx) = opt_idx {
+            (
+                "store",
+                ident.to_expression(),
+                idx.clone(),
+                rand_val.clone(),
+            )
+                .into()
+        } else {
+            rand_val
+        };
+
+        let bindings = vec![(ident.ident(), new_val)]
+            .into_iter()
+            .filter(|(x, _)| x != "_")
+            .collect();
+
+        let cur_gamestate = GlobalContext::smt_latest_gamestate();
+        let new_gamestate = game_ctx
+            .smt_increment_gamestate_rand(cur_gamestate, self.sample_info, sample_id)
+            .unwrap();
+
+        SmtLet {
+            bindings,
+            body: game_ctx.smt_overwrite_latest_global_gamestate(new_gamestate, result.unwrap()),
+        }
+        .into()
+    }
+
+    fn smt_build_parse<OCTX: GenericOracleContext>(
+        &self,
+        oracle_ctx: &OCTX,
+        result: Option<SmtExpr>,
+        idents: &[Identifier],
+        expr: &Expression,
+    ) -> SmtExpr {
+        let bindings = idents
+            .iter()
+            .filter(|ident| ident.ident() != "_")
+            .enumerate()
+            .map(|(i, ident)| {
+                let ident = if let Identifier::Local(ident) = ident {
+                    ident
+                } else {
+                    unreachable!()
+                };
+
+                (ident.clone(), (format!("el{}", i + 1), expr.clone()).into())
+            })
+            .collect();
+
+        SmtLet {
+            bindings,
+            body: result.unwrap(),
+        }
+        .into()
+    }
+
+    fn smt_build_invoke<OCTX: GenericOracleContext>(
+        &self,
+        oracle_ctx: &OCTX,
+        result: Option<SmtExpr>,
+        id: &Identifier,
+        opt_idx: &Option<Expression>,
+        name: &str,
+        args: &[Expression],
+        target: &str,
+    ) -> SmtExpr {
+        let inst = oracle_ctx.pkg_inst_ctx().pkg_inst();
+        let oracle_name = oracle_ctx.oracle_name();
+
+        println!(
+            "target:{target}, oraclename:{name:?}, game_name:{:?}",
+            self.get_game_context().game().name
+        );
+        println!(
+            "taget:{:?}",
+            self.get_package_instance_context(target)
+                .unwrap()
+                .pkg_inst_name()
+        );
+        println!(
+            "taget:{:?}",
+            self.get_package_instance_context(target)
+                .unwrap()
+                .pkg_inst()
+                .pkg
+                .oracles
+                .iter()
+                .map(|OracleDef { sig, .. }| sig.name.clone())
+                .collect::<Vec<_>>()
+        );
+        let called_oracle_context = self.get_oracle_context(target, name).unwrap();
+        let this_oracle_context = self.get_oracle_context(&inst.name, oracle_name).unwrap();
+
+        let game_context = self.get_game_context();
+        let then_body = game_context.smt_push_global_gamestate(
+            game_context
+                .smt_update_gamestate_pkgstate(
+                    GlobalContext::smt_latest_gamestate(),
+                    self.sample_info,
+                    &inst.name,
+                    names::var_selfstate_name(),
+                )
+                .unwrap(),
+            this_oracle_context.smt_construct_abort(
+                names::var_globalstate_name(),
+                names::var_state_length_name(),
+            ),
+        );
+
+        let let_bindings = vec![
+            (
+                names::var_globalstate_name(),
+                called_oracle_context.smt_access_return_state(names::var_ret_name()),
+            )
+                .into(),
+            (
+                names::var_state_length_name(),
+                called_oracle_context.smt_access_return_state_length(names::var_ret_name()),
+            )
+                .into(),
+        ];
+
+        let smt_expr = SmtLet {
+            bindings: vec![(names::var_ret_name(), {
+                let mut cmdline = vec![
+                    names::oracle_function_name(&self.comp.name, target, name).into(),
+                    names::var_globalstate_name().into(),
+                    names::var_state_length_name().into(),
+                ];
+
+                for arg in args {
+                    cmdline.push(arg.clone().into())
+                }
+
+                SmtExpr::List(cmdline)
+            })],
+            body: SmtIte {
+                cond: called_oracle_context.smt_access_return_is_abort(names::var_ret_name()),
+                then: SmtLet {
+                    bindings: let_bindings.clone(),
+                    body: then_body,
+                },
+                els: SmtLet {
+                    bindings: {
+                        let mut bindings = let_bindings.clone();
+
+                        if id.ident() != "_" {
+                            bindings.push((
+                                id.ident(),
+                                SmtExpr::List(vec![
+                                    SmtExpr::Atom("maybe-get".into()),
+                                    called_oracle_context
+                                        .smt_access_return_value(names::var_ret_name()),
+                                ]),
+                            ));
+                        }
+
+                        bindings
+                    },
+                    body: result.unwrap(),
+                },
+            },
+        };
+
+        if opt_idx.is_some() {
+            (
+                "store",
+                id.to_expression(),
+                opt_idx.clone().unwrap(),
+                smt_expr,
+            )
+                .into()
+        } else {
+            smt_expr.into()
+        }
+    }
+
+    fn smt_build_assign<OCTX: GenericOracleContext>(
+        &self,
+        oracle_ctx: &OCTX,
+        result: Option<SmtExpr>,
+        ident: &Identifier,
+        opt_idx: &Option<Expression>,
+        expr: &Expression,
+    ) -> SmtExpr {
+        let (t, inner) = if let Expression::Typed(t, i) = expr {
+            (t.clone(), *i.clone())
+        } else {
+            unreachable!("we expect that this is typed")
+        };
+
+        //eprintln!(r#"DEBUG code_smt_helper Assign {expr:?} to identifier {ident:?}")"#);
+
+        // first build the unwrap expression, if we have to
+        let outexpr = if let Expression::Unwrap(inner) = &inner {
+            ("maybe-get", *inner.clone()).into()
+        } else {
+            expr.clone().into() // TODO maybe this should be inner??
+        };
+
+        // then build the table store smt expression, in case we have to
+        let outexpr = if let Some(idx) = opt_idx {
+            let oldvalue = match &ident {
+                &Identifier::State { name, .. } => {
+                    //assert_eq!(pkgname, inst_name, "failed assertion: in an oracle in instance {inst_name} I found a state identifier with {pkgname}. I assumed these would always be equal.");
+                    oracle_ctx
+                        .pkg_inst_ctx()
+                        .smt_access_pkgstate(names::var_selfstate_name(), name)
+                        .unwrap()
+                }
+                Identifier::Local(_) => ident.to_expression().into(),
+                _ => {
+                    unreachable!("")
+                }
+            };
+
+            ("store", oldvalue, idx.clone(), outexpr).into()
+        } else {
+            outexpr
+        };
+
+        // build the actual smt assignment
+        let smtout = match ident {
+            Identifier::State { name, .. } => {
+                //assert_eq!(pkgname, inst_name, "failed assertion: in an oracle in instance {inst_name} I found a state identifier with {pkgname}. I assumed these would always be equal.");
+                SmtLet {
+                    bindings: vec![(
+                        names::var_selfstate_name(),
+                        oracle_ctx
+                            .pkg_inst_ctx()
+                            .smt_update_pkgstate(names::var_selfstate_name(), name, outexpr)
+                            .unwrap()
+                            .into(),
+                    )],
+                    body: result.unwrap(),
+                }
+            }
+
+            Identifier::Local(name) => SmtLet {
+                bindings: vec![(name.clone(), outexpr)]
+                    .into_iter()
+                    .filter(|(name, _)| name != "_:")
+                    .collect(),
+                body: result.unwrap(),
+            },
+
+            _ => {
+                unreachable!("can't assign to {:#?}", ident)
+            }
+        };
+
+        // if it's an unwrap, also wrap it with the unwrap check.
+        // TODO: are we sure we don't want to deconstruct `inner` here?
+        // it seems impossible to me that expr ever matches here,
+        // because above we make sure it's an Expression::Typed.
+        if let Expression::Unwrap(inner) = inner {
+            SmtIte {
+                cond: SmtEq2 {
+                    lhs: *inner.clone(),
+                    rhs: SmtAs {
+                        name: "mk-none".into(),
+                        tipe: Type::Maybe(Box::new(t)),
+                    },
+                },
+                then: oracle_ctx.smt_construct_abort(
+                    names::var_globalstate_name(),
+                    names::var_state_length_name(),
+                ),
+                els: smtout,
+            }
+            .into()
+        } else {
+            smtout.into()
+        }
     }
 
     fn smt_next_gamestate<S: Into<SmtExpr>>(
@@ -726,7 +660,6 @@ impl<'a> CompositionSmtWriter<'a> {
         // ----------   | next
         // return x   <--
 
-
         // .../Invoc():
         //     invoke Oracle
         //
@@ -735,8 +668,6 @@ impl<'a> CompositionSmtWriter<'a> {
         // .../Invoc/...
         // .../Plain
 
-        
-        
         // We are in a partial function!
         //
         // what now?
@@ -823,38 +754,51 @@ impl<'a> CompositionSmtWriter<'a> {
             SmtExpr::List(args.clone()),
             names::return_sort_name(game_name, inst_name, oracle_name),
             SmtLet {
-                bindings: def
-                    .sig
-                    .partial_vars
-                    .iter()
-                    .map(|(name, _type)| {
-                        (
-                            name.clone(),
+                bindings: vec![(
+                    names::var_selfstate_name(),
+                    game_context
+                        .smt_access_gamestate_pkgstate(
                             (
-                                names::intermediate_state_selector_local(
-                                    game_name,
-                                    oracle_name,
-                                    name,
-                                ),
-                                partial_state.clone(),
-                            )
-                                .into(),
+                                "select",
+                                names::var_globalstate_name(),
+                                names::var_state_length_name(),
+                            ),
+                            inst_name,
                         )
-                    })
-                    .chain(vec![(
-                        names::var_selfstate_name(),
-                        game_context
-                            .smt_access_gamestate_pkgstate(
-                                (
-                                    "select",
-                                    names::var_globalstate_name(),
-                                    names::var_state_length_name(),
-                                ),
-                                inst_name,
-                            )
-                            .unwrap(),
-                    )])
-                    .collect(),
+                        .unwrap(),
+                )],
+                // def
+                // .sig
+                // .partial_vars
+                // .iter()
+                // .map(|(name, _type)| {
+                //     (
+                //         name.clone(),
+                //         (
+                //             names::intermediate_state_selector_local(
+                //                 game_name,
+                //                 oracle_name,
+                //                 name,
+                //             ),
+                //             partial_state.clone(),
+                //         )
+                //             .into(),
+                //     )
+                // })
+                // .chain(vec![(
+                //     names::var_selfstate_name(),
+                //     game_context
+                //         .smt_access_gamestate_pkgstate(
+                //             (
+                //                 "select",
+                //                 names::var_globalstate_name(),
+                //                 names::var_state_length_name(),
+                //             ),
+                //             inst_name,
+                //         )
+                //         .unwrap(),
+                // )])
+                // .collect(),
                 body: self.code_smt_helper(code.clone(), &def, inst),
             },
         )
@@ -942,18 +886,44 @@ impl<'a> CompositionSmtWriter<'a> {
         result
     }
 
+    fn smt_composition_partial_stuff(&self) -> Vec<SmtExpr> {
+        let partial_dtpes = into_partial_dtypes(self.split_info);
+
+        let mut typedefs = vec![];
+        let mut fndefs = vec![];
+
+        for dtype in partial_dtpes {
+            let pkg_inst_name = &dtype.pkg_inst_name;
+
+            let game_ctx = GameContext::new(&self.comp);
+            let pkg_inst_ctx = game_ctx.pkg_inst_ctx_by_name(pkg_inst_name).unwrap();
+
+            // this can't work, because it looks for an existing oracle. but it doesn't exist
+            // anymore
+            //let oracle_ctx = pkg_inst_ctx.oracle_ctx_by_name(oracle_name).unwrap();
+
+            fndefs.push(pkg_inst_ctx.smt_declare_oracle_dispatch_function(&dtype));
+            typedefs.push(pkg_inst_ctx.smt_declare_intermediate_state(&dtype));
+        }
+
+        typedefs.append(&mut fndefs);
+        typedefs
+    }
+
     pub fn smt_composition_all(&mut self) -> Vec<SmtExpr> {
         let rand = self.smt_composition_randomness();
         let paramfuncs = self.smt_composition_paramfuncs();
         let state = self.smt_composition_state();
         let ret = self.smt_composition_return();
         let code = self.smt_composition_code();
+        let partial_stuff = self.smt_composition_partial_stuff();
 
         rand.into_iter()
             .chain(paramfuncs.into_iter())
             .chain(state.into_iter())
             .chain(ret.into_iter())
             .chain(code.into_iter())
+            .chain(partial_stuff.into_iter())
             .collect()
     }
 }

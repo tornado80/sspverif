@@ -2,6 +2,7 @@ use crate::expressions::Expression;
 use crate::identifier::Identifier;
 use crate::package::{Composition, OracleDef, Package, PackageInstance};
 use crate::proof::{GameInstance, Resolver, SliceResolver};
+use crate::split::SplitOracleDef;
 use crate::statement::{CodeBlock, Statement};
 use crate::types::Type;
 
@@ -232,7 +233,15 @@ fn var_specify_pkg_inst(game_inst: &GameInstance, pkg_inst: &PackageInstance) ->
                 .map(|def| OracleDef {
                     sig: def.sig.clone(),
                     code: var_specify_helper(game_inst, pkg_inst, def.code.clone()),
-                    is_split: def.is_split,
+                })
+                .collect(),
+            split_oracles: pkg_inst
+                .pkg
+                .split_oracles
+                .iter()
+                .map(|def| SplitOracleDef {
+                    sig: def.sig.clone(),
+                    code: var_specify_helper(game_inst, pkg_inst, def.code.clone()),
                 })
                 .collect(),
             ..pkg_inst.pkg.clone()

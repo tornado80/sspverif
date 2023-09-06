@@ -1,11 +1,9 @@
 use std::collections::HashMap;
 
-use crate::expressions::Expression;
 use crate::identifier::Identifier;
-use crate::package::{Composition, Edge, Export, OracleDef, OracleSig};
+use crate::package::{Composition, Edge, Export, OracleDef, OracleSig, SplitExport};
 use crate::statement::{CodeBlock, Statement};
 use crate::types::Type;
-use std::fmt::Write;
 
 pub struct SplitPartial;
 
@@ -13,22 +11,6 @@ pub struct SplitPartial;
 pub enum Error {}
 
 type Result<T> = std::result::Result<T, Error>;
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct InvocTargetData {
-    pub pkg_inst_name: String,
-    pub oracle_name: String,
-}
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub enum SplitType {
-    Plain,                                       // before anything interesting happens
-    Invoc(InvocTargetData),                      // called a child oracle
-    ForStep(Identifier, Expression, Expression), // in a loop
-    IfCondition(Expression),
-    IfBranch,
-    ElseBranch,
-}
 
 /*
 
@@ -44,153 +26,9 @@ A:O1:Invoc(locals)/B:O2:Invoc(locals)
  * |---------locals1-------|
  */
 
-impl std::fmt::Display for SplitType {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
-        match self {
-            SplitType::ForStep(var, _, _) => write!(f, "ForStep{}", var.ident()),
-            SplitType::IfCondition(_) => write!(f, "IfCondition"),
-            _ => write!(f, "{:?}", &self),
-        }
-    }
-}
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct SplitPathComponent {
-    pkginstname: String,
-    oraclename: String,
-    splittype: SplitType,
-    splitrange: std::ops::Range<usize>,
-}
-
-impl SplitPathComponent {
-    pub fn new(
-        pkginstname: &str,
-        oraclename: &str,
-        splittype: SplitType,
-        splitrange: std::ops::Range<usize>,
-    ) -> Self {
-        SplitPathComponent {
-            pkginstname: pkginstname.to_string(),
-            oraclename: oraclename.to_string(),
-            splittype,
-            splitrange,
-        }
-    }
-
-    pub fn split_type(&self) -> &SplitType {
-        &self.splittype
-    }
-}
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct SplitPath {
-    gamename: String,
-    path: Vec<SplitPathComponent>,
-}
-
-impl SplitPath {
-    pub fn empty(gamename: String) -> Self {
-        Self {
-            path: vec![],
-            gamename,
-        }
-    }
-
-    pub fn path(&self) -> &Vec<SplitPathComponent> {
-        &self.path
-    }
-
-    pub fn len(&self) -> usize {
-        self.path.len()
-    }
-
-    pub fn last(&self) -> Option<&SplitPathComponent> {
-        self.path.last()
-    }
-
-    pub fn split_type(&self) -> Option<&SplitType> {
-        Some(&self.path.last()?.splittype)
-    }
-
-    pub fn has_prefix(&self, prefix: &SplitPath) -> bool {
-        if self.gamename != prefix.gamename {
-            return false;
-        }
-
-        if prefix.path.len() > self.path.len() {
-            return false;
-        }
-
-        for i in 0..prefix.path.len() {
-            if prefix.path[i] != self.path[i] {
-                return false;
-            }
-        }
-
-        true
-    }
-
-    // This doesn't support nested plain blocks, but we assume these don't exist anyway and would be a bug
-    fn strip_plain(&self) -> Option<SplitPath> {
-        let (head, basename) = self.basename();
-        if head?.splittype == SplitType::Plain {
-            Some(basename)
-        } else {
-            Some(self.clone())
-        }
-    }
-
-    pub(crate) fn longest_shared_prefix(&self, other: &SplitPath) -> Option<SplitPath> {
-        if self.gamename != other.gamename {
-            return None;
-        }
-
-        let mut shared_prefix = SplitPath {
-            gamename: self.gamename.clone(),
-            path: vec![],
-        };
-
-        let self_path = self.path();
-        let other_path = other.path();
-
-        for i in 0..(usize::min(self_path.len(), other_path.len())) {
-            if self_path[i] != other_path[i] {
-                break;
-            }
-
-            shared_prefix.path.push(self_path[i].clone())
-        }
-
-        Some(shared_prefix)
-    }
-
-    pub fn basename(&self) -> (Option<SplitPathComponent>, Self) {
-        let mut result = self.clone();
-        let tail = result.path.pop();
-        (tail, result)
-    }
-
-    pub fn extended(&self, component: SplitPathComponent) -> Self {
-        let mut result = self.clone();
-        result.path.push(component);
-        result
-    }
-
-    pub fn smt_name(&self) -> String {
-        let mut result = String::new();
-        //write!(result, "{}", self.gamename).unwrap();
-        for component in &self.path {
-            write!(
-                result,
-                "{:?}:{}/",
-                component.splitrange, component.splittype,
-            )
-            .unwrap();
-        }
-        result.pop();
-        result
-    }
-}
+use crate::split::{
+    InvocTargetData, SplitOracleDef, SplitOracleSig, SplitPath, SplitPathComponent, SplitType,
+};
 
 #[derive(Clone, Debug)]
 pub struct SplitInfoEntry {
@@ -200,6 +38,7 @@ pub struct SplitInfoEntry {
     locals: Vec<(String, Type)>,
     next: Option<SplitPath>,
     elsenext: Option<SplitPath>,
+    original_sig: OracleSig,
 }
 
 impl SplitInfoEntry {
@@ -227,7 +66,11 @@ impl SplitInfoEntry {
     }
 
     pub fn split_type(&self) -> Option<&SplitType> {
-        Some(&self.path.path.last()?.splittype)
+        Some(&self.path.last()?.split_type())
+    }
+
+    pub fn original_sig(&self) -> &OracleSig {
+        &self.original_sig
     }
 }
 
@@ -245,7 +88,7 @@ impl super::GameTransform for SplitPartial {
         let mut new_game = game.clone();
         let mut sig_mapping: HashMap<
             (String, OracleSig),
-            Vec<(Vec<Identifier>, SplitPath, OracleSig)>,
+            Vec<(Vec<Identifier>, SplitPath, SplitOracleSig)>,
         > = Default::default();
 
         // dependencies is the game graph in a form where we can start processing the call graph
@@ -294,8 +137,8 @@ impl super::GameTransform for SplitPartial {
                         for split_spec in mapping {
                             let (_, _, split_sig) = split_spec;
                             new_game
-                                .exports
-                                .push(Export(*pkg_inst_offs, split_sig.clone()))
+                                .split_exports
+                                .push(SplitExport(*pkg_inst_offs, split_sig.clone()))
                         }
                     }
 
@@ -331,15 +174,16 @@ impl super::GameTransform for SplitPartial {
                 let oracle_name = &sig.name;
                 let mut oracle_partials: Vec<_> = mapping
                     .iter()
-                    .map(|(_loopvars, path, sig)| {
+                    .map(|(_loopvars, path, partial_sig)| {
                         println!("QQQQQ {sig:?}");
                         SplitInfoEntry {
                             pkg_inst_name: pkg_inst_name.clone(),
-                            oracle_name: sig.name.clone(),
+                            oracle_name: partial_sig.name.clone(),
                             path: path.clone(),
-                            locals: sig.partial_vars.clone(),
+                            locals: partial_sig.partial_vars.clone(),
                             next: None,
                             elsenext: None,
+                            original_sig: sig.clone(),
                         }
                     })
                     .collect();
@@ -366,7 +210,10 @@ impl super::GameTransform for SplitPartial {
 impl Statement {
     fn needs_split(
         &self,
-        sig_mapping: &HashMap<(String, OracleSig), Vec<(Vec<Identifier>, SplitPath, OracleSig)>>,
+        sig_mapping: &HashMap<
+            (String, OracleSig),
+            Vec<(Vec<Identifier>, SplitPath, SplitOracleSig)>,
+        >,
     ) -> bool {
         match self {
             Statement::For(_, _, _, _) => true,
@@ -395,7 +242,7 @@ fn is_actually_not_split(
 ) -> bool {
     if transformed.len() == 1 {
         let (_, path, _, _) = &transformed[0];
-        path.path[0].splittype == SplitType::Plain
+        *path[0].split_type() == SplitType::Plain
     } else {
         false
     }
@@ -405,7 +252,10 @@ fn transform_oracle(
     game: &mut Composition,
     pkg_offs: usize,
     osig: &OracleSig,
-    sig_mapping: &mut HashMap<(String, OracleSig), Vec<(Vec<Identifier>, SplitPath, OracleSig)>>,
+    sig_mapping: &mut HashMap<
+        (String, OracleSig),
+        Vec<(Vec<Identifier>, SplitPath, SplitOracleSig)>,
+    >,
 ) -> Result<()> {
     let pkg_inst = &mut game.pkgs[pkg_offs];
     let pkg_inst_name = &pkg_inst.name;
@@ -423,7 +273,7 @@ fn transform_oracle(
         pkg_inst_name,
         oracle_name,
         &odef.code,
-        SplitPath::empty(game.name.clone()),
+        SplitPath::empty(),
         vec![],
         vec![],
         sig_mapping,
@@ -450,17 +300,17 @@ fn transform_oracle(
             .chain(osig.args.clone().into_iter())
             .collect();
 
-        let new_sig = OracleSig {
+        let new_sig = SplitOracleSig {
             name: splitpath.smt_name(),
             args: new_args,
             tipe: Type::Empty, // <-- note the difference
             partial_vars: oracle_locals.clone(),
+            path: splitpath.clone(),
         };
 
-        new_oracles.push(OracleDef {
+        new_oracles.push(SplitOracleDef {
             sig: new_sig.clone(),
             code: oracle_code,
-            is_split: true,
         });
         mapping_entry.push((loopvars.clone(), splitpath, new_sig))
     }
@@ -471,21 +321,22 @@ fn transform_oracle(
         .chain(osig.args.clone().into_iter())
         .collect();
 
-    let sig = OracleSig {
+    let sig = SplitOracleSig {
         name: last_splitpath.smt_name(),
         args: last_newargs,
         tipe: osig.tipe.clone(), // <-- note the difference
         partial_vars: last_locals.clone(),
+        path: last_splitpath.clone(),
     };
-    new_oracles.push(OracleDef {
+
+    new_oracles.push(SplitOracleDef {
         sig: sig.clone(),
         code: last_code,
-        is_split: true,
     });
     mapping_entry.push((last_loopvars.clone(), last_splitpath, sig));
 
     pkg_inst.pkg.oracles.remove(oracle_offs);
-    pkg_inst.pkg.oracles.extend(new_oracles);
+    pkg_inst.pkg.split_oracles.extend(new_oracles);
 
     Ok(())
 }
@@ -497,7 +348,10 @@ fn transform_codeblock(
     prefix: SplitPath,
     mut locals: Vec<(String, Type)>,
     loopvars: Vec<Identifier>,
-    sig_mapping: &mut HashMap<(String, OracleSig), Vec<(Vec<Identifier>, SplitPath, OracleSig)>>,
+    sig_mapping: &mut HashMap<
+        (String, OracleSig),
+        Vec<(Vec<Identifier>, SplitPath, SplitOracleSig)>,
+    >,
 ) -> Vec<(Vec<Identifier>, SplitPath, CodeBlock, Vec<(String, Type)>)> {
     let mut result = vec![];
 
@@ -633,7 +487,8 @@ fn transform_codeblock(
                 let (_, last_splitpath, last_sig) = splits.last().unwrap();
 
                 result.extend(splits.into_iter().take(splits.len() - 1).map(
-                    |(loopvars, splitpath, name)| {
+                    |(loopvars, splitpath, split_sig)| {
+                        let name = &split_sig.name;
                         let invoc_target_data = InvocTargetData {
                             pkg_inst_name: target_inst_name.to_string(),
                             oracle_name: oracle_name.to_string(),
@@ -641,7 +496,7 @@ fn transform_codeblock(
                         let mut newpath = prefix.extended(mk_single_split_path_component(
                             SplitType::Invoc(invoc_target_data),
                         ));
-                        newpath.path.extend(splitpath.path.clone());
+                        newpath.join(splitpath);
                         (
                             loopvars.clone(),
                             newpath,
@@ -666,7 +521,7 @@ fn transform_codeblock(
                 let mut newpath = prefix.extended(mk_single_split_path_component(
                     SplitType::Invoc(invoc_target_data),
                 ));
-                newpath.path.extend(last_splitpath.path.clone());
+                newpath.join(&last_splitpath);
                 result.push((
                     loopvars.clone(),
                     newpath,
@@ -874,7 +729,7 @@ fn determine_next(
 ) -> Option<(SplitPath, Option<SplitPath>)> {
     let mut cur_path = cur.path().clone();
     let next_path = next.path();
-    let common_path = cur_path.longest_shared_prefix(next_path).unwrap();
+    let common_path = cur_path.longest_shared_prefix(next_path);
 
     // move up the tree
     while cur_path != common_path {
@@ -891,17 +746,17 @@ fn determine_next(
                 return Some((
                     /* next: */
                     cur_path.extended(SplitPathComponent::new(
-                        &head.pkginstname,
-                        &head.oraclename,
+                        head.pkg_inst_name(),
+                        head.oracle_name(),
                         SplitType::IfBranch,
-                        head.splitrange.clone(),
+                        head.split_range().clone(),
                     )),
                     /* elsenext: */
                     Some(cur_path.extended(SplitPathComponent::new(
-                        &head.pkginstname,
-                        &head.oraclename,
+                        head.pkg_inst_name(),
+                        head.oracle_name(),
                         SplitType::ElseBranch,
-                        head.splitrange.clone(),
+                        head.split_range().clone(),
                     ))),
                 ));
             }
@@ -926,7 +781,7 @@ fn determine_next(
     while &cur_path != next_path {
         let path_component = &next_path.path()[cur_path.len()];
 
-        match &path_component.splittype {
+        match path_component.split_type() {
             SplitType::Plain => {
                 // just skip these
             }

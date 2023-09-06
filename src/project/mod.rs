@@ -12,7 +12,7 @@ use std::{collections::HashMap, path::PathBuf};
 use error::{Error, Result};
 
 use crate::package::{Composition, Package};
-use crate::proof::{self, GameHop, Proof};
+use crate::proof::{GameHop, Proof};
 use crate::transforms::typecheck::{typecheck_comp, typecheck_pkg, Scope};
 
 pub const PROJECT_FILE: &str = "ssp.toml";

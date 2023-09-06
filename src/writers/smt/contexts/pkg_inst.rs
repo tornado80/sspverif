@@ -3,9 +3,29 @@ use crate::package::PackageInstance;
 use super::super::exprs::SmtExpr;
 use super::super::{declare, names};
 
-use super::{OracleContext, PackageInstanceContext};
+use super::{GameContext, OracleContext, PackageInstanceContext, SplitOracleContext};
 
 impl<'a> PackageInstanceContext<'a> {
+    pub fn game_ctx(&self) -> GameContext {
+        self.game_ctx.clone()
+    }
+
+    pub fn split_oracle_ctx_by_name(&self, oracle_name: &str) -> Option<SplitOracleContext<'a>> {
+        let inst_offs = self.inst_offs;
+        let inst = &self.game_ctx.game.pkgs[inst_offs];
+        let split_oracle_offs = inst
+            .pkg
+            .split_oracles
+            .iter()
+            .position(|odef| odef.sig.name == oracle_name)?;
+
+        Some(SplitOracleContext {
+            game_ctx: self.game_ctx.clone(),
+            inst_offs,
+            split_oracle_offs,
+        })
+    }
+
     pub fn oracle_ctx_by_name(&self, oracle_name: &str) -> Option<OracleContext<'a>> {
         let inst_offs = self.inst_offs;
         let inst = &self.game_ctx.game.pkgs[inst_offs];

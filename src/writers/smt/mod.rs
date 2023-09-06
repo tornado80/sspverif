@@ -7,4 +7,5 @@ pub mod contexts;
 pub mod declare;
 pub mod names;
 pub mod partials;
+pub mod patterns;
 pub mod sorts;

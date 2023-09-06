@@ -13,6 +13,7 @@ pub fn key_pkg(params: &HashMap<String, Expression>) -> PackageInstance {
         types: vec![],
         params: params.clone().into_iter().collect(),
         pkg: Package {
+            split_oracles: vec![],
             name: "key".to_string(),
             params: vec![("n".to_string(), Type::Integer)],
             state: vec![("k".to_string(), Type::Maybe(Box::new(Type::new_bits("n"))))],
@@ -20,12 +21,10 @@ pub fn key_pkg(params: &HashMap<String, Expression>) -> PackageInstance {
             imports: vec![],
             oracles: vec![
                 OracleDef {
-                    is_split: false,
                     sig: OracleSig {
                         name: "Set".to_string(),
                         args: vec![("k_".to_string(), Type::new_bits("n"))],
                         tipe: Type::Empty,
-                        partial_vars: vec![],
                     },
                     code: block! {
                         Statement::IfThenElse(
@@ -47,12 +46,10 @@ pub fn key_pkg(params: &HashMap<String, Expression>) -> PackageInstance {
                     },
                 },
                 OracleDef {
-                    is_split: false,
                     sig: OracleSig {
                         name: "Get".to_string(),
                         args: vec![],
                         tipe: Type::new_bits("n"),
-                        partial_vars: vec![],
                     },
                     code: block! {
                         Statement::IfThenElse(

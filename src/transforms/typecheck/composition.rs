@@ -2,9 +2,7 @@ use super::errors::TypeCheckError;
 use super::pkg::typecheck_pkg;
 use super::scope::Scope;
 
-use crate::package::{Composition, Edge, Export, OracleSig, PackageInstance};
-
-use crate::identifier::Identifier;
+use crate::package::{Composition, Edge, Export, PackageInstance};
 
 use std::collections::{HashMap, HashSet};
 use std::iter::FromIterator;

@@ -1,4 +1,3 @@
-use super::package::handle_expression;
 use super::{common::*, error, Rule};
 
 use pest::iterators::{Pair, Pairs};
@@ -177,6 +176,7 @@ pub fn handle_comp_spec_list(
     Ok(Composition {
         edges,
         exports,
+        split_exports: vec![],
         name: comp_name.to_owned(),
         pkgs: instances,
         consts,

@@ -1,12 +1,11 @@
 use itertools::Itertools;
 use serde_derive::{Deserialize, Serialize};
 use std::collections::hash_map::DefaultHasher;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 use std::hash::{Hash, Hasher};
 use std::iter::FromIterator;
 
 use crate::package::{Composition, Edge, PackageInstance};
-//use crate::project::util::{diff, matches_assumption, walk_up_paths, DiffRow};
 use crate::project::Result;
 
 use super::assumption::ResolvedAssumption;

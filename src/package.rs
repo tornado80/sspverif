@@ -1,4 +1,5 @@
 use crate::expressions::Expression;
+use crate::split::{SplitOracleDef, SplitOracleSig};
 use crate::statement::{CodeBlock, Statement};
 use crate::types::Type;
 
@@ -15,32 +16,13 @@ pub struct FnSig {
 pub struct OracleSig {
     pub name: String,
     pub args: Vec<(String, Type)>,
-    pub partial_vars: Vec<(String, Type)>,
     pub tipe: Type,
-}
-
-impl fmt::Display for OracleSig {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        // Use `self.number` to refer to each positional data point.
-        write!(
-            f,
-            "{}({}) -> {:?}",
-            self.name,
-            self.args
-                .iter()
-                .map(|(name, tipe)| format!("{}: {:?}", name, tipe))
-                .collect::<Vec<_>>()
-                .join(", "),
-            self.tipe
-        )
-    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct OracleDef {
     pub sig: OracleSig,
     pub code: CodeBlock,
-    pub is_split: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -50,6 +32,7 @@ pub struct Package {
     pub params: Vec<(String, Type)>,
     pub state: Vec<(String, Type)>,
     pub oracles: Vec<OracleDef>,
+    pub split_oracles: Vec<SplitOracleDef>,
     pub imports: Vec<OracleSig>,
 }
 
@@ -115,6 +98,9 @@ pub struct Edge(pub usize, pub usize, pub OracleSig);
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Export(pub usize, pub OracleSig);
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct SplitExport(pub usize, pub SplitOracleSig);
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Composition {
     pub pkgs: Vec<PackageInstance>,
@@ -126,6 +112,7 @@ pub struct Composition {
     // contemplation: globally unique oracle identifiers vs
     // multiple shades of local uniqueness
     pub exports: Vec<Export>,
+    pub split_exports: Vec<SplitExport>,
     pub name: String,
     pub consts: Vec<(String, Type)>,
 }
@@ -199,5 +186,22 @@ impl Package {
             },
             ..self.clone()
         })
+    }
+}
+
+impl fmt::Display for OracleSig {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        // Use `self.number` to refer to each positional data point.
+        write!(
+            f,
+            "{}({}) -> {:?}",
+            self.name,
+            self.args
+                .iter()
+                .map(|(name, tipe)| format!("{}: {:?}", name, tipe))
+                .collect::<Vec<_>>()
+                .join(", "),
+            self.tipe
+        )
     }
 }

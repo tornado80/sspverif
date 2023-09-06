@@ -66,7 +66,6 @@ pub fn handle_oracle_sig(oracle_sig: Pair<Rule>) -> OracleSig {
         name: name.to_string(),
         tipe,
         args,
-        partial_vars: vec![],
     }
 }
 
@@ -318,11 +317,7 @@ pub fn handle_oracle_def(oracle_def: Pair<Rule>) -> OracleDef {
     let code = handle_code(inner.next().unwrap());
     let is_split = false;
 
-    OracleDef {
-        sig,
-        code,
-        is_split,
-    }
+    OracleDef { sig, code }
 }
 
 pub fn handle_pkg_spec(pkg_spec: Pair<Rule>, name: &str) -> Package {
@@ -369,6 +364,7 @@ pub fn handle_pkg_spec(pkg_spec: Pair<Rule>, name: &str) -> Package {
         params: params.unwrap_or_default(),
         imports: imported_oracles.iter().map(|(_k, v)| v.clone()).collect(),
         state: state.unwrap_or_default(),
+        split_oracles: vec![],
     }
 }
 

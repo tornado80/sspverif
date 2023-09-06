@@ -1,3 +1,5 @@
+use std::backtrace;
+
 use crate::expressions::Expression;
 use crate::package::{Export, OracleDef};
 use crate::transforms::split_partial::SplitInfo;
@@ -6,27 +8,20 @@ use crate::types::Type;
 use super::super::exprs::SmtExpr;
 use super::super::{declare, names};
 
-use super::{GameContext, OracleContext, PackageInstanceContext};
+use super::{GameContext, GenericOracleContext, OracleContext, PackageInstanceContext};
 
 impl<'a> OracleContext<'a> {
-    pub fn game_ctx(&self) -> GameContext {
-        self.game_ctx.clone()
-    }
-
-    pub fn pkg_inst_ctx(&self) -> PackageInstanceContext {
-        PackageInstanceContext {
-            game_ctx: self.game_ctx.clone(),
-            inst_offs: self.inst_offs,
-        }
-    }
-
     pub fn is_exported(&self) -> bool {
         let export_needle = Export(self.inst_offs, self.oracle_def().sig.clone());
         self.game_ctx.game.exports.contains(&export_needle)
     }
 
     pub fn is_split(&self) -> bool {
-        self.oracle_def().is_split
+        println!(
+            "oracle_ctx.is_split called from {}",
+            backtrace::Backtrace::force_capture()
+        );
+        false
     }
 
     pub fn smt_arg_name(&self, arg_name: &str) -> SmtExpr {
@@ -34,12 +29,7 @@ impl<'a> OracleContext<'a> {
         let inst = &game.pkgs[self.inst_offs];
         let odef = &inst.pkg.oracles[self.oracle_offs];
 
-        if odef.is_split {
-            names::oracle_split_arg_name(&game.name, &odef.sig.name, arg_name)
-        } else {
-            names::oracle_nonsplit_arg_name(&odef.sig.name, arg_name)
-        }
-        .into()
+        names::oracle_nonsplit_arg_name(&odef.sig.name, arg_name).into()
     }
 
     pub fn oracle_def(&self) -> &OracleDef {
@@ -126,7 +116,7 @@ impl<'a> OracleContext<'a> {
 
     pub(crate) fn smt_access_intermediate_parent<IS: Into<SmtExpr>>(
         &self,
-        old_gamestate: IS
+        old_gamestate: IS,
     ) -> SmtExpr {
         let game = self.game_ctx.game;
         let inst = &game.pkgs[self.inst_offs];
@@ -134,13 +124,14 @@ impl<'a> OracleContext<'a> {
 
         let game_name = &game.name;
         let oracle_name = &odef.sig.name;
-        
+
         (
             names::intermediate_state_selector_parent(game_name, oracle_name),
-            old_gamestate
-        ).into()
+            old_gamestate,
+        )
+            .into()
     }
-    
+
     pub(crate) fn smt_construct_next_intermediate_state<IS: Into<SmtExpr> + std::fmt::Debug>(
         &self,
         split_info: &SplitInfo,
@@ -170,29 +161,6 @@ impl<'a> OracleContext<'a> {
         fn_call.push(parent.into());
 
         Some(SmtExpr::List(fn_call))
-    }
-
-    pub fn smt_construct_abort<S, SL>(&self, state: S, state_len: SL) -> SmtExpr
-    where
-        S: Into<SmtExpr>,
-        SL: Into<SmtExpr>,
-    {
-        let game = self.game_ctx.game;
-        let inst = &game.pkgs[self.inst_offs];
-        let osig = &inst.pkg.oracles[self.oracle_offs].sig;
-
-        let game_name = &game.name;
-        let inst_name = &inst.name;
-        let oracle_name = &osig.name;
-
-        (
-            names::return_constructor_name(game_name, inst_name, oracle_name),
-            state,
-            state_len,
-            Expression::None(osig.tipe.clone()),
-            "true",
-        )
-            .into()
     }
 
     pub fn smt_access_return_state<R>(&self, ret: R) -> SmtExpr
@@ -318,5 +286,73 @@ impl<'a> OracleContext<'a> {
         }
 
         Some(SmtExpr::List(cmdline))
+    }
+}
+
+impl<'a> GenericOracleContext for OracleContext<'a> {
+    fn game_ctx(&self) -> GameContext {
+        self.game_ctx.clone()
+    }
+
+    fn pkg_inst_ctx(&self) -> PackageInstanceContext {
+        PackageInstanceContext {
+            game_ctx: self.game_ctx.clone(),
+            inst_offs: self.inst_offs,
+        }
+    }
+
+    fn oracle_name(&self) -> &str {
+        &self.oracle_def().sig.name
+    }
+
+    fn oracle_return_type(&self) -> &Type {
+        &self.oracle_def().sig.tipe
+    }
+
+    fn smt_construct_abort<S, SL>(&self, state: S, state_len: SL) -> SmtExpr
+    where
+        S: Into<SmtExpr>,
+        SL: Into<SmtExpr>,
+    {
+        let game = self.game_ctx.game;
+        let inst = &game.pkgs[self.inst_offs];
+        let osig = &inst.pkg.oracles[self.oracle_offs].sig;
+
+        let game_name = &game.name;
+        let inst_name = &inst.name;
+        let oracle_name = &osig.name;
+
+        (
+            names::return_constructor_name(game_name, inst_name, oracle_name),
+            state,
+            state_len,
+            Expression::None(osig.tipe.clone()),
+            "true",
+        )
+            .into()
+    }
+
+    fn smt_construct_return<S, SL, V>(&self, state: S, state_len: SL, value: V) -> SmtExpr
+    where
+        S: Into<SmtExpr>,
+        SL: Into<SmtExpr>,
+        V: Into<SmtExpr>,
+    {
+        let game = self.game_ctx.game;
+        let inst = &game.pkgs[self.inst_offs];
+        let odef = &inst.pkg.oracles[self.oracle_offs];
+
+        let game_name = &game.name;
+        let inst_name = &inst.name;
+        let oracle_name = &odef.sig.name;
+
+        (
+            names::return_constructor_name(game_name, inst_name, oracle_name),
+            state,
+            state_len,
+            value,
+            "false",
+        )
+            .into()
     }
 }
