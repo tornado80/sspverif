@@ -1,4 +1,4 @@
-use crate::package::OracleSig;
+use crate::{package::OracleSig, split::SplitPath};
 
 use super::exprs::SmtExpr;
 
@@ -13,7 +13,12 @@ pub enum FunctionPattern<'a> {
         pkg_inst_name: &'a str,
         oracle_sig: &'a OracleSig,
     },
-    PartialOracle {},
+    PartialOracle {
+        game_name: &'a str,
+        pkg_inst_name: &'a str,
+        oracle_name: &'a str,
+        split_path: &'a SplitPath,
+    },
     RandomnessFunction,
     ParameterFunction,
 }
@@ -37,7 +42,15 @@ impl<'a> FunctionPattern<'a> {
                 let oracle_name = &oracle_sig.name;
                 format!("oracle-{game_name}-{pkg_inst_name}-{oracle_name}")
             }
-            FunctionPattern::PartialOracle {} => todo!(),
+            FunctionPattern::PartialOracle {
+                game_name,
+                pkg_inst_name,
+                oracle_name,
+                split_path,
+            } => {
+                let path = split_path.smt_name();
+                format!("oracle-{game_name}-{pkg_inst_name}-{oracle_name}-{path}")
+            }
             FunctionPattern::RandomnessFunction => todo!(),
             FunctionPattern::ParameterFunction => todo!(),
         }
@@ -108,7 +121,7 @@ impl<'a> FunctionPattern<'a> {
 
                 args
             }
-            FunctionPattern::PartialOracle {} => todo!(),
+            FunctionPattern::PartialOracle { .. } => todo!(),
             FunctionPattern::RandomnessFunction => todo!(),
             FunctionPattern::ParameterFunction => todo!(),
         }
@@ -134,7 +147,20 @@ impl<'a> FunctionPattern<'a> {
 
                 partial_return_pattern.sort_name()
             }
-            FunctionPattern::PartialOracle {} => todo!(),
+            FunctionPattern::PartialOracle {
+                game_name,
+                pkg_inst_name,
+                oracle_name,
+                ..
+            } => {
+                let partial_return_pattern = DatastructurePattern::PartialReturn {
+                    game_name,
+                    pkg_inst_name,
+                    oracle_name,
+                };
+
+                partial_return_pattern.sort_name()
+            }
             FunctionPattern::RandomnessFunction => todo!(),
             FunctionPattern::ParameterFunction => todo!(),
         }
@@ -172,6 +198,16 @@ impl<'a> DatastructurePattern<'a> {
     pub const CONSTRUCTOR_INTERMEDIATE_STATE_BEGIN: &str = "begin";
     pub const CONSTRUCTOR_INTERMEDIATE_STATE_END: &str = "end";
     pub const SELECTOR_INTERMEDIATE_STATE_END_RETURN_VALUE: &str = "return_value";
+    pub const SELECTOR_PARTIAL_RETURN_GAMESTATE: &str = "gamestate";
+    pub const SELECTOR_PARTIAL_RETURN_INTERMEDIATESTATE: &str = "intermediate_state";
+
+    pub fn intermediate_state_selector_local(local_name: &str) -> String {
+        format!("local-{local_name}")
+    }
+
+    pub fn intermediate_state_selector_arg(local_name: &str) -> String {
+        format!("arg-{local_name}")
+    }
 
     pub fn pattern_kebab_case(&self) -> String {
         match self {
@@ -303,8 +339,10 @@ impl<'a> DatastructurePattern<'a> {
                 pkg_inst_name,
                 oracle_name,
                 ..
+            } => {
+                format!("{pattern_camel_case}-{game_name}-{pkg_inst_name}-{oracle_name}")
             }
-            | DatastructurePattern::IntermediateState {
+            DatastructurePattern::IntermediateState {
                 game_name,
                 pkg_inst_name,
                 oracle_name,

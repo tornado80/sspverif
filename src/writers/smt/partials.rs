@@ -4,65 +4,9 @@ use crate::split::{InvocTargetData, SplitPath, SplitType};
 use crate::transforms::split_partial::SplitInfo;
 use crate::{package::OracleSig, types::Type};
 
-use super::contexts::PackageInstanceContext;
+use super::contexts::{GameContext, PackageInstanceContext};
 use super::exprs::{SmtAnd, SmtEq2, SmtIte};
 use super::{declare::declare_datatype, exprs::SmtExpr};
-
-fn intermediate_state_piece_sort_name(
-    game_name: &str,
-    pkg_inst_name: &str,
-    oracle_name: &str,
-) -> String {
-    format!("IntermediateState_{game_name}_{pkg_inst_name}-{oracle_name}")
-}
-
-fn intermediate_state_piece_constructor_end_name(
-    game_name: &str,
-    pkg_inst_name: &str,
-    oracle_name: &str,
-) -> String {
-    format!("mk-intermediate-state-{game_name}-{pkg_inst_name}-{oracle_name}-end")
-}
-
-fn intermediate_state_piece_constructor_name(
-    game_name: &str,
-    pkg_inst_name: &str,
-    oracle_name: &str,
-    path_str: &str,
-) -> String {
-    format!("mk-intermediate-state-{game_name}-{pkg_inst_name}-{oracle_name}-{path_str}")
-}
-
-fn intermediate_state_piece_selector_child_name(
-    game_name: &str,
-    pkg_inst_name: &str,
-    oracle_name: &str,
-    path_str: &str,
-) -> String {
-    format!("intermediate-state-{game_name}-{pkg_inst_name}-{oracle_name}-{path_str}-child")
-}
-
-fn intermediate_state_piece_selector_arg_name(
-    game_name: &str,
-    pkg_inst_name: &str,
-    oracle_name: &str,
-    path_str: &str,
-    arg_name: &str,
-) -> String {
-    format!(
-        "intermediate-state-{game_name}-{pkg_inst_name}-{oracle_name}-{path_str}-arg-{arg_name}"
-    )
-}
-
-fn intermediate_state_piece_selector_local_name(
-    game_name: &str,
-    pkg_inst_name: &str,
-    oracle_name: &str,
-    path_str: &str,
-    local_name: &str,
-) -> String {
-    format!("intermediate-state-{game_name}-{pkg_inst_name}-{oracle_name}-{path_str}-local-{local_name}")
-}
 
 // these are just the arg-x part, withpout the full oracle and package instance and game name up front
 
@@ -79,7 +23,7 @@ fn intermediate_state_piece_selector_local_match_name(local_name: &str) -> Strin
 }
 
 fn partial_function_arg_intermediate_state_name() -> String {
-    format!("partial-arg:intermediate-state")
+    format!("__intermediate_state")
 }
 
 #[derive(Debug, Clone)]
@@ -153,14 +97,21 @@ impl PartialStep {
                 oracle_name,
             } = target_data;
 
-            Some(intermediate_state_piece_sort_name(
+            let intermediate_state_pattern = DatastructurePattern::IntermediateState {
                 game_name,
                 pkg_inst_name,
                 oracle_name,
-            ))
+                variant_name: "",
+            };
+
+            Some(intermediate_state_pattern.sort_name())
         } else {
             None
         }
+    }
+
+    pub(crate) fn path(&self) -> &SplitPath {
+        &self.path
     }
 }
 
@@ -194,7 +145,7 @@ trait NameMapper {
 
                 (constructor, selectors)
             })
-            .chain(vec![(self.end(), vec![])].into_iter())
+            //.chain(vec![(self.end(), vec![])].into_iter())
             .collect()
     }
 
@@ -217,13 +168,15 @@ impl<'a> NameMapper for DeclareDatatypeNameMapper<'a> {
 
     fn arg(&self, path: &SplitPath, sort: SmtExpr, arg_name: &str) -> Self::Selector {
         let path_str = path.smt_name();
+        let intermediate_state_pattern = DatastructurePattern::IntermediateState {
+            game_name: &self.game_name,
+            pkg_inst_name: &self.pkg_inst_name,
+            oracle_name: &self.oracle_name,
+            variant_name: &path_str,
+        };
         (
-            intermediate_state_piece_selector_arg_name(
-                self.game_name,
-                self.pkg_inst_name,
-                self.oracle_name,
-                &path_str,
-                arg_name,
+            intermediate_state_pattern.selector_name(
+                &DatastructurePattern::intermediate_state_selector_arg(arg_name),
             ),
             sort,
         )
@@ -231,49 +184,53 @@ impl<'a> NameMapper for DeclareDatatypeNameMapper<'a> {
 
     fn local(&self, path: &SplitPath, sort: SmtExpr, local_name: &str) -> Self::Selector {
         let path_str = path.smt_name();
+        let intermediate_state_pattern = DatastructurePattern::IntermediateState {
+            game_name: &self.game_name,
+            pkg_inst_name: &self.pkg_inst_name,
+            oracle_name: &self.oracle_name,
+            variant_name: &path_str,
+        };
         (
-            intermediate_state_piece_selector_local_name(
-                self.game_name,
-                self.pkg_inst_name,
-                self.oracle_name,
-                &path_str,
-                local_name,
+            intermediate_state_pattern.selector_name(
+                &DatastructurePattern::intermediate_state_selector_local(&local_name),
             ),
             sort,
         )
     }
 
     fn child(&self, path: &SplitPath) -> Self::Selector {
-        let name = intermediate_state_piece_selector_child_name(
-            self.game_name,
-            self.pkg_inst_name,
-            self.oracle_name,
-            &path.smt_name(),
-        );
-        let sort = intermediate_state_piece_sort_name(
-            &self.game_name,
-            &self.pkg_inst_name,
-            &self.oracle_name,
-        );
+        let intermediate_state_pattern = DatastructurePattern::IntermediateState {
+            game_name: &self.game_name,
+            pkg_inst_name: &self.pkg_inst_name,
+            oracle_name: &self.oracle_name,
+            variant_name: &path.smt_name(),
+        };
+        let name = intermediate_state_pattern.selector_name("child");
+        let sort = intermediate_state_pattern.sort_name();
         (name, sort.into())
     }
 
     fn end(&self) -> Self::Constructor {
-        intermediate_state_piece_constructor_end_name(
-            self.game_name,
-            self.pkg_inst_name,
-            self.oracle_name,
-        )
+        let intermediate_state_pattern = DatastructurePattern::IntermediateState {
+            game_name: &self.game_name,
+            pkg_inst_name: &self.pkg_inst_name,
+            oracle_name: &self.oracle_name,
+            variant_name: "end",
+        };
+
+        intermediate_state_pattern.constructor_name()
     }
 
     fn constructor(&self, path: &SplitPath) -> Self::Constructor {
         let path_str = path.smt_name();
-        intermediate_state_piece_constructor_name(
-            self.game_name,
-            self.pkg_inst_name,
-            self.oracle_name,
-            &path_str,
-        )
+        let intermediate_state_pattern = DatastructurePattern::IntermediateState {
+            game_name: &self.game_name,
+            pkg_inst_name: &self.pkg_inst_name,
+            oracle_name: &self.oracle_name,
+            variant_name: &path_str,
+        };
+
+        intermediate_state_pattern.constructor_name()
     }
 }
 
@@ -301,30 +258,36 @@ impl<'a> NameMapper for MatchBlockMapper<'a> {
 
     fn constructor(&self, path: &SplitPath) -> Self::Constructor {
         let path_str = path.smt_name();
-        let constructor_name = intermediate_state_piece_constructor_name(
-            self.game_name,
-            self.pkg_inst_name,
-            self.oracle_name,
-            &path_str,
-        );
+        let intermediate_state_pattern = DatastructurePattern::IntermediateState {
+            game_name: &self.game_name,
+            pkg_inst_name: &self.pkg_inst_name,
+            oracle_name: &self.oracle_name,
+            variant_name: &path_str,
+        };
 
-        let target_oracle_name = super::names::oracle_function_name(
-            self.game_name,
-            self.pkg_inst_name,
-            &path.smt_name(),
-        );
+        let constructor_name = intermediate_state_pattern.constructor_name();
+
+        let partial_oracle_function_pattern = FunctionPattern::PartialOracle {
+            game_name: &self.game_name,
+            pkg_inst_name: &self.pkg_inst_name,
+            oracle_name: &self.oracle_name,
+            split_path: path,
+        };
+
+        let target_oracle_name = partial_oracle_function_pattern.function_name();
 
         (constructor_name, Some(target_oracle_name))
     }
 
     fn end(&self) -> Self::Constructor {
-        let constructor_name = intermediate_state_piece_constructor_end_name(
-            self.game_name,
-            self.pkg_inst_name,
-            self.oracle_name,
-        );
+        let intermediate_state_pattern = DatastructurePattern::IntermediateState {
+            game_name: &self.game_name,
+            pkg_inst_name: &self.pkg_inst_name,
+            oracle_name: &self.oracle_name,
+            variant_name: "end",
+        };
 
-        (constructor_name, None)
+        (intermediate_state_pattern.constructor_name(), None)
     }
 }
 
@@ -382,14 +345,13 @@ impl<B: Into<SmtExpr>> Into<SmtExpr> for SmtDefineFunction<B> {
     }
 }
 
-impl<'a> PackageInstanceContext<'a> {
+impl<'a> GameContext<'a> {
     pub(crate) fn smt_declare_intermediate_state(&self, datatype: &PartialsDatatype) -> SmtExpr {
-        let game_ctx = self.game_ctx();
-        let game_name = &game_ctx.game().name;
-        let pkg_inst_name = &self.pkg_inst_name();
+        let game_name = &self.game().name;
+        let pkg_inst_name = &datatype.pkg_inst_name;
         let oracle_name = &datatype.real_oracle_sig.name;
 
-        let sort_name = intermediate_state_piece_sort_name(game_name, pkg_inst_name, oracle_name);
+        let oracle_return_type = datatype.real_oracle_sig.tipe.clone();
 
         let intermediate_state_begin_pattern = DatastructurePattern::IntermediateState {
             game_name,
@@ -404,6 +366,8 @@ impl<'a> PackageInstanceContext<'a> {
             oracle_name,
             variant_name: DatastructurePattern::CONSTRUCTOR_INTERMEDIATE_STATE_END,
         };
+
+        let sort_name = intermediate_state_begin_pattern.sort_name();
 
         let last_step = datatype.partial_steps.last().unwrap();
         // path x oracle name x pkg_inst_ctx -> oracle_def
@@ -428,7 +392,7 @@ impl<'a> PackageInstanceContext<'a> {
                 intermediate_state_end_pattern.selector_name(
                     DatastructurePattern::SELECTOR_INTERMEDIATE_STATE_END_RETURN_VALUE,
                 ),
-                return_pattern.sort_name().into(),
+                oracle_return_type.into(),
             )],
         );
 
@@ -439,7 +403,9 @@ impl<'a> PackageInstanceContext<'a> {
                 .chain(vec![begin_constructor, end_constructor].into_iter()),
         )
     }
+}
 
+impl<'a> PackageInstanceContext<'a> {
     fn check_args_are_honest<B: Into<SmtExpr>>(&self, args: &[(String, Type)], body: B) -> SmtExpr {
         if args.is_empty() {
             return body.into();

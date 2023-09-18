@@ -1,4 +1,7 @@
-use crate::{expressions::Expression, identifier::Identifier, statement::CodeBlock, types::Type};
+use crate::{
+    expressions::Expression, identifier::Identifier, statement::CodeBlock, types::Type,
+    writers::smt::exprs::SmtExpr,
+};
 use std::fmt::Write;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -8,6 +11,15 @@ pub struct SplitOracleSig {
     pub partial_vars: Vec<(String, Type)>,
     pub path: SplitPath,
     pub tipe: Type,
+}
+
+impl SplitOracleSig {
+    pub(crate) fn name_with_path(&self) -> String {
+        let oracle_name = &self.name;
+        let path = self.path.smt_name();
+
+        format!("{oracle_name}/{path}")
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -64,6 +76,17 @@ impl SplitPath {
         }
 
         true
+    }
+    pub fn additional_args(&self) -> Vec<SmtExpr> {
+        let mut out = vec![];
+        for path_elem in self.path().iter().rev() {
+            match &path_elem.split_type {
+                SplitType::Invoc(_) => break,
+                SplitType::ForStep(ident, _, _) => out.push((ident.ident(), Type::Integer).into()),
+                _ => {}
+            }
+        }
+        out
     }
 
     // This doesn't support nested plain blocks, but we assume these don't exist anyway and would be a bug

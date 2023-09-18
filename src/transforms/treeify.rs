@@ -283,6 +283,7 @@ mod treeify_transform_test {
             ],
             name: "real".to_string(),
             consts: vec![],
+            split_exports: vec![],
         };
 
         let transform = Transformation(&mod_prf_game);

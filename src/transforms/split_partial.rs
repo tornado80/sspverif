@@ -301,7 +301,7 @@ fn transform_oracle(
             .collect();
 
         let new_sig = SplitOracleSig {
-            name: splitpath.smt_name(),
+            name: oracle_name.clone(),
             args: new_args,
             tipe: Type::Empty, // <-- note the difference
             partial_vars: oracle_locals.clone(),
@@ -322,7 +322,7 @@ fn transform_oracle(
         .collect();
 
     let sig = SplitOracleSig {
-        name: last_splitpath.smt_name(),
+        name: oracle_name.clone(),
         args: last_newargs,
         tipe: osig.tipe.clone(), // <-- note the difference
         partial_vars: last_locals.clone(),

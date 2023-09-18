@@ -94,7 +94,8 @@ impl<'a> ProverThingy<'a> {
         let resp = match &self.state {
             ProverThingyState::EmitBaseDeclarations => {
                 let resp = self.emit_base_declarations();
-                self.state = ProverThingyState::EmitPartialInformation;
+                self.state = ProverThingyState::EmitGameInstances;
+                /* used to be partial information but we don't need that here anymore */
                 resp
             }
             ProverThingyState::EmitGameInstances => {
@@ -103,6 +104,7 @@ impl<'a> ProverThingy<'a> {
                 resp
             }
             ProverThingyState::EmitPartialInformation => {
+                panic!("no more EmitPartialInformation");
                 let resp = self.emit_split_enum();
                 self.state = ProverThingyState::EmitGameInstances;
                 resp
@@ -206,10 +208,9 @@ impl<'a> ProverThingy<'a> {
         let gctx_left = contexts::GameContext::new(left.as_game());
         let gctx_right = contexts::GameContext::new(right.as_game());
 
-        let out = vec![
-            gctx_left.smt_declare_intermediate_state_enum(self.split_info_left),
-            gctx_right.smt_declare_intermediate_state_enum(self.split_info_right),
-        ];
+        let mut out = vec![];
+        out.append(&mut gctx_left.smt_declare_intermediate_state_enum(self.split_info_left));
+        out.append(&mut gctx_right.smt_declare_intermediate_state_enum(self.split_info_right));
 
         ProverThingyOutput {
             output_type: ProverThingyOutputType::Partials,

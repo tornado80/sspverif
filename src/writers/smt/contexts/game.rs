@@ -6,6 +6,7 @@ use crate::{
         declare,
         exprs::{SmtExpr, SmtLet},
         names,
+        partials::into_partial_dtypes,
     },
 };
 
@@ -144,51 +145,62 @@ impl<'a> GameContext<'a> {
         .into()
     }
 
-    pub(crate) fn smt_declare_intermediate_state_enum(&self, splitinfo: &SplitInfo) -> SmtExpr {
-        let game_name = &self.game().name;
+    pub(crate) fn smt_declare_intermediate_state_enum(
+        &self,
+        splitinfo: &SplitInfo,
+    ) -> Vec<SmtExpr> {
+        let dtypes = into_partial_dtypes(splitinfo);
 
-        declare::declare_datatype(
-            &names::intermediate_state_sort_name(&self.game.name),
-            splitinfo
-                .iter()
-                .map(|info_entry| {
-                    (
-                        names::intermediate_state_constructor(
-                            game_name,
-                            &info_entry.path().smt_name(),
-                        ),
-                        info_entry
-                            .locals()
-                            .iter()
-                            .map(|(localname, localtype)| {
-                                (
-                                    names::intermediate_state_selector_local(
-                                        game_name,
-                                        &info_entry.path().smt_name(),
-                                        localname,
-                                    ),
-                                    localtype.into(),
-                                )
-                            })
-                            .chain(vec![(
-                                names::intermediate_state_selector_parent(
-                                    game_name,
-                                    &info_entry.path().smt_name(),
-                                ),
-                                names::intermediate_state_sort_name(&self.game.name).into(),
-                            )])
-                            .collect(),
-                    )
-                })
-                .chain(
-                    vec![(
-                        names::intermediate_state_constructor_none(game_name),
-                        vec![],
-                    )]
-                    .into_iter(),
-                ),
-        )
-        .into()
+        return dtypes
+            .iter()
+            .map(|dtype| self.smt_declare_intermediate_state(dtype))
+            .collect();
+
+        //return self.smt_declare_intermediate_state(dtypes);
+        //
+        // let game_name = &self.game().name;
+        //
+        // declare::declare_datatype(
+        //     &names::intermediate_state_sort_name(&self.game.name),
+        //     splitinfo
+        //         .iter()
+        //         .map(|info_entry| {
+        //             (
+        //                 names::intermediate_state_constructor(
+        //                     game_name,
+        //                     &info_entry.path().smt_name(),
+        //                 ),
+        //                 info_entry
+        //                     .locals()
+        //                     .iter()
+        //                     .map(|(localname, localtype)| {
+        //                         (
+        //                             names::intermediate_state_selector_local(
+        //                                 game_name,
+        //                                 &info_entry.path().smt_name(),
+        //                                 localname,
+        //                             ),
+        //                             localtype.into(),
+        //                         )
+        //                     })
+        //                     .chain(vec![(
+        //                         names::intermediate_state_selector_parent(
+        //                             game_name,
+        //                             &info_entry.path().smt_name(),
+        //                         ),
+        //                         names::intermediate_state_sort_name(&self.game.name).into(),
+        //                     )])
+        //                     .collect(),
+        //             )
+        //         })
+        //         .chain(
+        //             vec![(
+        //                 names::intermediate_state_constructor_none(game_name),
+        //                 vec![],
+        //             )]
+        //             .into_iter(),
+        //         ),
+        // ).into();
     }
 
     pub(crate) fn smt_declare_gamestate(&self, sample_info: &SampleInfo) -> SmtExpr {
@@ -219,15 +231,13 @@ impl<'a> GameContext<'a> {
             )
         });
 
-        let partial_field = [(
-            names::gamestate_selector_intermediate_state_name(game_name),
-            names::intermediate_state_sort_name(game_name).into(),
-        )];
+        // let partial_field = [(
+        //     names::gamestate_selector_intermediate_state_name(game_name),
+        //     names::intermediate_state_sort_name(game_name).into(),
+        // )];
 
-        let fields = pkgstate_fields
-            .chain(const_fields)
-            .chain(rand_fields)
-            .chain(partial_field);
+        let fields = pkgstate_fields.chain(const_fields).chain(rand_fields);
+        // .chain(partial_field);
 
         declare::declare_single_constructor_datatype(
             &names::gamestate_sort_name(game_name),

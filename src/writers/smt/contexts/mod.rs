@@ -58,10 +58,4 @@ pub trait GenericOracleContext {
     where
         S: Into<SmtExpr>,
         SL: Into<SmtExpr>;
-
-    fn smt_construct_return<S, SL, V>(&self, state: S, state_len: SL, expr: V) -> SmtExpr
-    where
-        S: Into<SmtExpr>,
-        SL: Into<SmtExpr>,
-        V: Into<SmtExpr>;
 }

@@ -16,12 +16,28 @@ pub(crate) fn return_constructor_name(
     format!("mk-return-{game_name}-{inst_name}-{oracle_name}")
 }
 
+pub(crate) fn return_constructor_abort_name(
+    game_name: &str,
+    inst_name: &str,
+    oracle_name: &str,
+) -> String {
+    format!("mk-abort-{game_name}-{inst_name}-{oracle_name}")
+}
+
 pub(crate) fn return_selector_state_name(
     game_name: &str,
     inst_name: &str,
     oracle_name: &str,
 ) -> String {
     format!("return-{game_name}-{inst_name}-{oracle_name}-state")
+}
+
+pub(crate) fn return_selector_intermediate_state_name(
+    game_name: &str,
+    inst_name: &str,
+    oracle_name: &str,
+) -> String {
+    format!("return-{game_name}-{inst_name}-{oracle_name}-intermediate-state")
 }
 
 pub(crate) fn return_selector_state_sort(game_name: &str) -> SmtExpr {

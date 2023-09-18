@@ -331,28 +331,4 @@ impl<'a> GenericOracleContext for OracleContext<'a> {
         )
             .into()
     }
-
-    fn smt_construct_return<S, SL, V>(&self, state: S, state_len: SL, value: V) -> SmtExpr
-    where
-        S: Into<SmtExpr>,
-        SL: Into<SmtExpr>,
-        V: Into<SmtExpr>,
-    {
-        let game = self.game_ctx.game;
-        let inst = &game.pkgs[self.inst_offs];
-        let odef = &inst.pkg.oracles[self.oracle_offs];
-
-        let game_name = &game.name;
-        let inst_name = &inst.name;
-        let oracle_name = &odef.sig.name;
-
-        (
-            names::return_constructor_name(game_name, inst_name, oracle_name),
-            state,
-            state_len,
-            value,
-            "false",
-        )
-            .into()
-    }
 }

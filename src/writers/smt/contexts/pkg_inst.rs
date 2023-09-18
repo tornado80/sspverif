@@ -1,4 +1,5 @@
 use crate::package::PackageInstance;
+use crate::split::SplitPath;
 
 use super::super::exprs::SmtExpr;
 use super::super::{declare, names};
@@ -39,6 +40,26 @@ impl<'a> PackageInstanceContext<'a> {
             game_ctx: self.game_ctx.clone(),
             inst_offs,
             oracle_offs,
+        })
+    }
+
+    pub fn split_oracle_ctx_by_name_and_path(
+        &self,
+        oracle_name: &str,
+        oracle_path: &SplitPath,
+    ) -> Option<SplitOracleContext<'a>> {
+        let inst_offs = self.inst_offs;
+        let inst = &self.game_ctx.game.pkgs[inst_offs];
+        let split_oracle_offs = inst
+            .pkg
+            .split_oracles
+            .iter()
+            .position(|odef| odef.sig.name == oracle_name && &odef.sig.path == oracle_path)?;
+
+        Some(SplitOracleContext {
+            game_ctx: self.game_ctx.clone(),
+            inst_offs,
+            split_oracle_offs,
         })
     }
 
