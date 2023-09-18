@@ -1,6 +1,11 @@
 use crate::{
+    proof::Named,
     split::SplitOracleDef,
-    writers::smt::{exprs::SmtExpr, names, patterns::DatastructurePattern},
+    writers::smt::{
+        exprs::SmtExpr,
+        names,
+        patterns::{DatastructurePattern, FunctionPattern},
+    },
 };
 
 use super::{GenericOracleContext, PackageInstanceContext, SplitOracleContext};
@@ -71,6 +76,23 @@ impl<'a> SplitOracleContext<'a> {
          *
          * */
     }
+
+    fn oracle_function_pattern(&self) -> FunctionPattern {
+        let game_ctx = self.game_ctx();
+        let pkg_inst_ctx = self.pkg_inst_ctx();
+
+        let game_name = &game_ctx.game.name;
+        let pkg_inst_name = pkg_inst_ctx.pkg_inst_name();
+        let oracle_name = self.oracle_name();
+        let split_path = &self.oracle_def().sig.path;
+
+        FunctionPattern::PartialOracle {
+            game_name,
+            pkg_inst_name,
+            oracle_name,
+            split_path,
+        }
+    }
 }
 
 impl<'a> GenericOracleContext for SplitOracleContext<'a> {
@@ -91,6 +113,10 @@ impl<'a> GenericOracleContext for SplitOracleContext<'a> {
 
     fn oracle_return_type(&self) -> &crate::types::Type {
         &self.oracle_def().sig.tipe
+    }
+
+    fn smt_game_state(&self) -> SmtExpr {
+        "__global_state".into()
     }
 
     fn smt_construct_abort<S, SL>(&self, state: S, state_len: SL) -> SmtExpr

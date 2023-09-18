@@ -54,6 +54,8 @@ pub trait GenericOracleContext {
     fn oracle_name(&self) -> &str;
     fn oracle_return_type(&self) -> &Type;
 
+    fn smt_game_state(&self) -> SmtExpr;
+
     fn smt_construct_abort<S, SL>(&self, state: S, state_len: SL) -> SmtExpr
     where
         S: Into<SmtExpr>,

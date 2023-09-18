@@ -309,6 +309,12 @@ impl<'a> GenericOracleContext for OracleContext<'a> {
         &self.oracle_def().sig.tipe
     }
 
+    fn smt_game_state(&self) -> SmtExpr {
+        ("select", "__game_state", "__state_length").into()
+    }
+
+    // TODO: I think we should refactor this to remove the arguments, because this doesn't apply to
+    // the split case.
     fn smt_construct_abort<S, SL>(&self, state: S, state_len: SL) -> SmtExpr
     where
         S: Into<SmtExpr>,

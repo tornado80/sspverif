@@ -21,6 +21,10 @@ impl<'a> super::GameTransform for TransformNg {
                     newinst.pkg.oracles[i].code =
                         returnify(&oracle.code, oracle.sig.tipe == Type::Empty)?;
                 }
+                for (i, oracle) in newinst.pkg.split_oracles.clone().iter().enumerate() {
+                    newinst.pkg.split_oracles[i].code =
+                        returnify(&oracle.code, oracle.sig.tipe == Type::Empty)?;
+                }
                 Ok(newinst)
             })
             .collect();

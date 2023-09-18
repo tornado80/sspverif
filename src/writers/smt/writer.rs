@@ -53,13 +53,12 @@ impl<'a> CompositionSmtWriter<'a> {
             .oracle_ctx_by_name(oracle_name)
     }
 
-    fn get_randomness(&self, sample_id: usize) -> Option<SmtExpr> {
+    fn get_randomness<GS: Into<SmtExpr>>(
+        &self,
+        gamestate: GS,
+        sample_id: usize,
+    ) -> Option<SmtExpr> {
         let game_context = self.get_game_context();
-        let gamestate = (
-            "select",
-            names::var_globalstate_name(),
-            names::var_state_length_name(),
-        );
 
         game_context.smt_access_gamestate_rand(self.sample_info, gamestate, sample_id)
     }
@@ -284,42 +283,85 @@ impl<'a> CompositionSmtWriter<'a> {
         }
     }
 
+    /*
+     *
+     * what is it that we have to do here?
+     * - build either an abort or a return
+     * - a return needs to contain the correct partial state for the next partial oracle invocation
+     *
+     * q: when we have progressed to this place, the code has already been rewritten
+     *    by the partial split transform and if-then-elses that need to have
+     *    been split have been removed. what is it then that is at the end of the oracles?
+     * a: code now panics because the oracle codeblock ends in an assign, so maybe it can be
+     *    anything? that's weird though, because the split partial transform is before the
+     *    returnify transform. whatever code was returned by splitpartial should have been
+     *    returnified...
+     *    oh wait! the returnify transform does not operate on split oracles, only regulare ones!
+     *    this seems to be a problem with separating the two that we hadn't factored in yet :(
+     *    that could be fixed by just also looping over the code of the split_oracles. glad it was
+     *    that easy!
+     *
+     * log: we still have the problem that, when sampling, we try to access the gamestate by
+     *      doing (select __game_state __state_length), which won't work here: we only have
+     *      one game state here.
+     *      maybe we need to add a method to the GenericOracleContext trait that returns the
+     *      SmtExpr that evaluates to the gamestate in the context of the oracle.
+     * log: okay, looks like i have removed a lot of instances where this is a problem. now
+     *      this happens when _storing_ something in the gamestate variable. but i'll call it a
+     *      night for now :)
+     *
+     * */
+
     fn smt_build_innermost_split(
         &self,
         oracle_ctx: &SplitOracleContext,
         stmt: &Statement,
     ) -> SmtExpr {
-        ("todo_build_innermost_split",).into()
-        // let odef = oracle_ctx.oracle_def();
-        // let inst = oracle_ctx.pkg_inst_ctx().pkg_inst();
-        // match stmt {
-        //     Statement::IfThenElse(cond, ifcode, elsecode) => SmtIte {
-        //         cond: cond.clone(),
-        //         then: self.smt_codeblock_nonsplit(oracle_ctx, ifcode.clone()),
-        //         els: self.smt_codeblock_nonsplit(oracle_ctx, elsecode.clone()),
-        //     }
-        //     .into(),
-        //     Statement::Return(None) => {
-        //         // (mk-return-{name} statevarname expr)
-        //         self.smt_build_return_none(oracle_ctx)
-        //     }
-        //     Statement::Return(Some(expr)) => {
-        //         // (mk-return-{name} statevarname expr)
-        //         self.smt_build_return_some(oracle_ctx, expr)
-        //     }
-        //     Statement::Abort => {
-        //         // mk-abort-{name}
-        //         self.smt_build_abort(oracle_ctx)
-        //     }
-        //     _ => unreachable!("found invalid statement at end of oracle: {stmt:#?}"),
-        // }
+        //let odef = oracle_ctx.oracle_def();
+        let game_ctx = oracle_ctx.game_ctx();
+        let inst = oracle_ctx.pkg_inst_ctx().pkg_inst();
+
+        let game_name = &game_ctx.game().name;
+        let pkg_inst_name = &inst.name;
+        let oracle_name = oracle_ctx.oracle_name();
+
+        //("todo_build_innermost_split",).into();
+        match stmt {
+            Statement::IfThenElse(cond, ifcode, elsecode) => SmtIte {
+                cond: cond.clone(),
+                then: self.smt_codeblock_split(oracle_ctx, ifcode.clone()),
+                els: self.smt_codeblock_split(oracle_ctx, elsecode.clone()),
+            }
+            .into(),
+            // this is probably wrong because we don't have any selectors, but maybe it's ok idk:
+            Statement::Abort => {
+                // construct a partial-state abort
+                let abort_pattern = DatastructurePattern::PartialReturn {
+                    game_name,
+                    pkg_inst_name,
+                    oracle_name,
+                };
+                (abort_pattern.constructor_name(),).into()
+            }
+            Statement::Return(None) => {
+                // (mk-return-{name} statevarname expr)
+                // self.smt_build_return_none(oracle_ctx)
+                ("todo_build_innermost_split_empty_return",).into()
+            }
+            Statement::Return(Some(expr)) => {
+                // (mk-return-{name} statevarname expr)
+                // self.smt_build_return_some(oracle_ctx, expr)
+                ("todo_build_innermost_split_some_return",).into()
+            }
+            _ => unreachable!("found invalid statement at end of oracle: {:#?}", stmt),
+        }
     }
 
     fn smt_build_return_none_nonsplit(&self, oracle_ctx: &OracleContext) -> SmtExpr {
         let game_ctx = oracle_ctx.game_ctx();
         let inst = oracle_ctx.pkg_inst_ctx().pkg_inst();
         let var_gamestates = names::var_globalstate_name();
-        let old_gamestate = GlobalContext::smt_latest_gamestate();
+        let old_gamestate = oracle_ctx.smt_game_state();
         let var_selfstate = names::var_selfstate_name();
         let new_gamestate = game_ctx
             .smt_update_gamestate_pkgstate(
@@ -347,7 +389,7 @@ impl<'a> CompositionSmtWriter<'a> {
         let inst = oracle_ctx.pkg_inst_ctx().pkg_inst();
 
         let var_gamestates = names::var_globalstate_name();
-        let old_gamestate = GlobalContext::smt_latest_gamestate();
+        let old_gamestate = oracle_ctx.smt_game_state();
         let var_selfstate = names::var_selfstate_name();
         let new_gamestate = game_ctx
             .smt_update_gamestate_pkgstate(
@@ -374,7 +416,7 @@ impl<'a> CompositionSmtWriter<'a> {
         let inst = oracle_ctx.pkg_inst_ctx().pkg_inst();
 
         let var_gamestates = names::var_globalstate_name();
-        let old_gamestate = GlobalContext::smt_latest_gamestate();
+        let old_gamestate = oracle_ctx.smt_game_state();
         let var_selfstate = names::var_selfstate_name();
         let var_state_len = names::var_state_length_name();
 
@@ -423,14 +465,17 @@ impl<'a> CompositionSmtWriter<'a> {
     ) -> SmtExpr {
         let sample_id = sample_id.expect("found a None sample_id");
         let game_ctx = oracle_ctx.game_ctx();
+        let gamestate = oracle_ctx.smt_game_state();
         // ctr is the current "i-th sampling for sample id sample_id"
-        let ctr = self.get_randomness(sample_id).unwrap_or_else(|| {
-            let max_known_sample_id = self.sample_info.count;
-            panic!(
-                "found sample id {} that exceeds highest expected {}",
-                sample_id, max_known_sample_id
-            )
-        });
+        let ctr = self
+            .get_randomness(gamestate, sample_id)
+            .unwrap_or_else(|| {
+                let max_known_sample_id = self.sample_info.count;
+                panic!(
+                    "found sample id {} that exceeds highest expected {}",
+                    sample_id, max_known_sample_id
+                )
+            });
 
         let rand_fn_name = names::fn_sample_rand_name(&self.comp.name, tipe);
 
@@ -453,7 +498,7 @@ impl<'a> CompositionSmtWriter<'a> {
             .filter(|(x, _)| x != "_")
             .collect();
 
-        let cur_gamestate = GlobalContext::smt_latest_gamestate();
+        let cur_gamestate = oracle_ctx.smt_game_state();
         let new_gamestate = game_ctx
             .smt_increment_gamestate_rand(cur_gamestate, self.sample_info, sample_id)
             .unwrap();
@@ -514,7 +559,7 @@ impl<'a> CompositionSmtWriter<'a> {
         let then_body = game_context.smt_push_global_gamestate(
             game_context
                 .smt_update_gamestate_pkgstate(
-                    GlobalContext::smt_latest_gamestate(),
+                    oracle_ctx.smt_game_state(),
                     self.sample_info,
                     &inst.name,
                     names::var_selfstate_name(),
