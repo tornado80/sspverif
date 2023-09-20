@@ -146,10 +146,10 @@ impl SplitPath {
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct SplitPathComponent {
-    pkg_inst_name: String,
-    oracle_name: String,
-    split_type: SplitType,
-    split_range: std::ops::Range<usize>,
+    pub pkg_inst_name: String,
+    pub oracle_name: String,
+    pub split_type: SplitType,
+    pub split_range: std::ops::Range<usize>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]

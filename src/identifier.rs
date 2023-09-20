@@ -31,6 +31,15 @@ impl Identifier {
         Expression::Identifier(self.clone())
     }
 
+    pub fn ident_ref(&self) -> &str {
+        match self {
+            Identifier::Scalar(ident) => &ident,
+            Identifier::State { name, .. } => &name,
+            Identifier::Parameter { name_in_pkg, .. } => &name_in_pkg,
+            Identifier::Local(name) => &name,
+        }
+    }
+
     pub fn ident(&self) -> String {
         match self {
             Identifier::Scalar(ident) => ident.clone(),

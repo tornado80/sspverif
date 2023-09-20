@@ -1,24 +1,29 @@
 use crate::expressions::Expression;
 use crate::identifier::Identifier;
-use crate::package::{Composition, OracleDef, OracleSig, PackageInstance};
-use crate::split::{SplitOracleSig, SplitType};
+use crate::package::{Composition, OracleDef, PackageInstance};
+use crate::split::SplitPath;
 use crate::statement::{CodeBlock, Statement};
 use crate::transforms::samplify::SampleInfo;
-use crate::transforms::split_partial::{SplitInfo, SplitInfoEntry};
+use crate::transforms::split_partial::SplitInfo;
 use crate::types::Type;
 
 use crate::writers::smt::exprs::{smt_to_string, SmtExpr, SmtIte, SmtLet};
 use crate::writers::smt::partials::into_partial_dtypes;
+use crate::writers::smt::patterns::{PartialReturnConstructor, PartialReturnPattern};
 
 use super::contexts::{
-    GameContext, GenericOracleContext, GlobalContext, OracleContext, PackageInstanceContext,
-    SplitOracleContext,
+    GameContext, GenericOracleContext, OracleContext, PackageInstanceContext, SplitOracleContext,
 };
-use super::declare::declare_datatype;
 use super::exprs::{SmtAs, SmtEq2};
 use super::partials::PartialsDatatype;
-use super::patterns::{DatastructurePattern, FunctionPattern};
+use super::patterns::{
+    DatastructurePattern, FunctionPattern, IntermediateStateConstructor, IntermediateStatePattern,
+    IntermediateStateSelector,
+};
 use super::{names, sorts};
+
+use super::patterns;
+use patterns::DatastructurePattern2;
 
 pub struct CompositionSmtWriter<'a> {
     pub comp: &'a Composition,
@@ -302,15 +307,105 @@ impl<'a> CompositionSmtWriter<'a> {
      *    that easy!
      *
      * log: we still have the problem that, when sampling, we try to access the gamestate by
-     *      doing (select __game_state __state_length), which won't work here: we only have
+    // *      doing (select __global_state __state_length), which won't work here: we only have
      *      one game state here.
      *      maybe we need to add a method to the GenericOracleContext trait that returns the
      *      SmtExpr that evaluates to the gamestate in the context of the oracle.
      * log: okay, looks like i have removed a lot of instances where this is a problem. now
      *      this happens when _storing_ something in the gamestate variable. but i'll call it a
      *      night for now :)
+     * log: new day, now together with christoph!
+     *      we have started migrating the nonsplit return to also just have a single game state.
+     *      that should make things simpler, hopefully!
+     *      now it fails at the return statement below again
+     *
+     * what to do on return?
+     * - figure out next state. how?
+     *   - current path type
+     *     - ifcond => if cond, then next, else elsenext
+     *     - forstep => if still in range next, else elsenext
+     *     - _ => next
+     *
+     * - how do we get the path type?
+     *    - ofthen there is a trailing /plain
+     *    - just start with last and go back until we find the right one
+     *
+     *
      *
      * */
+
+    fn smt_build_next_intermediate_state(
+        &self,
+        oracle_ctx: &SplitOracleContext,
+    ) -> Option<SmtExpr> {
+        let path = oracle_ctx.split_path();
+        let entry = self
+            .split_info
+            .iter()
+            .find(|entry| entry.path() == path)
+            .unwrap();
+        let branches = entry.branches();
+
+        let first_true = branches
+            .iter()
+            .position(|(cond, _)| cond == &Expression::BooleanLiteral("true".to_string()))?;
+
+        let (_, elsepath) = &branches[first_true];
+        let mut block: SmtExpr = self.smt_build_intermediate_state_from_path(oracle_ctx, elsepath);
+
+        for i in (0..first_true).rev().skip(1) {
+            let (cond, ifpath) = &branches[i];
+            let ifblock = self.smt_build_intermediate_state_from_path(oracle_ctx, &ifpath);
+
+            block = SmtIte {
+                cond: cond.clone(),
+                then: ifblock,
+                els: block,
+            }
+            .into();
+        }
+
+        Some(block)
+    }
+
+    fn smt_build_intermediate_state_from_path(
+        &self,
+        oracle_ctx: &SplitOracleContext,
+        path: &SplitPath,
+    ) -> SmtExpr {
+        let game_ctx = oracle_ctx.game_ctx();
+        let inst = oracle_ctx.pkg_inst_ctx().pkg_inst();
+
+        let game_name = &game_ctx.game().name;
+        let pkg_inst_name = &inst.name;
+        let oracle_name = oracle_ctx.oracle_name();
+
+        let pattern = IntermediateStatePattern {
+            game_name,
+            pkg_inst_name,
+            oracle_name,
+        };
+
+        let constructor = IntermediateStateConstructor::OracleState(path);
+        let constructor_name = pattern.constructor_name(&constructor);
+
+        let entry = self
+            .split_info
+            .iter()
+            .find(|entry| entry.path() == path)
+            .unwrap();
+
+        let mut locals: Vec<SmtExpr> = entry
+            .locals()
+            .iter()
+            .map(|(name, _)| name.clone().into())
+            .collect();
+
+        let mut fn_call = vec![constructor_name.into()];
+        fn_call.append(&mut locals);
+
+        SmtExpr::List(fn_call)
+    }
 
     fn smt_build_innermost_split(
         &self,
@@ -346,7 +441,38 @@ impl<'a> CompositionSmtWriter<'a> {
             Statement::Return(None) => {
                 // (mk-return-{name} statevarname expr)
                 // self.smt_build_return_none(oracle_ctx)
-                ("todo_build_innermost_split_empty_return",).into()
+
+                let next_state =
+                    if let Some(next_state) = self.smt_build_next_intermediate_state(oracle_ctx) {
+                        next_state
+                    } else {
+                        let constructor_name = IntermediateStatePattern {
+                            game_name,
+                            pkg_inst_name,
+                            oracle_name,
+                        }
+                        .constructor_name(&IntermediateStateConstructor::End);
+
+                        (constructor_name, "mk-empty").into()
+                    };
+                let split_path = oracle_ctx.split_path();
+                let this_entry = self
+                    .split_info
+                    .iter()
+                    .find(|entry| entry.path() == split_path)
+                    .unwrap();
+                println!("{} -- {:#?}", split_path.smt_name(), this_entry);
+
+                let partial_return_pattern = PartialReturnPattern {
+                    game_name,
+                    pkg_inst_name,
+                    oracle_name,
+                };
+
+                let constructor_name =
+                    partial_return_pattern.constructor_name(&PartialReturnConstructor::Return);
+
+                (constructor_name, "__global_state", next_state).into()
             }
             Statement::Return(Some(expr)) => {
                 // (mk-return-{name} statevarname expr)
@@ -373,9 +499,7 @@ impl<'a> CompositionSmtWriter<'a> {
             .unwrap();
 
         let some_empty = ("mk-some", "mk-empty");
-        let var_state_len = names::var_state_length_name();
-        let body =
-            oracle_ctx.smt_construct_return(var_gamestates, var_state_len, some_empty, "false");
+        let body = oracle_ctx.smt_construct_return(var_gamestates, some_empty, "false");
 
         game_ctx.smt_push_global_gamestate(new_gamestate, body)
     }
@@ -400,10 +524,8 @@ impl<'a> CompositionSmtWriter<'a> {
             )
             .unwrap();
 
-        let var_state_len = names::var_state_length_name();
         let body = oracle_ctx.smt_construct_return(
             var_gamestates,
-            var_state_len,
             Expression::Some(Box::new(expr.clone())),
             "false",
         );
@@ -415,10 +537,8 @@ impl<'a> CompositionSmtWriter<'a> {
         let game_ctx = oracle_ctx.game_ctx();
         let inst = oracle_ctx.pkg_inst_ctx().pkg_inst();
 
-        let var_gamestates = names::var_globalstate_name();
         let old_gamestate = oracle_ctx.smt_game_state();
         let var_selfstate = names::var_selfstate_name();
-        let var_state_len = names::var_state_length_name();
 
         let new_gamestate = game_ctx
             .smt_update_gamestate_pkgstate(
@@ -429,7 +549,7 @@ impl<'a> CompositionSmtWriter<'a> {
             )
             .unwrap();
 
-        let body = oracle_ctx.smt_construct_abort(var_gamestates, var_state_len);
+        let body = oracle_ctx.smt_construct_abort();
 
         game_ctx.smt_push_global_gamestate(new_gamestate, body)
     }
@@ -565,31 +685,20 @@ impl<'a> CompositionSmtWriter<'a> {
                     names::var_selfstate_name(),
                 )
                 .unwrap(),
-            this_oracle_context.smt_construct_abort(
-                names::var_globalstate_name(),
-                names::var_state_length_name(),
-            ),
+            this_oracle_context.smt_construct_abort(),
         );
 
-        let let_bindings = vec![
-            (
-                names::var_globalstate_name(),
-                called_oracle_context.smt_access_return_state(names::var_ret_name()),
-            )
-                .into(),
-            (
-                names::var_state_length_name(),
-                called_oracle_context.smt_access_return_state_length(names::var_ret_name()),
-            )
-                .into(),
-        ];
+        let let_bindings = vec![(
+            names::var_globalstate_name(),
+            called_oracle_context.smt_access_return_state(names::var_ret_name()),
+        )
+            .into()];
 
         let smt_expr = SmtLet {
             bindings: vec![(names::var_ret_name(), {
                 let mut cmdline = vec![
                     names::oracle_function_name(&self.comp.name, target, name).into(),
                     names::var_globalstate_name().into(),
-                    names::var_state_length_name().into(),
                 ];
 
                 for arg in args {
@@ -726,10 +835,7 @@ impl<'a> CompositionSmtWriter<'a> {
                         tipe: Type::Maybe(Box::new(t)),
                     },
                 },
-                then: oracle_ctx.smt_construct_abort(
-                    names::var_globalstate_name(),
-                    names::var_state_length_name(),
-                ),
+                then: oracle_ctx.smt_construct_abort(),
                 els: smtout,
             }
             .into()
@@ -738,78 +844,78 @@ impl<'a> CompositionSmtWriter<'a> {
         }
     }
 
-    fn smt_next_gamestate<S: Into<SmtExpr>>(
-        oracle_ctx: &OracleContext,
-        entry: &SplitInfoEntry,
-        ret_stmt: &Statement,
-        old_gamestate: S,
-    ) -> SmtExpr {
-        let oracle_name = &oracle_ctx.oracle_def().sig.name;
-        let pkg_inst_name = oracle_ctx.pkg_inst_ctx().pkg_inst_name();
-
-        let mut cur_path = entry.path();
-
-        // we need to figure out the gamestates for both next and elsenext
-
-        let shared_prefix_next = entry
-            .next()
-            .map(|next| cur_path.longest_shared_prefix(next));
-
-        let shared_prefix_elsenext = entry
-            .elsenext()
-            .map(|next| cur_path.longest_shared_prefix(next));
-
-        let shared_prefix_next = match shared_prefix_next {
-            None => return oracle_ctx.smt_access_intermediate_parent(old_gamestate),
-            Some(x) => x,
-        };
-
-        todo!()
-
-        // x <- Foo() ---
-        // ----------   | next
-        // return x   <--
-
-        // .../Invoc():
-        //     invoke Oracle
-        //
-        // .../Plain
-        // .../Invoc/...
-        // .../Invoc/...
-        // .../Plain
-
-        // We are in a partial function!
-        //
-        // what now?
-        // -> construct next partial state!
-        //    what is the next parent?
-        //    enter function: push!
-        //    leave function: pop!
-        //    else:           copy!
-        //
-        // complications:
-        // - next or elsenext?
-        // - what if we leave multiple functions at once?
-        //   - this can't happen: after an invoc there definitely is a plain block
-        //     with a return statement
-        //     - TODO: partial_split transform: make sure there the is a return if
-        //             invoc is last statement
-        // - we also can't leave and enter at the same time
-        //
-        // so: same as determine_next, but return actual smt expression for the
-        // next partial state?
-        // - find common prefix path
-        // - pop path until common prefix
-        //   - match popped path element
-        //     - plain: skip
-        //     - ifcond:
-        //     - ifbranch
-        //     - elsebranch
-        //     - invoc
-        //     - forstep
-        // - go down to next
-        //
-    }
+    // fn smt_next_gamestate<S: Into<SmtExpr>>(
+    //     oracle_ctx: &OracleContext,
+    //     entry: &SplitInfoEntry,
+    //     ret_stmt: &Statement,
+    //     old_gamestate: S,
+    // ) -> SmtExpr {
+    //     let oracle_name = &oracle_ctx.oracle_def().sig.name;
+    //     let pkg_inst_name = oracle_ctx.pkg_inst_ctx().pkg_inst_name();
+    //
+    //     let mut cur_path = entry.path();
+    //
+    //     // we need to figure out the gamestates for both next and elsenext
+    //
+    //     let shared_prefix_next = entry
+    //         .next()
+    //         .map(|next| cur_path.longest_shared_prefix(next));
+    //
+    //     let shared_prefix_elsenext = entry
+    //         .elsenext()
+    //         .map(|next| cur_path.longest_shared_prefix(next));
+    //
+    //     let shared_prefix_next = match shared_prefix_next {
+    //         None => return oracle_ctx.smt_access_intermediate_parent(old_gamestate),
+    //         Some(x) => x,
+    //     };
+    //
+    //     todo!()
+    //
+    //     // x <- Foo() ---
+    //     // ----------   | next
+    //     // return x   <--
+    //
+    //     // .../Invoc():
+    //     //     invoke Oracle
+    //     //
+    //     // .../Plain
+    //     // .../Invoc/...
+    //     // .../Invoc/...
+    //     // .../Plain
+    //
+    //     // We are in a partial function!
+    //     //
+    //     // what now?
+    //     // -> construct next partial state!
+    //     //    what is the next parent?
+    //     //    enter function: push!
+    //     //    leave function: pop!
+    //     //    else:           copy!
+    //     //
+    //     // complications:
+    //     // - next or elsenext?
+    //     // - what if we leave multiple functions at once?
+    //     //   - this can't happen: after an invoc there definitely is a plain block
+    //     //     with a return statement
+    //     //     - TODO: partial_split transform: make sure there the is a return if
+    //     //             invoc is last statement
+    //     // - we also can't leave and enter at the same time
+    //     //
+    //     // so: same as determine_next, but return actual smt expression for the
+    //     // next partial state?
+    //     // - find common prefix path
+    //     // - pop path until common prefix
+    //     //   - match popped path element
+    //     //     - plain: skip
+    //     //     - ifcond:
+    //     //     - ifbranch
+    //     //     - elsebranch
+    //     //     - invoc
+    //     //     - forstep
+    //     // - go down to next
+    //     //
+    // }
 
     /* example
         (define-fun
@@ -831,17 +937,14 @@ impl<'a> CompositionSmtWriter<'a> {
 
     fn smt_define_nonsplit_oracle_fn(&self, inst: &PackageInstance, def: &OracleDef) -> SmtExpr {
         let code = &def.code;
-        let mut args = vec![
-            (
-                names::var_globalstate_name(),
-                sorts::Array {
-                    key: crate::types::Type::Integer,
-                    value: names::gamestate_sort_name(&self.comp.name),
-                },
-            )
-                .into(),
-            (names::var_state_length_name(), crate::types::Type::Integer).into(),
-        ];
+        let mut args = vec![(
+            names::var_globalstate_name(),
+            sorts::Array {
+                key: crate::types::Type::Integer,
+                value: names::gamestate_sort_name(&self.comp.name),
+            },
+        )
+            .into()];
 
         let rest_args = def.sig.args.iter().cloned().map(|arg| arg.into());
         args.extend(rest_args);
@@ -866,14 +969,7 @@ impl<'a> CompositionSmtWriter<'a> {
                 bindings: vec![(
                     names::var_selfstate_name(),
                     game_context
-                        .smt_access_gamestate_pkgstate(
-                            (
-                                "select",
-                                names::var_globalstate_name(),
-                                names::var_state_length_name(),
-                            ),
-                            inst_name,
-                        )
+                        .smt_access_gamestate_pkgstate(names::var_globalstate_name(), inst_name)
                         .unwrap(),
                 )],
                 body: self.smt_codeblock_nonsplit(&oracle_ctx, code.clone()),
@@ -903,7 +999,7 @@ impl<'a> CompositionSmtWriter<'a> {
                 .into(),
         ];
 
-        args.extend(split_oracle_ctx.oracle_def().sig.path.additional_args());
+        //args.extend(split_oracle_ctx.oracle_def().sig.path.additional_args());
 
         let rest_args = def.sig.args.iter().cloned().map(|arg| arg.into());
         args.extend(rest_args);
@@ -924,16 +1020,41 @@ impl<'a> CompositionSmtWriter<'a> {
             split_path,
         };
 
+        let pattern = IntermediateStatePattern {
+            game_name,
+            pkg_inst_name: inst_name,
+            oracle_name,
+        };
+
+        let mut bindings = vec![(
+            names::var_selfstate_name(),
+            game_context
+                .smt_access_gamestate_pkgstate(names::var_globalstate_name(), inst_name)
+                .unwrap(),
+        )];
+
+        for (arg_name, _arg_type) in &split_oracle_ctx.oracle_def().sig.args {
+            let sel = IntermediateStateSelector::Arg(split_path, arg_name);
+            bindings.push((
+                arg_name.clone(),
+                (pattern.selector_name(&sel), "__intermediate_state").into(),
+            ));
+        }
+
+        for (name, sel) in split_path.loopvar_selectors() {
+            bindings.push((
+                name.to_string(),
+                (pattern.selector_name(&sel), "__intermediate_state").into(),
+            ));
+        }
+
         (
             "define-fun",
             partial_oracle_function_pattern.function_name(),
             SmtExpr::List(args.clone()),
             partial_oracle_function_pattern.function_return_sort_name(),
             SmtLet {
-                bindings: vec![(
-                    names::var_selfstate_name(),
-                    names::var_globalstate_name().into(),
-                )],
+                bindings,
                 body: self.smt_codeblock_split(&split_oracle_ctx, code.clone()),
             },
         )
@@ -1031,8 +1152,16 @@ impl<'a> CompositionSmtWriter<'a> {
 
         for dtype in &partial_dtpes {
             let pkg_inst_name = &dtype.pkg_inst_name;
+            let oracle_name = &dtype.real_oracle_sig.name;
             let game_ctx = GameContext::new(&self.comp);
+            let game_name = &self.comp.name;
             let pkg_inst_ctx = game_ctx.pkg_inst_ctx_by_name(pkg_inst_name).unwrap();
+
+            let intermediate_state_pattern = IntermediateStatePattern {
+                game_name,
+                pkg_inst_name,
+                oracle_name,
+            };
 
             // this can't work, because it looks for an existing oracle. but it doesn't exist
             // anymore
@@ -1052,7 +1181,8 @@ impl<'a> CompositionSmtWriter<'a> {
             }
 
             return_typedefs.push(self.smt_declare_partial_return_datatype(dtype));
-            intermediate_state_typedefs.push(game_ctx.smt_declare_intermediate_state(dtype));
+            intermediate_state_typedefs
+                .push(intermediate_state_pattern.declare_datatype(&self.split_info));
             dispatch_fndefs.push(pkg_inst_ctx.smt_declare_oracle_dispatch_function(dtype));
         }
 
@@ -1069,41 +1199,13 @@ impl<'a> CompositionSmtWriter<'a> {
         let inst_name = &dtype.pkg_inst_name;
         let oracle_name = &dtype.real_oracle_sig.name;
 
-        let partial_return_pattern = DatastructurePattern::PartialReturn {
+        let prp = patterns::PartialReturnPattern {
             game_name,
             pkg_inst_name: inst_name,
             oracle_name,
         };
 
-        let intermediate_state_pattern = DatastructurePattern::IntermediateState {
-            game_name,
-            pkg_inst_name: inst_name,
-            oracle_name,
-            variant_name: "",
-        };
-
-        let game_ctx = GameContext::new(&self.comp);
-
-        let sort_name = partial_return_pattern.sort_name();
-
-        let constructors = vec![(
-            partial_return_pattern.constructor_name(),
-            vec![
-                (
-                    partial_return_pattern
-                        .selector_name(DatastructurePattern::SELECTOR_PARTIAL_RETURN_GAMESTATE),
-                    game_ctx.smt_sort_gamestate(),
-                ),
-                (
-                    partial_return_pattern.selector_name(
-                        DatastructurePattern::SELECTOR_PARTIAL_RETURN_INTERMEDIATESTATE,
-                    ),
-                    intermediate_state_pattern.sort_name().into(),
-                ),
-            ],
-        )];
-
-        declare_datatype(&sort_name, constructors.into_iter())
+        prp.declare_datatype(&())
     }
 
     pub fn smt_composition_all(&mut self) -> Vec<SmtExpr> {

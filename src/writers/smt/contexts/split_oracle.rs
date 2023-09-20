@@ -1,10 +1,10 @@
 use crate::{
     proof::Named,
-    split::SplitOracleDef,
+    split::{SplitOracleDef, SplitPath},
     writers::smt::{
         exprs::SmtExpr,
         names,
-        patterns::{DatastructurePattern, FunctionPattern},
+        patterns::{DatastructurePattern, FunctionPattern, IntermediateStatePattern},
     },
 };
 
@@ -22,6 +22,21 @@ impl<'a> SplitOracleContext<'a> {
     pub fn oracle_def(&self) -> &SplitOracleDef {
         &self.game_ctx.game.pkgs[self.inst_offs].pkg.split_oracles[self.split_oracle_offs]
     }
+
+    pub fn split_path(&self) -> &SplitPath {
+        &self.oracle_def().sig.path
+    }
+
+    // pub fn intermediate_state_pattern(&self) -> IntermediateStatePattern<'a> {
+    //     let game_ctx = self.game_ctx();
+    //     // let game = game_ctx.game;
+    //
+    //     IntermediateStatePattern {
+    //         game_name: &game_ctx.game.name,
+    //         pkg_inst_name: self.pkg_inst_ctx().pkg_inst_name(),
+    //         oracle_name: &self.oracle_def().sig.name,
+    //     }
+    // }
 
     pub fn do_with_intermediate_state_pattern<R, F: FnMut(&DatastructurePattern) -> R>(
         &self,
@@ -119,11 +134,7 @@ impl<'a> GenericOracleContext for SplitOracleContext<'a> {
         "__global_state".into()
     }
 
-    fn smt_construct_abort<S, SL>(&self, state: S, state_len: SL) -> SmtExpr
-    where
-        S: Into<SmtExpr>,
-        SL: Into<SmtExpr>,
-    {
+    fn smt_construct_abort(&self) -> SmtExpr {
         let game = self.game_ctx.game();
         let game_name = &game.name;
         let inst_name = &self.pkg_inst_ctx().pkg_inst().name;

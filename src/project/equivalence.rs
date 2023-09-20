@@ -105,9 +105,9 @@ impl<'a> ProverThingy<'a> {
             }
             ProverThingyState::EmitPartialInformation => {
                 panic!("no more EmitPartialInformation");
-                let resp = self.emit_split_enum();
-                self.state = ProverThingyState::EmitGameInstances;
-                resp
+                // let resp = self.emit_split_enum();
+                // self.state = ProverThingyState::EmitGameInstances;
+                // resp
             }
             ProverThingyState::EmitConstantDeclarations => {
                 let resp = self.emit_constant_declarations();
@@ -200,24 +200,24 @@ impl<'a> ProverThingy<'a> {
         }
     }
 
-    fn emit_split_enum(&self) -> ProverThingyOutput {
-        let instance_resolver = SliceResolver(self.proof.instances());
-        let left = instance_resolver.resolve(&self.eq.left_name()).unwrap();
-        let right = instance_resolver.resolve(&self.eq.right_name()).unwrap();
-
-        let gctx_left = contexts::GameContext::new(left.as_game());
-        let gctx_right = contexts::GameContext::new(right.as_game());
-
-        let mut out = vec![];
-        out.append(&mut gctx_left.smt_declare_intermediate_state_enum(self.split_info_left));
-        out.append(&mut gctx_right.smt_declare_intermediate_state_enum(self.split_info_right));
-
-        ProverThingyOutput {
-            output_type: ProverThingyOutputType::Partials,
-            smt: out,
-            expect: None,
-        }
-    }
+    // fn emit_split_enum(&self) -> ProverThingyOutput {
+    //     let instance_resolver = SliceResolver(self.proof.instances());
+    //     let left = instance_resolver.resolve(&self.eq.left_name()).unwrap();
+    //     let right = instance_resolver.resolve(&self.eq.right_name()).unwrap();
+    //
+    //     let gctx_left = contexts::GameContext::new(left.as_game());
+    //     let gctx_right = contexts::GameContext::new(right.as_game());
+    //
+    //     let mut out = vec![];
+    //     out.append(&mut gctx_left.smt_declare_intermediate_state_enum(self.split_info_left));
+    //     out.append(&mut gctx_right.smt_declare_intermediate_state_enum(self.split_info_right));
+    //
+    //     ProverThingyOutput {
+    //         output_type: ProverThingyOutputType::Partials,
+    //         smt: out,
+    //         expect: None,
+    //     }
+    // }
 
     fn emit_constant_declarations(&self) -> ProverThingyOutput {
         let instance_resolver = SliceResolver(self.proof.instances());

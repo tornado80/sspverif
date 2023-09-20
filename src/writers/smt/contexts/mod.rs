@@ -8,12 +8,7 @@ pub struct GlobalContext;
 
 impl GlobalContext {
     pub fn smt_latest_gamestate() -> SmtExpr {
-        (
-            "select",
-            names::var_globalstate_name(),
-            names::var_state_length_name(),
-        )
-            .into()
+        ("select", names::var_globalstate_name()).into()
     }
 }
 
@@ -56,8 +51,5 @@ pub trait GenericOracleContext {
 
     fn smt_game_state(&self) -> SmtExpr;
 
-    fn smt_construct_abort<S, SL>(&self, state: S, state_len: SL) -> SmtExpr
-    where
-        S: Into<SmtExpr>,
-        SL: Into<SmtExpr>;
+    fn smt_construct_abort(&self) -> SmtExpr;
 }

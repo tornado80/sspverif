@@ -60,11 +60,7 @@ impl<'a> OracleContext<'a> {
         let fields = vec![
             (
                 names::return_selector_state_name(game_name, inst_name, oracle_name),
-                self.game_ctx.smt_sort_gamestates(),
-            ),
-            (
-                names::return_selector_state_length_name(game_name, inst_name, oracle_name),
-                Type::Integer.into(),
+                self.game_ctx.smt_sort_gamestate(),
             ),
             (
                 names::return_selector_value_name(game_name, inst_name, oracle_name),
@@ -83,16 +79,9 @@ impl<'a> OracleContext<'a> {
         )
     }
 
-    pub fn smt_construct_return<S, SL, V, ISAB>(
-        &self,
-        state: S,
-        state_len: SL,
-        value: V,
-        is_abort: ISAB,
-    ) -> SmtExpr
+    pub fn smt_construct_return<S, V, ISAB>(&self, state: S, value: V, is_abort: ISAB) -> SmtExpr
     where
         S: Into<SmtExpr>,
-        SL: Into<SmtExpr>,
         V: Into<SmtExpr>,
         ISAB: Into<SmtExpr>,
     {
@@ -107,7 +96,6 @@ impl<'a> OracleContext<'a> {
         (
             names::return_constructor_name(game_name, inst_name, oracle_name),
             state,
-            state_len,
             value,
             is_abort,
         )
@@ -132,36 +120,36 @@ impl<'a> OracleContext<'a> {
             .into()
     }
 
-    pub(crate) fn smt_construct_next_intermediate_state<IS: Into<SmtExpr> + std::fmt::Debug>(
-        &self,
-        split_info: &SplitInfo,
-        parent: IS,
-    ) -> Option<SmtExpr> {
-        let game_name = &self.game_ctx.game.name;
-        let pkg_inst_name = self.pkg_inst_ctx().pkg_inst_name();
-        let oracle_name = &self.oracle_def().sig.name;
-
-        let entry = split_info.iter().find(|entry| {
-            entry.pkg_inst_name() == pkg_inst_name && entry.oracle_name() == oracle_name
-        })?;
-
-        let next_path = entry.next()?;
-        let next_entry = split_info
-            .iter()
-            .find(|entry| entry.path() == next_path)
-            .unwrap();
-
-        let mut fn_call =
-            vec![names::intermediate_state_constructor(game_name, &next_path.smt_name()).into()];
-        for (local_name, _local_type) in next_entry.locals() {
-            fn_call.push(local_name.clone().into());
-        }
-
-        println!("TTTTT {parent:?}");
-        fn_call.push(parent.into());
-
-        Some(SmtExpr::List(fn_call))
-    }
+    // pub(crate) fn smt_construct_next_intermediate_state<IS: Into<SmtExpr> + std::fmt::Debug>(
+    //     &self,
+    //     split_info: &SplitInfo,
+    //     parent: IS,
+    // ) -> Option<SmtExpr> {
+    //     let game_name = &self.game_ctx.game.name;
+    //     let pkg_inst_name = self.pkg_inst_ctx().pkg_inst_name();
+    //     let oracle_name = &self.oracle_def().sig.name;
+    //
+    //     let entry = split_info.iter().find(|entry| {
+    //         entry.pkg_inst_name() == pkg_inst_name && entry.oracle_name() == oracle_name
+    //     })?;
+    //
+    //     let next_path = entry.next()?;
+    //     let next_entry = split_info
+    //         .iter()
+    //         .find(|entry| entry.path() == next_path)
+    //         .unwrap();
+    //
+    //     let mut fn_call =
+    //         vec![names::intermediate_state_constructor(game_name, &next_path.smt_name()).into()];
+    //     for (local_name, _local_type) in next_entry.locals() {
+    //         fn_call.push(local_name.clone().into());
+    //     }
+    //
+    //     println!("TTTTT {parent:?}");
+    //     fn_call.push(parent.into());
+    //
+    //     Some(SmtExpr::List(fn_call))
+    // }
 
     pub fn smt_access_return_state<R>(&self, ret: R) -> SmtExpr
     where
@@ -310,16 +298,12 @@ impl<'a> GenericOracleContext for OracleContext<'a> {
     }
 
     fn smt_game_state(&self) -> SmtExpr {
-        ("select", "__game_state", "__state_length").into()
+        ("select", "__global_state", "__state_length").into()
     }
 
     // TODO: I think we should refactor this to remove the arguments, because this doesn't apply to
     // the split case.
-    fn smt_construct_abort<S, SL>(&self, state: S, state_len: SL) -> SmtExpr
-    where
-        S: Into<SmtExpr>,
-        SL: Into<SmtExpr>,
-    {
+    fn smt_construct_abort(&self) -> SmtExpr {
         let game = self.game_ctx.game;
         let inst = &game.pkgs[self.inst_offs];
         let osig = &inst.pkg.oracles[self.oracle_offs].sig;
@@ -330,8 +314,7 @@ impl<'a> GenericOracleContext for OracleContext<'a> {
 
         (
             names::return_constructor_name(game_name, inst_name, oracle_name),
-            state,
-            state_len,
+            self.smt_game_state(),
             Expression::None(osig.tipe.clone()),
             "true",
         )

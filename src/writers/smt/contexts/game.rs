@@ -1,12 +1,11 @@
 use crate::{
     package::{Composition, Export},
-    transforms::{samplify::SampleInfo, split_partial::SplitInfo},
+    transforms::samplify::SampleInfo,
     types::Type,
     writers::smt::{
         declare,
         exprs::{SmtExpr, SmtLet},
         names,
-        partials::into_partial_dtypes,
     },
 };
 
@@ -101,25 +100,7 @@ impl<'a> GameContext<'a> {
         new_state: S,
         body: B,
     ) -> SmtExpr {
-        let next_length = ("+", "1", names::var_state_length_name());
-
-        SmtLet {
-            bindings: vec![
-                (
-                    names::var_globalstate_name(),
-                    (
-                        "store",
-                        names::var_globalstate_name(),
-                        next_length.clone(),
-                        new_state,
-                    )
-                        .into(),
-                ),
-                (names::var_state_length_name(), next_length.into()),
-            ],
-            body,
-        }
-        .into()
+        self.smt_overwrite_latest_global_gamestate(new_state, body)
     }
 
     pub fn smt_overwrite_latest_global_gamestate<S: Into<SmtExpr>, B: Into<SmtExpr>>(
@@ -127,80 +108,11 @@ impl<'a> GameContext<'a> {
         new_state: S,
         body: B,
     ) -> SmtExpr {
-        let length = names::var_state_length_name();
-
         SmtLet {
-            bindings: vec![(
-                names::var_globalstate_name(),
-                (
-                    "store",
-                    names::var_globalstate_name(),
-                    length.clone(),
-                    new_state,
-                )
-                    .into(),
-            )],
+            bindings: vec![(names::var_globalstate_name(), new_state.into())],
             body,
         }
         .into()
-    }
-
-    pub(crate) fn smt_declare_intermediate_state_enum(
-        &self,
-        splitinfo: &SplitInfo,
-    ) -> Vec<SmtExpr> {
-        let dtypes = into_partial_dtypes(splitinfo);
-
-        return dtypes
-            .iter()
-            .map(|dtype| self.smt_declare_intermediate_state(dtype))
-            .collect();
-
-        //return self.smt_declare_intermediate_state(dtypes);
-        //
-        // let game_name = &self.game().name;
-        //
-        // declare::declare_datatype(
-        //     &names::intermediate_state_sort_name(&self.game.name),
-        //     splitinfo
-        //         .iter()
-        //         .map(|info_entry| {
-        //             (
-        //                 names::intermediate_state_constructor(
-        //                     game_name,
-        //                     &info_entry.path().smt_name(),
-        //                 ),
-        //                 info_entry
-        //                     .locals()
-        //                     .iter()
-        //                     .map(|(localname, localtype)| {
-        //                         (
-        //                             names::intermediate_state_selector_local(
-        //                                 game_name,
-        //                                 &info_entry.path().smt_name(),
-        //                                 localname,
-        //                             ),
-        //                             localtype.into(),
-        //                         )
-        //                     })
-        //                     .chain(vec![(
-        //                         names::intermediate_state_selector_parent(
-        //                             game_name,
-        //                             &info_entry.path().smt_name(),
-        //                         ),
-        //                         names::intermediate_state_sort_name(&self.game.name).into(),
-        //                     )])
-        //                     .collect(),
-        //             )
-        //         })
-        //         .chain(
-        //             vec![(
-        //                 names::intermediate_state_constructor_none(game_name),
-        //                 vec![],
-        //             )]
-        //             .into_iter(),
-        //         ),
-        // ).into();
     }
 
     pub(crate) fn smt_declare_gamestate(&self, sample_info: &SampleInfo) -> SmtExpr {
@@ -231,13 +143,7 @@ impl<'a> GameContext<'a> {
             )
         });
 
-        // let partial_field = [(
-        //     names::gamestate_selector_intermediate_state_name(game_name),
-        //     names::intermediate_state_sort_name(game_name).into(),
-        // )];
-
         let fields = pkgstate_fields.chain(const_fields).chain(rand_fields);
-        // .chain(partial_field);
 
         declare::declare_single_constructor_datatype(
             &names::gamestate_sort_name(game_name),
@@ -357,10 +263,7 @@ impl<'a> GameContext<'a> {
         });
         let partial_field = [self.smt_access_gamestate_intermediate_state(gamestate.clone())];
 
-        let fields = pkgstate_fields
-            .chain(const_fields)
-            .chain(rand_fields)
-            .chain(partial_field);
+        let fields = pkgstate_fields.chain(const_fields).chain(rand_fields);
 
         let mut fncall = vec![names::gamestate_constructor_name(game_name).into()];
         fncall.extend(fields);
@@ -457,10 +360,7 @@ impl<'a> GameContext<'a> {
 
         let partial_field = [self.smt_access_gamestate_intermediate_state(state.clone())];
 
-        let fields = pkgstate_fields
-            .chain(const_fields)
-            .chain(rand_fields)
-            .chain(partial_field);
+        let fields = pkgstate_fields.chain(const_fields).chain(rand_fields);
 
         let mut fncall = vec![names::gamestate_constructor_name(game_name).into()];
         fncall.extend(fields);

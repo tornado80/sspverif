@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use crate::expressions::Expression;
 use crate::identifier::Identifier;
 use crate::package::{Composition, Edge, Export, OracleDef, OracleSig, SplitExport};
 use crate::statement::{CodeBlock, Statement};
@@ -36,8 +37,9 @@ pub struct SplitInfoEntry {
     oracle_name: String,
     path: SplitPath,
     locals: Vec<(String, Type)>,
-    next: Option<SplitPath>,
-    elsenext: Option<SplitPath>,
+    branches: Vec<(Expression, SplitPath)>,
+    // next: Option<SplitPath>,
+    // elsenext: Option<SplitPath>,
     original_sig: OracleSig,
 }
 
@@ -57,12 +59,16 @@ impl SplitInfoEntry {
         self.oracle_name.as_ref()
     }
 
-    pub fn next(&self) -> Option<&SplitPath> {
-        self.next.as_ref()
-    }
+    // pub fn next(&self) -> Option<&SplitPath> {
+    //     self.next.as_ref()
+    // }
+    //
+    // pub fn elsenext(&self) -> Option<&SplitPath> {
+    //     self.elsenext.as_ref()
+    // }
 
-    pub fn elsenext(&self) -> Option<&SplitPath> {
-        self.elsenext.as_ref()
+    pub fn branches(&self) -> &Vec<(Expression, SplitPath)> {
+        &self.branches
     }
 
     pub fn split_type(&self) -> Option<&SplitType> {
@@ -167,6 +173,30 @@ impl super::GameTransform for SplitPartial {
          * TODO
          */
 
+        /*
+         *
+         *
+         *
+         * [
+         *   (cond1, path1)
+         *   (cond2, path2)
+         *   (true, path3)
+         * ]
+         *
+         * -> (ite cond1 code_path1 (ite cond2 code_path2 code_path3))
+         *
+         *
+         *
+         * /Plain
+         * /ForStep_i/Plain
+         * /ForStep_i/Invoke
+         * /ForStep_i/Invoke/ForStep_j/Plain
+         *
+         *
+         *
+         *
+         */
+
         let mut partials = vec![];
         for Export(pkg_offs, sig) in &game.exports {
             let pkg_inst_name = &game.pkgs[*pkg_offs].name;
@@ -181,22 +211,17 @@ impl super::GameTransform for SplitPartial {
                             oracle_name: partial_sig.name.clone(),
                             path: path.clone(),
                             locals: partial_sig.partial_vars.clone(),
-                            next: None,
-                            elsenext: None,
+                            branches: vec![],
+                            // next: None,
+                            // elsenext: None,
                             original_sig: sig.clone(),
                         }
                     })
                     .collect();
 
-                for i in 0..(oracle_partials.len() - 1) {
-                    let cur = &oracle_partials[i];
-                    let next = &oracle_partials[i + 1];
-
-                    if let Some((next, maybe_elsenext)) = determine_next(cur, next) {
-                        let cur = &mut oracle_partials[i];
-                        cur.next = Some(next);
-                        cur.elsenext = maybe_elsenext;
-                    }
+                for i in 0..oracle_partials.len() {
+                    let mut new_branches = determine_branches(&oracle_partials, i);
+                    oracle_partials[i].branches.append(&mut new_branches);
                 }
 
                 partials.extend(oracle_partials.into_iter());
@@ -294,15 +319,9 @@ fn transform_oracle(
     let (last_loopvars, last_splitpath, last_code, last_locals) = transformed.pop().unwrap();
 
     for (loopvars, splitpath, oracle_code, oracle_locals) in transformed.clone().into_iter() {
-        let new_args = loopvars
-            .iter()
-            .map(|var| (var.ident(), Type::Integer).clone())
-            .chain(osig.args.clone().into_iter())
-            .collect();
-
         let new_sig = SplitOracleSig {
             name: oracle_name.clone(),
-            args: new_args,
+            args: osig.args.clone(),
             tipe: Type::Empty, // <-- note the difference
             partial_vars: oracle_locals.clone(),
             path: splitpath.clone(),
@@ -315,15 +334,9 @@ fn transform_oracle(
         mapping_entry.push((loopvars.clone(), splitpath, new_sig))
     }
 
-    let last_newargs = last_loopvars
-        .iter()
-        .map(|var| (var.ident(), Type::Integer).clone())
-        .chain(osig.args.clone().into_iter())
-        .collect();
-
     let sig = SplitOracleSig {
         name: oracle_name.clone(),
-        args: last_newargs,
+        args: osig.args.clone(),
         tipe: osig.tipe.clone(), // <-- note the difference
         partial_vars: last_locals.clone(),
         path: last_splitpath.clone(),
@@ -723,6 +736,85 @@ fn get_declarations(stmt: &Statement) -> Option<(String, Type)> {
  *   ForStep/Plain
  *   Plain
  * */
+
+fn determine_branches(entries: &[SplitInfoEntry], i: usize) -> Vec<(Expression, SplitPath)> {
+    let entry = &entries[i];
+    let path = entry.path();
+
+    let mut out = vec![];
+
+    for (j, path_elem) in path.path().iter().enumerate().rev() {
+        match path_elem.split_type() {
+            SplitType::Plain => {}
+            SplitType::Invoc(_) => {}
+            SplitType::ForStep(loopvar, loopfrom, loopto) => {
+                let cond = Expression::And(vec![Expression::Equals(vec![
+                    Expression::Identifier(loopvar.clone()),
+                    loopto.clone(),
+                ])]);
+                let first_path_of_for = entries
+                    .iter()
+                    .find(|entry| &entry.path().path()[j] == path_elem)
+                    .unwrap()
+                    .path
+                    .clone();
+                out.push((cond, first_path_of_for))
+            }
+            SplitType::IfCondition(cond) => {
+                let (ifcond_component, ifpath) = path.clone().basename();
+                let ifcond_component = ifcond_component.unwrap();
+                let ifpath = ifpath.extended(SplitPathComponent {
+                    split_type: SplitType::IfBranch,
+                    ..ifcond_component.clone()
+                });
+
+                let (_, elsepath) = path.clone().basename();
+                let elsepath = elsepath.extended(SplitPathComponent {
+                    split_type: SplitType::ElseBranch,
+                    ..ifcond_component
+                });
+
+                out.push((cond.clone(), ifpath));
+                out.push((Expression::BooleanLiteral("true".to_string()), elsepath));
+            }
+            SplitType::IfBranch => {
+                let remaining_entries = &entries[i + 1..];
+                let first_non_else = remaining_entries
+                    .iter()
+                    .find(|entry| !matches!(entry.split_type(), Some(SplitType::ElseBranch)));
+                if let Some(first_non_else) = first_non_else {
+                    out.push((
+                        Expression::BooleanLiteral("true".to_string()),
+                        first_non_else.path().clone(),
+                    ));
+                }
+            }
+            SplitType::ElseBranch => {
+                let remaining_entries = &entries[i + 1..];
+                let first_non_if = remaining_entries
+                    .iter()
+                    .find(|entry| !matches!(entry.split_type(), Some(SplitType::IfBranch)));
+                if let Some(first_non_if) = first_non_if {
+                    out.push((
+                        Expression::BooleanLiteral("true".to_string()),
+                        first_non_if.path().clone(),
+                    ));
+                }
+            }
+        }
+    }
+
+    if entries.len() > i + 1 {
+        out.push((
+            Expression::BooleanLiteral("true".to_string()),
+            entries[i + 1].path().clone(),
+        ))
+    }
+
+    out
+}
+
+// this is the old stuff
 fn determine_next(
     cur: &SplitInfoEntry,
     next: &SplitInfoEntry,
@@ -731,8 +823,14 @@ fn determine_next(
     let next_path = next.path();
     let common_path = cur_path.longest_shared_prefix(next_path);
 
+    println!(
+        "OOOO -- {} / {}",
+        cur_path.smt_name(),
+        common_path.smt_name()
+    );
     // move up the tree
     while cur_path != common_path {
+        println!("PPPPP -- {}", cur_path.smt_name());
         let (head, basename) = cur_path.basename();
         cur_path = basename;
 

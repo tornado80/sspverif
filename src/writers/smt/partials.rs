@@ -18,6 +18,10 @@ fn intermediate_state_piece_selector_arg_match_name(arg_name: &str) -> String {
     format!("match-arg-{arg_name}")
 }
 
+fn intermediate_state_piece_selector_loopvar_match_name(local_name: &str) -> String {
+    format!("match-loopvar-{local_name}")
+}
+
 fn intermediate_state_piece_selector_local_match_name(local_name: &str) -> String {
     format!("match-local-{local_name}")
 }
@@ -132,6 +136,7 @@ trait NameMapper {
                 let constructor = self.constructor(&partial.path);
                 let mut selectors = vec![];
 
+                selectors.append(&mut self.loopvar(&partial.path()));
                 for (arg_name, arg_type) in &data.real_oracle_sig.args {
                     selectors.push(self.arg(&partial.path, arg_type.into(), &arg_name))
                 }
@@ -152,6 +157,7 @@ trait NameMapper {
     fn arg(&self, path: &SplitPath, sort: SmtExpr, arg_name: &str) -> Self::Selector;
     fn local(&self, path: &SplitPath, sort: SmtExpr, local_name: &str) -> Self::Selector;
     fn child(&self, path: &SplitPath) -> Self::Selector;
+    fn loopvar(&self, path: &SplitPath) -> Vec<Self::Selector>;
     fn end(&self) -> Self::Constructor;
     fn constructor(&self, path: &SplitPath) -> Self::Constructor;
 }
@@ -221,6 +227,30 @@ impl<'a> NameMapper for DeclareDatatypeNameMapper<'a> {
         intermediate_state_pattern.constructor_name()
     }
 
+    fn loopvar(&self, path: &SplitPath) -> Vec<Self::Selector> {
+        let path_str = path.smt_name();
+        let mut out = vec![];
+
+        for elem in path.path() {
+            if let SplitType::ForStep(loopvar, _, _) = elem.split_type() {
+                let intermediate_state_pattern = DatastructurePattern::IntermediateState {
+                    game_name: &self.game_name,
+                    pkg_inst_name: &self.pkg_inst_name,
+                    oracle_name: &self.oracle_name,
+                    variant_name: &path_str,
+                };
+                let name = intermediate_state_pattern.selector_name(
+                    &DatastructurePattern::intermediate_state_selector_loopvar(&loopvar.ident()),
+                );
+                let tipe = Type::Integer;
+
+                out.push((name, tipe.into()))
+            }
+        }
+
+        out
+    }
+
     fn constructor(&self, path: &SplitPath) -> Self::Constructor {
         let path_str = path.smt_name();
         let intermediate_state_pattern = DatastructurePattern::IntermediateState {
@@ -250,6 +280,20 @@ impl<'a> NameMapper for MatchBlockMapper<'a> {
 
     fn local(&self, path: &SplitPath, sort: SmtExpr, local_name: &str) -> Self::Selector {
         intermediate_state_piece_selector_local_match_name(local_name)
+    }
+
+    fn loopvar(&self, path: &SplitPath) -> Vec<Self::Selector> {
+        let mut out = vec![];
+
+        for elem in path.path() {
+            if let SplitType::ForStep(loopvar, _, _) = elem.split_type() {
+                out.push(intermediate_state_piece_selector_loopvar_match_name(
+                    &loopvar.ident(),
+                ))
+            }
+        }
+
+        out
     }
 
     fn child(&self, path: &SplitPath) -> Self::Selector {
@@ -345,66 +389,6 @@ impl<B: Into<SmtExpr>> Into<SmtExpr> for SmtDefineFunction<B> {
     }
 }
 
-impl<'a> GameContext<'a> {
-    pub(crate) fn smt_declare_intermediate_state(&self, datatype: &PartialsDatatype) -> SmtExpr {
-        let game_name = &self.game().name;
-        let pkg_inst_name = &datatype.pkg_inst_name;
-        let oracle_name = &datatype.real_oracle_sig.name;
-
-        let oracle_return_type = datatype.real_oracle_sig.tipe.clone();
-
-        let intermediate_state_begin_pattern = DatastructurePattern::IntermediateState {
-            game_name,
-            pkg_inst_name,
-            oracle_name,
-            variant_name: DatastructurePattern::CONSTRUCTOR_INTERMEDIATE_STATE_BEGIN,
-        };
-
-        let intermediate_state_end_pattern = DatastructurePattern::IntermediateState {
-            game_name,
-            pkg_inst_name,
-            oracle_name,
-            variant_name: DatastructurePattern::CONSTRUCTOR_INTERMEDIATE_STATE_END,
-        };
-
-        let sort_name = intermediate_state_begin_pattern.sort_name();
-
-        let last_step = datatype.partial_steps.last().unwrap();
-        // path x oracle name x pkg_inst_ctx -> oracle_def
-        let return_pattern = DatastructurePattern::Return {
-            game_name,
-            pkg_inst_name,
-            oracle_name,
-            is_abort: false,
-        };
-
-        let constructors = DeclareDatatypeNameMapper {
-            game_name,
-            pkg_inst_name,
-            oracle_name,
-        }
-        .map(&datatype);
-
-        let begin_constructor = (intermediate_state_begin_pattern.constructor_name(), vec![]);
-        let end_constructor = (
-            intermediate_state_end_pattern.constructor_name(),
-            vec![(
-                intermediate_state_end_pattern.selector_name(
-                    DatastructurePattern::SELECTOR_INTERMEDIATE_STATE_END_RETURN_VALUE,
-                ),
-                oracle_return_type.into(),
-            )],
-        );
-
-        declare_datatype(
-            &sort_name,
-            constructors
-                .into_iter()
-                .chain(vec![begin_constructor, end_constructor].into_iter()),
-        )
-    }
-}
-
 impl<'a> PackageInstanceContext<'a> {
     fn check_args_are_honest<B: Into<SmtExpr>>(&self, args: &[(String, Type)], body: B) -> SmtExpr {
         if args.is_empty() {
@@ -451,8 +435,19 @@ impl<'a> PackageInstanceContext<'a> {
 
         for ((cons, fun), sels) in &name_mapper.map(datatype) {
             let dispatch_call = if let Some(oracle_fun_name) = fun {
-                let mut call: Vec<SmtExpr> = vec![oracle_fun_name.clone().into()];
-                call.extend(sels.clone().into_iter().map(|x| x.into()));
+                let mut call: Vec<SmtExpr> = vec![
+                    oracle_fun_name.clone().into(),
+                    "__global_state".into(),
+                    "__intermediate_state".into(),
+                ];
+                call.extend(
+                    datatype
+                        .real_oracle_sig
+                        .args
+                        .iter()
+                        .map(|(name, _tipe)| name.to_string().into()),
+                );
+                //call.extend(sels.iter().cloned().map(|x| x.into()));
                 SmtExpr::List(call)
             } else {
                 // create new return
