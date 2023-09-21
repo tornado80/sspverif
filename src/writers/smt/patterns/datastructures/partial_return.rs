@@ -111,8 +111,8 @@ impl<'a> DatastructurePattern2 for PartialReturnPattern<'a> {
             pkg_inst_name,
             oracle_name,
         } = self;
-        let game_state_pattern = super::DatastructurePattern::GameState { game_name };
 
+        let game_state_pattern = super::DatastructurePattern::GameState { game_name };
         let intermediate_state_pattern = super::IntermediateStatePattern {
             game_name,
             pkg_inst_name,
@@ -120,10 +120,9 @@ impl<'a> DatastructurePattern2 for PartialReturnPattern<'a> {
         };
 
         match sel {
-            PartialReturnSelector::GameState => game_state_pattern.sort_name().into(),
-            PartialReturnSelector::IntermediateState => {
-                intermediate_state_pattern.sort_name().into()
-            }
+            PartialReturnSelector::GameState => game_state_pattern.sort_name(),
+            PartialReturnSelector::IntermediateState => intermediate_state_pattern.sort_name(),
         }
+        .into()
     }
 }
