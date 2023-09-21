@@ -123,11 +123,6 @@ pub fn handle_params_def_list(
         .collect()
 }
 
-fn check_types(game_inst: &GameInstance) -> Result<()> {
-    // TODO deferred until the game actually has a place for type paramenters
-    Ok(())
-}
-
 fn check_consts(game_inst: &GameInstance, span: Span, games: &[Composition]) -> Result<()> {
     let mut inst_const_names: Vec<_> = game_inst
         .as_consts()

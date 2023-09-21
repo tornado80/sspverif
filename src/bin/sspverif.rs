@@ -143,7 +143,8 @@ fn prove() -> Result<()> {
     project::Project::load()?.prove()
 }
 
-fn explain(game_name: &str, dst: &Option<String>) -> Result<()> {
+fn explain(_game_name: &str, _dst: &Option<String>) -> Result<()> {
+    todo!();
     /*
         let data = project::Project::load()?.explain_game(game_name)?;
 
@@ -152,7 +153,7 @@ fn explain(game_name: &str, dst: &Option<String>) -> Result<()> {
             None => println!("{data}"),
         }
     */
-    Ok(())
+    // Ok(())
 }
 
 fn main() -> Result<()> {

@@ -135,8 +135,6 @@ pub(crate) fn games(
         let dir_entry = dir_entry?;
         if let Some(name) = dir_entry.file_name().to_str() {
             if name.ends_with(GAME_EXT) {
-                let path = &dir_entry.path();
-
                 let filecontent = std::fs::read_to_string(dir_entry.path())?;
                 let parse_result = SspParser::parse_composition(&filecontent);
                 if let Err(e) = parse_result {
@@ -180,7 +178,6 @@ pub(crate) fn proofs(
         if let Some(name) = dir_entry.file_name().to_str() {
             if name.ends_with(".ssp") {
                 // TODO make a constant and figure out if we really need the sub-extensions
-                let path = &dir_entry.path();
 
                 let filecontent = std::fs::read_to_string(dir_entry.path())?;
                 let parse_result = SspParser::parse_proof(&filecontent);

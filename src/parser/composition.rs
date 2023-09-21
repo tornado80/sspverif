@@ -90,7 +90,7 @@ pub fn handle_compose_assign_body_list(
                 Some(inst) => inst,
             };
 
-            let mut oracle_sig = match dst_inst
+            let oracle_sig = match dst_inst
                 .pkg
                 .oracles
                 .iter()
@@ -104,8 +104,6 @@ pub fn handle_compose_assign_body_list(
                 }
                 Some(def) => def.sig.clone(),
             };
-
-            for (i, (name, arg_type)) in oracle_sig.args.iter().enumerate() {}
 
             edges.push(Edge(*offset, *dst_offset, oracle_sig));
         }
@@ -127,7 +125,6 @@ pub fn handle_comp_spec_list(
 
     let mut edges = None;
     let mut exports = None;
-    //let mut compose = None;
 
     /*
     Note: the grammar enforces that we first have the const declarations,
@@ -283,8 +280,6 @@ pub fn handle_instance_decl(
         .cloned()
         .collect();
     assigned_types.sort();
-
-    for (left, right) in &type_list {}
 
     let mut pkg_types = pkg.types.clone();
     pkg_types.sort();

@@ -24,8 +24,8 @@ impl<'a, T: Named> Resolver<T> for SliceResolver<'a, T> {
         self.0
             .iter()
             .enumerate()
-            .find(|(i, v)| v.as_name() == name)
-            .map(|(i, v)| i)
+            .find(|(_i, v)| v.as_name() == name)
+            .map(|(i, _v)| i)
     }
 }
 
@@ -65,7 +65,7 @@ impl<'a> Resolver<Expression> for SliceResolver<'a, (String, Expression)> {
         self.0
             .iter()
             .enumerate()
-            .find(|(i, (item_name, _))| item_name == name)
+            .find(|(_i, (item_name, _))| item_name == name)
             .map(|(i, _)| i)
     }
 }
@@ -293,7 +293,6 @@ pub struct Proof {
     instances: Vec<GameInstance>,
     assumptions: Vec<Assumption>,
     game_hops: Vec<GameHop>,
-    //games: Vec<Composition>,
     pkgs: Vec<Package>,
 }
 

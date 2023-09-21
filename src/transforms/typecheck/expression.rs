@@ -555,11 +555,11 @@ pub fn typify(expr: &Expression, scope: &Scope) -> ExpressionResult {
                 ))
             } else {
                 panic!("blubb");
-                Err(TypeCheckError::Undefined(
-                    ErrorLocation::Unknown,
-                    "identifier not found in scope".to_owned(),
-                    id.clone(),
-                ))
+                // Err(TypeCheckError::Undefined(
+                //     ErrorLocation::Unknown,
+                //     "identifier not found in scope".to_owned(),
+                //     id.clone(),
+                // ))
             }
         }
         Expression::TableAccess(id, expr) => match scope.lookup(id) {

@@ -141,11 +141,7 @@ impl<'a> FunctionPattern<'a> {
 
     pub fn function_return_sort_name(&self) -> String {
         match self {
-            FunctionPattern::Oracle {
-                game_name,
-                pkg_inst_name,
-                oracle_sig,
-            } => todo!(),
+            FunctionPattern::Oracle { .. } => todo!(),
             FunctionPattern::DispatchOracle {
                 game_name,
                 pkg_inst_name,

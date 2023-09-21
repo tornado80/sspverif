@@ -253,7 +253,7 @@ impl<'a> DatastructurePattern2 for PartialReturnPattern<'a> {
         format!("{kebab_case}-{game_name}-{pkg_inst_name}-{oracle_name}-{field_name}")
     }
 
-    fn declare_datatype(&self, info: &Self::DeclareInfo) -> SmtExpr {
+    fn declare_datatype(&self, _info: &Self::DeclareInfo) -> SmtExpr {
         let Self {
             game_name,
             pkg_inst_name,

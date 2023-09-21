@@ -38,8 +38,6 @@ pub struct SplitInfoEntry {
     path: SplitPath,
     locals: Vec<(String, Type)>,
     branches: Vec<(Expression, SplitPath)>,
-    // next: Option<SplitPath>,
-    // elsenext: Option<SplitPath>,
     original_sig: OracleSig,
 }
 
@@ -58,14 +56,6 @@ impl SplitInfoEntry {
     pub fn oracle_name(&self) -> &str {
         self.oracle_name.as_ref()
     }
-
-    // pub fn next(&self) -> Option<&SplitPath> {
-    //     self.next.as_ref()
-    // }
-    //
-    // pub fn elsenext(&self) -> Option<&SplitPath> {
-    //     self.elsenext.as_ref()
-    // }
 
     pub fn branches(&self) -> &Vec<(Expression, SplitPath)> {
         &self.branches
@@ -201,7 +191,6 @@ impl super::GameTransform for SplitPartial {
         for Export(pkg_offs, sig) in &game.exports {
             let pkg_inst_name = &game.pkgs[*pkg_offs].name;
             if let Some(mapping) = sig_mapping.get(&(pkg_inst_name.clone(), sig.clone())) {
-                let oracle_name = &sig.name;
                 let mut oracle_partials: Vec<_> = mapping
                     .iter()
                     .map(|(_loopvars, path, partial_sig)| {
@@ -747,7 +736,7 @@ fn determine_branches(entries: &[SplitInfoEntry], i: usize) -> Vec<(Expression, 
         match path_elem.split_type() {
             SplitType::Plain => {}
             SplitType::Invoc(_) => {}
-            SplitType::ForStep(loopvar, loopfrom, loopto) => {
+            SplitType::ForStep(loopvar, _loopfrom, loopto) => {
                 let cond = Expression::And(vec![Expression::Equals(vec![
                     Expression::Identifier(loopvar.clone()),
                     loopto.clone(),
@@ -812,91 +801,4 @@ fn determine_branches(entries: &[SplitInfoEntry], i: usize) -> Vec<(Expression, 
     }
 
     out
-}
-
-// this is the old stuff
-fn determine_next(
-    cur: &SplitInfoEntry,
-    next: &SplitInfoEntry,
-) -> Option<(SplitPath, Option<SplitPath>)> {
-    let mut cur_path = cur.path().clone();
-    let next_path = next.path();
-    let common_path = cur_path.longest_shared_prefix(next_path);
-
-    println!(
-        "OOOO -- {} / {}",
-        cur_path.smt_name(),
-        common_path.smt_name()
-    );
-    // move up the tree
-    while cur_path != common_path {
-        println!("PPPPP -- {}", cur_path.smt_name());
-        let (head, basename) = cur_path.basename();
-        cur_path = basename;
-
-        let head = head.unwrap();
-
-        match head.split_type() {
-            SplitType::Plain => {
-                // just skip these
-            }
-            SplitType::IfCondition(_) => {
-                return Some((
-                    /* next: */
-                    cur_path.extended(SplitPathComponent::new(
-                        head.pkg_inst_name(),
-                        head.oracle_name(),
-                        SplitType::IfBranch,
-                        head.split_range().clone(),
-                    )),
-                    /* elsenext: */
-                    Some(cur_path.extended(SplitPathComponent::new(
-                        head.pkg_inst_name(),
-                        head.oracle_name(),
-                        SplitType::ElseBranch,
-                        head.split_range().clone(),
-                    ))),
-                ));
-            }
-            SplitType::Invoc(_) => {
-                return Some((
-                    /* next: */ next_path.clone(),
-                    /* elsenext: */ None,
-                ));
-            }
-            SplitType::ForStep(_, _, _) => {
-                return Some((
-                    /* next: */ cur.path().clone(),
-                    /* elsenext: */ Some(next_path.clone()),
-                ));
-            }
-            // Due to treeification, we know that nothing comes after these:
-            SplitType::IfBranch | SplitType::ElseBranch => return None,
-        }
-    }
-
-    // move down the tree
-    while &cur_path != next_path {
-        let path_component = &next_path.path()[cur_path.len()];
-
-        match path_component.split_type() {
-            SplitType::Plain => {
-                // just skip these
-            }
-            SplitType::Invoc(_) | SplitType::ForStep(_, _, _) | SplitType::IfCondition(_) => {
-                // enter these unconditionally
-                return Some((
-                    /* next: */ next_path.clone(),
-                    /* elsenext: */ None,
-                ));
-            }
-            SplitType::IfBranch | SplitType::ElseBranch => {
-                unreachable!("requires us to have left an IfCondition, which should have been caught earlier")
-            }
-        }
-
-        cur_path = cur_path.extended(path_component.clone())
-    }
-
-    None
 }

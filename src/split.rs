@@ -89,33 +89,6 @@ impl SplitPath {
         out
     }
 
-    // This doesn't support nested plain blocks, but we assume these don't exist anyway and would be a bug
-    fn strip_plain(&self) -> Option<SplitPath> {
-        let (head, basename) = self.basename();
-        if head?.split_type == SplitType::Plain {
-            Some(basename)
-        } else {
-            Some(self.clone())
-        }
-    }
-
-    pub(crate) fn longest_shared_prefix(&self, other: &SplitPath) -> SplitPath {
-        let mut shared_prefix = SplitPath(vec![]);
-
-        let self_path = self.path();
-        let other_path = other.path();
-
-        for i in 0..(usize::min(self_path.len(), other_path.len())) {
-            if self_path[i] != other_path[i] {
-                break;
-            }
-
-            shared_prefix.0.push(self_path[i].clone())
-        }
-
-        shared_prefix
-    }
-
     pub fn basename(&self) -> (Option<SplitPathComponent>, Self) {
         let mut result = self.clone();
         let tail = result.0.pop();

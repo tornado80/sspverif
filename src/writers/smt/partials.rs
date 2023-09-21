@@ -1,12 +1,12 @@
 use std::collections::HashMap;
 
-use crate::split::{InvocTargetData, SplitPath, SplitType};
+use crate::split::{SplitPath, SplitType};
 use crate::transforms::split_partial::SplitInfo;
 use crate::{package::OracleSig, types::Type};
 
-use super::contexts::{GameContext, PackageInstanceContext};
+use super::contexts::PackageInstanceContext;
+use super::exprs::SmtExpr;
 use super::exprs::{SmtAnd, SmtEq2, SmtIte};
-use super::{declare::declare_datatype, exprs::SmtExpr};
 
 // these are just the arg-x part, withpout the full oracle and package instance and game name up front
 
@@ -31,12 +31,6 @@ fn partial_function_arg_intermediate_state_name() -> String {
 }
 
 #[derive(Debug, Clone)]
-struct DatatypeDefinition {
-    pub sort_name: String,
-    pub constructors: Vec<(String, Vec<(String, SmtExpr)>)>,
-}
-
-#[derive(Debug, Clone)]
 pub(crate) struct PartialsDatatype {
     pub pkg_inst_name: String,
     pub real_oracle_sig: OracleSig,
@@ -47,19 +41,6 @@ pub(crate) struct PartialsDatatype {
 pub(crate) struct PartialStep {
     path: SplitPath,
     locals: Vec<(String, Type)>,
-}
-
-#[derive(Debug, Clone)]
-pub(crate) struct OracleSplitInfo {
-    oracle_sig: OracleSig,
-    parts: Vec<(String, OraclePartSplitInfo)>,
-}
-
-#[derive(Debug, Clone)]
-pub(crate) struct OraclePartSplitInfo {
-    partial_oracle_sig: OracleSig,
-    locals: Vec<(String, Type)>,
-    invocation_target: Option<SmtExpr>,
 }
 
 pub(crate) fn into_partial_dtypes(splits: &SplitInfo) -> Vec<PartialsDatatype> {
@@ -94,35 +75,9 @@ impl PartialStep {
         matches!(self.path.split_type(), Some(SplitType::Invoc(_)))
     }
 
-    fn child_sort(&self, game_name: &str) -> Option<String> {
-        if let Some(SplitType::Invoc(target_data)) = self.path.split_type() {
-            let InvocTargetData {
-                pkg_inst_name,
-                oracle_name,
-            } = target_data;
-
-            let intermediate_state_pattern = DatastructurePattern::IntermediateState {
-                game_name,
-                pkg_inst_name,
-                oracle_name,
-                variant_name: "",
-            };
-
-            Some(intermediate_state_pattern.sort_name())
-        } else {
-            None
-        }
-    }
-
     pub(crate) fn path(&self) -> &SplitPath {
         &self.path
     }
-}
-
-enum SelectorType {
-    Arg,
-    Local,
-    Child,
 }
 
 trait NameMapper {
@@ -150,7 +105,6 @@ trait NameMapper {
 
                 (constructor, selectors)
             })
-            //.chain(vec![(self.end(), vec![])].into_iter())
             .collect()
     }
 
@@ -160,108 +114,6 @@ trait NameMapper {
     fn loopvar(&self, path: &SplitPath) -> Vec<Self::Selector>;
     fn end(&self) -> Self::Constructor;
     fn constructor(&self, path: &SplitPath) -> Self::Constructor;
-}
-
-struct DeclareDatatypeNameMapper<'a> {
-    game_name: &'a str,
-    pkg_inst_name: &'a str,
-    oracle_name: &'a str,
-}
-
-impl<'a> NameMapper for DeclareDatatypeNameMapper<'a> {
-    type Constructor = String;
-    type Selector = (String, SmtExpr);
-
-    fn arg(&self, path: &SplitPath, sort: SmtExpr, arg_name: &str) -> Self::Selector {
-        let path_str = path.smt_name();
-        let intermediate_state_pattern = DatastructurePattern::IntermediateState {
-            game_name: &self.game_name,
-            pkg_inst_name: &self.pkg_inst_name,
-            oracle_name: &self.oracle_name,
-            variant_name: &path_str,
-        };
-        (
-            intermediate_state_pattern.selector_name(
-                &DatastructurePattern::intermediate_state_selector_arg(arg_name),
-            ),
-            sort,
-        )
-    }
-
-    fn local(&self, path: &SplitPath, sort: SmtExpr, local_name: &str) -> Self::Selector {
-        let path_str = path.smt_name();
-        let intermediate_state_pattern = DatastructurePattern::IntermediateState {
-            game_name: &self.game_name,
-            pkg_inst_name: &self.pkg_inst_name,
-            oracle_name: &self.oracle_name,
-            variant_name: &path_str,
-        };
-        (
-            intermediate_state_pattern.selector_name(
-                &DatastructurePattern::intermediate_state_selector_local(&local_name),
-            ),
-            sort,
-        )
-    }
-
-    fn child(&self, path: &SplitPath) -> Self::Selector {
-        let intermediate_state_pattern = DatastructurePattern::IntermediateState {
-            game_name: &self.game_name,
-            pkg_inst_name: &self.pkg_inst_name,
-            oracle_name: &self.oracle_name,
-            variant_name: &path.smt_name(),
-        };
-        let name = intermediate_state_pattern.selector_name("child");
-        let sort = intermediate_state_pattern.sort_name();
-        (name, sort.into())
-    }
-
-    fn end(&self) -> Self::Constructor {
-        let intermediate_state_pattern = DatastructurePattern::IntermediateState {
-            game_name: &self.game_name,
-            pkg_inst_name: &self.pkg_inst_name,
-            oracle_name: &self.oracle_name,
-            variant_name: "end",
-        };
-
-        intermediate_state_pattern.constructor_name()
-    }
-
-    fn loopvar(&self, path: &SplitPath) -> Vec<Self::Selector> {
-        let path_str = path.smt_name();
-        let mut out = vec![];
-
-        for elem in path.path() {
-            if let SplitType::ForStep(loopvar, _, _) = elem.split_type() {
-                let intermediate_state_pattern = DatastructurePattern::IntermediateState {
-                    game_name: &self.game_name,
-                    pkg_inst_name: &self.pkg_inst_name,
-                    oracle_name: &self.oracle_name,
-                    variant_name: &path_str,
-                };
-                let name = intermediate_state_pattern.selector_name(
-                    &DatastructurePattern::intermediate_state_selector_loopvar(&loopvar.ident()),
-                );
-                let tipe = Type::Integer;
-
-                out.push((name, tipe.into()))
-            }
-        }
-
-        out
-    }
-
-    fn constructor(&self, path: &SplitPath) -> Self::Constructor {
-        let path_str = path.smt_name();
-        let intermediate_state_pattern = DatastructurePattern::IntermediateState {
-            game_name: &self.game_name,
-            pkg_inst_name: &self.pkg_inst_name,
-            oracle_name: &self.oracle_name,
-            variant_name: &path_str,
-        };
-
-        intermediate_state_pattern.constructor_name()
-    }
 }
 
 struct MatchBlockMapper<'a> {
@@ -274,11 +126,11 @@ impl<'a> NameMapper for MatchBlockMapper<'a> {
     type Constructor = (String, Option<String>);
     type Selector = String;
 
-    fn arg(&self, path: &SplitPath, sort: SmtExpr, arg_name: &str) -> Self::Selector {
+    fn arg(&self, _path: &SplitPath, _sort: SmtExpr, arg_name: &str) -> Self::Selector {
         intermediate_state_piece_selector_arg_match_name(arg_name)
     }
 
-    fn local(&self, path: &SplitPath, sort: SmtExpr, local_name: &str) -> Self::Selector {
+    fn local(&self, _path: &SplitPath, _sort: SmtExpr, local_name: &str) -> Self::Selector {
         intermediate_state_piece_selector_local_match_name(local_name)
     }
 
@@ -296,7 +148,7 @@ impl<'a> NameMapper for MatchBlockMapper<'a> {
         out
     }
 
-    fn child(&self, path: &SplitPath) -> Self::Selector {
+    fn child(&self, _path: &SplitPath) -> Self::Selector {
         intermediate_state_piece_selector_child_match_name()
     }
 

@@ -211,7 +211,7 @@ impl<'a> CompositionSmtWriter<'a> {
                     todo!();
                     //self.smt_build_return_none_nonsplit(oracle_ctx)
                 }
-                Statement::Return(Some(expr)) => {
+                Statement::Return(Some(_expr)) => {
                     // (mk-return-{name} statevarname expr)
                     todo!();
                     //self.smt_build_return_some_nonsplit(oracle_ctx, expr)
@@ -263,8 +263,6 @@ impl<'a> CompositionSmtWriter<'a> {
         oracle_ctx: &OracleContext,
         stmt: &Statement,
     ) -> SmtExpr {
-        let odef = oracle_ctx.oracle_def();
-        let inst = oracle_ctx.pkg_inst_ctx().pkg_inst();
         match stmt {
             Statement::IfThenElse(cond, ifcode, elsecode) => SmtIte {
                 cond: cond.clone(),
@@ -284,7 +282,7 @@ impl<'a> CompositionSmtWriter<'a> {
                 // mk-abort-{name}
                 self.smt_build_abort(oracle_ctx)
             }
-            _ => unreachable!("found invalid statement at end of oracle: {stmt:#?}"),
+            _ => unreachable!("found invalid statement at end of oracle: {:#?}", stmt),
         }
     }
 
@@ -474,7 +472,7 @@ impl<'a> CompositionSmtWriter<'a> {
 
                 (constructor_name, "__global_state", next_state).into()
             }
-            Statement::Return(Some(expr)) => {
+            Statement::Return(Some(_expr)) => {
                 // (mk-return-{name} statevarname expr)
                 // self.smt_build_return_some(oracle_ctx, expr)
                 ("todo_build_innermost_split_some_return",).into()
@@ -632,7 +630,7 @@ impl<'a> CompositionSmtWriter<'a> {
 
     fn smt_build_parse<OCTX: GenericOracleContext>(
         &self,
-        oracle_ctx: &OCTX,
+        _oracle_ctx: &OCTX,
         result: SmtExpr,
         idents: &[Identifier],
         expr: &Expression,
@@ -991,10 +989,7 @@ impl<'a> CompositionSmtWriter<'a> {
                 .into(),
             (
                 "__intermediate_state",
-                split_oracle_ctx
-                    .do_with_intermediate_state_pattern("no_variant_needed_here", |pattern| {
-                        pattern.sort_name()
-                    }),
+                split_oracle_ctx.intermediate_state_pattern().sort_name(),
             )
                 .into(),
         ];

@@ -32,18 +32,6 @@ pub(crate) fn return_selector_state_name(
     format!("return-{game_name}-{inst_name}-{oracle_name}-state")
 }
 
-pub(crate) fn return_selector_intermediate_state_name(
-    game_name: &str,
-    inst_name: &str,
-    oracle_name: &str,
-) -> String {
-    format!("return-{game_name}-{inst_name}-{oracle_name}-intermediate-state")
-}
-
-pub(crate) fn return_selector_state_sort(game_name: &str) -> SmtExpr {
-    ("Array", "Int", gamestate_sort_name(game_name)).into()
-}
-
 pub(crate) fn return_selector_state_length_name(
     game_name: &str,
     inst_name: &str,
@@ -88,10 +76,6 @@ pub(crate) fn gamestate_selector_rand_name(game_name: &str, sample_id: usize) ->
     format!("composition-rand-{game_name}-{sample_id}")
 }
 
-pub(crate) fn gamestate_selector_intermediate_state_name(game_name: &str) -> String {
-    format!("composition-intermediate-state-{game_name}")
-}
-
 pub(crate) fn pkgstate_sort_name(game_name: &str, inst_name: &str) -> String {
     format!("State_{game_name}_{inst_name}")
 }
@@ -104,43 +88,12 @@ pub(crate) fn pkgstate_constructor_name(game_name: &str, inst_name: &str) -> Str
     format!("mk-state-{game_name}-{inst_name}")
 }
 
-pub(crate) fn intermediate_state_sort_name(game_name: &str) -> String {
-    format!("IntermediateState_{game_name}")
-}
-
-pub(crate) fn intermediate_state_constructor_none(game_name: &str) -> String {
-    format!("mk-intermediate-state-{game_name}-none")
-}
-
-pub(crate) fn intermediate_state_constructor(game_name: &str, split_oracle_name: &str) -> String {
-    format!("mk-intermediate-state-{game_name}-{split_oracle_name}")
-}
-
-pub(crate) fn intermediate_state_selector_local(
-    game_name: &str,
-    split_oracle_name: &str,
-    variable_name: &str,
-) -> String {
-    format!("intermediate-state-{game_name}-{split_oracle_name}-local-{variable_name}")
-}
-
-pub(crate) fn intermediate_state_selector_parent(
-    game_name: &str,
-    split_oracle_name: &str,
-) -> String {
-    format!("intermediate-state-{game_name}-{split_oracle_name}-parent")
-}
-
 pub(crate) fn var_selfstate_name() -> String {
     "__self_state".to_string()
 }
 
 pub(crate) fn var_globalstate_name() -> String {
     "__global_state".to_string()
-}
-
-pub(crate) fn var_state_length_name() -> String {
-    "__state_length".to_string()
 }
 
 pub(crate) fn var_ret_name() -> String {

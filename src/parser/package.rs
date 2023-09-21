@@ -315,7 +315,6 @@ pub fn handle_oracle_def(oracle_def: Pair<Rule>) -> OracleDef {
     let mut inner = oracle_def.into_inner();
     let sig = handle_oracle_sig(inner.next().unwrap());
     let code = handle_code(inner.next().unwrap());
-    let is_split = false;
 
     OracleDef { sig, code }
 }

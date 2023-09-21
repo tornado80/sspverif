@@ -148,6 +148,7 @@ impl Composition {
 }
 
 impl Composition {
+    #[allow(unused_mut)]
     pub fn map_pkg_inst<E, F>(&self, mut f: F) -> Result<Composition, E>
     where
         F: FnMut(&PackageInstance) -> Result<PackageInstance, E>,

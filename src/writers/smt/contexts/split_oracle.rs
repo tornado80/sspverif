@@ -1,14 +1,9 @@
 use crate::{
-    proof::Named,
     split::{SplitOracleDef, SplitPath},
-    writers::smt::{
-        exprs::SmtExpr,
-        names,
-        patterns::{DatastructurePattern, FunctionPattern, IntermediateStatePattern},
-    },
+    writers::smt::{exprs::SmtExpr, names, patterns::IntermediateStatePattern},
 };
 
-use super::{GenericOracleContext, PackageInstanceContext, SplitOracleContext};
+use super::{GameContext, GenericOracleContext, PackageInstanceContext, SplitOracleContext};
 
 impl<'a> SplitOracleContext<'a> {
     pub fn smt_arg_name(&self, arg_name: &str) -> SmtExpr {
@@ -19,107 +14,44 @@ impl<'a> SplitOracleContext<'a> {
         names::oracle_split_arg_name(&game.name, &odef.sig.name, arg_name).into()
     }
 
-    pub fn oracle_def(&self) -> &SplitOracleDef {
-        &self.game_ctx.game.pkgs[self.inst_offs].pkg.split_oracles[self.split_oracle_offs]
+    pub fn oracle_def(&self) -> &'a SplitOracleDef {
+        &self.pkg_inst_ctx().pkg_inst().pkg.split_oracles[self.split_oracle_offs]
     }
 
     pub fn split_path(&self) -> &SplitPath {
         &self.oracle_def().sig.path
     }
 
-    // pub fn intermediate_state_pattern(&self) -> IntermediateStatePattern<'a> {
-    //     let game_ctx = self.game_ctx();
-    //     // let game = game_ctx.game;
-    //
-    //     IntermediateStatePattern {
-    //         game_name: &game_ctx.game.name,
-    //         pkg_inst_name: self.pkg_inst_ctx().pkg_inst_name(),
-    //         oracle_name: &self.oracle_def().sig.name,
-    //     }
-    // }
-
-    pub fn do_with_intermediate_state_pattern<R, F: FnMut(&DatastructurePattern) -> R>(
-        &self,
-        variant_name: &str,
-        mut f: F,
-    ) -> R {
-        let game_ctx = self.game_ctx();
-        let game = game_ctx.game();
-        let pattern = DatastructurePattern::IntermediateState {
-            game_name: &game.name,
-            pkg_inst_name: self.pkg_inst_ctx().pkg_inst_name(),
-            oracle_name: &self.oracle_def().sig.name,
-            variant_name,
-        };
-
-        f(&pattern)
+    fn game_ctx(&self) -> GameContext<'a> {
+        self.game_ctx.clone()
     }
 
-    fn smt_construct_return<GS, PS, V>(&self, game_state: GS, partial_state: PS, expr: V) -> SmtExpr
-    where
-        GS: Into<SmtExpr>,
-        PS: Into<SmtExpr>,
-        V: Into<SmtExpr>,
-    {
-        let game = self.game_ctx.game();
-        let game_name = &game.name;
-        let inst_name = &self.pkg_inst_ctx().pkg_inst().name;
-        let oracle_name_with_path = self.oracle_def().sig.name_with_path();
-
-        (
-            names::return_constructor_name(game_name, inst_name, &oracle_name_with_path),
-            game_state,
-            partial_state,
-        )
-            .into()
-
-        /*
-         *
-         * (
-         *   mk-partialreturn-bla-bli-blubb
-         *     gamestate
-         *     partialstate  -- encodes where in the state machine we are
-         *     checkpoint-A  -- ignore for now, we'll add them once we add the statement type
-         *     checkpoint-B  --    -"-
-         *     return-value  -- no! this is in the end variant of the partial state
-         *     is-abort      -- no! we use a different constructor for these
-         *
-         * )
-         *
-         *
-         *
-         *
-         * */
+    fn pkg_inst_ctx(&self) -> PackageInstanceContext<'a> {
+        PackageInstanceContext {
+            game_ctx: self.game_ctx.clone(),
+            inst_offs: self.inst_offs,
+        }
     }
 
-    fn oracle_function_pattern(&self) -> FunctionPattern {
-        let game_ctx = self.game_ctx();
+    pub fn intermediate_state_pattern(&self) -> IntermediateStatePattern<'a> {
         let pkg_inst_ctx = self.pkg_inst_ctx();
+        let game_ctx = self.game_ctx();
 
-        let game_name = &game_ctx.game.name;
-        let pkg_inst_name = pkg_inst_ctx.pkg_inst_name();
-        let oracle_name = self.oracle_name();
-        let split_path = &self.oracle_def().sig.path;
-
-        FunctionPattern::PartialOracle {
-            game_name,
-            pkg_inst_name,
-            oracle_name,
-            split_path,
+        IntermediateStatePattern {
+            game_name: &game_ctx.game.name,
+            pkg_inst_name: pkg_inst_ctx.pkg_inst_name(),
+            oracle_name: &self.oracle_def().sig.name,
         }
     }
 }
 
 impl<'a> GenericOracleContext for SplitOracleContext<'a> {
-    fn game_ctx(&self) -> super::GameContext {
-        self.game_ctx.clone()
+    fn game_ctx(&self) -> GameContext<'a> {
+        self.game_ctx()
     }
 
-    fn pkg_inst_ctx(&self) -> super::PackageInstanceContext {
-        PackageInstanceContext {
-            game_ctx: self.game_ctx.clone(),
-            inst_offs: self.inst_offs,
-        }
+    fn pkg_inst_ctx(&self) -> PackageInstanceContext<'a> {
+        self.pkg_inst_ctx()
     }
 
     fn oracle_name(&self) -> &str {

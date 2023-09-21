@@ -171,19 +171,6 @@ impl<'a> GameContext<'a> {
         )
     }
 
-    pub(crate) fn smt_access_gamestate_intermediate_state<S: Into<SmtExpr>>(
-        &self,
-        state: S,
-    ) -> SmtExpr {
-        let game_name = &self.game.name;
-
-        (
-            names::gamestate_selector_intermediate_state_name(game_name),
-            state,
-        )
-            .into()
-    }
-
     pub fn smt_update_gamestate_intermediate_state<S, I>(
         &self,
         gamestate: S,
@@ -261,7 +248,6 @@ impl<'a> GameContext<'a> {
             self.smt_access_gamestate_rand(sample_info, gamestate.clone(), sample_id)
                 .unwrap()
         });
-        let partial_field = [self.smt_access_gamestate_intermediate_state(gamestate.clone())];
 
         let fields = pkgstate_fields.chain(const_fields).chain(rand_fields);
 
@@ -357,8 +343,6 @@ impl<'a> GameContext<'a> {
                     .unwrap()
             }
         });
-
-        let partial_field = [self.smt_access_gamestate_intermediate_state(state.clone())];
 
         let fields = pkgstate_fields.chain(const_fields).chain(rand_fields);
 

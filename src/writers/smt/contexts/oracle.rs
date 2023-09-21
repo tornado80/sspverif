@@ -2,7 +2,6 @@ use std::backtrace;
 
 use crate::expressions::Expression;
 use crate::package::{Export, OracleDef};
-use crate::transforms::split_partial::SplitInfo;
 use crate::types::Type;
 
 use super::super::exprs::SmtExpr;
@@ -101,55 +100,6 @@ impl<'a> OracleContext<'a> {
         )
             .into()
     }
-
-    pub(crate) fn smt_access_intermediate_parent<IS: Into<SmtExpr>>(
-        &self,
-        old_gamestate: IS,
-    ) -> SmtExpr {
-        let game = self.game_ctx.game;
-        let inst = &game.pkgs[self.inst_offs];
-        let odef = &inst.pkg.oracles[self.oracle_offs];
-
-        let game_name = &game.name;
-        let oracle_name = &odef.sig.name;
-
-        (
-            names::intermediate_state_selector_parent(game_name, oracle_name),
-            old_gamestate,
-        )
-            .into()
-    }
-
-    // pub(crate) fn smt_construct_next_intermediate_state<IS: Into<SmtExpr> + std::fmt::Debug>(
-    //     &self,
-    //     split_info: &SplitInfo,
-    //     parent: IS,
-    // ) -> Option<SmtExpr> {
-    //     let game_name = &self.game_ctx.game.name;
-    //     let pkg_inst_name = self.pkg_inst_ctx().pkg_inst_name();
-    //     let oracle_name = &self.oracle_def().sig.name;
-    //
-    //     let entry = split_info.iter().find(|entry| {
-    //         entry.pkg_inst_name() == pkg_inst_name && entry.oracle_name() == oracle_name
-    //     })?;
-    //
-    //     let next_path = entry.next()?;
-    //     let next_entry = split_info
-    //         .iter()
-    //         .find(|entry| entry.path() == next_path)
-    //         .unwrap();
-    //
-    //     let mut fn_call =
-    //         vec![names::intermediate_state_constructor(game_name, &next_path.smt_name()).into()];
-    //     for (local_name, _local_type) in next_entry.locals() {
-    //         fn_call.push(local_name.clone().into());
-    //     }
-    //
-    //     println!("TTTTT {parent:?}");
-    //     fn_call.push(parent.into());
-    //
-    //     Some(SmtExpr::List(fn_call))
-    // }
 
     pub fn smt_access_return_state<R>(&self, ret: R) -> SmtExpr
     where

@@ -114,7 +114,7 @@ pub fn typecheck_comp(
     let mut typed_pkgs = vec![];
 
     // 3. check all package instances
-    for (id, pkg) in pkgs.clone().into_iter().enumerate() {
+    for (_id, pkg) in pkgs.clone().into_iter().enumerate() {
         scope.enter();
         // for Edge(from, _, sig) in edges {
         //     if *from == id {
