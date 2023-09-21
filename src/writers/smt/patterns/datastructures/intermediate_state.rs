@@ -1,30 +1,37 @@
 use crate::{
+    package::OracleSig,
     split::{SplitPath, SplitType},
-    transforms::split_partial::{SplitInfo, SplitInfoEntry},
     types::Type,
-    writers::smt::{declare::declare_datatype, exprs::SmtExpr},
+    writers::smt::{
+        declare::declare_datatype,
+        exprs::SmtExpr,
+        partials::{PartialStep, PartialsDatatype},
+    },
 };
 
 use super::DatastructurePattern2;
 
+#[derive(Debug)]
 pub struct IntermediateStatePattern<'a> {
     pub game_name: &'a str,
     pub pkg_inst_name: &'a str,
     pub oracle_name: &'a str,
 }
 
+#[derive(Debug)]
 pub enum IntermediateStateConstructor<'a> {
     Begin,
     End,
     OracleState(&'a SplitPath),
 }
 
+#[derive(Debug)]
 pub enum IntermediateStateSelector<'a> {
-    Arg(&'a SplitPath, &'a str),
+    Arg(&'a SplitPath, &'a str, &'a Type),
     LoopVar(&'a SplitPath, &'a str),
-    Local(&'a SplitPath, &'a str),
+    Local(&'a SplitPath, &'a str, &'a Type),
     Child(&'a SplitPath),
-    Return,
+    Return(&'a Type),
 }
 
 impl SplitPath {
@@ -41,53 +48,69 @@ impl SplitPath {
     }
 }
 
-impl SplitInfoEntry {
-    fn selectors(&self, game_name: &str) -> Vec<(String, SmtExpr)> {
-        let path = self.path();
-        let mut out = vec![];
+impl<'a> IntermediateStatePattern<'a> {
+    fn constructors(
+        &self,
+        partials: &'a PartialsDatatype,
+    ) -> Vec<(IntermediateStateConstructor, Vec<IntermediateStateSelector>)> {
+        let return_type = &partials.real_oracle_sig.tipe;
+        let mut out = vec![
+            (IntermediateStateConstructor::Begin, vec![]),
+            (
+                IntermediateStateConstructor::End,
+                vec![IntermediateStateSelector::Return(return_type)],
+            ),
+        ];
 
-        let pattern = IntermediateStatePattern {
-            game_name,
-            pkg_inst_name: self.pkg_inst_name(),
-            oracle_name: &self.original_sig().name,
-        };
+        for step in &partials.partial_steps {
+            let constructor = IntermediateStateConstructor::OracleState(step.path());
+            let selectors = self.selectors(&partials.real_oracle_sig, &step);
+
+            out.push((constructor, selectors));
+        }
+
+        out
+    }
+
+    fn selectors(
+        &self,
+        original_sig: &'a OracleSig,
+        step: &'a PartialStep,
+    ) -> Vec<IntermediateStateSelector<'a>> {
+        let path = step.path();
+        let mut out = vec![];
 
         // loopvars
         for elem in path.path() {
             if let SplitType::ForStep(loopvar, _, _) = elem.split_type() {
-                let ident = loopvar.ident();
-                let sel = IntermediateStateSelector::LoopVar(path, &ident);
-                let name = pattern.selector_name(&sel);
-                let tipe = Type::Integer;
+                let ident = loopvar.ident_ref();
+                let sel = IntermediateStateSelector::LoopVar(path, ident);
 
-                out.push((name, tipe.into()))
+                out.push(sel)
             }
         }
 
         // args
-        for (arg_name, arg_type) in &self.original_sig().args {
-            let sel = IntermediateStateSelector::Arg(path, arg_name);
-            let name = pattern.selector_name(&sel);
+        for (arg_name, arg_type) in &original_sig.args {
+            let sel = IntermediateStateSelector::Arg(path, arg_name, arg_type);
 
-            out.push((name, arg_type.into()));
+            out.push(sel);
         }
 
         // locals
-        for (local_name, local_type) in self.locals() {
-            let sel = IntermediateStateSelector::Local(path, local_name);
-            let name = pattern.selector_name(&sel);
+        for (local_name, local_type) in step.locals() {
+            let sel = IntermediateStateSelector::Local(path, local_name, local_type);
 
-            out.push((name, local_type.into()));
+            out.push(sel);
         }
 
         // child
         // the following line was copied from old code, not sure how correct it is
-        let has_child = matches!(self.path().split_type(), Some(SplitType::Invoc(_)));
+        let has_child = matches!(path.split_type(), Some(SplitType::Invoc(_)));
         if has_child {
-            let sel = IntermediateStateSelector::Child(self.path());
-            let name = pattern.selector_name(&sel);
+            let sel = IntermediateStateSelector::Child(path);
 
-            out.push((name, pattern.sort_name().into()))
+            out.push(sel)
         }
 
         out
@@ -97,7 +120,7 @@ impl SplitInfoEntry {
 impl<'a> DatastructurePattern2 for IntermediateStatePattern<'a> {
     type Constructor = IntermediateStateConstructor<'a>;
     type Selector = IntermediateStateSelector<'a>;
-    type DeclareInfo = SplitInfo;
+    type DeclareInfo = PartialsDatatype;
 
     const CAMEL_CASE: &'static str = "IntermediateState";
 
@@ -140,50 +163,43 @@ impl<'a> DatastructurePattern2 for IntermediateStatePattern<'a> {
 
         let kebab_case = Self::KEBAB_CASE;
         let field_name = match sel {
-            IntermediateStateSelector::Arg(path, name) => format!("{}-arg-{name}", path.smt_name()),
+            IntermediateStateSelector::Arg(path, name, _type) => {
+                format!("{}-arg-{name}", path.smt_name())
+            }
             IntermediateStateSelector::LoopVar(path, name) => {
                 format!("{}-loopvar-{name}", path.smt_name())
             }
-            IntermediateStateSelector::Local(path, name) => {
+            IntermediateStateSelector::Local(path, name, _type) => {
                 format!("{}-local-{name}", path.smt_name())
             }
             IntermediateStateSelector::Child(path) => format!("{}-child", path.smt_name()),
-            IntermediateStateSelector::Return => format!("end-return"),
+            IntermediateStateSelector::Return(_type) => format!("end-return"),
         };
 
         format!("{kebab_case}-{game_name}-{pkg_inst_name}-{oracle_name}-{field_name}")
     }
 
     fn declare_datatype(&self, info: &Self::DeclareInfo) -> SmtExpr {
-        let filter_fn = |entry: &&SplitInfoEntry| {
-            entry.original_sig().name == self.oracle_name
-                && entry.pkg_inst_name() == self.pkg_inst_name
-        };
-
-        let entries: Vec<_> = info.iter().filter(&filter_fn).collect();
-        let return_type = entries[0].original_sig().tipe.clone();
-
-        let mut constructors = vec![
+        let constructors = self.constructors(info);
+        let constructors = constructors.iter().map(|(con, sels)| {
             (
-                self.constructor_name(&IntermediateStateConstructor::Begin),
-                vec![],
-            ),
-            (
-                self.constructor_name(&IntermediateStateConstructor::End),
-                vec![(
-                    self.selector_name(&IntermediateStateSelector::Return),
-                    return_type.into(),
-                )],
-            ),
-        ];
+                self.constructor_name(con),
+                sels.iter()
+                    .map(|sel| (self.selector_name(sel), self.selector_sort(sel)))
+                    .collect(),
+            )
+        });
 
-        for entry in entries {
-            constructors.push((
-                self.constructor_name(&IntermediateStateConstructor::OracleState(entry.path())),
-                entry.selectors(&self.game_name),
-            ))
+        declare_datatype(&self.sort_name(), constructors)
+    }
+
+    fn selector_sort(&self, sel: &Self::Selector) -> SmtExpr {
+        match sel {
+            IntermediateStateSelector::LoopVar(_, _) => Type::Integer.into(),
+            IntermediateStateSelector::Child(_) => self.sort_name().into(),
+            IntermediateStateSelector::Arg(_, _, tipe)
+            | IntermediateStateSelector::Local(_, _, tipe)
+            | IntermediateStateSelector::Return(tipe) => SmtExpr::from(*tipe),
         }
-
-        declare_datatype(&self.sort_name(), constructors.into_iter())
     }
 }

@@ -209,7 +209,7 @@ impl From<&Type> for SmtExpr {
                 }
                 els
             }),
-            Type::Empty => SmtExpr::List(vec![SmtExpr::Atom("Empty".to_string())]),
+            Type::Empty => SmtExpr::Atom("Empty".to_string()),
             _ => {
                 panic!("not implemented: {:?}", t)
             }

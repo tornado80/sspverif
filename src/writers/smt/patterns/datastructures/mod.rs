@@ -17,6 +17,7 @@ pub trait DatastructurePattern2 {
     fn sort_name(&self) -> String;
     fn constructor_name(&self, cons: &Self::Constructor) -> String;
     fn selector_name(&self, sel: &Self::Selector) -> String;
+    fn selector_sort(&self, sel: &Self::Selector) -> SmtExpr;
 
     fn declare_datatype(&self, info: &Self::DeclareInfo) -> SmtExpr;
 }

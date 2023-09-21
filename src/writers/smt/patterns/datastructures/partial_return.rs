@@ -104,4 +104,26 @@ impl<'a> DatastructurePattern2 for PartialReturnPattern<'a> {
 
         declare_datatype(&self.sort_name(), constructors.into_iter())
     }
+
+    fn selector_sort(&self, sel: &Self::Selector) -> SmtExpr {
+        let Self {
+            game_name,
+            pkg_inst_name,
+            oracle_name,
+        } = self;
+        let game_state_pattern = super::DatastructurePattern::GameState { game_name };
+
+        let intermediate_state_pattern = super::IntermediateStatePattern {
+            game_name,
+            pkg_inst_name,
+            oracle_name,
+        };
+
+        match sel {
+            PartialReturnSelector::GameState => game_state_pattern.sort_name().into(),
+            PartialReturnSelector::IntermediateState => {
+                intermediate_state_pattern.sort_name().into()
+            }
+        }
+    }
 }

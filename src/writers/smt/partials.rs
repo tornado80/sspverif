@@ -31,14 +31,14 @@ fn partial_function_arg_intermediate_state_name() -> String {
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct PartialsDatatype {
+pub struct PartialsDatatype {
     pub pkg_inst_name: String,
     pub real_oracle_sig: OracleSig,
     pub partial_steps: Vec<PartialStep>,
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct PartialStep {
+pub struct PartialStep {
     path: SplitPath,
     locals: Vec<(String, Type)>,
 }
@@ -77,6 +77,10 @@ impl PartialStep {
 
     pub(crate) fn path(&self) -> &SplitPath {
         &self.path
+    }
+
+    pub(crate) fn locals(&self) -> &Vec<(String, Type)> {
+        &self.locals
     }
 }
 

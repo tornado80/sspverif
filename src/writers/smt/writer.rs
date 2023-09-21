@@ -1028,8 +1028,8 @@ impl<'a> CompositionSmtWriter<'a> {
                 .unwrap(),
         )];
 
-        for (arg_name, _arg_type) in &split_oracle_ctx.oracle_def().sig.args {
-            let sel = IntermediateStateSelector::Arg(split_path, arg_name);
+        for (arg_name, arg_type) in &split_oracle_ctx.oracle_def().sig.args {
+            let sel = IntermediateStateSelector::Arg(split_path, arg_name, arg_type);
             bindings.push((
                 arg_name.clone(),
                 (pattern.selector_name(&sel), "__intermediate_state").into(),
@@ -1176,8 +1176,7 @@ impl<'a> CompositionSmtWriter<'a> {
             }
 
             return_typedefs.push(self.smt_declare_partial_return_datatype(dtype));
-            intermediate_state_typedefs
-                .push(intermediate_state_pattern.declare_datatype(&self.split_info));
+            intermediate_state_typedefs.push(intermediate_state_pattern.declare_datatype(dtype));
             dispatch_fndefs.push(pkg_inst_ctx.smt_declare_oracle_dispatch_function(dtype));
         }
 
