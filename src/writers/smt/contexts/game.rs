@@ -6,6 +6,7 @@ use crate::{
         declare,
         exprs::{SmtExpr, SmtLet},
         names,
+        patterns::{DatastructurePattern2, GameStateDeclareInfo, GameStatePattern},
     },
 };
 
@@ -116,40 +117,15 @@ impl<'a> GameContext<'a> {
     }
 
     pub(crate) fn smt_declare_gamestate(&self, sample_info: &SampleInfo) -> SmtExpr {
-        let game_name: &str = &self.game.name;
+        let game_state_pattern = GameStatePattern {
+            game_name: &self.game.name,
+        };
+        let declare_info = GameStateDeclareInfo {
+            game: self.game(),
+            sample_info: &sample_info,
+        };
 
-        let pkgstate_fields = self.game.pkgs.iter().map(|inst| {
-            let inst_name = &inst.name;
-            (
-                names::gamestate_selector_pkgstate_name(game_name, inst_name),
-                names::pkgstate_sort_name(game_name, inst_name).into(),
-            )
-        });
-
-        let const_fields = self
-            .consts_except_fns()
-            .into_iter()
-            .map(|(param_name, tipe)| {
-                (
-                    names::gamestate_selector_param_name(game_name, param_name),
-                    tipe.into(),
-                )
-            });
-
-        let rand_fields = (0..sample_info.count).map(|sample_id| {
-            (
-                names::gamestate_selector_rand_name(game_name, sample_id),
-                crate::types::Type::Integer.into(),
-            )
-        });
-
-        let fields = pkgstate_fields.chain(const_fields).chain(rand_fields);
-
-        declare::declare_single_constructor_datatype(
-            &names::gamestate_sort_name(game_name),
-            &names::gamestate_constructor_name(game_name),
-            fields,
-        )
+        game_state_pattern.declare_datatype(&declare_info)
     }
 
     pub fn smt_access_gamestate_pkgstate<S: Into<SmtExpr>>(

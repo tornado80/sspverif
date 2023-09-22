@@ -80,11 +80,9 @@ impl<'a> CompositionSmtWriter<'a> {
 
     // build the (declare-datatype ...) expressions for all package states and the joint composition state
     pub fn smt_composition_state(&self) -> Vec<SmtExpr> {
-        // 1. each package in composition
         let mut states: Vec<SmtExpr> = self
             .comp
             .pkgs
-            .clone()
             .iter()
             .map(|pkg| self.smt_pkg_state(pkg))
             .collect();

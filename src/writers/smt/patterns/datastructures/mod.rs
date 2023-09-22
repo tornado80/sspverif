@@ -1,6 +1,8 @@
+mod game_state;
 mod intermediate_state;
 mod partial_return;
 
+pub use game_state::*;
 pub use intermediate_state::*;
 pub use partial_return::*;
 
