@@ -60,20 +60,8 @@ pub(crate) fn gamestate_sort_name(game_name: &str) -> String {
     format!("CompositionState-{game_name}")
 }
 
-pub(crate) fn gamestate_constructor_name(game_name: &str) -> String {
-    format!("mk-composition-state-{game_name}")
-}
-
 pub(crate) fn gamestate_selector_pkgstate_name(game_name: &str, inst_name: &str) -> String {
     format!("composition-pkgstate-{game_name}-{inst_name}")
-}
-
-pub(crate) fn gamestate_selector_param_name(game_name: &str, param_name: &str) -> String {
-    format!("composition-param-{game_name}-{param_name}")
-}
-
-pub(crate) fn gamestate_selector_rand_name(game_name: &str, sample_id: usize) -> String {
-    format!("composition-rand-{game_name}-{sample_id}")
 }
 
 pub(crate) fn pkgstate_sort_name(game_name: &str, inst_name: &str) -> String {

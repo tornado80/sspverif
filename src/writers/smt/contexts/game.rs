@@ -77,14 +77,6 @@ impl<'a> GameContext<'a> {
         inst_ctx.split_oracle_ctx_by_name(oracle_name)
     }
 
-    fn consts_except_fns(&self) -> Vec<&'a (String, Type)> {
-        self.game
-            .consts
-            .iter()
-            .filter(|(_, tipe)| !matches!(tipe, crate::types::Type::Fn(_, _)))
-            .collect()
-    }
-
     pub fn smt_sort_gamestate(&self) -> SmtExpr {
         let game_name: &str = &self.game.name;
         names::gamestate_sort_name(game_name).into()
