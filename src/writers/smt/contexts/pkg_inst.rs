@@ -88,6 +88,17 @@ impl<'a> PackageInstanceContext<'a> {
         &self.game_ctx.game.pkgs[self.inst_offs]
     }
 
+    pub fn pkg_state_pattern(&self) -> PackageStatePattern<'a> {
+        let game_ctx = self.game_ctx();
+        let game_name = &game_ctx.game().name;
+        let pkg_inst_name = self.pkg_inst_name();
+
+        PackageStatePattern {
+            game_name,
+            pkg_inst_name,
+        }
+    }
+
     pub fn smt_sorts_return(&self) -> Vec<SmtExpr> {
         let oracle_count = self.game_ctx.game.pkgs[self.inst_offs].pkg.oracles.len();
 
@@ -100,18 +111,8 @@ impl<'a> PackageInstanceContext<'a> {
     }
 
     pub fn smt_declare_pkgstate(&self) -> SmtExpr {
-        let game = self.game_ctx.game;
-        let inst = &game.pkgs[self.inst_offs];
-
-        let game_name = &game.name;
-        let inst_name = &inst.name;
-
-        let pkg_state_pattern = PackageStatePattern {
-            game_name,
-            pkg_inst_name: inst_name,
-        };
-
-        return pkg_state_pattern.declare_datatype(&inst.pkg);
+        let pkg = &self.pkg_inst().pkg;
+        return self.pkg_state_pattern().declare_datatype(&pkg);
     }
 
     pub fn smt_access_pkgstate<S: Into<SmtExpr>>(
