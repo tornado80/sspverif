@@ -1155,6 +1155,7 @@ impl<'a> CompositionSmtWriter<'a> {
                 pkg_inst_name,
                 oracle_name,
             };
+            let intermediate_state_spec = intermediate_state_pattern.datastructure_spec(&dtype);
 
             // this can't work, because it looks for an existing oracle. but it doesn't exist
             // anymore
@@ -1174,7 +1175,8 @@ impl<'a> CompositionSmtWriter<'a> {
             }
 
             return_typedefs.push(self.smt_declare_partial_return_datatype(dtype));
-            intermediate_state_typedefs.push(intermediate_state_pattern.declare_datatype(dtype));
+            intermediate_state_typedefs
+                .push(intermediate_state_pattern.declare_datatype(&intermediate_state_spec));
             dispatch_fndefs.push(pkg_inst_ctx.smt_declare_oracle_dispatch_function(dtype));
         }
 
@@ -1197,7 +1199,8 @@ impl<'a> CompositionSmtWriter<'a> {
             oracle_name,
         };
 
-        prp.declare_datatype(&())
+        let spec = prp.datastructure_spec(&());
+        prp.declare_datatype(&spec)
     }
 
     pub fn smt_composition_all(&mut self) -> Vec<SmtExpr> {

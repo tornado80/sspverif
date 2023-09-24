@@ -1,5 +1,5 @@
-use super::DatastructurePattern2;
-use crate::writers::smt::{declare::declare_datatype, exprs::SmtExpr};
+use super::{DatastructurePattern2, DatastructureSpec};
+use crate::writers::smt::exprs::SmtExpr;
 
 pub struct PartialReturnPattern<'a> {
     pub game_name: &'a str,
@@ -17,7 +17,7 @@ pub enum PartialReturnSelector {
     IntermediateState,
 }
 
-impl<'a> DatastructurePattern2 for PartialReturnPattern<'a> {
+impl<'a> DatastructurePattern2<'a> for PartialReturnPattern<'a> {
     type Constructor = PartialReturnConstructor;
     type Selector = PartialReturnSelector;
     type DeclareInfo = ();
@@ -68,41 +68,17 @@ impl<'a> DatastructurePattern2 for PartialReturnPattern<'a> {
         format!("{kebab_case}-{game_name}-{pkg_inst_name}-{oracle_name}-{field_name}")
     }
 
-    fn declare_datatype(&self, _info: &Self::DeclareInfo) -> SmtExpr {
-        let Self {
-            game_name,
-            pkg_inst_name,
-            oracle_name,
-        } = self;
-        let game_state_pattern = super::DatastructurePattern::GameState { game_name };
-
-        let intermediate_state_pattern = super::IntermediateStatePattern {
-            game_name,
-            pkg_inst_name,
-            oracle_name,
-        };
-
-        let constructors = vec![
+    fn datastructure_spec(&self, _info: &'a Self::DeclareInfo) -> DatastructureSpec<'a, Self> {
+        DatastructureSpec(vec![
             (
-                self.constructor_name(&PartialReturnConstructor::Return),
+                PartialReturnConstructor::Return,
                 vec![
-                    (
-                        self.selector_name(&PartialReturnSelector::GameState),
-                        game_state_pattern.sort_name().into(),
-                    ),
-                    (
-                        self.selector_name(&PartialReturnSelector::IntermediateState),
-                        intermediate_state_pattern.sort_name().into(),
-                    ),
+                    PartialReturnSelector::GameState,
+                    PartialReturnSelector::IntermediateState,
                 ],
             ),
-            (
-                self.constructor_name(&PartialReturnConstructor::Abort),
-                vec![].into(),
-            ),
-        ];
-
-        declare_datatype(&self.sort_name(), constructors.into_iter())
+            (PartialReturnConstructor::Abort, vec![]),
+        ])
     }
 
     fn selector_sort(&self, sel: &Self::Selector) -> SmtExpr {

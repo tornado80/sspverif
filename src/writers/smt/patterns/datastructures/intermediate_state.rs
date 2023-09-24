@@ -3,13 +3,12 @@ use crate::{
     split::{SplitPath, SplitType},
     types::Type,
     writers::smt::{
-        declare::declare_datatype,
         exprs::SmtExpr,
         partials::{PartialStep, PartialsDatatype},
     },
 };
 
-use super::DatastructurePattern2;
+use super::{DatastructurePattern2, DatastructureSpec};
 
 #[derive(Debug)]
 pub struct IntermediateStatePattern<'a> {
@@ -52,7 +51,10 @@ impl<'a> IntermediateStatePattern<'a> {
     fn constructors(
         &self,
         partials: &'a PartialsDatatype,
-    ) -> Vec<(IntermediateStateConstructor, Vec<IntermediateStateSelector>)> {
+    ) -> Vec<(
+        IntermediateStateConstructor<'a>,
+        Vec<IntermediateStateSelector<'a>>,
+    )> {
         let return_type = &partials.real_oracle_sig.tipe;
         let mut out = vec![
             (IntermediateStateConstructor::Begin, vec![]),
@@ -117,7 +119,7 @@ impl<'a> IntermediateStatePattern<'a> {
     }
 }
 
-impl<'a> DatastructurePattern2 for IntermediateStatePattern<'a> {
+impl<'a> DatastructurePattern2<'a> for IntermediateStatePattern<'a> {
     type Constructor = IntermediateStateConstructor<'a>;
     type Selector = IntermediateStateSelector<'a>;
     type DeclareInfo = PartialsDatatype;
@@ -179,20 +181,6 @@ impl<'a> DatastructurePattern2 for IntermediateStatePattern<'a> {
         format!("{kebab_case}-{game_name}-{pkg_inst_name}-{oracle_name}-{field_name}")
     }
 
-    fn declare_datatype(&self, info: &Self::DeclareInfo) -> SmtExpr {
-        let constructors = self.constructors(info);
-        let constructors = constructors.iter().map(|(con, sels)| {
-            (
-                self.constructor_name(con),
-                sels.iter()
-                    .map(|sel| (self.selector_name(sel), self.selector_sort(sel)))
-                    .collect(),
-            )
-        });
-
-        declare_datatype(&self.sort_name(), constructors)
-    }
-
     fn selector_sort(&self, sel: &Self::Selector) -> SmtExpr {
         match sel {
             IntermediateStateSelector::LoopVar(_, _) => Type::Integer.into(),
@@ -201,5 +189,12 @@ impl<'a> DatastructurePattern2 for IntermediateStatePattern<'a> {
             | IntermediateStateSelector::Local(_, _, tipe)
             | IntermediateStateSelector::Return(tipe) => SmtExpr::from(*tipe),
         }
+    }
+
+    fn datastructure_spec(
+        &self,
+        info: &'a Self::DeclareInfo,
+    ) -> super::DatastructureSpec<'a, Self> {
+        DatastructureSpec(self.constructors(info))
     }
 }

@@ -124,7 +124,8 @@ impl<'a> GameContext<'a> {
             sample_info: &sample_info,
         };
 
-        game_state_pattern.declare_datatype(&declare_info)
+        let spec = game_state_pattern.datastructure_spec(&declare_info);
+        game_state_pattern.declare_datatype(&spec)
     }
 
     pub fn smt_access_gamestate_pkgstate<S: Into<SmtExpr>>(

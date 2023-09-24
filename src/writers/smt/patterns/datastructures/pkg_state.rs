@@ -1,6 +1,6 @@
-use crate::{package::Package, types::Type, writers::smt::declare::declare_datatype};
+use crate::{package::Package, types::Type};
 
-use super::DatastructurePattern2;
+use super::{DatastructurePattern2, DatastructureSpec};
 
 pub struct PackageStatePattern<'a> {
     pub game_name: &'a str,
@@ -12,7 +12,7 @@ pub struct PackageStateSelector<'a> {
     pub tipe: &'a Type,
 }
 
-impl<'a> DatastructurePattern2 for PackageStatePattern<'a> {
+impl<'a> DatastructurePattern2<'a> for PackageStatePattern<'a> {
     type Constructor = ();
 
     type Selector = PackageStateSelector<'a>;
@@ -61,15 +61,12 @@ impl<'a> DatastructurePattern2 for PackageStatePattern<'a> {
         (*tipe).into()
     }
 
-    fn declare_datatype(&self, pkg: &Package) -> crate::writers::smt::exprs::SmtExpr {
+    fn datastructure_spec(&self, pkg: &'a Self::DeclareInfo) -> DatastructureSpec<'a, Self> {
         let selectors = pkg
             .state
             .iter()
-            .map(|(name, tipe)| PackageStateSelector { name, tipe })
-            .map(|ref sel| (self.selector_name(sel), self.selector_sort(sel)));
+            .map(|(name, tipe)| PackageStateSelector { name, tipe });
 
-        let constructor = (self.constructor_name(&()), selectors.collect());
-
-        declare_datatype(&self.sort_name(), vec![constructor].into_iter())
+        DatastructureSpec(vec![((), selectors.collect())])
     }
 }

@@ -8,9 +8,9 @@ pub use intermediate_state::*;
 pub use partial_return::*;
 pub use pkg_state::*;
 
-use crate::writers::smt::exprs::SmtExpr;
+use crate::writers::smt::{declare::declare_datatype, exprs::SmtExpr};
 
-pub trait DatastructurePattern2 {
+pub trait DatastructurePattern2<'a> {
     type Constructor;
     type Selector;
     type DeclareInfo;
@@ -23,13 +23,26 @@ pub trait DatastructurePattern2 {
     fn selector_name(&self, sel: &Self::Selector) -> String;
     fn selector_sort(&self, sel: &Self::Selector) -> SmtExpr;
 
-    fn declare_datatype(&self, info: &Self::DeclareInfo) -> SmtExpr;
+    fn datastructure_spec(&self, info: &'a Self::DeclareInfo) -> DatastructureSpec<'a, Self>;
+
+    fn declare_datatype(&self, spec: &DatastructureSpec<'a, Self>) -> SmtExpr {
+        let DatastructureSpec(constructors) = spec;
+        let constructors = constructors.iter().map(|(con, sels)| {
+            (
+                self.constructor_name(con),
+                sels.iter()
+                    .map(|sel| (self.selector_name(sel), self.selector_sort(sel)))
+                    .collect(),
+            )
+        });
+
+        declare_datatype(&self.sort_name(), constructors)
+    }
 }
 
-pub struct DatastructureSpec<P: DatastructurePattern2> {
-    pub sort_name: String,
-    pub constructors: Vec<(P::Constructor, Vec<P::Selector>)>,
-}
+pub struct DatastructureSpec<'a, P: DatastructurePattern2<'a> + ?Sized>(
+    pub Vec<(P::Constructor, Vec<P::Selector>)>,
+);
 
 pub enum DatastructurePattern<'a> {
     GameState {

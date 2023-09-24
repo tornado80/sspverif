@@ -1,11 +1,8 @@
 use crate::{
-    package::Composition,
-    transforms::samplify::SampleInfo,
-    types::Type,
-    writers::smt::{declare::declare_datatype, names},
+    package::Composition, transforms::samplify::SampleInfo, types::Type, writers::smt::names,
 };
 
-use super::DatastructurePattern2;
+use super::{DatastructurePattern2, DatastructureSpec};
 
 pub struct GameStatePattern<'a> {
     pub game_name: &'a str,
@@ -22,7 +19,7 @@ pub struct GameStateDeclareInfo<'a> {
     pub sample_info: &'a SampleInfo,
 }
 
-impl<'a> DatastructurePattern2 for GameStatePattern<'a> {
+impl<'a> DatastructurePattern2<'a> for GameStatePattern<'a> {
     type Constructor = ();
     type Selector = GameStateSelector<'a>;
     type DeclareInfo = GameStateDeclareInfo<'a>;
@@ -70,7 +67,7 @@ impl<'a> DatastructurePattern2 for GameStatePattern<'a> {
         }
     }
 
-    fn declare_datatype(&self, info: &Self::DeclareInfo) -> crate::writers::smt::exprs::SmtExpr {
+    fn datastructure_spec(&self, info: &Self::DeclareInfo) -> DatastructureSpec<'a, Self> {
         let Self { game_name } = self;
         assert_eq!(game_name, &info.game.name);
 
@@ -98,11 +95,8 @@ impl<'a> DatastructurePattern2 for GameStatePattern<'a> {
         let fields = pkgstate_selectors
             .chain(const_selectors)
             .chain(rand_selectors)
-            .map(|sel| (self.selector_name(&sel), self.selector_sort(&sel)))
             .collect();
 
-        let constructors = vec![(self.constructor_name(&()), fields)];
-
-        declare_datatype(&self.sort_name(), constructors.into_iter())
+        DatastructureSpec(vec![((), fields)])
     }
 }
