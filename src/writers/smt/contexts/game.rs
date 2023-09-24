@@ -3,7 +3,6 @@ use crate::{
     transforms::samplify::SampleInfo,
     types::Type,
     writers::smt::{
-        declare,
         exprs::{SmtExpr, SmtLet},
         names,
         patterns::{DatastructurePattern2, GameStateDeclareInfo, GameStatePattern},

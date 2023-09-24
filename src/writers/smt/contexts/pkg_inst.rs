@@ -1,11 +1,11 @@
 use crate::package::PackageInstance;
 use crate::split::SplitPath;
-use crate::writers::smt::patterns::{DatastructurePattern2, PackageStatePattern};
-
-use super::super::exprs::SmtExpr;
-use super::super::{declare, names};
-
-use super::{GameContext, OracleContext, PackageInstanceContext, SplitOracleContext};
+use crate::writers::smt::{
+    contexts::{GameContext, OracleContext, PackageInstanceContext, SplitOracleContext},
+    exprs::SmtExpr,
+    names,
+    patterns::{DatastructurePattern2, PackageStatePattern},
+};
 
 impl<'a> PackageInstanceContext<'a> {
     pub fn game_ctx(&self) -> GameContext {
