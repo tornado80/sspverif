@@ -16,7 +16,7 @@ impl<'a> GameContext<'a> {
         Self { game }
     }
 
-    pub fn game(&self) -> &Composition {
+    pub fn game(&self) -> &'a Composition {
         &self.game
     }
 

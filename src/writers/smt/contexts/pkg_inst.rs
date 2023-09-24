@@ -8,7 +8,7 @@ use crate::writers::smt::{
 };
 
 impl<'a> PackageInstanceContext<'a> {
-    pub fn game_ctx(&self) -> GameContext {
+    pub fn game_ctx(&self) -> GameContext<'a> {
         self.game_ctx.clone()
     }
 
