@@ -1,10 +1,12 @@
 mod game_state;
 mod intermediate_state;
 mod partial_return;
+mod pkg_state;
 
 pub use game_state::*;
 pub use intermediate_state::*;
 pub use partial_return::*;
+pub use pkg_state::*;
 
 use crate::writers::smt::exprs::SmtExpr;
 
@@ -22,6 +24,11 @@ pub trait DatastructurePattern2 {
     fn selector_sort(&self, sel: &Self::Selector) -> SmtExpr;
 
     fn declare_datatype(&self, info: &Self::DeclareInfo) -> SmtExpr;
+}
+
+pub struct DatastructureSpec<P: DatastructurePattern2> {
+    pub sort_name: String,
+    pub constructors: Vec<(P::Constructor, Vec<P::Selector>)>,
 }
 
 pub enum DatastructurePattern<'a> {
