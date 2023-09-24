@@ -12,6 +12,7 @@ pub enum PartialReturnConstructor {
     Abort,
 }
 
+#[derive(PartialEq, Eq)]
 pub enum PartialReturnSelector {
     GameState,
     IntermediateState,

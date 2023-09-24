@@ -24,7 +24,7 @@ pub enum IntermediateStateConstructor<'a> {
     OracleState(&'a SplitPath),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum IntermediateStateSelector<'a> {
     Arg(&'a SplitPath, &'a str, &'a Type),
     LoopVar(&'a SplitPath, &'a str),

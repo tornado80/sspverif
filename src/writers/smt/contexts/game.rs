@@ -5,7 +5,9 @@ use crate::{
     writers::smt::{
         exprs::{SmtExpr, SmtLet},
         names,
-        patterns::{DatastructurePattern2, GameStateDeclareInfo, GameStatePattern},
+        patterns::{
+            DatastructurePattern2, GameStateDeclareInfo, GameStatePattern, GameStateSelector,
+        },
     },
 };
 
@@ -147,43 +149,14 @@ impl<'a> GameContext<'a> {
         )
     }
 
-    pub fn smt_update_gamestate_intermediate_state<S, I>(
-        &self,
-        gamestate: S,
-        sample_info: &SampleInfo,
-        new_intermediate_state: I,
-    ) -> Option<SmtExpr>
-    where
-        S: Clone + Into<SmtExpr>,
-        I: Clone + Into<SmtExpr>,
-    {
-        let game_name: &str = &self.game.name;
+    fn game_state_pattern(&self) -> GameStatePattern {
+        let game_name = &self.game().name;
+        GameStatePattern { game_name }
+    }
 
-        let fncall_count =
-            1 + self.game.pkgs.len() + self.consts_except_fns().len() + sample_info.count + 1;
-
-        let mut fncall = Vec::with_capacity(fncall_count);
-        fncall.push(names::gamestate_constructor_name(game_name).into());
-
-        for pkg_inst in &self.game.pkgs {
-            fncall.push(self.smt_access_gamestate_pkgstate(gamestate.clone(), &pkg_inst.name)?);
-        }
-
-        for (param_name, _type) in self.consts_except_fns() {
-            fncall.push(self.smt_access_gamestate_const(gamestate.clone(), param_name)?);
-        }
-
-        for sample_id in 0..sample_info.count {
-            fncall.push(self.smt_access_gamestate_rand(
-                sample_info,
-                gamestate.clone(),
-                sample_id,
-            )?);
-        }
-
-        fncall.push(new_intermediate_state.into());
-
-        Some(SmtExpr::List(fncall))
+    fn game_state_declare_info(&self, sample_info: &'a SampleInfo) -> GameStateDeclareInfo {
+        let game = self.game();
+        GameStateDeclareInfo { game, sample_info }
     }
 
     pub fn smt_update_gamestate_pkgstate<S, V>(
@@ -197,66 +170,42 @@ impl<'a> GameContext<'a> {
         S: Clone + Into<SmtExpr>,
         V: Clone + Into<SmtExpr>,
     {
-        let game_name: &str = &self.game.name;
-        let mut found = false;
+        let game_state_pattern = self.game_state_pattern();
+        let declare_info = self.game_state_declare_info(sample_info);
+        let spec = game_state_pattern.datastructure_spec(&declare_info);
 
-        let pkgstate_fields = self.game.pkgs.iter().map(|inst| {
-            let inst_name = &inst.name;
+        let pkgstate_selector = GameStateSelector::PackageInstance {
+            pkg_inst_name: target_name,
+        };
 
-            if inst_name == target_name {
-                found = true;
-                new_pkgstate.clone().into()
-            } else {
-                self.smt_access_gamestate_pkgstate(gamestate.clone(), inst_name)
-                    .unwrap()
-            }
-        });
+        return game_state_pattern.update(&spec, &pkgstate_selector, gamestate, new_pkgstate);
+    }
 
-        let const_fields = self
-            .consts_except_fns()
-            .into_iter()
-            .map(|(param_name, _tipe)| {
-                self.smt_access_gamestate_const(gamestate.clone(), param_name)
-                    .unwrap()
-            });
-
-        let rand_fields = (0..sample_info.count).map(|sample_id| {
-            self.smt_access_gamestate_rand(sample_info, gamestate.clone(), sample_id)
-                .unwrap()
-        });
-
-        let fields = pkgstate_fields.chain(const_fields).chain(rand_fields);
-
-        let mut fncall = vec![names::gamestate_constructor_name(game_name).into()];
-        fncall.extend(fields);
-
-        if !found {
-            return None;
-        }
-
-        Some(SmtExpr::List(fncall))
+    fn param_type(&self, param_name: &str) -> Option<&'a Type> {
+        self.game
+            .consts
+            .iter()
+            .find(|(name, _tipe)| name == param_name)
+            .map(|(_name, tipe)| tipe)
     }
 
     pub fn smt_access_gamestate_const<S: Into<SmtExpr>>(
         &self,
         state: S,
         param_name: &str,
+        sample_info: &SampleInfo,
     ) -> Option<SmtExpr> {
-        // if the requested constant does not exists, return none
-        self.game
-            .consts
-            .iter()
-            .position(|(name, _)| name == param_name)?;
+        let game_state_pattern = self.game_state_pattern();
+        let declare_info = self.game_state_declare_info(sample_info);
+        let spec = game_state_pattern.datastructure_spec(&declare_info);
 
-        let game_name = &self.game.name;
+        let tipe = self.param_type(param_name)?;
+        let const_selector = GameStateSelector::Const {
+            const_name: param_name,
+            tipe,
+        };
 
-        Some(
-            (
-                names::gamestate_selector_param_name(game_name, param_name),
-                state,
-            )
-                .into(),
-        )
+        return game_state_pattern.access(&spec, &const_selector, state);
     }
 
     pub fn smt_access_gamestate_rand<S: Into<SmtExpr>>(
@@ -265,71 +214,33 @@ impl<'a> GameContext<'a> {
         state: S,
         sample_id: usize,
     ) -> Option<SmtExpr> {
-        // if the requested sample_id does not exists, return none
-        if sample_id >= sample_info.count {
-            return None;
-        }
+        let game_state_pattern = self.game_state_pattern();
+        let declare_info = self.game_state_declare_info(sample_info);
+        let spec = game_state_pattern.datastructure_spec(&declare_info);
 
-        let game_name = &self.game.name;
+        let rand_selector = GameStateSelector::Randomness { sample_id };
 
-        Some(
-            (
-                names::gamestate_selector_rand_name(game_name, sample_id),
-                state,
-            )
-                .into(),
-        )
+        return game_state_pattern.access(&spec, &rand_selector, state);
     }
 
     pub fn smt_update_gamestate_rand<S, V>(
         &self,
         state: S,
         sample_info: &SampleInfo,
-        target_sample_id: usize,
+        sample_id: usize,
         new_value: V,
     ) -> Option<SmtExpr>
     where
         S: Clone + Into<SmtExpr>,
         V: Clone + Into<SmtExpr>,
     {
-        let game_name: &str = &self.game.name;
-        let mut found = false;
+        let game_state_pattern = self.game_state_pattern();
+        let declare_info = self.game_state_declare_info(sample_info);
+        let spec = game_state_pattern.datastructure_spec(&declare_info);
 
-        let pkgstate_fields = self.game.pkgs.iter().map(|inst| {
-            let inst_name = &inst.name;
+        let rand_selector = GameStateSelector::Randomness { sample_id };
 
-            self.smt_access_gamestate_pkgstate(state.clone(), inst_name)
-                .unwrap()
-        });
-
-        let const_fields = self
-            .consts_except_fns()
-            .into_iter()
-            .map(|(param_name, _tipe)| {
-                self.smt_access_gamestate_const(state.clone(), param_name)
-                    .unwrap()
-            });
-
-        let rand_fields = (0..sample_info.count).map(|sample_id| {
-            if sample_id == target_sample_id {
-                found = true;
-                new_value.clone().into()
-            } else {
-                self.smt_access_gamestate_rand(sample_info, state.clone(), sample_id)
-                    .unwrap()
-            }
-        });
-
-        let fields = pkgstate_fields.chain(const_fields).chain(rand_fields);
-
-        let mut fncall = vec![names::gamestate_constructor_name(game_name).into()];
-        fncall.extend(fields);
-
-        if !found {
-            return None;
-        }
-
-        Some(SmtExpr::List(fncall))
+        return game_state_pattern.update(&spec, &rand_selector, state, new_value);
     }
 
     // NOTE: This function could be implemented a bit more efficient. If the prover struggles, we could do that.

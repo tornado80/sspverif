@@ -12,7 +12,7 @@ use crate::writers::smt::{declare::declare_datatype, exprs::SmtExpr};
 
 pub trait DatastructurePattern2<'a> {
     type Constructor;
-    type Selector;
+    type Selector: Eq;
     type DeclareInfo;
 
     const CAMEL_CASE: &'static str;
@@ -37,6 +37,43 @@ pub trait DatastructurePattern2<'a> {
         });
 
         declare_datatype(&self.sort_name(), constructors)
+    }
+
+    fn access<S: Into<SmtExpr>>(
+        &self,
+        spec: &DatastructureSpec<'a, Self>,
+        selector: &Self::Selector,
+        structure: S,
+    ) -> Option<SmtExpr> {
+        spec.0.iter().find(|(_con, sels)| sels.contains(selector))?;
+
+        Some((self.selector_name(selector), structure).into())
+    }
+
+    fn update<S: Into<SmtExpr>, V: Into<SmtExpr>>(
+        &self,
+        spec: &DatastructureSpec<'a, Self>,
+        selector: &Self::Selector,
+        structure: S,
+        new_value: V,
+    ) -> Option<SmtExpr> {
+        let (constructor, selectors) =
+            spec.0.iter().find(|(_con, sels)| sels.contains(selector))?;
+
+        let structure: SmtExpr = structure.into();
+        let new_value: SmtExpr = new_value.into();
+
+        let mut call: Vec<SmtExpr> = vec![self.constructor_name(constructor).into()];
+
+        call.extend(selectors.iter().map(|cur_sel| {
+            if cur_sel == selector {
+                new_value.clone()
+            } else {
+                (self.selector_name(cur_sel), structure.clone()).into()
+            }
+        }));
+
+        Some(call.into())
     }
 }
 

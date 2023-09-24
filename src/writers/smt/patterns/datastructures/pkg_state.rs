@@ -7,6 +7,7 @@ pub struct PackageStatePattern<'a> {
     pub pkg_inst_name: &'a str,
 }
 
+#[derive(PartialEq, Eq)]
 pub struct PackageStateSelector<'a> {
     pub name: &'a str,
     pub tipe: &'a Type,

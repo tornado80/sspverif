@@ -8,6 +8,7 @@ pub struct GameStatePattern<'a> {
     pub game_name: &'a str,
 }
 
+#[derive(PartialEq, Eq)]
 pub enum GameStateSelector<'a> {
     PackageInstance { pkg_inst_name: &'a str },
     Const { const_name: &'a str, tipe: &'a Type },
