@@ -157,23 +157,27 @@ impl<'a> NameMapper for MatchBlockMapper<'a> {
     }
 
     fn constructor(&self, path: &SplitPath) -> Self::Constructor {
-        let path_str = path.smt_name();
-        let intermediate_state_pattern = DatastructurePattern::IntermediateState {
-            game_name: &self.game_name,
-            pkg_inst_name: &self.pkg_inst_name,
-            oracle_name: &self.oracle_name,
-            variant_name: &path_str,
+        let Self {
+            game_name,
+            pkg_inst_name,
+            oracle_name,
+        } = self;
+
+        let intermediate_state_pattern = IntermediateStatePattern {
+            game_name,
+            pkg_inst_name,
+            oracle_name,
         };
 
-        let constructor_name = intermediate_state_pattern.constructor_name();
-
         let partial_oracle_function_pattern = FunctionPattern::PartialOracle {
-            game_name: &self.game_name,
-            pkg_inst_name: &self.pkg_inst_name,
-            oracle_name: &self.oracle_name,
+            game_name,
+            pkg_inst_name,
+            oracle_name,
             split_path: path,
         };
 
+        let constructor = IntermediateStateConstructor::OracleState(path);
+        let constructor_name = intermediate_state_pattern.constructor_name(&constructor);
         let target_oracle_name = partial_oracle_function_pattern.function_name();
 
         (constructor_name, Some(target_oracle_name))
@@ -275,11 +279,6 @@ impl<'a> PackageInstanceContext<'a> {
         let game_name = &game_ctx.game().name;
         let pkg_inst_name = &self.pkg_inst_name();
         let oracle_name = &datatype.real_oracle_sig.name;
-        let name_mapper = MatchBlockMapper {
-            game_name,
-            pkg_inst_name,
-            oracle_name,
-        };
 
         let function_pattern = FunctionPattern::DispatchOracle {
             game_name,
@@ -287,50 +286,61 @@ impl<'a> PackageInstanceContext<'a> {
             oracle_sig: &datatype.real_oracle_sig,
         };
 
-        let mut cases: Vec<SmtMatchCase<_>> = vec![];
+        let intermediate_state_pattern = IntermediateStatePattern {
+            game_name,
+            pkg_inst_name,
+            oracle_name,
+        };
 
-        for ((cons, fun), sels) in &name_mapper.map(datatype) {
-            let dispatch_call = if let Some(oracle_fun_name) = fun {
-                let mut call: Vec<SmtExpr> = vec![
-                    oracle_fun_name.clone().into(),
-                    "__global_state".into(),
-                    "__intermediate_state".into(),
-                ];
-                call.extend(
-                    datatype
-                        .real_oracle_sig
-                        .args
-                        .iter()
-                        .map(|(name, _tipe)| name.to_string().into()),
-                );
-                //call.extend(sels.iter().cloned().map(|x| x.into()));
-                SmtExpr::List(call)
-            } else {
-                // create new return
-                // keep everything as-is
-                // TODO we need a new return type that also contains the partial state
-                SmtExpr::Atom("src/writers/smt/partials.rs: -- search for kdsfjlsdjf -- TODO add partial return".to_string())
-            };
+        let intermediate_state_spec = intermediate_state_pattern.datastructure_spec(datatype);
 
-            let oracle_args = &datatype.real_oracle_sig.args;
+        let match_expr = intermediate_state_pattern.match_expr(
+            partial_function_arg_intermediate_state_name(),
+            &intermediate_state_spec,
+            |con| match con {
+                IntermediateStateConstructor::End => {
+                    let partial_return_pattern = PartialReturnPattern {
+                        game_name,
+                        pkg_inst_name,
+                        oracle_name,
+                    };
 
-            let case = SmtMatchCase {
-                constructor: cons.clone(),
-                args: sels.clone(),
-                body: self.check_args_are_honest(oracle_args, dispatch_call),
-            };
+                    partial_return_pattern
+                        .constructor_name(&PartialReturnConstructor::Abort)
+                        .into()
+                }
+                IntermediateStateConstructor::OracleState(split_path) => {
+                    let partial_oracle_function_pattern = FunctionPattern::PartialOracle {
+                        game_name,
+                        pkg_inst_name,
+                        oracle_name,
+                        split_path,
+                    };
 
-            cases.push(case);
-        }
+                    let oracle_fun_name = partial_oracle_function_pattern.function_name();
+
+                    let mut call: Vec<SmtExpr> = vec![
+                        oracle_fun_name.into(),
+                        "__global_state".into(),
+                        "__intermediate_state".into(),
+                    ];
+                    call.extend(
+                        datatype
+                            .real_oracle_sig
+                            .args
+                            .iter()
+                            .map(|(name, _tipe)| name.to_string().into()),
+                    );
+                    SmtExpr::List(call)
+                }
+            },
+        );
 
         SmtDefineFunction {
             name: function_pattern.function_name(),
             args: function_pattern.function_argspec(),
             ret_sort: function_pattern.function_return_sort_name().into(),
-            body: SmtMatch {
-                expr: partial_function_arg_intermediate_state_name(),
-                cases,
-            },
+            body: match_expr,
         }
         .into()
     }

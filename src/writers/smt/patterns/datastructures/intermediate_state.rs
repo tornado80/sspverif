@@ -19,7 +19,6 @@ pub struct IntermediateStatePattern<'a> {
 
 #[derive(Debug)]
 pub enum IntermediateStateConstructor<'a> {
-    Begin,
     End,
     OracleState(&'a SplitPath),
 }
@@ -56,13 +55,10 @@ impl<'a> IntermediateStatePattern<'a> {
         Vec<IntermediateStateSelector<'a>>,
     )> {
         let return_type = &partials.real_oracle_sig.tipe;
-        let mut out = vec![
-            (IntermediateStateConstructor::Begin, vec![]),
-            (
-                IntermediateStateConstructor::End,
-                vec![IntermediateStateSelector::Return(return_type)],
-            ),
-        ];
+        let mut out = vec![(
+            IntermediateStateConstructor::End,
+            vec![IntermediateStateSelector::Return(return_type)],
+        )];
 
         for step in &partials.partial_steps {
             let constructor = IntermediateStateConstructor::OracleState(step.path());
@@ -148,7 +144,6 @@ impl<'a> DatastructurePattern2<'a> for IntermediateStatePattern<'a> {
             oracle_name,
         } = self;
         let variant_name = match cons {
-            IntermediateStateConstructor::Begin => "begin".to_string(),
             IntermediateStateConstructor::End => "end".to_string(),
             IntermediateStateConstructor::OracleState(path) => path.smt_name(),
         };
