@@ -1,6 +1,8 @@
 use crate::{
     split::{SplitOracleDef, SplitPath},
-    writers::smt::{exprs::SmtExpr, names, patterns::IntermediateStatePattern},
+    writers::smt::{
+        exprs::SmtExpr, names, partials::PartialsDatatype, patterns::IntermediateStatePattern,
+    },
 };
 
 use super::{GameContext, GenericOracleContext, PackageInstanceContext, SplitOracleContext};
@@ -18,7 +20,11 @@ impl<'a> SplitOracleContext<'a> {
         &self.pkg_inst_ctx().pkg_inst().pkg.split_oracles[self.split_oracle_offs]
     }
 
-    pub fn split_path(&self) -> &SplitPath {
+    pub fn partials_dtype(&self) -> &'a PartialsDatatype {
+        self.partials
+    }
+
+    pub fn split_path(&self) -> &'a SplitPath {
         &self.oracle_def().sig.path
     }
 

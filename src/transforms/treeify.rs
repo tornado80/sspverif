@@ -46,6 +46,16 @@ fn treeify(cb: &CodeBlock) -> CodeBlock {
                     after.push(elem.clone());
                 }
             }
+            Statement::For(ident, from, to, code) => {
+                let new_elem =
+                    Statement::For(ident.clone(), from.clone(), to.clone(), treeify(code));
+
+                if !found {
+                    before.push(new_elem);
+                } else {
+                    after.push(new_elem);
+                }
+            }
             _ => {
                 if !found {
                     before.push(elem.clone());

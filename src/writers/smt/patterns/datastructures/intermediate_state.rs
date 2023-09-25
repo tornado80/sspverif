@@ -3,7 +3,7 @@ use crate::{
     split::{SplitPath, SplitType},
     types::Type,
     writers::smt::{
-        exprs::SmtExpr,
+        exprs::{SmtExpr, SmtLet},
         partials::{PartialStep, PartialsDatatype},
     },
 };
@@ -17,7 +17,7 @@ pub struct IntermediateStatePattern<'a> {
     pub oracle_name: &'a str,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum IntermediateStateConstructor<'a> {
     End,
     OracleState(&'a SplitPath),
@@ -112,6 +112,32 @@ impl<'a> IntermediateStatePattern<'a> {
         }
 
         out
+    }
+
+    pub fn recover_variables<B: Into<SmtExpr>>(
+        &self,
+        spec: &DatastructureSpec<'a, Self>,
+        con: &<Self as DatastructurePattern2<'a>>::Constructor,
+        body: B,
+    ) -> Option<SmtExpr> {
+        let (_, sels) = spec.0.iter().find(|(cur_con, _)| cur_con == con)?;
+        let out = SmtLet {
+            bindings: sels
+                .iter()
+                .filter_map(|sel| match sel {
+                    IntermediateStateSelector::Local(_, name, _)
+                    | IntermediateStateSelector::LoopVar(_, name)
+                    | IntermediateStateSelector::Arg(_, name, _) => Some((
+                        name.to_string(),
+                        self.access(&spec, sel, "__intermediate_state").unwrap(),
+                    )),
+                    _ => None,
+                })
+                .collect(),
+            body: body.into(),
+        };
+
+        Some(out.into())
     }
 }
 

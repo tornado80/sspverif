@@ -79,15 +79,15 @@ fn transform_game_inst(
     let (comp, _) = resolveoracles::Transformation(&comp)
         .transform()
         .expect("resolveoracles transformation failed unexpectedly");
-    let (comp, splits) = split_partial::SplitPartial
-        .transform_game(&comp)
-        .expect("split_partial transform failed unexpectedly");
     let (comp, _) = returnify::TransformNg
         .transform_game(&comp)
         .expect("returnify transformation failed unexpectedly");
     let (comp, _) = treeify::Transformation(&comp)
         .transform()
         .expect("treeify transformation failed unexpectedly");
+    let (comp, splits) = split_partial::SplitPartial
+        .transform_game(&comp)
+        .expect("split_partial transform failed unexpectedly");
     println!("#####################");
     println!("{:#?}", comp);
     println!("$$$$$$$$$$$$$$$$$$$$$");

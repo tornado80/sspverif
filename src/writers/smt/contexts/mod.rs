@@ -4,6 +4,8 @@ use crate::{
     writers::smt::{exprs::SmtExpr, names},
 };
 
+use super::partials::PartialsDatatype;
+
 pub struct GlobalContext;
 
 impl GlobalContext {
@@ -27,6 +29,7 @@ pub struct SplitOracleContext<'a> {
     game_ctx: GameContext<'a>,
     inst_offs: usize,
     split_oracle_offs: usize,
+    partials: &'a PartialsDatatype,
 }
 
 #[derive(Clone, Debug)]

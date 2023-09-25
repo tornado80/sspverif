@@ -3,6 +3,8 @@ mod intermediate_state;
 mod partial_return;
 mod pkg_state;
 
+use std::iter::FromIterator;
+
 pub use game_state::*;
 pub use intermediate_state::*;
 pub use partial_return::*;
@@ -15,7 +17,7 @@ use crate::writers::smt::{
 };
 
 pub trait DatastructurePattern2<'a> {
-    type Constructor;
+    type Constructor: Eq;
     type Selector: Eq;
     type DeclareInfo;
 
@@ -102,6 +104,29 @@ pub trait DatastructurePattern2<'a> {
                 .collect(),
         }
         .into()
+    }
+
+    fn call_constructor<F>(
+        &self,
+        spec: &DatastructureSpec<'a, Self>,
+        con: &Self::Constructor,
+        f: F,
+    ) -> Option<SmtExpr>
+    where
+        F: Fn(&Self::Selector) -> SmtExpr,
+    {
+        let (con, sels) = spec.0.iter().find(|(cur_con, _sels)| con == cur_con)?;
+
+        // smt-lib doesn't like parens around constructors without any fields/selectors
+        if sels.is_empty() {
+            return Some(self.constructor_name(con).into());
+        }
+
+        Some(SmtExpr::List(Vec::from_iter(
+            vec![self.constructor_name(con).into()]
+                .into_iter()
+                .chain(sels.iter().map(f)),
+        )))
     }
 }
 

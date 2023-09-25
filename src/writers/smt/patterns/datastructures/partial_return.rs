@@ -7,6 +7,7 @@ pub struct PartialReturnPattern<'a> {
     pub oracle_name: &'a str,
 }
 
+#[derive(PartialEq, Eq)]
 pub enum PartialReturnConstructor {
     Return,
     Abort,

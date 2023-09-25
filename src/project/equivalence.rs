@@ -7,6 +7,7 @@ use crate::transforms::ProofTransform;
 use crate::util::prover_process::{Communicator, ProverResponse};
 use crate::writers::smt::contexts::{GameContext, GenericOracleContext};
 use crate::writers::smt::exprs::{SmtAnd, SmtAssert, SmtEq2, SmtExpr, SmtImplies, SmtNot};
+use crate::writers::smt::partials::into_partial_dtypes;
 use crate::writers::smt::writer::CompositionSmtWriter;
 use crate::writers::smt::{contexts, declare};
 use crate::{hacks, types};
@@ -250,6 +251,9 @@ impl<'a> ProverThingy<'a> {
             out.push(decl_state_length);
         }
 
+        let left_partial_datatypes = into_partial_dtypes(self.split_info_left);
+        let right_partial_datatypes = into_partial_dtypes(self.split_info_right);
+
         // write declarations of arguments for the exports in left
         for Export(_, sig) in &left.as_game().exports {
             if let Some(orcl_ctx) = gctx_left.exported_oracle_ctx_by_name(&sig.name) {
@@ -261,7 +265,13 @@ impl<'a> ProverThingy<'a> {
                 }
             }
 
-            if let Some(orcl_ctx) = gctx_left.exported_split_oracle_ctx_by_name(&sig.name) {
+            if let Some(partial_dtype) = left_partial_datatypes
+                .iter()
+                .find(|dtype| dtype.real_oracle_sig.name == sig.name)
+            {
+                let orcl_ctx = gctx_left
+                    .exported_split_oracle_ctx_by_name(&sig.name, &partial_dtype)
+                    .unwrap();
                 for (arg_name, arg_type) in &sig.args {
                     out.push(declare::declare_const(
                         orcl_ctx.smt_arg_name(arg_name),
@@ -274,7 +284,13 @@ impl<'a> ProverThingy<'a> {
         // write declarations of arguments for the split of the right.
         // these have to be added separately, and have already been added through left's loop
         for Export(_, sig) in &right.as_game().exports {
-            if let Some(orcl_ctx) = gctx_right.exported_split_oracle_ctx_by_name(&sig.name) {
+            if let Some(partial_dtype) = right_partial_datatypes
+                .iter()
+                .find(|dtype| dtype.real_oracle_sig.name == sig.name)
+            {
+                let orcl_ctx = gctx_right
+                    .exported_split_oracle_ctx_by_name(&sig.name, &partial_dtype)
+                    .unwrap();
                 for (arg_name, arg_type) in &sig.args {
                     out.push(declare::declare_const(
                         orcl_ctx.smt_arg_name(arg_name),

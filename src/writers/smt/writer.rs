@@ -1,7 +1,7 @@
 use crate::expressions::Expression;
 use crate::identifier::Identifier;
 use crate::package::{Composition, OracleDef, PackageInstance};
-use crate::split::SplitPath;
+use crate::split::{SplitPath, SplitType};
 use crate::statement::{CodeBlock, Statement};
 use crate::transforms::samplify::SampleInfo;
 use crate::transforms::split_partial::SplitInfo;
@@ -344,7 +344,8 @@ impl<'a> CompositionSmtWriter<'a> {
 
         let first_true = branches
             .iter()
-            .position(|(cond, _)| cond == &Expression::BooleanLiteral("true".to_string()))?;
+            .position(|(cond, _)| cond == &Expression::BooleanLiteral("true".to_string()))
+            .expect(&format!("branches: {:?}", branches));
 
         let (_, elsepath) = &branches[first_true];
         let mut block: SmtExpr = self.smt_build_intermediate_state_from_path(oracle_ctx, elsepath);
@@ -382,25 +383,105 @@ impl<'a> CompositionSmtWriter<'a> {
             oracle_name,
         };
 
-        let constructor = IntermediateStateConstructor::OracleState(path);
-        let constructor_name = pattern.constructor_name(&constructor);
+        let spec = pattern.datastructure_spec(oracle_ctx.partials_dtype());
 
-        let entry = self
-            .split_info
+        let common_prefix = oracle_ctx.split_path().common_prefix(path);
+        let common_loopvars =
+            common_prefix
+                .path()
+                .iter()
+                .filter_map(|elem| match elem.split_type() {
+                    SplitType::ForStep(name, start, _) => Some((name, start)),
+                    _ => None,
+                });
+
+        let their_loopvars = path
+            .path()
             .iter()
-            .find(|entry| entry.path() == path)
-            .unwrap();
+            .filter_map(|elem| match elem.split_type() {
+                SplitType::ForStep(name, start, _) => Some((name, start)),
+                _ => None,
+            });
 
-        let mut locals: Vec<SmtExpr> = entry
-            .locals()
-            .iter()
-            .map(|(name, _)| name.clone().into())
-            .collect();
+        let is_next_iteration = path < oracle_ctx.split_path();
 
-        let mut fn_call = vec![constructor_name.into()];
-        fn_call.append(&mut locals);
+        let mut next_loopvar_values = vec![];
 
-        SmtExpr::List(fn_call)
+        for (name, start) in their_loopvars {
+            let is_common = common_loopvars
+                .clone()
+                .find(|(their_name, _)| &name == their_name)
+                .is_some();
+
+            next_loopvar_values.push(match (is_common, is_next_iteration) {
+                (true, true) => (
+                    name.ident(),
+                    (
+                        "+",
+                        1,
+                        pattern
+                            .access(
+                                &spec,
+                                &IntermediateStateSelector::LoopVar(path, name.ident_ref()),
+                                "__intermediate_state",
+                            )
+                            .unwrap(),
+                    )
+                        .into(),
+                ),
+                (true, false) => (
+                    name.ident(),
+                    pattern
+                        .access(
+                            &spec,
+                            &IntermediateStateSelector::LoopVar(path, name.ident_ref()),
+                            "__intermediate_state",
+                        )
+                        .unwrap(),
+                ),
+                (false, _) => (name.ident(), start.clone().into()),
+            })
+        }
+
+        pattern
+            .call_constructor(
+                &spec,
+                &IntermediateStateConstructor::OracleState(path),
+                |sel| match sel {
+                    IntermediateStateSelector::Arg(_, name, _)
+                    | IntermediateStateSelector::Local(_, name, _) => (*name).into(),
+                    IntermediateStateSelector::LoopVar(_, name) => {
+                        let (_, next_value) = next_loopvar_values
+                            .iter()
+                            .find(|(lv_name, _next_value)| &lv_name == name)
+                            .unwrap();
+                        next_value.clone()
+                    }
+                    IntermediateStateSelector::Child(_) => "mk-child-this-is-wrong".into(),
+                    IntermediateStateSelector::Return(_) => unreachable!(),
+                },
+            )
+            .unwrap()
+
+        // let constructor = IntermediateStateConstructor::OracleState(path);
+        // let constructor_name = pattern.constructor_name(&constructor);
+        //
+        // let entry = self
+        //     .split_info
+        //     .iter()
+        //     .find(|entry| entry.path() == path)
+        //     .unwrap();
+        //
+        // let mut locals: Vec<SmtExpr> = entry
+        //     .locals()
+        //     .iter()
+        //     .map(|(name, _)| name.clone().into())
+        //     .collect();
+        //
+        // let mut fn_call = vec![constructor_name.into()];
+        // fn_call.append(&mut locals);
+        //
+        // SmtExpr::List(fn_call)
     }
 
     fn smt_build_innermost_split(
@@ -426,17 +507,57 @@ impl<'a> CompositionSmtWriter<'a> {
             .into(),
             // this is probably wrong because we don't have any selectors, but maybe it's ok idk:
             Statement::Abort => {
-                // construct a partial-state abort
-                let abort_pattern = DatastructurePattern::PartialReturn {
+                let partial_return_pattern = PartialReturnPattern {
                     game_name,
                     pkg_inst_name,
                     oracle_name,
                 };
-                (abort_pattern.constructor_name(),).into()
+                let spec = partial_return_pattern.datastructure_spec(&());
+                partial_return_pattern
+                    .call_constructor(&spec, &PartialReturnConstructor::Abort, |_| unreachable!())
+                    .unwrap()
             }
             Statement::Return(None) => {
+                let partial_return_pattern = PartialReturnPattern {
+                    game_name,
+                    pkg_inst_name,
+                    oracle_name,
+                };
+
+                let spec = partial_return_pattern.datastructure_spec(&());
+                partial_return_pattern
+                    .call_constructor(&spec, &PartialReturnConstructor::Return, |sel| match sel {
+                        patterns::PartialReturnSelector::GameState => "__global_state".into(),
+                        patterns::PartialReturnSelector::IntermediateState => {
+                            let ipattern = oracle_ctx.intermediate_state_pattern();
+                            let ispec = ipattern.datastructure_spec(oracle_ctx.partials_dtype());
+                            ipattern
+                                .call_constructor(
+                                    &ispec,
+                                    &IntermediateStateConstructor::End,
+                                    |sel| match sel {
+                                        IntermediateStateSelector::Arg(_, _, _)
+                                        | IntermediateStateSelector::LoopVar(_, _)
+                                        | IntermediateStateSelector::Local(_, _, _)
+                                        | IntermediateStateSelector::Child(_) => unreachable!(),
+                                        IntermediateStateSelector::Return(_) => "mk-empty".into(),
+                                    },
+                                )
+                                .unwrap()
+                        }
+                    })
+                    .unwrap()
+            }
+            Statement::Return(Some(_expr)) => {
                 // (mk-return-{name} statevarname expr)
-                // self.smt_build_return_none(oracle_ctx)
+                // self.smt_build_return_some(oracle_ctx, expr)
+
+                // this is also a real return
+                ("todo_build_innermost_split_some_return",).into()
+            }
+            _ => {
+                // build the generic partialreturn and let the caller know that this statment still
+                // needs to be processed
 
                 let next_state =
                     if let Some(next_state) = self.smt_build_next_intermediate_state(oracle_ctx) {
@@ -470,12 +591,6 @@ impl<'a> CompositionSmtWriter<'a> {
 
                 (constructor_name, "__global_state", next_state).into()
             }
-            Statement::Return(Some(_expr)) => {
-                // (mk-return-{name} statevarname expr)
-                // self.smt_build_return_some(oracle_ctx, expr)
-                ("todo_build_innermost_split_some_return",).into()
-            }
-            _ => unreachable!("found invalid statement at end of oracle: {:#?}", stmt),
         }
     }
 
@@ -1013,33 +1128,16 @@ impl<'a> CompositionSmtWriter<'a> {
             split_path,
         };
 
-        let pattern = IntermediateStatePattern {
-            game_name,
-            pkg_inst_name: inst_name,
-            oracle_name,
-        };
-
+        let pattern = split_oracle_ctx.intermediate_state_pattern();
+        let dtype = split_oracle_ctx.partials_dtype();
+        let spec = pattern.datastructure_spec(dtype);
+        let intermediate_state_constructor = IntermediateStateConstructor::OracleState(split_path);
         let mut bindings = vec![(
             names::var_selfstate_name(),
             game_context
                 .smt_access_gamestate_pkgstate(names::var_globalstate_name(), inst_name)
                 .unwrap(),
         )];
-
-        for (arg_name, arg_type) in &split_oracle_ctx.oracle_def().sig.args {
-            let sel = IntermediateStateSelector::Arg(split_path, arg_name, arg_type);
-            bindings.push((
-                arg_name.clone(),
-                (pattern.selector_name(&sel), "__intermediate_state").into(),
-            ));
-        }
-
-        for (name, sel) in split_path.loopvar_selectors() {
-            bindings.push((
-                name.to_string(),
-                (pattern.selector_name(&sel), "__intermediate_state").into(),
-            ));
-        }
 
         (
             "define-fun",
@@ -1048,7 +1146,13 @@ impl<'a> CompositionSmtWriter<'a> {
             partial_oracle_function_pattern.function_return_sort_name(),
             SmtLet {
                 bindings,
-                body: self.smt_codeblock_split(&split_oracle_ctx, code.clone()),
+                body: pattern
+                    .recover_variables(
+                        &spec,
+                        &intermediate_state_constructor,
+                        self.smt_codeblock_split(&split_oracle_ctx, code.clone()),
+                    )
+                    .unwrap(),
             },
         )
             .into()
@@ -1166,7 +1270,7 @@ impl<'a> CompositionSmtWriter<'a> {
                 let oname = &orig_oracle_sig.name;
                 let opath = step.path().smt_name();
                 let split_oracle_ctx = pkg_inst_ctx
-                    .split_oracle_ctx_by_name_and_path(&orig_oracle_sig.name, step.path())
+                    .split_oracle_ctx_by_name_and_path(&orig_oracle_sig.name, step.path(), dtype)
                     .expect(&format!(
                         "couldn't find split oracle context for ({oname}, {opath}) in {:?}",
                         pkg_inst_ctx.pkg_inst().pkg.split_oracles

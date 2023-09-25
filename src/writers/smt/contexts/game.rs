@@ -5,6 +5,7 @@ use crate::{
     writers::smt::{
         exprs::{SmtExpr, SmtLet},
         names,
+        partials::PartialsDatatype,
         patterns::{
             DatastructurePattern2, GameStateDeclareInfo, GameStatePattern, GameStateSelector,
         },
@@ -62,6 +63,7 @@ impl<'a> GameContext<'a> {
     pub fn exported_split_oracle_ctx_by_name(
         &self,
         oracle_name: &str,
+        partials: &'a PartialsDatatype,
     ) -> Option<SplitOracleContext<'a>> {
         let Export(inst_offs, _) = *self
             .game
@@ -74,7 +76,7 @@ impl<'a> GameContext<'a> {
             inst_offs,
         };
 
-        inst_ctx.split_oracle_ctx_by_name(oracle_name)
+        inst_ctx.split_oracle_ctx_by_name(oracle_name, partials)
     }
 
     pub fn smt_sort_gamestate(&self) -> SmtExpr {

@@ -10,20 +10,8 @@ use super::exprs::{SmtAnd, SmtEq2, SmtIte};
 
 // these are just the arg-x part, withpout the full oracle and package instance and game name up front
 
-fn intermediate_state_piece_selector_child_match_name() -> String {
-    format!("match-child")
-}
-
 fn intermediate_state_piece_selector_arg_match_name(arg_name: &str) -> String {
     format!("match-arg-{arg_name}")
-}
-
-fn intermediate_state_piece_selector_loopvar_match_name(local_name: &str) -> String {
-    format!("match-loopvar-{local_name}")
-}
-
-fn intermediate_state_piece_selector_local_match_name(local_name: &str) -> String {
-    format!("match-local-{local_name}")
 }
 
 fn partial_function_arg_intermediate_state_name() -> String {
@@ -84,117 +72,6 @@ impl PartialStep {
     }
 }
 
-trait NameMapper {
-    type Constructor;
-    type Selector;
-
-    fn map(&self, data: &PartialsDatatype) -> Vec<(Self::Constructor, Vec<Self::Selector>)> {
-        data.partial_steps
-            .iter()
-            .map(|partial| {
-                let constructor = self.constructor(&partial.path);
-                let mut selectors = vec![];
-
-                selectors.append(&mut self.loopvar(&partial.path()));
-                for (arg_name, arg_type) in &data.real_oracle_sig.args {
-                    selectors.push(self.arg(&partial.path, arg_type.into(), &arg_name))
-                }
-                for (local_name, local_type) in &partial.locals {
-                    selectors.push(self.local(&partial.path, local_type.into(), &local_name))
-                }
-
-                if partial.has_child() {
-                    selectors.push(self.child(&partial.path))
-                }
-
-                (constructor, selectors)
-            })
-            .collect()
-    }
-
-    fn arg(&self, path: &SplitPath, sort: SmtExpr, arg_name: &str) -> Self::Selector;
-    fn local(&self, path: &SplitPath, sort: SmtExpr, local_name: &str) -> Self::Selector;
-    fn child(&self, path: &SplitPath) -> Self::Selector;
-    fn loopvar(&self, path: &SplitPath) -> Vec<Self::Selector>;
-    fn end(&self) -> Self::Constructor;
-    fn constructor(&self, path: &SplitPath) -> Self::Constructor;
-}
-
-struct MatchBlockMapper<'a> {
-    game_name: &'a str,
-    pkg_inst_name: &'a str,
-    oracle_name: &'a str,
-}
-
-impl<'a> NameMapper for MatchBlockMapper<'a> {
-    type Constructor = (String, Option<String>);
-    type Selector = String;
-
-    fn arg(&self, _path: &SplitPath, _sort: SmtExpr, arg_name: &str) -> Self::Selector {
-        intermediate_state_piece_selector_arg_match_name(arg_name)
-    }
-
-    fn local(&self, _path: &SplitPath, _sort: SmtExpr, local_name: &str) -> Self::Selector {
-        intermediate_state_piece_selector_local_match_name(local_name)
-    }
-
-    fn loopvar(&self, path: &SplitPath) -> Vec<Self::Selector> {
-        let mut out = vec![];
-
-        for elem in path.path() {
-            if let SplitType::ForStep(loopvar, _, _) = elem.split_type() {
-                out.push(intermediate_state_piece_selector_loopvar_match_name(
-                    &loopvar.ident(),
-                ))
-            }
-        }
-
-        out
-    }
-
-    fn child(&self, _path: &SplitPath) -> Self::Selector {
-        intermediate_state_piece_selector_child_match_name()
-    }
-
-    fn constructor(&self, path: &SplitPath) -> Self::Constructor {
-        let Self {
-            game_name,
-            pkg_inst_name,
-            oracle_name,
-        } = self;
-
-        let intermediate_state_pattern = IntermediateStatePattern {
-            game_name,
-            pkg_inst_name,
-            oracle_name,
-        };
-
-        let partial_oracle_function_pattern = FunctionPattern::PartialOracle {
-            game_name,
-            pkg_inst_name,
-            oracle_name,
-            split_path: path,
-        };
-
-        let constructor = IntermediateStateConstructor::OracleState(path);
-        let constructor_name = intermediate_state_pattern.constructor_name(&constructor);
-        let target_oracle_name = partial_oracle_function_pattern.function_name();
-
-        (constructor_name, Some(target_oracle_name))
-    }
-
-    fn end(&self) -> Self::Constructor {
-        let intermediate_state_pattern = DatastructurePattern::IntermediateState {
-            game_name: &self.game_name,
-            pkg_inst_name: &self.pkg_inst_name,
-            oracle_name: &self.oracle_name,
-            variant_name: "end",
-        };
-
-        (intermediate_state_pattern.constructor_name(), None)
-    }
-}
-
 /*
  *
  * [
@@ -250,7 +127,11 @@ impl<B: Into<SmtExpr>> Into<SmtExpr> for SmtDefineFunction<B> {
 }
 
 impl<'a> PackageInstanceContext<'a> {
-    fn check_args_are_honest<B: Into<SmtExpr>>(&self, args: &[(String, Type)], body: B) -> SmtExpr {
+    pub fn check_args_are_honest<B: Into<SmtExpr>>(
+        &self,
+        args: &[(String, Type)],
+        body: B,
+    ) -> SmtExpr {
         if args.is_empty() {
             return body.into();
         }
@@ -366,10 +247,15 @@ where
             .cases
             .into_iter()
             .map(|case| {
-                let mut pattern = vec![case.constructor.into()];
-                pattern.extend(case.args.into_iter().map(|s| s.into()));
+                let pattern = if case.args.is_empty() {
+                    case.constructor.into()
+                } else {
+                    let mut pattern = vec![case.constructor.into()];
+                    pattern.extend(case.args.into_iter().map(|s| s.into()));
+                    SmtExpr::List(pattern)
+                };
 
-                SmtExpr::List(vec![SmtExpr::List(pattern), case.body.into()])
+                SmtExpr::List(vec![pattern, case.body.into()])
             })
             .collect();
 

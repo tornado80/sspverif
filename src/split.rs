@@ -39,6 +39,27 @@ impl std::ops::Index<usize> for SplitPath {
     }
 }
 
+impl PartialOrd for SplitPath {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for SplitPath {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        let min_len = usize::min(self.len(), other.len());
+
+        for i in 0..min_len {
+            match self.path()[i].cmp(&other.path()[i]) {
+                std::cmp::Ordering::Equal => continue,
+                other => return other,
+            }
+        }
+
+        std::cmp::Ordering::Equal
+    }
+}
+
 impl SplitPath {
     pub fn empty() -> Self {
         Self(vec![])
@@ -77,6 +98,23 @@ impl SplitPath {
 
         true
     }
+
+    pub fn common_prefix(&self, other: &Self) -> Self {
+        let min_len = usize::min(self.len(), other.len());
+
+        let mut out = vec![];
+
+        for i in 0..min_len {
+            if self.path()[i] == other.path()[i] {
+                out.push(self.path()[i].clone())
+            } else {
+                break;
+            }
+        }
+
+        SplitPath(out)
+    }
+
     pub fn additional_args(&self) -> Vec<SmtExpr> {
         let mut out = vec![];
         for path_elem in self.path().iter().rev() {
@@ -123,6 +161,19 @@ pub struct SplitPathComponent {
     pub oracle_name: String,
     pub split_type: SplitType,
     pub split_range: std::ops::Range<usize>,
+}
+
+impl PartialOrd for SplitPathComponent {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for SplitPathComponent {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        // ranges can't overlap, so this is sufficient
+        self.split_range.start.cmp(&other.split_range.start)
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]

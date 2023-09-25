@@ -1,5 +1,6 @@
 use crate::package::PackageInstance;
 use crate::split::SplitPath;
+use crate::writers::smt::partials::PartialsDatatype;
 use crate::writers::smt::{
     contexts::{GameContext, OracleContext, PackageInstanceContext, SplitOracleContext},
     exprs::SmtExpr,
@@ -12,7 +13,11 @@ impl<'a> PackageInstanceContext<'a> {
         self.game_ctx.clone()
     }
 
-    pub fn split_oracle_ctx_by_name(&self, oracle_name: &str) -> Option<SplitOracleContext<'a>> {
+    pub fn split_oracle_ctx_by_name(
+        &self,
+        oracle_name: &str,
+        partials: &'a PartialsDatatype,
+    ) -> Option<SplitOracleContext<'a>> {
         let inst_offs = self.inst_offs;
         let inst = &self.game_ctx.game.pkgs[inst_offs];
         let split_oracle_offs = inst
@@ -25,6 +30,7 @@ impl<'a> PackageInstanceContext<'a> {
             game_ctx: self.game_ctx.clone(),
             inst_offs,
             split_oracle_offs,
+            partials,
         })
     }
 
@@ -48,6 +54,7 @@ impl<'a> PackageInstanceContext<'a> {
         &self,
         oracle_name: &str,
         oracle_path: &SplitPath,
+        partials: &'a PartialsDatatype,
     ) -> Option<SplitOracleContext<'a>> {
         let inst_offs = self.inst_offs;
         let inst = &self.game_ctx.game.pkgs[inst_offs];
@@ -61,6 +68,7 @@ impl<'a> PackageInstanceContext<'a> {
             game_ctx: self.game_ctx.clone(),
             inst_offs,
             split_oracle_offs,
+            partials,
         })
     }
 
