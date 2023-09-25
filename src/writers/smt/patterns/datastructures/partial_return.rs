@@ -69,6 +69,15 @@ impl<'a> DatastructurePattern2<'a> for PartialReturnPattern<'a> {
         format!("{kebab_case}-{game_name}-{pkg_inst_name}-{oracle_name}-{field_name}")
     }
 
+    fn matchfield_name(&self, sel: &Self::Selector) -> String {
+        let field_name = match sel {
+            PartialReturnSelector::GameState => "game-state",
+            PartialReturnSelector::IntermediateState => "intermediate-state",
+        };
+
+        format!("match-{field_name}")
+    }
+
     fn datastructure_spec(&self, _info: &'a Self::DeclareInfo) -> DatastructureSpec<'a, Self> {
         DatastructureSpec(vec![
             (

@@ -8,7 +8,11 @@ pub use intermediate_state::*;
 pub use partial_return::*;
 pub use pkg_state::*;
 
-use crate::writers::smt::{declare::declare_datatype, exprs::SmtExpr};
+use crate::writers::smt::{
+    declare::declare_datatype,
+    exprs::SmtExpr,
+    partials::{SmtMatch, SmtMatchCase},
+};
 
 pub trait DatastructurePattern2<'a> {
     type Constructor;
@@ -74,6 +78,30 @@ pub trait DatastructurePattern2<'a> {
         }));
 
         Some(call.into())
+    }
+
+    fn matchfield_name(&self, sel: &Self::Selector) -> String;
+
+    fn match_expr<E, F>(&self, expr: E, spec: &DatastructureSpec<'a, Self>, f: F) -> SmtExpr
+    where
+        E: Clone + std::fmt::Debug + Into<SmtExpr>,
+        F: Fn(&Self::Constructor) -> SmtExpr,
+    {
+        SmtMatch {
+            expr,
+            cases: spec
+                .0
+                .iter()
+                .map(|(con, sels)| -> SmtMatchCase<_> {
+                    SmtMatchCase {
+                        constructor: self.constructor_name(con),
+                        args: sels.iter().map(|sel| self.matchfield_name(sel)).collect(),
+                        body: f(con),
+                    }
+                })
+                .collect(),
+        }
+        .into()
     }
 }
 

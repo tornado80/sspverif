@@ -181,6 +181,24 @@ impl<'a> DatastructurePattern2<'a> for IntermediateStatePattern<'a> {
         format!("{kebab_case}-{game_name}-{pkg_inst_name}-{oracle_name}-{field_name}")
     }
 
+    fn matchfield_name(&self, sel: &Self::Selector) -> String {
+        let field_name = match sel {
+            IntermediateStateSelector::Arg(path, name, _type) => {
+                format!("{}-arg-{name}", path.smt_name())
+            }
+            IntermediateStateSelector::LoopVar(path, name) => {
+                format!("{}-loopvar-{name}", path.smt_name())
+            }
+            IntermediateStateSelector::Local(path, name, _type) => {
+                format!("{}-local-{name}", path.smt_name())
+            }
+            IntermediateStateSelector::Child(path) => format!("{}-child", path.smt_name()),
+            IntermediateStateSelector::Return(_type) => format!("end-return"),
+        };
+
+        format!("match-{field_name}")
+    }
+
     fn selector_sort(&self, sel: &Self::Selector) -> SmtExpr {
         match sel {
             IntermediateStateSelector::LoopVar(_, _) => Type::Integer.into(),

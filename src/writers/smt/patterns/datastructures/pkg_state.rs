@@ -57,6 +57,14 @@ impl<'a> DatastructurePattern2<'a> for PackageStatePattern<'a> {
         format!("{kebab_case}-{game_name}-{pkg_inst_name}-{field_name}")
     }
 
+    fn matchfield_name(&self, sel: &Self::Selector) -> String {
+        let PackageStateSelector {
+            name: field_name, ..
+        } = sel;
+
+        format!("matchfield-{field_name}")
+    }
+
     fn selector_sort(&self, sel: &Self::Selector) -> crate::writers::smt::exprs::SmtExpr {
         let PackageStateSelector { tipe, .. } = sel;
         (*tipe).into()

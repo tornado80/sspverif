@@ -57,6 +57,18 @@ impl<'a> DatastructurePattern2<'a> for GameStatePattern<'a> {
         format!("{kebab_case}-{kind_name}-{game_name}-{field_name}")
     }
 
+    fn matchfield_name(&self, sel: &Self::Selector) -> String {
+        let (kind_name, field_name) = match sel {
+            GameStateSelector::PackageInstance { pkg_inst_name } => {
+                ("pkgstate", pkg_inst_name.to_string())
+            }
+            GameStateSelector::Const { const_name, .. } => ("param", const_name.to_string()),
+            GameStateSelector::Randomness { sample_id } => ("rand", format!("{sample_id}")),
+        };
+
+        format!("match-{kind_name}-{field_name}")
+    }
+
     fn selector_sort(&self, sel: &Self::Selector) -> crate::writers::smt::exprs::SmtExpr {
         let Self { game_name } = self;
         match sel {
