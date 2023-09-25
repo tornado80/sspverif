@@ -350,7 +350,7 @@ impl<'a> CompositionSmtWriter<'a> {
         let (_, elsepath) = &branches[first_true];
         let mut block: SmtExpr = self.smt_build_intermediate_state_from_path(oracle_ctx, elsepath);
 
-        for i in (0..first_true).rev().skip(1) {
+        for i in (0..=first_true).rev().skip(1) {
             let (cond, ifpath) = &branches[i];
             let ifblock = self.smt_build_intermediate_state_from_path(oracle_ctx, &ifpath);
 

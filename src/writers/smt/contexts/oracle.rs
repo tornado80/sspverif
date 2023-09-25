@@ -248,7 +248,7 @@ impl<'a> GenericOracleContext for OracleContext<'a> {
     }
 
     fn smt_game_state(&self) -> SmtExpr {
-        ("select", "__global_state", "__state_length").into()
+        "__global_state".into()
     }
 
     // TODO: I think we should refactor this to remove the arguments, because this doesn't apply to
