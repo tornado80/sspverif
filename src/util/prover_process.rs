@@ -4,6 +4,8 @@ use std::result;
 
 use thiserror::Error;
 
+use crate::writers::smt::exprs::SmtExpr;
+
 use super::process;
 
 pub struct Communicator(process::Communicator);
@@ -25,6 +27,32 @@ pub enum ProverResponse {
     Sat,
     Unsat,
     Unknown,
+}
+
+impl ProverResponse {
+    /// Returns `true` if the prover response is [`Sat`].
+    ///
+    /// [`Sat`]: ProverResponse::Sat
+    #[must_use]
+    pub fn is_sat(&self) -> bool {
+        matches!(self, Self::Sat)
+    }
+
+    /// Returns `true` if the prover response is [`Unsat`].
+    ///
+    /// [`Unsat`]: ProverResponse::Unsat
+    #[must_use]
+    pub fn is_unsat(&self) -> bool {
+        matches!(self, Self::Unsat)
+    }
+
+    /// Returns `true` if the prover response is [`Unknown`].
+    ///
+    /// [`Unknown`]: ProverResponse::Unknown
+    #[must_use]
+    pub fn is_unknown(&self) -> bool {
+        matches!(self, Self::Unknown)
+    }
 }
 
 impl fmt::Display for ProverResponse {
@@ -185,6 +213,11 @@ impl Communicator {
         Ok(resp)
     }
 
+    pub fn write_smt<I: Into<SmtExpr>>(&mut self, expr: I) -> Result<()> {
+        write!(self, "{}", expr.into())?;
+        Ok(())
+    }
+
     pub fn read_until_end(&mut self) -> Result<String> {
         Ok(self.0.read_until_end()?)
     }
@@ -200,6 +233,10 @@ impl Communicator {
 
 impl std::fmt::Write for Communicator {
     fn write_str(&mut self, s: &str) -> std::fmt::Result {
-        self.0.write_str(s)
+        let result = self.0.write_str(s);
+
+        std::thread::sleep(std::time::Duration::from_micros(100));
+
+        result
     }
 }

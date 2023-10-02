@@ -94,7 +94,7 @@ fn var_specify_helper(
         ..
     } = pkg_inst;
 
-    let game_inst_params = game_inst.as_consts();
+    let game_inst_params = game_inst.consts();
 
     let fixup = |expr| match expr {
         Expression::FnCall(Identifier::Scalar(id), args) => Expression::FnCall(
@@ -105,7 +105,7 @@ fn var_specify_helper(
                 id,
                 pkg_name,
                 &name,
-                game_inst.as_game_name(),
+                game_inst.game_name(),
             ),
             args,
         ),
@@ -116,7 +116,7 @@ fn var_specify_helper(
             id,
             pkg_name,
             name,
-            game_inst.as_game_name(),
+            game_inst.game_name(),
         )),
         Expression::TableAccess(Identifier::Scalar(id), expr) => Expression::TableAccess(
             resolve_var(
@@ -126,7 +126,7 @@ fn var_specify_helper(
                 id,
                 pkg_name,
                 name,
-                game_inst.as_game_name(),
+                game_inst.game_name(),
             ),
             expr,
         ),
@@ -252,7 +252,7 @@ fn var_specify_pkg_inst(game_inst: &GameInstance, pkg_inst: &PackageInstance) ->
 
 pub fn var_specify_game_inst(game_inst: &GameInstance) -> Result<Composition, ()> {
     game_inst
-        .as_game()
+        .game()
         .map_pkg_inst(|pkg_inst| Ok(var_specify_pkg_inst(game_inst, pkg_inst)))
 }
 

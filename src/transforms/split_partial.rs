@@ -800,10 +800,10 @@ fn determine_branches(entries: &[SplitInfoEntry], i: usize) -> Vec<(Expression, 
         ))
     }
 
-    println!(
-        "entries[{}]: {entries:#?} i: {i} out: {out:?}",
-        entries.len()
-    );
+    // println!(
+    //     "entries[{}]: {entries:#?} i: {i} out: {out:?}",
+    //     entries.len()
+    // );
 
     out
 }

@@ -293,10 +293,10 @@ pub fn verify(red: &Reduction, proof: &Proof) -> Result<()> {
 
     // TODO check that all names are well-defined (or has that already happened?)
 
-    let right_package_resolver = SliceResolver(&right.as_game().pkgs);
-    let left_package_resolver = SliceResolver(&left.as_game().pkgs);
-    let assumption_right_package_resolver = SliceResolver(&assumption_right.as_game().pkgs);
-    let assumption_left_package_resolver = SliceResolver(&assumption_left.as_game().pkgs);
+    let right_package_resolver = SliceResolver(&right.game().pkgs);
+    let left_package_resolver = SliceResolver(&left.game().pkgs);
+    let assumption_right_package_resolver = SliceResolver(&assumption_right.game().pkgs);
+    let assumption_left_package_resolver = SliceResolver(&assumption_left.game().pkgs);
 
     // Mapping may only occure with the same package type
     let mismatches_left: Vec<_> = leftmap
@@ -307,7 +307,7 @@ pub fn verify(red: &Reduction, proof: &Proof) -> Result<()> {
                     .resolve(from)
                     .ok_or(Error::ProofCheck(format!(
                         "error resolving package {from} in left game {}",
-                        assumption_left.as_name()
+                        assumption_left.name()
                     )))?;
 
             let left_pkg_inst =
@@ -315,7 +315,7 @@ pub fn verify(red: &Reduction, proof: &Proof) -> Result<()> {
                     .resolve(to)
                     .ok_or(Error::ProofCheck(format!(
                         "error resolving package {to} in left assumption game {}",
-                        left.as_name()
+                        left.name()
                     )))?;
 
             Ok((left_pkg_inst, assumption_left_pkg_inst))
@@ -350,7 +350,7 @@ pub fn verify(red: &Reduction, proof: &Proof) -> Result<()> {
                     .resolve(from)
                     .ok_or(Error::ProofCheck(format!(
                         "error resolving package {from} in right game {}",
-                        assumption_right.as_name()
+                        assumption_right.name()
                     )))?;
 
             let right_pkg_inst =
@@ -358,7 +358,7 @@ pub fn verify(red: &Reduction, proof: &Proof) -> Result<()> {
                     .resolve(to)
                     .ok_or(Error::ProofCheck(format!(
                         "error resolving package {to} in right assumption game {}",
-                        right.as_name()
+                        right.name()
                     )))?;
 
             Ok((right_pkg_inst, assumption_right_pkg_inst))
@@ -386,14 +386,14 @@ pub fn verify(red: &Reduction, proof: &Proof) -> Result<()> {
     }
 
     // Every PackageInstance in the assumptions is mapped
-    if assumption_left.as_game().pkgs.len() != leftmap.len() {
+    if assumption_left.game().pkgs.len() != leftmap.len() {
         return Err(Error::ProofCheck(format!(
             "Some package instances in left assumption are not mapped: {} != {:?}",
-            assumption_left.as_game().pkgs.len(),
+            assumption_left.game().pkgs.len(),
             leftmap
         )));
     }
-    if assumption_right.as_game().pkgs.len() != rightmap.len() {
+    if assumption_right.game().pkgs.len() != rightmap.len() {
         return Err(Error::ProofCheck(format!(
             "Some package instances in right assumption are not mapped"
         )));
@@ -401,14 +401,14 @@ pub fn verify(red: &Reduction, proof: &Proof) -> Result<()> {
 
     // Every PackageInstance in the game, which is mapped
     // only calls other mapped package instances
-    for Edge(from, to, _sig) in &left.as_game().edges {
-        let from = &left.as_game().pkgs[*from].name;
+    for Edge(from, to, _sig) in &left.game().edges {
+        let from = &left.game().pkgs[*from].name;
         let from_is_mapped = leftmap
             .iter()
             .find(|(_, game_inst_name)| game_inst_name == from)
             .is_some();
 
-        let to = &left.as_game().pkgs[*to].name;
+        let to = &left.game().pkgs[*to].name;
         let to_is_mapped = leftmap
             .iter()
             .find(|(_, game_inst_name)| game_inst_name == to)
@@ -420,14 +420,14 @@ pub fn verify(red: &Reduction, proof: &Proof) -> Result<()> {
             )));
         }
     }
-    for Edge(from, to, _sig) in &right.as_game().edges {
-        let from = &right.as_game().pkgs[*from].name;
+    for Edge(from, to, _sig) in &right.game().edges {
+        let from = &right.game().pkgs[*from].name;
         let from_is_mapped = rightmap
             .iter()
             .find(|(_, game_inst_name)| game_inst_name == from)
             .is_some();
 
-        let to = &right.as_game().pkgs[*to].name;
+        let to = &right.game().pkgs[*to].name;
         let to_is_mapped = rightmap
             .iter()
             .find(|(_, game_inst_name)| game_inst_name == to)
@@ -442,13 +442,13 @@ pub fn verify(red: &Reduction, proof: &Proof) -> Result<()> {
 
     // The PackageInstances in the games which are *not* mapped need to be identical
     let unmapped_left: HashSet<_> =
-        HashSet::from_iter(left.as_game().pkgs.iter().filter(|pkg_inst| {
+        HashSet::from_iter(left.game().pkgs.iter().filter(|pkg_inst| {
             leftmap
                 .iter()
                 .find(|(_, game_inst_name)| game_inst_name == &pkg_inst.name)
                 .is_none()
         }));
-    let unmapped_right = HashSet::from_iter(right.as_game().pkgs.iter().filter(|pkg_inst| {
+    let unmapped_right = HashSet::from_iter(right.game().pkgs.iter().filter(|pkg_inst| {
         rightmap
             .iter()
             .find(|(_, game_inst_name)| game_inst_name == &pkg_inst.name)

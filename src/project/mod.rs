@@ -31,7 +31,6 @@ mod equivalence;
 mod load;
 mod reduction;
 mod resolve;
-//mod util;
 
 pub use crate::proof::Assumption;
 //pub use equivalence::Equivalence;

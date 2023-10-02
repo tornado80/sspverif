@@ -48,7 +48,7 @@ impl super::GameInstanceTransform for TransformNg {
         &self,
         instance: &crate::proof::GameInstance,
     ) -> Result<(crate::proof::GameInstance, Self::Aux), Self::Err> {
-        let (game, _) = <Self as GameTransform>::transform_game(&self, instance.as_game())?;
+        let (game, _) = <Self as GameTransform>::transform_game(&self, instance.game())?;
         Ok((instance.with_other_game(game), ()))
     }
 }

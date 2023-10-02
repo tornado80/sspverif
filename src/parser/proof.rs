@@ -3,8 +3,8 @@ use crate::{
     package::{Composition, Package},
     parser::Rule,
     proof::{
-        Assumption, Equivalence, GameHop, GameInstance, Mapping, Proof, ProofTreeRecord, Reduction,
-        Resolver, SliceResolver,
+        Assumption, Claim, Equivalence, GameHop, GameInstance, Mapping, Proof, Reduction, Resolver,
+        SliceResolver,
     },
     types::Type,
 };
@@ -125,16 +125,16 @@ pub fn handle_params_def_list(
 
 fn check_consts(game_inst: &GameInstance, span: Span, games: &[Composition]) -> Result<()> {
     let mut inst_const_names: Vec<_> = game_inst
-        .as_consts()
+        .consts()
         .iter()
         .map(|(name, _)| name.to_string())
         .collect();
     inst_const_names.sort();
 
     let game_resolver = SliceResolver(games);
-    let game = game_resolver.resolve(game_inst.as_game_name()).ok_or(
-        Error::UndefinedGame(game_inst.as_game_name().to_string()).with_span(span.clone()),
-    )?;
+    let game = game_resolver
+        .resolve(game_inst.game_name())
+        .ok_or(Error::UndefinedGame(game_inst.game_name().to_string()).with_span(span.clone()))?;
 
     let mut game_const_names: Vec<_> = game
         .consts
@@ -146,8 +146,8 @@ fn check_consts(game_inst: &GameInstance, span: Span, games: &[Composition]) -> 
     if inst_const_names != game_const_names {
         return Err(Error::GameConstParameterMismatch {
             game_name: game.name.clone(),
-            inst_name: game_inst.as_name().to_string(),
-            bound_params: game_inst.as_consts().to_vec(),
+            inst_name: game_inst.name().to_string(),
+            bound_params: game_inst.consts().to_vec(),
             game_params: game.consts.clone(),
         }
         .with_span(span));
@@ -251,10 +251,7 @@ fn handle_equivalence<'a>(
         .map(|(oracle_name, _, lemmas)| {
             (
                 oracle_name,
-                lemmas
-                    .into_iter()
-                    .map(ProofTreeRecord::from_tuple)
-                    .collect(),
+                lemmas.into_iter().map(Claim::from_tuple).collect(),
             )
         })
         .collect();

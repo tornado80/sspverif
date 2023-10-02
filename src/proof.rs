@@ -4,8 +4,8 @@ use crate::{
     types::Type,
 };
 
-pub trait Resolver<T> {
-    fn resolve(&self, name: &str) -> Option<&T>;
+pub trait Resolver<'a, T> {
+    fn resolve(&self, name: &str) -> Option<&'a T>;
     fn resolve_index(&self, name: &str) -> Option<usize>;
 }
 
@@ -15,8 +15,8 @@ pub trait Named {
 
 pub struct SliceResolver<'a, T>(pub &'a [T]);
 
-impl<'a, T: Named> Resolver<T> for SliceResolver<'a, T> {
-    fn resolve(&self, name: &str) -> Option<&T> {
+impl<'a, T: Named> Resolver<'a, T> for SliceResolver<'a, T> {
+    fn resolve(&self, name: &str) -> Option<&'a T> {
         self.0.iter().find(|v| v.as_name() == name)
     }
 
@@ -53,8 +53,8 @@ impl_Named!(Assumption);
 //impl_Named!(Reduction);
 //impl_Named!(Equivalence);
 
-impl<'a> Resolver<Expression> for SliceResolver<'a, (String, Expression)> {
-    fn resolve(&self, name: &str) -> Option<&Expression> {
+impl<'a> Resolver<'a, Expression> for SliceResolver<'a, (String, Expression)> {
+    fn resolve(&self, name: &str) -> Option<&'a Expression> {
         self.0
             .iter()
             .find(|(item_name, _)| item_name == name)
@@ -84,7 +84,6 @@ pub struct GameInstance {
 impl GameInstance {
     pub fn new(
         name: String,
-        //game_name: String,
         game: Composition,
         types: Vec<(Type, Type)>,
         consts: Vec<(String, Expression)>,
@@ -107,11 +106,11 @@ impl GameInstance {
         }
     }
 
-    pub fn as_name(&self) -> &str {
+    pub fn name(&self) -> &str {
         &self.name
     }
 
-    pub fn as_consts(&self) -> &[(String, Expression)] {
+    pub fn consts(&self) -> &[(String, Expression)] {
         &self.consts
     }
 
@@ -119,11 +118,11 @@ impl GameInstance {
         &self.types
     }
 
-    pub fn as_game_name(&self) -> &str {
+    pub fn game_name(&self) -> &str {
         &self.game_name
     }
 
-    pub fn as_game(&self) -> &Composition {
+    pub fn game(&self) -> &Composition {
         &self.game
     }
 }
@@ -201,15 +200,35 @@ impl Reduction {
     }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub enum ClaimType {
+    Lemma,
+    Relation,
+    Invariant,
+}
+
+impl ClaimType {
+    pub fn guess_from_name(name: &str) -> ClaimType {
+        if name.starts_with("relation") {
+            ClaimType::Relation
+        } else if name.starts_with("invariant") {
+            ClaimType::Invariant
+        } else {
+            ClaimType::Lemma
+        }
+    }
+}
+
 // Equivalence contains the composisitions/games and the invariant data,
 // whereas the pure Equivalence just contains the names and file paths.
 // TODO: explore if we can keep references to the games in the project hashmap
 #[derive(Debug, Clone)]
 pub struct Equivalence {
+    // these two are game instance names
     left_name: String,
     right_name: String,
     invariants: Vec<(String, Vec<String>)>,
-    trees: Vec<(String, Vec<ProofTreeRecord>)>,
+    trees: Vec<(String, Vec<Claim>)>,
 }
 
 impl Equivalence {
@@ -217,7 +236,7 @@ impl Equivalence {
         left_name: String,
         right_name: String,
         mut invariants: Vec<(String, Vec<String>)>,
-        mut trees: Vec<(String, Vec<ProofTreeRecord>)>,
+        mut trees: Vec<(String, Vec<Claim>)>,
     ) -> Self {
         trees.sort();
         invariants.sort();
@@ -230,7 +249,7 @@ impl Equivalence {
         }
     }
 
-    pub fn trees(&self) -> &[(String, Vec<ProofTreeRecord>)] {
+    pub fn trees(&self) -> &[(String, Vec<Claim>)] {
         &self.trees
     }
 
@@ -247,25 +266,47 @@ impl Equivalence {
             .get(offs)
             .map(|(_name, invariants)| invariants.as_slice())
     }
+
+    pub fn invariants_by_oracle_name(&self, oracle_name: &str) -> Vec<String> {
+        SliceResolver(&self.invariants)
+            .resolve(oracle_name)
+            .map(|(_oname, inv_file_names)| inv_file_names.clone())
+            .unwrap_or(vec![])
+    }
+
+    pub fn proof_tree_by_oracle_name(&self, oracle_name: &str) -> Vec<Claim> {
+        SliceResolver(&self.trees)
+            .resolve(oracle_name)
+            .map(|(_oname, tree)| tree.clone())
+            .unwrap_or(vec![])
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, PartialOrd, Ord, Eq)]
-pub struct ProofTreeRecord {
-    lemma: String,
-    dependencies: Vec<String>,
+pub struct Claim {
+    pub(crate) name: String,
+    pub(crate) tipe: ClaimType,
+    pub(crate) dependencies: Vec<String>,
 }
 
-impl ProofTreeRecord {
+impl Claim {
     pub fn from_tuple(data: (String, Vec<String>)) -> Self {
-        let (lemma, dependencies) = data;
+        let (name, dependencies) = data;
+        let tipe = ClaimType::guess_from_name(&name);
+
         Self {
-            lemma,
+            name,
+            tipe,
             dependencies,
         }
     }
 
-    pub fn lemma_name(&self) -> &str {
-        &self.lemma
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn tipe(&self) -> ClaimType {
+        self.tipe
     }
 
     pub fn dependencies(&self) -> &[String] {
@@ -273,9 +314,9 @@ impl ProofTreeRecord {
     }
 }
 
-impl Named for ProofTreeRecord {
+impl Named for Claim {
     fn as_name(&self) -> &str {
-        self.lemma_name()
+        self.name()
     }
 }
 

@@ -334,6 +334,9 @@ impl<'a> CompositionSmtWriter<'a> {
         &self,
         oracle_ctx: &SplitOracleContext,
     ) -> Option<SmtExpr> {
+        // println!("building next state");
+        // println!("split oracle name: {}", oracle_ctx.split_path().smt_name());
+
         let path = oracle_ctx.split_path();
         let entry = self
             .split_info
@@ -341,6 +344,7 @@ impl<'a> CompositionSmtWriter<'a> {
             .find(|entry| entry.path() == path)
             .unwrap();
         let branches = entry.branches();
+        // println!("branches: {branches:?}");
 
         let first_true = branches
             .iter()
@@ -361,6 +365,8 @@ impl<'a> CompositionSmtWriter<'a> {
             }
             .into();
         }
+
+        // println!("block: {block}");
 
         Some(block)
     }
@@ -578,7 +584,7 @@ impl<'a> CompositionSmtWriter<'a> {
                     .iter()
                     .find(|entry| entry.path() == split_path)
                     .unwrap();
-                println!("{} -- {:#?}", split_path.smt_name(), this_entry);
+                // println!("{} -- {:#?}", split_path.smt_name(), this_entry);
 
                 let partial_return_pattern = PartialReturnPattern {
                     game_name,

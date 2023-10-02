@@ -61,7 +61,7 @@ fn transform_game_inst(
     ),
     typecheck::TypeCheckError,
 > {
-    let comp = game_inst.as_game();
+    let comp = game_inst.game();
 
     let (comp, _) = resolvetypes::Transformation(comp)
         .transform()
@@ -88,9 +88,9 @@ fn transform_game_inst(
     let (comp, splits) = split_partial::SplitPartial
         .transform_game(&comp)
         .expect("split_partial transform failed unexpectedly");
-    println!("#####################");
-    println!("{:#?}", comp);
-    println!("$$$$$$$$$$$$$$$$$$$$$");
+    // println!("#####################");
+    // println!("{:#?}", comp);
+    // println!("$$$$$$$$$$$$$$$$$$$$$");
     let (comp, _) = tableinitialize::Transformation(&comp)
         .transform()
         .expect("tableinitialize transformation failed unexpectedly");
@@ -98,7 +98,7 @@ fn transform_game_inst(
     Ok((
         game_inst.with_other_game(comp),
         (
-            game_inst.as_name().to_string(),
+            game_inst.name().to_string(),
             (scope, types, samplinginfo, splits),
         ),
     ))

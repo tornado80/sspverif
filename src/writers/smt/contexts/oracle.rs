@@ -192,15 +192,9 @@ impl<'a> OracleContext<'a> {
     }
 
     // returns none if the wrong number of arguments were provided
-    pub fn smt_invoke_oracle<S, SLEN, ARGS>(
-        &self,
-        gamestates: S,
-        state_length: SLEN,
-        args: ARGS,
-    ) -> Option<SmtExpr>
+    pub fn smt_invoke_oracle<S, ARGS>(&self, gamestates: S, args: ARGS) -> Option<SmtExpr>
     where
         S: Into<SmtExpr>,
-        SLEN: Into<SmtExpr>,
         ARGS: Iterator<Item = SmtExpr>,
     {
         let game = self.game_ctx.game;
@@ -216,7 +210,6 @@ impl<'a> OracleContext<'a> {
         let mut cmdline = Vec::with_capacity(expected_len);
         cmdline.push(names::oracle_function_name(game_name, inst_name, oracle_name).into());
         cmdline.push(gamestates.into());
-        cmdline.push(state_length.into());
         cmdline.extend(args);
 
         if cmdline.len() != expected_len {
