@@ -1,10 +1,32 @@
-use super::{DatastructurePattern2, DatastructureSpec};
-use crate::writers::smt::exprs::SmtExpr;
+use super::{DatastructurePattern, DatastructureSpec};
+use crate::writers::smt::{exprs::SmtExpr, sorts::SmtPlainSort};
 
 pub struct PartialReturnPattern<'a> {
     pub game_name: &'a str,
     pub pkg_inst_name: &'a str,
     pub oracle_name: &'a str,
+}
+
+pub struct PartialReturnSort<'a> {
+    pub game_name: &'a str,
+    pub pkg_inst_name: &'a str,
+    pub oracle_name: &'a str,
+}
+
+use crate::impl_Into_for_PlainSort;
+impl_Into_for_PlainSort!('a, PartialReturnSort<'a>);
+
+impl<'a> SmtPlainSort for PartialReturnSort<'a> {
+    fn sort_name(&self) -> String {
+        let camel_case = PartialReturnPattern::CAMEL_CASE;
+        let Self {
+            game_name,
+            pkg_inst_name,
+            oracle_name,
+        } = self;
+
+        format!("{camel_case}-{game_name}-{pkg_inst_name}-{oracle_name}")
+    }
 }
 
 #[derive(PartialEq, Eq)]
@@ -19,23 +41,26 @@ pub enum PartialReturnSelector {
     IntermediateState,
 }
 
-impl<'a> DatastructurePattern2<'a> for PartialReturnPattern<'a> {
+impl<'a> DatastructurePattern<'a> for PartialReturnPattern<'a> {
     type Constructor = PartialReturnConstructor;
     type Selector = PartialReturnSelector;
     type DeclareInfo = ();
+    type Sort = PartialReturnSort<'a>;
 
     const CAMEL_CASE: &'static str = "PartialReturn";
     const KEBAB_CASE: &'static str = "partial-return";
 
-    fn sort_name(&self) -> String {
-        let camel_case = Self::CAMEL_CASE;
-        let Self {
+    fn sort(&self) -> PartialReturnSort<'a> {
+        let PartialReturnPattern {
             game_name,
             pkg_inst_name,
             oracle_name,
         } = self;
-
-        format!("{camel_case}-{game_name}-{pkg_inst_name}-{oracle_name}")
+        PartialReturnSort {
+            game_name,
+            pkg_inst_name,
+            oracle_name,
+        }
     }
 
     fn constructor_name(&self, cons: &Self::Constructor) -> String {
@@ -99,7 +124,7 @@ impl<'a> DatastructurePattern2<'a> for PartialReturnPattern<'a> {
             oracle_name,
         } = self;
 
-        let game_state_pattern = super::DatastructurePattern::GameState { game_name };
+        let game_state_pattern = super::game_state::GameStatePattern { game_name };
         let intermediate_state_pattern = super::IntermediateStatePattern {
             game_name,
             pkg_inst_name,
@@ -107,8 +132,10 @@ impl<'a> DatastructurePattern2<'a> for PartialReturnPattern<'a> {
         };
 
         match sel {
-            PartialReturnSelector::GameState => game_state_pattern.sort_name(),
-            PartialReturnSelector::IntermediateState => intermediate_state_pattern.sort_name(),
+            PartialReturnSelector::GameState => game_state_pattern.sort().sort_name(),
+            PartialReturnSelector::IntermediateState => {
+                intermediate_state_pattern.sort().sort_name()
+            }
         }
         .into()
     }

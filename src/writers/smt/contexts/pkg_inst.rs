@@ -5,7 +5,7 @@ use crate::writers::smt::{
     contexts::{GameContext, OracleContext, PackageInstanceContext, SplitOracleContext},
     exprs::SmtExpr,
     names,
-    patterns::{DatastructurePattern2, PackageStatePattern},
+    patterns::{DatastructurePattern, PackageStatePattern},
 };
 
 impl<'a> PackageInstanceContext<'a> {

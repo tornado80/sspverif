@@ -7,7 +7,7 @@ use crate::{
         names,
         partials::PartialsDatatype,
         patterns::{
-            DatastructurePattern2, GameStateDeclareInfo, GameStatePattern, GameStateSelector,
+            DatastructurePattern, GameStateDeclareInfo, GameStatePattern, GameStateSelector,
         },
     },
 };

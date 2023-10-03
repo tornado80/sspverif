@@ -1,7 +1,10 @@
 use crate::writers::smt::exprs::SmtExpr;
+use crate::writers::smt::sorts::SmtPlainSort;
 use crate::{package::OracleSig, split::SplitPath};
 
-use super::{DatastructurePattern, DatastructurePattern2, IntermediateStatePattern};
+use super::{
+    DatastructurePattern, GameStatePattern, IntermediateStatePattern, PartialReturnPattern,
+};
 
 pub enum FunctionPattern<'a> {
     Oracle {
@@ -65,7 +68,7 @@ impl<'a> FunctionPattern<'a> {
                 game_name,
                 pkg_inst_name,
             } => {
-                let game_state_pattern = DatastructurePattern::GameState { game_name };
+                let game_state_pattern = GameStatePattern { game_name };
                 let intermediate_state_pattern = IntermediateStatePattern {
                     game_name,
                     pkg_inst_name,
@@ -75,11 +78,11 @@ impl<'a> FunctionPattern<'a> {
                 let mut args: Vec<(_, SmtExpr)> = vec![
                     (
                         Self::ORACLE_ARG_GAME_STATE.to_string(),
-                        game_state_pattern.sort_name().into(),
+                        game_state_pattern.sort().into(),
                     ),
                     (
                         Self::ORACLE_ARG_INTERMEDIATE_STATE.to_string(),
-                        intermediate_state_pattern.sort_name().into(),
+                        intermediate_state_pattern.sort().into(),
                     ),
                 ];
 
@@ -100,26 +103,21 @@ impl<'a> FunctionPattern<'a> {
                 pkg_inst_name,
             } => {
                 let oracle_name = &oracle_sig.name;
-                let game_state_pattern = DatastructurePattern::GameState { game_name };
-                let intermediate_state_pattern = DatastructurePattern::IntermediateState {
+                let game_state_pattern = GameStatePattern { game_name };
+                let intermediate_state_pattern = IntermediateStatePattern {
                     game_name,
                     pkg_inst_name,
                     oracle_name,
-
-                    // HACK: this is technically invalid data, but we only use
-                    // it for generating the sort, which doesn't need this field,
-                    // so it's fine 🔥🐶🔥
-                    variant_name: "",
                 };
 
                 let mut args = vec![
                     (
                         Self::ORACLE_ARG_GAME_STATE.to_string(),
-                        game_state_pattern.sort_name().into(),
+                        game_state_pattern.sort().into(),
                     ),
                     (
                         Self::ORACLE_ARG_INTERMEDIATE_STATE.to_string(),
-                        intermediate_state_pattern.sort_name().into(),
+                        intermediate_state_pattern.sort().into(),
                     ),
                 ];
 
@@ -147,13 +145,13 @@ impl<'a> FunctionPattern<'a> {
                 pkg_inst_name,
                 oracle_sig,
             } => {
-                let partial_return_pattern = DatastructurePattern::PartialReturn {
+                let partial_return_pattern = PartialReturnPattern {
                     game_name,
                     pkg_inst_name,
                     oracle_name: &oracle_sig.name,
                 };
 
-                partial_return_pattern.sort_name()
+                partial_return_pattern.sort().sort_name()
             }
             FunctionPattern::PartialOracle {
                 game_name,
@@ -161,13 +159,13 @@ impl<'a> FunctionPattern<'a> {
                 oracle_name,
                 ..
             } => {
-                let partial_return_pattern = DatastructurePattern::PartialReturn {
+                let partial_return_pattern = PartialReturnPattern {
                     game_name,
                     pkg_inst_name,
                     oracle_name,
                 };
 
-                partial_return_pattern.sort_name()
+                partial_return_pattern.sort().sort_name()
             }
             FunctionPattern::RandomnessFunction => todo!(),
             FunctionPattern::ParameterFunction => todo!(),

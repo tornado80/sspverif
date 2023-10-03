@@ -17,13 +17,13 @@ use super::contexts::{
 use super::exprs::{SmtAs, SmtEq2};
 use super::partials::PartialsDatatype;
 use super::patterns::{
-    DatastructurePattern, FunctionPattern, IntermediateStateConstructor, IntermediateStatePattern,
+    FunctionPattern, IntermediateStateConstructor, IntermediateStatePattern,
     IntermediateStateSelector,
 };
 use super::{names, sorts};
 
 use super::patterns;
-use patterns::DatastructurePattern2;
+use patterns::DatastructurePattern;
 
 pub struct CompositionSmtWriter<'a> {
     pub comp: &'a Composition,
@@ -578,12 +578,12 @@ impl<'a> CompositionSmtWriter<'a> {
 
                         (constructor_name, "mk-empty").into()
                     };
-                let split_path = oracle_ctx.split_path();
-                let this_entry = self
-                    .split_info
-                    .iter()
-                    .find(|entry| entry.path() == split_path)
-                    .unwrap();
+                // let split_path = oracle_ctx.split_path();
+                // let this_entry = self
+                //     .split_info
+                //     .iter()
+                //     .find(|entry| entry.path() == split_path)
+                //     .unwrap();
                 // println!("{} -- {:#?}", split_path.smt_name(), this_entry);
 
                 let partial_return_pattern = PartialReturnPattern {
@@ -1108,7 +1108,7 @@ impl<'a> CompositionSmtWriter<'a> {
                 .into(),
             (
                 "__intermediate_state",
-                split_oracle_ctx.intermediate_state_pattern().sort_name(),
+                split_oracle_ctx.intermediate_state_pattern().sort(),
             )
                 .into(),
         ];
@@ -1138,7 +1138,7 @@ impl<'a> CompositionSmtWriter<'a> {
         let dtype = split_oracle_ctx.partials_dtype();
         let spec = pattern.datastructure_spec(dtype);
         let intermediate_state_constructor = IntermediateStateConstructor::OracleState(split_path);
-        let mut bindings = vec![(
+        let bindings = vec![(
             names::var_selfstate_name(),
             game_context
                 .smt_access_gamestate_pkgstate(names::var_globalstate_name(), inst_name)

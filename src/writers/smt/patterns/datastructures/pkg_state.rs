@@ -1,6 +1,6 @@
-use crate::{package::Package, types::Type};
+use crate::{package::Package, types::Type, writers::smt::sorts::SmtPlainSort};
 
-use super::{DatastructurePattern2, DatastructureSpec};
+use super::{DatastructurePattern, DatastructureSpec};
 
 pub struct PackageStatePattern<'a> {
     pub game_name: &'a str,
@@ -13,25 +13,45 @@ pub struct PackageStateSelector<'a> {
     pub tipe: &'a Type,
 }
 
-impl<'a> DatastructurePattern2<'a> for PackageStatePattern<'a> {
-    type Constructor = ();
+pub struct PackageStateSort<'a> {
+    pub game_name: &'a str,
+    pub pkg_inst_name: &'a str,
+}
 
-    type Selector = PackageStateSelector<'a>;
+use crate::impl_Into_for_PlainSort;
+impl_Into_for_PlainSort!('a, PackageStateSort<'a>);
 
-    type DeclareInfo = Package;
-
-    const CAMEL_CASE: &'static str = "State";
-
-    const KEBAB_CASE: &'static str = "state";
-
+impl<'a> SmtPlainSort for PackageStateSort<'a> {
     fn sort_name(&self) -> String {
-        let camel_case = Self::CAMEL_CASE;
+        let camel_case = PackageStatePattern::CAMEL_CASE;
         let Self {
             game_name,
             pkg_inst_name,
         } = self;
 
         format!("{camel_case}_{game_name}_{pkg_inst_name}")
+    }
+}
+
+impl<'a> DatastructurePattern<'a> for PackageStatePattern<'a> {
+    type Constructor = ();
+    type Selector = PackageStateSelector<'a>;
+    type DeclareInfo = Package;
+    type Sort = PackageStateSort<'a>;
+
+    const CAMEL_CASE: &'static str = "State";
+
+    const KEBAB_CASE: &'static str = "state";
+
+    fn sort(&self) -> PackageStateSort<'a> {
+        let PackageStatePattern {
+            game_name,
+            pkg_inst_name,
+        } = self;
+        PackageStateSort {
+            game_name,
+            pkg_inst_name,
+        }
     }
 
     fn constructor_name(&self, _cons: &Self::Constructor) -> String {

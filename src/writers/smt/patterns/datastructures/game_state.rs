@@ -1,8 +1,13 @@
 use crate::{
-    package::Composition, transforms::samplify::SampleInfo, types::Type, writers::smt::names,
+    package::Composition,
+    transforms::samplify::SampleInfo,
+    types::Type,
+    writers::smt::{names, sorts::SmtPlainSort},
 };
 
-use super::{DatastructurePattern2, DatastructureSpec};
+use crate::impl_Into_for_PlainSort;
+
+use super::{DatastructurePattern, DatastructureSpec};
 
 pub struct GameStatePattern<'a> {
     pub game_name: &'a str,
@@ -20,19 +25,33 @@ pub struct GameStateDeclareInfo<'a> {
     pub sample_info: &'a SampleInfo,
 }
 
-impl<'a> DatastructurePattern2<'a> for GameStatePattern<'a> {
+pub struct GameStateSort<'a> {
+    pub game_name: &'a str,
+}
+
+impl<'a> SmtPlainSort for GameStateSort<'a> {
+    fn sort_name(&self) -> String {
+        let Self { game_name } = self;
+        let camel_case = <GameStatePattern as DatastructurePattern>::CAMEL_CASE;
+
+        format!("{camel_case}-{game_name}")
+    }
+}
+
+impl_Into_for_PlainSort!('a, GameStateSort<'a>);
+
+impl<'a> DatastructurePattern<'a> for GameStatePattern<'a> {
     type Constructor = ();
     type Selector = GameStateSelector<'a>;
     type DeclareInfo = GameStateDeclareInfo<'a>;
+    type Sort = GameStateSort<'a>;
 
     const CAMEL_CASE: &'static str = "CompositionState";
     const KEBAB_CASE: &'static str = "composition";
 
-    fn sort_name(&self) -> String {
-        let camel_case = Self::CAMEL_CASE;
+    fn sort(&self) -> GameStateSort<'a> {
         let Self { game_name } = self;
-
-        format!("{camel_case}-{game_name}")
+        GameStateSort { game_name }
     }
 
     fn constructor_name(&self, _cons: &Self::Constructor) -> String {
