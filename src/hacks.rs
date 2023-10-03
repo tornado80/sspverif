@@ -2,6 +2,23 @@ use std::fmt::{Display, Result};
 
 use crate::writers::smt::exprs::SmtExpr;
 
+pub struct ReturnValueDeclaration;
+
+impl Into<SmtExpr> for ReturnValueDeclaration {
+    fn into(self) -> SmtExpr {
+        (
+            "declare-datatype",
+            (("ReturnValue", 1),),
+            ((
+                "par",
+                ("T",),
+                (("mk-return-value", ("return-value", "T")), ("mk-abort",)),
+            ),),
+        )
+            .into()
+    }
+}
+
 pub struct MaybeDeclaration;
 
 impl Display for MaybeDeclaration {
