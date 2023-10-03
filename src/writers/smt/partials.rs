@@ -161,7 +161,7 @@ impl<'a> PackageInstanceContext<'a> {
         let pkg_inst_name = &self.pkg_inst_name();
         let oracle_name = &datatype.real_oracle_sig.name;
 
-        let function_pattern = FunctionPattern::DispatchOracle {
+        let function_pattern = DispatchOraclePattern {
             game_name,
             pkg_inst_name,
             oracle_sig: &datatype.real_oracle_sig,
@@ -191,7 +191,7 @@ impl<'a> PackageInstanceContext<'a> {
                         .into()
                 }
                 IntermediateStateConstructor::OracleState(split_path) => {
-                    let partial_oracle_function_pattern = FunctionPattern::PartialOracle {
+                    let partial_oracle_function_pattern = PartialOraclePattern {
                         game_name,
                         pkg_inst_name,
                         oracle_name,
@@ -220,7 +220,7 @@ impl<'a> PackageInstanceContext<'a> {
         SmtDefineFunction {
             name: function_pattern.function_name(),
             args: function_pattern.function_argspec(),
-            ret_sort: function_pattern.function_return_sort_name().into(),
+            ret_sort: function_pattern.function_return_sort().into(),
             body: match_expr,
         }
         .into()

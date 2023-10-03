@@ -17,8 +17,8 @@ use super::contexts::{
 use super::exprs::{SmtAs, SmtEq2};
 use super::partials::PartialsDatatype;
 use super::patterns::{
-    FunctionPattern, IntermediateStateConstructor, IntermediateStatePattern,
-    IntermediateStateSelector,
+    IntermediateStateConstructor, IntermediateStatePattern, IntermediateStateSelector,
+    PartialOraclePattern,
 };
 use super::{names, sorts};
 
@@ -1127,7 +1127,7 @@ impl<'a> CompositionSmtWriter<'a> {
 
         let split_path = &split_oracle_ctx.oracle_def().sig.path;
 
-        let partial_oracle_function_pattern = FunctionPattern::PartialOracle {
+        let partial_oracle_function_pattern = PartialOraclePattern {
             game_name,
             pkg_inst_name: inst_name,
             oracle_name,
@@ -1149,7 +1149,7 @@ impl<'a> CompositionSmtWriter<'a> {
             "define-fun",
             partial_oracle_function_pattern.function_name(),
             SmtExpr::List(args.clone()),
-            partial_oracle_function_pattern.function_return_sort_name(),
+            partial_oracle_function_pattern.function_return_sort(),
             SmtLet {
                 bindings,
                 body: pattern
