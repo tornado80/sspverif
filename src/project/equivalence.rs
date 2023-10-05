@@ -131,6 +131,147 @@ impl<'a> EquivalenceContext<'a> {
     }
 
     fn emit_constant_declarations(&self, comm: &mut Communicator) -> Result<()> {
+        /*
+         *
+         * things being declared here:
+         * - nonsplit oracle args
+         * - for $game_inst in left, right
+         *   - old game state $game_inst
+         *   - new game state $game_inst
+         *   - randomness counters $game_inst
+         *   - randomness values $game_inst
+         *   - for oracle in game.non-split-exports
+         *     - return $game_inst $oracle
+         *   - for oracle in game.split-exports
+         *     - partial return $game_inst $oracle
+         *     - split oracle args
+         *
+         * things being constrained here:
+         * - for $game_inst in left, right
+         *   - rand_ctr_$i = get_rand(game_state, $i)
+         *   - rand_val_$i = rand_$game_inst($i, rand_ctr_$i)
+         *   - for $oracle in $game_inst.non-split-exports
+         *     - return = $oracle(state, args...)
+         *     - new_game_state_$game_inst = get-state(return)
+         *       - wait, maybe this should only be in the procondition of the claim statements
+         *   - for $oracle in $game_inst.non-split-exports
+         *     - partial return = $oracle(state, args...)
+         *
+         * Jan's thoughts on the design of the next iteration of this:
+         *
+         * What can go wrong here?
+         *
+         *   Underconstraining
+         *
+         *     The solver would give us a sat where we expect an unsat and we can
+         *     use the model to see which constraint is missing. Until that is done, we can't prove
+         *     anything but that is not that big of a deal. So I guess this is an easily debuggable
+         *     completeness problem.
+         *
+         *   Overconstraining
+         *
+         *     We might add too many constraints, which would lead to the solver
+         *     reporting unsat where it should return sat. This would break soundness, in ways that
+         *     are not easily debuggable.
+         *
+         *   I feel like soundness is more important than completeness!
+         *
+         * What can we do to prevent that? (TODO)
+         *
+         *   Testing
+         *
+         *     I suppose the best way to guard against this is to have test cases with proofs
+         *     that are expected to not go through and make sure that this is actually the case.
+         *
+         *   Clear Documentation/Spec
+         *
+         *     Making explicit the model we have of the system helps both
+         *     with catching logic bugs (because in order to vet the logic you can read the docs)
+         *     and implementation bugs (because you can compare the implementation against the spec).
+         *
+         * When do we apply the constraints?
+         *
+         *   Option A: Immediately after declaring
+         *
+         *     This doesn't work for e.g. the "new state", as that would be constrained in
+         *     contradictory ways. My current heuristic is that if the value is the output of a
+         *     function and there are several potential functions that it could be the output of,
+         *     then it won't work.
+         *
+         *       Can we maybe avoid that issue by not "overloading" constants? Use constants as
+         *       the output of one particular thing? What are other instances of constants that are
+         *       constrained differently depending on the call?
+         *
+         *         Other instances: I was going to say PartialReturn, but not only by "real" oracle
+         *         but also by split oracle, but I don' think that is true since because of the
+         *         dispatch function. So maybe it's just Return and PartialReturn, by "real" oracle?
+         *
+         *         We could avoid that by not having a single "new state" constant, but one per
+         *         oracle. That might be a tad inconvenient though? Or we just bind the convenient
+         *         names using let, either in the lemma/relation/invariant or in the glue code
+         *         calling it. This would mean we don't even need the constants and don't need to
+         *         constrain them. Sounds like there is less chance of confusion, too!
+         *
+         *   Option B: First declare all constants, then constrain
+         *
+         *     Seems difficult to keep track of the constraints we still need to do.
+         *
+         * So to me it seems the best way is to
+         *
+         * 1.  declare foundational constants ("old state", "function arguments")
+         * 2.  declare constants that conceptually are outputs of a known function taking
+         *     foundational constants ("return per oracle") and immediately constrain them
+         * 3.  only bind convenience values in (let ..) blocks close to the code using them.
+         *     This can be done manually in the user code, or in the glue code calling the user
+         *     code.
+         *
+         *       I think there is a discussion to be had here, though. If we go with the let-bind
+         *       approache, we can't make the randomness mapping a bunch of asserts. It needs to be
+         *       an expression that evaluates to a bool. Is the user fine with that?
+         *
+         *       I think this can affect model readability (for a human) in one of two ways:
+         *
+         *         Possible Impact A: There a fewer global constants, and all the values are in the
+         *         specific part of the gamestate. It is more tidy and it is easy to find what you
+         *         are looking for.
+         *
+         *         Possibe Impact B: Instead of having a global constant rand-Real-1-4 as a constant
+         *         in the model, you have to sift through the game state structs to find the
+         *         correct one to see the value, which makes it more difficult.
+         *
+         *         I wonder which of these would be stronger, and believe it depends on the habits and
+         *         preferences of the user.
+         *
+         * Which leaves us to specify (and give reasons for) our list of constants and constraints.
+         * Afterwards, we also make a list of constants constraints we chose not to include here.
+         *
+         *   Foundational Constants: Old Gamestate, Old Intermediate State and Arguments
+         *
+         *     These are only used as inputs to the oracle functions. There is nothing we can tie
+         *     them to, we can only constrain them in lemmas, etc.
+         *
+         *   Function Outputs: Return, PartialReturn
+         *
+         *     These can be directly computed from the above. They should simply be constrained.
+         *
+         *   Convenience Values: New Gamestate, New Intermediate State, IsAbort, Return Value,
+         *                       Randomness Counters, Random Values
+         *
+         *     These fall in two categories:
+         *
+         *     1.  Values where a convenient name would not be globally unique (e.g. new state, is abort)
+         *
+         *           Here I think using (let ..) bindings really is the best way to handle the
+         *           ambiguity.
+         *
+         *     2.  Values that have unique names, but are rarely needed and are just copied from the
+         *         gamestate (e.g. randomness)
+         *
+         *           Here I am not sure - From a "purity" standpoint it feels nice to me, but I see how
+         *           that is not a very strong argument, so we may just declare and constrain them globally.
+         *
+         */
+
         let instance_resolver = SliceResolver(self.proof.instances());
         let left_game_inst_name = self.eq.left_name();
         let right_game_inst_name = self.eq.right_name();
