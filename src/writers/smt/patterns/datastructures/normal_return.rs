@@ -6,14 +6,12 @@ pub struct ReturnPattern<'a> {
     pub game_name: &'a str,
     pub pkg_inst_name: &'a str,
     pub oracle_name: &'a str,
-    pub return_type: &'a Type,
 }
 
 pub struct ReturnSort<'a> {
     pub game_name: &'a str,
     pub pkg_inst_name: &'a str,
     pub oracle_name: &'a str,
-    pub return_type: &'a Type,
 }
 
 use crate::impl_Into_for_PlainSort;
@@ -26,7 +24,6 @@ impl<'a> SmtPlainSort for ReturnSort<'a> {
             game_name,
             pkg_inst_name,
             oracle_name,
-            ..
         } = self;
 
         format!("{camel_case}-{game_name}-{pkg_inst_name}-{oracle_name}")
@@ -34,18 +31,18 @@ impl<'a> SmtPlainSort for ReturnSort<'a> {
 }
 
 #[derive(PartialEq, Eq)]
-pub struct PartialReturnConstructor;
+pub struct ReturnConstructor;
 
 #[derive(PartialEq, Eq)]
-pub enum PartialReturnSelector {
+pub enum ReturnSelector<'a> {
     GameState,
-    ReturnValueOrAbort,
+    ReturnValueOrAbort { return_type: &'a Type },
 }
 
 impl<'a> DatastructurePattern<'a> for ReturnPattern<'a> {
-    type Constructor = PartialReturnConstructor;
-    type Selector = PartialReturnSelector;
-    type DeclareInfo = ();
+    type Constructor = ReturnConstructor;
+    type Selector = ReturnSelector<'a>;
+    type DeclareInfo = &'a Type;
     type Sort = ReturnSort<'a>;
 
     const CAMEL_CASE: &'static str = "Return";
@@ -56,13 +53,11 @@ impl<'a> DatastructurePattern<'a> for ReturnPattern<'a> {
             game_name,
             pkg_inst_name,
             oracle_name,
-            return_type,
         } = self;
         ReturnSort {
             game_name,
             pkg_inst_name,
             oracle_name,
-            return_type,
         }
     }
 
@@ -72,7 +67,6 @@ impl<'a> DatastructurePattern<'a> for ReturnPattern<'a> {
             game_name,
             pkg_inst_name,
             oracle_name,
-            ..
         } = self;
 
         format!("mk-{kebab_case}-{game_name}-{pkg_inst_name}-{oracle_name}")
@@ -84,12 +78,11 @@ impl<'a> DatastructurePattern<'a> for ReturnPattern<'a> {
             game_name,
             pkg_inst_name,
             oracle_name,
-            ..
         } = self;
 
         let field_name = match sel {
-            PartialReturnSelector::GameState => "game-state",
-            PartialReturnSelector::ReturnValueOrAbort => "return-value-or-abort",
+            ReturnSelector::GameState => "game-state",
+            ReturnSelector::ReturnValueOrAbort { .. } => "return-value-or-abort",
         };
 
         format!("{kebab_case}-{game_name}-{pkg_inst_name}-{oracle_name}-{field_name}")
@@ -97,35 +90,33 @@ impl<'a> DatastructurePattern<'a> for ReturnPattern<'a> {
 
     fn matchfield_name(&self, sel: &Self::Selector) -> String {
         let field_name = match sel {
-            PartialReturnSelector::GameState => "game-state",
-            PartialReturnSelector::ReturnValueOrAbort => "return-value-or-abort",
+            ReturnSelector::GameState => "game-state",
+            ReturnSelector::ReturnValueOrAbort { .. } => "return-value-or-abort",
         };
 
         format!("match-{field_name}")
     }
 
-    fn datastructure_spec(&self, _info: &'a Self::DeclareInfo) -> DatastructureSpec<'a, Self> {
+    fn datastructure_spec(&self, return_type: &&'a Type) -> DatastructureSpec<'a, Self> {
         DatastructureSpec(vec![(
-            PartialReturnConstructor,
+            ReturnConstructor,
             vec![
-                PartialReturnSelector::GameState,
-                PartialReturnSelector::ReturnValueOrAbort,
+                ReturnSelector::GameState,
+                ReturnSelector::ReturnValueOrAbort { return_type },
             ],
         )])
     }
 
     fn selector_sort(&self, sel: &Self::Selector) -> SmtExpr {
-        let Self {
-            game_name,
-            return_type,
-            ..
-        } = self;
+        let Self { game_name, .. } = self;
 
         let game_state_pattern = super::game_state::GameStatePattern { game_name };
 
         match sel {
-            PartialReturnSelector::GameState => game_state_pattern.sort().sort_name().into(),
-            PartialReturnSelector::ReturnValueOrAbort => ("ReturnValue", *return_type).into(),
+            ReturnSelector::GameState => game_state_pattern.sort().sort_name().into(),
+            ReturnSelector::ReturnValueOrAbort { return_type } => {
+                ("ReturnValue", *return_type).into()
+            }
         }
     }
 }

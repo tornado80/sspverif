@@ -8,6 +8,7 @@ use std::iter::FromIterator;
 
 pub use game_state::*;
 pub use intermediate_state::*;
+pub use normal_return::*;
 pub use partial_return::*;
 pub use pkg_state::*;
 

@@ -1,4 +1,6 @@
 use crate::writers::smt::exprs::SmtExpr;
+use crate::writers::smt::patterns::ReturnPattern;
+use crate::writers::smt::sorts::SmtPlainSort;
 use crate::{package::OracleSig, split::SplitPath};
 
 use super::{
@@ -173,6 +175,18 @@ impl<'a> OraclePattern<'a> {
     }
 
     pub fn function_return_sort_name(&self) -> String {
-        todo!()
+        let Self {
+            game_name,
+            pkg_inst_name,
+            oracle_sig,
+        } = self;
+
+        ReturnPattern {
+            game_name,
+            pkg_inst_name,
+            oracle_name: &oracle_sig.name,
+        }
+        .sort()
+        .sort_name()
     }
 }
