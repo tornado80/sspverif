@@ -1,12 +1,20 @@
 use crate::writers::smt::exprs::SmtExpr;
 use crate::writers::smt::patterns::ReturnPattern;
-use crate::writers::smt::sorts::SmtPlainSort;
+use crate::writers::smt::sorts::SmtSort;
 use crate::{package::OracleSig, split::SplitPath};
 
 use super::{
     DatastructurePattern, GameStatePattern, IntermediateStatePattern, PartialReturnPattern,
-    PartialReturnSort,
+    PartialReturnSort, ReturnSort,
 };
+
+pub trait FunctionPattern {
+    type ReturnSort: SmtSort;
+
+    fn function_name(&self) -> String;
+    fn function_args(&self) -> Vec<(String, SmtExpr)>;
+    fn function_return_sort(&self) -> Self::ReturnSort;
+}
 
 pub const ORACLE_ARG_GAME_STATE: &str = "__global_state";
 pub const ORACLE_ARG_INTERMEDIATE_STATE: &str = "__intermediate_state";
@@ -17,8 +25,9 @@ pub struct DispatchOraclePattern<'a> {
     pub oracle_sig: &'a OracleSig,
 }
 
-impl<'a> DispatchOraclePattern<'a> {
-    pub fn function_name(&self) -> String {
+impl<'a> FunctionPattern for DispatchOraclePattern<'a> {
+    type ReturnSort = PartialReturnSort<'a>;
+    fn function_name(&self) -> String {
         let Self {
             game_name,
             pkg_inst_name,
@@ -29,7 +38,7 @@ impl<'a> DispatchOraclePattern<'a> {
         format!("oracle-{game_name}-{pkg_inst_name}-{oracle_name}")
     }
 
-    pub fn function_argspec(&self) -> Vec<(String, SmtExpr)> {
+    fn function_args(&self) -> Vec<(String, SmtExpr)> {
         let DispatchOraclePattern {
             oracle_sig,
             game_name,
@@ -66,7 +75,7 @@ impl<'a> DispatchOraclePattern<'a> {
         args
     }
 
-    pub fn function_return_sort(&self) -> PartialReturnSort {
+    fn function_return_sort(&self) -> PartialReturnSort<'a> {
         let Self {
             game_name,
             pkg_inst_name,
@@ -90,8 +99,10 @@ pub struct PartialOraclePattern<'a> {
     pub split_path: &'a SplitPath,
 }
 
-impl<'a> PartialOraclePattern<'a> {
-    pub fn function_name(&self) -> String {
+impl<'a> FunctionPattern for PartialOraclePattern<'a> {
+    type ReturnSort = PartialReturnSort<'a>;
+
+    fn function_name(&self) -> String {
         let PartialOraclePattern {
             game_name,
             pkg_inst_name,
@@ -103,7 +114,11 @@ impl<'a> PartialOraclePattern<'a> {
         format!("oracle-{game_name}-{pkg_inst_name}-{oracle_name}-{path}")
     }
 
-    pub fn function_return_sort(&self) -> PartialReturnSort {
+    fn function_args(&self) -> Vec<(String, SmtExpr)> {
+        todo!()
+    }
+
+    fn function_return_sort(&self) -> PartialReturnSort<'a> {
         let Self {
             game_name,
             pkg_inst_name,
@@ -126,8 +141,10 @@ pub struct OraclePattern<'a> {
     oracle_sig: &'a OracleSig,
 }
 
-impl<'a> OraclePattern<'a> {
-    pub fn function_name(&self) -> String {
+impl<'a> FunctionPattern for OraclePattern<'a> {
+    type ReturnSort = ReturnSort<'a>;
+
+    fn function_name(&self) -> String {
         let Self {
             game_name,
             pkg_inst_name,
@@ -138,7 +155,7 @@ impl<'a> OraclePattern<'a> {
         format!("oracle-{game_name}-{pkg_inst_name}-{oracle_name}")
     }
 
-    pub fn function_argspec(&self) -> Vec<(String, SmtExpr)> {
+    fn function_args(&self) -> Vec<(String, SmtExpr)> {
         let Self {
             oracle_sig,
             game_name,
@@ -174,7 +191,7 @@ impl<'a> OraclePattern<'a> {
         args
     }
 
-    pub fn function_return_sort_name(&self) -> String {
+    fn function_return_sort(&self) -> ReturnSort<'a> {
         let Self {
             game_name,
             pkg_inst_name,
@@ -187,6 +204,5 @@ impl<'a> OraclePattern<'a> {
             oracle_name: &oracle_sig.name,
         }
         .sort()
-        .sort_name()
     }
 }

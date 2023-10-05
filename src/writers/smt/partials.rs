@@ -219,7 +219,7 @@ impl<'a> PackageInstanceContext<'a> {
 
         SmtDefineFunction {
             name: function_pattern.function_name(),
-            args: function_pattern.function_argspec(),
+            args: function_pattern.function_args(),
             ret_sort: function_pattern.function_return_sort().into(),
             body: match_expr,
         }
