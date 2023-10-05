@@ -96,6 +96,7 @@ impl<'a> EquivalenceContext<'a> {
         base_declarations.extend(hacks::MaybeDeclaration.into_iter());
         base_declarations.extend(hacks::TuplesDeclaration(1..32).into_iter());
         base_declarations.extend(hacks::EmptyDeclaration.into_iter());
+        base_declarations.push(hacks::ReturnValueDeclaration.into());
 
         for decl in base_declarations {
             comm.write_smt(decl)?
