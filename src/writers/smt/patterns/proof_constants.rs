@@ -5,7 +5,7 @@ use crate::{
 
 use super::{datastructures, DatastructurePattern, GameStatePattern};
 
-trait ProofConstant {
+trait ConstantPattern {
     type Sort: SmtSort;
 
     fn name(&self) -> String;
@@ -22,7 +22,7 @@ pub struct GameState<'a> {
     pub variant: &'a str,
 }
 
-impl<'a> ProofConstant for GameState<'a> {
+impl<'a> ConstantPattern for GameState<'a> {
     type Sort = datastructures::GameStateSort<'a>;
 
     fn name(&self) -> String {
@@ -50,7 +50,7 @@ pub struct OracleArgs<'a> {
     pub arg_type: &'a Type,
 }
 
-impl<'a> ProofConstant for OracleArgs<'a> {
+impl<'a> ConstantPattern for OracleArgs<'a> {
     type Sort = Type;
 
     fn name(&self) -> String {
