@@ -1,6 +1,7 @@
 use crate::hacks;
-use crate::package::{Composition, Export, OracleSig};
+use crate::package::{Composition, Export, OracleSig, SplitExport};
 use crate::proof::{Claim, ClaimType, GameInstance, Proof, Resolver, SliceResolver};
+use crate::split::{SplitOracleSig, SplitPath};
 use crate::transforms::proof_transforms::EquivalenceTransform;
 use crate::transforms::samplify::SampleInfo;
 use crate::transforms::split_partial::SplitInfoEntry;
@@ -50,6 +51,41 @@ pub fn verify(eq: &Equivalence, proof: &Proof, transcript_file: File) -> Result<
         for claim in eqctx.eq.proof_tree_by_oracle_name(&oracle_sig.name) {
             write!(prover, "(push 1)").unwrap();
             eqctx.emit_claim_assert(&mut prover, &oracle_sig.name, &claim)?;
+            match prover.check_sat()? {
+                ProverResponse::Sat => {
+                    let lemma_name = claim.name();
+                    let model = prover.get_model()?;
+                    return Err(Error::ProofCheck(format!(
+                        "lemma {lemma_name}: expected unsat, got sat. model: {model}"
+                    )));
+                }
+                ProverResponse::Unknown => {
+                    let lemma_name = claim.name();
+                    return Err(Error::ProofCheck(format!(
+                        "lemma {lemma_name}: expected unsat, got unknown"
+                    )));
+                }
+                _ => {}
+            }
+            write!(prover, "(pop 1)").unwrap();
+        }
+
+        write!(prover, "(pop 1)").unwrap();
+    }
+
+    for split_oracle_sig in eqctx.split_oracle_sequence() {
+        println!("verify: split oracle:{split_oracle_sig:?}");
+        write!(prover, "(push 1)").unwrap();
+        eqctx.emit_invariant(&mut prover, &split_oracle_sig.name)?;
+
+        for claim in eqctx.eq.proof_tree_by_oracle_name(&split_oracle_sig.name) {
+            write!(prover, "(push 1)").unwrap();
+            eqctx.emit_split_claim_assert(
+                &mut prover,
+                &split_oracle_sig.name,
+                &split_oracle_sig.path,
+                &claim,
+            )?;
             match prover.check_sat()? {
                 ProverResponse::Sat => {
                     let lemma_name = claim.name();
@@ -409,6 +445,16 @@ impl<'a> EquivalenceContext<'a> {
         Ok(())
     }
 
+    fn emit_split_claim_assert(
+        &self,
+        comm: &mut Communicator,
+        oracle_name: &str,
+        path: &SplitPath,
+        claim: &Claim,
+    ) -> Result<()> {
+        todo!()
+    }
+
     fn emit_claim_assert(
         &self,
         comm: &mut Communicator,
@@ -600,6 +646,21 @@ impl<'a> EquivalenceContext<'a> {
             .exports
             .iter()
             .map(|Export(_, oracle_sig)| oracle_sig)
+            .collect()
+    }
+
+    fn split_oracle_sequence(&self) -> Vec<&'a SplitOracleSig> {
+        let game_inst = SliceResolver(self.proof.instances())
+            .resolve(self.eq.left_name())
+            .unwrap();
+
+        println!("oracle sequence: {:?}", game_inst.game().exports);
+
+        game_inst
+            .game()
+            .split_exports
+            .iter()
+            .map(|SplitExport(_, split_oracle_sig)| split_oracle_sig)
             .collect()
     }
 }
