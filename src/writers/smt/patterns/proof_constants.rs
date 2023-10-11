@@ -1,11 +1,17 @@
+use datastructures::{IntermediateStatePattern, ReturnPattern};
+
 use crate::{
+    split::SplitPath,
     types::Type,
     writers::smt::{declare, exprs::SmtExpr, sorts::SmtSort},
 };
 
-use super::{datastructures, DatastructurePattern, GameStatePattern};
+use super::{
+    datastructures, DatastructurePattern, GameStatePattern, IntermediateStateSort,
+    PartialOraclePattern, PartialReturnPattern, PartialReturnSort, ReturnSort,
+};
 
-trait ConstantPattern {
+pub trait ConstantPattern {
     type Sort: SmtSort;
 
     fn name(&self) -> String;
@@ -43,11 +49,11 @@ impl<'a> ConstantPattern for GameState<'a> {
     }
 }
 
+#[derive(Clone, Debug)]
 pub struct OracleArgs<'a> {
-    pub pkg_name: &'a str,
     pub oracle_name: &'a str,
     pub arg_name: &'a str,
-    pub arg_type: &'a Type,
+    pub arg_type: &'a Type, // TODO maybe this shouldn't be here?
 }
 
 impl<'a> ConstantPattern for OracleArgs<'a> {
@@ -55,17 +61,122 @@ impl<'a> ConstantPattern for OracleArgs<'a> {
 
     fn name(&self) -> String {
         let Self {
-            pkg_name,
             oracle_name,
             arg_name,
             ..
         } = self;
 
-        format!("arg-{pkg_name}-{oracle_name}-{arg_name}")
+        format!("arg-{oracle_name}-{arg_name}")
     }
 
     fn sort(&self) -> Self::Sort {
         self.arg_type.clone()
+    }
+}
+
+pub struct ReturnConst<'a> {
+    pub game_inst_name: &'a str,
+    pub game_name: &'a str,
+    pub pkg_inst_name: &'a str,
+    pub oracle_name: &'a str,
+}
+
+impl<'a> ConstantPattern for ReturnConst<'a> {
+    type Sort = ReturnSort<'a>;
+
+    fn name(&self) -> String {
+        let Self {
+            game_inst_name,
+            oracle_name,
+            ..
+        } = self;
+
+        format!("return-{game_inst_name}-{oracle_name}")
+    }
+
+    fn sort(&self) -> Self::Sort {
+        ReturnPattern {
+            game_name: self.game_name,
+            pkg_inst_name: self.pkg_inst_name,
+            oracle_name: self.oracle_name,
+        }
+        .sort()
+    }
+}
+
+pub struct PartialReturnConst<'a> {
+    pub game_inst_name: &'a str,
+    pub game_name: &'a str,
+    pub pkg_inst_name: &'a str,
+    pub oracle_name: &'a str,
+}
+
+impl<'a> ConstantPattern for PartialReturnConst<'a> {
+    type Sort = PartialReturnSort<'a>;
+
+    fn name(&self) -> String {
+        let Self {
+            game_inst_name,
+            pkg_inst_name,
+            oracle_name,
+            ..
+        } = self;
+        format!("partial-return-{game_inst_name}-{pkg_inst_name}-{oracle_name}")
+    }
+
+    fn sort(&self) -> Self::Sort {
+        let Self {
+            game_name,
+            pkg_inst_name,
+            oracle_name,
+            ..
+        } = self;
+
+        PartialReturnPattern {
+            game_name,
+            pkg_inst_name,
+            oracle_name,
+        }
+        .sort()
+    }
+}
+
+pub struct IntermediateStateConst<'a> {
+    pub game_inst_name: &'a str,
+    pub game_name: &'a str,
+    pub pkg_inst_name: &'a str,
+    pub oracle_name: &'a str,
+    pub variant: &'a str,
+}
+
+impl<'a> ConstantPattern for IntermediateStateConst<'a> {
+    type Sort = IntermediateStateSort<'a>;
+
+    fn name(&self) -> String {
+        let Self {
+            game_inst_name,
+            oracle_name,
+            variant,
+            ..
+        } = self;
+
+        format!("intermediate-state-{game_inst_name}-{oracle_name}-{variant}")
+    }
+
+    fn sort(&self) -> Self::Sort {
+        let Self {
+            game_name,
+            pkg_inst_name,
+            oracle_name,
+            ..
+        } = self;
+
+        IntermediateStatePattern {
+            game_name,
+            pkg_inst_name,
+            oracle_name,
+        }
+        .sort()
     }
 }
 

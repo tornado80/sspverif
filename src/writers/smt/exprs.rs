@@ -2,6 +2,8 @@ use std::fmt::Display;
 
 use crate::types::Type;
 
+use super::sorts::SmtSort;
+
 pub fn smt_to_string<T: Into<SmtExpr>>(t: T) -> String {
     t.into().to_string()
 }
@@ -31,9 +33,21 @@ impl From<String> for SmtExpr {
     }
 }
 
+impl From<&String> for SmtExpr {
+    fn from(atom: &String) -> Self {
+        SmtExpr::Atom(atom.to_string())
+    }
+}
+
 impl From<usize> for SmtExpr {
     fn from(num: usize) -> Self {
         SmtExpr::Atom(format!("{num}"))
+    }
+}
+
+impl From<bool> for SmtExpr {
+    fn from(value: bool) -> Self {
+        SmtExpr::Atom(format!("{value}"))
     }
 }
 
@@ -131,6 +145,30 @@ impl<
             v4.into(),
             v5.into(),
             v6.into(),
+        ])
+    }
+}
+
+impl<
+        T1: Into<SmtExpr>,
+        T2: Into<SmtExpr>,
+        T3: Into<SmtExpr>,
+        T4: Into<SmtExpr>,
+        T5: Into<SmtExpr>,
+        T6: Into<SmtExpr>,
+        T7: Into<SmtExpr>,
+    > From<(T1, T2, T3, T4, T5, T6, T7)> for SmtExpr
+{
+    fn from(lst: (T1, T2, T3, T4, T5, T6, T7)) -> SmtExpr {
+        let (v1, v2, v3, v4, v5, v6, v7) = lst;
+        SmtExpr::List(vec![
+            v1.into(),
+            v2.into(),
+            v3.into(),
+            v4.into(),
+            v5.into(),
+            v6.into(),
+            v7.into(),
         ])
     }
 }
@@ -387,4 +425,31 @@ pub enum SspSmtVar {
         pkgname: String,
         oname: String,
     },
+}
+
+pub struct SmtForall<B: Into<SmtExpr>> {
+    pub bindings: Vec<(String, SmtExpr)>,
+    pub body: B,
+}
+
+impl<B: Into<SmtExpr>> Into<SmtExpr> for SmtForall<B> {
+    /*
+     * SMT-LIB 2.6 manual p. 27:
+     * <sorted_var> ::= ( symbol sort )
+     * <term>       ::= ... | ( forall ( 〈sorted_var 〉+ ) 〈term〉 )
+     *
+     */
+    fn into(self) -> SmtExpr {
+        (
+            "forall",
+            SmtExpr::List(
+                self.bindings
+                    .into_iter()
+                    .map(|(name, sort)| (name, sort).into())
+                    .collect(),
+            ),
+            self.body,
+        )
+            .into()
+    }
 }

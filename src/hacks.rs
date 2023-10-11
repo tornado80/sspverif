@@ -7,7 +7,7 @@ pub struct ReturnValueDeclaration;
 impl Into<SmtExpr> for ReturnValueDeclaration {
     fn into(self) -> SmtExpr {
         (
-            "declare-datatype",
+            "declare-datatypes",
             (("ReturnValue", 1),),
             ((
                 "par",

@@ -1,7 +1,10 @@
 use crate::{
     split::{SplitOracleDef, SplitPath},
     writers::smt::{
-        exprs::SmtExpr, names, partials::PartialsDatatype, patterns::IntermediateStatePattern,
+        exprs::SmtExpr,
+        names,
+        partials::PartialsDatatype,
+        patterns::{FunctionPattern, IntermediateStatePattern, PartialOraclePattern},
     },
 };
 
@@ -48,6 +51,49 @@ impl<'a> SplitOracleContext<'a> {
             pkg_inst_name: pkg_inst_ctx.pkg_inst_name(),
             oracle_name: &self.oracle_def().sig.name,
         }
+    }
+    //
+    // returns none if the wrong number of arguments were provided
+    pub fn smt_invoke_oracle<GS, IS, ARGS>(
+        &self,
+        gamestate: GS,
+        intermediate_state: IS,
+        args: ARGS,
+    ) -> Option<SmtExpr>
+    where
+        GS: Into<SmtExpr>,
+        IS: Into<SmtExpr>,
+        ARGS: Iterator<Item = SmtExpr>,
+    {
+        let game = self.game_ctx.game;
+        let inst = &game.pkgs[self.inst_offs];
+        let osig = &inst.pkg.split_oracles[self.split_oracle_offs].sig;
+
+        let game_name = &game.name;
+        let pkg_inst_name = &inst.name;
+        let oracle_name = &osig.name;
+        let split_path = &osig.path;
+
+        let pattern = PartialOraclePattern {
+            game_name,
+            pkg_inst_name,
+            oracle_name,
+            split_path,
+        };
+
+        let expected_len = 3 + osig.args.len();
+
+        let mut cmdline = Vec::with_capacity(expected_len);
+        cmdline.push(pattern.function_name().into());
+        cmdline.push(gamestate.into());
+        cmdline.push(intermediate_state.into());
+        cmdline.extend(args);
+
+        if cmdline.len() != expected_len {
+            return None;
+        }
+
+        Some(SmtExpr::List(cmdline))
     }
 }
 

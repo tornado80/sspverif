@@ -17,8 +17,9 @@ use super::contexts::{
 use super::exprs::{SmtAs, SmtEq2};
 use super::partials::PartialsDatatype;
 use super::patterns::{
-    FunctionPattern, IntermediateStateConstructor, IntermediateStatePattern,
-    IntermediateStateSelector, PartialOraclePattern,
+    FunctionPattern, GameStateDeclareInfo, GameStatePattern, GameStateSelector,
+    IntermediateStateConstructor, IntermediateStatePattern, IntermediateStateSelector,
+    PartialOraclePattern,
 };
 use super::{names, sorts};
 

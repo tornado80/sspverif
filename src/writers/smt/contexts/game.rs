@@ -1,5 +1,5 @@
 use crate::{
-    package::{Composition, Export},
+    package::{Composition, Export, SplitExport},
     transforms::samplify::SampleInfo,
     types::Type,
     writers::smt::{
@@ -65,18 +65,23 @@ impl<'a> GameContext<'a> {
         oracle_name: &str,
         partials: &'a PartialsDatatype,
     ) -> Option<SplitOracleContext<'a>> {
-        let Export(inst_offs, _) = *self
-            .game
-            .exports
-            .iter()
-            .find(|Export(_inst_offs, osig)| osig.name == oracle_name)?;
-
-        let inst_ctx = PackageInstanceContext {
-            game_ctx: self.clone(),
-            inst_offs,
-        };
+        let inst_ctx = self.pkg_inst_ctx_by_exported_split_oracle_name(oracle_name)?;
 
         inst_ctx.split_oracle_ctx_by_name(oracle_name, partials)
+    }
+
+    pub fn pkg_inst_ctx_by_exported_split_oracle_name(
+        &self,
+        oracle_name: &str,
+    ) -> Option<PackageInstanceContext<'a>> {
+        self.game
+            .split_exports
+            .iter()
+            .find(|SplitExport(_inst_offs, osig)| osig.name == oracle_name)
+            .map(|SplitExport(inst_offs, _osig)| PackageInstanceContext {
+                game_ctx: self.clone(),
+                inst_offs: *inst_offs,
+            })
     }
 
     pub fn smt_sort_gamestate(&self) -> SmtExpr {
