@@ -370,7 +370,10 @@ fn transform_codeblock(
             {
                 None => locals.push((decl_name, decl_type)),
                 // we already typechecked, so this must hold:
-                Some(idx) => assert_eq!(locals[idx].1, decl_type),
+                Some(idx) => {
+                    println!("{i}: {:?}", &code.0[i]);
+                    assert_eq!(locals[idx].1, decl_type)
+                }
             };
         }
     }
@@ -622,10 +625,15 @@ fn get_declarations(stmt: &Statement) -> Option<(String, Type)> {
         }
         Statement::Assign(Identifier::Local(id_name), Some(idx), expr) => Some((
             id_name.to_string(),
-            Type::Table(
-                Box::new(idx.get_type().unwrap().clone()),
-                Box::new(expr.get_type().unwrap().clone()),
-            ),
+            Type::Table(Box::new(idx.get_type().unwrap().clone()), {
+                let expr_outer_type = expr.get_type().unwrap();
+                let expr_inner_type = match expr_outer_type {
+                    Type::Maybe(inner) => inner,
+                    other => unreachable!("assignment to table must be a maybe, got {:?}", other),
+                };
+
+                expr_inner_type.clone()
+            }),
         )),
         Statement::Assign(Identifier::Local(id_name), None, expr) => {
             Some((id_name.to_string(), expr.get_type().unwrap().clone()))
