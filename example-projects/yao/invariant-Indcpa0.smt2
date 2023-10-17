@@ -5,13 +5,6 @@
 ;
 ;;;;;;;;;;;;;;;;;
 
-(assert
-(and
-(= state-length-left-old 1)
-(= state-length-right-old 1)
-)
-)
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ;   Randomness naming
@@ -134,8 +127,8 @@ true
 (=
 ; z
 (state-Indcpamon0-red-z
-(composition-pkgstate-Indcpamon0-red 
-(select state-right state-length-right-old)))
+  (composition-pkgstate-Indcpamon0-red 
+    game-state-Indcpamon0_inst-old))
 (mk-some true))
 (and
 (=  randval-left-GETA-1 ; r at true
@@ -151,8 +144,8 @@ true
 (=
 ; z
 (state-Indcpamon0-red-z
-(composition-pkgstate-Indcpamon0-red 
-(select state-right state-length-right-old))) 
+(composition-pkgstate-Indcpamon0-red
+game-state-Indcpamon0_inst-old)) 
 (mk-some false))
 (and
 (=  randval-left-GETA-1 ; r at true
