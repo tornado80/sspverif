@@ -108,6 +108,49 @@ proof Yao {
             }
         }
 
+                equivalence Indcpamod0_inst Indcpamon0_inst {
+            SETBIT: {
+                invariant: [
+                    ./invariant-Indcpa0.smt2
+                ]
+
+                lemmas {
+                    aborts-equal-SETBIT:   []
+                    invariant-SETBIT-post: [no-abort-SETBIT]
+                    same-output-SETBIT:    [no-abort-SETBIT]
+                }
+            }
+
+
+
+                        GETAOUT: {
+                invariant: [
+                    ./invariant-Indcpa0.smt2
+                ]
+                lemmas {
+                    same-output-GETAOUT:                [no-abort-GETAOUT]
+                    invariant-GETAOUT-post:             [no-abort-GETAOUT]
+                    aborts-equal-GETAOUT:               []
+                }
+            }
+
+                        ENCN: {
+                invariant: [
+                    ./invariant-Indcpa0.smt2
+                ]
+                lemmas {
+                    same-output-ENCN:                [no-abort-ENCN]
+                    invariant-ENCN-post:             [no-abort-ENCN]
+                    aborts-equal-ENCN:               []
+                }
+            }
+
+
+
+
+             
+        }
+
         equivalence Left_inst Right_inst {
             GETAOUT: {
                 invariant: [
@@ -162,7 +205,6 @@ proof Yao {
                 }
             }
         }
-
     }
 
 }

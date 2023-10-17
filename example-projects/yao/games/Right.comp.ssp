@@ -39,7 +39,7 @@ composition Right {
     }
   }
 
-  instance ev = Ev {
+  instance ev = Lev {
     params {
       n: n,
     }

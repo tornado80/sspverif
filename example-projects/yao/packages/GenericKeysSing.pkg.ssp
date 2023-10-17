@@ -32,7 +32,7 @@ package GenericKeysSing {
     }
 
     oracle GETAOUT() -> Bits(n) {
-        assert (z == Some(true));
+        assert (z != None as Bool);
         flag <- Some(true);
         Z <- new Table(Bool,Bits(n));
         if (T == None as Table(Bool,Bits(n)))

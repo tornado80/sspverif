@@ -1,3 +1,122 @@
+(assert
+(and
+(= state-length-left-old 1)
+(= state-length-right-old 1)
+)
+)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+;   Randomness naming
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(declare-const randval-left-9+1 Bits_n)
+(assert (= randval-left-9+1 (__sample-rand-Left-Bits_n 9 (+ 1 randctr-left-9)
+)))
+
+(declare-const randval-left-9+2 Bits_n)
+(assert (= randval-left-9+2 (__sample-rand-Left-Bits_n 9 (+ 2 randctr-left-9)
+)))
+
+(declare-const randval-left-9+3 Bits_n)
+(assert (= randval-left-9+3 (__sample-rand-Left-Bits_n 9 (+ 3 randctr-left-9)
+)))
+
+(declare-const randval-left-11+1 Bits_n)
+(assert (= randval-left-11+1 (__sample-rand-Left-Bits_n 11 (+ 1 randctr-left-11)
+)))
+
+(declare-const randval-left-11+2 Bits_n)
+(assert (= randval-left-11+2 (__sample-rand-Left-Bits_n 11 (+ 2 randctr-left-11)
+)))
+
+(declare-const randval-left-11+3 Bits_n)
+(assert (= randval-left-11+3 (__sample-rand-Left-Bits_n 11 (+ 3 randctr-left-11)
+)))
+
+(declare-const randval-left-GETA-1 Bits_n)
+(assert (= randval-left-GETA-1  (__sample-rand-Left-Bits_n  1 randctr-left-1
+)))
+
+(declare-const randval-right-GETA-1 Bits_n)
+(assert (= randval-right-GETA-1 (__sample-rand-Right-Bits_n 1 randctr-right-1
+)))
+
+(declare-const randval-left-GETA-2 Bits_n)
+(assert (= randval-left-GETA-2  (__sample-rand-Left-Bits_n  2 randctr-left-2
+)))
+
+(declare-const randval-right-GETA-2 Bits_n)
+(assert (= randval-right-GETA-2 (__sample-rand-Right-Bits_n 2 randctr-right-2
+)))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+;   Randomness mapping
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(define-fun randomness-mapping-GBLG () Bool
+(and
+;equality of values of the sample functions for the lower Key package
+(= randval-left-5    randval-right-7)
+(= randval-left-6    randval-right-8)
+
+;equality of values of the sample functions for the encryptions
+(= randval-left-9    randval-right-9)
+(= randval-left-11   randval-right-10)
+(= randval-left-9+1  randval-right-11)
+(= randval-left-11+1 randval-right-12)
+(= randval-left-9+2  randval-right-11)
+(= randval-left-11+2 randval-right-12)
+(= randval-left-9+3  randval-right-13)
+(= randval-left-11+3 randval-right-14)
+)
+)
+
+(define-fun randomness-mapping-SETBIT () Bool
+true
+)
+
+(define-fun randomness-mapping-GETAOUT () Bool
+(and
+(= randval-left-GETA-1 randval-right-GETA-1)
+(= randval-left-GETA-2 randval-right-GETA-2)
+)
+)
+
+(define-fun randomness-mapping-GETKEYSIN () Bool
+true
+)
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+;   op is total (special-purpose glue)
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert
+(and
+(not (= (select arg-GBLG-op (mk-tuple2 true  true ))(as mk-none (Maybe Bool))))
+(not (= (select arg-GBLG-op (mk-tuple2 true  false))(as mk-none (Maybe Bool))))
+(not (= (select arg-GBLG-op (mk-tuple2 false true ))(as mk-none (Maybe Bool))))
+(not (= (select arg-GBLG-op (mk-tuple2 false false))(as mk-none (Maybe Bool))))
+))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+;   Datatypes to extract key package state
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
 (declare-datatype
   State_keys
   (
@@ -26,188 +145,22 @@
                  (state-Right-keys_bottom-z    in)
                  (state-Right-keys_bottom-flag in)))
 
-
-; layer handle:
-(declare-const handle Int)
-
-; possible input for SETBIT
-(declare-const bit Bool)
-
-; possible input for GBLG     oracle GBLG(h: Integer, l: Integer, r: Integer, op: fn Bool,Bool -> Bool, j: Integer) -> Table(Bits(p),Bool) {
-(declare-const l Int)
-(declare-const r Int)
-(declare-const op (Array (Tuple2 Bool Bool) (Maybe Bool)))
-(declare-const j Int)
-
-; possible state arrays
-(declare-const array-state-left-old (Array Int CompositionState-Left))
-(declare-const length-state-left-old Int)
-(declare-const array-state-right-old (Array Int CompositionState-Right))
-(declare-const length-state-right-old Int)
-(declare-const array-state-left-new (Array Int CompositionState-Left))
-(declare-const length-state-left-new Int)
-(declare-const array-state-right-new (Array Int CompositionState-Right))
-(declare-const length-state-right-new Int)
-
-; possible state
-(declare-const state-left-old CompositionState-Left)
-(declare-const state-right-old CompositionState-Right)
-(declare-const state-right-after-EVAL CompositionState-Right)
-(declare-const state-left-new CompositionState-Left)
-(declare-const state-right-new CompositionState-Right)
-
-; return value for GBLG call
-(declare-const return-left  Return_Left_gate_GBLG)
-(declare-const return-right Return_Right_simgate_GBLG)
-(declare-const is-abort-left Bool)
-(declare-const is-abort-right Bool)
-(declare-const y-left  (Maybe (Array Bits_p (Maybe Bool))))
-(declare-const y-right (Maybe (Array Bits_p (Maybe Bool))))
-
-
-; sampled value Z and associated values
-(declare-const Z  (Array Bool (Maybe Bits_n)))
-;(declare-const ctr-r-left Int)
-;(declare-const ctr-r-right Int)
-;(declare-const ctr-rr-left Int)
-;(declare-const ctr-rr-right Int)
-;(declare-const ctr-r-left-new Int)
-;(declare-const ctr-r-right-new Int)
-;(declare-const ctr-rr-left-new Int)
-;(declare-const ctr-rr-right-new Int)
-;(declare-const r-left Bits_n)
-;(declare-const r-right Bits_n)
-;(declare-const rr-left Bits_n)
-;(declare-const rr-right Bits_n)
-
-(push 1)
-(assert true)
-(check-sat) ;2
-(pop 1)
-
-
-(assert
-(and
-
-              ;assignment of return (value,state)
-              (= return-left      (oracle-Left-gate-GBLG array-state-left-old length-state-left-old handle l r op j))
-              (= return-right     (oracle-Right-simgate-GBLG array-state-right-old length-state-right-old handle l r op j))
-
-              ;assignment of return values
-              (= y-left       (return-Left-gate-GBLG-value return-left))
-              (= y-right      (return-Right-simgate-GBLG-value return-right))
-
-              ;assignment of abort values
-              (= is-abort-left    (return-Left-gate-GBLG-is-abort return-left))
-              (= is-abort-right   (return-Right-simgate-GBLG-is-abort return-right))
-
-              ;assignment of return state
-              (= array-state-left-new   (return-Left-gate-GBLG-state return-left))
-              (= array-state-right-new  (return-Right-simgate-GBLG-state return-right))
-
-              ;assignment of return length
-              (= length-state-left-new   (return-Left-gate-GBLG-state-length return-left))
-              (= length-state-right-new  (return-Right-simgate-GBLG-state-length return-right))
-
-              ;assignment of return state
-              (= state-left-new   (select array-state-left-new length-state-left-new))
-              (= state-right-new  (select array-state-right-new length-state-right-new))
-
-              ;initial state list contains only one state
-              (= length-state-left-old 1)
-              (= length-state-right-old 1)
-
-              ;assignment of old state
-              (= state-left-old   (select array-state-left-old length-state-left-old))
-              (= state-right-old  (select array-state-right-old length-state-right-old))
-
-)
-)
-
-;(push 1)
-;(assert true)
-;(check-sat) ;3
-;(pop 1)
-
-
-; special-purpose glue for this particular project
-(assert
-(and
-              ;op should be total
-(not (= (select op (mk-tuple2 true  true ))(as mk-none (Maybe Bool))))
-(not (= (select op (mk-tuple2 true  false))(as mk-none (Maybe Bool))))
-(not (= (select op (mk-tuple2 false true ))(as mk-none (Maybe Bool))))
-(not (= (select op (mk-tuple2 false false))(as mk-none (Maybe Bool))))
-))
-
-;(push 1)
-;(assert true)
-;(check-sat) ;4
-;(pop 1)
-
-(assert
-;;;;;;Pre-condition (randomness mapping):
-;equality of values of the sample functions for the lower Key package
-(forall ((ctr Int))
-(and
-              (= (__sample-rand-Left-Bits_n 5 ctr)      ;used to be 3 --> 5
-                 (__sample-rand-Right-Bits_n 7 ctr))    ;used to be 1 --> 7
-              (= (__sample-rand-Left-Bits_n 6 ctr)      ;used to be 4 --> 6
-                 (__sample-rand-Right-Bits_n 8 ctr))))) ;used to be 2 --> 8
-
-;used to be 3 --> 5
-;used to be 1 --> 7
-;used to be 4 --> 6
-;used to be 2 --> 8
-
-(assert
-(forall ((ctr Int))
-(and
-;equality of values of the sample functions for the encryptions
-              (= (__sample-rand-Left-Bits_n   9 (* 4 ctr))
-                 (__sample-rand-Right-Bits_n  9 ctr))
-              (= (__sample-rand-Left-Bits_n  11 (* 4 ctr))
-                 (__sample-rand-Right-Bits_n 10 ctr))
-              (= (__sample-rand-Left-Bits_n   9 (+ 1 (* 4 ctr)))
-                 (__sample-rand-Right-Bits_n 11 ctr))
-              (= (__sample-rand-Left-Bits_n  11 (+ 1 (* 4 ctr)))
-                 (__sample-rand-Right-Bits_n 12 ctr))
-              (= (__sample-rand-Left-Bits_n   9 (+ 2 (* 4 ctr)))
-                 (__sample-rand-Right-Bits_n 13 ctr))
-              (= (__sample-rand-Left-Bits_n  11 (+ 2 (* 4 ctr)))
-                 (__sample-rand-Right-Bits_n 14 ctr))
-              (= (__sample-rand-Left-Bits_n   9 (+ 3 (* 4 ctr)))
-                 (__sample-rand-Right-Bits_n 15 ctr))
-              (= (__sample-rand-Left-Bits_n  11 (+ 3 (* 4 ctr)))
-                 (__sample-rand-Right-Bits_n 16 ctr))
-
-)
-)
-);(push 1)
-;(assert true)
-;(check-sat) ;5
-;(pop 1)
-
-
-; catches corner cases of tables
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
-; - entries for T are mk-none or a total table (which points to Bits_n and not to none)
+;   Well-definedness of tables
 ;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;If T h != none => T h b != none (for both b=0 and b=1)
+
 (define-fun well-defined ((T (Array Int (Maybe (Array Bool (Maybe Bits_n)))))) Bool
   (forall ((h Int))
-    (ite
-      (not
-        (= (select T h) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
-      )
+    (or
+      (= (select T h) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
       (forall ((b Bool))
         (not
           (= (select (maybe-get (select T h)) b) (as mk-none (Maybe Bits_n)))
-        )
-      )
-      true
-    )
-  )
-)
+)))))
 
 ; captures the possible states which a Key package can be in when
 ; the "top" queries are GETKEYS queries 
@@ -217,27 +170,35 @@
       (flag (state-keys-flag key-state))
       (z    (state-keys-z    key-state)))
 
-;Key tables in the key packages are either completely defined or completely undefined
-(well-defined T)
-
 ; flag is true <=> key has been chosen 
 (and
-(forall ((hhh Int)) (=
-                    (not (= (select flag hhh) (mk-some true)))
-                    (or
-                    (= (select T hhh) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
-                    (and
-                    (= (select (maybe-get (select T hhh)) true) (as mk-none (Maybe Bits_n)))
-                    (= (select (maybe-get (select T hhh)) false) (as mk-none (Maybe Bits_n))))
-                    )))
 
-; z table is completely undefined
+;If T h != none => T h b != none (for both b=0 and b=1)
+(well-defined T)
+
 (forall ((hhh Int))
-(= (select T hhh) (as mk-none (Maybe (Array Bool (Maybe Bits_n))))
+(or
+    (= (select flag hhh) (as mk-none (Maybe Bool)))
+    (= (select flag hhh) (   mk-some        true )))
+)
 
+;If flag h != true => T h  = none
+;If flag h  = true => T h != none (for both b=0 and b=1)
+
+(forall ((hhh Int)) 
+(and 
+(=>
+    (not (= (select flag hhh) (mk-some true)))
+    (= (select T hhh) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
 )
-)
-)))
+(=>
+    (= (select flag hhh) (mk-some true))
+    (and
+       (not (= (select T hhh)                            (as mk-none (Maybe (Array Bool (Maybe Bits_n))))))
+       (not (= (select (maybe-get (select T hhh)) true ) (as mk-none (Maybe Bits_n))))
+       (not (= (select (maybe-get (select T hhh)) false) (as mk-none (Maybe Bits_n))))
+    )
+))))))
 
 ; captures the possible states which a Key package can be in when
 ; the "top" queries are GETA and SETBIT queries 
@@ -248,53 +209,70 @@
       (z    (state-keys-z    key-state)))
 
 (and
-; Table entries either bot or well-defined
+
+;If T h != none => T h b != none (for both b=0 and b=1)
 (well-defined T)
 
-; flag has been set => bit has been set
-(forall ((hhh Int)) (ite (=  (mk-some true)  (select flag hhh))  
-                (or (=  (mk-some true)  (select z hhh))
-                    (=  (mk-some false) (select z hhh)))
-                    true
-                    ))
+(forall ((hhh Int))
+(or
+  (= (select flag hhh) (as mk-none (Maybe Bool)))
+  (= (select flag hhh) (   mk-some        true ))))
 
+; flag has been set  => bit has been set
+(forall ((hhh Int)) (=> (=  (mk-some true ) (select flag hhh))  
+                    (or (=  (mk-some true ) (select z    hhh))
+                        (=  (mk-some false) (select z    hhh))
+                    )))
 
 ; key has been set => flag has been set
-(forall ((hhh Int)) (ite
+(forall ((hhh Int)) (=>
                     (not
-                    (or
                     (= (select T hhh) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
-                    (= (select (maybe-get (select T hhh)) true) (as mk-none (Maybe Bits_n)))))
-                    (not
-                    (= (select flag hhh) (as mk-none (Maybe Bool))))
-                    true
-                    ))
-)))
-;(push 1)
-;(assert true)
-;(check-sat) ;6
-;(pop 1)
+                    )
+                    (= (select flag hhh) (mk-some true)))
+                    ))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; Invariant
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(define-fun invariant-keys ((state-left CompositionState-Left)(state-right CompositionState-Right)) Bool
-
-
-(let
+; This is supposed to be an invariant
+(define-fun invariant-GBLG          (
+        (state-left  (Array Int CompositionState-Left ))
+        (state-right (Array Int CompositionState-Right))
+        (state-length-left  Int) ;old index
+        (state-length-right Int) ;old index
+        (state-left-new  Return_Left_gate_GBLG)
+        (state-right-new Return_Right_simgate_GBLG)
+        (h Int)
+        (l Int)
+        (r Int)
+        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
+        (j Int))
+    Bool
+    (let
 
 ; state of the key packages
 (
-(top-key-package-left (project-State_Left_keys_top(composition-pkgstate-Left-keys_top state-left)))
-(top-key-package-right (project-State_Right_keys_top(composition-pkgstate-Right-keys_top state-right)))
-(bottom-key-package-left (project-State_Left_keys_bottom (composition-pkgstate-Left-keys_bottom state-left)))
-(bottom-key-package-right (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right)))
+(top-key-package-left  (project-State_Left_keys_top      (composition-pkgstate-Left-keys_top     (select state-left  state-length-left))))
+(top-key-package-right (project-State_Right_keys_top     (composition-pkgstate-Right-keys_top    (select state-right state-length-right))))
+(bot-key-package-left  (project-State_Left_keys_bottom   (composition-pkgstate-Left-keys_bottom  (select state-left  state-length-left))))
+(bot-key-package-right (project-State_Right_keys_bottom  (composition-pkgstate-Right-keys_bottom (select state-right state-length-right))))
 )
 
 (let
 
 ; table of the bottom key package
 (
-(table-bottom-left (state-keys-T bottom-key-package-left))
-(table-bottom-right (state-keys-T bottom-key-package-left))
+(table-bot-left  (state-keys-T    bot-key-package-left))
+(table-bot-right (state-keys-T    bot-key-package-right))
+(    z-bot-left  (state-keys-z    bot-key-package-left))
+(    z-bot-right (state-keys-z    bot-key-package-right))
+(flag-bot-left   (state-keys-flag bot-key-package-left))
+(flag-bot-right  (state-keys-flag bot-key-package-right))
 )
 
 (and
@@ -302,676 +280,1405 @@
 (= top-key-package-left top-key-package-right)
 
 ;for bottom key package, tables are equal
-(= table-bottom-left table-bottom-right)
+(= table-bot-left table-bot-right)
 
-;top key packages behave like a key packages
-(well-defined-Key-active top-key-package-left)
+;top key package state is "good"
+(well-defined-Key-active top-key-package-left )
 (well-defined-Key-active top-key-package-right)
 
-;bottom key packages behave like a key packages
-(well-defined-Key-bool bottom-key-package-left)
-(well-defined-Key-active bottom-key-package-right)
+;bottom key packages state is "good"
+(well-defined-Key-bool   bot-key-package-left )
+(well-defined-Key-active bot-key-package-right)
+(forall ((h Int))
+(and
+    (= (select  flag-bot-left  h) 
+       (select  flag-bot-right h))
+(=> (= (select table-bot-left  h) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
+    (= (select  flag-bot-left  h) (   mk-some        false)))
+(=> (= (select table-bot-right h) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
+    (and
+    (= (select  flag-bot-right h) (   mk-some        false))
+    (= (select     z-bot-right h) (as mk-none (Maybe Bool )))))
+(=> (= (select  flag-bot-right h) (   mk-some        false))
+    (= (select     z-bot-right h) (as mk-none (Maybe Bool ))))
+))))))
 
+(define-fun invariant-GBLG-post          (
+        (state-left  (Array Int CompositionState-Left ))
+        (state-right (Array Int CompositionState-Right))
+        (state-length-left  Int) ;old index
+        (state-length-right Int) ;old index
+        (state-left-new  Return_Left_gate_GBLG)
+        (state-right-new Return_Right_simgate_GBLG)
+        (h Int)
+        (l Int)
+        (r Int)
+        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
+        (j Int))
+    Bool
+(let (
+      (state-left-nov  (select  (return-Left-gate-GBLG-state        state-left-new)
+                                (return-Left-gate-GBLG-state-length state-left-new)
+                                ))
+      (state-right-nov (select  (return-Right-simgate-GBLG-state        state-right-new)
+                                (return-Right-simgate-GBLG-state-length state-right-new)
+                                ))
+     )
+
+    (let
+
+; state of the key packages
+(
+(top-key-package-left  (project-State_Left_keys_top      (composition-pkgstate-Left-keys_top     state-left-nov  )))
+(top-key-package-right (project-State_Right_keys_top     (composition-pkgstate-Right-keys_top    state-right-nov )))
+(bot-key-package-left  (project-State_Left_keys_bottom   (composition-pkgstate-Left-keys_bottom  state-left-nov  )))
+(bot-key-package-right (project-State_Right_keys_bottom  (composition-pkgstate-Right-keys_bottom state-right-nov )))
+)
+
+(let
+
+; table of the bottom key package
+(
+(table-bot-left  (state-keys-T    bot-key-package-left))
+(table-bot-right (state-keys-T    bot-key-package-right))
+(    z-bot-left  (state-keys-z    bot-key-package-left))
+(    z-bot-right (state-keys-z    bot-key-package-right))
+(flag-bot-left   (state-keys-flag bot-key-package-left))
+(flag-bot-right  (state-keys-flag bot-key-package-right))
+)
+
+(and
+;top key package states are equal
+(= top-key-package-left top-key-package-right)
+
+;for bottom key package, tables are equal
+(= table-bot-left table-bot-right)
+
+;top key package state is "good"
+(well-defined-Key-active top-key-package-left )
+(well-defined-Key-active top-key-package-right)
+
+;bottom key packages state is "good"
+(well-defined-Key-bool   bot-key-package-left )
+(well-defined-Key-active bot-key-package-right)
+(forall ((h Int))
+(and
+    (= (select  flag-bot-left  h) 
+       (select  flag-bot-right h))
+(=> (= (select table-bot-left  h) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
+    (= (select  flag-bot-left  h) (   mk-some        false)))
+(=> (= (select table-bot-right h) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
+    (and
+    (= (select  flag-bot-right h) (   mk-some        false))
+    (= (select     z-bot-right h) (as mk-none (Maybe Bool )))))
+(=> (= (select  flag-bot-right h) (   mk-some        false))
+    (= (select     z-bot-right h) (as mk-none (Maybe Bool ))))
+)))))))
+
+(define-fun invariant-SETBIT      (
+        (state-left  (Array Int CompositionState-Left ))
+        (state-right (Array Int CompositionState-Right))
+        (state-length-left  Int) ;old index
+        (state-length-right Int) ;old index
+        (state-left-new  Return_Left_keys_top_SETBIT)
+        (state-right-new Return_Right_keys_top_SETBIT)
+        (h Int)
+        (zz Bool))
+    Bool
+    (let
+
+; state of the key packages
+(
+(top-key-package-left  (project-State_Left_keys_top      (composition-pkgstate-Left-keys_top     (select state-left  state-length-left))))
+(top-key-package-right (project-State_Right_keys_top     (composition-pkgstate-Right-keys_top    (select state-right state-length-right))))
+(bot-key-package-left  (project-State_Left_keys_bottom   (composition-pkgstate-Left-keys_bottom  (select state-left  state-length-left))))
+(bot-key-package-right (project-State_Right_keys_bottom  (composition-pkgstate-Right-keys_bottom (select state-right state-length-right))))
+)
+
+(let
+
+; table of the bottom key package
+(
+(table-bot-left  (state-keys-T    bot-key-package-left))
+(table-bot-right (state-keys-T    bot-key-package-right))
+(    z-bot-left  (state-keys-z    bot-key-package-left))
+(    z-bot-right (state-keys-z    bot-key-package-right))
+(flag-bot-left   (state-keys-flag bot-key-package-left))
+(flag-bot-right  (state-keys-flag bot-key-package-right))
+)
+
+(and
+;top key package states are equal
+(= top-key-package-left top-key-package-right)
+
+;for bottom key package, tables are equal
+(= table-bot-left table-bot-right)
+
+;top key package state is "good"
+(well-defined-Key-active top-key-package-left )
+(well-defined-Key-active top-key-package-right)
+
+;bottom key packages state is "good"
+(well-defined-Key-bool   bot-key-package-left )
+(well-defined-Key-active bot-key-package-right)
+(forall ((h Int))
+(and
+    (= (select  flag-bot-left  h) 
+       (select  flag-bot-right h))
+(=> (= (select table-bot-left  h) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
+    (= (select  flag-bot-left  h) (   mk-some        false)))
+(=> (= (select table-bot-right h) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
+    (and
+    (= (select  flag-bot-right h) (   mk-some        false))
+    (= (select     z-bot-right h) (as mk-none (Maybe Bool )))))
+(=> (= (select  flag-bot-right h) (   mk-some        false))
+    (= (select     z-bot-right h) (as mk-none (Maybe Bool ))))
+))))))
+
+
+(define-fun invariant-SETBIT-post          (
+        (state-left  (Array Int CompositionState-Left ))
+        (state-right (Array Int CompositionState-Right))
+        (state-length-left  Int) ;old index
+        (state-length-right Int) ;old index
+        (state-left-new  Return_Left_keys_top_SETBIT)
+        (state-right-new Return_Right_keys_top_SETBIT)
+        (h Int)
+        (zz Bool))
+    Bool
+(let (
+      (state-left-nov  (select  (return-Left-keys_top-SETBIT-state        state-left-new)
+                                (return-Left-keys_top-SETBIT-state-length state-left-new)
+                                ))
+      (state-right-nov (select  (return-Right-keys_top-SETBIT-state        state-right-new)
+                                (return-Right-keys_top-SETBIT-state-length state-right-new)
+                                ))
+     )
+
+    (let
+
+; state of the key packages
+(
+(top-key-package-left  (project-State_Left_keys_top      (composition-pkgstate-Left-keys_top     state-left-nov  )))
+(top-key-package-right (project-State_Right_keys_top     (composition-pkgstate-Right-keys_top    state-right-nov )))
+(bot-key-package-left  (project-State_Left_keys_bottom   (composition-pkgstate-Left-keys_bottom  state-left-nov  )))
+(bot-key-package-right (project-State_Right_keys_bottom  (composition-pkgstate-Right-keys_bottom state-right-nov )))
+)
+
+(let
+
+; table of the bottom key package
+(
+(table-bot-left  (state-keys-T    bot-key-package-left))
+(table-bot-right (state-keys-T    bot-key-package-right))
+(    z-bot-left  (state-keys-z    bot-key-package-left))
+(    z-bot-right (state-keys-z    bot-key-package-right))
+(flag-bot-left   (state-keys-flag bot-key-package-left))
+(flag-bot-right  (state-keys-flag bot-key-package-right))
+)
+
+(and
+;top key package states are equal
+(= top-key-package-left top-key-package-right)
+
+;for bottom key package, tables are equal
+(= table-bot-left table-bot-right)
+
+;top key package state is "good"
+(well-defined-Key-active top-key-package-left )
+(well-defined-Key-active top-key-package-right)
+
+;bottom key packages state is "good"
+(well-defined-Key-bool   bot-key-package-left )
+(well-defined-Key-active bot-key-package-right)
+(forall ((h Int))
+(and
+    (= (select  flag-bot-left  h) 
+       (select  flag-bot-right h))
+(=> (= (select table-bot-left  h) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
+    (= (select  flag-bot-left  h) (   mk-some        false)))
+(=> (= (select table-bot-right h) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
+    (and
+    (= (select  flag-bot-right h) (   mk-some        false))
+    (= (select     z-bot-right h) (as mk-none (Maybe Bool )))))
+(=> (= (select  flag-bot-right h) (   mk-some        false))
+    (= (select     z-bot-right h) (as mk-none (Maybe Bool ))))
+)))))))
+
+(define-fun invariant-GETAOUT      (
+        (state-left  (Array Int CompositionState-Left ))
+        (state-right (Array Int CompositionState-Right))
+        (state-length-left  Int) ;old index
+        (state-length-right Int) ;old index
+        (state-left-new  Return_Left_keys_top_GETAOUT)
+        (state-right-new Return_Right_keys_top_GETAOUT)
+        (h Int))
+    Bool
+    (let
+
+; state of the key packages
+(
+(top-key-package-left  (project-State_Left_keys_top      (composition-pkgstate-Left-keys_top     (select state-left  state-length-left))))
+(top-key-package-right (project-State_Right_keys_top     (composition-pkgstate-Right-keys_top    (select state-right state-length-right))))
+(bot-key-package-left  (project-State_Left_keys_bottom   (composition-pkgstate-Left-keys_bottom  (select state-left  state-length-left))))
+(bot-key-package-right (project-State_Right_keys_bottom  (composition-pkgstate-Right-keys_bottom (select state-right state-length-right))))
+)
+
+(let
+
+; table of the bottom key package
+(
+(table-bot-left  (state-keys-T    bot-key-package-left))
+(table-bot-right (state-keys-T    bot-key-package-right))
+(    z-bot-left  (state-keys-z    bot-key-package-left))
+(    z-bot-right (state-keys-z    bot-key-package-right))
+(flag-bot-left   (state-keys-flag bot-key-package-left))
+(flag-bot-right  (state-keys-flag bot-key-package-right))
+)
+
+(and
+;top key package states are equal
+(= top-key-package-left top-key-package-right)
+
+;for bottom key package, tables are equal
+(= table-bot-left table-bot-right)
+
+;top key package state is "good"
+(well-defined-Key-active top-key-package-left )
+(well-defined-Key-active top-key-package-right)
+
+;bottom key packages state is "good"
+(well-defined-Key-bool   bot-key-package-left )
+(well-defined-Key-active bot-key-package-right)
+(forall ((h Int))
+(and
+    (= (select  flag-bot-left  h) 
+       (select  flag-bot-right h))
+(=> (= (select table-bot-left  h) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
+    (= (select  flag-bot-left  h) (   mk-some        false)))
+(=> (= (select table-bot-right h) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
+    (and
+    (= (select  flag-bot-right h) (   mk-some        false))
+    (= (select     z-bot-right h) (as mk-none (Maybe Bool )))))
+(=> (= (select  flag-bot-right h) (   mk-some        false))
+    (= (select     z-bot-right h) (as mk-none (Maybe Bool ))))
+))))))
+
+
+(define-fun invariant-GETAOUT-post          (
+        (state-left  (Array Int CompositionState-Left ))
+        (state-right (Array Int CompositionState-Right))
+        (state-length-left  Int) ;old index
+        (state-length-right Int) ;old index
+        (state-left-new  Return_Left_keys_top_GETAOUT)
+        (state-right-new Return_Right_keys_top_GETAOUT)
+        (h Int))
+    Bool
+(let (
+      (state-left-nov  (select  (return-Left-keys_top-GETAOUT-state        state-left-new)
+                                (return-Left-keys_top-GETAOUT-state-length state-left-new)
+                                ))
+      (state-right-nov (select  (return-Right-keys_top-GETAOUT-state        state-right-new)
+                                (return-Right-keys_top-GETAOUT-state-length state-right-new)
+                                ))
+     )
+
+    (let
+
+; state of the key packages
+(
+(top-key-package-left  (project-State_Left_keys_top      (composition-pkgstate-Left-keys_top     state-left-nov  )))
+(top-key-package-right (project-State_Right_keys_top     (composition-pkgstate-Right-keys_top    state-right-nov )))
+(bot-key-package-left  (project-State_Left_keys_bottom   (composition-pkgstate-Left-keys_bottom  state-left-nov  )))
+(bot-key-package-right (project-State_Right_keys_bottom  (composition-pkgstate-Right-keys_bottom state-right-nov )))
+)
+
+(let
+
+; table of the bottom key package
+(
+(table-bot-left  (state-keys-T    bot-key-package-left))
+(table-bot-right (state-keys-T    bot-key-package-right))
+(    z-bot-left  (state-keys-z    bot-key-package-left))
+(    z-bot-right (state-keys-z    bot-key-package-right))
+(flag-bot-left   (state-keys-flag bot-key-package-left))
+(flag-bot-right  (state-keys-flag bot-key-package-right))
+)
+
+(and
+;top key package states are equal
+(= top-key-package-left top-key-package-right)
+
+;for bottom key package, tables are equal
+(= table-bot-left table-bot-right)
+
+;top key package state is "good"
+(well-defined-Key-active top-key-package-left )
+(well-defined-Key-active top-key-package-right)
+
+;bottom key packages state is "good"
+(well-defined-Key-bool   bot-key-package-left )
+(well-defined-Key-active bot-key-package-right)
+(forall ((h Int))
+(and
+    (= (select  flag-bot-left  h) 
+       (select  flag-bot-right h))
+(=> (= (select table-bot-left  h) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
+    (= (select  flag-bot-left  h) (   mk-some        false)))
+(=> (= (select table-bot-right h) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
+    (and
+    (= (select  flag-bot-right h) (   mk-some        false))
+    (= (select     z-bot-right h) (as mk-none (Maybe Bool )))))
+(=> (= (select  flag-bot-right h) (   mk-some        false))
+    (= (select     z-bot-right h) (as mk-none (Maybe Bool ))))
+)))))))
+
+(define-fun invariant-GETKEYSIN      (
+        (state-left  (Array Int CompositionState-Left ))
+        (state-right (Array Int CompositionState-Right))
+        (state-length-left  Int) ;old index
+        (state-length-right Int) ;old index
+        (state-left-new  Return_Left_keys_bottom_GETKEYSIN)
+        (state-right-new Return_Right_keys_bottom_GETKEYSIN)
+        (h Int))
+    Bool
+    (let
+
+; state of the key packages
+(
+(top-key-package-left  (project-State_Left_keys_top      (composition-pkgstate-Left-keys_top     (select state-left  state-length-left))))
+(top-key-package-right (project-State_Right_keys_top     (composition-pkgstate-Right-keys_top    (select state-right state-length-right))))
+(bot-key-package-left  (project-State_Left_keys_bottom   (composition-pkgstate-Left-keys_bottom  (select state-left  state-length-left))))
+(bot-key-package-right (project-State_Right_keys_bottom  (composition-pkgstate-Right-keys_bottom (select state-right state-length-right))))
+)
+
+(let
+
+; table of the bottom key package
+(
+(table-bot-left  (state-keys-T    bot-key-package-left))
+(table-bot-right (state-keys-T    bot-key-package-right))
+(    z-bot-left  (state-keys-z    bot-key-package-left))
+(    z-bot-right (state-keys-z    bot-key-package-right))
+(flag-bot-left   (state-keys-flag bot-key-package-left))
+(flag-bot-right  (state-keys-flag bot-key-package-right))
+)
+
+(and
+;top key package states are equal
+(= top-key-package-left top-key-package-right)
+
+;for bottom key package, tables are equal
+(= table-bot-left table-bot-right)
+
+;top key package state is "good"
+(well-defined-Key-active top-key-package-left )
+(well-defined-Key-active top-key-package-right)
+
+;bottom key packages state is "good"
+(well-defined-Key-bool   bot-key-package-left )
+(well-defined-Key-active bot-key-package-right)
+(forall ((h Int))
+(and
+    (= (select  flag-bot-left  h) 
+       (select  flag-bot-right h))
+(=> (= (select table-bot-left  h) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
+    (= (select  flag-bot-left  h) (   mk-some        false)))
+(=> (= (select table-bot-right h) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
+    (and
+    (= (select  flag-bot-right h) (   mk-some        false))
+    (= (select     z-bot-right h) (as mk-none (Maybe Bool )))))
+(=> (= (select  flag-bot-right h) (   mk-some        false))
+    (= (select     z-bot-right h) (as mk-none (Maybe Bool ))))
+))))))
+
+
+(define-fun invariant-GETKEYSIN-post          (
+        (state-left  (Array Int CompositionState-Left ))
+        (state-right (Array Int CompositionState-Right))
+        (state-length-left  Int) ;old index
+        (state-length-right Int) ;old index
+        (state-left-new  Return_Left_keys_bottom_GETKEYSIN)
+        (state-right-new Return_Right_keys_bottom_GETKEYSIN)
+        (h Int))
+    Bool
+(let (
+      (state-left-nov  (select  (return-Left-keys_bottom-GETKEYSIN-state        state-left-new)
+                                (return-Left-keys_bottom-GETKEYSIN-state-length state-left-new)
+                                ))
+      (state-right-nov (select  (return-Right-keys_bottom-GETKEYSIN-state        state-right-new)
+                                (return-Right-keys_bottom-GETKEYSIN-state-length state-right-new)
+                                ))
+     )
+
+    (let
+
+; state of the key packages
+(
+(top-key-package-left  (project-State_Left_keys_top      (composition-pkgstate-Left-keys_top     state-left-nov  )))
+(top-key-package-right (project-State_Right_keys_top     (composition-pkgstate-Right-keys_top    state-right-nov )))
+(bot-key-package-left  (project-State_Left_keys_bottom   (composition-pkgstate-Left-keys_bottom  state-left-nov  )))
+(bot-key-package-right (project-State_Right_keys_bottom  (composition-pkgstate-Right-keys_bottom state-right-nov )))
+)
+
+(let
+
+; table of the bottom key package
+(
+(table-bot-left  (state-keys-T    bot-key-package-left))
+(table-bot-right (state-keys-T    bot-key-package-right))
+(    z-bot-left  (state-keys-z    bot-key-package-left))
+(    z-bot-right (state-keys-z    bot-key-package-right))
+(flag-bot-left   (state-keys-flag bot-key-package-left))
+(flag-bot-right  (state-keys-flag bot-key-package-right))
+)
+
+(and
+;top key package states are equal
+(= top-key-package-left top-key-package-right)
+
+;for bottom key package, tables are equal
+(= table-bot-left table-bot-right)
+
+;top key package state is "good"
+(well-defined-Key-active top-key-package-left )
+(well-defined-Key-active top-key-package-right)
+
+;bottom key packages state is "good"
+(well-defined-Key-bool   bot-key-package-left )
+(well-defined-Key-active bot-key-package-right)
+(forall ((h Int))
+(and
+    (= (select  flag-bot-left  h) 
+       (select  flag-bot-right h))
+(=> (= (select table-bot-left  h) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
+    (= (select  flag-bot-left  h) (   mk-some        false)))
+(=> (= (select table-bot-right h) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))
+    (and
+    (= (select  flag-bot-right h) (   mk-some        false))
+    (= (select     z-bot-right h) (as mk-none (Maybe Bool )))))
+(=> (= (select  flag-bot-right h) (   mk-some        false))
+    (= (select     z-bot-right h) (as mk-none (Maybe Bool ))))
+)))))))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+;    LEFT aborts
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+
+(define-fun left-all-aborts          (
+        (state-left (Array Int CompositionState-Left))
+        (state-right (Array Int CompositionState-Right))
+        (state-length-left Int)  ; old index
+        (state-length-right Int) ; old index
+        (state-left-NEU Return_Left_gate_GBLG)      
+        (state-right-NEU Return_Right_simgate_GBLG) 
+        (h Int)
+        (l Int)
+        (r Int)
+        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
+        (j Int))
+        Bool
+
+
+    (let (
+      (state-left-1  (select  (return-Left-gate-GBLG-state state-left-NEU)
+                                1))
+    )
+
+  (let
+
+; state of the key packages
+(
+(top-key-package-left-1     (project-State_Left_keys_top     (composition-pkgstate-Left-keys_top     state-left-1)))
+(bottom-key-package-left-1  (project-State_Left_keys_bottom  (composition-pkgstate-Left-keys_bottom  state-left-1)))
+)
+
+(let
+
+; table of the top key package
+;        T: Table(Integer,Table(Bool,Bits(n))),
+;        z: Table(Integer,Bool),
+(
+(T-top-left-1        (state-keys-T       top-key-package-left-1))
+(z-top-left-1        (state-keys-z       top-key-package-left-1))
+(flag-top-left-1     (state-keys-flag    top-key-package-left-1))
+(flag-bot-left-1     (state-keys-flag bottom-key-package-left-1))
+)
+
+;;; if l is undefined, then abort
+(=>
+(or
+(= (select    z-top-left-1 l) (as mk-none (Maybe Bool)))
+(= (select flag-top-left-1 l) (as mk-none (Maybe Bool)))
+(= (select flag-top-left-1 l)    (mk-some        false))
+(= (select    z-top-left-1 r) (as mk-none (Maybe Bool)))
+(= (select flag-top-left-1 r) (as mk-none (Maybe Bool)))
+(= (select flag-top-left-1 r)    (mk-some        false))
+(= (select flag-bot-left-1 j)    (mk-some        true ))
+)
+(= (return-Left-gate-GBLG-is-abort state-left-NEU) true)
+)))))
+
+(define-fun left-inverse-all-aborts          (
+        (state-left  (Array Int CompositionState-Left))
+        (state-right (Array Int CompositionState-Right))
+        (state-length-left  Int) ; old index
+        (state-length-right Int) ; old index
+        (state-left-NEU  Return_Left_gate_GBLG)      
+        (state-right-NEU Return_Right_simgate_GBLG) 
+        (h Int)
+        (l Int)
+        (r Int)
+        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
+        (j Int))
+        Bool
+
+
+    (let (
+      (state-left-1  (select  (return-Left-gate-GBLG-state state-left-NEU)
+                                ;(return-Left-gate-GBLG-state-length state-left-NEU)
+                                1))
+    )
+
+  (let
+
+; state of the key packages
+(
+(top-key-package-left-1     (project-State_Left_keys_top     (composition-pkgstate-Left-keys_top     state-left-1)))
+(bottom-key-package-left-1  (project-State_Left_keys_bottom  (composition-pkgstate-Left-keys_bottom  state-left-1)))
+;(top-key-package-left-2     (project-State_Left_keys_top  (composition-pkgstate-Left-keys_top state-left-2)))
+)
+
+(let
+
+; table of the top key package
+;        T: Table(Integer,Table(Bool,Bits(n))),
+;        z: Table(Integer,Bool),
+(
+(T-top-left-1        (state-keys-T    top-key-package-left-1))
+(z-top-left-1        (state-keys-z    top-key-package-left-1))
+(flag-top-left-1     (state-keys-flag top-key-package-left-1))
+(flag-bot-left-1  (state-keys-flag bottom-key-package-left-1))
+)
+
+;;; abort => z[l] or z[r] is undefined or flag[j]=true
+(=>
+(= (return-Left-gate-GBLG-is-abort state-left-NEU) true)
+(or
+(= (select    z-top-left-1 l) (as mk-none (Maybe Bool)))
+(= (select flag-top-left-1 l) (as mk-none (Maybe Bool)))
+(= (select flag-top-left-1 l)    (mk-some        false))
+(= (select    z-top-left-1 r) (as mk-none (Maybe Bool)))
+(= (select flag-top-left-1 r) (as mk-none (Maybe Bool)))
+(= (select flag-top-left-1 r)    (mk-some        false))
+(= (select flag-bot-left-1 j)    (mk-some        true ))
+)
+)))))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+;    RIGHT aborts
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define-fun right-all-aborts          (
+        (state-left     (Array Int CompositionState-Left))
+        (state-right    (Array Int CompositionState-Right))
+        (state-length-left Int)  ; old index
+        (state-length-right Int) ; old index
+        (state-left-NEU  Return_Left_gate_GBLG)      ; old index
+        (state-right-NEU Return_Right_simgate_GBLG) ; old index
+        (h Int)
+        (l Int)
+        (r Int)
+        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
+        (j Int))
+        Bool
+
+
+    (let (
+      (state-right-1  (select  state-right state-length-right)
+                                ;(return-Left-gate-GBLG-state-length state-left-NEU)
+                                ;1))
+    ))
+
+  (let
+
+; state of the key packages
+(
+(bottom-key-package-right-1    (project-State_Right_keys_bottom  (composition-pkgstate-Right-keys_bottom  state-right-1)))
+(top-key-package-right-1       (project-State_Right_keys_top     (composition-pkgstate-Right-keys_top     state-right-1)))
+)
+
+
+(let
+
+; tables of the top and bottom key package
+(
+(   T-top-right-1  (state-keys-T       top-key-package-right-1))
+(   z-top-right-1  (state-keys-z       top-key-package-right-1))
+(flag-top-right-1  (state-keys-flag    top-key-package-right-1))
+(flag-bot-right-1  (state-keys-flag bottom-key-package-right-1))
+(   z-bot-right-1  (state-keys-z    bottom-key-package-right-1))
+)
+
+;;; if j is true, then abort
+(=>
+(or
+(= (select    z-top-right-1 l) (as mk-none (Maybe Bool)))
+(= (select flag-top-right-1 l) (as mk-none (Maybe Bool)))
+(= (select flag-top-right-1 l)    (mk-some        false))
+(= (select    z-top-right-1 r) (as mk-none (Maybe Bool)))
+(= (select flag-top-right-1 r) (as mk-none (Maybe Bool)))
+(= (select flag-top-right-1 r)    (mk-some        false))
+(= (select flag-bot-right-1 j)    (mk-some        true ))
+(= (select    z-bot-right-1 j)    (mk-some        true ))
+(= (select    z-bot-right-1 j)    (mk-some        false))
+)
+(= (return-Right-simgate-GBLG-is-abort state-right-NEU) true)
+)))))
+
+
+(define-fun right-all-aborts-inverse          (
+        (state-left        (Array Int CompositionState-Left ))
+        (state-right       (Array Int CompositionState-Right))
+        (state-length-left  Int) ; old index
+        (state-length-right Int) ; old index
+        (state-left-NEU     Return_Left_gate_GBLG)     ; contains own index
+        (state-right-NEU    Return_Right_simgate_GBLG) ; contains own index
+        (h Int)
+        (l Int)
+        (r Int)
+        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
+        (j Int))
+        Bool
+
+  (let
+
+; state of the key packages
+(
+(bottom-key-package-right-1    (project-State_Right_keys_bottom  (composition-pkgstate-Right-keys_bottom  (select state-right state-length-right))))
+(   top-key-package-right-1    (project-State_Right_keys_top     (composition-pkgstate-Right-keys_top     (select state-right state-length-right))))
+)
+
+
+(let
+
+; table of the bottom key package
+(
+(   T-top-right-1     (state-keys-T       top-key-package-right-1))
+(   z-top-right-1     (state-keys-z       top-key-package-right-1))
+(flag-top-right-1     (state-keys-flag    top-key-package-right-1))
+(flag-bottom-right-1  (state-keys-flag bottom-key-package-right-1))
+(   z-bottom-right-1  (state-keys-z    bottom-key-package-right-1))
+)
+
+;;; abort => input on l or z not defined or output was already defined.
+(=>
+(= (return-Right-simgate-GBLG-is-abort state-right-NEU) true)
+(or
+(= (select    z-top-right-1    l)    (as mk-none (Maybe Bool)))
+(= (select flag-top-right-1    l)    (as mk-none (Maybe Bool)))
+(= (select flag-top-right-1    l)       (mk-some        false))
+(= (select    z-top-right-1    r)    (as mk-none (Maybe Bool)))
+(= (select flag-top-right-1    r)    (as mk-none (Maybe Bool)))
+(= (select flag-top-right-1    r)       (mk-some        false))
+(= (select flag-bottom-right-1 j)       (mk-some        true ))
+(= (select    z-bottom-right-1 j)       (mk-some        true ))
+(= (select    z-bottom-right-1 j)       (mk-some        false))
+)
 ))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+;    LEFT aborts = RIGHT aborts
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define-fun aborts-equal          (
+        (state-left  (Array Int CompositionState-Left))
+        (state-right (Array Int CompositionState-Right))
+        (state-length-left  Int) ; old index = 1
+        (state-length-right Int) ; old index = 1
+        (state-left-NEU Return_Left_gate_GBLG)      ; also contains new index    
+        (state-right-NEU Return_Right_simgate_GBLG) ; also contains new index
+        (h Int)
+        (l Int)
+        (r Int)
+        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
+        (j Int))
+        Bool
 
 
-(define-fun invariant-ctr ((state-left CompositionState-Left)(state-right CompositionState-Right)) Bool
+(= (return-Left-gate-GBLG-is-abort     state-left-NEU)
+   (return-Right-simgate-GBLG-is-abort state-right-NEU))
+)
 
-(let
+(define-fun aborts-equal-SETBIT          (
+        (state-left  (Array Int CompositionState-Left))
+        (state-right (Array Int CompositionState-Right))
+        (state-length-left  Int) ; old index = 1
+        (state-length-right Int) ; old index = 1
+        (state-left-NEU Return_Left_keys_top_SETBIT)      ; also contains new index    
+        (state-right-NEU Return_Right_keys_top_SETBIT) ; also contains new index
+        (h Int)
+        (zz Bool))
+        Bool
 
-; counter values
-(
-;key sampling
-              (ctr-r-left   (composition-rand-Left-5   state-left ))
-              (ctr-rr-left  (composition-rand-Left-6   state-left ))
-              (ctr-r-right  (composition-rand-Right-7  state-right))
-              (ctr-rr-right (composition-rand-Right-8  state-right))
 
-;randomness for the encryptions
-              (ctr-left-9  (composition-rand-Left-9  state-left))
-              (ctr-left-11 (composition-rand-Left-11 state-left))
+(= (return-Left-keys_top-SETBIT-is-abort     state-left-NEU)
+   (return-Right-keys_top-SETBIT-is-abort state-right-NEU))
+)
 
-              (ctr-right-9  (composition-rand-Right-9  state-right))
-              (ctr-right-10 (composition-rand-Right-10 state-right))
-              (ctr-right-11 (composition-rand-Right-11 state-right))
-              (ctr-right-12 (composition-rand-Right-12 state-right))
-              (ctr-right-13 (composition-rand-Right-13 state-right))
-              (ctr-right-14 (composition-rand-Right-14 state-right))
-              (ctr-right-15 (composition-rand-Right-15 state-right))
-              (ctr-right-16 (composition-rand-Right-16 state-right))
+(define-fun aborts-equal-GETAOUT          (
+        (state-left  (Array Int CompositionState-Left))
+        (state-right (Array Int CompositionState-Right))
+        (state-length-left  Int) ; old index = 1
+        (state-length-right Int) ; old index = 1
+        (state-left-NEU Return_Left_keys_top_GETAOUT)      ; also contains new index    
+        (state-right-NEU Return_Right_keys_top_GETAOUT) ; also contains new index
+        (h Int))
+        Bool
+
+
+(= (return-Left-keys_top-GETAOUT-is-abort  state-left-NEU)
+   (return-Right-keys_top-GETAOUT-is-abort state-right-NEU))
 )
 
 
-;compatibility of the counter values
-(= ctr-r-left ctr-r-right)
-(= ctr-rr-left ctr-rr-right)
-
-(= ctr-left-9  (* 4 ctr-right-9))
-(= ctr-left-11 (* 4 ctr-right-10))
-(= ctr-right-9 ctr-right-10)
-(= ctr-right-10 ctr-right-11)
-(= ctr-right-11 ctr-right-12)
-(= ctr-right-12 ctr-right-13)
-(= ctr-right-13 ctr-right-14)
-(= ctr-right-14 ctr-right-15)
-(= ctr-right-15 ctr-right-16)
+(define-fun aborts-equal-GETKEYSIN          (
+        (state-left  (Array Int CompositionState-Left))
+        (state-right (Array Int CompositionState-Right))
+        (state-length-left  Int) ; old index = 1
+        (state-length-right Int) ; old index = 1
+        (state-left-NEU Return_Left_keys_bottom_GETKEYSIN)      ; also contains new index    
+        (state-right-NEU Return_Right_keys_bottom_GETKEYSIN) ; also contains new index
+        (h Int))
+        Bool
 
 
-)
+(= (return-Left-keys_bottom-GETKEYSIN-is-abort  state-left-NEU)
+   (return-Right-keys_bottom-GETKEYSIN-is-abort state-right-NEU))
 )
 
+(define-fun aborts-left-right          (
+        (state-left  (Array Int CompositionState-Left))
+        (state-right (Array Int CompositionState-Right))
+        (state-length-left  Int) ; old index = 1
+        (state-length-right Int) ; old index = 1
+        (state-left-NEU Return_Left_gate_GBLG)      ; also contains new index    
+        (state-right-NEU Return_Right_simgate_GBLG) ; also contains new index
+        (h Int)
+        (l Int)
+        (r Int)
+        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
+        (j Int))
+        Bool
 
 
-;used to be 3 --> 5 left
-;used to be 1 --> 7 right
-;used to be 4 --> 6 left
-;used to be 2 --> 8 right
+(=> (return-Left-gate-GBLG-is-abort     state-left-NEU)
+    (return-Right-simgate-GBLG-is-abort state-right-NEU))
+)
 
-(define-fun lemma1-left-keys ((state-left-alt CompositionState-Left)(state-left-neu CompositionState-Left)) Bool
+(define-fun aborts-right-left          (
+        (state-left  (Array Int CompositionState-Left))
+        (state-right (Array Int CompositionState-Right))
+        (state-length-left  Int) ; old index = 1
+        (state-length-right Int) ; old index = 1
+        (state-left-NEU Return_Left_gate_GBLG)      ; also contains new index    
+        (state-right-NEU Return_Right_simgate_GBLG) ; also contains new index
+        (h Int)
+        (l Int)
+        (r Int)
+        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
+        (j Int))
+        Bool
 
-(let
+
+(=> (return-Right-simgate-GBLG-is-abort state-right-NEU)
+    (return-Left-gate-GBLG-is-abort     state-left-NEU ))
+)
+
+
+; no-abort
+
+(define-fun no-abort          (
+        (state-left  (Array Int CompositionState-Left))
+        (state-right (Array Int CompositionState-Right))
+        (state-length-left  Int) ; old index = 1
+        (state-length-right Int) ; old index = 1
+        (state-left-NEU Return_Left_gate_GBLG)      ; also contains new index    
+        (state-right-NEU Return_Right_simgate_GBLG) ; also contains new index
+        (h Int)
+        (l Int)
+        (r Int)
+        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
+        (j Int))
+        Bool
+
+(and
+(= (return-Left-gate-GBLG-is-abort     state-left-NEU)
+   false)
+(= (return-Right-simgate-GBLG-is-abort     state-right-NEU)
+   false)
+))
+
+(define-fun no-abort-SETBIT          (
+        (state-left  (Array Int CompositionState-Left))
+        (state-right (Array Int CompositionState-Right))
+        (state-length-left  Int) ; old index = 1
+        (state-length-right Int) ; old index = 1
+        (state-left-NEU  Return_Left_keys_top_SETBIT)  ; also contains new index    
+        (state-right-NEU Return_Right_keys_top_SETBIT) ; also contains new index
+        (h Int)
+        (zz Bool))
+        Bool
+
+(and
+(= (return-Left-keys_top-SETBIT-is-abort     state-left-NEU)
+   false)
+(= (return-Right-keys_top-SETBIT-is-abort     state-right-NEU)
+   false)
+))
+
+(define-fun no-abort-GETAOUT          (
+        (state-left  (Array Int CompositionState-Left))
+        (state-right (Array Int CompositionState-Right))
+        (state-length-left  Int) ; old index = 1
+        (state-length-right Int) ; old index = 1
+        (state-left-NEU  Return_Left_keys_top_GETAOUT)  ; also contains new index    
+        (state-right-NEU Return_Right_keys_top_GETAOUT) ; also contains new index
+        (h Int))
+        Bool
+
+(and
+(= (return-Left-keys_top-GETAOUT-is-abort     state-left-NEU)
+   false)
+(= (return-Right-keys_top-GETAOUT-is-abort     state-right-NEU)
+   false)
+))
+
+(define-fun no-abort-GETKEYSIN          (
+        (state-left  (Array Int CompositionState-Left))
+        (state-right (Array Int CompositionState-Right))
+        (state-length-left  Int) ; old index = 1
+        (state-length-right Int) ; old index = 1
+        (state-left-NEU  Return_Left_keys_bottom_GETKEYSIN)  ; also contains new index    
+        (state-right-NEU Return_Right_keys_bottom_GETKEYSIN) ; also contains new index
+        (h Int))
+        Bool
+
+(and
+(= (return-Left-keys_bottom-GETKEYSIN-is-abort     state-left-NEU)
+   false)
+(= (return-Right-keys_bottom-GETKEYSIN-is-abort     state-right-NEU)
+   false)
+))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+;    State lemma: top left = top right
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(define-fun top-whole-left-neu-right-neu          (
+        (state-left (Array Int CompositionState-Left))
+        (state-right (Array Int CompositionState-Right))
+        (state-length-left  Int) ;old index
+        (state-length-right Int) ;old index
+        (state-left-NEU Return_Left_gate_GBLG)
+        (state-right-NEU Return_Right_simgate_GBLG)
+        (h Int)
+        (l Int)
+        (r Int)
+        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
+        (j Int))
+        Bool
+
+
+    (let (
+      (state-left-neu (select   (return-Left-gate-GBLG-state state-left-NEU)
+                                (return-Left-gate-GBLG-state-length state-left-NEU)))
+      (state-right-neu (select  (return-Right-simgate-GBLG-state state-right-NEU)
+                                (return-Right-simgate-GBLG-state-length state-right-NEU)))
+    )
+
+  (let
 
 ; state of the key packages
 (
-(top-key-package-left-alt (project-State_Left_keys_top (composition-pkgstate-Left-keys_top state-left-alt)))
-(top-key-package-left-neu (project-State_Left_keys_top (composition-pkgstate-Left-keys_top state-left-neu)))
-(bottom-key-package-left-alt (project-State_Left_keys_bottom (composition-pkgstate-Left-keys_bottom state-left-alt)))
-(bottom-key-package-left-neu (project-State_Left_keys_bottom (composition-pkgstate-Left-keys_bottom state-left-neu)))
-)
-
-(let
-
-; table of the bottom key package
-(
-(table-top-left-alt (state-keys-T top-key-package-left-alt))
-(table-top-left-neu (state-keys-T top-key-package-left-neu))
-(table-bottom-left-alt (state-keys-T bottom-key-package-left-alt))
-(table-bottom-left-neu (state-keys-T bottom-key-package-left-neu))
-)
-
-
-;;;top key packages don't change
-(= table-top-left-alt table-top-left-neu)
-
-)))
-
-(define-fun lemma1-right-keys ((state-right-alt CompositionState-Right)(state-right-neu CompositionState-Right)) Bool
-
-(let
-
-; state of the key packages
-(
-(top-key-package-right-alt (project-State_Right_keys_top (composition-pkgstate-Right-keys_top state-right-alt)))
-(top-key-package-right-neu (project-State_Right_keys_top (composition-pkgstate-Right-keys_top state-right-neu)))
-(bottom-key-package-right-alt (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-alt)))
+(   top-key-package-left-neu  (project-State_Left_keys_top     (composition-pkgstate-Left-keys_top     state-left-neu)))
+(   top-key-package-right-neu (project-State_Right_keys_top    (composition-pkgstate-Right-keys_top    state-right-neu)))
+(bottom-key-package-left-neu  (project-State_Left_keys_bottom  (composition-pkgstate-Left-keys_bottom  state-left-neu)))
 (bottom-key-package-right-neu (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-neu)))
 )
 
-(let
 
-; table of the bottom key package
-(
-(table-top-right-alt (state-keys-T top-key-package-right-alt))
-(table-top-right-neu (state-keys-T top-key-package-right-neu))
-(table-bottom-right-alt (state-keys-T bottom-key-package-right-alt))
-(table-bottom-right-neu (state-keys-T bottom-key-package-right-neu))
-)
-
-
-;;;top key packages don't change
-(= table-top-right-alt table-top-right-neu)
-
-)))
-
-(define-fun lemma1-keys
-           ((state-left-neu CompositionState-Left)(state-right-neu CompositionState-Right)) Bool
-
-(let
-
-; state of the key packages
-(
-(top-key-package-left-neu  (project-State_Left_keys_top  (composition-pkgstate-Left-keys_top  state-left-neu)))
-(top-key-package-right-neu (project-State_Right_keys_top (composition-pkgstate-Right-keys_top state-right-neu)))
-(bottom-key-package-left-neu  (project-State_Left_keys_bottom (composition-pkgstate-Left-keys_bottom state-left-neu)))
-(bottom-key-package-right-neu (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-neu)))
-)
-
-(let
-
-; table of the bottom key package
-(
-(table-top-left-neu  (state-keys-T top-key-package-left-neu))
-(table-top-right-neu (state-keys-T top-key-package-right-neu))
-(table-bottom-left-neu  (state-keys-T bottom-key-package-left-neu))
-(table-bottom-right-neu (state-keys-T bottom-key-package-right-neu))
-)
-
-;;; bottom key packages equal except for position j
-;;; and where there is j, there is the same or Z
-(ite
-(= table-top-left-neu table-top-right-neu)
-true
-false)
+;;; top key packages have equal state
+(= top-key-package-left-neu top-key-package-right-neu)
 
 
 )))
 
 
-(define-fun lemma2-left-keys-a ((state-left-alt CompositionState-Left)(state-left-neu CompositionState-Left)) Bool
 
-(let
 
-; state of the key packages
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+;    State lemmas Left
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Only need to consider the bottom key package,
+; because the top key package does not change
+; and CVC5 has no problems proving this.
+;
+; no abort   =>  Position h now contains Z
+; unconditional: Everywhere else same as old
+;
+; Approach: precondition = no-abort and 
+; full characterization of no-abort
+; The latter two things only come in the TOML
+;
+;  New Implementation:
+;  bot-left-neu: characterization of new left table
+
+(declare-const Z (Array Bool (Maybe Bits_n)))
+
+(define-fun bot-left-neu          (
+        (state-left  (Array Int CompositionState-Left))
+        (state-right (Array Int CompositionState-Right))
+        (state-length-left Int)  ; old index
+        (state-length-right Int) ; old index
+        (state-left-NEU  Return_Left_gate_GBLG)    
+        (state-right-NEU Return_Right_simgate_GBLG)
+        (h Int)
+        (l Int)
+        (r Int)
+        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
+        (j Int))
+        Bool
+
+
+    (let (
+      (state-left-1  (select  (return-Left-gate-GBLG-state state-left-NEU)
+                                ;(return-Left-gate-GBLG-state-length state-left-NEU)
+                                1))
+      (state-left-2  (select  (return-Left-gate-GBLG-state state-left-NEU)
+                                ;(return-Left-gate-GBLG-state-length state-left-NEU)
+                                2))
+      (state-left-neu  (select  (return-Left-gate-GBLG-state state-left-NEU)
+                              (return-Left-gate-GBLG-state-length state-left-NEU)
+                                 ))
+    )
+
+  (let
+
+; state of the bottom key packages
 (
-(top-key-package-left-alt (project-State_Left_keys_top (composition-pkgstate-Left-keys_top state-left-alt)))
-(top-key-package-left-neu (project-State_Left_keys_top (composition-pkgstate-Left-keys_top state-left-neu)))
-(bottom-key-package-left-alt (project-State_Left_keys_bottom (composition-pkgstate-Left-keys_bottom state-left-alt)))
-(bottom-key-package-left-neu (project-State_Left_keys_bottom (composition-pkgstate-Left-keys_bottom state-left-neu)))
-(ctr-r-left   (composition-rand-Left-3  state-left-alt))
-;(ctr-r-right  (composition-rand-Right-1 state-right-old))
-(ctr-rr-left  (composition-rand-Left-4  state-left-alt))
-;(ctr-rr-right (composition-rand-Right-2 state-right-old))
-)
-
-(let
-
-; table of the bottom key package
-(
-(table-top-left-alt (state-keys-T top-key-package-left-alt))
-(table-top-left-neu (state-keys-T top-key-package-left-neu))
-(table-bottom-left-alt (state-keys-T bottom-key-package-left-alt))
-(table-bottom-left-neu (state-keys-T bottom-key-package-left-neu))
-              ;assignment of the sampled values for the lower Key package
-              (r-left   (mk-some (__sample-rand-Left-Bits_n 5 ctr-r-left)))
-              (rr-left  (mk-some (__sample-rand-Left-Bits_n 6 ctr-rr-left)))
-
-;used to be 3 --> 5
-;used to be 1 --> 7
-;used to be 4 --> 6
-;used to be 2 --> 8
-
-
+(bottom-key-package-left-1     (project-State_Left_keys_bottom  (composition-pkgstate-Left-keys_bottom  state-left-1)))
+(bottom-key-package-left-neu   (project-State_Left_keys_bottom  (composition-pkgstate-Left-keys_bottom  state-left-neu)))
 )
 
 (let
 (
               ;assignment of the sampled values for the lower Key package as a table
-              (Z-left
-                 (store (store Z true  r-left) false rr-left)
-              )
+              (Z-left (store (store Z
+                  false (mk-some randval-left-6))
+                  true  (mk-some randval-left-5)))
+)
+
+
+(let
+(
+              ; table of the bottom key package
+              (   T-bottom-left-1     (state-keys-T    bottom-key-package-left-1))
+              (   z-bottom-left-1     (state-keys-z    bottom-key-package-left-1))
+              (flag-bottom-left-1     (state-keys-flag bottom-key-package-left-1))
+              (   T-bottom-left-neu   (state-keys-T    bottom-key-package-left-neu))
+              (   z-bottom-left-neu   (state-keys-z    bottom-key-package-left-neu))
+              (flag-bottom-left-neu   (state-keys-flag bottom-key-package-left-neu))
+)
+
+;;; characerization of bottom key package state
+(forall ((h Int))
+     (ite 
+     (= h j)
+     (and
+     (= (select    T-bottom-left-neu h) (mk-some Z-left))
+     (= (select flag-bottom-left-neu h) (mk-some true  ))
+     )
+     (and
+     (= (select    T-bottom-left-neu h) (select    T-bottom-left-1 h))
+     (= (select    z-bottom-left-neu h) (select    z-bottom-left-1 h))
+     (= (select flag-bottom-left-neu h) (select flag-bottom-left-1 h))
+     )))
+)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+;    State lemmas Right
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(define-fun bot-right-neu          (
+        (state-left  (Array Int CompositionState-Left))
+        (state-right (Array Int CompositionState-Right))
+        (state-length-left Int)  ; old index
+        (state-length-right Int) ; old index
+        (state-left-NEU  Return_Left_gate_GBLG)    
+        (state-right-NEU Return_Right_simgate_GBLG)
+        (h Int)
+        (l Int)
+        (r Int)
+        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
+        (j Int))
+        Bool
+
+
+    (let (
+      (state-right-1   (select  (return-Right-simgate-GBLG-state state-right-NEU)
+                                ;(return-Left-gate-GBLG-state-length state-left-NEU)
+                                1))
+      (state-right-2   (select  (return-Right-simgate-GBLG-state state-right-NEU)
+                                ;(return-Left-gate-GBLG-state-length state-left-NEU)
+                                2))
+      (state-right-neu (select  (return-Right-simgate-GBLG-state        state-right-NEU)
+                                (return-Right-simgate-GBLG-state-length state-right-NEU)
+                                 ))
+    )
+
+  (let
+
+; state of the bottom key packages
+(
+(bottom-key-package-right-1     (project-State_Right_keys_bottom  (composition-pkgstate-Right-keys_bottom  state-right-1)))
+(bottom-key-package-right-neu   (project-State_Right_keys_bottom  (composition-pkgstate-Right-keys_bottom  state-right-neu)))
+)
+
+(let
+(
+              ;assignment of the sampled values for the lower Key package as a table
+              (Z-right (store (store Z
+                  false (mk-some randval-right-8))
+                  true  (mk-some randval-right-7)))
+)
+
+
+(let
+(
+              ; table of the bottom key package
+              (   T-bottom-right-1     (state-keys-T    bottom-key-package-right-1))
+              (   z-bottom-right-1     (state-keys-z    bottom-key-package-right-1))
+              (flag-bottom-right-1     (state-keys-flag bottom-key-package-right-1))
+              (   T-bottom-right-neu   (state-keys-T    bottom-key-package-right-neu))
+              (   z-bottom-right-neu   (state-keys-z    bottom-key-package-right-neu))
+              (flag-bottom-right-neu   (state-keys-flag bottom-key-package-right-neu))
+)
+
+;;; characerization of bottom key package state
+(forall ((h Int))
+     (ite 
+     (= h j)
+     (and
+     (= (select    T-bottom-right-neu h) (mk-some Z-right))
+     (= (select flag-bottom-right-neu h) (mk-some true  ))
+     )
+     (and
+     (= (select    T-bottom-right-neu h) (select    T-bottom-right-1 h))
+     (= (select    z-bottom-right-neu h) (select    z-bottom-right-1 h))
+     (= (select flag-bottom-right-neu h) (select flag-bottom-right-1 h))
+     )))
+)))))
+
+(define-fun temp         (
+        (state-left  (Array Int CompositionState-Left))
+        (state-right (Array Int CompositionState-Right))
+        (state-length-left Int)  ; old index
+        (state-length-right Int) ; old index
+        (state-left-NEU  Return_Left_gate_GBLG)    
+        (state-right-NEU Return_Right_simgate_GBLG)
+        (h Int)
+        (l Int)
+        (r Int)
+        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
+        (j Int))
+        Bool
+
+
+    (let (
+      (state-left-neu  (select  (return-Left-gate-GBLG-state            state-left-NEU)
+                                (return-Left-gate-GBLG-state-length     state-left-NEU)))
+      (state-right-neu (select  (return-Right-simgate-GBLG-state        state-right-NEU)
+                                (return-Right-simgate-GBLG-state-length state-right-NEU)))
+         )   
+
+  (let
+
+; state of the bottom key packages
+(
+(bottom-key-package-left-neu    (project-State_Left_keys_bottom   (composition-pkgstate-Left-keys_bottom   state-left-neu)))
+(bottom-key-package-right-neu   (project-State_Right_keys_bottom  (composition-pkgstate-Right-keys_bottom  state-right-neu)))
+)
+
+
+(let
+(
+              ; table of the bottom key package
+              (T-bottom-right-neu   (state-keys-T    bottom-key-package-right-neu))
+              (T-bottom-left-neu    (state-keys-T    bottom-key-package-left-neu))
+)
+
+;;; characerization of bottom key package state
+     (= T-bottom-left-neu T-bottom-right-neu)
+))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+;  OLD
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;  Old Implementation:
+;                  bot-Z-left-2: After first call, Z is stored at h. 23:07
+;  bot-except-left-neu-left-alt: Same as before except for h.        seconds
+;     bot-table-left-2-left-neu: Does not change later.              seconds
+
+
+
+(define-fun bot-Z-left-2          (
+        (state-left  (Array Int CompositionState-Left))
+        (state-right (Array Int CompositionState-Right))
+        (state-length-left Int)  ; old index
+        (state-length-right Int) ; old index
+        (state-left-NEU  Return_Left_gate_GBLG)    
+        (state-right-NEU Return_Right_simgate_GBLG)
+        (h Int)
+        (l Int)
+        (r Int)
+        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
+        (j Int))
+        Bool
+
+
+    (let (
+      (state-left-1  (select  (return-Left-gate-GBLG-state state-left-NEU)
+                                ;(return-Left-gate-GBLG-state-length state-left-NEU)
+                                1))
+      (state-left-2  (select  (return-Left-gate-GBLG-state state-left-NEU)
+                                ;(return-Left-gate-GBLG-state-length state-left-NEU)
+                                2))
+    )
+
+  (let
+
+; state of the bottom key packages
+(
+(bottom-key-package-left-1     (project-State_Left_keys_bottom  (composition-pkgstate-Left-keys_bottom  state-left-1)))
+(bottom-key-package-left-2     (project-State_Left_keys_bottom  (composition-pkgstate-Left-keys_bottom  state-left-2)))
+)
+
+(let
+(
+              ;assignment of the sampled values for the lower Key package as a table
+              (Z-left (store (store Z
+                  false (mk-some randval-left-6))
+                  true  (mk-some randval-left-5)))
+)
+
+
+(let
+(
+              ; table of the bottom key package
+              (flag-bottom-left-1  (state-keys-flag bottom-key-package-left-1))
+              ;(T-bottom-left-1     (state-keys-T    bottom-key-package-left-1))
+              (T-bottom-left-2     (state-keys-T    bottom-key-package-left-2))
+)
+
+;;; top key packages have equal state
+(=>
+(not (= (select flag-bottom-left-1 j) (mk-some true)))
+     (= (select    T-bottom-left-2 j) (mk-some Z-left))
+))))))
+
+(define-fun bot-except-left-neu-left-alt      (
+        (state-left-alt (Array Int CompositionState-Left))
+        (state-right (Array Int CompositionState-Right))
+        (state-length-left-old Int)
+        (state-length-right-old Int)
+        (state-left-NEU Return_Left_gate_GBLG)
+        (state-right-NEU Return_Right_simgate_GBLG)
+        (h Int)
+        (l Int)
+        (r Int)
+        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
+        (j Int))
+    Bool
+
+
+    (let (
+      (state-left-neu (select   (return-Left-gate-GBLG-state state-left-NEU)
+                                (return-Left-gate-GBLG-state-length state-left-NEU)))
+    )
+
+    (let
+
+; state of the key packages
+(
+(top-key-package-left-alt (project-State_Left_keys_top       (composition-pkgstate-Left-keys_top    (select state-left-alt state-length-left-old))))
+(top-key-package-left-neu (project-State_Left_keys_top       (composition-pkgstate-Left-keys_top    state-left-neu)))
+(bottom-key-package-left-alt (project-State_Left_keys_bottom (composition-pkgstate-Left-keys_bottom (select state-left-alt state-length-left-old))))
+(bottom-key-package-left-neu (project-State_Left_keys_bottom (composition-pkgstate-Left-keys_bottom state-left-neu)))
+)
+
+(let
+
+; table of the bottom key package
+(
+(table-top-left-alt (state-keys-T top-key-package-left-alt))
+(table-top-left-neu (state-keys-T top-key-package-left-neu))
+(table-bottom-left-alt (state-keys-T bottom-key-package-left-alt))
+(table-bottom-left-neu (state-keys-T bottom-key-package-left-neu))
+)
+
+(let
+(
+              ;assignment of the sampled values for the lower Key package as a table
+              (Z-left (store (store Z
+                    false (mk-some randval-left-6))
+                  true (mk-some randval-left-5)))
+              
 )
 
 ;;; bottom key packages equal except for position j
-;;; and where there is j, there is the same or Z
 (forall ((hh Int))
-(ite
-(and (= j hh) (= (select table-bottom-left-alt hh) (as mk-none (Maybe (Array Bool (Maybe Bits_n))))))
-true
+(=>
+(not
+(and (= j hh) (= (select table-bottom-left-alt hh) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))))
 (= (select table-bottom-left-alt hh) (select table-bottom-left-neu hh))
-))))))
+)))))))
 
-(define-fun lemma2-left-keys-b ((state-left-alt CompositionState-Left)(state-left-neu CompositionState-Left)) Bool
-
-(let
-
-; state of the key packages
-(
-(top-key-package-left-alt (project-State_Left_keys_top (composition-pkgstate-Left-keys_top state-left-alt)))
-(top-key-package-left-neu (project-State_Left_keys_top (composition-pkgstate-Left-keys_top state-left-neu)))
-(bottom-key-package-left-alt (project-State_Left_keys_bottom (composition-pkgstate-Left-keys_bottom state-left-alt)))
-(bottom-key-package-left-neu (project-State_Left_keys_bottom (composition-pkgstate-Left-keys_bottom state-left-neu)))
-(ctr-r-left   (composition-rand-Left-5  state-left-alt))
-(ctr-rr-left  (composition-rand-Left-6  state-left-alt))
-)
-
-;used to be 3 --> 5
-;used to be 1 --> 7
-;used to be 4 --> 6
-;used to be 2 --> 8
+(define-fun bot-table-left-2-left-neu
+          (
+        (state-left  (Array Int CompositionState-Left))
+        (state-right (Array Int CompositionState-Right))
+        (state-length-left  Int) ; length of old state
+        (state-length-right Int) ; length of old state
+        (state-left-NEU Return_Left_gate_GBLG)
+        (state-right-NEU Return_Right_simgate_GBLG)
+        (h Int)
+        (l Int)
+        (r Int)
+        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
+        (j Int))
+        Bool
 
 
-(let
+    (let (
+      (state-left-neu  (select  (return-Left-gate-GBLG-state        state-left-NEU)
+                                (return-Left-gate-GBLG-state-length state-left-NEU)
+                              ))
+      (state-left-2  (select  (return-Left-gate-GBLG-state state-left-NEU)
+                                ;(return-Left-gate-GBLG-state-length state-left-NEU)
+                                2))                          
+    )
 
-; table of the bottom key package
-(
-(table-top-left-alt (state-keys-T top-key-package-left-alt))
-(table-top-left-neu (state-keys-T top-key-package-left-neu))
-(table-bottom-left-alt (state-keys-T bottom-key-package-left-alt))
-(table-bottom-left-neu (state-keys-T bottom-key-package-left-neu))
-              ;assignment of the sampled values for the lower Key package
-              (r-left   (mk-some (__sample-rand-Left-Bits_n 5 ctr-r-left)))
-              (rr-left  (mk-some (__sample-rand-Left-Bits_n 6 ctr-rr-left)))
-
-;used to be 3 --> 5
-;used to be 1 --> 7
-;used to be 4 --> 6
-;used to be 2 --> 8
-
-
-)
-
-(let
-(
-              ;assignment of the sampled values for the lower Key package as a table
-              (Z-left
-                 (store (store Z true  r-left) false rr-left)
-              )
-)
-
-;;; bottom key packages equal except for position j
-;;; and where there is j, there is the same or Z
-(forall ((hh Int))
-(ite
-(and (= j hh) (= (select table-bottom-left-alt hh) (as mk-none (Maybe (Array Bool (Maybe Bits_n))))))
-;(= (select table-bottom-left-alt hh) (select table-bottom-left-neu hh))
-(= (select table-bottom-left-neu hh) (mk-some Z-left)) ;this is the hard part in the proof
-true
-))))))
-
-(define-fun lemma2-right-keys-a ((state-right-alt CompositionState-Right)(state-right-neu CompositionState-Right)) Bool
-
-(let
+  (let
 
 ; state of the key packages
 (
-(top-key-package-right-alt (project-State_Right_keys_top (composition-pkgstate-Right-keys_top state-right-alt)))
-(top-key-package-right-neu (project-State_Right_keys_top (composition-pkgstate-Right-keys_top state-right-neu)))
-(bottom-key-package-right-alt (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-alt)))
-(bottom-key-package-right-neu (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-neu)))
-
-; get current counter for Bits_n sampling
-              ;assignment of the ctr of the sample instructions for the lower Key package
-              (ctr-r-right  (composition-rand-Right-7 state-right-alt))
-              (ctr-rr-right (composition-rand-Right-8 state-right-alt))
-
-;used to be 3 --> 5 left
-;used to be 1 --> 7 right
-;used to be 4 --> 6 left
-;used to be 2 --> 8 right
-
-
+(bottom-key-package-left-neu  (project-State_Left_keys_bottom (composition-pkgstate-Left-keys_bottom state-left-neu)))
+(bottom-key-package-left-2    (project-State_Left_keys_bottom (composition-pkgstate-Left-keys_bottom state-left-2)))
 )
 
-(let
-
-; table of the bottom key package
-(
-(table-top-right-alt    (state-keys-T top-key-package-right-alt))
-(table-top-right-neu    (state-keys-T top-key-package-right-neu))
-(table-bottom-right-alt (state-keys-T bottom-key-package-right-alt))
-(table-bottom-right-neu (state-keys-T bottom-key-package-right-neu))
-
-              ;assignment of the sampled values for the lower Key package
-              (r-right  (mk-some (__sample-rand-Right-Bits_n 7 ctr-r-right)))
-              (rr-right (mk-some (__sample-rand-Right-Bits_n 8 ctr-rr-right)))
-
-;used to be 3 --> 5 left
-;used to be 1 --> 7 right
-;used to be 4 --> 6 left
-;used to be 2 --> 8 right
-
-
+;; bottom key left = bottom key right
+(and
+(= bottom-key-package-left-neu bottom-key-package-left-2)
 )
 
-(let
-(
-              ;assignment of the sampled values for the lower Key package as a table
-              (Z-right (store (store Z true r-right) false rr-right))
-)
-
-
-;;; bottom key packages equal except for position j
-;;; and where there is j, there is the same or Z
-(forall ((hh Int))
-(ite
-(not
-(and (= j hh) (= (select table-bottom-right-alt hh) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))))
-(= (select table-bottom-right-alt hh) (select table-bottom-right-neu hh))
-true ;(= (select table-bottom-right-neu hh) (mk-some Z-right)) ;this is the hard part in the proof
-))))))
-
-
-(define-fun lemma2-right-keys-b ((state-right-alt CompositionState-Right)(state-right-neu CompositionState-Right)) Bool
-
-(let
-
-; state of the key packages
-(
-(top-key-package-right-alt (project-State_Right_keys_top (composition-pkgstate-Right-keys_top state-right-alt)))
-(top-key-package-right-neu (project-State_Right_keys_top (composition-pkgstate-Right-keys_top state-right-neu)))
-(bottom-key-package-right-alt (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-alt)))
-(bottom-key-package-right-neu (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-neu)))
-
-; get current counter for Bits_n sampling
-              ;assignment of the ctr of the sample instructions for the lower Key package
-              (ctr-r-right  (composition-rand-Right-7 state-right-alt))
-              (ctr-rr-right (composition-rand-Right-8 state-right-alt))
-
-;used to be 3 --> 5 left
-;used to be 1 --> 7 right
-;used to be 4 --> 6 left
-;used to be 2 --> 8 right
-
-
-)
-
-(let
-
-; table of the bottom key package
-(
-(table-top-right-alt    (state-keys-T top-key-package-right-alt))
-(table-top-right-neu    (state-keys-T top-key-package-right-neu))
-(table-bottom-right-alt (state-keys-T bottom-key-package-right-alt))
-(table-bottom-right-neu (state-keys-T bottom-key-package-right-neu))
-
-              ;assignment of the sampled values for the lower Key package
-              (r-right  (mk-some (__sample-rand-Right-Bits_n 7 ctr-r-right)))
-              (rr-right (mk-some (__sample-rand-Right-Bits_n 8 ctr-rr-right)))
-
-)
-
-(let
-(
-              ;assignment of the sampled values for the lower Key package as a table
-              (Z-right (store (store Z true r-right) false rr-right))
-)
-
-
-;;; bottom key packages equal except for position j
-;;; and where there is j, there is the same or Z
-(forall ((hh Int))
-(ite
-(not
-(and (= j hh) (= (select table-bottom-right-alt hh) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))))
-true
-(= (select table-bottom-right-neu hh) (mk-some Z-right)) ;this is the hard part in the proof
-))))))
-
-(define-fun lemma2-sample ((state-left-alt CompositionState-Left)(state-right-alt CompositionState-Right)) Bool
-(let
-(
-              ;assignment of the ctr of the sample instructions for the lower Key package
-              (ctr-r-left   (composition-rand-Left-5  state-left-alt))
-              (ctr-rr-left  (composition-rand-Left-6  state-left-alt))
-              (ctr-r-right  (composition-rand-Right-7 state-right-alt))
-              (ctr-rr-right (composition-rand-Right-8 state-right-alt))
-)
-
-;used to be 3 --> 5 left
-;used to be 1 --> 7 right
-;used to be 4 --> 6 left
-;used to be 2 --> 8 right
-
-
-(let
-(
-              ;assignment of the sampled values for the lower Key package
-              (r-left   (mk-some (__sample-rand-Left-Bits_n 5 ctr-r-left)))
-              (rr-left  (mk-some (__sample-rand-Left-Bits_n 6 ctr-rr-left)))
-              (r-right  (mk-some (__sample-rand-Right-Bits_n 7 ctr-r-right)))
-              (rr-right (mk-some (__sample-rand-Right-Bits_n 8 ctr-rr-right)))
-)
-
-(= r-left   rr-left)
-(= r-right  rr-right)
 )))
 
 
-(define-fun lemma2-keys ((state-left-neu CompositionState-Left)(state-right-neu CompositionState-Right)) Bool
 
-(let
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; Same Output
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; state of the key packages
-(
-(top-key-package-left-neu     (project-State_Left_keys_top  (composition-pkgstate-Left-keys_top state-left-neu)))
-(top-key-package-right-neu    (project-State_Right_keys_top (composition-pkgstate-Right-keys_top state-right-neu)))
-(bottom-key-package-left-neu  (project-State_Left_keys_bottom  (composition-pkgstate-Left-keys_bottom state-left-neu)))
-(bottom-key-package-right-neu (project-State_Right_keys_bottom (composition-pkgstate-Right-keys_bottom state-right-neu)))
+(define-fun same-output          (
+        (state-left (Array Int CompositionState-Left))
+        (state-right (Array Int CompositionState-Right))
+        (state-length-left-old Int)
+        (state-length-right-old Int)
+        (state-left-NEU Return_Left_gate_GBLG)
+        (state-right-NEU Return_Right_simgate_GBLG)
+        (h Int)
+        (l Int)
+        (r Int)
+        (op (Array (Tuple2 Bool Bool) (Maybe Bool)))
+        (j Int))
+        Bool
+(=
+(return-Left-gate-GBLG-value return-left-gate-GBLG)
+(return-Right-simgate-GBLG-value return-right-simgate-GBLG)
+)
 )
 
-(let
-
-; table of the bottom key package
-(
-(table-top-left-neu     (state-keys-T top-key-package-left-neu))
-(table-top-right-neu    (state-keys-T top-key-package-right-neu))
-(table-bottom-left-neu  (state-keys-T bottom-key-package-left-neu))
-(table-bottom-right-neu (state-keys-T bottom-key-package-right-neu))
+(define-fun same-output-SETBIT          (
+        (state-left (Array Int CompositionState-Left))
+        (state-right (Array Int CompositionState-Right))
+        (state-length-left-old Int)
+        (state-length-right-old Int)
+        (state-left-NEU Return_Left_keys_top_SETBIT)
+        (state-right-NEU Return_Right_keys_top_SETBIT)
+        (h Int)
+        (zz Bool))
+        Bool
+(=
+(return-Left-keys_top-SETBIT-value return-left-keys_top-SETBIT)
+(return-Right-keys_top-SETBIT-value return-right-keys_top-SETBIT)
+)
 )
 
-;;; bottom key packages equal except for position j
-;;; and where there is j, there is the same or Z
-(forall ((hh Int))
-(= (select table-bottom-left-neu hh) (select table-bottom-right-neu hh))
-))))
+(define-fun same-output-GETAOUT          (
+        (state-left (Array Int CompositionState-Left))
+        (state-right (Array Int CompositionState-Right))
+        (state-length-left-old Int)
+        (state-length-right-old Int)
+        (state-left-NEU Return_Left_keys_top_GETAOUT)
+        (state-right-NEU Return_Right_keys_top_GETAOUT)
+        (h Int))
+        Bool
+(=
+(return-Left-keys_top-GETAOUT-value return-left-keys_top-GETAOUT)
+(return-Right-keys_top-GETAOUT-value return-right-keys_top-GETAOUT)
+)
+)
 
-
-;(define-fun lemma3-left-keys ((state-left-alt CompositionState-Left)(state-left-neu CompositionState-Left)) Bool
-;
-;(let
-;
-;; state of the key packages
-;(
-;(top-key-package-left-alt (project-State_Left_keys_top (composition-pkgstate-Left-keys_top state-left-alt)))
-;(top-key-package-left-neu (project-State_Left_keys_top (composition-pkgstate-Left-keys_top state-left-neu)))
-;(bottom-key-package-left-alt (project-State_Left_keys_bottom (composition-pkgstate-Left-keys_bottom state-left-alt)))
-;(bottom-key-package-left-neu (project-State_Left_keys_bottom (composition-pkgstate-Left-keys_bottom state-left-neu)))
-;
-;)
-;
-;(select Z-left true              (= r-left   (__sample-rand-Left-Bits_n 3 ctr-r-left))
-;;              (= r-right  (__sample-rand-Right-Bits_n 1 ctr-r-right))
-;              (= rr-left  (__sample-rand-Left-Bits_n 4 ctr-rr-left))
-;;              (= rr-right (__sample-rand-Right-Bits_n 2 ctr-rr-left))
-;
-;              ;assignment of the sampled values for the lower Key package as a table
-;              (= (mk-some  r-left)  (select Z-left   true))
-;              (= (mk-some rr-left)  (select Z-left  false))
-;
-;(let
-;
-;; table of the bottom key package
-;(
-;(table-top-left-alt (state-keys-T bottom-key-package-left-alt))
-;(table-top-left-neu (state-keys-T bottom-key-package-left-neu))
-;(table-bottom-left-alt (state-keys-T bottom-key-package-left-alt))
-;(table-bottom-left-neu (state-keys-T bottom-key-package-left-neu))
-;)
-;
-;;;; bottom key packages equal except for position j
-;;;; and where there is j, there is the same or Z
-;(forall ((hh Int))
-;(ite
-;(and (= j hh) (= (select table-bottom-left-alt hh) (as mk-none (Maybe (Array Bool (Maybe Bits_n)))))))
-;(= (select table-bottom-right-new hh) (mk-some Z-left)) ;this is the hard part in the proof
-;true
-;))))
-
-
-
-(push 1)
-
-(assert (and (invariant-keys state-left-old state-right-old)
-             (invariant-ctr state-left-old state-right-old)
-             (not is-abort-right)
-             (not is-abort-left)
-             (not (invariant-ctr state-left-new state-right-new))))
-(check-sat) ;3
-;(get-model)
-(pop 1)
-
-(push 1)
-
-(assert (and (invariant-keys state-left-old state-right-old)
-             (invariant-ctr state-left-old state-right-old)
-             (invariant-ctr state-left-new state-right-new)
-             (not is-abort-right)
-             (not is-abort-left)
-             (not (lemma2-sample state-left-old state-right-old))))
-(check-sat) ;3
-;(get-model)
-(pop 1)
-
-
-(push 1)
-(assert (and (invariant-keys state-left-old state-right-old)
-             (invariant-ctr state-left-old state-right-old)
-             (invariant-ctr state-left-new state-right-new)
-             (not is-abort-right)
-             (not is-abort-left)
-             (not (lemma1-left-keys state-left-old state-left-new))))
-(check-sat) ;4
-;(get-model)
-(pop 1)
-
-(push 1)
-
-(assert (and (invariant-keys state-left-old state-right-old)
-             (invariant-ctr state-left-old state-right-old)
-             (invariant-ctr state-left-new state-right-new)
-             (not is-abort-right)
-             (not is-abort-left)
-             (lemma1-left-keys state-left-old state-left-new)
-             (not (lemma1-right-keys state-right-old state-right-new))))
-(check-sat) ;5
-;(get-model)
-(pop 1)
-
-(push 1)
-
-(assert (and (invariant-keys state-left-old state-right-old)
-             (invariant-ctr state-left-old state-right-old)
-             (invariant-ctr state-left-new state-right-new)
-             (not is-abort-right)
-             (not is-abort-left)
-             (lemma1-left-keys state-left-old state-left-new)
-             (lemma1-right-keys state-right-old state-right-new)
-             (not (lemma1-keys state-left-new state-right-new))))
-(check-sat) ;6
-;(get-model)
-(pop 1)
-
-(push 1)
-
-(assert (and (invariant-keys          state-left-old  state-right-old)
-             (invariant-ctr           state-left-old  state-right-old)
-             (invariant-ctr state-left-new state-right-new)
-             (not is-abort-right)
-             (not is-abort-left)
-             (lemma1-left-keys        state-left-old  state-left-new)
-             (lemma1-right-keys       state-right-old state-right-new)
-             (lemma1-keys             state-left-new  state-right-new)
-             (not (lemma2-left-keys-a state-left-old  state-left-new))
-             ))
-(check-sat) ;7
-;(get-model)
-(pop 1)
-
-(push 1)
-
-(assert (and (invariant-keys          state-left-old state-right-old)
-             (invariant-ctr           state-left-old state-right-old)
-             (invariant-ctr           state-left-new state-right-new)
-             (not is-abort-right)
-             (not is-abort-left)
-             (lemma1-left-keys        state-left-old state-left-new)
-             (lemma1-right-keys       state-right-old state-right-new)
-             (lemma1-keys             state-left-new  state-right-new)
-             (lemma2-left-keys-a      state-left-old state-left-new)
-             (not (lemma2-left-keys-b state-left-old state-left-new))
-             ))
-(check-sat) ;8
-;(get-model)
-(pop 1)
-
-(push 1)
-
-(assert (and (invariant-keys          state-left-old  state-right-old)
-             (invariant-ctr           state-left-old  state-right-old)
-             (invariant-ctr           state-left-new  state-right-new)
-             (not is-abort-right)
-             (not is-abort-left)
-             (lemma1-left-keys        state-left-old  state-left-new)
-             (lemma1-right-keys       state-right-old state-right-new)
-             (lemma1-keys             state-left-new  state-right-new)
-             (lemma2-left-keys-a      state-left-old  state-left-new)
-             (lemma2-left-keys-b      state-left-old  state-left-new)
-             (not (lemma2-right-keys-a  state-right-old state-right-new))
-             ))
-(check-sat) ;9
-;(get-model)
-(pop 1)
-
-(push 1)
-
-(assert (and (invariant-keys          state-left-old  state-right-old)
-             (invariant-ctr           state-left-old  state-right-old)
-             (invariant-ctr           state-left-new  state-right-new)
-             (not is-abort-right)
-             (not is-abort-left)
-             (lemma1-left-keys        state-left-old  state-left-new)
-             (lemma1-right-keys       state-right-old state-right-new)
-             (lemma1-keys             state-left-new  state-right-new)
-             (lemma2-left-keys-a      state-left-old  state-left-new)
-             (lemma2-left-keys-b      state-left-old  state-left-new)
-             (lemma2-right-keys-a     state-right-old state-right-new)
-             (not (lemma2-right-keys-b  state-right-old state-right-new))
-             ))
-(check-sat) ;10
-;(get-model)
-(pop 1)
-
-
-(push 1)
-
-(assert (and (invariant-keys         state-left-old  state-right-old)
-             (invariant-ctr          state-left-old  state-right-old)
-             (invariant-ctr          state-left-new state-right-new)
-             (not is-abort-right)
-             (not is-abort-left)
-             (lemma1-left-keys       state-left-old  state-left-new)
-             (lemma1-right-keys      state-right-old state-right-new)
-             (lemma1-keys            state-left-new  state-right-new)
-             (lemma2-left-keys-a     state-left-old  state-left-new)
-             (lemma2-left-keys-b     state-left-old  state-left-new)
-             (lemma2-right-keys-a    state-right-old state-right-new)
-             (lemma2-right-keys-b    state-right-old state-right-new)
-             (not (lemma2-keys       state-left-new  state-right-new))))
-(check-sat) ;10
-;(get-model)
-(pop 1)
-
-(push 1)
-
-(assert (and (invariant-keys         state-left-old  state-right-old)
-             (invariant-ctr          state-left-old  state-right-old)
-             (invariant-ctr          state-left-new state-right-new)
-             (not is-abort-right)
-             (not is-abort-left)
-             (lemma1-left-keys       state-left-old  state-left-new)
-             (lemma1-right-keys      state-right-old state-right-new)
-             (lemma1-keys            state-left-new  state-right-new)
-             (lemma2-left-keys-a     state-left-old  state-left-new)
-             (lemma2-left-keys-b     state-left-old  state-left-new)
-             (lemma2-right-keys-a    state-right-old state-right-new)
-             (lemma2-right-keys-b    state-right-old state-right-new)
-             (lemma2-keys            state-left-new  state-right-new)
-             (not (invariant-keys    state-left-new  state-right-new))))
-(check-sat) ;11
-;(get-model)
-(pop 1)
-
-(push 1)
-
-(assert (and (invariant-keys state-left-old state-right-old)
-             (invariant-ctr state-left-old state-right-old)
-             (invariant-keys state-left-new state-right-new)
-             (invariant-ctr state-left-new state-right-new)
-             (not is-abort-right)
-             (not is-abort-left)
-             (= y-left y-right)
-             ))
-(check-sat) ;12
-;(get-model)
-(pop 1)
+(define-fun same-output-GETKEYSIN          (
+        (state-left (Array Int CompositionState-Left))
+        (state-right (Array Int CompositionState-Right))
+        (state-length-left-old Int)
+        (state-length-right-old Int)
+        (state-left-NEU Return_Left_keys_bottom_GETKEYSIN)
+        (state-right-NEU Return_Right_keys_bottom_GETKEYSIN)
+        (h Int))
+        Bool
+(=
+(return-Left-keys_bottom-GETKEYSIN-value return-left-keys_bottom-GETKEYSIN)
+(return-Right-keys_bottom-GETKEYSIN-value return-right-keys_bottom-GETKEYSIN)
+)
+)
