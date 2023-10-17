@@ -452,12 +452,12 @@ impl<'a> EquivalenceContext<'a> {
 
         ////// return values
 
-        for (decl_ret, constrain) in build_returns(&left.game(), Side::Left) {
+        for (decl_ret, constrain) in build_returns(left, Side::Left) {
             out.push(decl_ret);
             out.push(constrain);
         }
 
-        for (decl_ret, constrain) in build_returns(&right.game(), Side::Right) {
+        for (decl_ret, constrain) in build_returns(right, Side::Right) {
             out.push(decl_ret);
             out.push(constrain);
         }
@@ -1378,19 +1378,20 @@ fn build_partial_returns(
         })
         .collect()
 }
-fn build_returns(game: &Composition, game_side: Side) -> Vec<(SmtExpr, SmtExpr)> {
-    let gctx = contexts::GameContext::new(game);
+fn build_returns(game: &GameInstance, game_side: Side) -> Vec<(SmtExpr, SmtExpr)> {
+    let gctx = contexts::GameContext::new(game.game());
+    let game_name = &game.game().name;
+    let game_inst_name = &game.name();
 
     // write declarations of right return constants and constrain them
-    game.exports
+    game.game().exports
         .iter()
         .map(|Export(inst_idx, sig)| {
             let oracle_name = &sig.name;
-            let game_name = &game.name;
             let octx = gctx.exported_oracle_ctx_by_name(&sig.name).expect(&format!(
                 "error looking up exported oracle with name {oracle_name} in game {game_name}"
             ));
-            let inst_name = &game.pkgs[*inst_idx].name;
+            let inst_name = &game.game().pkgs[*inst_idx].name;
             let oracle_name = &sig.name;
             let return_name = format!("return-{game_side}-{inst_name}-{oracle_name}");
 
@@ -1402,7 +1403,7 @@ fn build_returns(game: &Composition, game_side: Side) -> Vec<(SmtExpr, SmtExpr)>
                 .map(|(arg_name, _)| octx.smt_arg_name(arg_name));
 
             let invok = octx
-                .smt_invoke_oracle(format!("state-{game_side}"), args)
+                .smt_invoke_oracle(format!("game-state-{game_inst_name}-old"), args)
                 .unwrap();
 
             let constrain_return: SmtExpr = SmtAssert(SmtEq2 {
