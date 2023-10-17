@@ -205,7 +205,7 @@ impl<'a> OracleContext<'a> {
         let inst_name = &inst.name;
         let oracle_name = &osig.name;
 
-        let expected_len = 3 + osig.args.len();
+        let expected_len = 2 + osig.args.len();
 
         let mut cmdline = Vec::with_capacity(expected_len);
         cmdline.push(names::oracle_function_name(game_name, inst_name, oracle_name).into());
