@@ -1057,10 +1057,7 @@ impl<'a> CompositionSmtWriter<'a> {
         let code = &def.code;
         let mut args = vec![(
             names::var_globalstate_name(),
-            sorts::Array {
-                key: crate::types::Type::Integer,
-                value: names::gamestate_sort_name(&self.comp.name),
-            },
+            names::gamestate_sort_name(&self.comp.name),
         )
             .into()];
 
