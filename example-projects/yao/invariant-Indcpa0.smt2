@@ -316,39 +316,63 @@ true
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define-fun invariant-ENCN          (
-        (state-left  (Array Int CompositionState-Indcpamod0 ))
-        (state-right (Array Int CompositionState-Indcpamon0))
-        (state-length-left  Int) ;old index
-        (state-length-right Int) ;old index
-        (state-left-new  Return_Indcpamod0_enc_ENCN)
-        (state-right-new Return_Indcpamon0_red_ENCN)
-        (d Bool)
-        (nzero Bits_n)
-        (none  Bits_n))
+(define-fun invariant-ENCN
+    ((state-left CompositionState-Indcpamod0)
+	 (state-right CompositionState-Indcpamon0))
     Bool
-   (let
+  (let ((top-key-package-left  (project-State_Indcpamod0_keys_top      (composition-pkgstate-Indcpamod0-keys_top state-left)))
+        (top-key-package-right (project-State_Indcpamodn_indcpamon0    (composition-pkgstate-Indcpamon0-keys_top state-rigth))))
+    (and
+      ;top key package states are equal
+      (= top-key-package-left top-key-package-right)
 
-; state of the key packages
-(
-(top-key-package-left  (project-State_Indcpamod0_keys_top      (composition-pkgstate-Indcpamod0-keys_top     (select state-left  state-length-left))))
-(top-key-package-right (project-keys-State_Indcpamon0_indcpamon0   (select state-right state-length-right)))  ;(composition-pkgstate-Indcpamon0-indcpamon0    (select state-right state-length-right))))
-)
+      ;top key package state is "good"
+      (well-defined-Key-debug top-key-package-left )
+      (well-defined-Key-debug top-key-package-right)
 
-(and
-;top key package states are equal
-(= top-key-package-left top-key-package-right)
+      ;the functions left and right are the same
+      (forall ((k Bits_n)(x Bits_n)(r Bits_n))
+        (= (__func-Indcpamon0-encn k x r) (__func-Indcpamod0-encn  k x r))))))
 
 
-;top key package state is "good"
-(well-defined-Key-debug top-key-package-left )
-(well-defined-Key-debug top-key-package-right)
+;;;   (define-fun invariant-ENCN          (
+;;;           (state-left  (Array Int CompositionState-Indcpamod0 ))
+;;;           (state-right (Array Int CompositionState-Indcpamon0))
+;;;           (state-length-left  Int) ;old index
+;;;           (state-length-right Int) ;old index
+;;;           (state-left-new  Return_Indcpamod0_enc_ENCN)
+;;;           (state-right-new Return_Indcpamon0_red_ENCN)
+;;;           (d Bool)
+;;;           (nzero Bits_n)
+;;;           (none  Bits_n))
+;;;       Bool
+;;;      (let
+;;;   
+;;;   ; state of the key packages
+;;;   (
+;;;   (top-key-package-left  (project-State_Indcpamod0_keys_top      (composition-pkgstate-Indcpamod0-keys_top     (select state-left  state-length-left))))
+;;;   (top-key-package-right (project-keys-State_Indcpamon0_indcpamon0   (select state-right state-length-right)))  ;(composition-pkgstate-Indcpamon0-indcpamon0    (select state-right state-length-right))))
+;;;   )
+;;;   
+;;;   
+;;; 
+;;; 
+;;; 
+;;; (and
+;;; ;top key package states are equal
+;;; (= top-key-package-left top-key-package-right)
+;;; 
+;;; 
+;;; ;top key package state is "good"
+;;; (well-defined-Key-debug top-key-package-left )
+;;; (well-defined-Key-debug top-key-package-right)
+;;; 
+;;; ;the functions left and right are the same
+;;; (forall ((k Bits_n)(x Bits_n)(r Bits_n))
+;;; (= (__func-Indcpamon0-encn k x r) (__func-Indcpamod0-encn  k x r))
+;;; )
+;;; )))
 
-;the functions left and right are the same
-(forall ((k Bits_n)(x Bits_n)(r Bits_n))
-(= (__func-Indcpamon0-encn k x r) (__func-Indcpamod0-encn  k x r))
-)
-)))
 
 (define-fun invariant-ENCN-post          (
         (state-left  (Array Int CompositionState-Indcpamod0 ))
