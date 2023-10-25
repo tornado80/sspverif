@@ -321,7 +321,7 @@ true
 	 (state-right CompositionState-Indcpamon0))
     Bool
   (let ((top-key-package-left  (project-State_Indcpamod0_keys_top      (composition-pkgstate-Indcpamod0-keys_top state-left)))
-        (top-key-package-right (project-State_Indcpamodn_indcpamon0    (composition-pkgstate-Indcpamon0-keys_top state-rigth))))
+        (top-key-package-right (project-keys-State_Indcpamon0_indcpamon0     state-right)))
     (and
       ;top key package states are equal
       (= top-key-package-left top-key-package-right)
