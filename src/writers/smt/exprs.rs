@@ -324,13 +324,9 @@ where
     }
 }
 
-impl From<SmtAs> for SmtExpr {
-    fn from(smtas: SmtAs) -> Self {
-        SmtExpr::List(vec![
-            SmtExpr::Atom("as".to_string()),
-            SmtExpr::Atom(smtas.name),
-            smtas.tipe.into(),
-        ])
+impl<T: Into<SmtExpr>, S: SmtSort> From<SmtAs<T, S>> for SmtExpr {
+    fn from(smtas: SmtAs<T, S>) -> Self {
+        ("as", smtas.term, smtas.sort).into()
     }
 }
 
@@ -372,9 +368,9 @@ where
     pub rhs: R,
 }
 
-pub struct SmtAs {
-    pub name: String,
-    pub tipe: Type,
+pub struct SmtAs<T: Into<SmtExpr>, S: SmtSort> {
+    pub term: T,
+    pub sort: S,
 }
 
 pub struct SmtIte<C, T, E>

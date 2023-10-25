@@ -7,7 +7,8 @@ use crate::{
         names,
         partials::PartialsDatatype,
         patterns::{
-            DatastructurePattern, GameStateDeclareInfo, GameStatePattern, GameStateSelector,
+            declare_datatype, DatastructurePattern, GameStateDeclareInfo, GameStatePattern,
+            GameStateSelector,
         },
     },
 };
@@ -126,7 +127,7 @@ impl<'a> GameContext<'a> {
         };
 
         let spec = game_state_pattern.datastructure_spec(&declare_info);
-        game_state_pattern.declare_datatype(&spec)
+        declare_datatype(&game_state_pattern, &spec)
     }
 
     pub fn smt_access_gamestate_pkgstate<S: Into<SmtExpr>>(

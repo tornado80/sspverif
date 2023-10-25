@@ -49,3 +49,15 @@ where
         ("Array", key, value).into()
     }
 }
+
+pub struct SmtReturnValue<T: SmtSort> {
+    pub inner_sort: T,
+}
+
+impl<T: SmtSort> From<SmtReturnValue<T>> for SmtExpr {
+    fn from(value: SmtReturnValue<T>) -> Self {
+        ("ReturnValue", value.inner_sort).into()
+    }
+}
+
+impl<T: SmtSort> SmtSort for SmtReturnValue<T> {}

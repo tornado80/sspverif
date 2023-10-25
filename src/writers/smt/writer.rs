@@ -17,9 +17,9 @@ use super::contexts::{
 use super::exprs::{SmtAs, SmtEq2};
 use super::partials::PartialsDatatype;
 use super::patterns::{
-    FunctionPattern, GameStateDeclareInfo, GameStatePattern, GameStateSelector,
+    declare_datatype, FunctionPattern, GameStateDeclareInfo, GameStatePattern, GameStateSelector,
     IntermediateStateConstructor, IntermediateStatePattern, IntermediateStateSelector,
-    PartialOraclePattern,
+    PartialOraclePattern, ReturnPattern, ReturnValue, ReturnValueSelector,
 };
 use super::{names, sorts};
 
@@ -616,8 +616,7 @@ impl<'a> CompositionSmtWriter<'a> {
             )
             .unwrap();
 
-        let some_empty = ("mk-some", "mk-empty");
-        let body = oracle_ctx.smt_construct_return(var_gamestates, some_empty, "false");
+        let body = oracle_ctx.smt_construct_return(var_gamestates, "mk-empty");
 
         game_ctx.smt_push_global_gamestate(new_gamestate, body)
     }
@@ -642,11 +641,7 @@ impl<'a> CompositionSmtWriter<'a> {
             )
             .unwrap();
 
-        let body = oracle_ctx.smt_construct_return(
-            var_gamestates,
-            Expression::Some(Box::new(expr.clone())),
-            "false",
-        );
+        let body = oracle_ctx.smt_construct_return(var_gamestates, expr.clone());
 
         game_ctx.smt_push_global_gamestate(new_gamestate, body)
     }
@@ -812,6 +807,11 @@ impl<'a> CompositionSmtWriter<'a> {
         )
             .into()];
 
+        let return_value_pattern = ReturnValue {
+            inner_type: oracle_ctx.oracle_return_type(),
+        };
+        let return_value_spec = return_value_pattern.datastructure_spec(&());
+
         let smt_expr = SmtLet {
             bindings: vec![(names::var_ret_name(), {
                 let mut cmdline = vec![
@@ -838,11 +838,14 @@ impl<'a> CompositionSmtWriter<'a> {
                         if id.ident() != "_" {
                             bindings.push((
                                 id.ident(),
-                                SmtExpr::List(vec![
-                                    SmtExpr::Atom("maybe-get".into()),
-                                    called_oracle_context
-                                        .smt_access_return_value(names::var_ret_name()),
-                                ]),
+                                return_value_pattern
+                                    .access(
+                                        &return_value_spec,
+                                        &ReturnValueSelector,
+                                        called_oracle_context
+                                            .smt_access_return_value(names::var_ret_name()),
+                                    )
+                                    .unwrap(),
                             ));
                         }
 
@@ -949,8 +952,8 @@ impl<'a> CompositionSmtWriter<'a> {
                 cond: SmtEq2 {
                     lhs: *inner.clone(),
                     rhs: SmtAs {
-                        name: "mk-none".into(),
-                        tipe: Type::Maybe(Box::new(t)),
+                        term: "mk-none",
+                        sort: Type::Maybe(Box::new(t)),
                     },
                 },
                 then: oracle_ctx.smt_construct_abort(),
@@ -1065,26 +1068,32 @@ impl<'a> CompositionSmtWriter<'a> {
         args.extend(rest_args);
 
         let game_name = &self.comp.name;
-        let inst_name = &inst.name;
+        let pkg_inst_name = &inst.name;
         let oracle_name = &def.sig.name;
+
+        let return_pattern = ReturnPattern {
+            game_name,
+            pkg_inst_name,
+            oracle_name,
+        };
 
         let game_context = GameContext::new(&self.comp);
         let oracle_ctx = game_context
-            .pkg_inst_ctx_by_name(inst_name)
+            .pkg_inst_ctx_by_name(pkg_inst_name)
             .expect("couldn't find package instance with name {inst_name}")
             .oracle_ctx_by_name(oracle_name)
             .expect("couldn't find oracle with name {oracle_name}");
 
         (
             "define-fun",
-            names::oracle_function_name(game_name, inst_name, oracle_name),
+            names::oracle_function_name(game_name, pkg_inst_name, oracle_name),
             SmtExpr::List(args.clone()),
-            names::return_sort_name(game_name, inst_name, oracle_name),
+            return_pattern.sort(),
             SmtLet {
                 bindings: vec![(
                     names::var_selfstate_name(),
                     game_context
-                        .smt_access_gamestate_pkgstate(names::var_globalstate_name(), inst_name)
+                        .smt_access_gamestate_pkgstate(names::var_globalstate_name(), pkg_inst_name)
                         .unwrap(),
                 )],
                 body: self.smt_codeblock_nonsplit(&oracle_ctx, code.clone()),
@@ -1283,8 +1292,10 @@ impl<'a> CompositionSmtWriter<'a> {
             }
 
             return_typedefs.push(self.smt_declare_partial_return_datatype(dtype));
-            intermediate_state_typedefs
-                .push(intermediate_state_pattern.declare_datatype(&intermediate_state_spec));
+            intermediate_state_typedefs.push(declare_datatype(
+                &intermediate_state_pattern,
+                &intermediate_state_spec,
+            ));
             dispatch_fndefs.push(pkg_inst_ctx.smt_declare_oracle_dispatch_function(dtype));
         }
 
@@ -1308,7 +1319,7 @@ impl<'a> CompositionSmtWriter<'a> {
         };
 
         let spec = prp.datastructure_spec(&());
-        prp.declare_datatype(&spec)
+        declare_datatype(&prp, &spec)
     }
 
     pub fn smt_composition_all(&mut self) -> Vec<SmtExpr> {

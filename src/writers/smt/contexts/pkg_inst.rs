@@ -1,6 +1,7 @@
 use crate::package::PackageInstance;
 use crate::split::SplitPath;
 use crate::writers::smt::partials::PartialsDatatype;
+use crate::writers::smt::patterns::declare_datatype;
 use crate::writers::smt::{
     contexts::{GameContext, OracleContext, PackageInstanceContext, SplitOracleContext},
     exprs::SmtExpr,
@@ -123,7 +124,7 @@ impl<'a> PackageInstanceContext<'a> {
         let pattern = self.pkg_state_pattern();
         let spec = pattern.datastructure_spec(&pkg);
 
-        return pattern.declare_datatype(&spec);
+        return declare_datatype(&pattern, &spec);
     }
 
     pub fn smt_access_pkgstate<S: Into<SmtExpr>>(
