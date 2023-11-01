@@ -1,103 +1,10 @@
+
 ;;;;;;;;;;;;;;;;;
 ;
 ; left  = mod
 ; right = mon
 ;
 ;;;;;;;;;;;;;;;;;
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;
-;   Randomness naming
-;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-; r, will be written into Z at true
-(declare-const randval-left-GETA-1 Bits_n)
-(assert (= randval-left-GETA-1  (__sample-rand-Indcpamod0-Bits_n 1 randctr-left-1
-)))
-
-; k_, will be written into Z at z
-(declare-const randval-right-GETA-1 Bits_n)
-(assert (= randval-right-GETA-1 (__sample-rand-Indcpamon0-Bits_n 1 randctr-right-1
-)))
-
-; rr, will be written into Z at false
-(declare-const randval-left-GETA-2 Bits_n)
-(assert (= randval-left-GETA-2  (__sample-rand-Indcpamod0-Bits_n 2 randctr-left-2
-)))
-
-(declare-const randval-right-GETA-2 Bits_n)
-(assert (= randval-right-GETA-2 (__sample-rand-Indcpamon0-Bits_n 2 randctr-right-2
-)))
-
-; r, will be written into Z at true
-(declare-const randval-left-GETA-3 Bits_n)
-(assert (= randval-left-GETA-3  (__sample-rand-Indcpamod0-Bits_n  3 randctr-left-3
-)))
-
-(declare-const randval-right-GETA-3 Bits_n)
-(assert (= randval-right-GETA-3 (__sample-rand-Indcpamon0-Bits_n 3 randctr-right-3
-)))
-
-; rr, will be written into Z at false
-(declare-const randval-left-GETA-4 Bits_n)
-(assert (= randval-left-GETA-4  (__sample-rand-Indcpamod0-Bits_n  4 randctr-left-4
-)))
-
-; k_, will be written into Z at not z
-(declare-const randval-right-GETA-4 Bits_n)
-(assert (= randval-right-GETA-4 (__sample-rand-Indcpamon0-Bits_n 4 randctr-right-4
-)))
-
-
-
-(declare-const randval-left-ENCN-1 Bits_n)
-(assert (= randval-left-ENCN-1  (__sample-rand-Indcpamod0-Bits_n  1 randctr-left-1
-)))
-
-(declare-const randval-right-ENCN-1 Bits_n)
-(assert (= randval-right-ENCN-1 (__sample-rand-Indcpamon0-Bits_n 1 randctr-right-1
-)))
-
-(declare-const randval-left-ENCN-2 Bits_n)
-(assert (= randval-left-ENCN-2  (__sample-rand-Indcpamod0-Bits_n 2 randctr-left-2
-)))
-
-(declare-const randval-right-ENCN-2 Bits_n)
-(assert (= randval-right-ENCN-2 (__sample-rand-Indcpamon0-Bits_n 2 randctr-right-2
-)))
-
-(declare-const randval-left-ENCN-3 Bits_n)
-(assert (= randval-left-ENCN-3  (__sample-rand-Indcpamod0-Bits_n 3 randctr-left-3
-)))
-
-(declare-const randval-right-ENCN-3 Bits_n)
-(assert (= randval-right-ENCN-3 (__sample-rand-Indcpamon0-Bits_n 3 randctr-right-3
-)))
-
-(declare-const randval-left-ENCN-4 Bits_n)
-(assert (= randval-left-ENCN-4  (__sample-rand-Indcpamod0-Bits_n 4 randctr-left-4
-)))
-
-(declare-const randval-right-ENCN-4 Bits_n)
-(assert (= randval-right-ENCN-4 (__sample-rand-Indcpamon0-Bits_n 4 randctr-right-4
-)))
-
-(declare-const randval-left-ENCN-5 Bits_n)
-(assert (= randval-left-ENCN-5  (__sample-rand-Indcpamod0-Bits_n 5 randctr-left-5
-)))
-
-(declare-const randval-right-ENCN-5 Bits_n)
-(assert (= randval-right-ENCN-5 (__sample-rand-Indcpamon0-Bits_n 5 randctr-right-5
-)))
-
-(declare-const randval-left-ENCN-6 Bits_n)
-(assert (= randval-left-ENCN-6  (__sample-rand-Indcpamod0-Bits_n 6 randctr-left-6
-)))
-
-(declare-const randval-right-ENCN-6 Bits_n)
-(assert (= randval-right-ENCN-6 (__sample-rand-Indcpamon0-Bits_n 6 randctr-right-6
-)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
@@ -158,7 +65,7 @@ false
 (and     (= id-mod 1) 
          (= id-mon 4) 
          (= ctr-mod new-mod)
-         (= ctr-mod new-mod)
+         (= ctr-mon new-mon)
 )
 
 ;(=  randval-left-GETA-2 ; rr at false
@@ -168,7 +75,7 @@ false
 (and     (= id-mod 2) 
          (= id-mon 1) 
          (= ctr-mod new-mod)
-         (= ctr-mod new-mod)
+         (= ctr-mon new-mon)
 )))
 
 (=>
@@ -223,14 +130,26 @@ false
         (new-mon Int)
 ) Bool
 (and
-(id-mod 5)
-(id-mon 2)
+(= id-mod 5)
+(= id-mon 2)
 (= ctr-mod new-mod)
 (= ctr-mon new-mon)
 ))
 
-(define-fun randomness-mapping-ENCM () Bool
-(= randval-left-ENCN-6 randval-right-ENCN-3)
+(define-fun randomness-mapping-ENCM (
+;(= randval-left-ENCN-6 randval-right-ENCN-3)
+        (ctr-mod     Int)
+        (ctr-mon     Int) 
+        (id-mod      Int)
+        (id-mon      Int) 
+        (new-mod Int)
+        (new-mon Int)) Bool
+(and
+(= id-mod 6)
+(= id-mon 3)
+(= ctr-mod new-mod)
+(= ctr-mon new-mon)
+)        
 )
 
 
@@ -480,9 +399,7 @@ false
 (define-fun invariant-SETBIT      (
         (state-left  CompositionState-Indcpamod0 )
         (state-right CompositionState-Indcpamon0)
-        (state-left-new  Return-Indcpamod0-keys_top-SETBIT)
-        (state-right-new Return-Indcpamon0-red-SETBIT)
-        (zz Bool))
+)
     Bool
     (let
 
@@ -504,36 +421,6 @@ false
 )))
 
 
-(define-fun invariant-SETBIT-post          (
-        (state-left   CompositionState-Indcpamod0 )
-        (state-right  CompositionState-Indcpamon0)
-        (state-left-new  Return-Indcpamod0-keys_top-SETBIT)
-        (state-right-new Return-Indcpamon0-red-SETBIT)
-        (zz Bool))
-    Bool
-(let (
-      (state-left-nov   (return-Indcpamod0-keys_top-SETBIT-game-state        state-left-new))
-      (state-right-nov  (return-Indcpamon0-red-SETBIT-game-state        state-right-new))
-     )
-
-    (let
-
-; state of the key packages
-(
-(top-key-package-left  (project-State_Indcpamod0_keys_top      (composition-pkgstate-Indcpamod0-keys_top     state-left-nov  )))
-(top-key-package-right (project-keys-State_Indcpamon0_indcpamon0  state-right-nov ))   ; (((composition-pkgstate-Indcpamon0-indcpamon0    state-right-nov )))
-)
-
-(and
-;top key package states are equal
-(= top-key-package-left top-key-package-right)
-
-
-;top key package state is "good"
-(well-defined-Key-active top-key-package-left )
-(well-defined-Key-active top-key-package-right)
-
-))))
 
 
 (define-fun invariant-GETAOUT      (

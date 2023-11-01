@@ -116,7 +116,7 @@ proof Yao {
 
                 lemmas {
                     aborts-equal-SETBIT:   []
-                    invariant-SETBIT-post: [no-abort-SETBIT]
+                    invariant-SETBIT:      [no-abort-SETBIT]
                     same-output-SETBIT:    [no-abort-SETBIT]
                 }
             }
