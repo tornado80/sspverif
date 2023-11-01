@@ -214,7 +214,9 @@ impl Communicator {
     }
 
     pub fn write_smt<I: Into<SmtExpr>>(&mut self, expr: I) -> Result<()> {
-        write!(self, "{}", expr.into())?;
+        let mut buffer = String::new();
+        write!(buffer, "{}", expr.into())?;
+        write!(self, "{}", buffer)?;
         Ok(())
     }
 
