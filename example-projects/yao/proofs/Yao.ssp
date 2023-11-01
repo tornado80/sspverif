@@ -129,7 +129,7 @@ proof Yao {
                 ]
                 lemmas {
                     same-output-GETAOUT:                [no-abort-GETAOUT]
-                    invariant-GETAOUT-post:             [no-abort-GETAOUT]
+                    invariant-GETAOUT:                  [no-abort-GETAOUT]
                     aborts-equal-GETAOUT:               []
                 }
             }
@@ -140,7 +140,7 @@ proof Yao {
                 ]
                 lemmas {
                     same-output-ENCN:                [no-abort-ENCN]
-                    invariant-ENCN-post:             [no-abort-ENCN]
+                    invariant-ENCN     :             [no-abort-ENCN]
                     aborts-equal-ENCN:               []
                 }
             }
@@ -158,7 +158,7 @@ proof Yao {
                 ]
 
                 lemmas {
-                    invariant-GETAOUT-post: []
+                    invariant-GETAOUT: []
                     aborts-equal-GETAOUT:   []
                     same-output-GETAOUT:    [no-abort-GETAOUT]
                 }
@@ -169,7 +169,7 @@ proof Yao {
                 ]
 
                 lemmas {
-                    invariant-SETBIT-post: []
+                    invariant-SETBIT: []
                     aborts-equal-SETBIT:   []
                     same-output-SETBIT:    [no-abort-SETBIT]
                 }
@@ -180,7 +180,7 @@ proof Yao {
                 ]
 
                 lemmas {
-                    invariant-GETKEYSIN-post: []
+                    invariant-GETKEYSIN: []
                     aborts-equal-GETKEYSIN:   []
                     same-output-GETKEYSIN:    [no-abort-GETKEYSIN]
                 }
@@ -201,7 +201,7 @@ proof Yao {
                     bot-right-neu: [ no-abort , right-all-aborts , right-all-aborts-inverse ]
                     temp: [ no-abort , left-all-aborts , left-inverse-all-aborts , right-all-aborts , right-all-aborts-inverse , bot-left-neu , bot-right-neu ]
                     same-output: [ temp , no-abort , left-all-aborts , left-inverse-all-aborts , right-all-aborts , right-all-aborts-inverse , bot-left-neu , bot-right-neu ]
-                    invariant-GBLG-post: [ temp , no-abort , left-all-aborts , left-inverse-all-aborts , right-all-aborts , right-all-aborts-inverse , bot-left-neu , bot-right-neu ]
+                    invariant-GBLG: [ temp , no-abort , left-all-aborts , left-inverse-all-aborts , right-all-aborts , right-all-aborts-inverse , bot-left-neu , bot-right-neu ]
                 }
             }
         }
