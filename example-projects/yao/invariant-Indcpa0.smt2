@@ -222,8 +222,12 @@ false
         (new-mod Int)
         (new-mon Int)
 ) Bool
-(= randval-left-ENCN-5 randval-right-ENCN-2)
-)
+(and
+(id-mod 5)
+(id-mon 2)
+(= ctr-mod new-mod)
+(= ctr-mon new-mon)
+))
 
 (define-fun randomness-mapping-ENCM () Bool
 (= randval-left-ENCN-6 randval-right-ENCN-3)
