@@ -617,7 +617,7 @@ impl<'a> EquivalenceContext<'a> {
         let state_left_new_name = GameState {
             game_inst_name: game_inst_name_left,
             game_name: &gctx_left.game().name,
-            variant: "new",
+            variant: &format!("new-{oracle_name}"),
         }
         .name();
 
@@ -631,7 +631,7 @@ impl<'a> EquivalenceContext<'a> {
         let state_right_new_name = GameState {
             game_inst_name: game_inst_name_right,
             game_name: &gctx_right.game().name,
-            variant: "new",
+            variant: &format!("new-{oracle_name}"),
         }
         .name();
 
@@ -647,7 +647,7 @@ impl<'a> EquivalenceContext<'a> {
             game_name: &gctx_left.game().name,
             pkg_inst_name: pkg_inst_name_left,
             oracle_name,
-            variant: "new",
+            variant: &format!("new-{oracle_name}"),
         }
         .name();
 
@@ -665,7 +665,7 @@ impl<'a> EquivalenceContext<'a> {
             game_name: &gctx_right.game().name,
             pkg_inst_name: pkg_inst_name_right,
             oracle_name,
-            variant: "new",
+            variant: &format!("new-{oracle_name}"),
         }
         .name();
 
@@ -875,7 +875,7 @@ impl<'a> EquivalenceContext<'a> {
         let state_left_new = GameState {
             game_inst_name: game_inst_name_left,
             game_name: &gctx_left.game().name,
-            variant: "new",
+            variant: &format!("new-{oracle_name}"),
         };
 
         let state_left_old = GameState {
@@ -887,7 +887,7 @@ impl<'a> EquivalenceContext<'a> {
         let state_right_new = GameState {
             game_inst_name: game_inst_name_right,
             game_name: &gctx_right.game().name,
-            variant: "new",
+            variant: &format!("new-{oracle_name}"),
         };
 
         let state_right_old = GameState {
