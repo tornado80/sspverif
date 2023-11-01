@@ -120,3 +120,15 @@ impl<'a> DatastructurePattern<'a> for ReturnPattern<'a> {
         }
     }
 }
+
+impl<'a> ReturnPattern<'a> {
+    pub fn global_const_name(&self) -> String {
+        let Self {
+            game_name,
+            pkg_inst_name,
+            oracle_name,
+        } = self;
+
+        format!("return-{game_name}-{pkg_inst_name}-{oracle_name}")
+    }
+}

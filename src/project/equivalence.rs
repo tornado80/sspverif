@@ -14,7 +14,8 @@ use crate::writers::smt::exprs::{
 use crate::writers::smt::partials::{into_partial_dtypes, PartialsDatatype};
 use crate::writers::smt::patterns::{
     DatastructurePattern, GameState, GameStateDeclareInfo, GameStatePattern, GameStateSelector,
-    IntermediateStateConst, OracleArgs, PartialReturnConst,
+    IntermediateStateConst, OracleArgs, PartialReturnConst, ReturnConst, ReturnPattern,
+    ReturnSelector, ReturnValueConst,
 };
 use crate::writers::smt::writer::CompositionSmtWriter;
 use crate::writers::smt::{contexts, declare, patterns};
@@ -857,49 +858,43 @@ impl<'a> EquivalenceContext<'a> {
 
         // find the package instance which is marked as exporting
         // the oracle of this name, both left and right.
-        let left_return_name = patterns::ReturnConst {
+        let left_return = patterns::ReturnConst {
             game_inst_name: game_inst_name_left,
             game_name: game_name_left,
             pkg_inst_name: pkg_inst_name_left,
             oracle_name,
-        }
-        .name();
+        };
 
-        let right_return_name = patterns::ReturnConst {
+        let right_return = patterns::ReturnConst {
             game_inst_name: game_inst_name_right,
             game_name: game_name_right,
             pkg_inst_name: pkg_inst_name_right,
             oracle_name,
-        }
-        .name();
+        };
 
-        let state_left_new_name = GameState {
+        let state_left_new = GameState {
             game_inst_name: game_inst_name_left,
             game_name: &gctx_left.game().name,
             variant: "new",
-        }
-        .name();
+        };
 
-        let state_left_old_name = GameState {
+        let state_left_old = GameState {
             game_inst_name: game_inst_name_left,
             game_name: &gctx_left.game().name,
             variant: "old",
-        }
-        .name();
+        };
 
-        let state_right_new_name = GameState {
+        let state_right_new = GameState {
             game_inst_name: game_inst_name_right,
             game_name: &gctx_right.game().name,
             variant: "new",
-        }
-        .name();
+        };
 
-        let state_right_old_name = GameState {
+        let state_right_old = GameState {
             game_inst_name: game_inst_name_right,
             game_name: &gctx_right.game().name,
             variant: "old",
-        }
-        .name();
+        };
 
         // this helper builds an smt expression that calls the
         // function with the given name with the old states,
@@ -909,10 +904,10 @@ impl<'a> EquivalenceContext<'a> {
         let build_lemma_call = |name: &str| {
             let mut tmp: Vec<SmtExpr> = vec![
                 name.into(),
-                state_left_old_name.clone().into(),
-                state_right_old_name.clone().into(),
-                left_return_name.clone().into(),
-                right_return_name.clone().into(),
+                state_left_old.name().into(),
+                state_right_old.name().into(),
+                left_return.name().into(),
+                right_return.name().into(),
             ];
 
             for arg in args {
@@ -922,14 +917,17 @@ impl<'a> EquivalenceContext<'a> {
             SmtExpr::List(tmp)
         };
 
-        let build_relation_call =
-            |name: &str| -> SmtExpr { (name, &state_left_new_name, &state_right_new_name).into() };
+        let build_relation_call = |name: &str| -> SmtExpr {
+            (name, &state_left_new.name(), &state_right_new.name()).into()
+        };
 
-        let build_invariant_old_call =
-            |name: &str| -> SmtExpr { (name, &state_left_old_name, &state_right_old_name).into() };
+        let build_invariant_old_call = |name: &str| -> SmtExpr {
+            (name, &state_left_old.name(), &state_right_old.name()).into()
+        };
 
-        let build_invariant_new_call =
-            |name: &str| -> SmtExpr { (name, &state_left_new_name, &state_right_new_name).into() };
+        let build_invariant_new_call = |name: &str| -> SmtExpr {
+            (name, &state_left_new.name(), &state_right_new.name()).into()
+        };
 
         let dep_calls: Vec<_> = claim
             .dependencies()
@@ -1384,37 +1382,94 @@ fn build_returns(game: &GameInstance, game_side: Side) -> Vec<(SmtExpr, SmtExpr)
     let game_inst_name = &game.name();
 
     // write declarations of right return constants and constrain them
-    game.game().exports
-        .iter()
-        .map(|Export(inst_idx, sig)| {
-            let oracle_name = &sig.name;
-            let octx = gctx.exported_oracle_ctx_by_name(&sig.name).expect(&format!(
-                "error looking up exported oracle with name {oracle_name} in game {game_name}"
-            ));
-            let inst_name = &game.game().pkgs[*inst_idx].name;
-            let oracle_name = &sig.name;
-            let return_name = format!("return-{game_side}-{inst_name}-{oracle_name}");
+    let mut out = vec![];
+    for Export(inst_idx, sig) in &game.game().exports {
+        let pkg_inst_name = &game.game().pkgs[*inst_idx].name;
+        let oracle_name = &sig.name;
+        let return_type = &sig.tipe;
 
-            let decl_return = declare::declare_const(return_name.clone(), octx.smt_sort_return());
+        let octx = gctx.exported_oracle_ctx_by_name(&sig.name).expect(&format!(
+            "error looking up exported oracle with name {oracle_name} in game {game_name}"
+        ));
 
-            let args = sig
-                .args
-                .iter()
-                .map(|(arg_name, _)| octx.smt_arg_name(arg_name));
+        let return_const = ReturnConst {
+            game_inst_name,
+            game_name,
+            pkg_inst_name,
+            oracle_name,
+        };
+        let return_value_const = ReturnValueConst {
+            game_inst_name,
+            pkg_inst_name,
+            oracle_name,
+            tipe: &sig.tipe,
+        };
+        let old_state_const = GameState {
+            game_inst_name,
+            game_name,
+            variant: "old",
+        };
+        let new_state_const = GameState {
+            game_inst_name,
+            game_name,
+            variant: &format!("new-{oracle_name}"),
+        };
 
-            let invok = octx
-                .smt_invoke_oracle(format!("game-state-{game_inst_name}-old"), args)
-                .unwrap();
+        let args = sig
+            .args
+            .iter()
+            .map(|(arg_name, _)| octx.smt_arg_name(arg_name));
 
-            let constrain_return: SmtExpr = SmtAssert(SmtEq2 {
-                lhs: return_name,
-                rhs: invok,
-            })
-            .into();
+        let oracle_func_evaluation = octx
+            .smt_invoke_oracle(old_state_const.name(), args)
+            .unwrap();
 
-            (decl_return, constrain_return)
-        })
-        .collect()
+        let return_pattern = ReturnPattern {
+            game_name,
+            pkg_inst_name,
+            oracle_name,
+        };
+        let return_spec = return_pattern.datastructure_spec(&return_type);
+
+        let access_returnvalue = return_pattern
+            .access(
+                &return_spec,
+                &ReturnSelector::ReturnValueOrAbort {
+                    return_type: &sig.tipe,
+                },
+                return_const.name(),
+            )
+            .unwrap();
+
+        let access_new_state = return_pattern
+            .access(
+                &return_spec,
+                &ReturnSelector::GameState,
+                return_const.name(),
+            )
+            .unwrap();
+
+        let constrain_return = SmtAssert(SmtEq2 {
+            lhs: return_const.name(),
+            rhs: oracle_func_evaluation,
+        });
+
+        let constrain_return_value = SmtAssert(SmtEq2 {
+            lhs: return_value_const.name(),
+            rhs: access_returnvalue,
+        });
+
+        let constrain_new_state = SmtAssert(SmtEq2 {
+            lhs: new_state_const.name(),
+            rhs: access_new_state,
+        });
+
+        out.push((return_const.declare(), constrain_return.into()));
+        out.push((return_value_const.declare(), constrain_return_value.into()));
+        out.push((new_state_const.declare(), constrain_new_state.into()));
+    }
+
+    out
 }
 
 fn build_rands(

@@ -3,6 +3,7 @@ mod intermediate_state;
 mod normal_return;
 mod partial_return;
 mod pkg_state;
+mod return_value;
 
 use std::iter::FromIterator;
 
@@ -11,16 +12,37 @@ pub use intermediate_state::*;
 pub use normal_return::*;
 pub use partial_return::*;
 pub use pkg_state::*;
+pub use return_value::*;
 
 use crate::writers::smt::{
-    declare::declare_datatype,
+    declare::declare_datatype as base_declare_datatype,
     exprs::SmtExpr,
     partials::{SmtMatch, SmtMatchCase},
-    sorts::SmtPlainSort,
+    sorts::{SmtPlainSort, SmtSort},
 };
 
+pub fn declare_datatype<'a, P: DatastructurePattern<'a>>(
+    pattern: &P,
+    spec: &DatastructureSpec<'a, P>,
+) -> SmtExpr
+where
+    P::Sort: SmtPlainSort,
+{
+    let DatastructureSpec(constructors) = spec;
+    let constructors = constructors.iter().map(|(con, sels)| {
+        (
+            pattern.constructor_name(con),
+            sels.iter()
+                .map(|sel| (pattern.selector_name(sel), pattern.selector_sort(sel)))
+                .collect(),
+        )
+    });
+
+    base_declare_datatype(&pattern.sort().sort_name(), constructors)
+}
+
 pub trait DatastructurePattern<'a> {
-    type Sort: SmtPlainSort;
+    type Sort: SmtSort;
     type Constructor: Eq;
     type Selector: Eq;
     type DeclareInfo;
@@ -35,19 +57,19 @@ pub trait DatastructurePattern<'a> {
 
     fn datastructure_spec(&self, info: &'a Self::DeclareInfo) -> DatastructureSpec<'a, Self>;
 
-    fn declare_datatype(&self, spec: &DatastructureSpec<'a, Self>) -> SmtExpr {
-        let DatastructureSpec(constructors) = spec;
-        let constructors = constructors.iter().map(|(con, sels)| {
-            (
-                self.constructor_name(con),
-                sels.iter()
-                    .map(|sel| (self.selector_name(sel), self.selector_sort(sel)))
-                    .collect(),
-            )
-        });
-
-        declare_datatype(&self.sort().sort_name(), constructors)
-    }
+    // fn declare_datatype(&self, spec: &DatastructureSpec<'a, Self>) -> SmtExpr {
+    //     let DatastructureSpec(constructors) = spec;
+    //     let constructors = constructors.iter().map(|(con, sels)| {
+    //         (
+    //             self.constructor_name(con),
+    //             sels.iter()
+    //                 .map(|sel| (self.selector_name(sel), self.selector_sort(sel)))
+    //                 .collect(),
+    //         )
+    //     });
+    //
+    //     base_declare_datatype(&self.sort().sort_name(), constructors)
+    // }
 
     fn access<S: Into<SmtExpr>>(
         &self,
