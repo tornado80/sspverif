@@ -1,159 +1,4 @@
 
-;;;;;;;;;;;;;;;;;
-;
-; left  = mod
-; right = mon
-;
-;;;;;;;;;;;;;;;;;
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;
-;   Randomness mapping
-;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-(define-fun randomness-mapping-SETBIT (
-        (ctr-mod     Int)
-        (ctr-mon     Int) 
-        (id-mod      Int)
-        (id-mon      Int) 
-        (new-mod Int)
-        (new-mon Int))         
-         Bool
-false
-)
-
-
-(define-fun randomness-mapping-GETAOUT (
-        (ctr-mod     Int)
-        (ctr-mon     Int) 
-        (id-mod      Int)
-        (id-mon      Int) 
-        (new-mod Int)
-        (new-mon Int)) 
-        Bool
-
-;
-; mon = right
-; red samples with index 4 k_ ~ z
-; SMP verwendet counter 1 to sample k_ ~ not z
-;
-; mod = left
-; top key package samples r with index 1 for true
-;                        rr with index 2 for false
-;
-
-(and
-(=>
-; if z = true
-(=
-; z
-
-(state-Indcpamon0-red-z
-  (composition-pkgstate-Indcpamon0-red 
-    game-state-Indcpamon0_inst-old))
-(mk-some true))
-
-; then
-(or
-
-;(=  randval-left-GETA-1  ; r at true
-;    randval-right-GETA-4 ; k_ at z=true
-;)
-
-(and     (= id-mod 1) 
-         (= id-mon 4) 
-         (= ctr-mod new-mod)
-         (= ctr-mon new-mon)
-)
-
-;(=  randval-left-GETA-2 ; rr at false
-;   randval-right-GETA-1 ; k_ at not z = false
-;)
-
-(and     (= id-mod 2) 
-         (= id-mon 1) 
-         (= ctr-mod new-mod)
-         (= ctr-mon new-mon)
-)))
-
-(=>
-; if z = false
-(=
-; z
-(state-Indcpamon0-red-z
-(composition-pkgstate-Indcpamon0-red
-game-state-Indcpamon0_inst-old)) 
-(mk-some false))
-
-; then
-(or
-(and     (= id-mod 1) 
-         (= id-mon 1) 
-         (= ctr-mod new-mod)
-         (= ctr-mod new-mod)
-)
-(and     (= id-mod 2) 
-         (= id-mon 4) 
-         (= ctr-mod new-mod)
-         (= ctr-mod new-mod)
-)
-;(=  randval-left-GETA-1 ; r at true
-;   randval-right-GETA-1 ; k_ at not z
-;)
-;(=  randval-left-GETA-2 ; rr at false
-;   randval-right-GETA-4 ; k_ at z
-;)
-)
-)
-)
-)
-
-(define-fun randomness-mapping-GETKEYSIN (
-        (ctr-mod     Int)
-        (ctr-mon     Int) 
-        (id-mod      Int)
-        (id-mon      Int) 
-        (new-mod Int)
-        (new-mon Int)) 
-        Bool
-false
-)
-
-(define-fun randomness-mapping-ENCN (
-        (ctr-mod     Int)
-        (ctr-mon     Int) 
-        (id-mod      Int)
-        (id-mon      Int) 
-        (new-mod Int)
-        (new-mon Int)
-) Bool
-(and
-(= id-mod 5)
-(= id-mon 2)
-(= ctr-mod new-mod)
-(= ctr-mon new-mon)
-))
-
-(define-fun randomness-mapping-ENCM (
-;(= randval-left-ENCN-6 randval-right-ENCN-3)
-        (ctr-mod     Int)
-        (ctr-mon     Int) 
-        (id-mod      Int)
-        (id-mon      Int) 
-        (new-mod Int)
-        (new-mon Int)) Bool
-(and
-(= id-mod 6)
-(= id-mon 3)
-(= ctr-mod new-mod)
-(= ctr-mon new-mon)
-)        
-)
-
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ;   Datatypes to extract key package state
@@ -291,6 +136,178 @@ false
 )))
 
 
+;;;;;;;;;;;;;;;;;
+;
+; left  = mod
+; right = mon
+;
+;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+;   Randomness mapping
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(define-fun randomness-mapping-SETBIT (
+        (ctr-mod     Int)
+        (ctr-mon     Int) 
+        (id-mod      Int)
+        (id-mon      Int) 
+        (new-mod Int)
+        (new-mon Int))         
+         Bool
+false
+)
+
+
+(define-fun randomness-mapping-GETAOUT (
+        (ctr-mod     Int)
+        (ctr-mon     Int) 
+        (id-mod      Int)
+        (id-mon      Int) 
+        (new-mod Int)
+        (new-mon Int)) 
+        Bool
+
+;
+; mon = right
+; red samples with index 4 k_ ~ z
+; SMP verwendet counter 1 to sample k_ ~ not z
+;
+; mod = left
+; top key package samples r with index 1 for true
+;                        rr with index 2 for false
+;
+
+(and
+(=>
+; if z = true
+(=
+; z
+
+(state-Indcpamon0-red-z
+  (composition-pkgstate-Indcpamon0-red 
+    game-state-Indcpamon0_inst-old))
+(mk-some true))
+
+; then
+(or
+
+;(=  randval-left-GETA-1  ; r at true
+;    randval-right-GETA-4 ; k_ at z=true
+;)
+
+(and     (= id-mod 1) 
+         (= id-mon 4) 
+         (= ctr-mod new-mod)
+         (= ctr-mon new-mon)
+)
+
+;(=  randval-left-GETA-2 ; rr at false
+;   randval-right-GETA-1 ; k_ at not z = false
+;)
+
+(and     (= id-mod 2) 
+         (= id-mon 1) 
+         (= ctr-mod new-mod)
+         (= ctr-mon new-mon)
+)))
+
+(=>
+; if z = false
+(=
+; z
+(state-Indcpamon0-red-z
+(composition-pkgstate-Indcpamon0-red
+game-state-Indcpamon0_inst-old)) 
+(mk-some false))
+
+; then
+(or
+(and     (= id-mod 1) 
+         (= id-mon 1) 
+         (= ctr-mod new-mod)
+         (= ctr-mod new-mod)
+)
+(and     (= id-mod 2) 
+         (= id-mon 4) 
+         (= ctr-mod new-mod)
+         (= ctr-mod new-mod)
+)
+;(=  randval-left-GETA-1 ; r at true
+;   randval-right-GETA-1 ; k_ at not z
+;)
+;(=  randval-left-GETA-2 ; rr at false
+;   randval-right-GETA-4 ; k_ at z
+;)
+)
+)
+)
+)
+
+(define-fun randomness-mapping-GETKEYSIN (
+        (ctr-mod     Int)
+        (ctr-mon     Int) 
+        (id-mod      Int)
+        (id-mon      Int) 
+        (new-mod Int)
+        (new-mon Int)) 
+        Bool
+false
+)
+
+(define-fun randomness-mapping-ENCN (
+        (ctr-mod     Int)
+        (ctr-mon     Int) 
+        (id-mod      Int)
+        (id-mon      Int) 
+        (new-mod Int)
+        (new-mon Int)
+) Bool
+
+(ite
+(=
+; z
+(state-Indcpamon0-red-z
+(composition-pkgstate-Indcpamon0-red
+game-state-Indcpamon0_inst-old)) 
+(mk-some arg-ENCN-d))
+(and
+(= id-mod 5)
+(= id-mon 5)
+(= ctr-mod new-mod)
+(= ctr-mon new-mon)
+)
+(and
+(= id-mod 5)
+(= id-mon 2)
+(= ctr-mod new-mod)
+(= ctr-mon new-mon)
+)
+))
+
+(define-fun randomness-mapping-ENCM (
+;(= randval-left-ENCN-6 randval-right-ENCN-3)
+        (ctr-mod     Int)
+        (ctr-mon     Int) 
+        (id-mod      Int)
+        (id-mon      Int) 
+        (new-mod Int)
+        (new-mon Int)) Bool
+(and
+(= id-mod 6)
+(= id-mon 3)
+(= ctr-mod new-mod)
+(= ctr-mon new-mon)
+)        
+)
+
+
+
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; Invariant
@@ -298,7 +315,7 @@ false
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define-fun invariant-ENCN
-    ((state-left CompositionState-Indcpamod0)
+        ((state-left  CompositionState-Indcpamod0)
 	 (state-right CompositionState-Indcpamon0))
     Bool
   (let ((top-key-package-left  (project-State_Indcpamod0_keys_top      (composition-pkgstate-Indcpamod0-keys_top state-left)))
@@ -314,78 +331,6 @@ false
       ;the functions left and right are the same
       (forall ((k Bits_n)(x Bits_n)(r Bits_n))
         (= (__func-Indcpamon0-encn k x r) (__func-Indcpamod0-encn  k x r))))))
-
-
-;;;   (define-fun invariant-ENCN          (
-;;;           (state-left  (Array Int CompositionState-Indcpamod0 ))
-;;;           (state-right (Array Int CompositionState-Indcpamon0))
-;;;           (state-length-left  Int) ;old index
-;;;           (state-length-right Int) ;old index
-;;;           (state-left-new  Return_Indcpamod0_enc_ENCN)
-;;;           (state-right-new Return_Indcpamon0_red_ENCN)
-;;;           (d Bool)
-;;;           (nzero Bits_n)
-;;;           (none  Bits_n))
-;;;       Bool
-;;;      (let
-;;;   
-;;;   ; state of the key packages
-;;;   (
-;;;   (top-key-package-left  (project-State_Indcpamod0_keys_top      (composition-pkgstate-Indcpamod0-keys_top     (select state-left  state-length-left))))
-;;;   (top-key-package-right (project-keys-State_Indcpamon0_indcpamon0   (select state-right state-length-right)))  ;(composition-pkgstate-Indcpamon0-indcpamon0    (select state-right state-length-right))))
-;;;   )
-;;;   
-;;;   
-;;; 
-;;; 
-;;; 
-;;; (and
-;;; ;top key package states are equal
-;;; (= top-key-package-left top-key-package-right)
-;;; 
-;;; 
-;;; ;top key package state is "good"
-;;; (well-defined-Key-debug top-key-package-left )
-;;; (well-defined-Key-debug top-key-package-right)
-;;; 
-;;; ;the functions left and right are the same
-;;; (forall ((k Bits_n)(x Bits_n)(r Bits_n))
-;;; (= (__func-Indcpamon0-encn k x r) (__func-Indcpamod0-encn  k x r))
-;;; )
-;;; )))
-
-
-(define-fun invariant-ENCN-post          (
-        (state-left  CompositionState-Indcpamod0 )
-        (state-right CompositionState-Indcpamon0)
-        (state-left-new  Return-Indcpamod0-enc-ENCN)
-        (state-right-new Return-Indcpamon0-red-ENCN)
-        (d Bool)
-        (nzero Bits_n)
-        (none  Bits_n))
-    Bool
-(let (
-      (state-left-nov  (return-Indcpamod0-enc-ENCN-game-state    state-left-new))
-      (state-right-nov (return-Indcpamon0-red-ENCN-game-state        state-right-new))
-     )
-
-    (let
-
-; state of the key packages
-(
-(top-key-package-left  (project-State_Indcpamod0_keys_top      (composition-pkgstate-Indcpamod0-keys_top     state-left-nov  )))
-(top-key-package-right (project-keys-State_Indcpamon0_indcpamon0  state-right-nov )))   ; ((;;(composition-pkgstate-Indcpamon0-indcpamon0    state-right-nov )))
-
-(and
-;top key package states are equal
-(= top-key-package-left top-key-package-right)
-
-
-;top key package state is "good"
-(  well-defined-Key-active top-key-package-left )
-(  well-defined-Key-active top-key-package-right)
-))))
-
 
 
 
