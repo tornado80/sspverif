@@ -112,7 +112,7 @@ This would be the contents is JSONy notation. We'll see how that looks like in t
 
 */
 use clap::{Parser, Subcommand};
-use sspds::project::{self, error::Result};
+use sspverif::project::{self, error::Result};
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
