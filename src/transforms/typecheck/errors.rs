@@ -3,10 +3,12 @@ use std::io::ErrorKind;
 
 use crate::expressions::Expression;
 use crate::identifier::Identifier;
+use crate::statement::FilePosition;
 use crate::types::Type;
 
 #[derive(Debug, Clone)]
 pub enum ErrorLocation {
+    FilePosition(FilePosition),
     Unknown,
 }
 

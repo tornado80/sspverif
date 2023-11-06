@@ -40,8 +40,13 @@ pub fn typecheck_comp(
         .clone()
         .into_iter()
         .enumerate()
-        .map(|(i, pkg)| (i, HashSet::from_iter(pkg.pkg.imports.into_iter())))
-        .filter(|(_, v)| !v.is_empty())
+        .map(|(i, pkg)| {
+            (
+                i,
+                HashSet::from_iter(pkg.pkg.imports.into_iter().map(|(osig, _filepos)| osig)),
+            )
+        })
+        .filter(|(_i, imports)| !imports.is_empty())
         .collect();
     let mut edge_imports = HashMap::new();
 

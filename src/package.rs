@@ -1,6 +1,6 @@
 use crate::expressions::Expression;
 use crate::split::{SplitOracleDef, SplitOracleSig};
-use crate::statement::{CodeBlock, Statement};
+use crate::statement::{CodeBlock, FilePosition, Statement};
 use crate::types::Type;
 
 use std::fmt;
@@ -23,17 +23,18 @@ pub struct OracleSig {
 pub struct OracleDef {
     pub sig: OracleSig,
     pub code: CodeBlock,
+    pub file_pos: FilePosition,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Package {
     pub name: String,
     pub types: Vec<Type>,
-    pub params: Vec<(String, Type)>,
-    pub state: Vec<(String, Type)>,
+    pub params: Vec<(String, Type, FilePosition)>,
+    pub state: Vec<(String, Type, FilePosition)>,
     pub oracles: Vec<OracleDef>,
     pub split_oracles: Vec<SplitOracleDef>,
-    pub imports: Vec<OracleSig>,
+    pub imports: Vec<(OracleSig, FilePosition)>,
 }
 
 impl Package {
@@ -48,18 +49,18 @@ impl Package {
                         tipe: Some(tipe),
                         ..
                     } => {
-                        let found = self.imports.iter().find(|sig|{
+                        let found = self.imports.iter().find(|(sig, file_pos)|{
                             sig.name == *name && sig.tipe == *tipe &&
                                 sig.args.iter().zip(args.iter()).all(|(l,r)| {
                                     if let Expression::Typed(t, _) = r {
                                         l.1 == *t
                                     } else {
-                                        panic!("OracleDef called_oracles() only to be called after typing")
+                                        panic!("OracleDef called_oracles() only to be called after typing. pos: {file_pos}")
                                     }
 
 
                                 })
-                        });
+                        }).map(|(sig, file_pos)| sig);
 
                         result.push(found.unwrap().clone());
                     }

@@ -35,6 +35,12 @@ impl<T> Named for (String, T) {
     }
 }
 
+impl<T, U> Named for (String, T, U) {
+    fn as_name(&self) -> &str {
+        &self.0
+    }
+}
+
 macro_rules! impl_Named {
     ($tipe:ident) => {
         impl Named for $tipe {

@@ -217,7 +217,7 @@ impl<W: Write> FmtWriter<W> {
         self.write_string(&"\t".repeat(self.indent_lvl))?;
 
         match stmt {
-            Statement::Assign(id, idx, expr) => {
+            Statement::Assign(id, idx, expr, _) => {
                 self.write_identifier(id)?;
 
                 if let Some(idx) = idx {
@@ -230,7 +230,7 @@ impl<W: Write> FmtWriter<W> {
                 self.write_expression(expr)?;
                 self.write_string(";\n")?;
             }
-            Statement::Return(expr) => {
+            Statement::Return(expr, _) => {
                 if let Some(expr) = expr {
                     self.write_string("return ")?;
                     self.write_expression(expr)?;
@@ -239,7 +239,7 @@ impl<W: Write> FmtWriter<W> {
                     self.write_string("return;\n")?;
                 }
             }
-            Statement::Sample(id, idx, sample_id, t) => {
+            Statement::Sample(id, idx, sample_id, t, _) => {
                 self.write_identifier(id)?;
 
                 if let Some(idx) = idx {
@@ -265,6 +265,7 @@ impl<W: Write> FmtWriter<W> {
                 args,
                 target_inst_name,
                 tipe: opt_tipe,
+                ..
             } => {
                 self.write_identifier(id)?;
 
@@ -296,9 +297,11 @@ impl<W: Write> FmtWriter<W> {
                 }
                 self.write_string(&format!("\n"))?;
             }
-            Statement::IfThenElse(cond, ifcode, elsecode) => {
+            Statement::IfThenElse(cond, ifcode, elsecode, _) => {
                 // check if this an assert
-                if ifcode.0.is_empty() && elsecode.0.len() == 1 && elsecode.0[0] == Statement::Abort
+                if ifcode.0.is_empty()
+                    && elsecode.0.len() == 1
+                    && matches!(elsecode.0[0], Statement::Abort(_))
                 {
                     self.write_string("assert (")?;
                     self.write_expression(cond)?;
@@ -318,11 +321,11 @@ impl<W: Write> FmtWriter<W> {
 
                 self.write_string("\n")?;
             }
-            Statement::For(_, _, _, _) => todo!(),
-            Statement::Abort => {
+            Statement::For(_, _, _, _, _) => todo!(),
+            Statement::Abort(_) => {
                 self.write_string("abort;\n")?;
             }
-            Statement::Parse(ids, expr) => {
+            Statement::Parse(ids, expr, _) => {
                 self.write_string("(")?;
                 let mut maybe_comma = "";
                 for id in ids {

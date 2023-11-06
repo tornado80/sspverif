@@ -142,7 +142,7 @@ impl<'a> PackageInstanceContext<'a> {
         inst.pkg
             .state
             .iter()
-            .find(|(name, _tipe)| name == field_name)?;
+            .find(|(name, _tipe, _file_pos)| name == field_name)?;
 
         let access = (
             names::pkgstate_selector_name(game_name, inst_name, field_name),
@@ -172,7 +172,7 @@ impl<'a> PackageInstanceContext<'a> {
             .pkg
             .state
             .iter()
-            .map(|(name, _tipe)| {
+            .map(|(name, _tipe, _file_pos)| {
                 if name == field_name {
                     found = true;
                     value.clone().into()

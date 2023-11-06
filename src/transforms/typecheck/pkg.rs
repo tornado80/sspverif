@@ -15,16 +15,22 @@ pub fn typecheck_pkg(pkg: &Package, scope: &mut Scope) -> Result<Package, TypeCh
     } = pkg;
 
     scope.enter();
-    for (name, ntipe) in params {
+
+    // TODO: should the declare calls here also get the position, so they can include it
+    //       in the potentially returned error?
+    for (name, ntipe, _) in params {
         scope.declare(Identifier::new_scalar(name), ntipe.clone())?;
     }
-    for (name, ntipe) in state {
+    for (name, ntipe, _) in state {
         scope.declare(Identifier::new_scalar(name), ntipe.clone())?;
     }
 
-    for OracleSig {
-        name, args, tipe, ..
-    } in imports
+    for (
+        OracleSig {
+            name, args, tipe, ..
+        },
+        _,
+    ) in imports
     {
         let arg_types = args.iter().map(|(_, tipe)| tipe).cloned().collect();
         let id = Identifier::Scalar(name.clone());

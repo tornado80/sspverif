@@ -92,27 +92,32 @@ mod old {
 
 pub fn returnify(cb: &CodeBlock, none_ok: bool) -> Result<CodeBlock, Error> {
     match cb.0.last() {
-        Some(Statement::IfThenElse(expr, ifcode, elsecode)) => {
+        Some(Statement::IfThenElse(expr, ifcode, elsecode, file_pos)) => {
             let mut retval = cb.0.clone();
             retval.pop();
             retval.push(Statement::IfThenElse(
                 expr.clone(),
                 returnify(ifcode, none_ok)?,
                 returnify(elsecode, none_ok)?,
+                file_pos.clone(),
             ));
             Ok(CodeBlock(retval))
         }
-        Some(Statement::Return(_)) | Some(Statement::Abort) => Ok(cb.clone()),
-        _ => {
+        Some(Statement::Return(_, _)) | Some(Statement::Abort(_)) => Ok(cb.clone()),
+        Some(other) => {
             if !none_ok {
-                Err(Error(
-                    "Missing return at end of code block with expected return value".to_string(),
-                ))
+                Err(Error(format!(
+                    "Missing return at end of code block with expected return value at {}",
+                    other.file_pos()
+                )))
             } else {
                 let mut retval = cb.0.clone();
-                retval.push(Statement::Return(None));
+                retval.push(Statement::Return(None, other.file_pos().clone()));
                 Ok(CodeBlock(retval))
             }
+        }
+        None => {
+            unreachable!()
         }
     }
 }
@@ -130,44 +135,48 @@ mod test {
     use crate::block;
     use crate::expressions::Expression;
     use crate::identifier::Identifier;
-    use crate::statement::{CodeBlock, Statement};
+    use crate::statement::{CodeBlock, FilePosition, Statement};
     use crate::types::Type;
 
     #[test]
     fn preserves_return_none() {
+        let file_pos = FilePosition::new("test_file.ssp".to_string(), 0, 1);
         let code = block! {
-            Statement::Sample(Identifier::new_scalar("d"), None, None, Type::Integer),
-            Statement::Return(None)
+            Statement::Sample(Identifier::new_scalar("d"), None, None, Type::Integer, file_pos.clone()),
+            Statement::Return(None, file_pos)
         };
         assert_eq!(code, returnify(&code, true).unwrap());
     }
 
     #[test]
     fn preserves_return_some() {
+        let file_pos = FilePosition::new("test_file.ssp".to_string(), 0, 1);
         let code = block! {
-            Statement::Sample(Identifier::new_scalar("d"), None, None, Type::Integer),
-            Statement::Return(Some(Expression::IntegerLiteral("5".to_string())))
+            Statement::Sample(Identifier::new_scalar("d"), None, None, Type::Integer, file_pos.clone()),
+            Statement::Return(Some(Expression::IntegerLiteral("5".to_string())), file_pos.clone())
         };
         assert_eq!(code, returnify(&code, true).unwrap());
     }
 
     #[test]
     fn preserves_abort() {
+        let file_pos = FilePosition::new("test_file.ssp".to_string(), 0, 1);
         let code = block! {
-            Statement::Sample(Identifier::new_scalar("d"), None, None, Type::Integer),
-            Statement::Abort
+            Statement::Sample(Identifier::new_scalar("d"), None, None, Type::Integer, file_pos.clone()),
+            Statement::Abort(file_pos)
         };
         assert_eq!(code, returnify(&code, true).unwrap());
     }
 
     #[test]
     fn adds_return() {
+        let file_pos = FilePosition::new("test_file.ssp".to_string(), 0, 1);
         let before = block! {
-            Statement::Sample(Identifier::new_scalar("d"), None, None, Type::Integer)
+            Statement::Sample(Identifier::new_scalar("d"), None, None, Type::Integer, file_pos.clone())
         };
         let after = block! {
-            Statement::Sample(Identifier::new_scalar("d"), None, None,  Type::Integer),
-            Statement::Return(None)
+            Statement::Sample(Identifier::new_scalar("d"), None, None,  Type::Integer, file_pos.clone()),
+            Statement::Return(None, file_pos.clone())
         };
         assert_eq!(after, returnify(&before, true).unwrap());
         assert_eq!(after, returnify(&after, true).unwrap());
@@ -175,30 +184,31 @@ mod test {
 
     #[test]
     fn adds_if_return_with_branches() {
+        let file_pos = FilePosition::new("test_file.ssp".to_string(), 0, 1);
         let before = block! {
             Statement::IfThenElse(
                 Expression::new_equals(vec![&(Identifier::new_scalar("a").to_expression()),
                                             &(Identifier::new_scalar("a").to_expression())]),
                 block!{
-                    Statement::Sample(Identifier::new_scalar("d"), None, None, Type::Integer)
+                    Statement::Sample(Identifier::new_scalar("d"), None, None, Type::Integer, file_pos.clone())
                 },
                 block!{
-                    Statement::Sample(Identifier::new_scalar("e"), None, None, Type::Integer),
-                    Statement::Return(None)
-                })
+                    Statement::Sample(Identifier::new_scalar("e"), None, None, Type::Integer, file_pos.clone()),
+                    Statement::Return(None, file_pos.clone())
+                }, file_pos.clone())
         };
         let after = block! {
             Statement::IfThenElse(
                 Expression::new_equals(vec![&(Identifier::new_scalar("a").to_expression()),
                                             &(Identifier::new_scalar("a").to_expression())]),
                 block!{
-                    Statement::Sample(Identifier::new_scalar("d"), None, None, Type::Integer),
-                    Statement::Return(None)
+                    Statement::Sample(Identifier::new_scalar("d"), None, None, Type::Integer, file_pos.clone()),
+                    Statement::Return(None, file_pos.clone())
                 },
                 block!{
-                    Statement::Sample(Identifier::new_scalar("e"), None, None, Type::Integer),
-                    Statement::Return(None)
-                })
+                    Statement::Sample(Identifier::new_scalar("e"), None, None, Type::Integer, file_pos.clone()),
+                    Statement::Return(None, file_pos.clone())
+                }, file_pos.clone())
         };
         assert_eq!(after, returnify(&before, true).unwrap());
         assert_eq!(after, returnify(&after, true).unwrap());
@@ -206,29 +216,30 @@ mod test {
 
     #[test]
     fn adds_else_return_with_branches() {
+        let file_pos = FilePosition::new("test_file.ssp".to_string(), 0, 1);
         let before = block! {
             Statement::IfThenElse(
                 Expression::new_equals(vec![&(Identifier::new_scalar("a").to_expression()),
                                             &(Identifier::new_scalar("a").to_expression())]),
                 block!{
-                    Statement::Sample(Identifier::new_scalar("d"), None, None, Type::Integer)
+                    Statement::Sample(Identifier::new_scalar("d"), None, None, Type::Integer, file_pos.clone())
                 },
                 block!{
-                    Statement::Sample(Identifier::new_scalar("e"), None, None, Type::Integer)
-                })
+                    Statement::Sample(Identifier::new_scalar("e"), None, None, Type::Integer, file_pos.clone())
+                }, file_pos.clone())
         };
         let after = block! {
             Statement::IfThenElse(
                 Expression::new_equals(vec![&(Identifier::new_scalar("a").to_expression()),
                                             &(Identifier::new_scalar("a").to_expression())]),
                 block!{
-                    Statement::Sample(Identifier::new_scalar("d"), None, None, Type::Integer),
-                    Statement::Return(None)
+                    Statement::Sample(Identifier::new_scalar("d"), None, None, Type::Integer, file_pos.clone()),
+                    Statement::Return(None, file_pos.clone())
                 },
                 block!{
-                    Statement::Sample(Identifier::new_scalar("e"), None, None, Type::Integer),
-                    Statement::Return(None)
-                })
+                    Statement::Sample(Identifier::new_scalar("e"), None, None, Type::Integer, file_pos.clone()),
+                    Statement::Return(None, file_pos.clone())
+                }, file_pos.clone())
         };
         assert_eq!(after, returnify(&before, true).unwrap());
         assert_eq!(after, returnify(&after, true).unwrap());

@@ -1,7 +1,7 @@
 use super::PackageInstanceTransform;
 use crate::expressions::Expression;
 use crate::package::{Composition, Edge, Export, OracleDef, OracleSig, PackageInstance};
-use crate::statement::{CodeBlock, Statement};
+use crate::statement::{CodeBlock, FilePosition, Statement};
 use crate::types::Type;
 
 use std::collections::HashMap;
@@ -32,26 +32,31 @@ impl super::PackageInstanceTransform for ResolveTypesPackageInstanceTransform {
         */
 
         // resolve params
-        for (param_name, tipe) in &mut inst.pkg.params {
+        for (param_name, tipe, file_pos) in &mut inst.pkg.params {
             let place = Place::Param {
                 inst_name: inst_name.clone(),
                 param_name: param_name.clone(),
             };
 
-            type_walker(&type_mapping, place, tipe)?;
+            type_walker(&type_mapping, place, file_pos, tipe)?;
         }
 
         // resolve state
-        for (state_name, tipe) in &mut inst.pkg.state {
+        for (state_name, tipe, file_pos) in &mut inst.pkg.state {
             let place = Place::State {
                 inst_name: inst_name.clone(),
                 state_name: state_name.clone(),
             };
-            type_walker(&type_mapping, place, tipe)?;
+            type_walker(&type_mapping, place, file_pos, tipe)?;
         }
 
         // resolve oracle definitions
-        for OracleDef { sig, code, .. } in &mut inst.pkg.oracles {
+        for OracleDef {
+            sig,
+            code,
+            file_pos,
+        } in &mut inst.pkg.oracles
+        {
             let OracleSig {
                 name: oracle_name,
                 args,
@@ -65,7 +70,7 @@ impl super::PackageInstanceTransform for ResolveTypesPackageInstanceTransform {
                 inst_name: inst_name.clone(),
             };
 
-            type_walker(&type_mapping, return_place, tipe)?;
+            type_walker(&type_mapping, return_place, file_pos, tipe)?;
 
             // resolve oracle arg types
             for (arg_name, tipe) in args {
@@ -74,7 +79,7 @@ impl super::PackageInstanceTransform for ResolveTypesPackageInstanceTransform {
                     arg_name: arg_name.clone(),
                     inst_name: inst_name.clone(),
                 };
-                type_walker(&type_mapping, place, tipe)?;
+                type_walker(&type_mapping, place, file_pos, tipe)?;
             }
 
             let place = Place::OracleBody {
@@ -87,19 +92,22 @@ impl super::PackageInstanceTransform for ResolveTypesPackageInstanceTransform {
         }
 
         // resolve oracle import sigs
-        for OracleSig {
-            name: oracle_name,
-            args,
-            tipe,
-            ..
-        } in &mut inst.pkg.imports
+        for (
+            OracleSig {
+                name: oracle_name,
+                args,
+                tipe,
+                ..
+            },
+            file_pos,
+        ) in &mut inst.pkg.imports
         {
             let place = Place::ImportReturn {
                 inst_name: inst_name.clone(),
                 oracle_name: oracle_name.clone(),
             };
 
-            type_walker(&type_mapping, place, tipe)?;
+            type_walker(&type_mapping, place, file_pos, tipe)?;
 
             // resolve oracle arg types
             for (arg_name, tipe) in args {
@@ -108,7 +116,7 @@ impl super::PackageInstanceTransform for ResolveTypesPackageInstanceTransform {
                     arg_name: arg_name.clone(),
                     inst_name: inst_name.clone(),
                 };
-                type_walker(&type_mapping, place, tipe)?;
+                type_walker(&type_mapping, place, file_pos, tipe)?;
             }
         }
 
@@ -122,20 +130,20 @@ impl ResolveTypesTypeTransform {
     pub fn new(place: Place) -> Self {
         Self(place)
     }
-}
 
-impl super::TypeTransform for ResolveTypesTypeTransform {
-    type Err = ResolutionError;
-    type Aux = ();
-
-    fn transform_type(&self, tipe: &Type) -> std::result::Result<(Type, Self::Aux), Self::Err> {
+    pub fn transform_type(
+        &self,
+        tipe: &Type,
+        file_pos: &FilePosition,
+    ) -> std::result::Result<Type, ResolutionError> {
         let mut tipe = tipe.clone();
 
-        type_walker(&HashMap::new(), self.0.clone(), &mut tipe)?;
+        type_walker(&HashMap::new(), self.0.clone(), file_pos, &mut tipe)?;
 
-        Ok((tipe, ()))
+        Ok(tipe)
     }
 }
+
 #[derive(Debug, Clone)]
 pub enum Place {
     Param {
@@ -180,6 +188,7 @@ pub enum Place {
 pub struct ResolutionError {
     pub tipe: Type,
     pub place: Place,
+    pub file_pos: FilePosition,
 }
 
 impl std::error::Error for ResolutionError {
@@ -261,52 +270,53 @@ fn codeblock_walker(
 ) -> Result<()> {
     for stmt in &mut code.0 {
         match stmt {
-            Statement::Abort => {}
-            Statement::Return(ret) => {
+            Statement::Abort(_) => {}
+            Statement::Return(ret, file_pos) => {
                 if let Some(expr) = ret {
-                    expression_walker(type_mapping, place.clone(), expr)?;
+                    expression_walker(type_mapping, place.clone(), file_pos, expr)?;
                 }
             }
-            Statement::Assign(_id, opt_idx, val) => {
+            Statement::Assign(_id, opt_idx, val, file_pos) => {
                 if let Some(idx) = opt_idx {
-                    expression_walker(type_mapping, place.clone(), idx)?;
+                    expression_walker(type_mapping, place.clone(), file_pos, idx)?;
                 }
-                expression_walker(type_mapping, place.clone(), val)?;
+                expression_walker(type_mapping, place.clone(), file_pos, val)?;
             }
-            Statement::Parse(_ids, expr) => {
-                expression_walker(type_mapping, place.clone(), expr)?;
+            Statement::Parse(_ids, expr, file_pos) => {
+                expression_walker(type_mapping, place.clone(), file_pos, expr)?;
             }
-            Statement::IfThenElse(cond, ifcode, elsecode) => {
-                expression_walker(type_mapping, place.clone(), cond)?;
+            Statement::IfThenElse(cond, ifcode, elsecode, file_pos) => {
+                expression_walker(type_mapping, place.clone(), file_pos, cond)?;
                 codeblock_walker(type_mapping, place.clone(), ifcode)?;
                 codeblock_walker(type_mapping, place.clone(), elsecode)?;
             }
-            Statement::For(_, lower_bound, upper_bound, body) => {
-                expression_walker(type_mapping, place.clone(), lower_bound)?;
-                expression_walker(type_mapping, place.clone(), upper_bound)?;
+            Statement::For(_, lower_bound, upper_bound, body, file_pos) => {
+                expression_walker(type_mapping, place.clone(), file_pos, lower_bound)?;
+                expression_walker(type_mapping, place.clone(), file_pos, upper_bound)?;
                 codeblock_walker(type_mapping, place.clone(), body)?;
             }
-            Statement::Sample(_id, opt_idx, _, tipe) => {
+            Statement::Sample(_id, opt_idx, _, tipe, file_pos) => {
                 if let Some(idx) = opt_idx {
-                    expression_walker(type_mapping, place.clone(), idx)?;
+                    expression_walker(type_mapping, place.clone(), file_pos, idx)?;
                 }
-                type_walker(type_mapping, place.clone(), tipe)?;
+                type_walker(type_mapping, place.clone(), file_pos, tipe)?;
             }
             Statement::InvokeOracle {
                 opt_idx,
                 args,
                 tipe,
+                file_pos,
                 ..
             } => {
                 if let Some(idx) = opt_idx {
-                    expression_walker(type_mapping, place.clone(), idx)?;
+                    expression_walker(type_mapping, place.clone(), file_pos, idx)?;
                 }
                 for arg in args {
-                    expression_walker(type_mapping, place.clone(), arg)?;
+                    expression_walker(type_mapping, place.clone(), file_pos, arg)?;
                 }
 
                 if let Some(tipe) = tipe {
-                    type_walker(type_mapping, place.clone(), tipe)?;
+                    type_walker(type_mapping, place.clone(), file_pos, tipe)?;
                 }
             }
         }
@@ -318,6 +328,7 @@ fn codeblock_walker(
 fn expression_walker(
     type_mapping: &HashMap<Type, Type>,
     place: Place,
+    file_pos: &FilePosition,
     expr: &mut Expression,
 ) -> Result<()> {
     let mut result = Ok(());
@@ -328,8 +339,10 @@ fn expression_walker(
         }
 
         result = match expr {
-            Expression::Typed(tipe, _expr) => type_walker(type_mapping, place.clone(), tipe),
-            Expression::None(tipe) => type_walker(type_mapping, place.clone(), tipe),
+            Expression::Typed(tipe, _expr) => {
+                type_walker(type_mapping, place.clone(), file_pos, tipe)
+            }
+            Expression::None(tipe) => type_walker(type_mapping, place.clone(), file_pos, tipe),
             _ => Ok(()),
         };
 
@@ -341,39 +354,45 @@ fn expression_walker(
     result
 }
 
-fn type_walker(type_mapping: &HashMap<Type, Type>, place: Place, tipe: &mut Type) -> Result<()> {
+fn type_walker(
+    type_mapping: &HashMap<Type, Type>,
+    place: Place,
+    file_pos: &FilePosition,
+    tipe: &mut Type,
+) -> Result<()> {
     match tipe {
         Type::UserDefined(_) => {
             if let Some(resolved) = type_mapping.get(tipe) {
                 *tipe = resolved.clone();
 
                 // the resolved value may contain user-defined types itself
-                type_walker(type_mapping, place, tipe)
+                type_walker(type_mapping, place, file_pos, tipe)
             } else {
                 return Err(ResolutionError {
                     tipe: tipe.clone(),
                     place,
+                    file_pos: file_pos.clone(),
                 });
             }
         }
         Type::Table(key_type, value_type) => {
-            type_walker(type_mapping, place.clone(), key_type.as_mut())?;
-            type_walker(type_mapping, place, value_type.as_mut())
+            type_walker(type_mapping, place.clone(), file_pos, key_type.as_mut())?;
+            type_walker(type_mapping, place, file_pos, value_type.as_mut())
         }
-        Type::Maybe(tipe) => type_walker(type_mapping, place, tipe.as_mut()),
+        Type::Maybe(tipe) => type_walker(type_mapping, place, file_pos, tipe.as_mut()),
         Type::Tuple(types) => {
             for tipe in types {
-                type_walker(type_mapping, place.clone(), tipe)?;
+                type_walker(type_mapping, place.clone(), file_pos, tipe)?;
             }
 
             Ok(())
         }
         Type::Fn(args, ret) => {
             for arg in args {
-                type_walker(type_mapping, place.clone(), arg)?;
+                type_walker(type_mapping, place.clone(), file_pos, arg)?;
             }
 
-            type_walker(type_mapping, place.clone(), ret)
+            type_walker(type_mapping, place.clone(), file_pos, ret)
         }
         _ => Ok(()),
     }

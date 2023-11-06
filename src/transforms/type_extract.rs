@@ -32,30 +32,30 @@ impl<'a> super::Transformation for Transformation<'a> {
 fn extract_types_from_codeblock(set: &mut HashSet<Type>, cb: CodeBlock) {
     for stmt in cb.0 {
         match stmt {
-            Statement::Abort => {}
-            Statement::Return(Some(expr)) => extract_types_from_expression(set, &expr),
-            Statement::Return(None) => {}
-            Statement::Assign(_, Some(expr_idx), expr_val) => {
+            Statement::Abort(_) => {}
+            Statement::Return(Some(expr), _) => extract_types_from_expression(set, &expr),
+            Statement::Return(None, _) => {}
+            Statement::Assign(_, Some(expr_idx), expr_val, _) => {
                 extract_types_from_expression(set, &expr_idx);
                 extract_types_from_expression(set, &expr_val);
             }
-            Statement::Assign(_, _, expr_val) => extract_types_from_expression(set, &expr_val),
-            Statement::Parse(_, expr) => extract_types_from_expression(set, &expr),
-            Statement::IfThenElse(cond, cb_left, cb_right) => {
+            Statement::Assign(_, _, expr_val, _) => extract_types_from_expression(set, &expr_val),
+            Statement::Parse(_, expr, _) => extract_types_from_expression(set, &expr),
+            Statement::IfThenElse(cond, cb_left, cb_right, _) => {
                 extract_types_from_expression(set, &cond);
                 extract_types_from_codeblock(set, cb_left);
                 extract_types_from_codeblock(set, cb_right);
             }
-            Statement::For(_, lower_bound, upper_bound, body) => {
+            Statement::For(_, lower_bound, upper_bound, body, _) => {
                 extract_types_from_expression(set, &lower_bound);
                 extract_types_from_expression(set, &upper_bound);
                 extract_types_from_codeblock(set, body)
             }
-            Statement::Sample(_, Some(expr_idx), _, t) => {
+            Statement::Sample(_, Some(expr_idx), _, t, _) => {
                 extract_types_from_expression(set, &expr_idx);
                 set.insert(t);
             }
-            Statement::Sample(_, _, _, t) => {
+            Statement::Sample(_, _, _, t, _) => {
                 set.insert(t);
             }
             Statement::InvokeOracle {

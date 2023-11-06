@@ -85,13 +85,13 @@ impl<'a> BlockWriter<'a> {
 
     fn write_statement(&mut self, statement: &Statement, indentation: u8) -> std::io::Result<()> {
         match &statement {
-            Statement::Abort => {
+            Statement::Abort(_) => {
                 writeln!(self.file, "{} \\pcabort\\\\", genindentation(indentation))?;
             }
-            Statement::Return(None) => {
+            Statement::Return(None, _) => {
                 writeln!(self.file, "{} \\pcreturn\\\\", genindentation(indentation))?;
             }
-            Statement::Return(Some(expr)) => {
+            Statement::Return(Some(expr), _) => {
                 writeln!(
                     self.file,
                     "{} \\pcreturn {}\\\\",
@@ -99,7 +99,7 @@ impl<'a> BlockWriter<'a> {
                     self.expression_to_tex(&expr)
                 )?;
             }
-            Statement::Assign(ident, None, expr) => {
+            Statement::Assign(ident, None, expr, _) => {
                 writeln!(
                     self.file,
                     "{} {} \\gets {}\\\\",
@@ -108,7 +108,7 @@ impl<'a> BlockWriter<'a> {
                     self.expression_to_tex(&expr)
                 )?;
             }
-            Statement::Assign(ident, Some(idxexpr), expr) => {
+            Statement::Assign(ident, Some(idxexpr), expr, _) => {
                 writeln!(
                     self.file,
                     "{} {}[{}] \\gets {}\\\\",
@@ -118,7 +118,7 @@ impl<'a> BlockWriter<'a> {
                     self.expression_to_tex(&expr)
                 )?;
             }
-            Statement::Parse(ids, expr) => {
+            Statement::Parse(ids, expr, _) => {
                 writeln!(
                     self.file,
                     "{}\\pcparse {} \\pcas {}\\\\",
@@ -130,7 +130,7 @@ impl<'a> BlockWriter<'a> {
                         .join(", ")
                 )?;
             }
-            Statement::IfThenElse(expr, ifcode, elsecode) => {
+            Statement::IfThenElse(expr, ifcode, elsecode, _) => {
                 writeln!(
                     self.file,
                     "{}\\pcif {} \\pcthen\\\\",
@@ -143,8 +143,8 @@ impl<'a> BlockWriter<'a> {
                     self.write_codeblock(&elsecode, indentation + 1)?;
                 }
             }
-            Statement::For(_, _, _, _) => todo!(),
-            Statement::Sample(ident, None, maybecnt, tipe) => {
+            Statement::For(_, _, _, _, _) => todo!(),
+            Statement::Sample(ident, None, maybecnt, tipe, _) => {
                 let cnt = maybecnt.expect("Expected samplified input");
 
                 writeln!(
@@ -156,7 +156,7 @@ impl<'a> BlockWriter<'a> {
                     tipe
                 )?;
             }
-            Statement::Sample(ident, Some(idxexpr), maybecnt, tipe) => {
+            Statement::Sample(ident, Some(idxexpr), maybecnt, tipe, _) => {
                 let cnt = maybecnt.expect("Expected samplified input");
 
                 writeln!(
@@ -176,6 +176,7 @@ impl<'a> BlockWriter<'a> {
                 args,
                 target_inst_name: Some(target_inst_name),
                 tipe: _,
+                ..
             } => {
                 writeln!(self.file,
                          "{}{} \\stackrel{{\\gets}}{{\\mathsf{{\\tiny{{invoke}}}}}} {}({}) \\pccomment{{Pkg: {}}} \\\\",
@@ -192,6 +193,7 @@ impl<'a> BlockWriter<'a> {
                 args,
                 target_inst_name: Some(target_inst_name),
                 tipe: _,
+                ..
             } => {
                 writeln!(self.file,
                          "{}{}[{}] \\stackrel{{\\gets}}{{\\mathsf{{\\tiny invoke}}}} {}({}) \\pccomment{{Pkg: {}}} \\\\",

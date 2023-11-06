@@ -230,8 +230,8 @@ impl Statement {
         >,
     ) -> bool {
         match self {
-            Statement::For(_, _, _, _) => true,
-            Statement::IfThenElse(_cond, ifcode, elsecode) => {
+            Statement::For(_, _, _, _, _) => true,
+            Statement::IfThenElse(_cond, ifcode, elsecode, _) => {
                 ifcode.0.iter().any(|stmt| stmt.needs_split(sig_mapping))
                     || elsecode.0.iter().any(|stmt| stmt.needs_split(sig_mapping))
             }
@@ -426,7 +426,7 @@ fn transform_codeblock(
 
         let stmt = &code.0[split_idx];
         match stmt {
-            Statement::IfThenElse(cond, ifcode, elsecode) => {
+            Statement::IfThenElse(cond, ifcode, elsecode, _) => {
                 result.push((
                     loopvars.clone(),
                     prefix.extended(mk_single_split_path_component(SplitType::IfCondition(
@@ -454,7 +454,7 @@ fn transform_codeblock(
                     sig_mapping,
                 ));
             }
-            Statement::For(id_iter, from, to, code) => {
+            Statement::For(id_iter, from, to, code, _) => {
                 let mut newloopvars = loopvars.clone();
                 newloopvars.push(id_iter.clone());
 
@@ -479,6 +479,7 @@ fn transform_codeblock(
                 target_inst_name: Some(target_inst_name),
                 args,
                 tipe,
+                file_pos,
                 ..
             } => {
                 let oracle_name = name;
@@ -512,6 +513,7 @@ fn transform_codeblock(
                                 args: args.clone(),
                                 target_inst_name: Some(target_inst_name.to_string()),
                                 tipe: None,
+                                file_pos: file_pos.clone(),
                             }]),
                             split_locals.clone(),
                         )
@@ -537,6 +539,7 @@ fn transform_codeblock(
                         args: args.clone(),
                         target_inst_name: Some(target_inst_name.to_string()),
                         tipe: tipe.clone(),
+                        file_pos: file_pos.clone(),
                     }]),
                     split_locals,
                 ))
@@ -620,10 +623,10 @@ mod test {
 
 fn get_declarations(stmt: &Statement) -> Option<(String, Type)> {
     match stmt {
-        Statement::Parse(_ids, _expr) => {
+        Statement::Parse(_ids, _expr, _) => {
             todo!()
         }
-        Statement::Assign(Identifier::Local(id_name), Some(idx), expr) => Some((
+        Statement::Assign(Identifier::Local(id_name), Some(idx), expr, _) => Some((
             id_name.to_string(),
             Type::Table(Box::new(idx.get_type().unwrap().clone()), {
                 let expr_outer_type = expr.get_type().unwrap();
@@ -635,7 +638,7 @@ fn get_declarations(stmt: &Statement) -> Option<(String, Type)> {
                 expr_inner_type.clone()
             }),
         )),
-        Statement::Assign(Identifier::Local(id_name), None, expr) => {
+        Statement::Assign(Identifier::Local(id_name), None, expr, _) => {
             Some((id_name.to_string(), expr.get_type().unwrap().clone()))
         }
         Statement::InvokeOracle {
@@ -644,7 +647,7 @@ fn get_declarations(stmt: &Statement) -> Option<(String, Type)> {
             opt_idx: Some(idx),
             ..
         }
-        | Statement::Sample(Identifier::Local(id_name), Some(idx), _, tipe) => Some((
+        | Statement::Sample(Identifier::Local(id_name), Some(idx), _, tipe, _) => Some((
             id_name.to_string(),
             Type::Table(
                 Box::new(idx.get_type().unwrap().clone()),
@@ -657,7 +660,7 @@ fn get_declarations(stmt: &Statement) -> Option<(String, Type)> {
             opt_idx: None,
             ..
         }
-        | Statement::Sample(Identifier::Local(id_name), None, _, tipe) => {
+        | Statement::Sample(Identifier::Local(id_name), None, _, tipe, _) => {
             Some((id_name.to_string(), tipe.clone()))
         }
         _ => None,

@@ -15,13 +15,13 @@ use super::contexts::{
     GameContext, GenericOracleContext, OracleContext, PackageInstanceContext, SplitOracleContext,
 };
 use super::exprs::{SmtAs, SmtEq2};
+use super::names;
 use super::partials::PartialsDatatype;
 use super::patterns::{
-    declare_datatype, FunctionPattern, GameStateDeclareInfo, GameStatePattern, GameStateSelector,
-    IntermediateStateConstructor, IntermediateStatePattern, IntermediateStateSelector,
-    PartialOraclePattern, ReturnPattern, ReturnValue, ReturnValueSelector,
+    declare_datatype, FunctionPattern, IntermediateStateConstructor, IntermediateStatePattern,
+    IntermediateStateSelector, PartialOraclePattern, ReturnPattern, ReturnValue,
+    ReturnValueSelector,
 };
-use super::{names, sorts};
 
 use super::patterns;
 use patterns::DatastructurePattern;
@@ -135,35 +135,35 @@ impl<'a> CompositionSmtWriter<'a> {
 
         for stmt in stmts {
             result = match stmt {
-                Statement::IfThenElse(cond, ifcode, elsecode) => SmtIte {
+                Statement::IfThenElse(cond, ifcode, elsecode, _) => SmtIte {
                     cond: cond.clone(),
                     then: self.smt_codeblock_nonsplit(oracle_ctx, ifcode.clone()),
                     els: self.smt_codeblock_nonsplit(oracle_ctx, elsecode.clone()),
                 }
                 .into(),
-                Statement::Return(None) => {
+                Statement::Return(None, _) => {
                     // (mk-return-{name} statevarname expr)
                     self.smt_build_return_none_nonsplit(oracle_ctx)
                 }
-                Statement::Return(Some(expr)) => {
+                Statement::Return(Some(expr), _) => {
                     // (mk-return-{name} statevarname expr)
                     self.smt_build_return_some_nonsplit(oracle_ctx, expr)
                 }
-                Statement::Abort => {
+                Statement::Abort(_) => {
                     // mk-abort-{name}
                     self.smt_build_abort(oracle_ctx)
                 }
-                Statement::For(_, _, _, _) => {
+                Statement::For(_, _, _, _, _) => {
                     let inst_name = &oracle_ctx.pkg_inst_ctx().pkg_inst().name;
                     let pkg_name = &oracle_ctx.pkg_inst_ctx().pkg_inst().pkg.name;
                     let oracle_name = oracle_ctx.oracle_name();
                     unreachable!("found a for statement in the smt writer stage. this should have been eliminated by now and can't be handled here. {}.{}({}).{}", self.comp.name, inst_name, pkg_name, oracle_name)
                 }
                 // TODO actually use the type that we sample to know how far to advance the randomness tape
-                Statement::Sample(ident, opt_idx, sample_id, tipe) => {
+                Statement::Sample(ident, opt_idx, sample_id, tipe, _) => {
                     self.smt_build_sample(oracle_ctx, result, ident, opt_idx, sample_id, tipe)
                 }
-                Statement::Parse(idents, expr) => {
+                Statement::Parse(idents, expr, _) => {
                     self.smt_build_parse(oracle_ctx, result, idents, expr)
                 }
                 Statement::InvokeOracle {
@@ -182,8 +182,9 @@ impl<'a> CompositionSmtWriter<'a> {
                     args,
                     target_inst_name: Some(target),
                     tipe: Some(_),
+                    ..
                 } => self.smt_build_invoke(oracle_ctx, result, id, opt_idx, name, args, target),
-                Statement::Assign(ident, opt_idx, expr) => {
+                Statement::Assign(ident, opt_idx, expr, _) => {
                     self.smt_build_assign(oracle_ctx, result, ident, opt_idx, expr)
                 }
             };
@@ -199,37 +200,37 @@ impl<'a> CompositionSmtWriter<'a> {
 
         for stmt in stmts {
             result = match stmt {
-                Statement::IfThenElse(cond, ifcode, elsecode) => SmtIte {
+                Statement::IfThenElse(cond, ifcode, elsecode, _) => SmtIte {
                     cond: cond.clone(),
                     then: self.smt_codeblock_split(oracle_ctx, ifcode.clone()),
                     els: self.smt_codeblock_split(oracle_ctx, elsecode.clone()),
                 }
                 .into(),
-                Statement::Return(None) => {
+                Statement::Return(None, _) => {
                     // (mk-return-{name} statevarname expr)
                     todo!();
                     //self.smt_build_return_none_nonsplit(oracle_ctx)
                 }
-                Statement::Return(Some(_expr)) => {
+                Statement::Return(Some(_expr), _) => {
                     // (mk-return-{name} statevarname expr)
                     todo!();
                     //self.smt_build_return_some_nonsplit(oracle_ctx, expr)
                 }
-                Statement::Abort => {
+                Statement::Abort(_) => {
                     // mk-abort-{name}
                     self.smt_build_abort(oracle_ctx)
                 }
-                Statement::For(_, _, _, _) => {
+                Statement::For(_, _, _, _, _) => {
                     let inst_name = &oracle_ctx.pkg_inst_ctx().pkg_inst().name;
                     let pkg_name = &oracle_ctx.pkg_inst_ctx().pkg_inst().pkg.name;
                     let oracle_name = oracle_ctx.oracle_name();
                     unreachable!("found a for statement in the smt writer stage. this should have been eliminated by now and can't be handled here. {}.{}({}).{}", self.comp.name, inst_name, pkg_name, oracle_name)
                 }
                 // TODO actually use the type that we sample to know how far to advance the randomness tape
-                Statement::Sample(ident, opt_idx, sample_id, tipe) => {
+                Statement::Sample(ident, opt_idx, sample_id, tipe, _) => {
                     self.smt_build_sample(oracle_ctx, result, ident, opt_idx, sample_id, tipe)
                 }
-                Statement::Parse(idents, expr) => {
+                Statement::Parse(idents, expr, _) => {
                     self.smt_build_parse(oracle_ctx, result, idents, expr)
                 }
                 Statement::InvokeOracle {
@@ -248,8 +249,9 @@ impl<'a> CompositionSmtWriter<'a> {
                     args,
                     target_inst_name: Some(target),
                     tipe: Some(_),
+                    ..
                 } => self.smt_build_invoke(oracle_ctx, result, id, opt_idx, name, args, target),
-                Statement::Assign(ident, opt_idx, expr) => {
+                Statement::Assign(ident, opt_idx, expr, _) => {
                     self.smt_build_assign(oracle_ctx, result, ident, opt_idx, expr)
                 }
             };
@@ -263,21 +265,21 @@ impl<'a> CompositionSmtWriter<'a> {
         stmt: &Statement,
     ) -> SmtExpr {
         match stmt {
-            Statement::IfThenElse(cond, ifcode, elsecode) => SmtIte {
+            Statement::IfThenElse(cond, ifcode, elsecode, _) => SmtIte {
                 cond: cond.clone(),
                 then: self.smt_codeblock_nonsplit(oracle_ctx, ifcode.clone()),
                 els: self.smt_codeblock_nonsplit(oracle_ctx, elsecode.clone()),
             }
             .into(),
-            Statement::Return(None) => {
+            Statement::Return(None, _) => {
                 // (mk-return-{name} statevarname expr)
                 self.smt_build_return_none_nonsplit(oracle_ctx)
             }
-            Statement::Return(Some(expr)) => {
+            Statement::Return(Some(expr), _) => {
                 // (mk-return-{name} statevarname expr)
                 self.smt_build_return_some_nonsplit(oracle_ctx, expr)
             }
-            Statement::Abort => {
+            Statement::Abort(_) => {
                 // mk-abort-{name}
                 self.smt_build_abort(oracle_ctx)
             }
@@ -506,14 +508,14 @@ impl<'a> CompositionSmtWriter<'a> {
 
         //("todo_build_innermost_split",).into();
         match stmt {
-            Statement::IfThenElse(cond, ifcode, elsecode) => SmtIte {
+            Statement::IfThenElse(cond, ifcode, elsecode, _) => SmtIte {
                 cond: cond.clone(),
                 then: self.smt_codeblock_split(oracle_ctx, ifcode.clone()),
                 els: self.smt_codeblock_split(oracle_ctx, elsecode.clone()),
             }
             .into(),
             // this is probably wrong because we don't have any selectors, but maybe it's ok idk:
-            Statement::Abort => {
+            Statement::Abort(_) => {
                 let partial_return_pattern = PartialReturnPattern {
                     game_name,
                     pkg_inst_name,
@@ -524,7 +526,7 @@ impl<'a> CompositionSmtWriter<'a> {
                     .call_constructor(&spec, &PartialReturnConstructor::Abort, |_| unreachable!())
                     .unwrap()
             }
-            Statement::Return(None) => {
+            Statement::Return(None, _) => {
                 let partial_return_pattern = PartialReturnPattern {
                     game_name,
                     pkg_inst_name,
@@ -555,7 +557,7 @@ impl<'a> CompositionSmtWriter<'a> {
                     })
                     .unwrap()
             }
-            Statement::Return(Some(_expr)) => {
+            Statement::Return(Some(_expr), _) => {
                 // (mk-return-{name} statevarname expr)
                 // self.smt_build_return_some(oracle_ctx, expr)
 

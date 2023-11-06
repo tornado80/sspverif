@@ -41,21 +41,29 @@ pub fn tableinitialize(cb: &CodeBlock, initialized: &Vec<String>) -> Result<Code
     let mut new_initialized = initialized.clone();
     for stmt in cb.0.clone() {
         match stmt {
-            Statement::IfThenElse(expr, ifcode, elsecode) => {
+            Statement::IfThenElse(expr, ifcode, elsecode, file_pos) => {
                 newcode.push(Statement::IfThenElse(
                     expr,
                     tableinitialize(&ifcode, &new_initialized)?,
                     tableinitialize(&elsecode, &new_initialized)?,
+                    file_pos,
                 ));
             }
-            Statement::Assign(Identifier::Local(ref id), Some(ref idxexpr), ref expr) => {
+            Statement::Assign(
+                Identifier::Local(ref id),
+                Some(ref idxexpr),
+                ref expr,
+                ref file_pos,
+            ) => {
                 let indextype = match idxexpr {
                     Expression::Typed(t, _) => t,
-                    _ => unreachable!("all expressions are typed at this point!"),
+                    _ => unreachable!(
+                        "all expressions are expected to be typed at this point! ({file_pos})"
+                    ),
                 };
                 let valuetype = match expr {
                     Expression::Typed(Type::Maybe(t), _) => &**t,
-                    _ => unreachable!("all expressions are typed at this point, and the value needs to be a maybe type!"),
+                    _ => unreachable!("all expressions are expected to be typed at this point, and the value needs to be a maybe type! ({file_pos})"),
                 };
                 let tabletype =
                     Type::Table(Box::new(indextype.clone()), Box::new(valuetype.clone()));
@@ -66,14 +74,21 @@ pub fn tableinitialize(cb: &CodeBlock, initialized: &Vec<String>) -> Result<Code
                         Identifier::Local(id.clone()),
                         None,
                         Expression::Typed(tabletype, Box::new(Expression::EmptyTable)),
+                        file_pos.clone(),
                     ))
                 }
                 newcode.push(stmt);
             }
-            Statement::Sample(Identifier::Local(ref id), Some(ref idxexpr), _, ref tipe) => {
+            Statement::Sample(
+                Identifier::Local(ref id),
+                Some(ref idxexpr),
+                _,
+                ref tipe,
+                ref file_pos,
+            ) => {
                 let indextype = match idxexpr {
                     Expression::Typed(t, _) => t,
-                    _ => unreachable!("all expressions are typed at this point!"),
+                    _ => unreachable!("all expressions are expected to be typed at this point!"),
                 };
                 let tabletype = Type::Table(Box::new(indextype.clone()), Box::new(tipe.clone()));
 
@@ -83,6 +98,7 @@ pub fn tableinitialize(cb: &CodeBlock, initialized: &Vec<String>) -> Result<Code
                         Identifier::Local(id.clone()),
                         None,
                         Expression::Typed(tabletype, Box::new(Expression::EmptyTable)),
+                        file_pos.clone(),
                     ))
                 }
                 newcode.push(stmt);
@@ -94,6 +110,7 @@ pub fn tableinitialize(cb: &CodeBlock, initialized: &Vec<String>) -> Result<Code
                 args: _,
                 target_inst_name: _,
                 tipe: ref opt_tipe,
+                file_pos: ref file_pos,
             } => {
                 let indextype = match idxexpr {
                     Expression::Typed(t, _) => t,
@@ -112,6 +129,7 @@ pub fn tableinitialize(cb: &CodeBlock, initialized: &Vec<String>) -> Result<Code
                         Identifier::Local(id.clone()),
                         None,
                         Expression::Typed(tabletype, Box::new(Expression::EmptyTable)),
+                        file_pos.clone(),
                     ))
                 }
                 newcode.push(stmt);

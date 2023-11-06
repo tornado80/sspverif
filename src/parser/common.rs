@@ -1,3 +1,4 @@
+use crate::statement::FilePosition;
 use crate::{expressions::Expression, identifier::Identifier, package::OracleSig, types::Type};
 
 use super::error::{Error, Result};
@@ -210,13 +211,23 @@ pub fn handle_params_def_list(
         .collect()
 }
 
-pub fn handle_types_def_list(ast: Pair<Rule>, inst_name: &str) -> Result<Vec<(Type, Type)>> {
+pub fn handle_types_def_list(
+    ast: Pair<Rule>,
+    inst_name: &str,
+    file_name: &str,
+) -> Result<Vec<(Type, Type)>> {
     ast.into_inner()
-        .map(|def_spec| handle_types_def_spec(def_spec, inst_name))
+        .map(|def_spec| handle_types_def_spec(def_spec, inst_name, file_name))
         .collect()
 }
 
-pub fn handle_types_def_spec(ast: Pair<Rule>, inst_name: &str) -> Result<(Type, Type)> {
+pub fn handle_types_def_spec(
+    ast: Pair<Rule>,
+    inst_name: &str,
+    file_name: &str,
+) -> Result<(Type, Type)> {
+    let span = ast.as_span();
+    let file_pos = FilePosition::from_span(file_name, span);
     let mut iter = ast.into_inner();
 
     let fst = iter.next().unwrap();
@@ -232,9 +243,8 @@ pub fn handle_types_def_spec(ast: Pair<Rule>, inst_name: &str) -> Result<(Type, 
     };
 
     let tf = crate::transforms::resolvetypes::ResolveTypesTypeTransform::new(place);
-    use crate::transforms::TypeTransform;
 
-    if let Err(err) = tf.transform_type(&snd_type) {
+    if let Err(err) = tf.transform_type(&snd_type, &file_pos) {
         return Err(error::Error::from(err).with_span(snd_span));
     }
 

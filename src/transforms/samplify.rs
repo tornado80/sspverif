@@ -90,7 +90,7 @@ pub fn samplify(
     let mut newcode = Vec::new();
     for stmt in cb.0.clone() {
         match stmt {
-            Statement::IfThenElse(expr, ifcode, elsecode) => {
+            Statement::IfThenElse(expr, ifcode, elsecode, file_pos) => {
                 newcode.push(Statement::IfThenElse(
                     expr,
                     samplify(
@@ -111,9 +111,10 @@ pub fn samplify(
                         sampletypes,
                         positions,
                     )?,
+                    file_pos.clone(),
                 ));
             }
-            Statement::For(iter, start, end, code) => newcode.push(Statement::For(
+            Statement::For(iter, start, end, code, file_pos) => newcode.push(Statement::For(
                 iter,
                 start,
                 end,
@@ -126,9 +127,10 @@ pub fn samplify(
                     sampletypes,
                     positions,
                 )?,
+                file_pos.clone(),
             )),
 
-            Statement::Sample(id, expr, None, tipe) => {
+            Statement::Sample(id, expr, None, tipe, file_pos) => {
                 let pos = Position {
                     game_name: game_name.to_string(),
                     inst_name: inst_name.to_string(),
@@ -145,6 +147,7 @@ pub fn samplify(
                     expr,
                     Some(*ctr),
                     tipe.clone(),
+                    file_pos.clone(),
                 ));
                 *ctr += 1;
             }

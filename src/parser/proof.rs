@@ -18,7 +18,12 @@ use pest::{
 use super::common;
 use super::error::{Error, Result};
 
-pub fn handle_proof<'a>(ast: Pair<Rule>, pkgs: &[Package], games: &[Composition]) -> Result<Proof> {
+pub fn handle_proof<'a>(
+    ast: Pair<Rule>,
+    pkgs: &[Package],
+    games: &[Composition],
+    file_name: &str,
+) -> Result<Proof> {
     let mut iter = ast.into_inner();
     let name = iter.next().unwrap().as_str();
     let proof_ast = iter.next().unwrap();
@@ -43,7 +48,7 @@ pub fn handle_proof<'a>(ast: Pair<Rule>, pkgs: &[Package], games: &[Composition]
                 game_hops.extend(more_game_hops);
             }
             Rule::instance_decl => {
-                instances.push(handle_instance_decl(ast, &consts, pkgs, games)?);
+                instances.push(handle_instance_decl(ast, &consts, pkgs, games, file_name)?);
             }
             otherwise => unreachable!("found {:?} in proof", otherwise),
         }
@@ -65,18 +70,20 @@ fn handle_instance_decl(
     proof_consts: &[(String, Type)],
     pkgs: &[Package],
     games: &[Composition],
+    file_name: &str,
 ) -> Result<GameInstance> {
     let span = ast.as_span();
 
     let mut ast = ast.into_inner();
 
-    let name = ast.next().unwrap().as_str().to_string();
+    let inst_name = ast.next().unwrap().as_str().to_string();
     let game_ast = ast.next().unwrap();
     let game_span = game_ast.as_span();
     let game_name = game_ast.as_str().to_string();
     let body_ast = ast.next().unwrap();
 
-    let (types, consts) = handle_instance_assign_list(&name, proof_consts, body_ast, pkgs, games)?;
+    let (types, consts) =
+        handle_instance_assign_list(&inst_name, file_name, proof_consts, body_ast, pkgs, games)?;
 
     let game_resolver = SliceResolver(games);
     let game = match game_resolver.resolve(&game_name) {
@@ -84,7 +91,7 @@ fn handle_instance_decl(
         None => return Err(Error::UndefinedGame(game_name.to_string()).with_span(game_span)),
     };
 
-    let game_inst = GameInstance::new(name, game.clone(), types, consts);
+    let game_inst = GameInstance::new(inst_name, game.clone(), types, consts);
 
     check_consts(&game_inst, span, games)?;
 
@@ -158,6 +165,7 @@ fn check_consts(game_inst: &GameInstance, span: Span, games: &[Composition]) -> 
 
 fn handle_instance_assign_list(
     inst_name: &str,
+    file_name: &str,
     proof_consts: &[(String, Type)],
     ast: Pair<Rule>,
     pkgs: &[Package],
@@ -172,7 +180,7 @@ fn handle_instance_assign_list(
         match ast.as_rule() {
             Rule::types_def => {
                 let ast = ast.into_inner().next().unwrap();
-                types.extend(common::handle_types_def_list(ast, inst_name)?);
+                types.extend(common::handle_types_def_list(ast, inst_name, file_name)?);
             }
             Rule::params_def => {
                 let ast = ast.into_inner().next().unwrap();
