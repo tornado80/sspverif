@@ -16,11 +16,13 @@ pub fn typecheck_odef(odef: &OracleDef, scope: &mut Scope) -> Result<OracleDef, 
                 ..
             },
         code,
-        ..
+        file_pos,
     } = odef;
     scope.enter();
     for (name, ntipe) in args {
-        scope.declare(Identifier::new_scalar(name), ntipe.clone())?;
+        scope
+            .declare(Identifier::new_scalar(name), ntipe.clone())
+            .map_err(|err| TypeCheckError::new_scope_error(err, file_pos))?;
     }
     let code_block = TypedCodeBlock {
         expected_return_type: tipe.clone(),

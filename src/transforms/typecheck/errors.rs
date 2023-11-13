@@ -13,7 +13,7 @@ pub enum ErrorLocation {
 }
 
 #[derive(Debug)]
-pub struct ScopeError(pub String);
+pub struct ScopeError(pub Identifier, pub super::Type);
 
 #[derive(Debug, Clone)]
 pub struct TypeError(pub String);
@@ -43,14 +43,14 @@ pub enum TypeCheckError {
     ),
     Undefined(ErrorLocation, String, Identifier),
     ShouldBeMaybe(ErrorLocation, String, Expression, Type),
-    Scope(ScopeError),
+    Scope(ErrorLocation, ScopeError),
     Type(TypeError),
     TypeCheck(String),
 }
 
-impl From<ScopeError> for TypeCheckError {
-    fn from(error: ScopeError) -> Self {
-        TypeCheckError::Scope(error)
+impl TypeCheckError {
+    pub fn new_scope_error(err: ScopeError, file_pos: &FilePosition) -> Self {
+        Self::Scope(ErrorLocation::FilePosition(file_pos.clone()), err)
     }
 }
 

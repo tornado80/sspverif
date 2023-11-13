@@ -125,9 +125,13 @@ impl TypedCodeBlock {
                         if let Some(idxexpr) = opt_idx {
                             let idx_type = get_type(&idxexpr, scope)?;
                             let tabletipe = Type::Table(Box::new(idx_type), Box::new(expr_type));
-                            scope.declare(id.clone(), tabletipe)?;
+                            scope
+                                .declare(id.clone(), tabletipe)
+                                .map_err(|err| TypeCheckError::new_scope_error(err, file_pos))?;
                         } else {
-                            scope.declare(id.clone(), expr_type)?;
+                            scope
+                                .declare(id.clone(), expr_type)
+                                .map_err(|err| TypeCheckError::new_scope_error(err, file_pos))?;
                         }
                     }
 
@@ -181,7 +185,9 @@ impl TypedCodeBlock {
                                     ));
                                 }
                             } else {
-                                scope.declare(ident.clone(), t.clone())?;
+                                scope.declare(ident.clone(), t.clone()).map_err(|err| {
+                                    TypeCheckError::new_scope_error(err, file_pos)
+                                })?;
                             }
                         }
                     } else {
@@ -250,7 +256,9 @@ impl TypedCodeBlock {
                             ));
                         }
                     } else {
-                        scope.declare(id.clone(), sample_type.clone())?;
+                        scope
+                            .declare(id.clone(), sample_type.clone())
+                            .map_err(|err| TypeCheckError::new_scope_error(err, file_pos))?;
                     }
 
                     let opt_idx = if opt_idx.is_some() {
@@ -377,7 +385,9 @@ impl TypedCodeBlock {
                             ));
                         }
                     } else {
-                        scope.declare(id.clone(), ret_type.clone())?;
+                        scope
+                            .declare(id.clone(), ret_type.clone())
+                            .map_err(|err| TypeCheckError::new_scope_error(err, file_pos))?;
                     }
 
                     let opt_idx = if opt_idx.is_some() {
@@ -458,7 +468,9 @@ impl TypedCodeBlock {
                     }
 
                     scope.enter();
-                    scope.declare(for_ident.clone(), Type::Integer)?;
+                    scope
+                        .declare(for_ident.clone(), Type::Integer)
+                        .map_err(|err| TypeCheckError::new_scope_error(err, file_pos))?;
 
                     let tcb = TypedCodeBlock {
                         expected_return_type: Type::Empty,

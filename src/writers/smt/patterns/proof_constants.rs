@@ -1,7 +1,6 @@
 use datastructures::{IntermediateStatePattern, ReturnPattern};
 
 use crate::{
-    split::SplitPath,
     types::Type,
     writers::smt::{
         declare,
@@ -12,7 +11,7 @@ use crate::{
 
 use super::{
     datastructures, DatastructurePattern, GameStatePattern, IntermediateStateSort,
-    PartialOraclePattern, PartialReturnPattern, PartialReturnSort, ReturnSort,
+    PartialReturnPattern, PartialReturnSort, ReturnSort,
 };
 
 pub trait ConstantPattern {

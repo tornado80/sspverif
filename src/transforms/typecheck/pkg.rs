@@ -18,23 +18,29 @@ pub fn typecheck_pkg(pkg: &Package, scope: &mut Scope) -> Result<Package, TypeCh
 
     // TODO: should the declare calls here also get the position, so they can include it
     //       in the potentially returned error?
-    for (name, ntipe, _) in params {
-        scope.declare(Identifier::new_scalar(name), ntipe.clone())?;
+    for (name, ntipe, file_pos) in params {
+        scope
+            .declare(Identifier::new_scalar(name), ntipe.clone())
+            .map_err(|err| TypeCheckError::new_scope_error(err, file_pos))?;
     }
-    for (name, ntipe, _) in state {
-        scope.declare(Identifier::new_scalar(name), ntipe.clone())?;
+    for (name, ntipe, file_pos) in state {
+        scope
+            .declare(Identifier::new_scalar(name), ntipe.clone())
+            .map_err(|err| TypeCheckError::new_scope_error(err, file_pos))?;
     }
 
     for (
         OracleSig {
             name, args, tipe, ..
         },
-        _,
+        file_pos,
     ) in imports
     {
         let arg_types = args.iter().map(|(_, tipe)| tipe).cloned().collect();
         let id = Identifier::Scalar(name.clone());
-        scope.declare_oracle(id, arg_types, tipe.clone())?;
+        scope
+            .declare_oracle(id, arg_types, tipe.clone())
+            .map_err(|err| TypeCheckError::new_scope_error(err, file_pos))?;
     }
 
     let mut typed_oracles = vec![];

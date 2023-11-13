@@ -1,6 +1,5 @@
 use std::backtrace;
 
-use crate::expressions::Expression;
 use crate::package::{Export, OracleDef};
 use crate::types::Type;
 use crate::writers::smt::exprs::SmtAs;
@@ -155,55 +154,6 @@ impl<'a> OracleContext<'a> {
     }
 
     pub fn smt_access_return_is_abort<R: Into<SmtExpr>>(&self, ret: R) -> SmtExpr {
-        let game = self.game_ctx.game;
-        let inst = &game.pkgs[self.inst_offs];
-        let osig = &inst.pkg.oracles[self.oracle_offs].sig;
-
-        let game_name = &game.name;
-        let inst_name = &inst.name;
-        let oracle_name = &osig.name;
-
-        // it looks like testers may not exist for parameterized datatypes??
-        // (("_", "is", "mk-abort"), ret).into()
-
-        let retval_pattern = ReturnValue {
-            inner_type: &osig.tipe,
-        };
-
-        // (
-        //     (
-        //         "_",
-        //         "is",
-        //         SmtAs {
-        //             term: "mk-abort",
-        //             sort: retval_pattern.sort(),
-        //         },
-        //     ),
-        //     ret,
-        // )
-        //     .into()
-
-        // (
-        //     "match",
-        //     ret,
-        //     (
-        //         ("mk-abort", "true"),
-        //         (("mk-return-value", "retval"), "false"),
-        //     ),
-        // )
-        //     .into()
-
-        // This should work!
-        // (
-        //     "match",
-        //     ret,
-        //     (
-        //         (("mk-return-value", "retval"), "false"),
-        //         ("mk-abort", "true"),
-        //     ),
-        // )
-        //     .into()
-
         ("=", ret, self.smt_construct_abort()).into()
     }
 

@@ -110,7 +110,7 @@ pub fn tableinitialize(cb: &CodeBlock, initialized: &Vec<String>) -> Result<Code
                 args: _,
                 target_inst_name: _,
                 tipe: ref opt_tipe,
-                file_pos: ref file_pos,
+                ref file_pos,
             } => {
                 let indextype = match idxexpr {
                     Expression::Typed(t, _) => t,
