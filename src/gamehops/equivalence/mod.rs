@@ -59,8 +59,7 @@ impl<'a> EquivalenceContext<'a> {
         base_declarations.extend(hacks::EmptyDeclaration.into_iter());
 
         for decl in base_declarations {
-            comm.write_smt(decl)
-                .map_err(error::new_prover_process_error)?
+            comm.write_smt(decl)?
         }
 
         Ok(())
@@ -85,8 +84,7 @@ impl<'a> EquivalenceContext<'a> {
         out.append(&mut right_writer.smt_composition_all());
 
         for decl in out {
-            comm.write_smt(decl)
-                .map_err(error::new_prover_process_error)?
+            comm.write_smt(decl)?
         }
 
         Ok(())
@@ -425,8 +423,7 @@ impl<'a> EquivalenceContext<'a> {
         ///// write expressions
 
         for expr in out {
-            comm.write_smt(expr)
-                .map_err(error::new_prover_process_error)?
+            comm.write_smt(expr)?;
         }
 
         Ok(())
@@ -443,7 +440,7 @@ impl<'a> EquivalenceContext<'a> {
             write!(comm, "{file_contents}").unwrap();
             println!("wrote contents of file {file_name}");
 
-            if comm.check_sat().map_err(error::new_prover_process_error)? != ProverResponse::Sat {
+            if comm.check_sat()? != ProverResponse::Sat {
                 return Err(Error::UnsatAfterInvariantRead {
                     equivalence: self.eq.clone(),
                     oracle_name: oracle_name.to_string(),
@@ -717,8 +714,7 @@ impl<'a> EquivalenceContext<'a> {
         comm.write_smt(crate::writers::smt::exprs::SmtAssert(SmtNot(SmtImplies(
             SmtAnd(dependencies_code),
             postcond_call,
-        ))))
-        .map_err(error::new_prover_process_error)?;
+        ))))?;
 
         Ok(())
     }
@@ -913,8 +909,7 @@ impl<'a> EquivalenceContext<'a> {
         comm.write_smt(crate::writers::smt::exprs::SmtAssert(SmtNot(SmtImplies(
             SmtAnd(dependencies_code),
             postcond_call,
-        ))))
-        .map_err(error::new_prover_process_error)?;
+        ))))?;
 
         Ok(())
     }

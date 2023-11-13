@@ -21,8 +21,7 @@ pub fn verify(eq: &Equivalence, proof: &Proof, transcript_file: File) -> Result<
         auxs: &auxs,
     };
 
-    let mut prover = Communicator::new_cvc5_with_transcript(transcript_file)
-        .map_err(error::new_prover_process_error)?;
+    let mut prover = Communicator::new_cvc5_with_transcript(transcript_file)?;
 
     std::thread::sleep(std::time::Duration::from_millis(20));
 
