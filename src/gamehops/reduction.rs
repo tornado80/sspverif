@@ -6,7 +6,7 @@ use std::iter::FromIterator;
 
 use crate::{
     package::{Edge, PackageInstance},
-    project::{Error, Result},
+    project::error::{Error, Result},
     proof::{Proof, Reduction},
     util::resolver::{Named, Resolver, SliceResolver},
 };

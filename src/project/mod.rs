@@ -9,11 +9,14 @@ use serde_derive::{Deserialize, Serialize};
 use std::io::ErrorKind;
 use std::{collections::HashMap, path::PathBuf};
 
-use error::{Error, Result};
+use error::Result;
 
-use crate::package::{Composition, Package};
-use crate::proof::{GameHop, Proof};
-use crate::transforms::typecheck::{typecheck_comp, typecheck_pkg, Scope};
+use crate::{
+    gamehops::{equivalence, reduction},
+    package::{Composition, Package},
+    proof::{GameHop, Proof},
+    transforms::typecheck::{typecheck_comp, typecheck_pkg, Scope},
+};
 
 pub const PROJECT_FILE: &str = "ssp.toml";
 
@@ -25,9 +28,7 @@ pub const ASSUMPTIONS_DIR: &str = "assumptions";
 pub const PACKAGE_EXT: &str = ".pkg.ssp";
 pub const GAME_EXT: &str = ".comp.ssp"; // TODO maybe change this to .game.ssp later, and also rename the Composition type
 
-mod equivalence;
 mod load;
-mod reduction;
 mod resolve;
 
 pub mod error;
@@ -47,14 +48,14 @@ impl Project {
         let root_dir = find_project_root()?;
         let packages = load::packages(root_dir.clone())?;
 
-        for (pkg_name, pkg) in &packages {
+        for (_pkg_name, pkg) in &packages {
             let mut scope = Scope::new();
             typecheck_pkg(pkg, &mut scope)?;
         }
 
         let games = load::games(root_dir.clone(), &packages)?;
 
-        for (game_name, game) in &games {
+        for (_game_name, game) in &games {
             let mut scope = Scope::new();
             typecheck_comp(game, &mut scope)?;
         }

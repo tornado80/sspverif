@@ -81,7 +81,7 @@ fn handle_instance_decl(
     let body_ast = ast.next().unwrap();
 
     let (types, consts) =
-        handle_instance_assign_list(&inst_name, file_name, proof_consts, body_ast, pkgs, games)?;
+        handle_instance_assign_list(&inst_name, file_name, proof_consts, body_ast)?;
 
     let game_resolver = SliceResolver(games);
     let game = match game_resolver.resolve(&game_name) {
@@ -166,8 +166,6 @@ fn handle_instance_assign_list(
     file_name: &str,
     proof_consts: &[(String, Type)],
     ast: Pair<Rule>,
-    pkgs: &[Package],
-    games: &[Composition],
 ) -> Result<(Vec<(Type, Type)>, Vec<(String, Expression)>)> {
     let ast = ast.into_inner();
 
@@ -228,7 +226,7 @@ fn handle_game_hops(
 
     for hop_ast in ast {
         let game_hop = match hop_ast.as_rule() {
-            Rule::equivalence => handle_equivalence(hop_ast, games, game_instances)?,
+            Rule::equivalence => handle_equivalence(hop_ast, game_instances)?,
             Rule::reduction => handle_reduction(hop_ast, assumptions, game_instances)?,
             otherwise => unreachable!("found {:?} in game_hops", otherwise),
         };
@@ -240,7 +238,6 @@ fn handle_game_hops(
 
 fn handle_equivalence<'a>(
     ast: Pair<Rule>,
-    games: &[Composition],
     game_instances: &[GameInstance],
 ) -> Result<Vec<GameHop>> {
     let span = ast.as_span();
@@ -283,7 +280,6 @@ fn handle_equivalence<'a>(
 }
 
 fn handle_equivalence_oracle(ast: Pair<Rule>) -> (String, Vec<String>, Vec<(String, Vec<String>)>) {
-    let span = ast.as_span();
     let mut ast = ast.into_inner();
     let oracle_name = ast.next().unwrap().as_str().to_string();
     let invariant_paths = handle_invariant_spec(next_pairs(&mut ast));
@@ -352,8 +348,8 @@ fn handle_reduction_body(
     let map1_ast = ast.next().unwrap();
     let map2_ast = ast.next().unwrap();
 
-    let mapping1 = handle_mapspec(map1_ast, &assumption, game_instances, left_name, right_name)?;
-    let mapping2 = handle_mapspec(map2_ast, &assumption, game_instances, left_name, right_name)?;
+    let mapping1 = handle_mapspec(map1_ast, &assumption, game_instances)?;
+    let mapping2 = handle_mapspec(map2_ast, &assumption, game_instances)?;
 
     if mapping1.as_game_inst_name() == mapping2.as_game_inst_name() {
         panic!();
@@ -381,8 +377,6 @@ fn handle_mapspec<'a>(
     ast: Pair<Rule>,
     assumption: &Assumption,
     game_instances: &'a [GameInstance],
-    left_name: &str,
-    right_name: &str,
 ) -> Result<Mapping> {
     let span = ast.as_span();
 
@@ -400,9 +394,6 @@ fn handle_mapspec<'a>(
 
     let is_left_assumption_game = assumption_game_inst_name == assumption.left_name;
     let is_right_assumption_game = assumption_game_inst_name == assumption.right_name;
-
-    let is_left_game = game_inst_name == left_name;
-    let is_right_game = game_inst_name == right_name;
 
     if !(is_left_assumption_game || is_right_assumption_game) {
         println!("{assumption:?}");

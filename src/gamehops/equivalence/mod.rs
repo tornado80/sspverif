@@ -1,15 +1,11 @@
 use std::collections::{HashMap, HashSet};
-use std::fmt::{Display, Write};
-use std::fs::File;
+use std::fmt::Write;
 use std::iter::FromIterator;
 
+use crate::util::resolver::Named;
 use crate::{
     hacks,
     package::{Composition, Export, OracleSig, SplitExport},
-    project::{
-        error::{Error, Result},
-        load::ProofTreeSpec,
-    },
     proof::{Claim, ClaimType, Equivalence, GameInstance, Proof},
     split::{SplitOracleSig, SplitPath},
     transforms::{
@@ -33,90 +29,11 @@ use crate::{
     },
 };
 
-pub fn verify(eq: &Equivalence, proof: &Proof, transcript_file: File) -> Result<()> {
-    let (proof, auxs) = EquivalenceTransform.transform_proof(proof)?;
+pub mod error;
+mod verify_fn;
 
-    let eqctx = EquivalenceContext {
-        eq,
-        proof: &proof,
-        auxs: &auxs,
-    };
-
-    let mut prover = Communicator::new_cvc5_with_transcript(transcript_file)?;
-
-    std::thread::sleep(std::time::Duration::from_millis(20));
-
-    eqctx.emit_base_declarations(&mut prover)?;
-    eqctx.emit_game_definitions(&mut prover)?;
-    eqctx.emit_constant_declarations(&mut prover)?;
-
-    for oracle_sig in eqctx.oracle_sequence() {
-        println!("verify: oracle:{oracle_sig:?}");
-        write!(prover, "(push 1)").unwrap();
-        eqctx.emit_invariant(&mut prover, &oracle_sig.name)?;
-
-        for claim in eqctx.eq.proof_tree_by_oracle_name(&oracle_sig.name) {
-            write!(prover, "(push 1)").unwrap();
-            eqctx.emit_claim_assert(&mut prover, &oracle_sig.name, &claim)?;
-            match prover.check_sat()? {
-                ProverResponse::Sat => {
-                    let lemma_name = claim.name();
-                    let model = prover.get_model()?;
-                    return Err(Error::ProofCheck(format!(
-                        "lemma {lemma_name}: expected unsat, got sat. model: {model}"
-                    )));
-                }
-                ProverResponse::Unknown => {
-                    let lemma_name = claim.name();
-                    return Err(Error::ProofCheck(format!(
-                        "lemma {lemma_name}: expected unsat, got unknown"
-                    )));
-                }
-                _ => {}
-            }
-            write!(prover, "(pop 1)").unwrap();
-        }
-
-        write!(prover, "(pop 1)").unwrap();
-    }
-
-    for split_oracle_sig in eqctx.split_oracle_sequence() {
-        println!("verify: split oracle:{split_oracle_sig:?}");
-        write!(prover, "(push 1)").unwrap();
-        eqctx.emit_invariant(&mut prover, &split_oracle_sig.name)?;
-
-        for claim in eqctx.eq.proof_tree_by_oracle_name(&split_oracle_sig.name) {
-            write!(prover, "(push 1)").unwrap();
-            eqctx.emit_split_claim_assert(
-                &mut prover,
-                &split_oracle_sig.name,
-                &split_oracle_sig.path,
-                &claim,
-            )?;
-            match prover.check_sat()? {
-                ProverResponse::Sat => {
-                    let lemma_name = claim.name();
-                    let model = prover.get_model()?;
-                    return Err(Error::ProofCheck(format!(
-                        "lemma {lemma_name}: expected unsat, got sat. model: {model}"
-                    )));
-                }
-                ProverResponse::Unknown => {
-                    let lemma_name = claim.name();
-                    return Err(Error::ProofCheck(format!(
-                        "lemma {lemma_name}: expected unsat, got unknown"
-                    )));
-                }
-                _ => {}
-            }
-            write!(prover, "(pop 1)").unwrap();
-        }
-
-        write!(prover, "(pop 1)").unwrap();
-    }
-
-    Ok(())
-}
+use error::{Error, Result};
+pub use verify_fn::verify;
 
 struct EquivalenceContext<'a> {
     eq: &'a Equivalence,
@@ -142,7 +59,8 @@ impl<'a> EquivalenceContext<'a> {
         base_declarations.extend(hacks::EmptyDeclaration.into_iter());
 
         for decl in base_declarations {
-            comm.write_smt(decl)?
+            comm.write_smt(decl)
+                .map_err(error::new_prover_process_error)?
         }
 
         Ok(())
@@ -167,7 +85,8 @@ impl<'a> EquivalenceContext<'a> {
         out.append(&mut right_writer.smt_composition_all());
 
         for decl in out {
-            comm.write_smt(decl)?
+            comm.write_smt(decl)
+                .map_err(error::new_prover_process_error)?
         }
 
         Ok(())
@@ -451,22 +370,19 @@ impl<'a> EquivalenceContext<'a> {
 
         ////// return values
 
-        for (decl_ret, constrain) in build_returns(left, Side::Left) {
+        for (decl_ret, constrain) in build_returns(left) {
             out.push(decl_ret);
             out.push(constrain);
         }
 
-        for (decl_ret, constrain) in build_returns(right, Side::Right) {
+        for (decl_ret, constrain) in build_returns(right) {
             out.push(decl_ret);
             out.push(constrain);
         }
 
-        for (decl_ret, constrain) in build_partial_returns(
-            left_game_inst_name,
-            &left.game(),
-            &left_partial_datatypes,
-            Side::Left,
-        ) {
+        for (decl_ret, constrain) in
+            build_partial_returns(left_game_inst_name, &left.game(), &left_partial_datatypes)
+        {
             out.push(decl_ret);
             out.push(constrain);
         }
@@ -475,7 +391,6 @@ impl<'a> EquivalenceContext<'a> {
             right_game_inst_name,
             &right.game(),
             &right_partial_datatypes,
-            Side::Right,
         ) {
             out.push(decl_ret);
             out.push(constrain);
@@ -484,7 +399,7 @@ impl<'a> EquivalenceContext<'a> {
         /////// randomess counters
 
         for (decl_ctr, assert_ctr, decl_val, assert_val) in
-            build_rands(self.sample_info_left(), left, Side::Left)
+            build_rands(self.sample_info_left(), left)
         {
             out.push(decl_ctr);
             out.push(assert_ctr);
@@ -493,7 +408,7 @@ impl<'a> EquivalenceContext<'a> {
         }
 
         for (decl_ctr, assert_ctr, decl_val, assert_val) in
-            build_rands(self.sample_info_right(), right, Side::Right)
+            build_rands(self.sample_info_right(), right)
         {
             out.push(decl_ctr);
             out.push(assert_ctr);
@@ -503,31 +418,36 @@ impl<'a> EquivalenceContext<'a> {
 
         /////////// helpers for working with randomness
 
-        out.push(self.smt_define_randctr_function(Side::Left));
-        out.push(self.smt_define_randctr_function(Side::Right));
+        out.push(self.smt_define_randctr_function(left, self.sample_info_left()));
+        out.push(self.smt_define_randctr_function(right, self.sample_info_right()));
         out.push(self.smt_define_randeq_function());
 
         ///// write expressions
 
         for expr in out {
-            comm.write_smt(expr)?
+            comm.write_smt(expr)
+                .map_err(error::new_prover_process_error)?
         }
 
         Ok(())
     }
 
     fn emit_invariant(&self, comm: &mut Communicator, oracle_name: &str) -> Result<()> {
-        for file_name in self.eq.invariants_by_oracle_name(oracle_name) {
+        for file_name in &self.eq.invariants_by_oracle_name(oracle_name) {
             println!("reading file {file_name}");
-            let file_contents = std::fs::read_to_string(&file_name)?;
+            let file_contents = std::fs::read_to_string(file_name).map_err(|err| {
+                let file_name = file_name.clone();
+                error::new_invariant_file_read_error(oracle_name.to_string(), file_name, err)
+            })?;
             println!("read file {file_name}");
             write!(comm, "{file_contents}").unwrap();
             println!("wrote contents of file {file_name}");
 
-            if comm.check_sat()? != ProverResponse::Sat {
-                return Err(Error::ProofCheck(
-                    "unsat after reading invariant file".to_string(),
-                ));
+            if comm.check_sat().map_err(error::new_prover_process_error)? != ProverResponse::Sat {
+                return Err(Error::UnsatAfterInvariantRead {
+                    equivalence: self.eq.clone(),
+                    oracle_name: oracle_name.to_string(),
+                });
             }
         }
 
@@ -797,7 +717,8 @@ impl<'a> EquivalenceContext<'a> {
         comm.write_smt(crate::writers::smt::exprs::SmtAssert(SmtNot(SmtImplies(
             SmtAnd(dependencies_code),
             postcond_call,
-        ))))?;
+        ))))
+        .map_err(error::new_prover_process_error)?;
 
         Ok(())
     }
@@ -992,7 +913,8 @@ impl<'a> EquivalenceContext<'a> {
         comm.write_smt(crate::writers::smt::exprs::SmtAssert(SmtNot(SmtImplies(
             SmtAnd(dependencies_code),
             postcond_call,
-        ))))?;
+        ))))
+        .map_err(error::new_prover_process_error)?;
 
         Ok(())
     }
@@ -1076,19 +998,13 @@ impl<'a> EquivalenceContext<'a> {
             .collect()
     }
 
-    pub fn smt_define_randctr_function(&self, side: Side) -> SmtExpr {
-        let (game, sample_info, game_inst_name) = match side {
-            Side::Left => (
-                self.left_game_ctx().game(),
-                self.sample_info_left(),
-                self.eq.left_name(),
-            ),
-            Side::Right => (
-                self.right_game_ctx().game(),
-                self.sample_info_right(),
-                self.eq.right_name(),
-            ),
-        };
+    pub fn smt_define_randctr_function(
+        &self,
+        game_inst: &GameInstance,
+        sample_info: &SampleInfo,
+    ) -> SmtExpr {
+        let game = game_inst.game();
+        let game_inst_name = game_inst.as_name();
         let game_name = &game.name;
 
         let state_name = patterns::GameState {
@@ -1129,17 +1045,8 @@ impl<'a> EquivalenceContext<'a> {
     }
 
     pub fn smt_define_randeq_function(&self) -> SmtExpr {
-        let (left_game, left_sample_info, left_game_inst_name) = (
-            self.left_game_ctx().game(),
-            self.sample_info_left(),
-            self.eq.left_name(),
-        );
-
-        let (right_game, right_sample_info, right_game_inst_name) = (
-            self.right_game_ctx().game(),
-            self.sample_info_right(),
-            self.eq.right_name(),
-        );
+        let left_game = self.left_game_ctx().game();
+        let right_game = self.right_game_ctx().game();
 
         let left_game_name = &left_game.name;
         let right_game_name = &right_game.name;
@@ -1247,19 +1154,6 @@ impl<'a> EquivalenceContext<'a> {
 // ResolvedEquivalence contains the composisitions/games and the invariant data,
 // whereas the pure Equivalence just contains the names and file paths.
 // TODO: explore if we can keep references to the games in the project hashmap
-pub struct ResolvedEquivalence {
-    pub left: Composition,
-    pub right: Composition,
-    pub invariant: String,
-    pub trees: HashMap<String, ProofTreeSpec>,
-
-    pub left_decl_smt_file: std::fs::File,
-    pub right_decl_smt_file: std::fs::File,
-    pub base_decl_smt_file: std::fs::File,
-    pub const_decl_smt_file: std::fs::File,
-    pub epilogue_smt_file: std::fs::File,
-    pub joined_smt_file: std::fs::File,
-}
 
 // This function gets the parameter names that both have and checks that
 // both use the same types.
@@ -1284,11 +1178,11 @@ fn check_matching_parameters(left: &Composition, right: &Composition) -> Result<
     // check that the common params have the same type
     for param in common_params {
         if left_params[*param] != right_params[*param] {
-            return Err(Error::CompositionParamMismatch(
-                left.name.clone(),
-                right.name.clone(),
-                (*param).clone(),
-            ));
+            return Err(Error::CompositionParamMismatch {
+                left_game_name: left.name.clone(),
+                right_game_name: right.name.clone(),
+                mismatching_param_name: (*param).clone(),
+            });
         }
     }
 
@@ -1299,7 +1193,6 @@ fn build_partial_returns(
     game_inst_name: &str,
     game: &Composition,
     partial_dtypes: &[PartialsDatatype],
-    game_side: Side,
 ) -> Vec<(SmtExpr, SmtExpr)> {
     let gctx = contexts::GameContext::new(game);
 
@@ -1374,7 +1267,7 @@ fn build_partial_returns(
         })
         .collect()
 }
-fn build_returns(game: &GameInstance, game_side: Side) -> Vec<(SmtExpr, SmtExpr)> {
+fn build_returns(game: &GameInstance) -> Vec<(SmtExpr, SmtExpr)> {
     let gctx = contexts::GameContext::new(game.game());
     let game_name = &game.game().name;
     let game_inst_name = &game.name();
@@ -1473,7 +1366,6 @@ fn build_returns(game: &GameInstance, game_side: Side) -> Vec<(SmtExpr, SmtExpr)
 fn build_rands(
     sample_info: &SampleInfo,
     game_inst: &GameInstance,
-    game_side: Side,
 ) -> Vec<(SmtExpr, SmtExpr, SmtExpr, SmtExpr)> {
     let gctx = contexts::GameContext::new(game_inst.game());
 
@@ -1493,8 +1385,8 @@ fn build_rands(
             }
             .name();
 
-            let randctr_name = format!("randctr-{game_side}-{sample_id}");
-            let randval_name = format!("randval-{game_side}-{sample_id}");
+            let randctr_name = format!("randctr-{game_inst_name}-{sample_id}");
+            let randval_name = format!("randval-{game_inst_name}-{sample_id}");
 
             let decl_randctr = declare::declare_const(randctr_name.clone(), Type::Integer);
             let decl_randval = declare::declare_const(randval_name.clone(), tipe);
@@ -1527,18 +1419,4 @@ fn build_rands(
             )
         })
         .collect()
-}
-
-enum Side {
-    Left,
-    Right,
-}
-
-impl Display for Side {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Side::Left => write!(f, "left"),
-            Side::Right => write!(f, "right"),
-        }
-    }
 }

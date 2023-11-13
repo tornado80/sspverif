@@ -285,7 +285,6 @@ pub fn handle_code(code: Pair<Rule>, file_name: &str) -> CodeBlock {
                         Statement::Parse(idents, expr, file_pos)
                     }
                     Rule::for_ => {
-                        let span = stmt.as_span();
                         let mut parsed: Vec<Pair<Rule>> = stmt.into_inner().collect();
                         let decl_var_name = parsed[0].as_str();
                         let lower_bound = handle_expression(parsed.remove(1));

@@ -180,12 +180,10 @@ pub fn handle_params_def_list(
 
             let mut inner = inner.into_inner();
             let left_ast = inner.next().unwrap();
-            let left_span = left_ast.as_span();
             let left = left_ast.as_str();
 
             let right_ast = inner.next().unwrap();
             let right_span = right_ast.as_span();
-            let right_str = right_ast.as_str();
 
             let right = handle_expression(right_ast);
 

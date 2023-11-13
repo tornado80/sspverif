@@ -1,6 +1,6 @@
 use crate::expressions::Expression;
 use crate::split::{SplitOracleDef, SplitOracleSig};
-use crate::statement::{CodeBlock, FilePosition, Statement};
+use crate::statement::{CodeBlock, FilePosition};
 use crate::types::Type;
 
 use std::fmt;
@@ -35,43 +35,6 @@ pub struct Package {
     pub oracles: Vec<OracleDef>,
     pub split_oracles: Vec<SplitOracleDef>,
     pub imports: Vec<(OracleSig, FilePosition)>,
-}
-
-impl Package {
-    pub fn called_oracles(&self, oracle: &OracleDef) -> Vec<OracleSig> {
-        let mut result = Vec::new();
-        let mut called_oracles_helper = |cb: &CodeBlock| {
-            for stmt in &cb.0 {
-                match stmt {
-                    Statement::InvokeOracle {
-                        name,
-                        args,
-                        tipe: Some(tipe),
-                        ..
-                    } => {
-                        let found = self.imports.iter().find(|(sig, file_pos)|{
-                            sig.name == *name && sig.tipe == *tipe &&
-                                sig.args.iter().zip(args.iter()).all(|(l,r)| {
-                                    if let Expression::Typed(t, _) = r {
-                                        l.1 == *t
-                                    } else {
-                                        panic!("OracleDef called_oracles() only to be called after typing. pos: {file_pos}")
-                                    }
-
-
-                                })
-                        }).map(|(sig, file_pos)| sig);
-
-                        result.push(found.unwrap().clone());
-                    }
-                    _ => {}
-                }
-            }
-        };
-
-        called_oracles_helper(&oracle.code);
-        result
-    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
