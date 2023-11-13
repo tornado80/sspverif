@@ -2,11 +2,9 @@ use crate::{
     expressions::Expression,
     package::{Composition, Package},
     parser::Rule,
-    proof::{
-        Assumption, Claim, Equivalence, GameHop, GameInstance, Mapping, Proof, Reduction, Resolver,
-        SliceResolver,
-    },
+    proof::{Assumption, Claim, Equivalence, GameHop, GameInstance, Mapping, Proof, Reduction},
     types::Type,
+    util::resolver::{Resolver, SliceResolver},
 };
 
 use itertools::Itertools;

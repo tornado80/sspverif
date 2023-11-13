@@ -16,7 +16,6 @@ use crate::proof::{GameHop, Proof};
 use crate::transforms::typecheck::{typecheck_comp, typecheck_pkg, Scope};
 
 pub const PROJECT_FILE: &str = "ssp.toml";
-pub const GAMEHOPS_FILE: &str = "game_hops.toml";
 
 pub const PACKAGES_DIR: &str = "packages";
 pub const GAMES_DIR: &str = "games";
@@ -26,49 +25,10 @@ pub const ASSUMPTIONS_DIR: &str = "assumptions";
 pub const PACKAGE_EXT: &str = ".pkg.ssp";
 pub const GAME_EXT: &str = ".comp.ssp"; // TODO maybe change this to .game.ssp later, and also rename the Composition type
 
-mod assumption;
 mod equivalence;
 mod load;
 mod reduction;
 mod resolve;
-
-pub use crate::proof::Assumption;
-//pub use equivalence::Equivalence;
-//pub use reduction::Reduction;
-/*
-impl From<load::TomlGameHop> for GameHop {
-    fn from(toml_hop: load::TomlGameHop) -> Self {
-        match toml_hop {
-            load::TomlGameHop::Reduction {
-                left,
-                right,
-                assumption,
-                leftmap,
-                rightmap,
-                ..
-            } => GameHop::Reduction(Reduction {
-                left,
-                right,
-                assumption,
-                leftmap,
-                rightmap,
-                //direction: Direction::Unspecified,
-            }),
-            load::TomlGameHop::Equivalence {
-                left,
-                right,
-                invariant_path,
-                trees,
-            } => GameHop::Equivalence(Equivalence {
-                left,
-                right,
-                invariant_path,
-                trees,
-            }),
-        }
-    }
-}
-*/
 
 pub mod error;
 
@@ -100,8 +60,6 @@ impl Project {
         }
 
         let proofs = load::proofs(root_dir.clone(), &packages, &games)?;
-
-        //let (game_hops, assumptions) = load::toml_file(root_dir.clone(), &games)?;
 
         let project = Project {
             root_dir,

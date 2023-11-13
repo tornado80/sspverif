@@ -1,39 +1,37 @@
-use crate::hacks;
-use crate::package::{Composition, Export, OracleSig, SplitExport};
-use crate::proof::{Claim, ClaimType, GameInstance, Proof, Resolver, SliceResolver};
-use crate::split::{SplitOracleSig, SplitPath};
-use crate::transforms::proof_transforms::EquivalenceTransform;
-use crate::transforms::samplify::{Position, SampleInfo};
-use crate::transforms::split_partial::SplitInfoEntry;
-use crate::transforms::ProofTransform;
-use crate::util::prover_process::{Communicator, ProverResponse};
-use crate::writers::smt::contexts::{GameContext, GenericOracleContext};
-use crate::writers::smt::exprs::{
-    SmtAnd, SmtAssert, SmtEq2, SmtExpr, SmtForall, SmtImplies, SmtIte, SmtNot,
-};
-use crate::writers::smt::partials::{into_partial_dtypes, PartialsDatatype};
-use crate::writers::smt::patterns::{
-    DatastructurePattern, GameState, GameStateDeclareInfo, GameStatePattern, GameStateSelector,
-    IntermediateStateConst, OracleArgs, PartialReturnConst, ReturnConst, ReturnPattern,
-    ReturnSelector, ReturnValueConst,
-};
-use crate::writers::smt::writer::CompositionSmtWriter;
-use crate::writers::smt::{contexts, declare, patterns};
-use crate::{
-    project::error::{Error, Result},
-    types::Type,
-};
-
-use patterns::ConstantPattern;
-
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Write};
 use std::fs::File;
 use std::iter::FromIterator;
 
-use super::load::ProofTreeSpec;
-
-use crate::proof::Equivalence;
+use crate::{
+    hacks,
+    package::{Composition, Export, OracleSig, SplitExport},
+    project::{
+        error::{Error, Result},
+        load::ProofTreeSpec,
+    },
+    proof::{Claim, ClaimType, Equivalence, GameInstance, Proof},
+    split::{SplitOracleSig, SplitPath},
+    transforms::{
+        proof_transforms::EquivalenceTransform,
+        samplify::{Position, SampleInfo},
+        split_partial::SplitInfoEntry,
+        ProofTransform,
+    },
+    types::Type,
+    util::{
+        prover_process::{Communicator, ProverResponse},
+        resolver::{Resolver, SliceResolver},
+    },
+    writers::smt::{
+        contexts::{self, GenericOracleContext},
+        declare,
+        exprs::{SmtAnd, SmtAssert, SmtEq2, SmtExpr, SmtForall, SmtImplies, SmtIte, SmtNot},
+        partials::{into_partial_dtypes, PartialsDatatype},
+        patterns::{self, ConstantPattern, DatastructurePattern},
+        writer::CompositionSmtWriter,
+    },
+};
 
 pub fn verify(eq: &Equivalence, proof: &Proof, transcript_file: File) -> Result<()> {
     let (proof, auxs) = EquivalenceTransform.transform_proof(proof)?;
@@ -338,14 +336,14 @@ impl<'a> EquivalenceContext<'a> {
 
         /////// old state constants
 
-        let decl_state_left = GameState {
+        let decl_state_left = patterns::GameState {
             game_inst_name: left_game_inst_name,
             game_name: left_game_name,
             variant: "old",
         }
         .declare();
 
-        let decl_state_right = GameState {
+        let decl_state_right = patterns::GameState {
             game_inst_name: right_game_inst_name,
             game_name: right_game_name,
             variant: "old",
@@ -366,7 +364,7 @@ impl<'a> EquivalenceContext<'a> {
 
             processed.insert(oracle_name);
 
-            let decl_intermediate_state_left = IntermediateStateConst {
+            let decl_intermediate_state_left = patterns::IntermediateStateConst {
                 game_inst_name: left_game_inst_name,
                 game_name: left_game_name,
                 pkg_inst_name,
@@ -388,7 +386,7 @@ impl<'a> EquivalenceContext<'a> {
 
             processed.insert(oracle_name);
 
-            let decl_intermediate_state_right = IntermediateStateConst {
+            let decl_intermediate_state_right = patterns::IntermediateStateConst {
                 game_inst_name: right_game_inst_name,
                 game_name: right_game_name,
                 pkg_inst_name,
@@ -589,7 +587,7 @@ impl<'a> EquivalenceContext<'a> {
             .unwrap()
             .args
             .iter()
-            .map(|(arg_name, arg_type)| OracleArgs {
+            .map(|(arg_name, arg_type)| patterns::OracleArgs {
                 oracle_name,
                 arg_name,
                 arg_type,
@@ -614,35 +612,35 @@ impl<'a> EquivalenceContext<'a> {
         }
         .name();
 
-        let state_left_new_name = GameState {
+        let state_left_new_name = patterns::GameState {
             game_inst_name: game_inst_name_left,
             game_name: &gctx_left.game().name,
             variant: &format!("new-{oracle_name}"),
         }
         .name();
 
-        let state_left_old_name = GameState {
+        let state_left_old_name = patterns::GameState {
             game_inst_name: game_inst_name_left,
             game_name: &gctx_left.game().name,
             variant: "old",
         }
         .name();
 
-        let state_right_new_name = GameState {
+        let state_right_new_name = patterns::GameState {
             game_inst_name: game_inst_name_right,
             game_name: &gctx_right.game().name,
             variant: &format!("new-{oracle_name}"),
         }
         .name();
 
-        let state_right_old_name = GameState {
+        let state_right_old_name = patterns::GameState {
             game_inst_name: game_inst_name_right,
             game_name: &gctx_right.game().name,
             variant: "old",
         }
         .name();
 
-        let intermediate_state_left_new_name = IntermediateStateConst {
+        let intermediate_state_left_new_name = patterns::IntermediateStateConst {
             game_inst_name: game_inst_name_left,
             game_name: &gctx_left.game().name,
             pkg_inst_name: pkg_inst_name_left,
@@ -651,7 +649,7 @@ impl<'a> EquivalenceContext<'a> {
         }
         .name();
 
-        let intermediate_state_left_old_name = IntermediateStateConst {
+        let intermediate_state_left_old_name = patterns::IntermediateStateConst {
             game_inst_name: game_inst_name_left,
             game_name: &gctx_left.game().name,
             pkg_inst_name: pkg_inst_name_left,
@@ -660,7 +658,7 @@ impl<'a> EquivalenceContext<'a> {
         }
         .name();
 
-        let intermediate_state_right_new_name = IntermediateStateConst {
+        let intermediate_state_right_new_name = patterns::IntermediateStateConst {
             game_inst_name: game_inst_name_right,
             game_name: &gctx_right.game().name,
             pkg_inst_name: pkg_inst_name_right,
@@ -669,7 +667,7 @@ impl<'a> EquivalenceContext<'a> {
         }
         .name();
 
-        let intermediate_state_right_old_name = IntermediateStateConst {
+        let intermediate_state_right_old_name = patterns::IntermediateStateConst {
             game_inst_name: game_inst_name_right,
             game_name: &gctx_right.game().name,
             pkg_inst_name: pkg_inst_name_right,
@@ -849,7 +847,7 @@ impl<'a> EquivalenceContext<'a> {
             .unwrap()
             .args
             .iter()
-            .map(|(arg_name, arg_type)| OracleArgs {
+            .map(|(arg_name, arg_type)| patterns::OracleArgs {
                 oracle_name,
                 arg_name,
                 arg_type,
@@ -872,25 +870,25 @@ impl<'a> EquivalenceContext<'a> {
             oracle_name,
         };
 
-        let state_left_new = GameState {
+        let state_left_new = patterns::GameState {
             game_inst_name: game_inst_name_left,
             game_name: &gctx_left.game().name,
             variant: &format!("new-{oracle_name}"),
         };
 
-        let state_left_old = GameState {
+        let state_left_old = patterns::GameState {
             game_inst_name: game_inst_name_left,
             game_name: &gctx_left.game().name,
             variant: "old",
         };
 
-        let state_right_new = GameState {
+        let state_right_new = patterns::GameState {
             game_inst_name: game_inst_name_right,
             game_name: &gctx_right.game().name,
             variant: &format!("new-{oracle_name}"),
         };
 
-        let state_right_old = GameState {
+        let state_right_old = patterns::GameState {
             game_inst_name: game_inst_name_right,
             game_name: &gctx_right.game().name,
             variant: "old",
@@ -1006,22 +1004,22 @@ impl<'a> EquivalenceContext<'a> {
         types_left.union(types_right).cloned().collect()
     }
 
-    fn left_game_ctx(&self) -> GameContext<'a> {
+    fn left_game_ctx(&self) -> contexts::GameContext<'a> {
         let game_inst_name = self.eq.left_name();
         let game_inst = SliceResolver(self.proof.instances())
             .resolve(game_inst_name)
             .unwrap();
         let game = game_inst.game();
-        GameContext::new(game)
+        contexts::GameContext::new(game)
     }
 
-    fn right_game_ctx(&self) -> GameContext<'a> {
+    fn right_game_ctx(&self) -> contexts::GameContext<'a> {
         let game_inst_name = self.eq.right_name();
         let game_inst = SliceResolver(self.proof.instances())
             .resolve(game_inst_name)
             .unwrap();
         let game = game_inst.game();
-        GameContext::new(game)
+        contexts::GameContext::new(game)
     }
 
     fn sample_info_left(&self) -> &'a SampleInfo {
@@ -1093,15 +1091,15 @@ impl<'a> EquivalenceContext<'a> {
         };
         let game_name = &game.name;
 
-        let state_name = GameState {
+        let state_name = patterns::GameState {
             game_inst_name,
             game_name,
             variant: "old",
         }
         .name();
 
-        let pattern = GameStatePattern { game_name };
-        let info = GameStateDeclareInfo { game, sample_info };
+        let pattern = patterns::GameStatePattern { game_name };
+        let info = patterns::GameStateDeclareInfo { game, sample_info };
 
         let spec = pattern.datastructure_spec(&info);
         let (_, selectors) = &spec.0[0];
@@ -1110,7 +1108,7 @@ impl<'a> EquivalenceContext<'a> {
 
         for selector in selectors {
             body = match selector {
-                GameStateSelector::Randomness { sample_id } => SmtIte {
+                patterns::GameStateSelector::Randomness { sample_id } => SmtIte {
                     cond: ("=", "sample-id", *sample_id),
                     then: (pattern.selector_name(selector), state_name.clone()),
                     els: body,
@@ -1319,7 +1317,7 @@ fn build_partial_returns(
             let game_name = &game.name;
             let pkg_inst_name = &game.pkgs[*inst_idx].name;
             let oracle_name = &sig.name;
-            let pattern = PartialReturnConst {
+            let pattern = patterns::PartialReturnConst {
                 game_inst_name,
                 game_name,
                 pkg_inst_name,
@@ -1345,14 +1343,14 @@ fn build_partial_returns(
                 .iter()
                 .map(|(arg_name, _)| octx.smt_arg_name(arg_name));
 
-            let game_state_name = GameState {
+            let game_state_name = patterns::GameState {
                 game_inst_name,
                 game_name,
                 variant: "old",
             }
             .name();
 
-            let intermediate_state_name = IntermediateStateConst {
+            let intermediate_state_name = patterns::IntermediateStateConst {
                 game_inst_name,
                 game_name,
                 pkg_inst_name,
@@ -1392,24 +1390,24 @@ fn build_returns(game: &GameInstance, game_side: Side) -> Vec<(SmtExpr, SmtExpr)
             "error looking up exported oracle with name {oracle_name} in game {game_name}"
         ));
 
-        let return_const = ReturnConst {
+        let return_const = patterns::ReturnConst {
             game_inst_name,
             game_name,
             pkg_inst_name,
             oracle_name,
         };
-        let return_value_const = ReturnValueConst {
+        let return_value_const = patterns::ReturnValueConst {
             game_inst_name,
             pkg_inst_name,
             oracle_name,
             tipe: &sig.tipe,
         };
-        let old_state_const = GameState {
+        let old_state_const = patterns::GameState {
             game_inst_name,
             game_name,
             variant: "old",
         };
-        let new_state_const = GameState {
+        let new_state_const = patterns::GameState {
             game_inst_name,
             game_name,
             variant: &format!("new-{oracle_name}"),
@@ -1424,7 +1422,7 @@ fn build_returns(game: &GameInstance, game_side: Side) -> Vec<(SmtExpr, SmtExpr)
             .smt_invoke_oracle(old_state_const.name(), args)
             .unwrap();
 
-        let return_pattern = ReturnPattern {
+        let return_pattern = patterns::ReturnPattern {
             game_name,
             pkg_inst_name,
             oracle_name,
@@ -1434,7 +1432,7 @@ fn build_returns(game: &GameInstance, game_side: Side) -> Vec<(SmtExpr, SmtExpr)
         let access_returnvalue = return_pattern
             .access(
                 &return_spec,
-                &ReturnSelector::ReturnValueOrAbort {
+                &patterns::ReturnSelector::ReturnValueOrAbort {
                     return_type: &sig.tipe,
                 },
                 return_const.name(),
@@ -1444,7 +1442,7 @@ fn build_returns(game: &GameInstance, game_side: Side) -> Vec<(SmtExpr, SmtExpr)
         let access_new_state = return_pattern
             .access(
                 &return_spec,
-                &ReturnSelector::GameState,
+                &patterns::ReturnSelector::GameState,
                 return_const.name(),
             )
             .unwrap();
@@ -1488,7 +1486,7 @@ fn build_rands(
             let game_inst_name = game_inst.name();
             let game_name = &game_inst.game().name;
 
-            let state = GameState {
+            let state = patterns::GameState {
                 game_inst_name,
                 game_name,
                 variant: "old",

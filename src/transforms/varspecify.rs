@@ -1,10 +1,11 @@
 use crate::expressions::Expression;
 use crate::identifier::Identifier;
 use crate::package::{Composition, OracleDef, Package, PackageInstance};
-use crate::proof::{GameInstance, Resolver, SliceResolver};
+use crate::proof::GameInstance;
 use crate::split::SplitOracleDef;
 use crate::statement::{CodeBlock, FilePosition, Statement};
 use crate::types::Type;
+use crate::util::resolver::{Resolver, SliceResolver};
 
 pub struct Transformation<'a>(pub &'a Composition);
 
