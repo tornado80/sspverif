@@ -1,7 +1,7 @@
 use crate::{
     expressions::Expression,
     package::{Composition, Package, PackageInstance},
-    proof::{Assumption, GameInstance},
+    proof::Assumption,
 };
 
 pub trait Resolver<'a, T> {
