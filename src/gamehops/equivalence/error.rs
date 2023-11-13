@@ -14,8 +14,8 @@ pub enum Error {
         err: std::io::Error,
     },
     CompositionParamMismatch {
-        left_game_name: String,
-        right_game_name: String,
+        left_game_inst_name: String,
+        right_game_inst_name: String,
         mismatching_param_name: String,
     },
     ClaimProofFailed {
@@ -62,15 +62,21 @@ impl std::fmt::Display for Error {
                 err,
             } => write!(f, "error reading invariant file {invariant_file_name} for oracle {oracle_name}: {err}"),
             Error::CompositionParamMismatch {
-                left_game_name,
-                right_game_name,
+                left_game_inst_name,
+                right_game_inst_name,
                 mismatching_param_name,
-            } => todo!(),
+            } => write!(f, "parameter {mismatching_param_name} does not match in equivalence proof of game instances {left_game_inst_name} and {right_game_inst_name}"),
             Error::ClaimProofFailed {
                 claim_name,
                 response,
                 model,
-            } => todo!(),
+            } => {
+                match model {
+                    Ok(model) => write!(f, "error proving claim {claim_name}. status: {response}. model: {model}"),
+                    Err(model_err) => write!(f, "error proving claim {claim_name}. status: {response}. \
+                                             Also, encountered the following error when trying to get the model: {model_err}"),
+                }
+            },
         }
     }
 }

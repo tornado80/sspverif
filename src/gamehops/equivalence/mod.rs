@@ -1163,14 +1163,14 @@ impl<'a> EquivalenceContext<'a> {
 // relations between the two.
 //
 // TODO figure out if there is a better mechanism we could use here
-fn check_matching_parameters(left: &Composition, right: &Composition) -> Result<()> {
+fn check_matching_parameters(left: &GameInstance, right: &GameInstance) -> Result<()> {
     use std::collections::hash_map::RandomState;
 
     // populate tables name -> type
     let left_params: HashMap<_, _, RandomState> =
-        HashMap::from_iter(left.consts.clone().into_iter());
+        HashMap::from_iter(left.game().consts.clone().into_iter());
     let right_params: HashMap<_, _, RandomState> =
-        HashMap::from_iter(right.consts.clone().into_iter());
+        HashMap::from_iter(right.game().consts.clone().into_iter());
 
     // prepare sets of names
     let left_params_set = HashSet::<_, RandomState>::from_iter(left_params.keys());
@@ -1181,8 +1181,8 @@ fn check_matching_parameters(left: &Composition, right: &Composition) -> Result<
     for param in common_params {
         if left_params[*param] != right_params[*param] {
             return Err(Error::CompositionParamMismatch {
-                left_game_name: left.name.clone(),
-                right_game_name: right.name.clone(),
+                left_game_inst_name: left.name().to_string(),
+                right_game_inst_name: right.name().to_string(),
                 mismatching_param_name: (*param).clone(),
             });
         }
