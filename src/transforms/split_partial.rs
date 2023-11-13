@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::convert::Infallible;
 
 use crate::expressions::Expression;
 use crate::identifier::Identifier;
@@ -8,8 +9,7 @@ use crate::types::Type;
 
 pub struct SplitPartial;
 
-#[derive(Debug)]
-pub enum Error {}
+pub type Error = Infallible;
 
 type Result<T> = std::result::Result<T, Error>;
 

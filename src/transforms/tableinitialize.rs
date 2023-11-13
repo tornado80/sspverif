@@ -1,11 +1,12 @@
+use std::convert::Infallible;
+
 use crate::expressions::Expression;
 use crate::identifier::Identifier;
 use crate::package::Composition;
 use crate::statement::{CodeBlock, Statement};
 use crate::types::Type;
 
-#[derive(Debug, Clone)]
-pub struct Error(pub String);
+pub type Error = Infallible;
 
 pub struct Transformation<'a>(pub &'a Composition);
 
@@ -14,7 +15,7 @@ impl<'a> super::Transformation for Transformation<'a> {
     type Aux = ();
 
     fn transform(&self) -> Result<(Composition, ()), Error> {
-        let insts: Result<Vec<_>, _> = self
+        let insts: Result<Vec<_>, Error> = self
             .0
             .pkgs
             .iter()
@@ -58,12 +59,13 @@ pub fn tableinitialize(cb: &CodeBlock, initialized: &Vec<String>) -> Result<Code
                 let indextype = match idxexpr {
                     Expression::Typed(t, _) => t,
                     _ => unreachable!(
-                        "all expressions are expected to be typed at this point! ({file_pos})"
+                        "all expressions are expected to be typed at this point! ({})",
+                        file_pos
                     ),
                 };
                 let valuetype = match expr {
                     Expression::Typed(Type::Maybe(t), _) => &**t,
-                    _ => unreachable!("all expressions are expected to be typed at this point, and the value needs to be a maybe type! ({file_pos})"),
+                    _ => unreachable!("all expressions are expected to be typed at this point, and the value needs to be a maybe type! ({})", file_pos),
                 };
                 let tabletype =
                     Type::Table(Box::new(indextype.clone()), Box::new(valuetype.clone()));
@@ -88,7 +90,12 @@ pub fn tableinitialize(cb: &CodeBlock, initialized: &Vec<String>) -> Result<Code
             ) => {
                 let indextype = match idxexpr {
                     Expression::Typed(t, _) => t,
-                    _ => unreachable!("all expressions are expected to be typed at this point!"),
+                    _ => {
+                        unreachable!(
+                            "all expressions are expected to be typed at this point! ({})",
+                            file_pos
+                        )
+                    }
                 };
                 let tabletype = Type::Table(Box::new(indextype.clone()), Box::new(tipe.clone()));
 
@@ -114,11 +121,11 @@ pub fn tableinitialize(cb: &CodeBlock, initialized: &Vec<String>) -> Result<Code
             } => {
                 let indextype = match idxexpr {
                     Expression::Typed(t, _) => t,
-                    _ => unreachable!("all expressions are typed at this point!"),
+                    _ => unreachable!("all expressions are typed at this point! ({})", file_pos),
                 };
                 let valuetype = match opt_tipe {
                     Some(t) => t,
-                    _ => unreachable!("all expressions are typed at this point!"),
+                    _ => unreachable!("all expressions are typed at this point! ({})", file_pos),
                 };
                 let tabletype =
                     Type::Table(Box::new(indextype.clone()), Box::new(valuetype.clone()));

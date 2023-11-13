@@ -1,3 +1,5 @@
+use std::convert::Infallible;
+
 use crate::expressions::Expression;
 use crate::identifier::Identifier;
 use crate::package::{Composition, OracleDef, Package, PackageInstance};
@@ -264,7 +266,7 @@ fn var_specify_pkg_inst(game_inst: &GameInstance, pkg_inst: &PackageInstance) ->
     }
 }
 
-pub fn var_specify_game_inst(game_inst: &GameInstance) -> Result<Composition, ()> {
+pub fn var_specify_game_inst(game_inst: &GameInstance) -> Result<Composition, Infallible> {
     game_inst
         .game()
         .map_pkg_inst(|pkg_inst| Ok(var_specify_pkg_inst(game_inst, pkg_inst)))

@@ -1,10 +1,11 @@
+use std::convert::Infallible;
+
 use crate::expressions::Expression;
 use crate::identifier::Identifier;
 use crate::package::Composition;
 use crate::statement::{CodeBlock, FilePosition, Statement};
 
-#[derive(Debug, Clone)]
-pub struct Error(pub String);
+pub type Error = Infallible;
 
 pub struct Transformation<'a>(pub &'a Composition);
 
@@ -13,7 +14,7 @@ impl<'a> super::Transformation for Transformation<'a> {
     type Aux = ();
 
     fn transform(&self) -> Result<(Composition, ()), Error> {
-        let insts: Result<Vec<_>, _> = self
+        let insts: Result<Vec<_>, Infallible> = self
             .0
             .pkgs
             .iter()

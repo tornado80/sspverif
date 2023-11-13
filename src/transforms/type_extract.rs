@@ -1,13 +1,12 @@
 use std::collections::HashSet;
+use std::convert::Infallible;
 
 use crate::expressions::Expression;
 use crate::package::Composition;
 use crate::statement::{CodeBlock, Statement};
 use crate::types::Type;
 
-#[derive(Debug, Clone)]
-pub struct Error(pub String);
-
+pub type Error = Infallible;
 pub struct Transformation<'a>(pub &'a Composition);
 
 impl<'a> super::Transformation for Transformation<'a> {

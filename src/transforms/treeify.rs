@@ -1,13 +1,15 @@
+use std::convert::Infallible;
+
 use crate::package::Composition;
 use crate::statement::{CodeBlock, FilePosition, Statement};
 
 pub struct Transformation<'a>(pub &'a Composition);
 
 impl<'a> super::Transformation for Transformation<'a> {
-    type Err = ();
+    type Err = Infallible;
     type Aux = ();
 
-    fn transform(&self) -> Result<(Composition, ()), ()> {
+    fn transform(&self) -> Result<(Composition, ()), Infallible> {
         let insts = self.0.pkgs.iter().map(|inst| {
             let mut newinst = inst.clone();
             newinst.pkg.oracles.iter_mut().for_each(|oracle| {

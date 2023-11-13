@@ -7,6 +7,7 @@ pub struct Transformation<'a>(pub &'a Composition);
 
 #[derive(Debug)]
 pub struct ResolutionError(Vec<Statement>);
+
 type Result<T> = std::result::Result<T, ResolutionError>;
 
 fn transform_helper_outer(table: &HashMap<String, String>, block: CodeBlock) -> Result<CodeBlock> {
