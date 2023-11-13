@@ -923,7 +923,9 @@ impl<'a> EquivalenceContext<'a> {
         let aux_resolver = SliceResolver(&self.auxs);
         let (_, (_, types_left, _, _)) = aux_resolver.resolve(self.eq.left_name()).unwrap();
         let (_, (_, types_right, _, _)) = aux_resolver.resolve(self.eq.right_name()).unwrap();
-        types_left.union(types_right).cloned().collect()
+        let mut types: Vec<_> = types_left.union(types_right).cloned().collect();
+        types.sort();
+        types
     }
 
     fn left_game_ctx(&self) -> contexts::GameContext<'a> {
