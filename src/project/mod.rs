@@ -19,6 +19,7 @@ use crate::{
         Transformation,
         typecheck::{typecheck_comp, typecheck_pkg, Scope},
     },
+    util::prover_process::ProverBackend,
 };
 
 pub const PROJECT_FILE: &str = "ssp.toml";
@@ -77,15 +78,17 @@ impl Project {
 
     // we might want to return a proof trace here instead
     // we could then extract the proof viewer output and other useful info trom the trace
-    pub fn prove(&self) -> Result<()> {
+    pub fn prove(&self, backend: ProverBackend, transcript: bool) -> Result<()> {
         for (_, proof) in &self.proofs {
             for (i, game_hop) in proof.game_hops().iter().enumerate() {
                 match game_hop {
                     GameHop::Reduction(red) => reduction::verify(red, proof)?,
                     GameHop::Equivalence(eq) => {
                         let transcript_file =
-                            self.get_joined_smt_file(eq.left_name(), eq.right_name())?;
-                        equivalence::verify(eq, proof, transcript_file)?
+                            if transcript  {
+                                Some(self.get_joined_smt_file(eq.left_name(), eq.right_name())?)
+                            } else { None };
+                        equivalence::verify(eq, proof, backend, transcript_file)?
                     }
                 }
 
