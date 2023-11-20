@@ -4,7 +4,7 @@ use std::path::Path;
 
 use crate::expressions::Expression;
 use crate::identifier::Identifier;
-use crate::package::{Composition, Edge, OracleDef, PackageInstance};
+use crate::package::{Composition, Edge, OracleDef, PackageInstance, Export};
 use crate::statement::{CodeBlock, Statement};
 
 /// TODO: Move to struct so we can have verbose versions (e.g. writing types to expressions)
@@ -279,7 +279,7 @@ pub fn tex_write_composition(
     let fname = target.join(format!("Composition_{}.tex", name));
     let mut file = File::create(fname)?;
 
-    writeln!(file, "\\documentclass[a4paper]{{article}}")?;
+    writeln!(file, "\\documentclass[a4paper,landscape]{{article}}")?;
     writeln!(file, "\\usepackage[operators]{{cryptocode}}")?;
     writeln!(file, "\\usepackage{{tikz}}")?;
     writeln!(
@@ -338,8 +338,19 @@ pub fn tex_write_composition(
         tikzx -= 4;
         tikzy = tikzx / 4;
     }
+    writeln!(
+        file,
+        "\\node[package] (nodea) at ({}, {}) {{$A$}};",
+        tikzx,
+        tikzy
+    );
+    for Export(to, oracle) in &composition.exports {
+        writeln!(file, "\\draw[-latex,rounded corners] (nodea) -- ($(nodea.east) + (1,0)$) |- node[onarrow] {{\\O{{{}}}}} (node{});", oracle.name, to)?;
+
+    }
     writeln!(file, "\\end{{tikzpicture}}")?;
 
+    
     for pkg in &composition.pkgs {
         let pkgfname = tex_write_package(pkg, target)?;
         writeln!(file, "\\input{{{}}}", pkgfname)?;

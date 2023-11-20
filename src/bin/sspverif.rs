@@ -125,6 +125,9 @@ struct Cli {
 
 #[derive(Subcommand, Debug)]
 enum Commands {
+    /// Export to LaTeX
+    Latex,
+
     /// Give information about the provided code
     Explain(Explain),
 
@@ -166,6 +169,10 @@ fn explain(_game_name: &str, _dst: &Option<String>) -> Result<()> {
     // Ok(())
 }
 
+fn latex() -> Result<()> {
+    project::Project::load()?.latex()
+}
+
 fn main() -> Result<()> {
     let cli = Cli::parse();
 
@@ -178,6 +185,7 @@ fn main() -> Result<()> {
             Err(x) => Err(x),
             Ok(_) => Ok(()),
         },
+        Commands::Latex => {latex()},
         Commands::Explain(Explain { game_name, output }) => explain(game_name, output),
     }
 }

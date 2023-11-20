@@ -15,7 +15,10 @@ use crate::{
     gamehops::{equivalence, reduction},
     package::{Composition, Package},
     proof::{GameHop, Proof},
-    transforms::typecheck::{typecheck_comp, typecheck_pkg, Scope},
+    transforms::{
+        Transformation,
+        typecheck::{typecheck_comp, typecheck_pkg, Scope},
+    },
     util::prover_process::ProverBackend,
 };
 
@@ -97,6 +100,20 @@ impl Project {
 
         Ok(())
     }
+
+    pub fn latex(&self) -> Result<()> {
+        let mut path = self.root_dir.clone();
+        path.push("_build/latex/");
+
+        for (name, game) in &self.games {
+            let (transformed, _) = crate::transforms::samplify::Transformation(game).transform().unwrap();
+            let (transformed, _) = crate::transforms::resolveoracles::Transformation(&transformed).transform().unwrap();
+            crate::writers::tex::writer::tex_write_composition(&transformed, &name, path.as_path())?;
+        }
+
+        Ok(())
+    }
+
     /*
 
     pub fn explain_game(&self, game_name: &str) -> Result<String> {
