@@ -45,7 +45,7 @@ impl GameInstance {
         }
     }
 
-    pub fn name(&self) -> &str {
+    pub fn name<'a>(&'a self) -> &'a str {
         &self.name
     }
 

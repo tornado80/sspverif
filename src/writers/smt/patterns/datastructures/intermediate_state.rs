@@ -13,7 +13,7 @@ use super::{DatastructurePattern, DatastructureSpec};
 
 #[derive(Debug)]
 pub struct IntermediateStatePattern<'a> {
-    pub game_name: &'a str,
+    pub game_inst_name: &'a str,
     pub pkg_inst_name: &'a str,
     pub oracle_name: &'a str,
 }
@@ -34,7 +34,7 @@ pub enum IntermediateStateSelector<'a> {
 }
 
 pub struct IntermediateStateSort<'a> {
-    pub game_name: &'a str,
+    pub game_inst_name: &'a str,
     pub pkg_inst_name: &'a str,
     pub oracle_name: &'a str,
 }
@@ -45,13 +45,13 @@ impl_Into_for_PlainSort!('a, IntermediateStateSort<'a>);
 impl<'a> SmtPlainSort for IntermediateStateSort<'a> {
     fn sort_name(&self) -> String {
         let Self {
-            game_name,
+            game_inst_name,
             pkg_inst_name,
             oracle_name,
         } = self;
         let camel_case = IntermediateStatePattern::CAMEL_CASE;
 
-        format!("{camel_case}-{game_name}-{pkg_inst_name}-{oracle_name}")
+        format!("{camel_case}-{game_inst_name}-{pkg_inst_name}-{oracle_name}")
     }
 }
 
@@ -176,13 +176,13 @@ impl<'a> DatastructurePattern<'a> for IntermediateStatePattern<'a> {
 
     fn sort(&self) -> IntermediateStateSort<'a> {
         let Self {
-            game_name,
+            game_inst_name,
             pkg_inst_name,
             oracle_name,
             ..
         } = self;
         IntermediateStateSort {
-            game_name,
+            game_inst_name,
             pkg_inst_name,
             oracle_name,
         }
@@ -191,7 +191,7 @@ impl<'a> DatastructurePattern<'a> for IntermediateStatePattern<'a> {
     fn constructor_name(&self, cons: &Self::Constructor) -> String {
         let kebab_case = Self::KEBAB_CASE;
         let Self {
-            game_name,
+            game_inst_name,
             pkg_inst_name,
             oracle_name,
         } = self;
@@ -200,12 +200,12 @@ impl<'a> DatastructurePattern<'a> for IntermediateStatePattern<'a> {
             IntermediateStateConstructor::OracleState(path) => path.smt_name(),
         };
 
-        format!("mk-{kebab_case}-{game_name}-{pkg_inst_name}-{oracle_name}-{variant_name}")
+        format!("mk-{kebab_case}-{game_inst_name}-{pkg_inst_name}-{oracle_name}-{variant_name}")
     }
 
     fn selector_name(&self, sel: &Self::Selector) -> String {
         let Self {
-            game_name,
+            game_inst_name,
             pkg_inst_name,
             oracle_name,
         } = self;
@@ -225,7 +225,7 @@ impl<'a> DatastructurePattern<'a> for IntermediateStatePattern<'a> {
             IntermediateStateSelector::Return(_type) => format!("end-return"),
         };
 
-        format!("{kebab_case}-{game_name}-{pkg_inst_name}-{oracle_name}-{field_name}")
+        format!("{kebab_case}-{game_inst_name}-{pkg_inst_name}-{oracle_name}-{field_name}")
     }
 
     fn matchfield_name(&self, sel: &Self::Selector) -> String {

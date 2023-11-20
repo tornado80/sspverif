@@ -156,19 +156,19 @@ impl<'a> PackageInstanceContext<'a> {
         &self,
         datatype: &PartialsDatatype,
     ) -> SmtExpr {
-        let game_ctx = self.game_ctx();
-        let game_name = &game_ctx.game().name;
+        let game_inst_ctx = self.game_inst_ctx();
+        let game_inst_name = game_inst_ctx.game_inst().name();
         let pkg_inst_name = &self.pkg_inst_name();
         let oracle_name = &datatype.real_oracle_sig.name;
 
         let function_pattern = DispatchOraclePattern {
-            game_name,
+            game_inst_name,
             pkg_inst_name,
             oracle_sig: &datatype.real_oracle_sig,
         };
 
         let intermediate_state_pattern = IntermediateStatePattern {
-            game_name,
+            game_inst_name,
             pkg_inst_name,
             oracle_name,
         };
@@ -181,7 +181,7 @@ impl<'a> PackageInstanceContext<'a> {
             |con| match con {
                 IntermediateStateConstructor::End => {
                     let partial_return_pattern = PartialReturnPattern {
-                        game_name,
+                        game_inst_name,
                         pkg_inst_name,
                         oracle_name,
                     };
@@ -192,7 +192,7 @@ impl<'a> PackageInstanceContext<'a> {
                 }
                 IntermediateStateConstructor::OracleState(split_path) => {
                     let partial_oracle_function_pattern = PartialOraclePattern {
-                        game_name,
+                        game_inst_name,
                         pkg_inst_name,
                         oracle_name,
                         split_path,

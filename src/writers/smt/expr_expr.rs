@@ -1,4 +1,5 @@
-use super::exprs::{SmtExpr, SspSmtVar};
+use super::exprs::SmtExpr;
+use super::patterns::{GlobalStatePattern, SelfStatePattern};
 use crate::expressions::Expression;
 use crate::identifier::Identifier;
 use crate::types::Type;
@@ -94,23 +95,39 @@ impl From<Expression> for SmtExpr {
                 panic! {"Found a scalar {:} which should have been removed by varspecify at this point", identname}
             }
             Expression::Identifier(Identifier::Local(identname)) => SmtExpr::Atom(identname),
+
+            // TODO
+            // I would love to use PackageStatePattern here, but in order to use the access
+            // method, we need the Package, which we don't have here. We also need the type of
+            // the variable. All this means we'd need a lot more context. The only way I see
+            // how to introduce the context here withing the constraints of the Into trait
+            // would be to have all the information inside the Identifier, ideally as
+            // references.
+            //
+            // Having them as references would mean that Identifier gets a lifetime, and by
+            // extension also Expression and probably Statement. This sounds like it would be
+            // pretty cumbersome, but maybe necessary for a clean structure.
+            //
+            // For now I'll leave it be.
             Expression::Identifier(Identifier::State {
-                name: identname,
-                pkg_inst_name: pkgname,
-                compname,
-            }) => SmtExpr::List(vec![
-                SmtExpr::Atom(format!("state-{}-{}-{}", compname, pkgname, identname)),
-                SspSmtVar::SelfState.into(),
-            ]),
+                name: ident_name,
+                ref game_inst_name,
+                ref pkg_inst_name,
+                ..
+            }) => (
+                format!("state-{game_inst_name}-{pkg_inst_name}-{ident_name}"),
+                &SelfStatePattern,
+            )
+                .into(),
             Expression::Identifier(Identifier::Parameter {
                 name_in_comp,
-                compname,
+                game_inst_name,
                 ..
-            }) => SmtExpr::List(vec![
-                // Note: when changing this, make sure you also change state_helpers!
-                SmtExpr::Atom(format!("composition-param-{}-{}", compname, name_in_comp)),
-                SspSmtVar::CompositionContext.into(),
-            ]),
+            }) => (
+                format!("composition-param-{game_inst_name}-{name_in_comp}"),
+                &GlobalStatePattern,
+            )
+                .into(),
             Expression::Bot => SmtExpr::Atom("bot".to_string()),
             Expression::TableAccess(table, index) => SmtExpr::List(vec![
                 SmtExpr::Atom("select".into()),
@@ -129,12 +146,12 @@ impl From<Expression> for SmtExpr {
             Expression::FnCall(
                 Identifier::Parameter {
                     name_in_comp: name,
-                    compname,
+                    game_inst_name,
                     ..
                 },
                 args,
             ) => {
-                let fn_name = format!("__func-{compname}-{name}");
+                let fn_name = format!("__func-{game_inst_name}-{name}");
                 let mut call = vec![SmtExpr::Atom(fn_name)];
 
                 for expr in args {

@@ -42,6 +42,7 @@ fn resolve_var(
     pkg_name: &str,
     pkg_inst_name: &str,
     game_name: &str,
+    game_inst_name: &str,
 ) -> Identifier {
     let pkg_state = SliceResolver(pkg_state);
     let pkg_inst_params = SliceResolver(pkg_inst_params);
@@ -51,7 +52,7 @@ fn resolve_var(
         Identifier::State {
             name: name.to_string(),
             pkg_inst_name: pkg_inst_name.to_string(),
-            compname: game_name.to_string(),
+            game_inst_name: game_inst_name.to_string(),
         }
     } else if let Some(expr) = &pkg_inst_params.resolve(&name) {
         let id = if let Expression::Identifier(id) = expr {
@@ -72,8 +73,8 @@ fn resolve_var(
             name_in_pkg: name.to_string(),
             pkgname: pkg_name.to_string(),
             name_in_comp: id.ident(),
-            compname: game_name.to_string(),
             name_in_proof: id_in_proof.ident(),
+            game_inst_name: game_inst_name.to_string(),
         }
     } else {
         Identifier::Local(name)
@@ -109,6 +110,7 @@ fn var_specify_helper(
                 pkg_name,
                 &name,
                 game_inst.game_name(),
+                game_inst.name(),
             ),
             args,
         ),
@@ -120,6 +122,7 @@ fn var_specify_helper(
             pkg_name,
             name,
             game_inst.game_name(),
+            game_inst.name(),
         )),
         Expression::TableAccess(Identifier::Scalar(id), expr) => Expression::TableAccess(
             resolve_var(
@@ -130,6 +133,7 @@ fn var_specify_helper(
                 pkg_name,
                 name,
                 game_inst.game_name(),
+                game_inst.name(),
             ),
             expr,
         ),

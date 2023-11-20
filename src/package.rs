@@ -82,6 +82,10 @@ pub struct Composition {
 }
 
 impl Composition {
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
     pub fn get_oracle_sigs(&self) -> Vec<OracleSig> {
         self.exports
             .iter()
