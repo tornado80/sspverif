@@ -113,6 +113,7 @@ This would be the contents is JSONy notation. We'll see how that looks like in t
 */
 use clap::{Parser, Subcommand};
 use sspverif::project::{self, error::Result};
+use sspverif::util::prover_process::ProverBackend;
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
@@ -128,7 +129,7 @@ enum Commands {
     Explain(Explain),
 
     // Prove the whole project.
-    Prove,
+    Prove(Prove),
 }
 
 #[derive(clap::Args, Debug)]
@@ -139,8 +140,17 @@ struct Explain {
     output: Option<String>,
 }
 
-fn prove() -> Result<()> {
-    project::Project::load()?.prove()
+#[derive(clap::Args, Debug)]
+#[clap(author, version, about, long_about = None)]
+struct Prove {
+    #[clap(short, long, default_value="cvc5")]
+    prover: ProverBackend,
+    #[clap(short, long)]
+    transcript: bool
+}
+
+fn prove(p: &Prove) -> Result<()> {
+    project::Project::load()?.prove(p.prover, p.transcript)
 }
 
 fn explain(_game_name: &str, _dst: &Option<String>) -> Result<()> {
@@ -160,7 +170,7 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
 
     match &cli.command {
-        Commands::Prove => match prove() {
+        Commands::Prove(p) => match prove(p) {
             Err(crate::project::error::Error::ProofCheck(string)) => {
                 print!("{}", string);
                 Err(crate::project::error::Error::ProofCheck(string))
