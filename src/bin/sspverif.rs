@@ -146,10 +146,10 @@ struct Explain {
 #[derive(clap::Args, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct Prove {
-    #[clap(short, long, default_value="cvc5")]
+    #[clap(short, long, default_value = "cvc5")]
     prover: ProverBackend,
     #[clap(short, long)]
-    transcript: bool
+    transcript: bool,
 }
 
 fn prove(p: &Prove) -> Result<()> {
@@ -173,19 +173,17 @@ fn latex() -> Result<()> {
     project::Project::load()?.latex()
 }
 
-fn main() -> Result<()> {
+fn main() {
     let cli = Cli::parse();
 
-    match &cli.command {
-        Commands::Prove(p) => match prove(p) {
-            Err(crate::project::error::Error::ProofCheck(string)) => {
-                print!("{}", string);
-                Err(crate::project::error::Error::ProofCheck(string))
-            }
-            Err(x) => Err(x),
-            Ok(_) => Ok(()),
-        },
-        Commands::Latex => {latex()},
+    let result = match &cli.command {
+        Commands::Prove(p) => prove(p),
+        Commands::Latex => latex(),
         Commands::Explain(Explain { game_name, output }) => explain(game_name, output),
+    };
+
+    match result {
+        Ok(_) => println!("success!"),
+        Err(err) => println!("error: {err}"),
     }
 }

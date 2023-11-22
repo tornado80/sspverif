@@ -4,7 +4,7 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum Error {
-    #[error("error showing equivalence")]
+    #[error("error showing equivalence: {0}")]
     EquivalenceError(#[from] crate::gamehops::equivalence::error::Error),
     #[error("proof already exists: {0}")]
     ProofExists(String),
