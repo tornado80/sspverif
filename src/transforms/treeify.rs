@@ -30,22 +30,14 @@ impl<'a> super::Transformation for Transformation<'a> {
 fn treeify(cb: &CodeBlock) -> CodeBlock {
     let mut before: Vec<Statement> = vec![];
     let mut after: Vec<Statement> = vec![];
-    let mut found = false;
 
-    let mut ite_pos = None;
-    let mut ifcode = None;
-    let mut elsecode = None;
-    let mut cond = None;
+    let mut ite_stmt = None;
 
     for elem in &cb.0 {
         match &*elem {
             Statement::IfThenElse(cond_, CodeBlock(ifcode_), CodeBlock(elsecode_), file_pos) => {
-                if !found {
-                    ifcode = Some(ifcode_.clone());
-                    elsecode = Some(elsecode_.clone());
-                    cond = Some(cond_);
-                    ite_pos = Some(file_pos.clone());
-                    found = true;
+                if ite_stmt.is_none() {
+                    ite_stmt = Some(elem.clone());
                 } else {
                     after.push(elem.clone());
                 }
@@ -59,14 +51,14 @@ fn treeify(cb: &CodeBlock) -> CodeBlock {
                     file_pos.clone(),
                 );
 
-                if !found {
+                if ite_stmt.is_none() {
                     before.push(new_elem);
                 } else {
                     after.push(new_elem);
                 }
             }
             _ => {
-                if !found {
+                if ite_stmt.is_none() {
                     before.push(elem.clone());
                 } else {
                     after.push(elem.clone());
@@ -75,25 +67,35 @@ fn treeify(cb: &CodeBlock) -> CodeBlock {
         }
     }
 
-    if found {
-        let last_file_pos = after.last().unwrap().file_pos();
-        let ite_pos = ite_pos.unwrap();
+    if let Some(Statement::IfThenElse(
+        ref cond,
+        ref mut ifcode,
+        ref mut elsecode,
+        ref ite_file_pos,
+    )) = &mut ite_stmt
+    {
+        let last_file_pos = after
+            .last()
+            .map(|stmt| stmt.file_pos())
+            .or(Some(ite_file_pos))
+            .unwrap();
+
         let block_file_pos = FilePosition::new(
-            ite_pos.file_name().to_string(),
-            ite_pos.line_start(),
+            ite_file_pos.file_name().to_string(),
+            ite_file_pos.line_start(),
             last_file_pos.line_end(),
         );
 
-        let mut newifcode = ifcode.unwrap();
-        newifcode.append(&mut after.clone());
-        let mut newelsecode = elsecode.unwrap();
-        newelsecode.append(&mut after.clone());
+        ifcode.0.append(&mut after.clone());
+        elsecode.0.append(&mut after.clone());
+
         before.push(Statement::IfThenElse(
-            cond.unwrap().clone(),
-            treeify(&CodeBlock(newifcode)),
-            treeify(&CodeBlock(newelsecode)),
+            cond.clone(),
+            treeify(ifcode),
+            treeify(elsecode),
             block_file_pos,
         ));
+
         CodeBlock(before)
     } else {
         cb.clone()
@@ -255,7 +257,7 @@ mod treeify_fn_test {
         let file_pos_return = FilePosition::new("test_file".to_string(), 8, 8);
 
         let file_pos_firstif_new = FilePosition::new("test_file".to_string(), 0, 8);
-        let file_pos_second_new = FilePosition::new("test_file".to_string(), 3, 8);
+        let file_pos_second_new = FilePosition::new("test_file".to_string(), 4, 8);
 
         /*
          * if y: (0..3)
