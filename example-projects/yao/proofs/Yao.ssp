@@ -155,7 +155,7 @@ proof Yao {
                 ]
 
                 lemmas {
-                    invariant-GETAOUT: []
+                    invariant-GETAOUT:      []
                     aborts-equal-GETAOUT:   []
                     same-output-GETAOUT:    [no-abort-GETAOUT]
                 }
@@ -166,7 +166,7 @@ proof Yao {
                 ]
 
                 lemmas {
-                    invariant-SETBIT: []
+                    invariant-SETBIT:      []
                     aborts-equal-SETBIT:   []
                     same-output-SETBIT:    [no-abort-SETBIT]
                 }
@@ -177,7 +177,7 @@ proof Yao {
                 ]
 
                 lemmas {
-                    invariant-GETKEYSIN: []
+                    invariant-GETKEYSIN:      []
                     aborts-equal-GETKEYSIN:   []
                     same-output-GETKEYSIN:    [no-abort-GETKEYSIN]
                 }
@@ -193,12 +193,8 @@ proof Yao {
                     left-all-aborts: []
                     left-inverse-all-aborts: []
                     aborts-equal: [ left-all-aborts , left-inverse-all-aborts , right-all-aborts , right-all-aborts-inverse ]
-                    top-whole-left-neu-right-neu: [ no-abort , left-inverse-all-aborts , right-all-aborts-inverse ,]
-                    bot-left-neu: [ no-abort , left-all-aborts , left-inverse-all-aborts ]
-                    bot-right-neu: [ no-abort , right-all-aborts , right-all-aborts-inverse ]
-                    temp: [ no-abort , left-all-aborts , left-inverse-all-aborts , right-all-aborts , right-all-aborts-inverse , bot-left-neu , bot-right-neu ]
-                    same-output: [ temp , no-abort , left-all-aborts , left-inverse-all-aborts , right-all-aborts , right-all-aborts-inverse , bot-left-neu , bot-right-neu ]
-                    invariant-GBLG: [ temp , no-abort , left-all-aborts , left-inverse-all-aborts , right-all-aborts , right-all-aborts-inverse , bot-left-neu , bot-right-neu ]
+                    same-output: [no-abort , left-all-aborts , left-inverse-all-aborts, right-all-aborts, right-all-aborts-inverse]
+                    invariant-GBLG: [no-abort , left-all-aborts , left-inverse-all-aborts, right-all-aborts, right-all-aborts-inverse]
                 }
             }
         }

@@ -1,6 +1,6 @@
 (set-logic ALL)
-(declare-sort Bits_n 0)
 (declare-sort Bits_m 0)
+(declare-sort Bits_n 0)
 (declare-sort Bits_p 0)
 (declare-datatypes ((Maybe 1)
 )

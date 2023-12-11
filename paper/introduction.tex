@@ -1,0 +1,54 @@
+\section{Introduction}
+Halevi's dream-vision of computer-aided reduction proofs in cryptography~\cite{Halevi} suggests that creativity is reserved for humans, while algorithms are in charge of tedious steps which confirm the soundness of a reduction and only use standard techniques. An important success on the path for computer-aided cryptography is that computer-aided \emph{attack-finding} has established itself firmly as a standard tool for protocol development. Most importantly, Tamarin~\cite{X} has been used to improve ...~\cite{X}, ...~\cite{X} and ...~\cite{X}, and, in particular, is used across the community also without involving an author of the original tool, see, e.g.~\cite{X}.
+
+In turn, computer-aided \emph{reduction proofs} are only studied by a small sub-community. 
+
+==== OLD ====
+
+However, invoking the help of a computer requires formalizing one's proofs at a level of detail which is unusual for standard mathematical practice, including cryptography. For example, one might describe a two security games and a construction in English, then describe a reduction in English and prove its soundness by arguing about difficult key points.
+
+While computer-aided attack-finding has become a standard tool in protocol development
+
+
+In a celebrated breakthrough, Abadi and Rogaway~\cite{X} showed that 
+
+
+
+
+
+
+
+
+
+==== EVEN OLDER ====
+
+
+Since Halevi~\cite{X} declared a \emph{crisis of rigour} for reduction proofs in cryptography
+and called for tool support to leave the \emph{interesting} steps to the creative cryptographer
+and the \emph{mundane} steps to a powerful automated tool, significant progress has been made
+towards this vision. In particular, Dupressoir and some others~\cite{X} formalized the Bellare-Rogaway
+code-based game-playing~\cite{X} approach in EasyCrypt which now allows to verify code transformations
+and reduction-based game hops. 
+
+EasyCrypt does not take care of mundane steps fully automatically, as in Halevi's vision, but rather is semi-automated
+and usually requires cryptographers to write pre-conditions and post-conditions (or simply a single invariant) and prove
+that if the pre-condition was satisfied before an oracle call, then the post-condition is satsified.
+The reason that the SMT solver underlying EasyCrypt cannot prove code equivalence without additional
+help is that conceptual high-level reasoning is not part of the solver. The present paper does not
+change this state of affairs, but instead increases \emph{modularity} of the EasyCrypt technique.
+
+Concretely, we present SSPVerif, a new verification tool for cryptographic game-hopping proofs which
+is based on \emph{state-separating proofs} (SSPs), a recent, modular technique for game-hopping in pen-and-paper
+proofs. SSPs structure code of cryptographic protocols and security game as stateful pieces of code
+called \emph{packages} which can call one another, but otherwise do not share state. Since package
+composition is associative, one can simplify complex game-hops by ``pushing code into the adversary''
+(cf. Section~\ref{X}).
+
+SSP-style techniques have already been formalized in EasyCrypt~\cite{X}, but since package are not
+native in EasyCrypt, the implementation does not provide SSP-specific support and, in particular,
+the SSP-style workflow. SSPs have also been formalized in SSProve~\cite{X}, a Coq-based tool specially
+developed for SSPs, but no large examples have been shown in SSProve. In turn, SSPVerif has been developed
+to especially support the workflow of the working SSP cryptographer.
+
+As an example, we use Yao's garbled circuits: much larger than what is known in SSProve; Yao has already 
+been done on EasyCrypt, so great test case.
