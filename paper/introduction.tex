@@ -1,9 +1,35 @@
 \section{Introduction}
-Halevi's dream-vision of computer-aided reduction proofs in cryptography~\cite{Halevi} suggests that creativity is reserved for humans, while algorithms are in charge of tedious steps which confirm the soundness of a reduction and only use standard techniques. An important success on the path for computer-aided cryptography is that computer-aided \emph{attack-finding} has established itself firmly as a standard tool for protocol development. Most importantly, Tamarin~\cite{X} has been used to improve ...~\cite{X}, ...~\cite{X} and ...~\cite{X}, and, in particular, is used across the community also without involving an author of the original tool, see, e.g.~\cite{X}. However, computer-aided \emph{reduction proofs} have not yet joined the quest for support
+Halevi's dream-vision of computer-aided reduction proofs in cryptography~\cite{Halevi} hopes that one day, while creativity is still reserved for humans, algorithms will be in charge of tedious steps which confirm the soundness of a reduction and only use standard techniques. An important, somewhat orthogonal, success on the path for computer-aided cryptography is that computer-aided \emph{attack-finding} has established itself firmly as a standard tool for protocol development. Most importantly, Tamarin~\cite{X} has been used to improve ...~\cite{X}, ...~\cite{X} and ...~\cite{X}, and, in particular, is used across the community also without involving an author of the original tool, see, e.g.~\cite{X}. However, computer-aided \emph{reduction proofs} have not yet joined the quest to inform protocol design quickly. In fact, to date, reduction proofs for large protocols such as TLS and MLS have not been computer-verified, let alone been helped by algorithms, and indeed, we do not yet have the tools to do so.
 
-==== OLD ====
+One core reason is that invoking the help of a computer requires formalizing one's proofs at a level of detail which is unusual for standard mathematical practice, including cryptography. For example, one might describe two security games and a construction in English, then describe a reduction in English and prove its soundness by arguing about difficult key points. In their celebrated foundational work, Bellare and Rogaway~\cite{X} encouraged the community to use \emph{code} to describe their reductions, games and game-hops and demonstrated how code-based argument allow us to obtain a neat proof for ... . This leap towards more precision enabled ... ... and ...~\cite{X} to develop the pioneer tool EasyCrypt for verifying cryptographic reductions. EasyCrypt has been used to verify ... ,... and ... as well as a proof of Yao's garbling scheme~\cite{X} as one of its largest case studies. Simultaneously, Bellare-Rogaway-style game-hopping has become an established technique in our community. Similarly, the composition frameworks Universal Composability (UC~\cite{X}) or Constructive Cryptography (CC~\cite{X}) have a large and growing user base who write their reduction proofs in these frameworks (cf. ... and references therein). This suggests that our community is willing to invest time and effort into writing clearer proofs, but the overhead currently required by EasyCrypt is still considered prohibitive. 
 
-However, invoking the help of a computer requires formalizing one's proofs at a level of detail which is unusual for standard mathematical practice, including cryptography. For example, one might describe a two security games and a construction in English, then describe a reduction in English and prove its soundness by arguing about difficult key points.
+A recent arrival to the family of composition frameworks are \emph{state-separating proofs} (SSPs~\cite{X}) where the first large case studies have been published over the past 2 years. Concretely, SSPs have been used to provide reductions for the key derivations in both TLS~\cite{X} and MLS~\cite{X} and, most recently, to give a novel security reduction for Yao's garbling scheme~\cite{X}, demonstrating the potential feasibility to use SSPs also for secure multi-party computation.
+
+Similarly to Bellare and Rogaway's code-based game-playing, SSPs, a refinement of Bellare-Rogaway, are formalization-friendly and have since been formalized in Coq~\cite{X} as well as in EasyCrypt~\cite{X}. In fact, SSPs have become a useful manual prototyping step for developing proofs in EasyCrypt [Dupressoir-Oechsner, personal communication :-)]. What is missing, still, however, is a formal verification tool which \emph{helps} cryptographers in the \emph{development} and \emph{execution} of their proofs and not only in the verification.
+
+\paragraph{Our contribution.} In this paper, we provide such a tool for SSPs: SSPVerif. 
+%SSPs have shown to be useful to carrying out proofs for large real-life protocols~\cite{X,Y} and thus, focusing on SSPs is a useful scope. 
+We built SSPVerif, because in our development of handwritten SSP proofs for large protocols, we struggled (a) with the \emph{maintainance} of a \emph{large code-base}, (b) with verifying the \emph{consistency} of the code-base and last, but not least, (c) with carrying out code-equivalence proofs. The latter cover ... pages of the security analysis of TLS 1.3~\cite{X} and ... out of ... in the reduction proof for Yao's garbling scheme~\cite{X}. They have been completely avoided in the security reduction for MLS by the use of modular assumptions and modular top-level target security definitions~\cite{X}.
+
+SSPVerif addresses (a) and (b) by checking consistency of packages and their compositions as well as exporting to LaTeX for a consistent research paper. For (c), code-equivalence proofs are discharged to an SMT-solver, either CVC4~\cite{X} or Z3~\cite{X}. Our case studies demonstrate that CVC4 and Z3 are, indeed, sufficiently powerful to prove typical code-equivalences with no to little manual support. 
+
+\paragraph{Case studies}
+Yao (compare with EasyCrypt), NPRF
+
+\paragraph{Features}
+for loops, multi-instance, type system
+
+\paragraph{Limitations and future work}
+SSPVerif is automatized but special-case, EasyCrypt/SSProve is general, but not automatized. Can we use SSPVerif for prototyping of invariants for EasyCrypt/SSProve? Can we use EasyCrypt to prove assumptions used in our SSP proofs. Integration with proof viewer.
+
+
+
+
+
+\iffalse
+It is no co-incidence that EasyCrypt~\cite{X}, the pioneer tool in verifying cryptographic reduction proofs, is based on Bellare and Rogaway's code-based game-hopping~\cite{X}. Namely, Bellare and Rogaway specified 
+
+
 
 While computer-aided attack-finding has become a standard tool in protocol development
 
@@ -50,3 +76,4 @@ to especially support the workflow of the working SSP cryptographer.
 
 As an example, we use Yao's garbled circuits: much larger than what is known in SSProve; Yao has already 
 been done on EasyCrypt, so great test case.
+\fi

@@ -4,7 +4,7 @@
 \fulltrue  % full  = long version (stuff to move to appendix)
 \drafttrue % draft = comments and half-baked bits
 
-\pdfsuppressptexinfo-1
+%\pdfsuppressptexinfo-1
 
 %
 %\documentclass[letterpaper,table,dvipsnames,10pt]{article}
@@ -142,16 +142,17 @@ def}}}{=}}}
 \let\oldprocedure\procedure
 \renewcommand\procedure[2][]{\oldprocedure[#1,codesize=\small{}]{\small#2}}
 
-
-\begin{document}
-\maketitle
-\vspace{-1.3cm}
-
 \definecolor{kxpink}{RGB}{211,77,122} % D34D7A
 \newcommand\pink{\textcolor{kxpink}{pink}}
 \definecolor{kxblue}{RGB}{51, 171, 189} % #33abbd
 \newcommand\blue{\textcolor{kxblue}{blue}}
 \newcommand\gray{\textcolor{gray}{gray}}
+
+
+\begin{document}
+\maketitle
+%\vspace{-1.3cm}
+
 
 \begin{abstract}
 Very concrete.
@@ -180,7 +181,6 @@ Very concrete.
 
 \tableofcontents
 
-\clearpage
 
 \appendix
 \end{document}
