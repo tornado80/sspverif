@@ -13,17 +13,17 @@ pub trait SmtPlainSort: SmtSort {
 #[macro_export]
 macro_rules! impl_Into_for_PlainSort {
     ($a:lifetime, $plain_sort:ty) => {
-        impl<$a> Into<$crate::writers::smt::exprs::SmtExpr> for $plain_sort {
-            fn into(self) -> $crate::writers::smt::exprs::SmtExpr {
-                self.sort_name().into()
+        impl<$a> From<$plain_sort> for $crate::writers::smt::exprs::SmtExpr {
+            fn from(value: $plain_sort) -> $crate::writers::smt::exprs::SmtExpr {
+                value.sort_name().into()
             }
         }
         impl<$a> $crate::writers::smt::sorts::SmtSort for $plain_sort {}
     };
     ($plain_sort:ty) => {
-        impl Into<$crate::writers::smt::exprs::SmtExpr> for $plain_sort {
-            fn into(self) -> $crate::writers::smt::exprs::SmtExpr {
-                self.sort_name().into()
+        impl From<$plain_sort> for $crate::writers::smt::exprs::SmtExpr {
+            fn from(value: $plain_sort) -> $crate::writers::smt::exprs::SmtExpr {
+                value.sort_name().into()
             }
         }
         impl<$a> $crate::writers::smt::sorts::SmtSort for $plain_sort {}
@@ -61,3 +61,13 @@ impl<T: SmtSort> From<SmtReturnValue<T>> for SmtExpr {
 }
 
 impl<T: SmtSort> SmtSort for SmtReturnValue<T> {}
+
+pub struct SmtBool;
+
+impl From<SmtBool> for SmtExpr {
+    fn from(_value: SmtBool) -> Self {
+        SmtExpr::Atom("Bool".to_string())
+    }
+}
+
+impl SmtSort for SmtBool {}

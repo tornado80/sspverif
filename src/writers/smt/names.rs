@@ -8,14 +8,6 @@ pub(crate) fn return_sort_name(game_name: &str, inst_name: &str, oracle_name: &s
     format!("Return_{game_name}_{inst_name}_{oracle_name}")
 }
 
-pub(crate) fn return_constructor_name(
-    game_name: &str,
-    inst_name: &str,
-    oracle_name: &str,
-) -> String {
-    format!("mk-return-{game_name}-{inst_name}-{oracle_name}")
-}
-
 pub(crate) fn return_constructor_abort_name(
     game_name: &str,
     inst_name: &str,
@@ -24,56 +16,12 @@ pub(crate) fn return_constructor_abort_name(
     format!("mk-abort-{game_name}-{inst_name}-{oracle_name}")
 }
 
-pub(crate) fn return_selector_state_name(
-    game_name: &str,
-    inst_name: &str,
-    oracle_name: &str,
-) -> String {
-    format!("return-{game_name}-{inst_name}-{oracle_name}-state")
-}
-
-pub(crate) fn return_selector_state_length_name(
-    game_name: &str,
-    inst_name: &str,
-    oracle_name: &str,
-) -> String {
-    format!("return-{game_name}-{inst_name}-{oracle_name}-state-length")
-}
-
-pub(crate) fn return_selector_is_abort_name(
-    game_name: &str,
-    inst_name: &str,
-    oracle_name: &str,
-) -> String {
-    format!("return-{game_name}-{inst_name}-{oracle_name}-is-abort")
-}
-
-pub(crate) fn return_selector_value_name(
-    game_name: &str,
-    inst_name: &str,
-    oracle_name: &str,
-) -> String {
-    format!("return-{game_name}-{inst_name}-{oracle_name}-value")
-}
-
 pub(crate) fn gamestate_sort_name(game_name: &str) -> String {
     format!("CompositionState-{game_name}")
 }
 
-pub(crate) fn gamestate_selector_pkgstate_name(game_name: &str, inst_name: &str) -> String {
-    format!("composition-pkgstate-{game_name}-{inst_name}")
-}
-
 pub(crate) fn pkgstate_sort_name(game_name: &str, inst_name: &str) -> String {
     format!("State_{game_name}_{inst_name}")
-}
-
-pub(crate) fn pkgstate_selector_name(game_name: &str, inst_name: &str, field_name: &str) -> String {
-    format!("state-{game_name}-{inst_name}-{field_name}")
-}
-
-pub(crate) fn pkgstate_constructor_name(game_name: &str, inst_name: &str) -> String {
-    format!("mk-state-{game_name}-{inst_name}")
 }
 
 pub(crate) fn var_selfstate_name() -> String {

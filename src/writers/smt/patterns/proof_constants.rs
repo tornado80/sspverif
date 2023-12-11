@@ -1,7 +1,6 @@
 use datastructures::{IntermediateStatePattern, ReturnPattern};
 
 use crate::{
-    split::SplitPath,
     types::Type,
     writers::smt::{
         declare,
@@ -12,7 +11,7 @@ use crate::{
 
 use super::{
     datastructures, DatastructurePattern, GameStatePattern, IntermediateStateSort,
-    PartialOraclePattern, PartialReturnPattern, PartialReturnSort, ReturnSort,
+    PartialReturnPattern, PartialReturnSort, ReturnSort,
 };
 
 pub trait ConstantPattern {
@@ -28,7 +27,6 @@ pub trait ConstantPattern {
 
 pub struct GameState<'a> {
     pub game_inst_name: &'a str,
-    pub game_name: &'a str,
     pub variant: &'a str,
 }
 
@@ -47,7 +45,7 @@ impl<'a> ConstantPattern for GameState<'a> {
 
     fn sort(&self) -> Self::Sort {
         GameStatePattern {
-            game_name: self.game_name,
+            game_inst_name: self.game_inst_name,
         }
         .sort()
     }
@@ -80,7 +78,6 @@ impl<'a> ConstantPattern for OracleArgs<'a> {
 
 pub struct ReturnConst<'a> {
     pub game_inst_name: &'a str,
-    pub game_name: &'a str,
     pub pkg_inst_name: &'a str,
     pub oracle_name: &'a str,
 }
@@ -100,7 +97,7 @@ impl<'a> ConstantPattern for ReturnConst<'a> {
 
     fn sort(&self) -> Self::Sort {
         ReturnPattern {
-            game_name: self.game_name,
+            game_inst_name: self.game_inst_name,
             pkg_inst_name: self.pkg_inst_name,
             oracle_name: self.oracle_name,
         }
@@ -110,7 +107,6 @@ impl<'a> ConstantPattern for ReturnConst<'a> {
 
 pub struct PartialReturnConst<'a> {
     pub game_inst_name: &'a str,
-    pub game_name: &'a str,
     pub pkg_inst_name: &'a str,
     pub oracle_name: &'a str,
 }
@@ -130,14 +126,14 @@ impl<'a> ConstantPattern for PartialReturnConst<'a> {
 
     fn sort(&self) -> Self::Sort {
         let Self {
-            game_name,
+            game_inst_name,
             pkg_inst_name,
             oracle_name,
             ..
         } = self;
 
         PartialReturnPattern {
-            game_name,
+            game_inst_name,
             pkg_inst_name,
             oracle_name,
         }
@@ -147,7 +143,6 @@ impl<'a> ConstantPattern for PartialReturnConst<'a> {
 
 pub struct IntermediateStateConst<'a> {
     pub game_inst_name: &'a str,
-    pub game_name: &'a str,
     pub pkg_inst_name: &'a str,
     pub oracle_name: &'a str,
     pub variant: &'a str,
@@ -169,14 +164,14 @@ impl<'a> ConstantPattern for IntermediateStateConst<'a> {
 
     fn sort(&self) -> Self::Sort {
         let Self {
-            game_name,
+            game_inst_name,
             pkg_inst_name,
             oracle_name,
             ..
         } = self;
 
         IntermediateStatePattern {
-            game_name,
+            game_inst_name,
             pkg_inst_name,
             oracle_name,
         }

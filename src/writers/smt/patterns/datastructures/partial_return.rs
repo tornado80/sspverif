@@ -2,13 +2,13 @@ use super::{DatastructurePattern, DatastructureSpec};
 use crate::writers::smt::{exprs::SmtExpr, sorts::SmtPlainSort};
 
 pub struct PartialReturnPattern<'a> {
-    pub game_name: &'a str,
+    pub game_inst_name: &'a str,
     pub pkg_inst_name: &'a str,
     pub oracle_name: &'a str,
 }
 
 pub struct PartialReturnSort<'a> {
-    pub game_name: &'a str,
+    pub game_inst_name: &'a str,
     pub pkg_inst_name: &'a str,
     pub oracle_name: &'a str,
 }
@@ -20,12 +20,12 @@ impl<'a> SmtPlainSort for PartialReturnSort<'a> {
     fn sort_name(&self) -> String {
         let camel_case = PartialReturnPattern::CAMEL_CASE;
         let Self {
-            game_name,
+            game_inst_name,
             pkg_inst_name,
             oracle_name,
         } = self;
 
-        format!("{camel_case}-{game_name}-{pkg_inst_name}-{oracle_name}")
+        format!("{camel_case}-{game_inst_name}-{pkg_inst_name}-{oracle_name}")
     }
 }
 
@@ -52,12 +52,12 @@ impl<'a> DatastructurePattern<'a> for PartialReturnPattern<'a> {
 
     fn sort(&self) -> PartialReturnSort<'a> {
         let PartialReturnPattern {
-            game_name,
+            game_inst_name,
             pkg_inst_name,
             oracle_name,
         } = self;
         PartialReturnSort {
-            game_name,
+            game_inst_name,
             pkg_inst_name,
             oracle_name,
         }
@@ -66,7 +66,7 @@ impl<'a> DatastructurePattern<'a> for PartialReturnPattern<'a> {
     fn constructor_name(&self, cons: &Self::Constructor) -> String {
         let kebab_case = Self::KEBAB_CASE;
         let Self {
-            game_name,
+            game_inst_name,
             pkg_inst_name,
             oracle_name,
         } = self;
@@ -76,13 +76,13 @@ impl<'a> DatastructurePattern<'a> for PartialReturnPattern<'a> {
             PartialReturnConstructor::Abort => "partial-abort",
         };
 
-        format!("mk-{cons_name}-{game_name}-{pkg_inst_name}-{oracle_name}")
+        format!("mk-{cons_name}-{game_inst_name}-{pkg_inst_name}-{oracle_name}")
     }
 
     fn selector_name(&self, sel: &Self::Selector) -> String {
         let kebab_case = Self::KEBAB_CASE;
         let Self {
-            game_name,
+            game_inst_name,
             pkg_inst_name,
             oracle_name,
         } = self;
@@ -92,7 +92,7 @@ impl<'a> DatastructurePattern<'a> for PartialReturnPattern<'a> {
             PartialReturnSelector::IntermediateState => "intermediate-state",
         };
 
-        format!("{kebab_case}-{game_name}-{pkg_inst_name}-{oracle_name}-{field_name}")
+        format!("{kebab_case}-{game_inst_name}-{pkg_inst_name}-{oracle_name}-{field_name}")
     }
 
     fn matchfield_name(&self, sel: &Self::Selector) -> String {
@@ -119,14 +119,14 @@ impl<'a> DatastructurePattern<'a> for PartialReturnPattern<'a> {
 
     fn selector_sort(&self, sel: &Self::Selector) -> SmtExpr {
         let Self {
-            game_name,
+            game_inst_name,
             pkg_inst_name,
             oracle_name,
         } = self;
 
-        let game_state_pattern = super::game_state::GameStatePattern { game_name };
+        let game_state_pattern = super::game_state::GameStatePattern { game_inst_name };
         let intermediate_state_pattern = super::IntermediateStatePattern {
-            game_name,
+            game_inst_name,
             pkg_inst_name,
             oracle_name,
         };

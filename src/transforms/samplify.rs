@@ -3,10 +3,10 @@ use crate::package::Composition;
 use crate::statement::{CodeBlock, Statement};
 use crate::types::Type;
 use std::collections::HashSet;
+use std::convert::Infallible;
 use std::iter::FromIterator;
 
 #[derive(Debug, Clone)]
-pub struct Error(pub String);
 
 pub struct Transformation<'a>(pub &'a Composition);
 
@@ -31,17 +31,17 @@ pub struct SampleInfo {
 }
 
 impl<'a> super::Transformation for Transformation<'a> {
-    type Err = Error;
+    type Err = Infallible;
     type Aux = SampleInfo;
 
-    fn transform(&self) -> Result<(Composition, SampleInfo), Error> {
+    fn transform(&self) -> Result<(Composition, SampleInfo), Infallible> {
         let mut ctr = 1usize;
         let mut samplings = HashSet::new();
         let mut positions = vec![];
 
         let game_name = self.0.name.as_str();
 
-        let insts: Result<Vec<_>, _> = self
+        let insts: Result<Vec<_>, Infallible> = self
             .0
             .pkgs
             .iter()
@@ -86,11 +86,11 @@ pub fn samplify(
     ctr: &mut usize,
     sampletypes: &mut HashSet<Type>,
     positions: &mut Vec<Position>,
-) -> Result<CodeBlock, Error> {
+) -> Result<CodeBlock, Infallible> {
     let mut newcode = Vec::new();
     for stmt in cb.0.clone() {
         match stmt {
-            Statement::IfThenElse(expr, ifcode, elsecode) => {
+            Statement::IfThenElse(expr, ifcode, elsecode, file_pos) => {
                 newcode.push(Statement::IfThenElse(
                     expr,
                     samplify(
@@ -111,9 +111,10 @@ pub fn samplify(
                         sampletypes,
                         positions,
                     )?,
+                    file_pos.clone(),
                 ));
             }
-            Statement::For(iter, start, end, code) => newcode.push(Statement::For(
+            Statement::For(iter, start, end, code, file_pos) => newcode.push(Statement::For(
                 iter,
                 start,
                 end,
@@ -126,9 +127,10 @@ pub fn samplify(
                     sampletypes,
                     positions,
                 )?,
+                file_pos.clone(),
             )),
 
-            Statement::Sample(id, expr, None, tipe) => {
+            Statement::Sample(id, expr, None, tipe, file_pos) => {
                 let pos = Position {
                     game_name: game_name.to_string(),
                     inst_name: inst_name.to_string(),
@@ -145,6 +147,7 @@ pub fn samplify(
                     expr,
                     Some(*ctr),
                     tipe.clone(),
+                    file_pos.clone(),
                 ));
                 *ctr += 1;
             }

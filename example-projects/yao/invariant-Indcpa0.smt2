@@ -14,21 +14,21 @@
       (state-keys-z    (Maybe Bool))
       (state-keys-flag (Maybe Bool)))))
 
-(define-fun project-State_Indcpamod0_keys_top ((in State_Indcpamod0_keys_top)) State_keys
-  (mk-state-keys (state-Indcpamod0-keys_top-T    in)
-                 (state-Indcpamod0-keys_top-z    in)
-                 (state-Indcpamod0-keys_top-flag in)))
+(define-fun project-State_Indcpamod0_keys_top ((in State_Indcpamod0_inst_keys_top)) State_keys
+  (mk-state-keys (state-Indcpamod0_inst-keys_top-T    in)
+                 (state-Indcpamod0_inst-keys_top-z    in)
+                 (state-Indcpamod0_inst-keys_top-flag in)))
 
 
 
-(define-fun project-keys-State_Indcpamon0_indcpamon0 ((in CompositionState-Indcpamon0)) State_keys
-(let ((red-state (composition-pkgstate-Indcpamon0-red        in))
-      (ind-state (composition-pkgstate-Indcpamon0-indcpamon0 in))
+(define-fun project-keys-State_Indcpamon0_indcpamon0 ((in CompositionState-Indcpamon0_inst)) State_keys
+(let ((red-state (composition-pkgstate-Indcpamon0_inst-red        in))
+      (ind-state (composition-pkgstate-Indcpamon0_inst-indcpamon0 in))
      )
-(let ((ka    (state-Indcpamon0-red-k        red-state))
-      (kina  (state-Indcpamon0-indcpamon0-k ind-state))
-      (z     (state-Indcpamon0-red-z        red-state))
-      (flag  (state-Indcpamon0-red-flag     red-state)))
+(let ((ka    (state-Indcpamon0_inst-red-k        red-state))
+      (kina  (state-Indcpamon0_inst-indcpamon0-k ind-state))
+      (z     (state-Indcpamon0_inst-red-z        red-state))
+      (flag  (state-Indcpamon0_inst-red-flag     red-state)))
 (let ((Z (ite (or (not (= ka   (as mk-none (Maybe Bits_n))))
                   (not (= kina (as mk-none (Maybe Bits_n))))
               )
@@ -187,8 +187,8 @@ false
 (=
 ; z
 
-(state-Indcpamon0-red-z
-  (composition-pkgstate-Indcpamon0-red 
+(state-Indcpamon0_inst-red-z
+  (composition-pkgstate-Indcpamon0_inst-red 
     game-state-Indcpamon0_inst-old))
 (mk-some true))
 
@@ -219,8 +219,8 @@ false
 ; if z = false
 (=
 ; z
-(state-Indcpamon0-red-z
-(composition-pkgstate-Indcpamon0-red
+(state-Indcpamon0_inst-red-z
+(composition-pkgstate-Indcpamon0_inst-red
 game-state-Indcpamon0_inst-old)) 
 (mk-some false))
 
@@ -270,8 +270,8 @@ false
 (ite
 (=
 ; z
-(state-Indcpamon0-red-z
-(composition-pkgstate-Indcpamon0-red
+(state-Indcpamon0_inst-red-z
+(composition-pkgstate-Indcpamon0_inst-red
 game-state-Indcpamon0_inst-old)) 
 (mk-some arg-ENCN-d))
 (and
@@ -315,10 +315,10 @@ game-state-Indcpamon0_inst-old))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define-fun invariant-ENCN
-        ((state-left  CompositionState-Indcpamod0)
-	 (state-right CompositionState-Indcpamon0))
+        ((state-left  CompositionState-Indcpamod0_inst)
+	 (state-right CompositionState-Indcpamon0_inst))
     Bool
-  (let ((top-key-package-left  (project-State_Indcpamod0_keys_top      (composition-pkgstate-Indcpamod0-keys_top state-left)))
+  (let ((top-key-package-left  (project-State_Indcpamod0_keys_top      (composition-pkgstate-Indcpamod0_inst-keys_top state-left)))
         (top-key-package-right (project-keys-State_Indcpamon0_indcpamon0     state-right)))
     (and
       ;top key package states are equal
@@ -330,7 +330,7 @@ game-state-Indcpamon0_inst-old))
 
       ;the functions left and right are the same
       (forall ((k Bits_n)(x Bits_n)(r Bits_n))
-        (= (__func-Indcpamon0-encn k x r) (__func-Indcpamod0-encn  k x r))))))
+        (= (__func-Indcpamon0_inst-encn k x r) (__func-Indcpamod0_inst-encn  k x r))))))
 
 
 
@@ -342,16 +342,16 @@ game-state-Indcpamon0_inst-old))
 
 
 (define-fun invariant-SETBIT      (
-        (state-left  CompositionState-Indcpamod0 )
-        (state-right CompositionState-Indcpamon0)
+        (state-left  CompositionState-Indcpamod0_inst )
+        (state-right CompositionState-Indcpamon0_inst)
 )
     Bool
     (let
 
 ; state of the key packages
 (
-(top-key-package-left  (project-State_Indcpamod0_keys_top      (composition-pkgstate-Indcpamod0-keys_top     state-left )))
-(top-key-package-right (project-keys-State_Indcpamon0_indcpamon0   state-right ))  ;((;;(composition-pkgstate-Indcpamon0-indcpamon0    (select state-right state-length-right))))
+(top-key-package-left  (project-State_Indcpamod0_keys_top      (composition-pkgstate-Indcpamod0_inst-keys_top     state-left )))
+(top-key-package-right (project-keys-State_Indcpamon0_indcpamon0   state-right ))  ;((;;(composition-pkgstate-Indcpamon0_inst-indcpamon0    (select state-right state-length-right))))
 )
 
 (and
@@ -369,18 +369,18 @@ game-state-Indcpamon0_inst-old))
 
 
 (define-fun invariant-GETAOUT      (
-        (state-left  CompositionState-Indcpamod0 )
-        (state-right CompositionState-Indcpamon0)
-        ;(state-left-new  Return-Indcpamod0-keys_top-GETAOUT)
-        ;(state-right-new Return-Indcpamon0-red-GETAOUT)
+        (state-left  CompositionState-Indcpamod0_inst )
+        (state-right CompositionState-Indcpamon0_inst)
+        ;(state-left-new  Return-Indcpamod0_inst-keys_top-GETAOUT)
+        ;(state-right-new Return-Indcpamon0_inst-red-GETAOUT)
         )
     Bool
     (let
 
 ; state of the key packages
 (
-(top-key-package-left  (project-State_Indcpamod0_keys_top      (composition-pkgstate-Indcpamod0-keys_top      state-left )))
-(top-key-package-right (project-keys-State_Indcpamon0_indcpamon0  state-right )) ;  (((composition-pkgstate-Indcpamon0-indcpamon0    (select state-right state-length-right))))
+(top-key-package-left  (project-State_Indcpamod0_keys_top      (composition-pkgstate-Indcpamod0_inst-keys_top      state-left )))
+(top-key-package-right (project-keys-State_Indcpamon0_indcpamon0  state-right )) ;  (((composition-pkgstate-Indcpamon0_inst-indcpamon0    (select state-right state-length-right))))
 )
 
 (and
@@ -407,132 +407,132 @@ game-state-Indcpamon0_inst-old))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define-fun aborts-equal-ENCN          (
-        (state-left  CompositionState-Indcpamod0)
-        (state-right CompositionState-Indcpamon0)
-        (state-left-NEU Return-Indcpamod0-enc-ENCN)      ; also contains new index    
-        (state-right-NEU Return-Indcpamon0-red-ENCN) ; also contains new index
+        (state-left  CompositionState-Indcpamod0_inst)
+        (state-right CompositionState-Indcpamon0_inst)
+        (state-left-NEU Return-Indcpamod0_inst-enc-ENCN)      ; also contains new index    
+        (state-right-NEU Return-Indcpamon0_inst-red-ENCN) ; also contains new index
         (d Bool)
         (nzero Bits_n)
         (none  Bits_n))
         Bool
 
 
-(= (= (return-Indcpamod0-enc-ENCN-return-value-or-abort     state-left-NEU) (as mk-abort (ReturnValue Bits_m)))
-   (= (return-Indcpamon0-red-ENCN-return-value-or-abort     state-right-NEU) (as mk-abort (ReturnValue Bits_m)))))
+(= (= (return-Indcpamod0_inst-enc-ENCN-return-value-or-abort     state-left-NEU) (as mk-abort (ReturnValue Bits_m)))
+   (= (return-Indcpamon0_inst-red-ENCN-return-value-or-abort     state-right-NEU) (as mk-abort (ReturnValue Bits_m)))))
 
 
 
 (define-fun aborts-equal-SETBIT          (
-        (state-left  CompositionState-Indcpamod0)
-        (state-right CompositionState-Indcpamon0)
-        (state-left-NEU Return-Indcpamod0-keys_top-SETBIT)      ; also contains new index    
-        (state-right-NEU Return-Indcpamon0-red-SETBIT) ; also contains new index
+        (state-left  CompositionState-Indcpamod0_inst)
+        (state-right CompositionState-Indcpamon0_inst)
+        (state-left-NEU Return-Indcpamod0_inst-keys_top-SETBIT)      ; also contains new index    
+        (state-right-NEU Return-Indcpamon0_inst-red-SETBIT) ; also contains new index
         (zz Bool))
         Bool
 
 
-(= (= (return-Indcpamod0-keys_top-SETBIT-return-value-or-abort     state-left-NEU) (as mk-abort (ReturnValue Empty)))
-   (= (return-Indcpamon0-red-SETBIT-return-value-or-abort     state-right-NEU) (as mk-abort (ReturnValue Empty)))))
+(= (= (return-Indcpamod0_inst-keys_top-SETBIT-return-value-or-abort     state-left-NEU) (as mk-abort (ReturnValue Empty)))
+   (= (return-Indcpamon0_inst-red-SETBIT-return-value-or-abort     state-right-NEU) (as mk-abort (ReturnValue Empty)))))
 
 (define-fun aborts-equal-GETAOUT          (
-        (state-left  CompositionState-Indcpamod0)
-        (state-right CompositionState-Indcpamon0)
-        (state-left-NEU Return-Indcpamod0-keys_top-GETAOUT)      ; also contains new index    
-        (state-right-NEU Return-Indcpamon0-red-GETAOUT)          ; also contains new index
+        (state-left  CompositionState-Indcpamod0_inst)
+        (state-right CompositionState-Indcpamon0_inst)
+        (state-left-NEU Return-Indcpamod0_inst-keys_top-GETAOUT)      ; also contains new index    
+        (state-right-NEU Return-Indcpamon0_inst-red-GETAOUT)          ; also contains new index
         )
         Bool
 
 
 
-(= (= (return-Indcpamod0-keys_top-GETAOUT-return-value-or-abort     state-left-NEU) (as mk-abort (ReturnValue Bits_n)))
-   (= (return-Indcpamon0-red-GETAOUT-return-value-or-abort     state-right-NEU) (as mk-abort (ReturnValue Bits_n)))))
+(= (= (return-Indcpamod0_inst-keys_top-GETAOUT-return-value-or-abort     state-left-NEU) (as mk-abort (ReturnValue Bits_n)))
+   (= (return-Indcpamon0_inst-red-GETAOUT-return-value-or-abort     state-right-NEU) (as mk-abort (ReturnValue Bits_n)))))
 
 
 
 ; no-abort
 
 (define-fun no-abort-ENCN          (
-        (state-left  CompositionState-Indcpamod0)
-        (state-right CompositionState-Indcpamon0)
-        (state-left-NEU  Return-Indcpamod0-enc-ENCN)  ; also contains new index    
-        (state-right-NEU Return-Indcpamon0-red-ENCN) ; also contains new index
+        (state-left  CompositionState-Indcpamod0_inst)
+        (state-right CompositionState-Indcpamon0_inst)
+        (state-left-NEU  Return-Indcpamod0_inst-enc-ENCN)  ; also contains new index    
+        (state-right-NEU Return-Indcpamon0_inst-red-ENCN) ; also contains new index
         (d Bool)
         (nzero Bits_n)
         (none  Bits_n))
         Bool
 
 
-(and (not (= (return-Indcpamod0-enc-ENCN-return-value-or-abort     state-left-NEU) (as mk-abort (ReturnValue Bits_m))))
-     (not (= (return-Indcpamon0-red-ENCN-return-value-or-abort     state-right-NEU) (as mk-abort (ReturnValue Bits_m))))))
+(and (not (= (return-Indcpamod0_inst-enc-ENCN-return-value-or-abort     state-left-NEU) (as mk-abort (ReturnValue Bits_m))))
+     (not (= (return-Indcpamon0_inst-red-ENCN-return-value-or-abort     state-right-NEU) (as mk-abort (ReturnValue Bits_m))))))
 
 
 (define-fun left-abort-ENCN          (
-        (state-left   CompositionState-Indcpamod0)
-        (state-right  CompositionState-Indcpamon0)
-        (state-left-NEU  Return-Indcpamod0-enc-ENCN)  ; also contains new index    
-        (state-right-NEU Return-Indcpamon0-red-ENCN) ; also contains new index
+        (state-left   CompositionState-Indcpamod0_inst)
+        (state-right  CompositionState-Indcpamon0_inst)
+        (state-left-NEU  Return-Indcpamod0_inst-enc-ENCN)  ; also contains new index    
+        (state-right-NEU Return-Indcpamon0_inst-red-ENCN) ; also contains new index
         (d Bool)
         (nzero Bits_n)
         (none  Bits_n))
         Bool
 
-(= (return-Indcpamod0-enc-ENCN-return-value-or-abort     state-left-NEU) (as mk-abort (ReturnValue Bits_m))))
+(= (return-Indcpamod0_inst-enc-ENCN-return-value-or-abort     state-left-NEU) (as mk-abort (ReturnValue Bits_m))))
 
 (define-fun right-abort-ENCN          (
-        (state-left  CompositionState-Indcpamod0)
-        (state-right CompositionState-Indcpamon0)
-        (state-left-NEU  Return-Indcpamod0-enc-ENCN)  ; also contains new index    
-        (state-right-NEU Return-Indcpamon0-red-ENCN) ; also contains new index
+        (state-left  CompositionState-Indcpamod0_inst)
+        (state-right CompositionState-Indcpamon0_inst)
+        (state-left-NEU  Return-Indcpamod0_inst-enc-ENCN)  ; also contains new index    
+        (state-right-NEU Return-Indcpamon0_inst-red-ENCN) ; also contains new index
         (d Bool)
         (nzero Bits_n)
         (none  Bits_n))
         Bool
-(= (return-Indcpamon0-red-ENCN-return-value-or-abort     state-right-NEU) (as mk-abort (ReturnValue Bits_m))))
+(= (return-Indcpamon0_inst-red-ENCN-return-value-or-abort     state-right-NEU) (as mk-abort (ReturnValue Bits_m))))
 
 
 (define-fun no-abort-SETBIT          (
-        (state-left  CompositionState-Indcpamod0)
-        (state-right CompositionState-Indcpamon0)
-        (state-left-NEU  Return-Indcpamod0-keys_top-SETBIT)  ; also contains new index    
-        (state-right-NEU Return-Indcpamon0-red-SETBIT) ; also contains new index
+        (state-left  CompositionState-Indcpamod0_inst)
+        (state-right CompositionState-Indcpamon0_inst)
+        (state-left-NEU  Return-Indcpamod0_inst-keys_top-SETBIT)  ; also contains new index    
+        (state-right-NEU Return-Indcpamon0_inst-red-SETBIT) ; also contains new index
         (zz Bool))
         Bool
 
-(and (not (= (return-Indcpamod0-keys_top-SETBIT-return-value-or-abort     state-left-NEU) (as mk-abort (ReturnValue Empty))))
-     (not (= (return-Indcpamon0-red-SETBIT-return-value-or-abort     state-right-NEU) (as mk-abort (ReturnValue Empty))))))
+(and (not (= (return-Indcpamod0_inst-keys_top-SETBIT-return-value-or-abort     state-left-NEU) (as mk-abort (ReturnValue Empty))))
+     (not (= (return-Indcpamon0_inst-red-SETBIT-return-value-or-abort     state-right-NEU) (as mk-abort (ReturnValue Empty))))))
 
 (define-fun no-abort-GETAOUT          (
-        (state-left  CompositionState-Indcpamod0)
-        (state-right CompositionState-Indcpamon0)
-        (state-left-NEU  Return-Indcpamod0-keys_top-GETAOUT)  ; also contains new index    
-        (state-right-NEU Return-Indcpamon0-red-GETAOUT) ; also contains new index
+        (state-left  CompositionState-Indcpamod0_inst)
+        (state-right CompositionState-Indcpamon0_inst)
+        (state-left-NEU  Return-Indcpamod0_inst-keys_top-GETAOUT)  ; also contains new index    
+        (state-right-NEU Return-Indcpamon0_inst-red-GETAOUT) ; also contains new index
         )
         Bool
 
-(and (not (= (return-Indcpamod0-keys_top-GETAOUT-return-value-or-abort     state-left-NEU) (as mk-abort (ReturnValue Bits_n))))
-     (not (= (return-Indcpamon0-red-GETAOUT-return-value-or-abort     state-right-NEU) (as mk-abort (ReturnValue Bits_n))))))
+(and (not (= (return-Indcpamod0_inst-keys_top-GETAOUT-return-value-or-abort     state-left-NEU) (as mk-abort (ReturnValue Bits_n))))
+     (not (= (return-Indcpamon0_inst-red-GETAOUT-return-value-or-abort     state-right-NEU) (as mk-abort (ReturnValue Bits_n))))))
 
 
 (define-fun left-abort-GETAOUT          (
-        (state-left   CompositionState-Indcpamod0)
-        (state-right  CompositionState-Indcpamon0)
-        (state-left-NEU  Return-Indcpamod0-keys_top-GETAOUT)  ; also contains new index    
-        (state-right-NEU Return-Indcpamon0-red-GETAOUT) ; also contains new index
+        (state-left   CompositionState-Indcpamod0_inst)
+        (state-right  CompositionState-Indcpamon0_inst)
+        (state-left-NEU  Return-Indcpamod0_inst-keys_top-GETAOUT)  ; also contains new index    
+        (state-right-NEU Return-Indcpamon0_inst-red-GETAOUT) ; also contains new index
         )
         Bool
 
-(= (return-Indcpamod0-keys_top-GETAOUT-return-value-or-abort     state-left-NEU) (as mk-abort (ReturnValue Bits_n))))
+(= (return-Indcpamod0_inst-keys_top-GETAOUT-return-value-or-abort     state-left-NEU) (as mk-abort (ReturnValue Bits_n))))
 
 
 (define-fun right-abort-GETAOUT          (
-        (state-left   CompositionState-Indcpamod0)
-        (state-right  CompositionState-Indcpamon0)
-        (state-left-NEU  Return-Indcpamod0-keys_top-GETAOUT)  ; also contains new index    
-        (state-right-NEU Return-Indcpamon0-red-GETAOUT) ; also contains new index
+        (state-left   CompositionState-Indcpamod0_inst)
+        (state-right  CompositionState-Indcpamon0_inst)
+        (state-left-NEU  Return-Indcpamod0_inst-keys_top-GETAOUT)  ; also contains new index    
+        (state-right-NEU Return-Indcpamon0_inst-red-GETAOUT) ; also contains new index
         )
         Bool
 
-(= (return-Indcpamon0-red-GETAOUT-return-value-or-abort     state-right-NEU) (as mk-abort (ReturnValue Bits_n))))
+(= (return-Indcpamon0_inst-red-GETAOUT-return-value-or-abort     state-right-NEU) (as mk-abort (ReturnValue Bits_n))))
 
 
 
@@ -562,43 +562,43 @@ game-state-Indcpamon0_inst-old))
 
 
 (define-fun same-output-ENCN          (
-        (state-left CompositionState-Indcpamod0)
-        (state-right CompositionState-Indcpamon0)
-        (state-left-NEU Return-Indcpamod0-enc-ENCN)
-        (state-right-NEU Return-Indcpamon0-red-ENCN)
+        (state-left CompositionState-Indcpamod0_inst)
+        (state-right CompositionState-Indcpamon0_inst)
+        (state-left-NEU Return-Indcpamod0_inst-enc-ENCN)
+        (state-right-NEU Return-Indcpamon0_inst-red-ENCN)
         (d Bool)
         (nzero Bits_n)
         (none  Bits_n))
         Bool
 (=
-(return-Indcpamod0-enc-ENCN-return-value-or-abort return-Indcpamod0_inst-ENCN)
-(return-Indcpamon0-red-ENCN-return-value-or-abort return-Indcpamon0_inst-ENCN)
+(return-Indcpamod0_inst-enc-ENCN-return-value-or-abort return-Indcpamod0_inst-ENCN)
+(return-Indcpamon0_inst-red-ENCN-return-value-or-abort return-Indcpamon0_inst-ENCN)
 )
 )
 
 
 (define-fun same-output-SETBIT          (
-        (state-left  CompositionState-Indcpamod0)
-        (state-right CompositionState-Indcpamon0)
-        (state-left-NEU Return-Indcpamod0-keys_top-SETBIT)
-        (state-right-NEU Return-Indcpamon0-red-SETBIT)
+        (state-left  CompositionState-Indcpamod0_inst)
+        (state-right CompositionState-Indcpamon0_inst)
+        (state-left-NEU Return-Indcpamod0_inst-keys_top-SETBIT)
+        (state-right-NEU Return-Indcpamon0_inst-red-SETBIT)
         (zz Bool))
         Bool
 (=
-(return-Indcpamod0-keys_top-SETBIT-return-value-or-abort return-Indcpamod0_inst-SETBIT)
-(return-Indcpamon0-red-SETBIT-return-value-or-abort return-Indcpamon0_inst-SETBIT)
+(return-Indcpamod0_inst-keys_top-SETBIT-return-value-or-abort return-Indcpamod0_inst-SETBIT)
+(return-Indcpamon0_inst-red-SETBIT-return-value-or-abort return-Indcpamon0_inst-SETBIT)
 )
 )
 
 (define-fun same-output-GETAOUT          (
-        (state-left   CompositionState-Indcpamod0)
-        (state-right  CompositionState-Indcpamon0)
-        (state-left-NEU Return-Indcpamod0-keys_top-GETAOUT)
-        (state-right-NEU Return-Indcpamon0-red-GETAOUT)
+        (state-left   CompositionState-Indcpamod0_inst)
+        (state-right  CompositionState-Indcpamon0_inst)
+        (state-left-NEU Return-Indcpamod0_inst-keys_top-GETAOUT)
+        (state-right-NEU Return-Indcpamon0_inst-red-GETAOUT)
         )
         Bool
 (=
-(return-Indcpamod0-keys_top-GETAOUT-return-value-or-abort return-Indcpamod0_inst-GETAOUT)
-(return-Indcpamon0-red-GETAOUT-return-value-or-abort return-Indcpamon0_inst-GETAOUT)
+(return-Indcpamod0_inst-keys_top-GETAOUT-return-value-or-abort return-Indcpamod0_inst-GETAOUT)
+(return-Indcpamon0_inst-red-GETAOUT-return-value-or-abort return-Indcpamon0_inst-GETAOUT)
 )
 )

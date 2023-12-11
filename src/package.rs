@@ -1,6 +1,6 @@
 use crate::expressions::Expression;
 use crate::split::{SplitOracleDef, SplitOracleSig};
-use crate::statement::{CodeBlock, Statement};
+use crate::statement::{CodeBlock, FilePosition};
 use crate::types::Type;
 
 use std::fmt;
@@ -23,54 +23,18 @@ pub struct OracleSig {
 pub struct OracleDef {
     pub sig: OracleSig,
     pub code: CodeBlock,
+    pub file_pos: FilePosition,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Package {
     pub name: String,
     pub types: Vec<Type>,
-    pub params: Vec<(String, Type)>,
-    pub state: Vec<(String, Type)>,
+    pub params: Vec<(String, Type, FilePosition)>,
+    pub state: Vec<(String, Type, FilePosition)>,
     pub oracles: Vec<OracleDef>,
     pub split_oracles: Vec<SplitOracleDef>,
-    pub imports: Vec<OracleSig>,
-}
-
-impl Package {
-    pub fn called_oracles(&self, oracle: &OracleDef) -> Vec<OracleSig> {
-        let mut result = Vec::new();
-        let mut called_oracles_helper = |cb: &CodeBlock| {
-            for stmt in &cb.0 {
-                match stmt {
-                    Statement::InvokeOracle {
-                        name,
-                        args,
-                        tipe: Some(tipe),
-                        ..
-                    } => {
-                        let found = self.imports.iter().find(|sig|{
-                            sig.name == *name && sig.tipe == *tipe &&
-                                sig.args.iter().zip(args.iter()).all(|(l,r)| {
-                                    if let Expression::Typed(t, _) = r {
-                                        l.1 == *t
-                                    } else {
-                                        panic!("OracleDef called_oracles() only to be called after typing")
-                                    }
-
-
-                                })
-                        });
-
-                        result.push(found.unwrap().clone());
-                    }
-                    _ => {}
-                }
-            }
-        };
-
-        called_oracles_helper(&oracle.code);
-        result
-    }
+    pub imports: Vec<(OracleSig, FilePosition)>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -118,6 +82,10 @@ pub struct Composition {
 }
 
 impl Composition {
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
     pub fn get_oracle_sigs(&self) -> Vec<OracleSig> {
         self.exports
             .iter()

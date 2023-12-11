@@ -3,13 +3,13 @@ use crate::types::Type;
 use crate::writers::smt::{exprs::SmtExpr, sorts::SmtPlainSort};
 
 pub struct ReturnPattern<'a> {
-    pub game_name: &'a str,
+    pub game_inst_name: &'a str,
     pub pkg_inst_name: &'a str,
     pub oracle_name: &'a str,
 }
 
 pub struct ReturnSort<'a> {
-    pub game_name: &'a str,
+    pub game_inst_name: &'a str,
     pub pkg_inst_name: &'a str,
     pub oracle_name: &'a str,
 }
@@ -21,12 +21,12 @@ impl<'a> SmtPlainSort for ReturnSort<'a> {
     fn sort_name(&self) -> String {
         let camel_case = ReturnPattern::CAMEL_CASE;
         let Self {
-            game_name,
+            game_inst_name,
             pkg_inst_name,
             oracle_name,
         } = self;
 
-        format!("{camel_case}-{game_name}-{pkg_inst_name}-{oracle_name}")
+        format!("{camel_case}-{game_inst_name}-{pkg_inst_name}-{oracle_name}")
     }
 }
 
@@ -50,12 +50,12 @@ impl<'a> DatastructurePattern<'a> for ReturnPattern<'a> {
 
     fn sort(&self) -> ReturnSort<'a> {
         let ReturnPattern {
-            game_name,
+            game_inst_name,
             pkg_inst_name,
             oracle_name,
         } = self;
         ReturnSort {
-            game_name,
+            game_inst_name,
             pkg_inst_name,
             oracle_name,
         }
@@ -64,18 +64,18 @@ impl<'a> DatastructurePattern<'a> for ReturnPattern<'a> {
     fn constructor_name(&self, _cons: &Self::Constructor) -> String {
         let kebab_case = Self::KEBAB_CASE;
         let Self {
-            game_name,
+            game_inst_name,
             pkg_inst_name,
             oracle_name,
         } = self;
 
-        format!("mk-{kebab_case}-{game_name}-{pkg_inst_name}-{oracle_name}")
+        format!("mk-{kebab_case}-{game_inst_name}-{pkg_inst_name}-{oracle_name}")
     }
 
     fn selector_name(&self, sel: &Self::Selector) -> String {
         let kebab_case = Self::KEBAB_CASE;
         let Self {
-            game_name,
+            game_inst_name,
             pkg_inst_name,
             oracle_name,
         } = self;
@@ -85,7 +85,7 @@ impl<'a> DatastructurePattern<'a> for ReturnPattern<'a> {
             ReturnSelector::ReturnValueOrAbort { .. } => "return-value-or-abort",
         };
 
-        format!("{kebab_case}-{game_name}-{pkg_inst_name}-{oracle_name}-{field_name}")
+        format!("{kebab_case}-{game_inst_name}-{pkg_inst_name}-{oracle_name}-{field_name}")
     }
 
     fn matchfield_name(&self, sel: &Self::Selector) -> String {
@@ -108,9 +108,9 @@ impl<'a> DatastructurePattern<'a> for ReturnPattern<'a> {
     }
 
     fn selector_sort(&self, sel: &Self::Selector) -> SmtExpr {
-        let Self { game_name, .. } = self;
+        let Self { game_inst_name, .. } = self;
 
-        let game_state_pattern = super::game_state::GameStatePattern { game_name };
+        let game_state_pattern = super::game_state::GameStatePattern { game_inst_name };
 
         match sel {
             ReturnSelector::GameState => game_state_pattern.sort().sort_name().into(),
@@ -124,11 +124,11 @@ impl<'a> DatastructurePattern<'a> for ReturnPattern<'a> {
 impl<'a> ReturnPattern<'a> {
     pub fn global_const_name(&self) -> String {
         let Self {
-            game_name,
+            game_inst_name,
             pkg_inst_name,
             oracle_name,
         } = self;
 
-        format!("return-{game_name}-{pkg_inst_name}-{oracle_name}")
+        format!("return-{game_inst_name}-{pkg_inst_name}-{oracle_name}")
     }
 }

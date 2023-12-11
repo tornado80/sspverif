@@ -1,5 +1,6 @@
 use crate::{
     split::{SplitOracleDef, SplitPath},
+    types::Type,
     writers::smt::{
         exprs::SmtExpr,
         names,
@@ -8,15 +9,18 @@ use crate::{
     },
 };
 
-use super::{GameContext, GenericOracleContext, PackageInstanceContext, SplitOracleContext};
+use super::{
+    GameInstanceContext, GenericOracleContext, PackageInstanceContext, SplitOracleContext,
+};
 
 impl<'a> SplitOracleContext<'a> {
     pub fn smt_arg_name(&self, arg_name: &str) -> SmtExpr {
-        let game = self.game_ctx.game;
-        let inst = &game.pkgs[self.inst_offs];
+        let game_inst = self.game_inst_ctx().game_inst();
+        let game = self.game_inst_ctx().game();
+        let inst = &game.pkgs[self.pkg_inst_offs];
         let odef = &inst.pkg.oracles[self.split_oracle_offs];
 
-        names::oracle_split_arg_name(&game.name, &odef.sig.name, arg_name).into()
+        names::oracle_split_arg_name(game_inst.name(), &odef.sig.name, arg_name).into()
     }
 
     pub fn oracle_def(&self) -> &'a SplitOracleDef {
@@ -31,23 +35,23 @@ impl<'a> SplitOracleContext<'a> {
         &self.oracle_def().sig.path
     }
 
-    fn game_ctx(&self) -> GameContext<'a> {
-        self.game_ctx.clone()
+    fn game_inst_ctx(&self) -> GameInstanceContext<'a> {
+        self.game_inst_context.clone()
     }
 
     fn pkg_inst_ctx(&self) -> PackageInstanceContext<'a> {
         PackageInstanceContext {
-            game_ctx: self.game_ctx.clone(),
-            inst_offs: self.inst_offs,
+            game_ctx: self.game_inst_ctx(),
+            inst_offs: self.pkg_inst_offs,
         }
     }
 
     pub fn intermediate_state_pattern(&self) -> IntermediateStatePattern<'a> {
         let pkg_inst_ctx = self.pkg_inst_ctx();
-        let game_ctx = self.game_ctx();
+        let game_inst_ctx = self.game_inst_ctx();
 
         IntermediateStatePattern {
-            game_name: &game_ctx.game.name,
+            game_inst_name: game_inst_ctx.game_inst().name(),
             pkg_inst_name: pkg_inst_ctx.pkg_inst_name(),
             oracle_name: &self.oracle_def().sig.name,
         }
@@ -65,17 +69,18 @@ impl<'a> SplitOracleContext<'a> {
         IS: Into<SmtExpr>,
         ARGS: Iterator<Item = SmtExpr>,
     {
-        let game = self.game_ctx.game;
-        let inst = &game.pkgs[self.inst_offs];
-        let osig = &inst.pkg.split_oracles[self.split_oracle_offs].sig;
+        let game_inst = self.game_inst_ctx().game_inst();
+        let game = self.game_inst_ctx().game();
+        let pkg_inst = &game.pkgs[self.pkg_inst_offs];
+        let osig = &pkg_inst.pkg.split_oracles[self.split_oracle_offs].sig;
 
-        let game_name = &game.name;
-        let pkg_inst_name = &inst.name;
+        let game_inst_name = game_inst.name();
+        let pkg_inst_name = &pkg_inst.name;
         let oracle_name = &osig.name;
         let split_path = &osig.path;
 
         let pattern = PartialOraclePattern {
-            game_name,
+            game_inst_name,
             pkg_inst_name,
             oracle_name,
             split_path,
@@ -98,8 +103,8 @@ impl<'a> SplitOracleContext<'a> {
 }
 
 impl<'a> GenericOracleContext for SplitOracleContext<'a> {
-    fn game_ctx(&self) -> GameContext<'a> {
-        self.game_ctx()
+    fn game_inst_ctx(&self) -> GameInstanceContext {
+        self.game_inst_ctx()
     }
 
     fn pkg_inst_ctx(&self) -> PackageInstanceContext<'a> {
@@ -108,6 +113,10 @@ impl<'a> GenericOracleContext for SplitOracleContext<'a> {
 
     fn oracle_name(&self) -> &str {
         &self.oracle_def().sig.name
+    }
+
+    fn oracle_args(&self) -> &[(String, Type)] {
+        &self.oracle_def().sig.args
     }
 
     fn oracle_return_type(&self) -> &crate::types::Type {
@@ -119,7 +128,7 @@ impl<'a> GenericOracleContext for SplitOracleContext<'a> {
     }
 
     fn smt_construct_abort(&self) -> SmtExpr {
-        let game = self.game_ctx.game();
+        let game = self.game_inst_context.game();
         let game_name = &game.name;
         let inst_name = &self.pkg_inst_ctx().pkg_inst().name;
         let oracle_name_with_path = self.oracle_def().sig.name_with_path();

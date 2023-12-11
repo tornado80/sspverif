@@ -2,11 +2,9 @@ use crate::{
     expressions::Expression,
     package::{Composition, Package},
     parser::Rule,
-    proof::{
-        Assumption, Claim, Equivalence, GameHop, GameInstance, Mapping, Proof, Reduction, Resolver,
-        SliceResolver,
-    },
+    proof::{Assumption, Claim, Equivalence, GameHop, GameInstance, Mapping, Proof, Reduction},
     types::Type,
+    util::resolver::{Resolver, SliceResolver},
 };
 
 use itertools::Itertools;
@@ -18,7 +16,12 @@ use pest::{
 use super::common;
 use super::error::{Error, Result};
 
-pub fn handle_proof<'a>(ast: Pair<Rule>, pkgs: &[Package], games: &[Composition]) -> Result<Proof> {
+pub fn handle_proof<'a>(
+    ast: Pair<Rule>,
+    pkgs: &[Package],
+    games: &[Composition],
+    file_name: &str,
+) -> Result<Proof> {
     let mut iter = ast.into_inner();
     let name = iter.next().unwrap().as_str();
     let proof_ast = iter.next().unwrap();
@@ -43,7 +46,7 @@ pub fn handle_proof<'a>(ast: Pair<Rule>, pkgs: &[Package], games: &[Composition]
                 game_hops.extend(more_game_hops);
             }
             Rule::instance_decl => {
-                instances.push(handle_instance_decl(ast, &consts, pkgs, games)?);
+                instances.push(handle_instance_decl(ast, &consts, pkgs, games, file_name)?);
             }
             otherwise => unreachable!("found {:?} in proof", otherwise),
         }
@@ -65,18 +68,20 @@ fn handle_instance_decl(
     proof_consts: &[(String, Type)],
     pkgs: &[Package],
     games: &[Composition],
+    file_name: &str,
 ) -> Result<GameInstance> {
     let span = ast.as_span();
 
     let mut ast = ast.into_inner();
 
-    let name = ast.next().unwrap().as_str().to_string();
+    let inst_name = ast.next().unwrap().as_str().to_string();
     let game_ast = ast.next().unwrap();
     let game_span = game_ast.as_span();
     let game_name = game_ast.as_str().to_string();
     let body_ast = ast.next().unwrap();
 
-    let (types, consts) = handle_instance_assign_list(&name, proof_consts, body_ast, pkgs, games)?;
+    let (types, consts) =
+        handle_instance_assign_list(&inst_name, file_name, proof_consts, body_ast)?;
 
     let game_resolver = SliceResolver(games);
     let game = match game_resolver.resolve(&game_name) {
@@ -84,7 +89,7 @@ fn handle_instance_decl(
         None => return Err(Error::UndefinedGame(game_name.to_string()).with_span(game_span)),
     };
 
-    let game_inst = GameInstance::new(name, game.clone(), types, consts);
+    let game_inst = GameInstance::new(inst_name, game.clone(), types, consts);
 
     check_consts(&game_inst, span, games)?;
 
@@ -158,10 +163,9 @@ fn check_consts(game_inst: &GameInstance, span: Span, games: &[Composition]) -> 
 
 fn handle_instance_assign_list(
     inst_name: &str,
+    file_name: &str,
     proof_consts: &[(String, Type)],
     ast: Pair<Rule>,
-    pkgs: &[Package],
-    games: &[Composition],
 ) -> Result<(Vec<(Type, Type)>, Vec<(String, Expression)>)> {
     let ast = ast.into_inner();
 
@@ -172,7 +176,7 @@ fn handle_instance_assign_list(
         match ast.as_rule() {
             Rule::types_def => {
                 let ast = ast.into_inner().next().unwrap();
-                types.extend(common::handle_types_def_list(ast, inst_name)?);
+                types.extend(common::handle_types_def_list(ast, inst_name, file_name)?);
             }
             Rule::params_def => {
                 let ast = ast.into_inner().next().unwrap();
@@ -222,7 +226,7 @@ fn handle_game_hops(
 
     for hop_ast in ast {
         let game_hop = match hop_ast.as_rule() {
-            Rule::equivalence => handle_equivalence(hop_ast, games, game_instances)?,
+            Rule::equivalence => handle_equivalence(hop_ast, game_instances)?,
             Rule::reduction => handle_reduction(hop_ast, assumptions, game_instances)?,
             otherwise => unreachable!("found {:?} in game_hops", otherwise),
         };
@@ -234,7 +238,6 @@ fn handle_game_hops(
 
 fn handle_equivalence<'a>(
     ast: Pair<Rule>,
-    games: &[Composition],
     game_instances: &[GameInstance],
 ) -> Result<Vec<GameHop>> {
     let span = ast.as_span();
@@ -277,7 +280,6 @@ fn handle_equivalence<'a>(
 }
 
 fn handle_equivalence_oracle(ast: Pair<Rule>) -> (String, Vec<String>, Vec<(String, Vec<String>)>) {
-    let span = ast.as_span();
     let mut ast = ast.into_inner();
     let oracle_name = ast.next().unwrap().as_str().to_string();
     let invariant_paths = handle_invariant_spec(next_pairs(&mut ast));
@@ -346,8 +348,8 @@ fn handle_reduction_body(
     let map1_ast = ast.next().unwrap();
     let map2_ast = ast.next().unwrap();
 
-    let mapping1 = handle_mapspec(map1_ast, &assumption, game_instances, left_name, right_name)?;
-    let mapping2 = handle_mapspec(map2_ast, &assumption, game_instances, left_name, right_name)?;
+    let mapping1 = handle_mapspec(map1_ast, &assumption, game_instances)?;
+    let mapping2 = handle_mapspec(map2_ast, &assumption, game_instances)?;
 
     if mapping1.as_game_inst_name() == mapping2.as_game_inst_name() {
         panic!();
@@ -375,8 +377,6 @@ fn handle_mapspec<'a>(
     ast: Pair<Rule>,
     assumption: &Assumption,
     game_instances: &'a [GameInstance],
-    left_name: &str,
-    right_name: &str,
 ) -> Result<Mapping> {
     let span = ast.as_span();
 
@@ -394,9 +394,6 @@ fn handle_mapspec<'a>(
 
     let is_left_assumption_game = assumption_game_inst_name == assumption.left_name;
     let is_right_assumption_game = assumption_game_inst_name == assumption.right_name;
-
-    let is_left_game = game_inst_name == left_name;
-    let is_right_game = game_inst_name == right_name;
 
     if !(is_left_assumption_game || is_right_assumption_game) {
         println!("{assumption:?}");

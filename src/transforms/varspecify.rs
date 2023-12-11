@@ -1,10 +1,13 @@
+use std::convert::Infallible;
+
 use crate::expressions::Expression;
 use crate::identifier::Identifier;
 use crate::package::{Composition, OracleDef, Package, PackageInstance};
-use crate::proof::{GameInstance, Resolver, SliceResolver};
+use crate::proof::GameInstance;
 use crate::split::SplitOracleDef;
-use crate::statement::{CodeBlock, Statement};
+use crate::statement::{CodeBlock, FilePosition, Statement};
 use crate::types::Type;
+use crate::util::resolver::{Resolver, SliceResolver};
 
 pub struct Transformation<'a>(pub &'a Composition);
 
@@ -32,13 +35,14 @@ impl<'a> super::Transformation for Transformation<'a> {
 
 // TODO: add support for resolving to expression literals
 fn resolve_var(
-    pkg_state: &[(String, Type)],
+    pkg_state: &[(String, Type, FilePosition)],
     pkg_inst_params: &[(String, Expression)],
     game_inst_params: &[(String, Expression)],
     name: String,
     pkg_name: &str,
     pkg_inst_name: &str,
     game_name: &str,
+    game_inst_name: &str,
 ) -> Identifier {
     let pkg_state = SliceResolver(pkg_state);
     let pkg_inst_params = SliceResolver(pkg_inst_params);
@@ -48,7 +52,7 @@ fn resolve_var(
         Identifier::State {
             name: name.to_string(),
             pkg_inst_name: pkg_inst_name.to_string(),
-            compname: game_name.to_string(),
+            game_inst_name: game_inst_name.to_string(),
         }
     } else if let Some(expr) = &pkg_inst_params.resolve(&name) {
         let id = if let Expression::Identifier(id) = expr {
@@ -69,8 +73,8 @@ fn resolve_var(
             name_in_pkg: name.to_string(),
             pkgname: pkg_name.to_string(),
             name_in_comp: id.ident(),
-            compname: game_name.to_string(),
             name_in_proof: id_in_proof.ident(),
+            game_inst_name: game_inst_name.to_string(),
         }
     } else {
         Identifier::Local(name)
@@ -106,6 +110,7 @@ fn var_specify_helper(
                 pkg_name,
                 &name,
                 game_inst.game_name(),
+                game_inst.name(),
             ),
             args,
         ),
@@ -117,6 +122,7 @@ fn var_specify_helper(
             pkg_name,
             name,
             game_inst.game_name(),
+            game_inst.name(),
         )),
         Expression::TableAccess(Identifier::Scalar(id), expr) => Expression::TableAccess(
             resolve_var(
@@ -127,6 +133,7 @@ fn var_specify_helper(
                 pkg_name,
                 name,
                 game_inst.game_name(),
+                game_inst.name(),
             ),
             expr,
         ),
@@ -137,32 +144,39 @@ fn var_specify_helper(
             .0
             .iter()
             .map(|stmt| match stmt {
-                Statement::Abort => Statement::Abort,
-                Statement::Return(None) => Statement::Return(None),
-                Statement::Return(Some(expr)) => Statement::Return(Some(expr.map(fixup))),
-                Statement::Assign(id, None, expr) => {
+                Statement::Abort(file_pos) => Statement::Abort(file_pos.clone()),
+                Statement::Return(None, file_pos) => Statement::Return(None, file_pos.clone()),
+                Statement::Return(Some(expr), file_pos) => {
+                    Statement::Return(Some(expr.map(fixup)), file_pos.clone())
+                }
+                Statement::Assign(id, None, expr, file_pos) => {
                     if let Expression::Identifier(id) = fixup(id.to_expression()) {
-                        Statement::Assign(id, None, expr.map(fixup))
+                        Statement::Assign(id, None, expr.map(fixup), file_pos.clone())
                     } else {
                         unreachable!()
                     }
                 }
-                Statement::Assign(table, Some(index), expr) => {
+                Statement::Assign(table, Some(index), expr, file_pos) => {
                     if let Expression::Identifier(table) = fixup(table.to_expression()) {
-                        Statement::Assign(table, Some(index.map(fixup)), expr.map(fixup))
+                        Statement::Assign(
+                            table,
+                            Some(index.map(fixup)),
+                            expr.map(fixup),
+                            file_pos.clone(),
+                        )
                     } else {
                         unreachable!()
                     }
                 }
-                Statement::Sample(id, opt_idx, sample_id, t) => {
+                Statement::Sample(id, opt_idx, sample_id, t, file_pos) => {
                     let opt_idx = opt_idx.clone().map(|expr| expr.map(fixup));
                     if let Expression::Identifier(id) = fixup(id.to_expression()) {
-                        Statement::Sample(id, opt_idx, *sample_id, t.clone())
+                        Statement::Sample(id, opt_idx, *sample_id, t.clone(), file_pos.clone())
                     } else {
                         unreachable!()
                     }
                 }
-                Statement::Parse(idents, expr) => {
+                Statement::Parse(idents, expr, file_pos) => {
                     let idents = idents
                         .iter()
                         .map(|id| {
@@ -174,7 +188,7 @@ fn var_specify_helper(
                         })
                         .collect();
 
-                    Statement::Parse(idents, expr.map(fixup))
+                    Statement::Parse(idents, expr.map(fixup), file_pos.clone())
                 }
                 Statement::InvokeOracle {
                     id,
@@ -183,6 +197,7 @@ fn var_specify_helper(
                     args,
                     target_inst_name,
                     tipe,
+                    file_pos,
                 } => {
                     let opt_idx = opt_idx.clone().map(|expr| expr.map(fixup));
                     let args = args.iter().map(|expr| expr.map(fixup)).collect();
@@ -194,17 +209,19 @@ fn var_specify_helper(
                             args,
                             target_inst_name: target_inst_name.clone(),
                             tipe: tipe.clone(),
+                            file_pos: file_pos.clone(),
                         }
                     } else {
                         unreachable!()
                     }
                 }
-                Statement::IfThenElse(expr, ifcode, elsecode) => Statement::IfThenElse(
+                Statement::IfThenElse(expr, ifcode, elsecode, file_pos) => Statement::IfThenElse(
                     expr.map(fixup),
                     var_specify_helper(game_inst, pkg_inst, ifcode.clone()),
                     var_specify_helper(game_inst, pkg_inst, elsecode.clone()),
+                    file_pos.clone(),
                 ),
-                Statement::For(ident, lower_bound, upper_bound, body) => {
+                Statement::For(ident, lower_bound, upper_bound, body, file_pos) => {
                     let resolved_ident =
                         if let Expression::Identifier(ident) = fixup(ident.to_expression()) {
                             ident
@@ -216,6 +233,7 @@ fn var_specify_helper(
                         lower_bound.map(fixup),
                         upper_bound.map(fixup),
                         var_specify_helper(game_inst, pkg_inst, body.clone()),
+                        file_pos.clone(),
                     )
                 }
             })
@@ -233,6 +251,7 @@ fn var_specify_pkg_inst(game_inst: &GameInstance, pkg_inst: &PackageInstance) ->
                 .map(|def| OracleDef {
                     sig: def.sig.clone(),
                     code: var_specify_helper(game_inst, pkg_inst, def.code.clone()),
+                    file_pos: def.file_pos.clone(),
                 })
                 .collect(),
             split_oracles: pkg_inst
@@ -242,6 +261,7 @@ fn var_specify_pkg_inst(game_inst: &GameInstance, pkg_inst: &PackageInstance) ->
                 .map(|def| SplitOracleDef {
                     sig: def.sig.clone(),
                     code: var_specify_helper(game_inst, pkg_inst, def.code.clone()),
+                    // TODO add file_pos to this structure
                 })
                 .collect(),
             ..pkg_inst.pkg.clone()
@@ -250,7 +270,7 @@ fn var_specify_pkg_inst(game_inst: &GameInstance, pkg_inst: &PackageInstance) ->
     }
 }
 
-pub fn var_specify_game_inst(game_inst: &GameInstance) -> Result<Composition, ()> {
+pub fn var_specify_game_inst(game_inst: &GameInstance) -> Result<Composition, Infallible> {
     game_inst
         .game()
         .map_pkg_inst(|pkg_inst| Ok(var_specify_pkg_inst(game_inst, pkg_inst)))

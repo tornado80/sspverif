@@ -1,5 +1,5 @@
 use crate::{
-    package::Composition,
+    proof::GameInstance,
     transforms::samplify::SampleInfo,
     types::Type,
     writers::smt::{names, sorts::SmtPlainSort},
@@ -10,7 +10,7 @@ use crate::impl_Into_for_PlainSort;
 use super::{DatastructurePattern, DatastructureSpec};
 
 pub struct GameStatePattern<'a> {
-    pub game_name: &'a str,
+    pub game_inst_name: &'a str,
 }
 
 #[derive(PartialEq, Eq)]
@@ -21,20 +21,20 @@ pub enum GameStateSelector<'a> {
 }
 
 pub struct GameStateDeclareInfo<'a> {
-    pub game: &'a Composition,
+    pub game_inst: &'a GameInstance,
     pub sample_info: &'a SampleInfo,
 }
 
 pub struct GameStateSort<'a> {
-    pub game_name: &'a str,
+    pub game_inst_name: &'a str,
 }
 
 impl<'a> SmtPlainSort for GameStateSort<'a> {
     fn sort_name(&self) -> String {
-        let Self { game_name } = self;
+        let Self { game_inst_name } = self;
         let camel_case = <GameStatePattern as DatastructurePattern>::CAMEL_CASE;
 
-        format!("{camel_case}-{game_name}")
+        format!("{camel_case}-{game_inst_name}")
     }
 }
 
@@ -50,20 +50,20 @@ impl<'a> DatastructurePattern<'a> for GameStatePattern<'a> {
     const KEBAB_CASE: &'static str = "composition";
 
     fn sort(&self) -> GameStateSort<'a> {
-        let Self { game_name } = self;
-        GameStateSort { game_name }
+        let Self { game_inst_name } = self;
+        GameStateSort { game_inst_name }
     }
 
     fn constructor_name(&self, _cons: &Self::Constructor) -> String {
         let kebab_case = Self::KEBAB_CASE;
-        let Self { game_name } = self;
+        let Self { game_inst_name } = self;
 
-        format!("mk-{kebab_case}-state-{game_name}")
+        format!("mk-{kebab_case}-state-{game_inst_name}")
     }
 
     fn selector_name(&self, sel: &Self::Selector) -> String {
         let kebab_case = Self::KEBAB_CASE;
-        let Self { game_name } = self;
+        let Self { game_inst_name } = self;
 
         let (kind_name, field_name) = match sel {
             GameStateSelector::PackageInstance { pkg_inst_name } => {
@@ -73,7 +73,7 @@ impl<'a> DatastructurePattern<'a> for GameStatePattern<'a> {
             GameStateSelector::Randomness { sample_id } => ("rand", format!("{sample_id}")),
         };
 
-        format!("{kebab_case}-{kind_name}-{game_name}-{field_name}")
+        format!("{kebab_case}-{kind_name}-{game_inst_name}-{field_name}")
     }
 
     fn matchfield_name(&self, sel: &Self::Selector) -> String {
@@ -89,10 +89,10 @@ impl<'a> DatastructurePattern<'a> for GameStatePattern<'a> {
     }
 
     fn selector_sort(&self, sel: &Self::Selector) -> crate::writers::smt::exprs::SmtExpr {
-        let Self { game_name } = self;
+        let Self { game_inst_name } = self;
         match sel {
             GameStateSelector::PackageInstance { pkg_inst_name } => {
-                names::pkgstate_sort_name(&game_name, &pkg_inst_name).into()
+                names::pkgstate_sort_name(&game_inst_name, &pkg_inst_name).into()
             }
             GameStateSelector::Const { tipe, .. } => (*tipe).into(),
             GameStateSelector::Randomness { .. } => Type::Integer.into(),
@@ -100,11 +100,12 @@ impl<'a> DatastructurePattern<'a> for GameStatePattern<'a> {
     }
 
     fn datastructure_spec(&self, info: &Self::DeclareInfo) -> DatastructureSpec<'a, Self> {
-        let Self { game_name } = self;
-        assert_eq!(game_name, &info.game.name);
+        let Self { game_inst_name } = self;
+        assert_eq!(game_inst_name, &info.game_inst.name());
 
         let pkgstate_selectors =
-            info.game
+            info.game_inst
+                .game()
                 .pkgs
                 .iter()
                 .map(|inst| GameStateSelector::PackageInstance {
@@ -112,7 +113,8 @@ impl<'a> DatastructurePattern<'a> for GameStatePattern<'a> {
                 });
 
         let const_selectors = info
-            .game
+            .game_inst
+            .game()
             .consts
             .iter()
             // function parameters are just declared as smtlib functions globally, so we don't

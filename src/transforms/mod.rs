@@ -16,7 +16,6 @@ pub mod typecheck;
 pub mod unwrapify;
 pub mod varspecify;
 
-pub mod game_inst;
 pub mod proof_transforms;
 
 pub trait PackageTransform {

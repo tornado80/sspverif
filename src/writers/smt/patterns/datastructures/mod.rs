@@ -136,10 +136,10 @@ pub trait DatastructurePattern<'a> {
         &self,
         spec: &DatastructureSpec<'a, Self>,
         con: &Self::Constructor,
-        f: F,
+        mut f: F,
     ) -> Option<SmtExpr>
     where
-        F: Fn(&Self::Selector) -> SmtExpr,
+        F: FnMut(&Self::Selector) -> Option<SmtExpr>,
     {
         let (con, sels) = spec.0.iter().find(|(cur_con, _sels)| con == cur_con)?;
 
@@ -148,11 +148,13 @@ pub trait DatastructurePattern<'a> {
             return Some(self.constructor_name(con).into());
         }
 
-        Some(SmtExpr::List(Vec::from_iter(
-            vec![self.constructor_name(con).into()]
-                .into_iter()
-                .chain(sels.iter().map(f)),
-        )))
+        let mut call = Vec::with_capacity(sels.len() + 1);
+        call.push(self.constructor_name(con).into());
+        for sel in sels {
+            call.push(f(sel)?);
+        }
+
+        Some(SmtExpr::List(call))
     }
 }
 

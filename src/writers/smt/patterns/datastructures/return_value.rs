@@ -16,6 +16,12 @@ pub struct ReturnValue<'a> {
     pub inner_type: &'a Type,
 }
 
+impl<'a> ReturnValue<'a> {
+    pub fn new(inner_type: &'a Type) -> Self {
+        Self { inner_type }
+    }
+}
+
 impl<'a> DatastructurePattern<'a> for ReturnValue<'a> {
     type Sort = SmtReturnValue<Type>;
 

@@ -54,41 +54,18 @@ impl Scope {
      *  - No scope at all
      *  - Identifier exists somewhere in the scope tower already
      */
-    pub fn declare<I: Into<Type> + Clone>(
-        &mut self,
-        id: Identifier,
-        t: I,
-    ) -> Result<(), ScopeError> {
-        /* Only needed for debug printing
-        match &id {
-            Identifier::Local(name)
-            | Identifier::Scalar(name)
-            | Identifier::State { name, .. }
-            | Identifier::Params {
-                name_in_pkg: name, ..
-            } => {
-                let print_names: Vec<&str> = vec![];
-                let do_print = print_names.iter().any(|print_name| name == print_name);
-
-                if do_print {
-                    eprintln!("DEBUG Scope declare {id:?} {t:?}");
-                }
-            }
-        }
-        */
-
-        self.types.insert(t.clone().into());
-        //let bt = Backtrace::capture();
-        //println!("declaring: {:?} {:?} {}", id, t, bt);
+    pub fn declare<T: Into<Type>>(&mut self, id: Identifier, t: T) -> Result<(), ScopeError> {
+        let tipe: Type = t.into();
+        self.types.insert(tipe.clone());
         if self.lookup(&id) == None {
             if let Some(last) = self.entries.last_mut() {
-                last.insert(id, t.into());
+                last.insert(id, tipe.clone());
                 Ok(())
             } else {
                 panic!("scope declare: scope stack is empty");
             }
         } else {
-            Err(ScopeError(format!("already defined: {id:?}"))) // already defined
+            Err(ScopeError(id, tipe)) // already defined
         }
     }
 

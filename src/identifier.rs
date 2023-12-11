@@ -6,14 +6,14 @@ pub enum Identifier {
     State {
         name: String,
         pkg_inst_name: String,
-        compname: String,
+        game_inst_name: String,
     },
     Parameter {
         name_in_pkg: String,
         pkgname: String,
+        game_inst_name: String,
 
         name_in_comp: String,
-        compname: String,
 
         name_in_proof: String,
     },

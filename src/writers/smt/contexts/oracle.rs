@@ -1,23 +1,25 @@
 use std::backtrace;
 
-use crate::expressions::Expression;
 use crate::package::{Export, OracleDef};
 use crate::types::Type;
-use crate::writers::smt::exprs::SmtAs;
 use crate::writers::smt::patterns::{
-    declare_datatype, DatastructurePattern, ReturnPattern, ReturnSelector, ReturnValue,
-    ReturnValueConstructor,
+    declare_datatype, DatastructurePattern, OraclePattern, ReturnConstructor, ReturnPattern,
+    ReturnSelector, ReturnValue, ReturnValueConstructor,
 };
 
 use super::super::exprs::SmtExpr;
 use super::super::names;
 
-use super::{GameContext, GenericOracleContext, OracleContext, PackageInstanceContext};
+use super::{GameInstanceContext, GenericOracleContext, OracleContext, PackageInstanceContext};
 
 impl<'a> OracleContext<'a> {
     pub fn is_exported(&self) -> bool {
-        let export_needle = Export(self.inst_offs, self.oracle_def().sig.clone());
-        self.game_ctx.game.exports.contains(&export_needle)
+        let export_needle = Export(self.pkg_inst_offs, self.oracle_def().sig.clone());
+        self.game_inst_context
+            .game_inst
+            .game()
+            .exports
+            .contains(&export_needle)
     }
 
     pub fn is_split(&self) -> bool {
@@ -28,41 +30,64 @@ impl<'a> OracleContext<'a> {
         false
     }
 
+    pub fn oracle_pattern(&'a self) -> OraclePattern<'a> {
+        let game_inst_name = self.game_inst_context.game_inst().name();
+        let pkg_inst_name = self.pkg_inst_ctx().pkg_inst_name();
+        let oracle_name = self.oracle_name();
+        let oracle_args = self.oracle_args();
+
+        OraclePattern {
+            game_inst_name,
+            pkg_inst_name,
+            oracle_name,
+            oracle_args,
+        }
+    }
+
     pub fn smt_arg_name(&self, arg_name: &str) -> SmtExpr {
-        let game = self.game_ctx.game;
-        let inst = &game.pkgs[self.inst_offs];
-        let odef = &inst.pkg.oracles[self.oracle_offs];
+        let game = self.game_inst_context.game_inst.game();
+        let pkg_inst = &game.pkgs[self.pkg_inst_offs];
+        let odef = &pkg_inst.pkg.oracles[self.oracle_offs];
 
         names::oracle_nonsplit_arg_name(&odef.sig.name, arg_name).into()
     }
 
-    pub fn oracle_def(&self) -> &OracleDef {
-        &self.game_ctx.game.pkgs[self.inst_offs].pkg.oracles[self.oracle_offs]
+    pub fn oracle_def(&self) -> &'a OracleDef {
+        &self.game_inst_context.game_inst.game().pkgs[self.pkg_inst_offs]
+            .pkg
+            .oracles[self.oracle_offs]
     }
 
     pub fn smt_sort_return(&self) -> SmtExpr {
-        let game = self.game_ctx.game;
-        let inst = &game.pkgs[self.inst_offs];
-        let osig = &inst.pkg.oracles[self.oracle_offs].sig;
+        let game_inst = &self.game_inst_context.game_inst;
+        let pkg_inst = &game_inst.game().pkgs[self.pkg_inst_offs];
+        let osig = &pkg_inst.pkg.oracles[self.oracle_offs].sig;
 
-        let game_name = &game.name;
-        let inst_name = &inst.name;
+        let game_inst_name = game_inst.name();
+        let pkg_inst_name = &pkg_inst.name;
         let oracle_name = &osig.name;
 
-        names::return_sort_name(game_name, inst_name, oracle_name).into()
+        ReturnPattern {
+            game_inst_name,
+            pkg_inst_name,
+            oracle_name,
+        }
+        .sort()
+        .into()
     }
 
     pub fn smt_declare_return(&self) -> SmtExpr {
-        let game = self.game_ctx.game;
-        let inst = &game.pkgs[self.inst_offs];
-        let osig = &inst.pkg.oracles[self.oracle_offs].sig;
-        let game_name = &game.name;
-        let pkg_inst_name = &inst.name;
+        let game_inst = &self.game_inst_context.game_inst;
+        let pkg_inst = &game_inst.game().pkgs[self.pkg_inst_offs];
+        let osig = &pkg_inst.pkg.oracles[self.oracle_offs].sig;
+
+        let game_inst_name = game_inst.name();
+        let pkg_inst_name = &pkg_inst.name;
         let oracle_name = &osig.name;
         let return_type = &osig.tipe;
 
         let pattern = ReturnPattern {
-            game_name,
+            game_inst_name,
             pkg_inst_name,
             oracle_name,
         };
@@ -77,50 +102,71 @@ impl<'a> OracleContext<'a> {
         S: Into<SmtExpr>,
         V: Into<SmtExpr>,
     {
-        let game = self.game_ctx.game;
-        let inst = &game.pkgs[self.inst_offs];
-        let odef = &inst.pkg.oracles[self.oracle_offs];
+        let game_inst = self.game_inst_context.game_inst;
+        let pkg_inst = &game_inst.game().pkgs[self.pkg_inst_offs];
+        let odef = &pkg_inst.pkg.oracles[self.oracle_offs];
         let osig = &odef.sig;
 
-        let game_name = &game.name;
-        let inst_name = &inst.name;
+        let game_inst_name = game_inst.name();
+        let pkg_inst_name = &pkg_inst.name;
         let oracle_name = &odef.sig.name;
+        let return_type = &osig.tipe;
 
         let return_value_pattern = ReturnValue {
-            inner_type: &osig.tipe,
+            inner_type: return_type,
         };
         let return_value_spec = return_value_pattern.datastructure_spec(&());
 
+        // we do this here so we can clone the smt expression in the closure below
+        // and don't have to require a `Clone` constraint from `value_smt`.
         let value_smt: SmtExpr = value.into();
 
-        let construct_return = return_value_pattern
+        let return_value = return_value_pattern
             .call_constructor(&return_value_spec, &ReturnValueConstructor::Return, |_| {
-                value_smt.clone()
+                Some(value_smt.clone())
             })
             .unwrap();
-        (
-            names::return_constructor_name(game_name, inst_name, oracle_name),
-            state,
-            construct_return,
-        )
-            .into()
+
+        let return_pattern = ReturnPattern {
+            game_inst_name,
+            pkg_inst_name,
+            oracle_name,
+        };
+
+        let return_spec = return_pattern.datastructure_spec(&return_type);
+
+        let state_smt: SmtExpr = state.into();
+
+        return_pattern
+            .call_constructor(&return_spec, &ReturnConstructor, |sel: &ReturnSelector| {
+                Some(match sel {
+                    ReturnSelector::GameState => state_smt.clone(),
+                    ReturnSelector::ReturnValueOrAbort {
+                        return_type: spec_return_type,
+                    } => {
+                        assert_eq!(*spec_return_type, return_type);
+                        return_value.clone()
+                    }
+                })
+            })
+            .unwrap()
     }
 
     pub fn smt_access_return_state<R>(&self, ret: R) -> SmtExpr
     where
         R: Into<SmtExpr>,
     {
-        let game = self.game_ctx.game;
-        let inst = &game.pkgs[self.inst_offs];
-        let osig = &inst.pkg.oracles[self.oracle_offs].sig;
+        let game_inst = self.game_inst_context.game_inst;
+        let pkg_inst = &game_inst.game().pkgs[self.pkg_inst_offs];
+        let osig = &pkg_inst.pkg.oracles[self.oracle_offs].sig;
         let return_type = &osig.tipe;
 
-        let game_name = &game.name;
-        let pkg_inst_name = &inst.name;
+        let game_inst_name = game_inst.name();
+        let pkg_inst_name = &pkg_inst.name;
         let oracle_name = &osig.name;
 
         let pattern = ReturnPattern {
-            game_name,
+            game_inst_name,
             pkg_inst_name,
             oracle_name,
         };
@@ -155,70 +201,21 @@ impl<'a> OracleContext<'a> {
     }
 
     pub fn smt_access_return_is_abort<R: Into<SmtExpr>>(&self, ret: R) -> SmtExpr {
-        let game = self.game_ctx.game;
-        let inst = &game.pkgs[self.inst_offs];
-        let osig = &inst.pkg.oracles[self.oracle_offs].sig;
-
-        let game_name = &game.name;
-        let inst_name = &inst.name;
-        let oracle_name = &osig.name;
-
-        // it looks like testers may not exist for parameterized datatypes??
-        // (("_", "is", "mk-abort"), ret).into()
-
-        let retval_pattern = ReturnValue {
-            inner_type: &osig.tipe,
-        };
-
-        // (
-        //     (
-        //         "_",
-        //         "is",
-        //         SmtAs {
-        //             term: "mk-abort",
-        //             sort: retval_pattern.sort(),
-        //         },
-        //     ),
-        //     ret,
-        // )
-        //     .into()
-
-        // (
-        //     "match",
-        //     ret,
-        //     (
-        //         ("mk-abort", "true"),
-        //         (("mk-return-value", "retval"), "false"),
-        //     ),
-        // )
-        //     .into()
-
-        // This should work!
-        // (
-        //     "match",
-        //     ret,
-        //     (
-        //         (("mk-return-value", "retval"), "false"),
-        //         ("mk-abort", "true"),
-        //     ),
-        // )
-        //     .into()
-
         ("=", ret, self.smt_construct_abort()).into()
     }
 
     pub fn smt_access_return_value<R: Into<SmtExpr>>(&self, ret: R) -> SmtExpr {
-        let game = self.game_ctx.game;
-        let inst = &game.pkgs[self.inst_offs];
-        let osig = &inst.pkg.oracles[self.oracle_offs].sig;
+        let game_inst = self.game_inst_context.game_inst;
+        let pkg_inst = &game_inst.game().pkgs[self.pkg_inst_offs];
+        let osig = &pkg_inst.pkg.oracles[self.oracle_offs].sig;
         let return_type = &osig.tipe;
 
-        let game_name = &game.name;
-        let pkg_inst_name = &inst.name;
+        let game_inst_name = game_inst.name();
+        let pkg_inst_name = &pkg_inst.name;
         let oracle_name = &osig.name;
 
         let pattern = ReturnPattern {
-            game_name,
+            game_inst_name,
             pkg_inst_name,
             oracle_name,
         };
@@ -239,18 +236,18 @@ impl<'a> OracleContext<'a> {
         S: Into<SmtExpr>,
         ARGS: Iterator<Item = SmtExpr>,
     {
-        let game = self.game_ctx.game;
-        let inst = &game.pkgs[self.inst_offs];
-        let osig = &inst.pkg.oracles[self.oracle_offs].sig;
+        let game_inst = self.game_inst_context.game_inst;
+        let pkg_inst = &game_inst.game().pkgs[self.pkg_inst_offs];
+        let osig = &pkg_inst.pkg.oracles[self.oracle_offs].sig;
 
-        let game_name = &game.name;
-        let inst_name = &inst.name;
+        let game_name = game_inst.name();
+        let pkg_inst_name = &pkg_inst.name;
         let oracle_name = &osig.name;
 
         let expected_len = 2 + osig.args.len();
 
         let mut cmdline = Vec::with_capacity(expected_len);
-        cmdline.push(names::oracle_function_name(game_name, inst_name, oracle_name).into());
+        cmdline.push(names::oracle_function_name(game_name, pkg_inst_name, oracle_name).into());
         cmdline.push(gamestates.into());
         cmdline.extend(args);
 
@@ -263,19 +260,23 @@ impl<'a> OracleContext<'a> {
 }
 
 impl<'a> GenericOracleContext for OracleContext<'a> {
-    fn game_ctx(&self) -> GameContext {
-        self.game_ctx.clone()
+    fn game_inst_ctx(&self) -> GameInstanceContext<'a> {
+        self.game_inst_context.clone()
     }
 
-    fn pkg_inst_ctx(&self) -> PackageInstanceContext {
+    fn pkg_inst_ctx(&self) -> PackageInstanceContext<'a> {
         PackageInstanceContext {
-            game_ctx: self.game_ctx.clone(),
-            inst_offs: self.inst_offs,
+            game_ctx: self.game_inst_context.clone(),
+            inst_offs: self.pkg_inst_offs,
         }
     }
 
-    fn oracle_name(&self) -> &str {
+    fn oracle_name(&self) -> &'a str {
         &self.oracle_def().sig.name
+    }
+
+    fn oracle_args(&self) -> &'a [(String, Type)] {
+        &self.oracle_def().sig.args
     }
 
     fn oracle_return_type(&self) -> &Type {
@@ -286,23 +287,22 @@ impl<'a> GenericOracleContext for OracleContext<'a> {
         "__global_state".into()
     }
 
-    // TODO: I think we should refactor this to remove the arguments, because this doesn't apply to
-    // the split case.
     fn smt_construct_abort(&self) -> SmtExpr {
-        let game = self.game_ctx.game;
-        let inst = &game.pkgs[self.inst_offs];
-        let osig = &inst.pkg.oracles[self.oracle_offs].sig;
+        let game_inst = self.game_inst_context.game_inst;
+        let pkg_inst = &game_inst.game().pkgs[self.pkg_inst_offs];
+        let osig = &pkg_inst.pkg.oracles[self.oracle_offs].sig;
 
-        let game_name = &game.name;
-        let inst_name = &inst.name;
+        let game_inst_name = game_inst.name();
+        let pkg_inst_name = &pkg_inst.name;
         let oracle_name = &osig.name;
+        let return_type = &osig.tipe;
 
         let return_value_pattern = ReturnValue {
             inner_type: &osig.tipe,
         };
         let return_value_spec = return_value_pattern.datastructure_spec(&());
 
-        let bare_abort_constructor = return_value_pattern
+        let abort = return_value_pattern
             .call_constructor(
                 &return_value_spec,
                 &ReturnValueConstructor::Abort,
@@ -310,14 +310,23 @@ impl<'a> GenericOracleContext for OracleContext<'a> {
             )
             .unwrap();
 
-        (
-            names::return_constructor_name(game_name, inst_name, oracle_name),
-            self.smt_game_state(),
-            SmtAs {
-                term: bare_abort_constructor,
-                sort: return_value_pattern.sort(),
-            },
-        )
-            .into()
+        let abort_as: SmtExpr = ("as", abort, return_value_pattern.sort()).into();
+
+        let return_pattern = ReturnPattern {
+            game_inst_name,
+            pkg_inst_name,
+            oracle_name,
+        };
+
+        let return_spec = return_pattern.datastructure_spec(&return_type);
+
+        return_pattern
+            .call_constructor(&return_spec, &ReturnConstructor, |sel: &ReturnSelector| {
+                Some(match sel {
+                    ReturnSelector::GameState => self.smt_game_state(),
+                    ReturnSelector::ReturnValueOrAbort { .. } => abort_as.clone(),
+                })
+            })
+            .unwrap()
     }
 }

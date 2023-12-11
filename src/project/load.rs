@@ -102,7 +102,7 @@ pub(crate) fn packages(root: PathBuf) -> Result<HashMap<String, Package>> {
                     return Err((filename, e).into());
                 }
                 let mut ast = parse_result.unwrap();
-                let (pkg_name, pkg) = handle_pkg(ast.next().unwrap());
+                let (pkg_name, pkg) = handle_pkg(ast.next().unwrap(), filename);
 
                 if let Some(other_filename) = pkgs_filenames.get(&pkg_name) {
                     return Err(Error::RedefinedPackage(
@@ -142,7 +142,7 @@ pub(crate) fn games(
                 }
 
                 let mut ast = parse_result.unwrap();
-                let comp = match handle_composition(ast.next().unwrap(), pkgs) {
+                let comp = match handle_composition(ast.next().unwrap(), pkgs, name) {
                     Ok(game) => game,
                     Err(err) => {
                         println!("printing error...");
@@ -186,7 +186,7 @@ pub(crate) fn proofs(
                 }
 
                 let mut ast = parse_result.unwrap();
-                let proof = match handle_proof(ast.next().unwrap(), &pkgs, &games) {
+                let proof = match handle_proof(ast.next().unwrap(), &pkgs, &games, name) {
                     Ok(proof) => proof,
                     Err(err) => {
                         return Err(err.with_source(filecontent).into());

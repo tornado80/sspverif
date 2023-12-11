@@ -113,6 +113,7 @@ This would be the contents is JSONy notation. We'll see how that looks like in t
 */
 use clap::{Parser, Subcommand};
 use sspverif::project::{self, error::Result};
+use sspverif::util::prover_process::ProverBackend;
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
@@ -124,11 +125,14 @@ struct Cli {
 
 #[derive(Subcommand, Debug)]
 enum Commands {
+    /// Export to LaTeX
+    Latex,
+
     /// Give information about the provided code
     Explain(Explain),
 
     // Prove the whole project.
-    Prove,
+    Prove(Prove),
 }
 
 #[derive(clap::Args, Debug)]
@@ -139,8 +143,17 @@ struct Explain {
     output: Option<String>,
 }
 
-fn prove() -> Result<()> {
-    project::Project::load()?.prove()
+#[derive(clap::Args, Debug)]
+#[clap(author, version, about, long_about = None)]
+struct Prove {
+    #[clap(short, long, default_value = "cvc5")]
+    prover: ProverBackend,
+    #[clap(short, long)]
+    transcript: bool,
+}
+
+fn prove(p: &Prove) -> Result<()> {
+    project::Project::load()?.prove(p.prover, p.transcript)
 }
 
 fn explain(_game_name: &str, _dst: &Option<String>) -> Result<()> {
@@ -156,18 +169,21 @@ fn explain(_game_name: &str, _dst: &Option<String>) -> Result<()> {
     // Ok(())
 }
 
-fn main() -> Result<()> {
+fn latex() -> Result<()> {
+    project::Project::load()?.latex()
+}
+
+fn main() {
     let cli = Cli::parse();
 
-    match &cli.command {
-        Commands::Prove => match prove() {
-            Err(crate::project::error::Error::ProofCheck(string)) => {
-                print!("{}", string);
-                Err(crate::project::error::Error::ProofCheck(string))
-            }
-            Err(x) => Err(x),
-            Ok(_) => Ok(()),
-        },
+    let result = match &cli.command {
+        Commands::Prove(p) => prove(p),
+        Commands::Latex => latex(),
         Commands::Explain(Explain { game_name, output }) => explain(game_name, output),
+    };
+
+    match result {
+        Ok(_) => println!("success!"),
+        Err(err) => println!("error: {err}"),
     }
 }

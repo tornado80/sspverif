@@ -7,8 +7,16 @@ use thiserror::Error;
 use crate::writers::smt::exprs::SmtExpr;
 
 use super::process;
+use clap::ValueEnum;
 
 pub struct Communicator(process::Communicator);
+
+#[derive(ValueEnum, Clone, Debug, Copy)]
+pub enum ProverBackend {
+    Cvc4,
+    Cvc5,
+    Z3,
+}
 
 #[derive(Debug, Error)]
 pub enum Error {
@@ -16,7 +24,7 @@ pub enum Error {
     WriteError(#[from] std::fmt::Error),
     #[error("io error: {0}")]
     IOError(#[from] std::io::Error),
-    #[error("error interactiv with prover process: {0}")]
+    #[error("error interacting with prover process: {0}")]
     ProcessError(#[from] super::process::Error),
     #[error("prover error: {0}")]
     ProverError(String),
@@ -65,9 +73,35 @@ impl fmt::Display for ProverResponse {
     }
 }
 
-type Result<T> = std::result::Result<T, Error>;
+pub type Result<T> = std::result::Result<T, Error>;
 
 impl Communicator {
+    pub fn new(backend: ProverBackend, transcript: Option<std::fs::File>) -> Result<Self> {
+        match backend {
+            ProverBackend::Cvc4 => {
+                if let Some(f) = transcript {
+                    Communicator::new_cvc4_with_transcript(f)
+                } else {
+                    Communicator::new_cvc4()
+                }
+            }
+            ProverBackend::Cvc5 => {
+                if let Some(f) = transcript {
+                    Communicator::new_cvc5_with_transcript(f)
+                } else {
+                    Communicator::new_cvc5()
+                }
+            }
+            ProverBackend::Z3 => {
+                if let Some(f) = transcript {
+                    Communicator::new_z3_with_transcript(f)
+                } else {
+                    Communicator::new_z3()
+                }
+            }
+        }
+    }
+
     pub fn new_z3() -> Result<Self> {
         let mut cmd = std::process::Command::new("z3");
         cmd.args(["-in", "-smt2"])
@@ -214,8 +248,12 @@ impl Communicator {
     }
 
     pub fn write_smt<I: Into<SmtExpr>>(&mut self, expr: I) -> Result<()> {
+        // avoid making a lot of tiny writes. instead, write everything into a buffer and write
+        // that buffer. In the future, we could optimize this further by reusing the buffer instead
+        // of allocating a new one every time.
         let mut buffer = String::new();
         write!(buffer, "{}", expr.into())?;
+
         write!(self, "{}", buffer)?;
         Ok(())
     }

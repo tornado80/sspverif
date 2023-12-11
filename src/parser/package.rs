@@ -4,6 +4,7 @@ use crate::package::OracleDef;
 use crate::package::OracleSig;
 use crate::package::Package;
 use crate::statement::CodeBlock;
+use crate::statement::FilePosition;
 use crate::statement::Statement;
 use crate::types::Type;
 
@@ -14,14 +15,16 @@ use pest::iterators::Pair;
 
 use std::collections::HashMap;
 
-pub fn handle_decl_list(state: Pair<Rule>) -> Vec<(String, Type)> {
+pub fn handle_decl_list(state: Pair<Rule>, file_name: &str) -> Vec<(String, Type, FilePosition)> {
     state
         .into_inner()
         .map(|entry| {
+            let span = entry.as_span();
+            let file_pos = FilePosition::from_span(file_name, span);
             let mut inner = entry.into_inner();
             let identifier = inner.next().unwrap().as_str();
             let tipe = handle_type(inner.next().unwrap());
-            (identifier.to_string(), tipe)
+            (identifier.to_string(), tipe, file_pos)
         })
         .collect()
 }
@@ -44,6 +47,13 @@ pub fn handle_arglist(arglist: Pair<Rule>) -> Vec<(String, Type)> {
             (id.to_string(), tipe)
         })
         .collect()
+}
+
+pub fn handle_oracle_imports(oracle_sig: Pair<Rule>, file_path: &str) -> (OracleSig, FilePosition) {
+    let span = oracle_sig.as_span();
+    let file_pos = FilePosition::from_span(file_path, span);
+
+    (handle_oracle_sig(oracle_sig), file_pos)
 }
 
 pub fn handle_oracle_sig(oracle_sig: Pair<Rule>) -> OracleSig {
@@ -164,28 +174,32 @@ pub fn handle_expression(expr: Pair<Rule>) -> Expression {
     }
 }
 
-pub fn handle_code(code: Pair<Rule>) -> CodeBlock {
+pub fn handle_code(code: Pair<Rule>, file_name: &str) -> CodeBlock {
     CodeBlock(
         code.into_inner()
             .map(|stmt| {
+                let span = stmt.as_span();
+                let file_pos = FilePosition::from_span(file_name, span);
+
                 match stmt.as_rule() {
                     // assign | return_stmt | abort | ite
                     Rule::ite => {
                         let mut inner = stmt.into_inner();
                         let expr = handle_expression(inner.next().unwrap());
-                        let ifcode = handle_code(inner.next().unwrap());
+                        let ifcode = handle_code(inner.next().unwrap(), file_name);
                         let maybe_elsecode = inner.next();
                         let elsecode = match maybe_elsecode {
                             None => CodeBlock(vec![]),
-                            Some(c) => handle_code(c),
+                            Some(c) => handle_code(c, file_name),
                         };
-                        Statement::IfThenElse(expr, ifcode, elsecode)
+
+                        Statement::IfThenElse(expr, ifcode, elsecode, file_pos)
                     }
                     Rule::return_stmt => {
                         let mut inner = stmt.into_inner();
                         let maybe_expr = inner.next();
                         let expr = maybe_expr.map(handle_expression);
-                        Statement::Return(expr)
+                        Statement::Return(expr, file_pos)
                     }
                     Rule::assert => {
                         let mut inner = stmt.into_inner();
@@ -193,36 +207,37 @@ pub fn handle_code(code: Pair<Rule>) -> CodeBlock {
                         Statement::IfThenElse(
                             expr,
                             CodeBlock(vec![]),
-                            CodeBlock(vec![Statement::Abort]),
+                            CodeBlock(vec![Statement::Abort(file_pos.clone())]),
+                            file_pos,
                         )
                     }
-                    Rule::abort => Statement::Abort,
+                    Rule::abort => Statement::Abort(file_pos),
                     Rule::sample => {
                         let mut inner = stmt.into_inner();
                         let ident = Identifier::new_scalar(inner.next().unwrap().as_str());
                         let tipe = handle_type(inner.next().unwrap());
-                        Statement::Sample(ident, None, None, tipe)
+                        Statement::Sample(ident, None, None, tipe, file_pos)
                         //Statement::Assign(ident, Expression::Sample(tipe))
                     }
                     Rule::assign => {
                         let mut inner = stmt.into_inner();
                         let ident = Identifier::new_scalar(inner.next().unwrap().as_str());
                         let expr = handle_expression(inner.next().unwrap());
-                        Statement::Assign(ident, None, expr)
+                        Statement::Assign(ident, None, expr, file_pos)
                     }
                     Rule::table_sample => {
                         let mut inner = stmt.into_inner();
                         let ident = Identifier::new_scalar(inner.next().unwrap().as_str());
                         let index = handle_expression(inner.next().unwrap());
                         let tipe = handle_type(inner.next().unwrap());
-                        Statement::Sample(ident, Some(index), None, tipe)
+                        Statement::Sample(ident, Some(index), None, tipe, file_pos)
                     }
                     Rule::table_assign => {
                         let mut inner = stmt.into_inner();
                         let ident = Identifier::new_scalar(inner.next().unwrap().as_str());
                         let index = handle_expression(inner.next().unwrap());
                         let expr = handle_expression(inner.next().unwrap());
-                        Statement::Assign(ident, Some(index), expr)
+                        Statement::Assign(ident, Some(index), expr, file_pos)
                     }
                     Rule::invocation => {
                         let mut inner = stmt.into_inner();
@@ -252,6 +267,7 @@ pub fn handle_code(code: Pair<Rule>) -> CodeBlock {
                             args,
                             target_inst_name: None,
                             tipe: None,
+                            file_pos,
                         }
                     }
                     Rule::parse => {
@@ -266,10 +282,9 @@ pub fn handle_code(code: Pair<Rule>) -> CodeBlock {
 
                         let expr = handle_expression(expr);
 
-                        Statement::Parse(idents, expr)
+                        Statement::Parse(idents, expr, file_pos)
                     }
                     Rule::for_ => {
-                        let span = stmt.as_span();
                         let mut parsed: Vec<Pair<Rule>> = stmt.into_inner().collect();
                         let decl_var_name = parsed[0].as_str();
                         let lower_bound = handle_expression(parsed.remove(1));
@@ -277,7 +292,7 @@ pub fn handle_code(code: Pair<Rule>) -> CodeBlock {
                         let bound_var_name = parsed[2].as_str();
                         let upper_bound_type = parsed[3].as_str();
                         let upper_bound = handle_expression(parsed.remove(4));
-                        let body = handle_code(parsed.remove(4));
+                        let body = handle_code(parsed.remove(4), file_name);
 
                         if decl_var_name != bound_var_name {}
 
@@ -300,7 +315,7 @@ pub fn handle_code(code: Pair<Rule>) -> CodeBlock {
                         };
 
                         let ident = Identifier::Scalar(decl_var_name.to_string());
-                        Statement::For(ident, lower_bound, upper_bound, body)
+                        Statement::For(ident, lower_bound, upper_bound, body, file_pos)
                     }
                     _ => {
                         unreachable!("{:#?}", stmt)
@@ -311,15 +326,21 @@ pub fn handle_code(code: Pair<Rule>) -> CodeBlock {
     )
 }
 
-pub fn handle_oracle_def(oracle_def: Pair<Rule>) -> OracleDef {
+pub fn handle_oracle_def(oracle_def: Pair<Rule>, file_name: &str) -> OracleDef {
+    let span = oracle_def.as_span();
+    let file_pos = FilePosition::from_span(file_name, span);
     let mut inner = oracle_def.into_inner();
     let sig = handle_oracle_sig(inner.next().unwrap());
-    let code = handle_code(inner.next().unwrap());
+    let code = handle_code(inner.next().unwrap(), file_name);
 
-    OracleDef { sig, code }
+    OracleDef {
+        sig,
+        code,
+        file_pos,
+    }
 }
 
-pub fn handle_pkg_spec(pkg_spec: Pair<Rule>, name: &str) -> Package {
+pub fn handle_pkg_spec(pkg_spec: Pair<Rule>, pkg_name: &str, file_name: &str) -> Package {
     let mut oracles = vec![];
     let mut state = None;
     let mut params = None;
@@ -335,43 +356,46 @@ pub fn handle_pkg_spec(pkg_spec: Pair<Rule>, name: &str) -> Package {
                 state = spec
                     .into_inner()
                     .next()
-                    .map(|state| handle_decl_list(state));
+                    .map(|state| handle_decl_list(state, file_name));
             }
             Rule::params => {
                 params = spec
                     .into_inner()
                     .next()
-                    .map(|params| handle_decl_list(params));
+                    .map(|params| handle_decl_list(params, file_name));
             }
             Rule::import_oracles => {
                 for sig_ast in spec.into_inner() {
-                    let sig = handle_oracle_sig(sig_ast);
-                    imported_oracles.insert(sig.name.clone(), sig);
+                    let (sig, file_pos) = handle_oracle_imports(sig_ast, file_name);
+                    imported_oracles.insert(sig.name.clone(), (sig, file_pos));
                 }
             }
             Rule::oracle_def => {
-                oracles.push(handle_oracle_def(spec));
+                oracles.push(handle_oracle_def(spec, file_name));
             }
             _ => unreachable!("unhandled ast node in package: {}", spec),
         }
     }
 
     Package {
-        name: name.to_string(),
+        name: pkg_name.to_string(),
         oracles,
         types: types.unwrap_or_default(),
         params: params.unwrap_or_default(),
-        imports: imported_oracles.iter().map(|(_k, v)| v.clone()).collect(),
+        imports: imported_oracles
+            .iter()
+            .map(|(_k, (v, loc))| (v.clone(), loc.clone()))
+            .collect(),
         state: state.unwrap_or_default(),
         split_oracles: vec![],
     }
 }
 
-pub fn handle_pkg(pkg: Pair<Rule>) -> (String, Package) {
+pub fn handle_pkg(pkg: Pair<Rule>, file_name: &str) -> (String, Package) {
     let mut inner = pkg.into_inner();
-    let name = inner.next().unwrap().as_str();
+    let pkg_name = inner.next().unwrap().as_str();
     let spec = inner.next().unwrap();
-    let pkg = handle_pkg_spec(spec, name);
+    let pkg = handle_pkg_spec(spec, pkg_name, file_name);
 
-    (name.to_owned(), pkg)
+    (pkg_name.to_owned(), pkg)
 }

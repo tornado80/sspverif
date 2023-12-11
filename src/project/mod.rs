@@ -9,14 +9,20 @@ use serde_derive::{Deserialize, Serialize};
 use std::io::ErrorKind;
 use std::{collections::HashMap, path::PathBuf};
 
-use error::{Error, Result};
+use error::Result;
 
-use crate::package::{Composition, Package};
-use crate::proof::{GameHop, Proof};
-use crate::transforms::typecheck::{typecheck_comp, typecheck_pkg, Scope};
+use crate::{
+    gamehops::{equivalence, reduction},
+    package::{Composition, Package},
+    proof::{GameHop, Proof},
+    transforms::{
+        Transformation,
+        typecheck::{typecheck_comp, typecheck_pkg, Scope},
+    },
+    util::prover_process::ProverBackend,
+};
 
 pub const PROJECT_FILE: &str = "ssp.toml";
-pub const GAMEHOPS_FILE: &str = "game_hops.toml";
 
 pub const PACKAGES_DIR: &str = "packages";
 pub const GAMES_DIR: &str = "games";
@@ -26,49 +32,8 @@ pub const ASSUMPTIONS_DIR: &str = "assumptions";
 pub const PACKAGE_EXT: &str = ".pkg.ssp";
 pub const GAME_EXT: &str = ".comp.ssp"; // TODO maybe change this to .game.ssp later, and also rename the Composition type
 
-mod assumption;
-mod equivalence;
 mod load;
-mod reduction;
 mod resolve;
-
-pub use crate::proof::Assumption;
-//pub use equivalence::Equivalence;
-//pub use reduction::Reduction;
-/*
-impl From<load::TomlGameHop> for GameHop {
-    fn from(toml_hop: load::TomlGameHop) -> Self {
-        match toml_hop {
-            load::TomlGameHop::Reduction {
-                left,
-                right,
-                assumption,
-                leftmap,
-                rightmap,
-                ..
-            } => GameHop::Reduction(Reduction {
-                left,
-                right,
-                assumption,
-                leftmap,
-                rightmap,
-                //direction: Direction::Unspecified,
-            }),
-            load::TomlGameHop::Equivalence {
-                left,
-                right,
-                invariant_path,
-                trees,
-            } => GameHop::Equivalence(Equivalence {
-                left,
-                right,
-                invariant_path,
-                trees,
-            }),
-        }
-    }
-}
-*/
 
 pub mod error;
 
@@ -87,21 +52,19 @@ impl Project {
         let root_dir = find_project_root()?;
         let packages = load::packages(root_dir.clone())?;
 
-        for (pkg_name, pkg) in &packages {
+        for (_pkg_name, pkg) in &packages {
             let mut scope = Scope::new();
             typecheck_pkg(pkg, &mut scope)?;
         }
 
         let games = load::games(root_dir.clone(), &packages)?;
 
-        for (game_name, game) in &games {
+        for (_game_name, game) in &games {
             let mut scope = Scope::new();
             typecheck_comp(game, &mut scope)?;
         }
 
         let proofs = load::proofs(root_dir.clone(), &packages, &games)?;
-
-        //let (game_hops, assumptions) = load::toml_file(root_dir.clone(), &games)?;
 
         let project = Project {
             root_dir,
@@ -115,15 +78,17 @@ impl Project {
 
     // we might want to return a proof trace here instead
     // we could then extract the proof viewer output and other useful info trom the trace
-    pub fn prove(&self) -> Result<()> {
+    pub fn prove(&self, backend: ProverBackend, transcript: bool) -> Result<()> {
         for (_, proof) in &self.proofs {
             for (i, game_hop) in proof.game_hops().iter().enumerate() {
                 match game_hop {
                     GameHop::Reduction(red) => reduction::verify(red, proof)?,
                     GameHop::Equivalence(eq) => {
                         let transcript_file =
-                            self.get_joined_smt_file(eq.left_name(), eq.right_name())?;
-                        equivalence::verify(eq, proof, transcript_file)?
+                            if transcript  {
+                                Some(self.get_joined_smt_file(eq.left_name(), eq.right_name())?)
+                            } else { None };
+                        equivalence::verify(eq, proof, backend, transcript_file)?
                     }
                 }
 
@@ -135,6 +100,20 @@ impl Project {
 
         Ok(())
     }
+
+    pub fn latex(&self) -> Result<()> {
+        let mut path = self.root_dir.clone();
+        path.push("_build/latex/");
+
+        for (name, game) in &self.games {
+            let (transformed, _) = crate::transforms::samplify::Transformation(game).transform().unwrap();
+            let (transformed, _) = crate::transforms::resolveoracles::Transformation(&transformed).transform().unwrap();
+            crate::writers::tex::writer::tex_write_composition(&transformed, &name, path.as_path())?;
+        }
+
+        Ok(())
+    }
+
     /*
 
     pub fn explain_game(&self, game_name: &str) -> Result<String> {

@@ -3,7 +3,7 @@ use crate::{package::Package, types::Type, writers::smt::sorts::SmtPlainSort};
 use super::{DatastructurePattern, DatastructureSpec};
 
 pub struct PackageStatePattern<'a> {
-    pub game_name: &'a str,
+    pub game_inst_name: &'a str,
     pub pkg_inst_name: &'a str,
 }
 
@@ -14,7 +14,7 @@ pub struct PackageStateSelector<'a> {
 }
 
 pub struct PackageStateSort<'a> {
-    pub game_name: &'a str,
+    pub game_inst_name: &'a str,
     pub pkg_inst_name: &'a str,
 }
 
@@ -25,11 +25,11 @@ impl<'a> SmtPlainSort for PackageStateSort<'a> {
     fn sort_name(&self) -> String {
         let camel_case = PackageStatePattern::CAMEL_CASE;
         let Self {
-            game_name,
+            game_inst_name,
             pkg_inst_name,
         } = self;
 
-        format!("{camel_case}_{game_name}_{pkg_inst_name}")
+        format!("{camel_case}_{game_inst_name}_{pkg_inst_name}")
     }
 }
 
@@ -45,11 +45,11 @@ impl<'a> DatastructurePattern<'a> for PackageStatePattern<'a> {
 
     fn sort(&self) -> PackageStateSort<'a> {
         let PackageStatePattern {
-            game_name,
+            game_inst_name,
             pkg_inst_name,
         } = self;
         PackageStateSort {
-            game_name,
+            game_inst_name,
             pkg_inst_name,
         }
     }
@@ -57,24 +57,24 @@ impl<'a> DatastructurePattern<'a> for PackageStatePattern<'a> {
     fn constructor_name(&self, _cons: &Self::Constructor) -> String {
         let kebab_case = Self::KEBAB_CASE;
         let Self {
-            game_name,
+            game_inst_name,
             pkg_inst_name,
         } = self;
 
-        format!("mk-{kebab_case}-{game_name}-{pkg_inst_name}")
+        format!("mk-{kebab_case}-{game_inst_name}-{pkg_inst_name}")
     }
 
     fn selector_name(&self, sel: &Self::Selector) -> String {
         let kebab_case = Self::KEBAB_CASE;
         let Self {
-            game_name,
+            game_inst_name,
             pkg_inst_name,
         } = self;
         let PackageStateSelector {
             name: field_name, ..
         } = sel;
 
-        format!("{kebab_case}-{game_name}-{pkg_inst_name}-{field_name}")
+        format!("{kebab_case}-{game_inst_name}-{pkg_inst_name}-{field_name}")
     }
 
     fn matchfield_name(&self, sel: &Self::Selector) -> String {
@@ -94,7 +94,7 @@ impl<'a> DatastructurePattern<'a> for PackageStatePattern<'a> {
         let selectors = pkg
             .state
             .iter()
-            .map(|(name, tipe)| PackageStateSelector { name, tipe });
+            .map(|(name, tipe, _file_pos)| PackageStateSelector { name, tipe });
 
         DatastructureSpec(vec![((), selectors.collect())])
     }

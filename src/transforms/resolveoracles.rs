@@ -7,6 +7,7 @@ pub struct Transformation<'a>(pub &'a Composition);
 
 #[derive(Debug)]
 pub struct ResolutionError(Vec<Statement>);
+
 type Result<T> = std::result::Result<T, ResolutionError>;
 
 fn transform_helper_outer(table: &HashMap<String, String>, block: CodeBlock) -> Result<CodeBlock> {
@@ -25,6 +26,7 @@ fn transform_helper_outer(table: &HashMap<String, String>, block: CodeBlock) -> 
                     name,
                     args,
                     tipe,
+                    file_pos,
                     ..
                 } => {
                     if let Some(pkgname) = table.get(name) {
@@ -35,16 +37,18 @@ fn transform_helper_outer(table: &HashMap<String, String>, block: CodeBlock) -> 
                             args: args.clone(),
                             tipe: tipe.clone(),
                             target_inst_name: Some(pkgname.clone()),
+                            file_pos: file_pos.clone(),
                         }
                     } else {
                         //return ResolutionError(stmt);
                         panic!();
                     }
                 }
-                Statement::IfThenElse(cond, ifcode, elsecode) => Statement::IfThenElse(
+                Statement::IfThenElse(cond, ifcode, elsecode, file_pos) => Statement::IfThenElse(
                     cond.clone(),
                     transform_helper(table, ifcode.clone(), err_stmts),
                     transform_helper(table, elsecode.clone(), err_stmts),
+                    file_pos.clone(),
                 ),
                 _ => stmt.clone(),
             })

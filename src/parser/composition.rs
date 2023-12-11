@@ -22,10 +22,14 @@ pub fn handle_compose_assign_list(ast: Pairs<Rule>) -> Vec<(String, String)> {
     .collect()
 }
 
-pub fn handle_types_def(ast: Pair<Rule>, inst_name: &str) -> error::Result<Vec<(Type, Type)>> {
+pub fn handle_types_def(
+    ast: Pair<Rule>,
+    inst_name: &str,
+    file_name: &str,
+) -> error::Result<Vec<(Type, Type)>> {
     match ast.into_inner().next() {
         None => Ok(vec![]),
-        Some(ast) => handle_types_def_list(ast, inst_name),
+        Some(ast) => handle_types_def_list(ast, inst_name, file_name),
     }
 }
 
@@ -115,6 +119,7 @@ pub fn handle_compose_assign_body_list(
 pub fn handle_comp_spec_list(
     ast: Pair<Rule>,
     comp_name: &str,
+    file_name: &str,
     pkg_map: &HashMap<String, Package>,
 ) -> error::Result<Composition> {
     let span = ast.as_span();
@@ -139,7 +144,7 @@ pub fn handle_comp_spec_list(
                 consts.insert(name, tipe);
             }
             Rule::instance_decl => {
-                let inst = handle_instance_decl(comp_spec, pkg_map, &consts)?;
+                let inst = handle_instance_decl(comp_spec, pkg_map, &consts, file_name)?;
                 instances.push(inst.clone());
                 let offset = instances.len() - 1;
                 instance_table.insert(inst.name.clone(), (offset, inst));
@@ -183,6 +188,7 @@ pub fn handle_comp_spec_list(
 pub fn handle_instance_assign_list(
     ast: Pair<Rule>,
     inst_name: &str,
+    file_name: &str,
     defined_consts: &[(String, Type)],
 ) -> error::Result<(Vec<(String, Expression)>, Vec<(Type, Type)>)> {
     let mut params = vec![];
@@ -196,7 +202,8 @@ pub fn handle_instance_assign_list(
                 params.append(&mut defs);
             }
             Rule::types_def => {
-                let mut defs = handle_types_def_list(elem.into_inner().next().unwrap(), inst_name)?;
+                let mut defs =
+                    handle_types_def_list(elem.into_inner().next().unwrap(), inst_name, file_name)?;
                 types.append(&mut defs);
             }
             _ => unreachable!("{:#?}", elem),
@@ -210,6 +217,7 @@ pub fn handle_instance_decl(
     ast: Pair<Rule>,
     pkg_map: &HashMap<String, Package>,
     consts: &HashMap<String, Type>,
+    file_name: &str,
 ) -> error::Result<PackageInstance> {
     let span = ast.as_span();
 
@@ -231,7 +239,7 @@ pub fn handle_instance_decl(
         .collect();
 
     let (mut param_list, type_list) =
-        handle_instance_assign_list(data, inst_name, &defined_consts)?;
+        handle_instance_assign_list(data, inst_name, file_name, &defined_consts)?;
 
     param_list.sort();
 
@@ -259,7 +267,12 @@ pub fn handle_instance_decl(
         .collect();
     typed_params.sort();
 
-    let mut pkg_params = pkg.params.clone();
+    let mut pkg_params: Vec<_> = pkg
+        .params
+        .iter()
+        .cloned()
+        .map(|(name, tipe, _)| (name, tipe))
+        .collect();
     pkg_params.sort();
 
     if typed_params != pkg_params {
@@ -310,9 +323,10 @@ pub fn handle_instance_decl(
 pub fn handle_composition(
     ast: Pair<Rule>,
     pkg_map: &HashMap<String, Package>,
+    file_name: &str,
 ) -> error::Result<Composition> {
     let mut inner = ast.into_inner();
-    let name = inner.next().unwrap().as_str();
+    let game_name = inner.next().unwrap().as_str();
     let spec = inner.next().unwrap();
-    handle_comp_spec_list(spec, name, pkg_map)
+    handle_comp_spec_list(spec, game_name, file_name, pkg_map)
 }
