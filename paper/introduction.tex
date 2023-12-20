@@ -1,4 +1,39 @@
 \section{Introduction}
+Cryptographic proof-writing style has significantly evolved throughout the
+development of the field. In 2004, Shoup explicated \emph{game-hopping} in order to advertise its use as a tool for taming complexity in security proofs. In 2005,
+Bellare and Rogaway introduced and advertised a \emph{code-based} variant of
+game-hopping, treating code as semi-formal objects. 20 years later, almost all
+reduction proofs in the field are structured into sequences of games, and a
+significant portion of them is also \emph{code-based}. 
+
+Halevi~\cite{X} joins Shoup, Bellare and Rogaway in the hope for improved quality of proofs by presenting his dream-vision of computer-assisted cryptographic proving and, implicitly, also pointing to a cause of what he calls a \emph{crisis of rigour}.
+Namely, Halevi perceives designing cryptograhic schemes and reductions as \emph{creative} part of cryptographic research, while he perceives checking the soundness
+of reductions as \emph{mundane}. Thus, Halevi hopes for assistance in the development
+of proofs, relieving the researchers of work which they perceive as tedious: Checking the soundness of reductions shall be carried out by \emph{computers} automatically.
+
+In a pioneering work, ... indeed enabled the checking of reductions by computers. However, unlike imagined by Halevi, checking the soundness of reductions in EasyCrypt is not \emph{automatic}. First, all games and reductions need to be formalized in the (very appealing) language of EasyCrypt. Subsequently, the equivalence between two adjacent game or the equivalence between a high-level game on the one hand and, on the other hand, a reduction composed with a game specifying an assumption, these equivalences need to be proven by first formulating an invariant, then proving in the EasyCrypt proof language that the invariant is an invariant and showing functional equivalence of two games by induction over the oracle calls\footnote{Cryptos will not understand this, needs to improve.}. EasyCrypt is a masterpiece of formal verification software and able to argue about complex programs using for-loops and also able to establish proofs of statistical closeness, both of which are notoriously difficult problems in formal verification. However, while being an extremely impressive formal verification tool, EasyCrypt is not widely used across the cryptographic community, because it does not address Halevi's vision: Using EasyCrypt, the work invested into proving equivalences / soundness of reductions is not decreased, but rather increased. EasyCrypt is expert in checking the correctness of a proof, but EasyCrypt is not a helpful tool for developing new results in cryptography.
+
+Before accusing EasyCrpyt of not being sufficiently ambitious, we should consider criticizing Halevi for posing an overly naive vision. Proving equivalence between two (poly-time) programs is, in general, coNP-complete, and proving equivalence of two \emph{stateful}, \emph{randomized} (poly-time) programs is in the ... level of the polynomial hierarchy. Of course, SAT-solvers are apt at dealing with structured real-life instances (cf.~\cite{X,Y,Z} and references therein) of NP-complete problems, but typically do not target the ... of the polynomial hierarchy, and rarely aim at proving equivalence of randomized programs, let alone argue \emph{inductively} about interactive \emph{stateful} programs and their behaviour.
+
+Given this dire state of affairs, a \emph{general} push-button tool for proving soundness of cryptographic reductions seems unrealistic based on the current state-of-the-art in automated solvers. However, given a state-relation and a \emph{randomness mapping}\footnote{Cryptos will not know what this is.}, proving that the state-relation is an invariant if the randomness mapping holds is ``only'' coNP-complete, and so is proving that the output of the two oracles is identical if the state-relation and the randomness mapping holds. Thus, with slightly more input from the working cryptographer, the proof might move into the range of what an automated solver is able to show, and in many cases, randomness mapping and state relation are completely trivial and can be generated automatically.
+
+Still, computer-verification according to the above strategy requires fully writing a reduction in pseudo-code rather than describing it conceptually on a high-level, e.g., \emph{the reduction behaves like the game except for calling its \O{EVAL} oracle instead of evaluating the PRF} would need
+to be replaced by a large piece of pseudo-code which consists of the full game description where the calls to the PRF are replaced by \O{EVAL} oracle calls.
+Writing the reduction's pseudo-code is not infeasible given that one already
+wrote the code for the game. However, we might still not be able to argue that 
+the entire formalization is less tedious than carrying out the soundness proof manually.
+
+Thus, the key question is where the above approach \emph{supports} the cryptographer
+in their proof development and \emph{eases} their proof development rather than adding more work and steps to it\footnote{Again, the extra work comes with extra guarantees, and those might be worth it, but will cryptographer be willing to go this extra mile?}.
+
+\paragraph{Our contribution.} As we show in this article, proof development is \emph{eased} via the above strategy when applied to proofs in the state-separating proofs framework (SSP~\cite{X}). [..]
+
+\iffalse
+\clearpage
+OLD OLD OLD
+
+
+
 Halevi's dream-vision of computer-aided reduction proofs in cryptography~\cite{Halevi} hopes that one day, while creativity is still reserved for humans, algorithms will be in charge of tedious steps which confirm the soundness of a reduction and only use standard techniques. An important, somewhat orthogonal, success on the path for computer-aided cryptography is that computer-aided \emph{attack-finding} has established itself firmly as a standard tool for protocol development. Most importantly, Tamarin~\cite{X} has been used to improve ...~\cite{X}, ...~\cite{X} and ...~\cite{X}, and, in particular, is used across the community also without involving an author of the original tool, see, e.g.~\cite{X}. However, computer-aided \emph{reduction proofs} have not yet joined the quest to inform protocol design quickly. In fact, to date, reduction proofs for large protocols such as TLS and MLS have not been computer-verified, let alone been helped by algorithms, and indeed, we do not yet have the tools to do so.
 
 One core reason is that invoking the help of a computer requires formalizing one's proofs at a level of detail which is unusual for standard mathematical practice, including cryptography. For example, one might describe two security games and a construction in English, then describe a reduction in English and prove its soundness by arguing about difficult key points. In their celebrated foundational work, Bellare and Rogaway~\cite{X} encouraged the community to use \emph{code} to describe their reductions, games and game-hops and demonstrated how code-based argument allow us to obtain a neat proof for ... . This leap towards more precision enabled ... ... and ...~\cite{X} to develop the pioneer tool EasyCrypt for verifying cryptographic reductions. EasyCrypt has been used to verify ... ,... and ... as well as a proof of Yao's garbling scheme~\cite{X} as one of its largest case studies. Simultaneously, Bellare-Rogaway-style game-hopping has become an established technique in our community. Similarly, the composition frameworks Universal Composability (UC~\cite{X}) or Constructive Cryptography (CC~\cite{X}) have a large and growing user base who write their reduction proofs in these frameworks (cf. ... and references therein). This suggests that our community is willing to invest time and effort into writing clearer proofs, but the overhead currently required by EasyCrypt is still considered prohibitive. 
@@ -76,4 +111,5 @@ to especially support the workflow of the working SSP cryptographer.
 
 As an example, we use Yao's garbled circuits: much larger than what is known in SSProve; Yao has already 
 been done on EasyCrypt, so great test case.
+\fi
 \fi
