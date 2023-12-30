@@ -1,10 +1,126 @@
 \section{Introduction}
-Cryptographic proof-writing style has significantly evolved throughout the
-development of the field. In 2004, Shoup explicated \emph{game-hopping} in order to advertise its use as a tool for taming complexity in security proofs. In 2005,
-Bellare and Rogaway introduced and advertised a \emph{code-based} variant of
-game-hopping, treating code as semi-formal objects. 20 years later, almost all
-reduction proofs in the field are structured into sequences of games, and a
-significant portion of them is also \emph{code-based}. 
+A reduction proof reduces the security of a cryptographic construction (in a model) to
+the security of the underlying building blocks (in a model). Designing cryptographic constructions, reductions, proving their soundness and verifying the correctness of one's proofs is, at times, a difficult endeavour, because constructions can be complex (e.g., TLS 1.3~\cite{X}), reductions can be complex (even for simple constructions such as the Goldreich-Levin hardcore bit~\cite{X}), proving the soundness of a reduction can be intricate and subtle even for simple reductions (e.g., the random embedding reduction in Yao's weak-to-strong one-way function amplification), and verifying the overall proof is typically difficult because we tend to use significant amount of conceptual high-level reasoning which one needs to reproduce when verifying the proof (e.g., understanding why/how the orginal Lindell-Pinkas reduction proof for Yao's garbling scheme~\cite{X} uses an additionally provided encryption oracle of the underlying security notion for symmetric encryption and why this suffices to conduct a hybrid argument over the circuit in topological order).
+
+\subsection{Supporting protocol and proof development and verification}
+We categorize research on supporting these different stages of designing a protocol and developing and verifying the associated reduction proofs into the following four (overlapping) categories (1) attack-finding, (2) composition, (3) proof-writing styles and (4) formal verification and now briefly review each.
+
+{\color{blue}
+\paragraph{Attack-finding.} Tamarin (+ application to TLS, MLS), and why do I call this attack-finding (one can also call this automated proving, but should rememember that the adversary can only do a certain kind of operation). Briefly mention that the gap between the symbolic approach and the reduction-based approach can, in principle be bridged (computational soundness, Abadi-Rogaway), and that there is some research in this direction of doing this (still today).
+
+\paragraph{Composition.} UC, random systems, constructive crypto, SSPs}
+
+\paragraph{Proof-writing styles.}
+%Cryptographic proof-writing style has significantly evolved throughout the
+%development of the field. In 2004, 
+Shoup explicates \emph{game-hopping} in order to advertise its use as a tool for taming complexity in security proofs. 
+%In 2005,
+Bellare and Rogaway introduce and advertise a \emph{code-based} variant of
+game-hopping, treating code as semi-formal objects. 
+%20 years later, 
+%most reduction proofs in the field are structured into sequences of games, and a
+%significant portion of them is also \emph{code-based}. 
+The aforementioned state-separating proofs can be viewed as a refinement of code-based game-hopping which allow to construct reductions as cuts in graphs, so that proving/verifying the soundness of a reduction boils down to observing equality call graphs consisting of code-packages.
+
+\paragraph{Formal verification of reductions.} 
+%While attack-finding tools such as Tamarin also establish the absence of attacks in a symbolic model with idealized cryptographic primitives, Tamarin cannot help with verifying reduction proofs, as mentioned above. 
+Interactive theorem provers such as Coq~\cite{X} allow one to computer-verify a
+proof as long as it is written as a sufficient level of precision of detail.
+The pseudo-code-based approach by Bellare and Rogaway explicates a proof style which is suitable for actual formalization, since all games and reductions are explicitly written in pseudo-code. Inspired by Bellare and Rogaway, in a pioneering work, X, Y and Z developed CertiCrypt~\cite{X}, the first approach for verifying cryptographic reductions, followed by A, B and C developing EasyCypt~\cite{X} as a first tool \emph{independent} of Coq. One of the important technical contributions of CertiCrypt/EasyCrypt is a method for proving the \emph{soundness} of a reduction which requires proving that two stateful, randomized, interactive programs have identical input-output behaviour. While research articles usually use high-level conceptual reasoning for this purpose, computers need more detailed and precise arguments, and a priori, it is unclear how to translate the high-level reasoning into a sufficiently formal and detailed language. We provide more technical details on how to successfully resolve this issue in Section~\ref{X}.
+
+\subsection{Halevi's vision and beyond}
+Halevi~\cite{X} joins Shoup, Bellare and Rogaway in the quest for
+high-quality proofs by presenting a dream-vision of computer-assisted 
+cryptographic proving. Namely, Halevi perceives designing cryptographic 
+schemes and reductions as the \emph{creative} part of cryptographic research, 
+while he perceives checking the soundness of reductions as \emph{mundane}. 
+Thus, Halevi hopes for assistance in the development of proofs, relieving 
+the researchers of work perceived as tedious: Checking the soundness 
+of reductions shall be carried out by computers \emph{automatically}.
+
+Unfortunately, computer-verification requires a detailed presentation of a 
+proof argument in order to verify it and thus, while the current state-of-the-art
+indeed allows to check the soundness of a reduction, it is far from automatic.
+Instead, the user needs to provided a detailed proof of the soundness of the
+reduction which is then verified---and thus, currently, using computer-verification
+to check reduction proofs is very far from reducing work, let alone relieving
+cryptographers of the work required for checking the soundness of a reduction.
+
+A very useful question, closely related to Halevi's vision, is how
+computer-assistance can generally relieve cryptographers from work perceived 
+as tedious or difficult. %For example, Tamarin~\cite{X} checks the high-level
+%logic of complex protocols.
+As a simple example, maintaining pseudocode for games and reductions in a single 
+code-base prevents inconsistency across a research article where the same code
+is used in multiple places. Similarly, certain sanity checks on a reduction
+are quite easy to carry out such as whether the reduction correctly accesses the
+oracles of the underlying assumption. Moreover, while in general, proving the soundness of a reduction requires hard-to-formalize conceptual reasoning, the aforementioned graph-based SSP reductions merely require checking graph equality,
+which is tedious for a human when the graphs are large, but easy for a computer in the case of the layered directed acyclic graphs (DAGs) used in SSPs. {\color{blue} Not sure that this is true, but it sounds nice. Somewhere, there should be an SSP intro, not sure yet where. In the text below, please assume that SSPs have been properly introduced---but I still need to find a place for them, maybe discuss proof viewer.}
+
+\subsection{Our Contribution}
+We develop \emph{EasySSP}, an independent tool which allows to specify and maintain
+SSP packages in pseudocode, compose them into games as well as write and verify
+SSP-based game-hopping proofs. Additionally, EasySSP visulizes all games and proofs in the SSP proof viewer~\cite{X} and exports pseudocode to LaTeX in order to achieve consistency between the code-base maintained by EasySSP and a research article
+presenting the main results. As a first case study, we implement and verify the SSP-based reduction proof for Yao's garbling scheme by Brzuska and Oechsner~\cite{X}. Moreover, since the goal of EasySSP is to support the \emph{proof development} rather than merely check existing proofs, we also extend the work by Brzuska and Oechsner to compose Yao's garbling scheme with a random oblivious transfer protocol (OT) into a secure 2-party computation protocol with semi-honest security. While this result has already been proven by ...~\cite{X}, it is an interesting and meaningful extension of the original case-study by Brzuska and Oechsner since it formalizes and proves security of a secure 2-party computation protocol in SSPs for the first time. Moreover, it informs us about a natural workflow which a user might adopt.
+
+\subsection{Workflow}
+In a natural workflow, the users sketch SSP graphs and the sequences of game-hops
+on paper. Here, each package has an intended behaviour that has not been fully
+specified or formalized yet but that the user finds convincing. Subsequently, when
+the user wants to verify their conceptual ideal, they specify the behaviour of packages
+as EasySSP pseudocode and construct / compose their packages into the games previously sketched on paper. In this stage, code and package compositions mature jointly, and EasySSP checks the interfaces of packages to one another. Next, the user specifies all games which occur in the game hops using the previously defined packages.
+EasySSP verify immediately verifies all graph-based game-hops in this step and thus verifies that the reductions have the correct interface.
+
+Finally, the user verifies all \emph{perfect equivalence} steps. These are game-hops where one game is replaced by another whose behaviour is perfectly equivalent. While SSPs typically allow to reduce the number of perfect equivalence steps, a few still need to be carried out and they are, typically, terribly tedious and hard to carry out on paper. These steps are, indeed, conceptually similar to checking the soundness of reductions in the traditional style. While SSPs do not require carrying out such steps for each reductions, a few still remain and one needs to do them. This step is where EasySSP comes close to realizing Halevi's vision. In conceptually involved cases, users need to provide some \emph{core} argument from which EasySSP completes the equivalence proof automatically. Moreover, in easier cases, EasySSP  generates and verifies equivalence proofs entirely automatically. Details follow.
+
+\section{Technical Approach and Scope}
+\subsection{Induction over oracle calls}
+When arguing in research articles, we typically compare the behaviour of
+two cryptographic games \emph{directly}, discussing how the state in each
+of the games evolves in relation to each other and why, e.g., both games
+provide the same restrictions on their decryption oracle (cf. page ..in~\cite{X}).
+%, e.g., by arguing that swapping two
+%lines of code does not affect behaviour if the two lines operate on independent 
+%state.
+In order to formalize this argument, we need to show that on \emph{all} sequences of inputs, the oracles of the two games provide the same output. A clean way of formalizing this argument is via \emph{induction} over all sequences of oracle calls. We first define a relation between the state of the two games, then show that the relation holds in the beginning of the game and, additionally, that if the relation holds before an oracle call, then the relation holds also after the oracle call and the oracles of both games indeed return the same output. If the two games are very similar, the state relation can be simply equality.
+
+Moreover, when the games are randomized, we need to argue about \emph{distributions}
+of outputs rather than equality of outputs. A clean way to extend the above induction-based approach to randomized programs is by providing a bijection $f$ between
+the random strings consumed by the oracle of the two games which leads to the
+same output.
+
+This \emph{invariant}-based approach with randomness mapping has been developed in the context of EasyCrypt {(\color{blue} True ?? Probably older...)} and we also adopt it in EasySSP.
+
+\subsection{Automatization}
+Given a state relation and a randomness mapping, EasyCrypt additionally requires
+proving that the state relation is an invariant {\color{blue} I don't like writing this.}. In turn, EasySSP seeks to avoid that the user needs to do these additional proofs. Therefore, EasySSP translates the pseudo-code based statements into SMTlib statements. SMTlib~\cite{X} is an interfacing language for SMT solvers and currently supported by Z3~\cite{X} and CVC5~\cite{X}. The SMT solver is tasked with showing that (i) the randomness mapping is valid (i.e., is a bijection), that (ii) the state relation is an invariant and (iii) if the state relation and the randomness mapping holds, then equal inputs lead to equal outputs.
+
+In general, (iii) is an NP-complete problem. However, it turns out that for the instances we consider in our case studies, CVC5 are able to prove (iii) within a few seconds. An exception is the difficult proof step in Yao's garbling scheme which performs a switch from bit semantics to active/inactive semantics. Here, we need to specify an additional lemma, and CVC5 needs 30 seconds to prove (iii).
+
+\subsection{Multi-instance packages, \textbf{for} loops and hybrid arguments}
+EasySSP supports multi-instance packages, \textbf{for} loops as well as hybrid arguments over polynomially many hybrids. Multi-instance games allow complex
+compositions of a polynomial number of packages or number of compositions of
+a priori unknown number of packages.
+
+In the case of \textbf{for} loops, the user needs to specify additional loop invariants (EasyCrypt does this also).
+
+For polynomially many hybrids, the user needs to specify ... as outlined in Appendix B of ... in the hybrid argument recipe.
+
+
+
+
+\subsection{Limitations and future work}
+no statistical game-hops (--> combine with easycrypt)
+no verification of code in Coq (--> combine with SSProve somehow?)
+SSP-style-only (--> inherit limitations of SSPs, no rewinding for now)
+
+
+
+
+
+==== OLD OLD OLD ===
+
+
 
 Halevi~\cite{X} joins Shoup, Bellare and Rogaway in the hope for improved quality of proofs by presenting his dream-vision of computer-assisted cryptographic proving and, implicitly, also pointing to a cause of what he calls a \emph{crisis of rigour}.
 Namely, Halevi perceives designing cryptograhic schemes and reductions as \emph{creative} part of cryptographic research, while he perceives checking the soundness
