@@ -1,12 +1,113 @@
 \section{Introduction}
-The paradigm of \emph{reduction-based security}---sometimes also referred to as \emph{provable security}---is the state-of-the-art method of understanding and confirming the security of cryptographic constructions. Concretely, a reduction proof reduces the security of a cryptographic construction (in a model) to the security of the underlying building blocks (in a model). While writing reductions, arguing about their soundness and verifying one's own (or someone else's) proof is relatively easy in some contexts, it easily gets out of hand when constructions become complex. Important methods for taming the complexity of security proofs and increasing their precision are \emph{game-hopping}~\cite{X}, \emph{code-based} arguments~\cite{X} as well as composition methodologies such as Universal Composability~\cite{X}, Constructive Cryptography~\cite{X} and ... .
+The paradigm of \emph{reduction-based security}---sometimes also referred to as \emph{provable security}---is the state-of-the-art method of understanding and confirming the security of cryptographic constructions. Concretely, a reduction proof reduces the security of a cryptographic construction (in a model) to the security of the underlying building blocks (in a model). While writing reductions, arguing about their soundness and verifying one's own (or someone else's) proof is relatively easy in some contexts, it tends to gets out of hand when constructions become complex. Important methods for taming the complexity of security proofs and increasing their precision are \emph{game-hopping}~\cite{X}, \emph{code-based} arguments~\cite{X} as well as composition methodologies such as Universal Composability~\cite{X}, Constructive Cryptography~\cite{X} and ... .
 
-However, studying protocols such as Transport Layer Security (TLS) \emph{as they are} (without simplifications and abstractions) remains nevertheless difficult, since the TLS 1.3 description alone consists of over 100 pages which makes the protocol unwieldy for analysis. Therefore, TLS 1.3 as it is has only been studied via formal methods. Concretely, the celebrated miTLS work ...~\cite{X} ... something about code-base.... However, $F^*$-based verification alone does not enable obtaining reductions to the underlying assumptions and was thus complemented with paper-based reductions of the cryptographic core.
+However, studying protocols such as Transport Layer Security (TLS~\cite{X})
+and Messaging Layer Security (MLS~\cite{X}) \emph{as they are} 
+%(without simplifications and abstractions) 
+remains nevertheless difficult, since either
+standard consists of over 100 pages~\cite{X} which makes the protocols unwieldy for analysis without simplifications. Similarly, other real-life systems
+tend to combine multiple cryptographic components in complex dependencyíes,
+see, e.g., remote attestation mechanisms~\cite{https://arxiv.org/pdf/2102.08804.pdf,https://en.wikipedia.org/wiki/Trusted_Computing}, ... or ... .
 
-For TLS 1.3, the cryptographic core or \emph{key schedule} has recently been analyzed (without simplifications) by Brzuska, Delignat-Lavaud, Egger, Fournet, Kohbrok, and Kohlweiss (BDEFKK~\cite{X}, providing an interface which aligns with the $F^\star$-based analysis of ... . Towards this goal, Brzuska, Delignat-Lavaud, Fournet, Kohbrok, and Kohlweiss (BDFKK~\cite{X}) had previously developed \emph{state-separating proofs (SSP)}
+The challenge when analyzing any of the aforementioned cases is three-fold:
+(1) The description of a protocol itself exceeds the bounds of a research
+article.
+(2) Parts of the protocols are referred to multiple times in an analysis
+and maintaining a consistent version of a complex protocol throughout the 
+analysis is difficult.
+(3) Verifying the reductions is tremendously challenging due to the complexity
+of the protocol.
 
-Issue: I actually don't know what miTLS proves and whether it is enough to say that it does what we want or not. I should probably study the interface --- and maybe, here, it is worth to talk to Konrad, Hakon, Antoine and Markulf...
+Item (1) and (2) can be mitigated by describing the protocol
+modularly and maintaining a single code-base for the protocol
+whose components are imported into the analysis whenever needed.
+However, typically, an important component of protocol analysis is to
+re-write a protocol in a functionally equivalent way, that is easier
+to analyze. Thus, we need to prove functional equivalence between 
+large protocol components. Similarly, for reductions, we need to
+prove that a reduction emulates a high-level game correctly while
+interacting with a low-level game that it tries to win. These proofs, too,
+are functional equivalence proofs for complex objects.
 
+\paragraph{Verifying Code-Equivalence Proofs.}
+Indeed, the core component and difficulty of the pioneering formal
+verification tools CertiCrypt~\cite{X} and EasyCrypt~\cite{X} for 
+cryptographic reductions are functional equivalence proofs. Since functional 
+equivalence is coNP-complete\footnote{An input $x$ such that 
+$f(x)\neq g(x)$ shows that $f$ and $g$ are not code-equivalent.} and 
+for randomized programs even higher up the polynomial hierarchy\footnote{We need to prove that the \emph{distributions} $f(x)$ and $g(x)$ are identical.}, 
+CertiCrypt and EasyCrypt do not verify functional equivalences automatically,
+but rather require the user to write a proof of functional equivalence
+consisting of small, detailed steps. As an example, the EasyCrypt formalization
+of a proof for Yao's garbled circuits shows that after polynomially mang game-hops, the garbling can be computed without knowing the input and while only knowing the output, as required by security of secure multi-party computation. This code equivalence proof between two versions of the garbling, one with and one without
+knowing the input, consists of ... lines of code (~\cite[page x]{}). EasyCrypt,
+ thus, indeed enables us to verify complex code equivalence proofs.
+
+\paragraph{Proving Code-Equivalence Proofs.}
+The aforementioned example of Yao's garbling scheme illustrates that current
+computer-verified proofs provide higher assurance, but don't necessarily
+help us address the problem of navigating too complex protocols,
+since even apparently simple steps require significant additional work
+beyond the level required by pen-and-paper proofs. 
+
+Thus, a natural question is whether we can not only \emph{verify} but
+perhaps also \emph{automatically} prove code equivalences. As mentioned
+before, program equivalence is (at least) an NP-complete complete problem.
+However, SMT-solvers such as Z3~\cite{X} and CVC4~\cite{X} excel in 
+solving structured, practical instances of NP-complete problems, so it
+seems worth investigating whether program equivalence as it emerges in
+the context of cryptographic reductions could be solvable by an off-the-shelf
+SMT-solver.
+
+=== stopped here, somehow, the flow broke ===
+
+
+
+
+
+ 
+Firstly, one needs to maintain a comprehensive, consistent description of
+a protocol that has an extremely 
+
+
+
+While these aforementioned protocols have been actively studied~\cite{X}, a comprehensive analysis without 
+
+
+Therefore, TLS 1.3 as it is has only been studied via formal methods. Concretely, the celebrated miTLS work ...~\cite{X} ... something about code-base... However, $F^*$-based verification alone does not enable obtaining reductions to the underlying assumptions and was thus complemented with paper-based reductions of the cryptographic core.
+
+For TLS 1.3, the cryptographic core or \emph{key schedule} has recently been analyzed (without simplifications) by Brzuska, Delignat-Lavaud, Egger, Fournet, Kohbrok, and Kohlweiss (BDEFKK~\cite{X}).
+%, providing an interface which aligns with the $F^\star$-based analysis of ... . 
+Towards this goal, Brzuska, Delignat-Lavaud, Fournet, Kohbrok, and Kohlweiss (BDFKK~\cite{X}) had previously developed \emph{state-separating proofs (SSP)}, a definitional style and proof methodology that allows to specify games via graphs of stateful code packages and enables precise reduction (and their verification) by
+specifying a ``cut'' in the graph of a game (see Section~\ref{X} for details on SSPs).
+
+Subsequently to BDFKK and BDEFKK, in his thesis, Egger~\cite{X} reduces the security of TLS 1.3 as a key exchange protocol to the security of the TLS 1.3 key schedule. Egger's proof covers all ``TLS-like'' protocols. The need to abstract TLS 1.3 into the class of TLS-like protocols, again, resides in the fact that TLS 1.3 has a long description which is unwieldy for a pen-and-paper proof. Moreover, his proof consists, essentially, of 5 code equivalence proofs which Egger proves via complicated and detailed code equivalence proofs. Such complicated detailed proofs are necessary to obtain a reasoneable level of assurance, but they are hard and tedious work to establish statements that, on a high-level are rather simple.
+
+Therefore, it would be appealing to delegate these code equivalence proofs to
+a designated tool. Handling the code equivalence proofs by a tool would also
+allow to handle larger code than we are able to manipulate by hand, such as the
+code of the entire TLS 1.3 protocol.
+
+In addition to making certain results feasible at all, a designated tool could 
+also simplify the work on SSP-based proofs altogether, such as maintain a consistent
+code base and automatically verify that components are indeed compatible.
+Moreover, it could, in general, relieve researchers from needing to prove
+code equivalence proofs, whether they are easy or not. For example, Brzuska
+and Oechsner (BO~\cite{X}) in their SSP-style proof of Yao's garbling scheme,
+use a code-equivalence proof to prove that so-called ``semantic switch'', where
+wires are associated with the role being ``active'' or ``inactive'' rather than
+being a $0$-key or a $1$-key. BO also require two additional code equivalence proofs
+to reduce their SSP-style IND-CPA notion to standard IND-CPA and to show that their
+SSP-style garbling security notion implies standard semantic security of garbling schemes. The entire article would become significantly simpler if these equivalence
+proofs could be discharched to a tool.
+
+
+
+
+
+%Issue: I actually don't know what miTLS proves and whether it is enough to say that it does what we want or not. I should probably study the interface --- and maybe, here, it is worth to talk to Konrad, Hakon, Antoine and Markulf...
+
+\iffalse
 === OLD ===
 
 Designing cryptographic constructions, reductions, proving their soundness and verifying the correctness of one's proofs is, at times, a difficult endeavour, because constructions can be complex (e.g., TLS 1.3~\cite{X}), reductions can be complex (even for simple constructions such as the Goldreich-Levin hardcore bit~\cite{X}), proving the soundness of a reduction can be intricate and subtle even for simple reductions (e.g., the random embedding reduction in Yao's weak-to-strong one-way function amplification), and verifying the overall proof is typically difficult because we tend to use significant amount of conceptual high-level reasoning which one needs to reproduce when verifying the proof (e.g., understanding why/how the orginal Lindell-Pinkas reduction proof for Yao's garbling scheme~\cite{X} uses an additionally provided encryption oracle of the underlying security notion for symmetric encryption and why this suffices to conduct a hybrid argument over the circuit in topological order).
@@ -65,22 +166,22 @@ is used in multiple places. Similarly, certain sanity checks on a reduction
 are quite easy to carry out such as whether the reduction correctly accesses the
 oracles of the underlying assumption. Moreover, while in general, proving the soundness of a reduction requires hard-to-formalize conceptual reasoning, the aforementioned graph-based SSP reductions merely require checking graph equality,
 which is tedious for a human when the graphs are large, but easy for a computer in the case of the layered directed acyclic graphs (DAGs) used in SSPs. {\color{blue} Not sure that this is true, but it sounds nice. Somewhere, there should be an SSP intro, not sure yet where. In the text below, please assume that SSPs have been properly introduced---but I still need to find a place for them, maybe discuss proof viewer.}
+\fi
 
 \subsection{Our Contribution}
-We develop \emph{EasySSP}, an independent tool which allows to specify and maintain
+We develop \emph{SSBee}, an independent tool which allows to specify and maintain
 SSP packages in pseudocode, compose them into games as well as write and verify
-SSP-based game-hopping proofs. Additionally, EasySSP visulizes all games and proofs in the SSP proof viewer~\cite{X} and exports pseudocode to LaTeX in order to achieve consistency between the code-base maintained by EasySSP and a research article
-presenting the main results. As a first case study, we implement and verify the SSP-based reduction proof for Yao's garbling scheme by Brzuska and Oechsner~\cite{X}. Moreover, since the goal of EasySSP is to support the \emph{proof development} rather than merely check existing proofs, we also extend the work by Brzuska and Oechsner to compose Yao's garbling scheme with a random oblivious transfer protocol (OT) into a secure 2-party computation protocol with semi-honest security. While this result has already been proven by ...~\cite{X}, it is an interesting and meaningful extension of the original case-study by Brzuska and Oechsner since it formalizes and proves security of a secure 2-party computation protocol in SSPs for the first time. Moreover, it informs us about a natural workflow which a user might adopt.
+SSP-based game-hopping proofs. Additionally, SSBee visulizes all games and proofs in the SSP proof viewer~\cite{X} and exports pseudocode to LaTeX in order to achieve consistency between the code-base maintained by SSBee and a research article
+presenting the main results. As a first case study, we implement and verify the SSP-based reduction proof for Yao's garbling scheme by Brzuska and Oechsner~\cite{X}. Moreover, since the goal of SSBee is to support the \emph{proof development} rather than merely check existing proofs, we also extend the work by Brzuska and Oechsner to compose Yao's garbling scheme with a random oblivious transfer protocol (OT) into a secure 2-party computation protocol with semi-honest security. While this result has already been proven by ...~\cite{X}, it is an interesting and meaningful extension of the original case-study by Brzuska and Oechsner since it formalizes and proves security of a secure 2-party computation protocol in SSPs for the first time. Moreover, it informs us about a natural workflow which a user might adopt.
 
 \subsection{Workflow}
 In a natural workflow, the users sketch SSP graphs and the sequences of game-hops
 on paper. Here, each package has an intended behaviour that has not been fully
 specified or formalized yet but that the user finds convincing. Subsequently, when
 the user wants to verify their conceptual ideal, they specify the behaviour of packages
-as EasySSP pseudocode and construct / compose their packages into the games previously sketched on paper. In this stage, code and package compositions mature jointly, and EasySSP checks the interfaces of packages to one another. Next, the user specifies all games which occur in the game hops using the previously defined packages.
-EasySSP verify immediately verifies all graph-based game-hops in this step and thus verifies that the reductions have the correct interface.
-
-Finally, the user verifies all \emph{perfect equivalence} steps. These are game-hops where one game is replaced by another whose behaviour is perfectly equivalent. While SSPs typically allow to reduce the number of perfect equivalence steps, a few still need to be carried out and they are, typically, terribly tedious and hard to carry out on paper. These steps are, indeed, conceptually similar to checking the soundness of reductions in the traditional style. While SSPs do not require carrying out such steps for each reductions, a few still remain and one needs to do them. This step is where EasySSP comes close to realizing Halevi's vision. In conceptually involved cases, users need to provide some \emph{core} argument from which EasySSP completes the equivalence proof automatically. Moreover, in easier cases, EasySSP  generates and verifies equivalence proofs entirely automatically. Details follow.
+as SSBee pseudocode and construct / compose their packages into the games previously sketched on paper. In this stage, code and package compositions mature jointly, and SSBee checks the interfaces of packages to one another. Next, the user specifies all games which occur in the game hops using the previously defined packages.
+SSBee immediately verifies all graph-based game-hops in this step and thus verifies that the reductions have the correct interface. Finally, the user specifies all \emph{perfect equivalence} steps, which, in most cases, are verified automatically by SSBee, using an SMT-solver beneath. In conceptually involved cases, users need to provide some \emph{core} argument from which SSBee completes the equivalence proof automatically.
+%These are game-hops where one game is replaced by another whose behaviour is perfectly equivalent. While SSPs typically allow to reduce the number of perfect equivalence steps, a few still need to be carried out and they are, typically, terribly tedious and hard to carry out on paper. These steps are, indeed, conceptually similar to checking the soundness of reductions in the traditional style. While SSPs do not require carrying out such steps for each reductions, a few still remain and one needs to do them. This step is where SSBee comes close to realizing Halevi's vision. In conceptually involved cases, users need to provide some \emph{core} argument from which SSBee completes the equivalence proof automatically. Moreover, in easier cases, SSBee  generates and verifies equivalence proofs entirely automatically. Details follow.
 
 \section{Technical Approach and Scope}
 \subsection{Induction over oracle calls}
@@ -98,16 +199,16 @@ of outputs rather than equality of outputs. A clean way to extend the above indu
 the random strings consumed by the oracle of the two games which leads to the
 same output.
 
-This \emph{invariant}-based approach with randomness mapping has been developed in the context of EasyCrypt {(\color{blue} True ?? Probably older...)} and we also adopt it in EasySSP.
+This \emph{invariant}-based approach with randomness mapping has been developed in the context of EasyCrypt {(\color{blue} True ?? Probably older...)} and we also adopt it in SSBee.
 
 \subsection{Automatization}
 Given a state relation and a randomness mapping, EasyCrypt additionally requires
-proving that the state relation is an invariant {\color{blue} I don't like writing this.}. In turn, EasySSP seeks to avoid that the user needs to do these additional proofs. Therefore, EasySSP translates the pseudo-code based statements into SMTlib statements. SMTlib~\cite{X} is an interfacing language for SMT solvers and currently supported by Z3~\cite{X} and CVC5~\cite{X}. The SMT solver is tasked with showing that (i) the randomness mapping is valid (i.e., is a bijection), that (ii) the state relation is an invariant and (iii) if the state relation and the randomness mapping holds, then equal inputs lead to equal outputs.
+proving that the state relation is an invariant {\color{blue} I don't like writing this.}. In turn, SSBee seeks to avoid that the user needs to do these additional proofs. Therefore, SSBee translates the pseudo-code based statements into SMTlib statements. SMTlib~\cite{X} is an interfacing language for SMT solvers and currently supported by Z3~\cite{X} and CVC5~\cite{X}. The SMT solver is tasked with showing that (i) the randomness mapping is valid (i.e., is a bijection), that (ii) the state relation is an invariant and (iii) if the state relation and the randomness mapping holds, then equal inputs lead to equal outputs.
 
 In general, (iii) is an NP-complete problem. However, it turns out that for the instances we consider in our case studies, CVC5 are able to prove (iii) within a few seconds. An exception is the difficult proof step in Yao's garbling scheme which performs a switch from bit semantics to active/inactive semantics. Here, we need to specify an additional lemma, and CVC5 needs 30 seconds to prove (iii).
 
 \subsection{Multi-instance packages, \textbf{for} loops and hybrid arguments}
-EasySSP supports multi-instance packages, \textbf{for} loops as well as hybrid arguments over polynomially many hybrids. Multi-instance games allow complex
+SSBee supports multi-instance packages, \textbf{for} loops as well as hybrid arguments over polynomially many hybrids. Multi-instance games allow complex
 compositions of a polynomial number of packages or number of compositions of
 a priori unknown number of packages.
 
