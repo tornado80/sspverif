@@ -19,3 +19,30 @@ Sampling from arbitrary distributions needs to be modeled by sampling uniformly 
 a set and applying a function to the result. Since SSBee pseudocode is symbolic, it
 does not have a concept of length for bitstrings. As a result, in the IND-CPA encryption example, the oracle accepts messages of a \emph{fixed} length $n$ rather
 than to allow for different message lengths and checking that the two provided messages are of equal length.
+
+\subsection{Proofs}
+As briefly hinted in Section~\ref{X}, SSBee supports \emph{reduction proofs}
+as well as \emph{code equivalence proofs}. The user specifies the sequence
+of games...example? \emph{reduction proofs}
+
+
+{\color{blue}Chris: Maybe, the following should move somewhere else, because
+it is not SSBee-specific?}
+\paragraph{Code equivalence proofs.} Code equivalence proofs between a left
+game and a right game proceed by \emph{induction} over the number of oracle calls. We first define a state relation and show that it holds on the pair of initial
+states. Next, we need to show the following two statements:
+\begin{itemize}
+\item[(1)] If the state relation holds before an oracle call, then it holds after an oracle call.
+\item[(2)] If the state relation holds before an oracle call, then the two games either both abort or both return the same output.
+\end{itemize}
+For item (2) (and sometimes also for item (1)), it is necessary to relate the
+\emph{randomness} of two games
+
+
+\paragraph{for-loops.}
+
+
+
+\paragraph{Hybrid proofs.} Hybrid proofs are sequences of reduction steps
+and code-equivalence proofs, so the SSBee merely ties those together.
+
