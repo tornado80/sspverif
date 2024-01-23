@@ -1,8 +1,8 @@
 \section{Introduction}
-The paradigm of \emph{reduction-based security}---sometimes also referred to as \emph{provable security}---is the state-of-the-art method of understanding and confirming the security of cryptographic constructions. Concretely, a reduction proof reduces the security of a cryptographic construction (in a model) to the security of the underlying building blocks (in a model). While writing reductions, arguing about their soundness and verifying one's own (or someone else's) proof is relatively easy in some contexts, it tends to gets out of hand when constructions become complex. Important methods for taming the complexity of security proofs and increasing their precision are \emph{game-hopping}~\cite{X}, \emph{code-based} arguments~\cite{X} as well as composition methodologies such as Universal Composability~\cite{X}, Constructive Cryptography~\cite{X} and ... .
+The paradigm of \emph{reduction-based security}---sometimes also referred to as \emph{provable security}---is the state-of-the-art method of understanding and confirming the security of cryptographic constructions. Concretely, a reduction proof reduces the security of a cryptographic construction (in a model) to the security of the underlying building blocks (in a model). While writing reductions, arguing about their soundness and verifying one's own (or someone else's) proof is relatively easy in some contexts, it might get out of hand when constructions become complex. Important methods for taming the complexity of security proofs and increasing their precision are \emph{game-hopping}~\cite{EPRINT:Shoup04}, \emph{code-based} arguments~\cite{EC:BelRog06} as well as composition methodologies such as Universal Composability~\cite{FOCS:Canetti01} and Constructive Cryptography~\cite{FC:Maurer10}.
 
-However, studying protocols such as Transport Layer Security (TLS~\cite{X})
-and Messaging Layer Security (MLS~\cite{X}) \emph{as they are} 
+However, studying protocols such as Transport Layer Security (TLS~\cite{TLS13})
+and Messaging Layer Security (MLS~\cite{MLS}) \emph{as they are} 
 %(without simplifications and abstractions) 
 remains nevertheless difficult, since either
 standard consists of over 100 pages~\cite{X} which makes the protocols unwieldy for analysis without simplifications. Similarly, other real-life systems

@@ -1,0 +1,20 @@
+\section{Further conceptual discussions on SSPs}
+
+\subsection{Encoding search games as distinguishing games}\label{app:dist}
+We can encode (strong) unforgeability of message authentication
+codes (MACs) by having a $\O{VERIFY}$ oracle that either
+runs the actual MAC verification or is \emph{idealized} and only accepts
+message-tag pairs that come from the $\O{MAC}$ oracle
+\footnote{To capture standard unforgeability, the ideal $\O{VERIFY}$ oracle 
+only checks whether the \emph{message} was sent to the $\O{MAC}$ oracle
+and then still runs the MAC verification algorithm to decide whether to
+return $0$ or $1$.}. The ideal behaviour of the $\O{VERIFY}$ oracle nicely 
+reflects what a game-hop reducing to (strong) unforgeability typically
+aims to achieve and has a certain flavour of the ideal functionality approach
+of universal composability (UC)~\cite{X}. In general, search games can be
+encoded into distinguishing notions by adding a $\O{WIN}$ oracle that encodes the winning condition of the search game in the real game whereas $\O{WIN}$ never
+returns $1$ in the ideal game. In conclusion, the limitation to
+distinguishing games is without loss of generality due to this technical
+encoding, and additionally, distinguishing encodings are, in many cases,
+natural and easy to use in proofs.
+
