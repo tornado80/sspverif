@@ -1,0 +1,21 @@
+\section{SSBee}
+\subsection{Pseudo-code}
+We already saw an example of SSBee pseudocode in Section~\ref{sec:ssp} and now discuss the features and limitations of SSBee pseudocode more comprehensively.
+In terms of basic operations, SSBee pseudocode supports assignment to state variables and temporary variables (whose value will be forgotten after the oracle call), creating and parsing tuples, sampling uniformly from a set, and evaluation of unspecified function as well as oracle calls. State variables can be individual values or tables. Pseudo-code can contain a special $\mathbf{assert}\mathsf{ cond}$ command which aborts the oracle run if condition $\mathsf{cond}$ is violated. Moreover, SSBee supports if-then-else branching as well as for loops.
+
+\paragraph{Type system.}
+SSBee operates on typed symbols, e.g., symbols can be integers (Int),
+Booleans (Bool), bitstrings of length n (Bits(n)), tuples of values,
+tables etc.. Moreover, the user can specify additional types. For 
+every type $\mathsf{type}$, the operation $\mathsf{Maybe}\;\mathsf{type}$
+creates a larger type which contains $\mathsf{type}$, but a value
+might also be $\mathsf{none}$.
+
+Maybe types are particularly useful for tables. Concretely, at each position, a table might either have a value or be unassigned. Thus, when accessing a table at a position, it is unclear whether it is of the type of values that the table typically contains or of type $\mathsf{none}$. Therefore, a value $v\leftarrow T[i]$ is considered to be of $\mathsf{Maybe}\;\mathsf{type}$, and to turn $v$ into $\mathsf{type}$, we ... which we can only apply if we are guaranteed that $v\leftarrow T[i]$ is not 
+equal to $\mathsf{none}$.
+
+\paragraph{Limitations of SSBee pseudocode.}
+Sampling from arbitrary distributions needs to be modeled by sampling uniformly from
+a set and applying a function to the result. Since SSBee pseudocode is symbolic, it
+does not have a concept of length for bitstrings. As a result, in the IND-CPA encryption example, the oracle accepts messages of a \emph{fixed} length $n$ rather
+than to allow for different message lengths and checking that the two provided messages are of equal length.
