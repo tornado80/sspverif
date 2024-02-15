@@ -111,29 +111,11 @@ code-equivalence statements and under the assumption that we have
 made all reductions explicit in some formal language, we can, at 
 any point of time, ask an SMT solver to (re-)prove all statements and thus see which
 statements are affected by a modification. However, since most proofs
-of real-life protocols consists of many game-hops, we usually only
+of large real-life protocols consists of many game-hops, we usually only
 specify the hybrid games in pseudocode, but not the reductions, and
 writing the reductions seems undesirable overhead, even if in return, we
-get the benefit of automated verification and continuous integration.
-
-%\paragraph{Explicit reductions.}
-%When parts of the protocol or some of the hybrid games need to be modified
-%at a late point in the proof development, we need to manually backtrack
-%which parts of the code equivalence statements are affected, which other
-%hybrid games need to be modified consistently etc.. With SMT-solvers in mind, it %seems appealing to explore \emph{automatically} which parts of a proof are %
-%affected by small, local modification.
-
-%While, in principle, one could maintain the code of protocols, games, hybrid
-%games, reductions and assumption games in software and check which proofs are
-%affected (assuming that code-equivalences can be delegate to SMT-solvers) by
-%a local change, this practice seems very far from current hand-written
-%real-life protocol analysis. Namely, those usually do not give their reductions
-%explicitly, since reductions, in essence, emulate the protocol except for one
-%small component whose executions are delegated to an oracle by the reduction.
-%Therefore, the description of hybrid games usually only contains this modification
-%and the reduction is omitted (TODO: put some explicit references here). Thus,
-%writing all of these hybrid games and reductions explicitly in their entirety is
-%simply not appealing, even if tool-support would help with continuous integration. %(TODO: add some laudable examples such as BHR and the original BR paper as well as others).
+get the (potential) benefit of automated verification and continuous 
+integration.
 
 \paragraph{State-separating proofs.}
 An exception to the practice of incomplete game and reduction descriptions for
@@ -144,40 +126,53 @@ via oracle calls (whence their name).
 Modular code writing and code re-use has already been suggested in Bellare and Rogaway's original work~\cite{X} (TODO: check that this is true.) and been practiced, e.g., by BHR~\cite{X}, where TODO: example.
 The SSP methodology (cf.~\cite{X,Y,Z}) develops this idea systematically further and ties it in closely with \emph{compositional} aspects. Concretely, an SSP package typically consists of code and state that is \emph{shared} between multiple cryptographic primitives and/or their games. Subsequently, we can specify reductions precisely in pseudo-code \emph{without} writing any new code, simply by re-using existing packages and composing them into a call-graph. Indeed, all existing works on SSPs make use of this feature~\cite{blankedcite}.
 
-%For example, (the ideal version of) a key exchange security game has code that samples a uniformly random key, and a symmetric-key-based secure channel security game also samples a uniformly random key. Separating out keys into their separate package $\M{KEYS}$ allows composition
+A downside to defining games via call-graphs of packages is a fragmented
+description of games: To fully understand a game, we need to consider the
+call-graph at the same time as the code of its building blocks, leading
+to challenges in the presentation (cf.~\cite{ACNS:BEP24} for a discussion).
+Moreover, the code of a single package is now re-used by many different games, 
+so that changing the code of a package affects many definitions and proof 
+steps at the same time.
 
-%Thus, we can specify the composition of
-%a key exchange protocol and a secure channel by have a key exchange package which
-%makes write calls to a $\M{KEYS}$
+Thus, SSPs would benefit from automated sanity checks such as oracle signatures
+(the caller of an oracle includes the arguments that the callee expects) as
+well as the aforementioned continuous integration approach.
+Additionally, SSPs come with a high level of precision and
+that is suitable for formalization. Hence, all-in-all, SSPs are an ideal
+candidate to provide a tool-based development process
+that is \emph{less} work than its pen-and-paper counterpart
+and at the same time leads to computer-verified proofs.
 
-%Separating out this $\M{KEYS}$ package into its own package
+%, automatization and,
+%all in all, for using tools that not only \emph{verify}
+%proofs, but actually support a tool-based proof development process
+%that \emph{less} work than its pen-and-paper counterpart.
 
-% Concretely, the SSP methodology separates strictly between \emph{code-equivalence statements} and 
-%\emph{reduction statements}. A code-equivalence statement turns a game into a functionally equivalent game that is more suitable for a reduction step. A reduction, in turn, is merely defined by a \emph{cut in a graph}, where the cut divides a big game (defined by a call graph of packages) into the (graph of) packages whose code defines the game of the assumption on the one side of the cut, and the (graph of) packages whose code defines the reduction on the other side of the cut.
+\subsection{Our contribution.} After a major development effort,
+we present SSBee, a novel tool to support SSP-style proofs. 
+In SSBee, the user can specify packages and call graphs in a 
+pseudocode-style (see Section~\ref{X} for details), while SSBee
+checks the consistency of the resulting composition. Subsequently,
+the use can specify sequences of games, where each game-hop consists
+either of a code-equivalence step or a reduction to an underlying
+assumption. Since we consider SSPs, the latter merely consists in
+specifying a sub-graph (and verification is not a major challenge).
+As for EasyCrypt, the main challenge are code equivalence proofs.
+We elaborate on code equivalence proofs shortly, but first would
+like to emphasize that the use of SSPs \emph{reduces} the number
+of code-equivalence proofs, since a suitable modularization of a game
+typically only requires one code-equivalence proof in the beginning
+and one code-equivalence proof in the end of a proof sequence.
+See Section~\ref{X} and Kohbrok~\cite{Kohbrok:thesis} for a details.
 
-%Due to code-reuse and strict separation between reduction and code equivalence steps, pen-and-paper proofs that use the SSP 
-Thus, SSPs come with a high level of precision and
-are pre-destined for formalization, automatization and,
-all in all, for using tools that not only \emph{verify}
-proofs, but actually support a tool-based proof development process
-that \emph{less} work than its pen-and-paper counterpart.
-
-Missing: Discussion that doing SSPs is actually kinda hard
-and having tool support will make it bearable. Where could this
-fit into the flow?
+\paragraph{Code-Equivalence Proofs}
 
 
 
 
-% for formalization and hence, SSPs are the
-%first pen-and-paper reduction proof methodology in cryptography (TODO: 
-%is that too much?) that can expected to require \emph{less} work with
-%tool support than any other reduction methodology developed so far.
 
-%In fact, in the context of SSPs, Halevi's 20-years-old dream vision~\cite{X} 
-%of delegating \emph{mundane} proof steps to a computer seems within reach.
 
-\paragraph{Our contribution.} We present SSBee, a tool that does all the things
+present SSBee, a tool that does all the things
 we said above would be great. It maintains code for SSPs, checks code-equivalences
 semi-automatically and provides continuous integration support.
 
