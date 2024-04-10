@@ -1,26 +1,19 @@
 \section{Introduction}
-The paradigm of \emph{reduction-based security}, a.k.a. \emph{provable security}, is the state-of-the-art method of understanding and confirming the security of cryptographic constructions. Concretely, a reduction proof reduces the security of a cryptographic construction (in a model) to the security of the underlying building blocks (in a model). Writing reductions, arguing about their soundness and verifying one's own (or someone else's) proof is relatively easy in some contexts, but it can get out of hand when constructions become complex. Thus, taming the complexity of security proofs and increasing their precision is an active research direction, including, e.g., \emph{game-hopping}~\cite{EPRINT:Shoup04}, \emph{code-based} arguments~\cite{EC:BelRog06} as well as composition methodologies such as Universal Composability~\cite{FOCS:Canetti01} and Constructive Cryptography~\cite{FC:Maurer10}.
+The paradigm of \emph{reduction-based security}, a.k.a. \emph{provable security}, is the state-of-the-art method of understanding and confirming the security of cryptographic constructions. Concretely, a reduction proof reduces the security of a cryptographic construction (in a model) to the security of the underlying building blocks (in a model). Writing reductions, arguing about their soundness and verifying one's own (or someone else's) proof is relatively easy in some contexts, but it can get out of hand when constructions become complex. Thus, the community develops methods to tame the complexity of security proofs and to increase their precision, including, e.g., \emph{game-hopping}~\cite{EPRINT:Shoup04}, \emph{code-based} arguments~\cite{EC:BelRog06} as well as composition frameworks such as Universal Composability~\cite{FOCS:Canetti01} and Constructive Cryptography~\cite{FC:Maurer10}.
 
 Nevertheless, studying protocols such as Transport Layer Security (TLS~\cite{TLS13})
 and Messaging Layer Security (MLS~\cite{MLS}) \emph{as they are} 
 %(without simplifications and abstractions) 
-remains difficult, since their description exceeds 100 pages which makes the protocols unwieldy for analysis without simplifications. Similarly, other real-life systems
-tend to combine multiple cryptographic components in complex dependencies,
+remains difficult, since their description exceeds 100 pages which makes the protocols unwieldy for analysis without simplifications. Similarly, other real-life systems tend to combine multiple cryptographic components in complex dependencies,
 see, e.g., remote attestation mechanisms~\cite{https://arxiv.org/pdf/2102.08804.pdf,https://en.wikipedia.org/wiki/Trusted_Computing}, ... or ... .
 
 The challenge when analyzing complex protocols is three-fold:
 \begin{description}
-\item[(1) Large protocol description.] The description of a protocol itself exceeds the bounds of a research
-article.
-\item[(2) Consistent code-base.] Parts of the protocols are referred to multiple times in an analysis
-and maintaining a consistent version of a complex protocol throughout the 
-analysis is difficult.
-\item[(3) Large reduction description.] Describing reductions entirely exceeds the bounds of a research article 
-since they typically emulate most of the protocol.
-\item[(4) Verifying reductions.] Verifying reductions is tremendously challenging due to the complexity
-of both the reduction and the protocol.
+\item[(1) Large protocol description.] The description of a protocol itself exceeds the bounds of a research article.
+\item[(2) Consistent code-base.] Parts of the protocols are referred to multiple times in an analysis and maintaining a consistent version of a complex protocol throughout the analysis is difficult.
+\item[(3) Large reduction description.] Describing reductions entirely exceeds the bounds of a research article since they typically emulate most of the protocol.
+\item[(4) Verifying reductions.] Verifying reductions is tremendously challenging due to the complexity of both the reduction and the protocol.
 \end{description}
-
 
 Item (1) and (2) can be mitigated by describing the protocol
 modularly and maintaining a single code-base for the protocol
@@ -61,10 +54,14 @@ a proof consisting of small, detailed steps which the tool verifies.
 %but rather require the user to write a proof of functional equivalence
 %consisting of small, detailed steps. 
 As an example, the EasyCrypt formalization
-of a proof for Yao's garbled circuits~\cite{X} shows that after polynomially many game-hops, the garbling can be computed without knowing the input and while only knowing the output of the circuit evaluation, thus establishing the desired goal that a garbled circuit does not leak any information beyond its output value (which can
+of a proof for Yao's garbled circuits~\cite{X} shows that after polynomially many game-hops, a simulated garbling can be computed without knowing the input and while only knowing the output of the circuit evaluation, thus establishing the desired goal that a garbled circuit does not leak any information beyond its output value (which can
 always be trivially derived, see~\cite{X} for more discussion). This code equivalence proof between two versions of the garbling, one with and one without
-knowing the input, consists of ... lines of code (~\cite[page x]{}). EasyCrypt,
- thus, indeed enables us to verify complex code equivalence proofs.
+knowing the input, consists of ... lines of code in EasyCrypt (~\cite[page x]{X}).
+%EasyCrypt,
+% thus, indeed enables us to verify complex code equivalence proofs.
+
+In turn, in the pen-and-paper proof of Yao's garbled circuits by Lindell and Pinkas, the analogous conceptual argument consists of 10 lines of text (\cite[page 23]{x});
+and in the pen-and-paper proof of Yao's garbling scheme by Bellare, Hoang and Rogaway, ...(\cite[page ..]{X}).
 
 \paragraph{Proving Code-Equivalence Proofs.}
 The aforementioned example of Yao's garbling scheme illustrates that current
