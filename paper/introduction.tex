@@ -4,7 +4,7 @@ The paradigm of \emph{reduction-based security}, a.k.a. \emph{provable security}
 Nevertheless, it is sometimes desirable to formally verify one's sequences of game-hops and reduction proofs. One the other hand, this verification should not require additional work on top of the written pen-and-paper proof, but rather, it would be desirable to \emph{reduce} the amount of overall required work and discharge some amount of work to a computer. At least, this is how Halevi imagined this process in his position paper~\cite{X}, and indeed, his vision is very appealing. Unfortunately, the pioneer works in the domain of formal verification of cryptographic reductions, CertiCrypt~\cite{X} and its follow-up work EasyCrypt~\cite{X}, require a significant additional amount of work (see Section~\ref{X} for details) compared to a pen-and-paper-only proof. Thus, while originally, it seemed plausible that EasyCrypt would be rather widely adopted by cryptographers~\cite[page 1]{X}, the additional required work still constitute a significant barrier.
 
 Thus, we set out to reduce this barrier. However, rather than aiming for the same expressiveness and power as EasyCrypt, we target only a subset of cryptographic reductions, known as \emph{straightline reductions} for distinguishing games, where the reduction only runs the adversary once and returns whichever bit the adversary returns. Moreover, we require that the reduction \emph{perfectly} emulates the game(s) which the adversary expects. Such proofs are, e.g., very common in key exchange analysis, see, e.g.~\cite{X} for an example\footnote{The only exception in the cited papers are the proof steps where the game aborts upon nonce collisions. In our framework, such an abort step can be integrated as an assumption (rather than be proven in the tool).}. In this more restricted setting, we show that,
-indeed, only a much smaller amount of addition manual work is required compared to EasyCrypt. We now review EasyCrypt in Section~\ref{sec:easycrypt} and then present our approach, findings and our new tool SSBee in Section~\ref{sec:ssbee} where we also compare to EasyCrypt.
+indeed, only a much smaller amount of addition manual work is required compared to EasyCrypt. Section~\ref{sec:easycrypt} reviews EasyCrypt, Section~\ref{sec:ssbee} presents our new formal verification tool SSBee and Section~\ref{sec:casestudies} discusses case studies.
 
 \subsection{EasyCrpyt}\label{sec:easycrypt}
 EasyCrypt has been modeled to capture code-based game-hopping proofs such as Bellare and Rogaway's proof for ..~\cite{EC:BelRog06}. The latter requires careful comparison of distributions in order to bound the statistical distances between them. As a result, EasyCrypt incorporates a very precise and powerful logic which allows to argue about statistical differences. For the simple case of perfect straightline reductions, the workflow in EasyCrypt is as follows. Assume that we have a reduction $\rdv$ which transforms any adversary $\adv$ who tries to distinguish between game $\M{Game}_\text{big}^0$ and $\M{Game}_\text{big}^1$ into an adversary $\bdv:=\adv\rightarrow\rdv$ who tries to distinguish between 
@@ -38,6 +38,10 @@ While Lisp is very different from the imperative style typically used in cryptog
 we opted for asking the user to directly specify invariants in SMTLib, because implementing a compiler
 which translates invariants written in pseudo-code to SMTLib would create a barrier between the user and the SMT solver and because writing directly in SMTLib allows a proficient user to rely on the full expressivity of SMTLib if the user wishes to.
 
+\paragraph{Randomness Mapping}
+In addition to providing $\mathsf{Rel}$, both EasyCrypt and SSBee proofs additionally require to
+map \emph{randomness} between two games... [TO DO]
+
 \paragraph{State-Separating Proofs}
 SSBee is able to verify arbitrary (perfect) straightline reductions between distinguishing games as outlined above, and, additionally, provides support for the use of \emph{state-separating proofs (SSPs)}~\cite{X}. The latter are convenient in the context of formal verification since they reduce the
 number of code-equivalence proofs (and thus the number of relations the user needs to define). Concretely, SSPs (see Section~\ref{X} for more details and Kohbrok~\cite{X} for a comprehensive introduction) allow to split a game into multiple stateful
@@ -49,8 +53,78 @@ each callee eventually returns an answer to its caller, call graphs are acyclic 
 \mathsf{Adv}(\adv,...)&:=...\\
 \mathsf{Adv}(\bdv,...)&:=...
 \end{align*}
-TODO: Something about graphs
+TODO: Something about graphs, graph exports, code exports.
 
+
+
+\subsection{Case studies}\label{sec:casestudies}
+In order to illustrate the use of SSBee, we now present two
+case studies: A reduction-based analysis of Yao's garbled Circuits approach
+as well as a reduction-based analysis of combining a pseudorandom function
+with authenticated encryption in order to build a key exchange protocol with
+key confirmation. We chose examples from the areas of key exchange and the
+areas of secure multi-party computation (MPC) since both domains tend to
+handle complex large protocols which makes tooling for proof development
+and verification more appealing to them so that it seems useful to exemplify
+how to use SSBee in these two domains.
+
+\paragraph{Yao's Garbled Circuits}
+Yao's garbled circuit approach is one of the first general MPC techniques.
+Here, a garbler garbles a circuit $C$ into $\tilde{C}$ as well as the
+evaluator's input $x$ into $\tilde{x}$. The evaluator can obtain
+$y=C(x)$ by evaluating the garbled circuit $\tilde{C}$ on the garbled
+input $\tilde{x}$. Security requires that $\tilde{x}$ and $\tilde{C}$
+can be simulated given only the output $y$ (as well as the size and
+topology of $C$).
+
+Yao's Garbled Circuits have first been formally analyzed by Lindell and Pinkas~\cite{X}.
+Later, garbling schemes have been abstracted out as its own primitive by 
+Bellare, Hoang and Rogaway~\cite{X} who provided a more modular analysis of
+Yao's garbling scheme using pseudo-code. Moreover, Yao's Garbled Circuit approach has also
+been studied in EasyCrypt by ...~\cite{X} and by Brzuska and Oechsner~\cite{X}
+using SSPs. We will use the 4 previous works as a base of comparison with our SSBee proof.
+
+Concretely, in this introduction, we would like to focus on one concrete
+proof step which is common to all proofs, including ours. Namely, all proofs
+proceed via polynomially many game-hops which change how the garbling $(\tilde{x},\tilde{C})$ 
+is computed---however, at this point, the input value $x$ is still used to compute
+$(\tilde{x},\tilde{C})$. A core argument, then, is that the \emph{identical}
+distribution $(\tilde{x},\tilde{C})$ can be generated using only $y$. Lindell
+and Pinkas coined this game-hop a \emph{semantic switch} {\color{blue}CHECK WHO SAID THIS}
+and provide an explanation consisting of 10 lines of text (\cite[page 23]{X}). The
+analogous conceptual argument by Bellare, Hoang and Rogaway consists of 4.5 lines of text (\cite[bottom of page 22]{X}). Both provide a conceptual high-level argument about distributions of keys. In turn,  the EasyCrypt analysis additionally makes explicit which randomness for key sampling in one game corresponds to randomness for key sampling in the other game and, based on this, proves that
+if both games receive the same input, they produce the same output---note that garbling games are
+stateless, so no state relation needs to be provided in this case {\color{blue}True that they use
+something stateless?}. The EasyCrypt proof consists of ... lines of code (~\cite[page x]{X}).
+Finally, in Brzuska's and Oechsner's proof, this code equivalence proof consists of six long
+columns of pseudo-code with additional discussion of ... (~\cite[page x-y]{X}). Note that
+Brzuska and Oechsner conduct the proof on a \emph{stateful} game since they consider a sub-game.
+Our SSBee proof formalizes the SSP-based Brzuska-Oechsner approach and thus, this proof step
+ also requires the definition of both a randomness relation and a state relation. However,
+no further argument is required. While we need one additional relation compared to the EasyCrypt
+proof, our SSBee-based proof does not require proving code-equivalence based on the relation
+(since this succeeds automatically using an SMT-solver). Moreover, our SSBee proof compares
+very favorably with the long analysis of Brzuska and Oechsner (and is additionally more precise)
+and arguably does not require more work than the pen-and-paper proofs by Lindell-Pinkas
+and Bellare, Hoang and Rogaway. Since lines of code and text are not necessarily useful measures
+of complexity, we can also consider the conceptual arguments needed to be carried out in all the
+proofs. Interestingly, the \emph{randomness mapping} in SSBee and EasyCrypt and the argument
+about key distributions in Pinkas-Lindell and Bellare-Hoang-Rogaway are essentially the same
+argument. In turn, in Brzuska-Oechsner, the proof proceeds more syntactically, implicitly mapping
+different samplings onto each other.
+
+Since we view SSBee as a tool not only to verify proofs but also to support \emph{proof development},
+we also extend the work by Brzuska and Oechsner to compose Yao's garbling scheme with a random oblivious transfer protocol (OT) into a secure 2-party computation protocol with semi-honest security. This additional composition step has already been proven by Lindell and Pinkas~\cite{X} and formalized in EasyCrypt~\cite{X}, but not yet been formalized in state-separating proofs. Interestingly, it turns out that the modular garbling games used by Brzuska and Oechsner compose more conveniently (using the
+SSP approach) than the standard formulation of (selective) garbling scheme security. See Section~\ref{X} for details. To carry out the extension of the garbling proof, we first sketched package graphs in an online tool called ... to explore the composition with OT. To support this workflow, it seems a useful
+extension for future work to export package graphs not only to tikz for research articles, but also
+to ... for manually editing graph sketches.
+
+
+
+
+
+
+\iffalse
 === stopped here, please do not continue reading ===
 
 Nevertheless, our experience is that analyzing a large cryptographic protocol remains difficult.
@@ -362,6 +436,19 @@ the user wants to verify their conceptual ideal, they specify the behaviour of p
 as SSBee pseudocode and construct / compose their packages into the games previously sketched on paper. In this stage, code and package compositions mature jointly, and SSBee checks the interfaces of packages to one another. Next, the user specifies all games which occur in the game hops using the previously defined packages.
 SSBee immediately verifies all graph-based game-hops in this step and thus verifies that the reductions have the correct interface. Finally, the user specifies all \emph{perfect equivalence} steps, which, in most cases, are verified automatically by SSBee, using an SMT-solver beneath. In conceptually involved cases, users need to provide some \emph{core} argument from which SSBee completes the equivalence proof automatically.
 %These are game-hops where one game is replaced by another whose behaviour is perfectly equivalent. While SSPs typically allow to reduce the number of perfect equivalence steps, a few still need to be carried out and they are, typically, terribly tedious and hard to carry out on paper. These steps are, indeed, conceptually similar to checking the soundness of reductions in the traditional style. While SSPs do not require carrying out such steps for each reductions, a few still remain and one needs to do them. This step is where SSBee comes close to realizing Halevi's vision. In conceptually involved cases, users need to provide some \emph{core} argument from which SSBee completes the equivalence proof automatically. Moreover, in easier cases, SSBee  generates and verifies equivalence proofs entirely automatically. Details follow.
+\fi
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%
+% Section 2
+%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Technical Approach and Scope}
 \subsection{Induction over oracle calls}
