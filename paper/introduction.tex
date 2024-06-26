@@ -1,19 +1,87 @@
 \section{Introduction}
-The paradigm of \emph{reduction-based security}, a.k.a. \emph{provable security}, is the state-of-the-art method of understanding and confirming the security of cryptographic constructions based on well-studied assumptions. Concretely, a reduction proof reduces the security of a cryptographic construction (in a model) to the security of the underlying building blocks (in a model). Writing reductions, arguing about their soundness and verifying one's own (or someone else's) proof is relatively easy in some contexts, but it can get out of hand when constructions become complex. Thus, the community develops methods to tame the complexity of security proofs and to increase their precision, including, e.g., \emph{game-hopping}~\cite{EPRINT:Shoup04}, \emph{code-based} arguments~\cite{EC:BelRog06} as well as composition frameworks such as Universal Composability~\cite{FOCS:Canetti01} and Constructive Cryptography~\cite{FC:Maurer10}.
+The paradigm of \emph{reduction-based security}, a.k.a. \emph{provable security}, is the state-of-the-art method of understanding and confirming the security of cryptographic constructions based on well-studied assumptions. Concretely, a reduction proof reduces the security of a cryptographic construction (in a model) to the security of the underlying building blocks (in a model). Writing reductions, arguing about their soundness and verifying one's own (or someone else's) proof is relatively easy in some contexts, but it can get out of hand when constructions become complex. Thus, the community develops methods to tame the complexity of security proofs and to increase their precision, including, e.g., \emph{game-hopping}~\cite{EPRINT:Shoup04}, \emph{code-based} arguments~\cite{EC:BelRog06} as well as composition frameworks such as Universal Composability (UC~\cite{FOCS:Canetti01}), Constructive Cryptography (CC~\cite{FC:Maurer10}) and state-separating proofs (SSPs~\cite{X}) and a general culture of using black-box security notions as intermediate abstractions.
 
-Nevertheless, studying protocols such as Transport Layer Security (TLS~\cite{TLS13})
-and Messaging Layer Security (MLS~\cite{MLS}) \emph{as they are} 
-%(without simplifications and abstractions) 
-remains difficult, since their description exceeds 100 pages which makes the protocols unwieldy for analysis without simplifications. Similarly, other real-life systems tend to combine multiple cryptographic components in complex dependencies,
-see, e.g., remote attestation mechanisms~\cite{https://arxiv.org/pdf/2102.08804.pdf,https://en.wikipedia.org/wiki/Trusted_Computing}, ... or ... .
+Nevertheless, it is sometimes desirable to formally verify one's sequences of game-hops and reduction proofs. One the other hand, this verification should not require additional work on top of the written pen-and-paper proof, but rather, it would be desirable to \emph{reduce} the amount of overall required work and discharge some amount of work to a computer. At least, this is how Halevi imagined this process in his position paper~\cite{X}, and indeed, his vision is very appealing. Unfortunately, the pioneer works in the domain of formal verification of cryptographic reductions, CertiCrypt~\cite{X} and its follow-up work EasyCrypt~\cite{X}, require a significant additional amount of work (see Section~\ref{X} for details) compared to a pen-and-paper-only proof. Thus, while originally, it seemed plausible that EasyCrypt would be rather widely adopted by cryptographers~\cite[page 1]{X}, the additional required work still constitute a significant barrier.
 
-The challenge when analyzing complex protocols is three-fold:
+Thus, we set out to reduce this barrier. However, rather than aiming for the same expressiveness and power as EasyCrypt, we target only a subset of cryptographic reductions, known as \emph{straightline reductions} for distinguishing games, where the reduction only runs the adversary once and returns whichever bit the adversary returns. Moreover, we require that the reduction \emph{perfectly} emulates the game(s) which the adversary expects. Such proofs are, e.g., very common in key exchange analysis, see, e.g.~\cite{X} for an example\footnote{The only exception in the cited papers are the proof steps where the game aborts upon nonce collisions. In our framework, such an abort step can be integrated as an assumption (rather than be proven in the tool).}. In this more restricted setting, we show that,
+indeed, only a much smaller amount of addition manual work is required compared to EasyCrypt. We now review EasyCrypt in Section~\ref{sec:easycrypt} and then present our approach, findings and our new tool SSBee in Section~\ref{sec:ssbee} where we also compare to EasyCrypt.
+
+\subsection{EasyCrpyt}\label{sec:easycrypt}
+EasyCrypt has been modeled to capture code-based game-hopping proofs such as Bellare and Rogaway's proof for ..~\cite{EC:BelRog06}. The latter requires careful comparison of distributions in order to bound the statistical distances between them. As a result, EasyCrypt incorporates a very precise and powerful logic which allows to argue about statistical differences. For the simple case of perfect straightline reductions, the workflow in EasyCrypt is as follows. Assume that we have a reduction $\rdv$ which transforms any adversary $\adv$ who tries to distinguish between game $\M{Game}_\text{big}^0$ and $\M{Game}_\text{big}^1$ into an adversary $\bdv:=\adv\rightarrow\rdv$ who tries to distinguish between 
+$\M{Game}_\text{small}^0$ and $\M{Game}_\text{small}^1$. Now, to verify that the reduction is sound, we  need to show that $\rdv$ composed with $\M{Game}_\text{small}^b$ behaves as $\M{Game}_\text{big}^b$ for both $b\in\bin$. Let us denote $\rdv$ composed with $\M{Game}_\text{small}^b$ as $\rdv\rightarrow\M{Game}_\text{small}^b$.
+
+The EasyCrypt proof proceeds by induction. We define a state relation $\mathsf{Rel}$ between the state of 
+$\rdv\rightarrow\M{Game}_\text{small}^b$ and the state of $\M{Game}_\text{big}^b$. As induction start, we show that $\mathsf{Rel}$ holds on the starting states of both games. As induction step, we show that if $\mathsf{Rel}$ holds on the states of $\rdv\rightarrow\M{Game}_\text{small}^b$ and $\M{Game}_\text{big}^b$ and if we make the same query to both games, then $\mathsf{Rel}$ holds on the new resulting states of
+$\rdv\rightarrow\M{Game}_\text{small}^b$ and $\M{Game}_\text{big}^b$ after the query \emph{and} both games produce the same output. By this induction argument, we can conclude that for any sequence of queries, both $\rdv\rightarrow\M{Game}_\text{small}^b$ and $\M{Game}_\text{big}^b$ always returns the same answers.
+
+Hence, the workflow for verifying the reduction consists of
 \begin{description}
-\item[(1) Large protocol description.] The description of a protocol itself exceeds the bounds of a research article.
-\item[(2) Consistent code-base.] Parts of the protocols are referred to multiple times in an analysis and maintaining a consistent version of a complex protocol throughout the analysis is difficult.
-\item[(3) Large reduction description.] Describing reductions entirely exceeds the bounds of a research article since they typically emulate most of the protocol.
-\item[(4) Verifying reductions.] Verifying that reductions emulate the protocol correctly is challenging due to the complexity of the reduction and the protocol.
+\item[(1)] defining the state relation $\mathsf{Rel}$.
+\item[(2)] proving the induction start.
+\item[(3)] proving the induction step.
 \end{description}
+Thus, verifying a reduction in EasyCrypt requires a significant additional amount of detail
+compared to a pen-and-paper-only proof.
+
+%For (2) and (3), EasyCrypt provides its own proof language.
+
+\subsection{SSBee}\label{sec:ssbee}
+We now turn to our contribution: The development of the tool SSBee. As hinted before, SSBee
+has similar goals as EasyCrypt, but restricted to the setting of perfect straightline
+reductions. Compared to EasyCrypt, the user still needs to define the state relation $\mathsf{Rel}$, but does not need to prove (2) and (3) anymore, since they are discharged to an SMT-solver.
+Since state relations are typically relatively easy to determine (because $\rdv\rightarrow\M{Game}_\text{small}^b$ typically have the ``same'' state as $\M{Game}_\text{big}^b$, just distributed across the reduction $\rdv$ and the game $\M{Game}_\text{small}^b$), we thus postulate that writing formally verified reduction proofs in SSBee typically constitutes less or a comparable amount of work compared to carrying out the same proof on pen-and-paper-only---once the user learnt how to use SSBee.
+
+Concretely, as for EasyCrypt, the user first writes the games $\M{Game}_\text{big}^b$ and $\M{Game}_\text{small}^b$ as well as the reduction $\rdv$ in SSBee pseudo-code. Next the user describes the state relation $\mathsf{Rel}$ in SMTLib code. SMTLib~\cite{X} is a joint standard interface supported by multiple SMT solvers. SSBee currently relies either on Z3~\cite{X} or CVC4~\cite{X}, but SMTLib enables adopting other SMT solvers later as well. For the case that $\M{Game}_\text{big}^b=\M{Game}_\text{small}^b$ and the reduction $\rdv$ is trivial (i.e., just forwards messages), the state relation in SMTLib code would be written as:
+\[\texttt{(= state-game-big-b state-game-small-b)},\]
+SMTLib is a Lisp dialect~\cite{X} which first states the operator ``='' before both of its arguments.
+While Lisp is very different from the imperative style typically used in cryptographic articles,
+we opted for asking the user to directly specify invariants in SMTLib, because implementing a compiler
+which translates invariants written in pseudo-code to SMTLib would create a barrier between the user and the SMT solver and because writing directly in SMTLib allows a proficient user to rely on the full expressivity of SMTLib if the user wishes to.
+
+\paragraph{State-Separating Proofs}
+SSBee is able to verify arbitrary (perfect) straightline reductions between distinguishing games as outlined above, and, additionally, provides support for the use of \emph{state-separating proofs (SSPs)}~\cite{X}. The latter are convenient in the context of formal verification since they reduce the
+number of code-equivalence proofs (and thus the number of relations the user needs to define). Concretely, SSPs (see Section~\ref{X} for more details and Kohbrok~\cite{X} for a comprehensive introduction) allow to split a game into multiple stateful
+pieces of code---\emph{packages}---which call one another via \emph{oracles}. In SSP-style proofs,
+the adversary $\adv$ is always viewed as the ``orchestrator'' (on the left) which can activate other
+packages via oracle calls which, in turn, can activate other packages via oracle calls. In SSPs,
+each callee eventually returns an answer to its caller, call graphs are acyclic and self-calls are forbidden, leading to a simpler activation pattern as, e.g., in UC (cf. Unruh~\cite{X}). The game ends when the adversary returns a bit $b^*$ and advantages are defined as 
+\begin{align*}
+\mathsf{Adv}(\adv,...)&:=...\\
+\mathsf{Adv}(\bdv,...)&:=...
+\end{align*}
+TODO: Something about graphs
+
+=== stopped here, please do not continue reading ===
+
+Nevertheless, our experience is that analyzing a large cryptographic protocol remains difficult.
+%In particular, UC and CC as well as the culture of abstract security notions in cryptography help reduce the \emph{conceptual} complexity of a concrete protocol. Namely, we can replace a concrete, complex protocol building block by a more simple ideal functionality or a black-box building block with well-defined security properties. %such as symmetric encryption under indistinguishability under chosen plaintext attacks (IND-CPA) rather than, say, AES is 
+%Conveniently, this enables us to build large protocols based on black-box components which are, by themselves, complex (cf. constructions of key encapsulation mechanisms secure against chosen-ciphertext attacks~\cite{X} or, for a more extreme example, indistinguishabilility obfuscation~\cite{X}), but have an easy-to-use interface.
+%Unfortunately, sometimes
+%===
+%Nevertheless, studying protocols such as Transport Layer Security (TLS~\cite{TLS13})
+%and Messaging Layer Security (MLS~\cite{MLS}) \emph{as they are} 
+%%(without simplifications and abstractions) 
+%remains difficult, since their description exceeds 100 pages which makes the protocols unwieldy for analysis without simplifications. Similarly, other real-life systems tend to combine multiple cryptographic components in complex dependencies,
+%see, e.g., remote attestation mechanisms~\cite{https://arxiv.org/pdf/2102.08804.pdf,https://en.wikipedia.org/wiki/Trusted_Computing}, ... or ... .
+In particular, we encountered the following challenges when conducting pen-and-paper analyses of
+large protocols.
+\begin{description}
+\item[(1) Large protocols and reductions.] A protocol description can be outrageously long (> 100 pages), even when abstracting concrete building blocks into black-box notions (cf. TLS~\cite{TLS13} and MLS~\cite{MLS}). Reductions typically emulate most of a protocol and thus suffer from the same issue.
+\item[(2) Consistent code-base.] Protocol and game components are referred to multiple times in an analysis and maintaining a consistent code-based is difficult. Concretely, intermediate 
+security notions (e.g., hybrid games) and protocol descriptions (e.g., those used in hybrid games) evolve
+during proof development.
+\item[(3) Verifying reductions.] Verifying that reductions emulate the protocol correctly is challenging due to the size of the reduction and the protocol, even when the reduction is conceptually simple. This difficulty holds both for a writer and a reader of the reduction.
+\end{description}
+None of the above (except for maybe (3)) constitutes a traditional, conceptual challenge in the field of cryptography. In particular, a large protocol description can be viewed as a symptom of unnecessarily complicated design, and it is typically preferable to simplify the design rather than put up with a complicated protocol and analysis. The reality of protocols such as TLS~\cite{TLS13} and MLS~\cite{MLS} is, however, that they serve many different goals simultaneously and their intermediate drafts as well as the final protocols themselves emerge from social compromise. 
+Thus, if we consider it important to understand and analyze incredibly large (over-)complicated real-
+life protocols comprehensively with reduction-based analysis, we need a method to do so.
+
+\paragraph{The need for a new formal verification tool.}
+
+Naturally, both, protocol code and reduction code can treated 
+as code associated to a paper ra
+
+
 
 Item (1) and (2) can be mitigated by describing the protocol
 modularly and maintaining a single code-base for the protocol
