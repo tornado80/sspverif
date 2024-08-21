@@ -6,30 +6,31 @@ package CheckIndexunder {
 
     import oracles {
         GETA(h: Integer) -> Bits(n),
-        SETBIT(h: Integer,zz:Bool) -> (),
+        SETBIT(h: Integer, zz: Bool),
     }
 
 
     oracle GETA(h: Integer) -> Bits(n) {
-                b <- false;
+        b <- false;
         for i: 1 <= i <= t {
-            if ( h==i ) 
-            {b <- true;}
+            if (h == i) {
+                b <- true;
+            }
         }
         assert b;
         k <- invoke GETA(h);
-        return k; 
+        return k;
     }
 
-    oracle SETBIT(h: Integer, zz:Bool) -> () {
-                b <- false;
+    oracle SETBIT(h: Integer, zz: Bool) {
+        b <- false;
         for i: 1 <= i <= t {
-            if ( h==i ) 
-            {b <- true;}
+            if (h == i) {
+                b <- true;
+            }
         }
         assert b;
-        _ <- invoke SETBIT(h,zz);
-        return ;
+        _ <- invoke SETBIT(h, zz);
+        return;
     }
-
 }

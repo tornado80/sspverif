@@ -3,21 +3,20 @@ package DINFtdyao {
         n: Integer,
     }
 
+    state {
+        dinf: Table(Integer, Table(Bool, Bits(n))),
+    }
+
     import oracles {
     }
 
-    state {
-        dinf:   Table(Integer, Table(Bool, Bits(n))),
+
+    oracle SETDINF(T: Table(Integer, Table(Bool, Bits(n)))) {
+        dinf <- T;
+        return;
     }
 
-    oracle SETDINF(T: Table(Integer, Table(Bool, Bits(n)))) 
-                 -> ()
-                     {dinf <- T;
-                     return ;}
-
-    oracle GETDINF() 
-                 -> Table(Integer, Table(Bool,Bits(n)))
-                     {
-                  return dinf;          
-                     }
+    oracle GETDINF() -> Table(Integer, Table(Bool, Bits(n))) {
+        return dinf;
+    }
 }

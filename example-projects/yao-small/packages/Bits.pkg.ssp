@@ -1,7 +1,8 @@
 package Bits {
     state {
-        z: Table(Integer,Bool),
+        z: Table(Integer, Bool),
     }
+
 
     oracle GETBIT(h: Integer) -> Bool {
         assert (z[h] != None as Bool);
@@ -9,10 +10,9 @@ package Bits {
         return zz;
     }
 
-    oracle SETBIT(h: Integer, zz:Bool) -> () {
+    oracle SETBIT(h: Integer, zz: Bool) {
         assert (z[h] == None as Bool);
         z[h] <- Some(zz);
-        return ;
+        return;
     }
-
 }

@@ -4,12 +4,13 @@ package En {
     }
 
     state {
-        z: Table(Integer,Bool),
+        z: Table(Integer, Bool),
     }
 
     import oracles {
-        GETKEYS(h: Integer) -> Table(Bool,Bits(n)),
+        GETKEYS(h: Integer) -> Table(Bool, Bits(n)),
     }
+
 
     oracle GETAOUT(h: Integer) -> Bits(n) {
         assert (z[h] != None as Bool);
@@ -19,10 +20,9 @@ package En {
         return ZZ;
     }
 
-    oracle SETBIT(h: Integer, zz:Bool) -> () {
+    oracle SETBIT(h: Integer, zz: Bool) {
         assert (z[h] == None as Bool);
         z[h] <- Some(zz);
-        return ;
+        return;
     }
-
 }
