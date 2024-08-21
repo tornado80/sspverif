@@ -1,10 +1,7 @@
 use crate::project;
 use std::io::Write;
-use std::io::{self, BufRead};
 
 use crate::parser::{Rule, SspParser};
-use crate::types::Type;
-use miette::{Diagnostic, NamedSource, SourceSpan};
 use pest::iterators::Pair;
 
 mod context;
@@ -16,7 +13,7 @@ fn create_oracle_sig(
     prefix: &str,
     suffix: &str,
     name: &str,
-    args: &Vec<String>,
+    args: &[String],
     tipe: &str,
 ) {
     let one_line = format!("{}{}({}){}{}", prefix, name, args.join(", "), tipe, suffix);
@@ -232,7 +229,7 @@ fn format_code(ctx: &mut FormatContext, code_ast: Pair<Rule>) -> Result<(), proj
 
                 match inner.next() {
                     None => {
-                        ctx.push_line(&format!("return;"));
+                        ctx.push_line("return;");
                     }
                     Some(e) => {
                         ctx.push_line(&format!("return {};", format_expr(e)?));
@@ -245,7 +242,7 @@ fn format_code(ctx: &mut FormatContext, code_ast: Pair<Rule>) -> Result<(), proj
                 ctx.push_line(&format!("assert {};", format_expr(inner.next().unwrap())?));
             }
             Rule::abort => {
-                ctx.push_line(&format!("abort;"));
+                ctx.push_line("abort;");
             }
             Rule::sample => {
                 let mut inner = stmt.into_inner();
@@ -301,7 +298,6 @@ fn format_code(ctx: &mut FormatContext, code_ast: Pair<Rule>) -> Result<(), proj
                 };
                 let mut inner = oracle_inv.into_inner();
                 let oracle_name_ast = inner.next().unwrap();
-                let oracle_name_span = oracle_name_ast.as_span();
                 let oracle_name = oracle_name_ast.as_str();
                 let mut multi_instance = String::new();
                 let mut argstring = String::new();
@@ -323,7 +319,7 @@ fn format_code(ctx: &mut FormatContext, code_ast: Pair<Rule>) -> Result<(), proj
                     }
                 }
 
-                if index != "" {
+                if !index.is_empty() {
                     ctx.push_line(&format!(
                         "{ident}[{index}] <- invoke {oracle_name}{multi_instance}({argstring});"
                     ));
@@ -339,7 +335,7 @@ fn format_code(ctx: &mut FormatContext, code_ast: Pair<Rule>) -> Result<(), proj
                 let expr = format_expr(inner.next().unwrap())?;
                 let idents = list
                     .into_inner()
-                    .map(|(ident_name)| ident_name.as_str().to_string())
+                    .map(|ident_name| ident_name.as_str().to_string())
                     .collect::<Vec<_>>()
                     .join(", ");
 
@@ -350,7 +346,6 @@ fn format_code(ctx: &mut FormatContext, code_ast: Pair<Rule>) -> Result<(), proj
                 let decl_var_name = parsed[0].as_str();
                 let lower_bound = format_expr(parsed.remove(1))?;
                 let lower_bound_type = parsed[1].as_str();
-                let bound_var_name = parsed[2].as_str();
                 let upper_bound_type = parsed[3].as_str();
                 let upper_bound = format_expr(parsed.remove(4))?;
                 let loopvar = decl_var_name.to_string();
@@ -376,8 +371,6 @@ fn format_oracle_def(
     ctx: &mut FormatContext,
     oracle_def_ast: Pair<Rule>,
 ) -> Result<(), project::error::Error> {
-    let span = oracle_def_ast.as_span();
-    let source_span = SourceSpan::from(span.start()..span.end());
     let mut inner = oracle_def_ast.into_inner();
 
     ctx.push_line("");
@@ -396,7 +389,7 @@ fn format_types_block(
     ctx: &mut FormatContext,
     types_ast: Pair<Rule>,
 ) -> Result<(), project::error::Error> {
-    let mut inner = types_ast.into_inner();
+    let inner = types_ast.into_inner();
     for typeentry in inner {
         //println!("{:?}", inner);
         let typename = typeentry.as_str();
@@ -441,7 +434,7 @@ fn format_import_oracles(
                 };
 
                 let args = args.into_inner().next();
-                let args = if args == None {
+                let args = if args.is_none() {
                     Vec::new()
                 } else {
                     args.unwrap()
@@ -473,7 +466,6 @@ fn format_import_oracles(
                 let decl_var_name = parsed[0].as_str();
                 let lower_bound = format_expr(parsed.remove(1))?;
                 let lower_bound_type = parsed[1].as_str();
-                let bound_var_name = parsed[2].as_str();
                 let upper_bound_type = parsed[3].as_str();
                 let upper_bound = format_expr(parsed.remove(4))?;
                 let loopvar = decl_var_name.to_string();
@@ -522,12 +514,12 @@ fn format_pkg_spec(
         .filter(|x| matches!(x.as_rule(), Rule::oracle_def))
         .collect();
 
-    if types_rules.len() > 0 {
+    if !types_rules.is_empty() {
         ctx.push_line("types {");
         ctx.add_indent();
         for type_block in types_rules {
             let inner = type_block.clone().into_inner().next();
-            if !(inner == None) {
+            if inner.is_some() {
                 format_types_block(ctx, inner.unwrap())?;
             }
         }
@@ -536,12 +528,12 @@ fn format_pkg_spec(
         ctx.push_line("");
     }
 
-    if params_rules.len() > 0 {
+    if !params_rules.is_empty() {
         ctx.push_line("params {");
         ctx.add_indent();
         for param_block in params_rules {
             let inner = param_block.clone().into_inner().next();
-            if !(inner == None) {
+            if inner.is_some() {
                 format_decl_list(ctx, inner.unwrap())?;
             }
         }
@@ -550,12 +542,12 @@ fn format_pkg_spec(
         ctx.push_line("");
     }
 
-    if state_rules.len() > 0 {
+    if !state_rules.is_empty() {
         ctx.push_line("state {");
         ctx.add_indent();
         for state_block in state_rules {
             let inner = state_block.clone().into_inner().next();
-            if !(inner == None) {
+            if inner.is_some() {
                 format_decl_list(ctx, inner.unwrap())?;
             }
         }
@@ -564,7 +556,7 @@ fn format_pkg_spec(
         ctx.push_line("");
     }
 
-    if import_rules.len() > 0 {
+    if !import_rules.is_empty() {
         ctx.push_line("import oracles {");
         ctx.add_indent();
         for import_block in import_rules {
@@ -603,7 +595,7 @@ fn format_compose_rule(
 ) -> Result<(), project::error::Error> {
     match compose_rule.as_rule() {
         Rule::compose_decl | Rule::compose_decl_multi_inst => {
-            let mut inner = compose_rule.clone().into_inner();
+            let inner = compose_rule.clone().into_inner();
             for compblock in inner {
                 let mut compblock = compblock.into_inner();
                 let importer = compblock.next().unwrap().as_str();
@@ -621,31 +613,37 @@ fn format_compose_rule(
                     ""
                 };
 
-                let imports = compblock.map(|pair| {
-                    let mut pairs = pair.into_inner();
-                    let with_indices = if pairs.peek().unwrap().as_rule()
-                        == Rule::compose_assign_modifier_with_index
-                    {
-                        Ok::<String,project::error::Error>(format!(
-                            "with index [{}] ",
-                            pairs
-                                .next()
-                                .unwrap()
-                                .into_inner()
-                                .next()
-                                .unwrap()
-                                .into_inner()
-                                .map(|x| { format_expr(x) })
-                                .collect::<Result<Vec<_>,_>>()?
-                                .join(", ")
+                let imports = compblock
+                    .map(|pair| {
+                        let mut pairs = pair.into_inner();
+                        let with_indices = if pairs.peek().unwrap().as_rule()
+                            == Rule::compose_assign_modifier_with_index
+                        {
+                            Ok::<String, project::error::Error>(format!(
+                                "with index [{}] ",
+                                pairs
+                                    .next()
+                                    .unwrap()
+                                    .into_inner()
+                                    .next()
+                                    .unwrap()
+                                    .into_inner()
+                                    .map(|x| { format_expr(x) })
+                                    .collect::<Result<Vec<_>, _>>()?
+                                    .join(", ")
+                            ))
+                        } else {
+                            Ok::<String, project::error::Error>(String::new())
+                        }?;
+                        let oracle = pairs.next().unwrap().as_str();
+                        let package = pairs.next().unwrap().as_str();
+                        Ok::<(String, &str, &str), project::error::Error>((
+                            with_indices,
+                            oracle,
+                            package,
                         ))
-                    } else {
-                        Ok::<String,project::error::Error>(String::new())
-                    }?;
-                    let oracle = pairs.next().unwrap().as_str();
-                    let package = pairs.next().unwrap().as_str();
-                    Ok::<(String, &str, &str),project::error::Error>((with_indices, oracle, package))
-                }).collect::<Result<Vec<_>,_>>()?;
+                    })
+                    .collect::<Result<Vec<_>, _>>()?;
                 ctx.push_line(&format!("{importer}{indices}: {{"));
                 ctx.add_indent();
                 for (with_indices, oracle, package) in imports {
@@ -694,7 +692,6 @@ fn format_game_spec(
                 let decl_var_name = parsed[0].as_str();
                 let lower_bound = format_expr(parsed.remove(1))?;
                 let lower_bound_type = parsed[1].as_str();
-                let bound_var_name = parsed[2].as_str();
                 let upper_bound_type = parsed[3].as_str();
                 let upper_bound = format_expr(parsed.remove(4))?;
                 let loopvar = decl_var_name.to_string();
@@ -739,12 +736,12 @@ fn format_game_spec(
                     .filter(|x| matches!(x.as_rule(), Rule::types_def))
                     .collect();
 
-                if params_rules.len() > 0 {
+                if !params_rules.is_empty() {
                     ctx.push_line("params {");
                     ctx.add_indent();
                     for param_block in params_rules {
                         let inner = param_block.clone().into_inner().next();
-                        if !(inner == None) {
+                        if inner.is_some() {
                             for block in inner.unwrap().into_inner() {
                                 let mut inner = block.into_inner();
                                 let paramname = inner.next().unwrap().as_str();
@@ -758,12 +755,12 @@ fn format_game_spec(
                     ctx.push_line("");
                 }
 
-                if types_rules.len() > 0 {
+                if !types_rules.is_empty() {
                     ctx.push_line("types {");
                     ctx.add_indent();
                     for types_block in types_rules {
                         let inner = types_block.clone().into_inner().next();
-                        if !(inner == None) {
+                        if inner.is_some() {
                             for block in inner.unwrap().into_inner() {
                                 let mut inner = block.into_inner();
                                 let typealias = format_type(inner.next().unwrap())?;
@@ -788,7 +785,7 @@ fn format_game_spec(
         }
     }
 
-    if compose_rules.len() > 0 {
+    if !compose_rules.is_empty() {
         ctx.push_line("compose {");
         ctx.add_indent();
 
@@ -846,7 +843,6 @@ pub fn format_file(file: &std::path::PathBuf) -> Result<(), project::error::Erro
             format_game(&mut ctx, ast.next().unwrap())?;
             handled = true;
         }
-
 
         if handled {
             write!(target, "{}", ctx.to_str())?;
