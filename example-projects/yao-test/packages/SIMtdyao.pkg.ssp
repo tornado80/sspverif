@@ -110,7 +110,7 @@ package SIMtdyao {
     oracle GETDINF() 
                  -> Table(Integer, Table(Bool,Bits(n)))
                      {
-                  T <- Unwrap(S[(d)]);
+                  T <- Unwrap(S[d]);
                temp <- new Table(Bool,Bits(n));
            temptemp <- new Table(Bool,Bits(n));
                   for jj: 0 <= jj <= w {

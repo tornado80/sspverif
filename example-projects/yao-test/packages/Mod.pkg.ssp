@@ -50,7 +50,7 @@ package Mod {
         dinf <- new Table(Integer, Table(Bool,Bits(n)));
 
         for jj: 1 <= jj <= w {
-             tmp <- invoke GETKEYSIN[(d)](jj);
+             tmp <- invoke GETKEYSIN[d](jj);
              dinf[jj] <- Some(tmp);
         }
 
