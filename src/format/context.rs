@@ -1,6 +1,7 @@
 #[derive(Debug, Clone)]
 pub struct FormatContext<'a> {
     pub file_name: &'a str,
+    #[allow(dead_code)]
     pub file_content: &'a str,
 
     pub indent_level: usize,
@@ -30,12 +31,10 @@ impl<'a> FormatContext<'a> {
     }
 
     pub fn push_line(&mut self, line: &str) {
-        if line == "" {
-            self.buffer.push_str("\n");
+        if line.is_empty() {
+            self.buffer.push('\n');
         } else {
-            let indent = std::iter::repeat("    ")
-                .take(self.indent_level)
-                .collect::<String>();
+            let indent = "    ".repeat(self.indent_level);
             self.buffer.push_str(&format!("{indent}{line}\n"));
         }
     }
