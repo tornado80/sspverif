@@ -21,10 +21,10 @@ package MODGB {
         tmp <- new Table(Bits(p),Bool);
         for j: 1 <= j <= w {
             (l,r,op) <- parse Unwrap(Ci[j]);
-            assert (not (op[(true,  true)] == None as Bool));
-            assert (not (op[(true, false)] == None as Bool));
-            assert (not (op[(false, true)] == None as Bool));
-            assert (not (op[(false,false)] == None as Bool));
+            assert not (op[(true,  true)] == None as Bool);
+            assert not (op[(true, false)] == None as Bool);
+            assert not (op[(false, true)] == None as Bool);
+            assert not (op[(false,false)] == None as Bool);
             tmp <- invoke GBLG[i](l, r, op, j);
             T[j] <- Some(tmp);
         }
