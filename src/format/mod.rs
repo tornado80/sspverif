@@ -652,7 +652,7 @@ fn format_compose_rule(
                     ctx.push_line(&format!("{with_indices}{oracle}: {package},"));
                 }
                 ctx.remove_indent();
-                ctx.push_line("},");
+                ctx.push_line("}");
             }
         }
         _ => unreachable!(),
