@@ -66,8 +66,7 @@ proof Yao {
     }
 
     gamehops {
-
-    equivalence MODSec1_inst PrvSim1for_inst {
+        equivalence MODSec1_inst PrvSim1for_inst {
             SETBIT: {
                 invariant: [
                     ./invariant-MODSec0.smt2
@@ -81,7 +80,7 @@ proof Yao {
             }
         }
 
-    equivalence MODSec0_inst PrvSim0_inst {
+        equivalence MODSec0_inst PrvSim0_inst {
             SETBIT: {
                 invariant: [
                     ./invariant-MODSec0.smt2
@@ -95,5 +94,4 @@ proof Yao {
             }
         }
     }
-
 }
