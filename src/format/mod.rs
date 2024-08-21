@@ -827,7 +827,7 @@ pub fn format_file(file: &std::path::PathBuf) -> Result<(), project::error::Erro
         Ok(())
     } else {
         let file_content = std::fs::read_to_string(file)?;
-        let handled = false;
+        let mut handled = false;
 
         let absname = std::path::absolute(file)?;
         let dirname = absname.parent().unwrap();
