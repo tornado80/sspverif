@@ -1,0 +1,79 @@
+package KXReal {
+    params {
+        n: Integer,
+        prf: fn Bits(n), Int, Int, Bits(n), Bits(n) -> Bits(n), Bits(n),
+        mac: fn Bits(n), Bits(n), Int -> Bits(n),
+    }
+    
+    state {
+          LTK:  Table((Int,Bool,Int,Bool ), Bits(n)),   /* First integer corresponds to initiator */
+          ACC:  Table((Int,Bool), Bool),      /* 0: initiator, 
+                                                 1: responder, 
+                                                 None: running, 
+                                                 1: accepted, 
+                                                 0: rejected   */
+          K:    Table((Int,Bool,Int), Bits(n)),   /* session key */
+          Peer: Table((Int,Bool,Int), Int),       /* Intended Peer */
+          NI:   Table((Int,Bool,Int), Bits(n)),   /* initiator nonce */
+          NR:   Table((Int,Bool,Int), Bits(n)),   /* responder nonce */
+          MACK: Table((Int,Bool,Int), Bits(n)),   /* MAC key */
+          CTR:  Table((Int,Bool), Int),           /* administrative session identifier */
+          }
+
+    oracle NewSession(U: Int, u: Bool, V: Int, v: Bool) -> Int {
+        assert not (u = v);                   /* Own role most be different from role of intended peer */
+        if (CTR[U,u]= None)
+           {
+            CTR[U,u] <-0
+           }
+        CTR[U,u] <- CTR[U,u] + 1 ; 
+        ctr <- CTR[U,u];
+        Peer[U,u,ctr] <- V\\
+        if ((LTK[U,u,V,v]= None) and (LTK[V,v,U,u]= None))
+           {
+            r            <-$ Bits(n);
+            LTK[U,u,V,v] <-r;
+            LTK[V,v,U,u] <-r;
+           }
+    }
+
+oracle Send1(U: Int,u: Bool,ctr: Int) -> Bits(n)
+    {
+        assert (u=0)                       /* session belongs to initiator */
+        assert not (Peer[U,u,ctr] = None); /* session has been initialized */
+        assert NI[U,u,ctr] = None;         /* session has not yet sent its first message */
+        ni          <-$ Bits(n)
+        NI[U,u,ctr] <-Some(ni);
+        return ni
+    } 
+
+oracle Send2(V: Int,v: Bool,ctr: Int, ni: Bits(n)) -> Bits(n),Bits(n)
+    {
+        assert (v=1)                       /* session belongs to responder */
+        assert not (Peer[V,v,ctr] = None); /* session has been initialized */
+        assert NR[V,v,ctr] = None;         /* session has not yet sent its first message */
+        nr            <-$ Bits(nr)
+        NR[V,v,ctr]   <-Some(nr);
+        NI[V,v,ctr]   <-Some(ni);
+        ksess, kmac   <- prf(Unwrap(Peer[V,v,ctr]),V,ni,nr);
+        K[V,v,ctr]    <- Some(ksess);
+        MACK[V,v,ctr] <- Some(kmac);
+        tau           <- mac(kmac,Peer[V,v,ctr],V,ni,nr);
+        return nr,tau
+    } 
+
+oracle Send3(U: Int,u: Bool,ctr: Int, ni: Bits(n), tau:Bits(n)) -> Bits(n)
+    {
+        assert (u=0)                       /* session belongs to initiator */
+        assert not (Peer[V,v,ctr] = None); /* session has been initialized */
+        assert not (NR[V,v,ctr] = None);   /* session has sent its first message */
+        assert (ACC[V,v,ctr] = None);      /* session is still running */
+
+
+        ksess, kmac   <- prf(Unwrap(Peer[V,v,ctr]),V,Unwrap(NI[U,u,ctr]),Unwrap(NR[U,u,ctr]));
+        K[V,v,ctr]    <- Some(ksess);
+        MACK[V,v,ctr] <- Some(kmac);
+        tau           <- mac(kmac,Peer[V,v,ctr],V,ni,nr);
+        return nr,tau
+    } 
+
