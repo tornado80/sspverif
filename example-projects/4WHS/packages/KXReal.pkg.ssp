@@ -1,6 +1,7 @@
 package KXReal {
     params {
         n: Integer,
+        zeron: Bits(n),
         prf: fn Bits(n), Int, Int, Bits(n), Bits(n) -> Bits(n), Bits(n),
         mac: fn Bits(n), Bits(n), Int -> Bits(n),
     }
@@ -58,22 +59,40 @@ oracle Send2(V: Int,v: Bool,ctr: Int, ni: Bits(n)) -> Bits(n),Bits(n)
         ksess, kmac   <- prf(Unwrap(Peer[V,v,ctr]),V,ni,nr);
         K[V,v,ctr]    <- Some(ksess);
         MACK[V,v,ctr] <- Some(kmac);
-        tau           <- mac(kmac,Peer[V,v,ctr],V,ni,nr);
+        tau           <- mac(kmac,Peer[V,v,ctr],V,ni,nr,2);
         return nr,tau
     } 
 
-oracle Send3(U: Int,u: Bool,ctr: Int, ni: Bits(n), tau:Bits(n)) -> Bits(n)
+oracle Send3(U: Int,u: Bool,ctr: Int, nr: Bits(n), tau:Bits(n)) -> Bits(n)
     {
-        assert (u=0)                       /* session belongs to initiator */
-        assert not (Peer[V,v,ctr] = None); /* session has been initialized */
+        assert (u=0)                       /* session belongs to initiator       */
+        assert not (Peer[U,u,ctr] = None); /* session has been initialized       */
+        assert not (NR[U,u,ctr] = None);   /* session has sent its first message */
+        assert (ACC[U,u,ctr] = None);      /* session is still running           */
+        ni <- Unwrap(NI[U,u,ctr]);
+        ksess, kmac   <- prf(U,Unwrap(Peer[U,u,ctr]),ni,nr);
+        if not (mac(kmac,Peer[U,u,ctr],V,ni,nr,2) = tau) {return zeron,zeron;}
+        ACC[U,u,ctr]  <- Some(1);
+        NR[U,u,ctr]   <- Some(nr);
+        K[U,u,ctr]    <- Some(ksess);
+        MACK[U,u,ctr] <- Some(kmac);
+        tau'          <- mac(kmac,Peer[U,u,ctr],U,ni,nr,3);
+        return ni,tau'
+    } 
+
+oracle Send4(V: Int,v: Bool,ctr: Int,S ni: Bits(n), tau:Bits(n)) -> Bool
+    {
+        assert (v=1)                       /* session belongs to responder       */
+        assert not (Peer[V,v,ctr] = None); /* session has been initialized       */
         assert not (NR[V,v,ctr] = None);   /* session has sent its first message */
-        assert (ACC[V,v,ctr] = None);      /* session is still running */
-
-
-        ksess, kmac   <- prf(Unwrap(Peer[V,v,ctr]),V,Unwrap(NI[U,u,ctr]),Unwrap(NR[U,u,ctr]));
-        K[V,v,ctr]    <- Some(ksess);
-        MACK[V,v,ctr] <- Some(kmac);
-        tau           <- mac(kmac,Peer[V,v,ctr],V,ni,nr);
-        return nr,tau
+        assert (ACC[V,v,ctr] = None);      /* session is still running           */
+        if (not mac(kmac,Peer[V,v,ctr],V,ni,nr,3) = tau or
+            not ni = Unwrap(NI[V,v,ctr]))
+            {
+             ACC[V,v,ctr] \gets Some(0);
+             return 0;
+            }
+        ACC[V,v,ctr] \gets Some(1);
+        return 1;  
     } 
 
