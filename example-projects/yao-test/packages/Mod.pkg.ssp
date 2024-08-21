@@ -7,7 +7,7 @@ package Mod {
     }
 
     import oracles {
-        SETBIT(j: Integer, x:Bool)    -> (),
+        SETBIT[0](j: Integer, x:Bool)    -> (),
         GETAOUT[0](j: Integer)        -> Bits(n),
         GETKEYSIN[d](j: Integer)      -> Table(Bool,Bits(n)),
 
