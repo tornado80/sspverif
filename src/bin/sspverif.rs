@@ -221,9 +221,5 @@ fn main() -> miette::Result<()> {
         Commands::Format(f) => format(f),
     };
 
-    println!("{result:#?}");
-
-    result?;
-
-    Ok(())
+    result.map_err(miette::Report::new)
 }

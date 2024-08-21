@@ -779,7 +779,7 @@ fn format_game_spec(
             Rule::compose_decl => { /* handled separately */ }
             Rule::compose_decl_multi_inst => { /* handled separately */ }
             _ => {
-                println!("{}", ctx.to_str());
+                println!("unhandled rule in format_game_spec: {}", ctx.to_str());
                 unreachable!("{:?}", spec)
             }
         }

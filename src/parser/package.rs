@@ -1154,7 +1154,7 @@ pub fn handle_oracle_imports_oracle_sig(
     oracle_sig: Pair<Rule>,
     loopvar_scope: &Scope,
 ) -> Result<OracleSig, ParsePackageError> {
-    println!("{:?}", oracle_sig.as_rule());
+    debug_assert_eq!(oracle_sig.as_rule(), Rule::import_oracles_oracle_sig);
 
     let _span = oracle_sig.as_span();
 

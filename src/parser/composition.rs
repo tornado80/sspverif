@@ -638,8 +638,6 @@ fn handle_edges_compose_assign_list_multi_inst(
                     in_game: ctx.game_name.to_string(),
                 })?;
 
-        println!("mi found oracle {oracle_name}");
-
         let mut oracle_sig = dst_inst
             .pkg
             .oracles
@@ -857,7 +855,6 @@ pub fn handle_instance_decl_multi_inst<'a>(
     let inst_name = inner.next().unwrap().as_str();
 
     let indices_ast = inner.next().unwrap();
-    println!("indices: {:?}", indices_ast);
     let indices = indices_ast
         .into_inner()
         .map(|index_ast| handle_expression(&ctx.parse_ctx(), index_ast, Some(&Type::Integer)))
@@ -1027,11 +1024,9 @@ pub fn handle_instance_decl<'a>(
         .filter(|&(specd_name, _, _)| {
             // only items, that are not in the defined list
             // i.e. "all not equals"
-            typed_params.iter().all(|(defined_name, _)| {
-                println!("-- {defined_name} =? {specd_name}");
-
-                specd_name != defined_name
-            })
+            typed_params
+                .iter()
+                .all(|(defined_name, _)| specd_name != defined_name)
         })
         .collect();
 
