@@ -36,15 +36,15 @@ package GBtdyaofor {
               Z[0]  <-  Some(ZZ);
         for i: 1 <= i <= d {
              assert (Ctilde[i] == None as Table(Integer, Table(Bits(p), Bool)));
-             assert (not (C[i] == None as Table(Integer,(Integer,Integer, Table((Bool,Bool),Bool)))));
+             assert not (C[i] == None as Table(Integer,(Integer,Integer, Table((Bool,Bool),Bool))));
              for jj: 1 <= jj <= w {
              layer    <- Unwrap(C[i]);
              gate     <- Unwrap(layer[jj]);
              (l,r,op) <- parse gate;
-             assert (not (op[(true,  true)] == None as Bool));
-             assert (not (op[(true, false)] == None as Bool));
-             assert (not (op[(false, true)] == None as Bool));
-             assert (not (op[(false,false)] == None as Bool));
+             assert not (op[(true,  true)] == None as Bool);
+             assert not (op[(true, false)] == None as Bool);
+             assert not (op[(false, true)] == None as Bool);
+             assert not (op[(false,false)] == None as Bool);
              rrr <-$ Bits(n);
              rr  <-$ Bits(n);
              ZZZ[true]  <-  Some(rrr);

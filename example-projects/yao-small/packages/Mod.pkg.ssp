@@ -40,7 +40,7 @@ package Mod {
         Tabletemptilde <- new Table(Integer,Table(Bits(p), Bool));
 
         for i: 1 <= i <= d {
-            assert (not (C[i] == None as Table(Integer,(Integer,Integer,Table((Bool,Bool),Bool)))));
+            assert not (C[i] == None as Table(Integer,(Integer,Integer,Table((Bool,Bool),Bool))));
             Tabletemp <- Unwrap(C[i]);
             Tabletemptilde <- invoke GBL[i](Tabletemp);
             Ctilde[i] <- Some(Tabletemptilde);
@@ -50,7 +50,7 @@ package Mod {
         dinf <- new Table(Integer, Table(Bool,Bits(n)));
 
         for jj: 1 <= jj <= w {
-             tmp <- invoke GETKEYSIN[(d)](jj);
+             tmp <- invoke GETKEYSIN[d](jj);
              dinf[jj] <- Some(tmp);
         }
 

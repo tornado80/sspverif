@@ -8,7 +8,7 @@ package EKeys {
     }
 
     oracle GETKEYS(h: Integer) -> Table(Bool,Bits(n)) {
-        assert (not (T[h]==None as Table(Bool,Bits(n))));
+        assert not (T[h]==None as Table(Bool,Bits(n)));
         Z <- Unwrap(T[h]);
         return Z;
     }

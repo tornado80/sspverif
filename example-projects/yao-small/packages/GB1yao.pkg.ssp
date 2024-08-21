@@ -47,7 +47,7 @@ package GB1yao {
            kl <- Unwrap(Sl[dl]);
            kr <- Unwrap(Sr[dr]);
            kj <- zeron;
-           if ((not dl) and (not dr))
+           if (not dl and not dr)
                {kj <- Unwrap(Sj[false]);}
            rin     <-$ Bits(n);
            rout    <-$ Bits(n);
@@ -59,7 +59,7 @@ package GB1yao {
            kl <- Unwrap(Sl[dl]);
            kr <- Unwrap(Sr[dr]);
            kj <- zeron;
-           if ((not dl) and (not dr))
+           if (not dl and not dr)
                {kj <- Unwrap(Sj[false]);}
            rin     <-$ Bits(n);
            rout    <-$ Bits(n);
@@ -71,7 +71,7 @@ package GB1yao {
            kl <- Unwrap(Sl[dl]);
            kr <- Unwrap(Sr[dr]);
            kj <- zeron;
-           if ((not dl) and (not dr))
+           if (not dl and not dr)
               {kj <- Unwrap(Sj[false]);}
            rin     <-$ Bits(n);
            rout    <-$ Bits(n);
@@ -83,7 +83,7 @@ package GB1yao {
            kl <- Unwrap(Sl[dl]);
            kr <- Unwrap(Sr[dr]);
            kj <- zeron;
-           if ((not dl) and (not dr))
+           if (not dl and not dr)
                {kj <- Unwrap(Sj[false]);}
            rin     <-$ Bits(n);
            rout    <-$ Bits(n);

@@ -23,22 +23,23 @@ package Ev {
         bit        <- invoke GETBIT(i);
         temppre[i] <- Some(bit);}
         for j:  1 <= j <= d {
-        assert (not (C[j] == None as Table(Integer,(Integer,Integer, Table((Bool,Bool),Bool)))));
-             layer    <- Unwrap(C[j]);
-             for ii: 1 <= ii <= w {
-             gate     <- Unwrap(layer[ii]);
-             (l,r,op) <- parse gate;
-             assert (not (op[(true,  true)] == None as Bool));
-             assert (not (op[(true, false)] == None as Bool));
-             assert (not (op[(false, true)] == None as Bool));
-             assert (not (op[(false,false)] == None as Bool));
-             zl <- Unwrap(temppre[l]);
-             zr <- Unwrap(temppre[r]);
-             temppost[ii] <- op[(zl,zr)];}
-             tempre <- temppost;}
+        assert not (C[j] == None as Table(Integer,(Integer,Integer, Table((Bool,Bool),Bool))));
+        layer    <- Unwrap(C[j]);
+        for ii: 1 <= ii <= w {
+        gate     <- Unwrap(layer[ii]);
+        (l,r,op) <- parse gate;
+        assert not (op[(true,  true)] == None as Bool);
+        assert not (op[(true, false)] == None as Bool);
+        assert not (op[(false, true)] == None as Bool);
+        assert not (op[(false,false)] == None as Bool);
+        zl <- Unwrap(temppre[l]);
+        zr <- Unwrap(temppre[r]);
+        temppost[ii] <- op[(zl,zr)];}
+        tempre <- temppost;}
         for iii: 1 <= iii <= w {
-        bit <- Unwrap(temppost[iii]);
-        _ <- invoke SETBIT(iii,bit);}
+          bit <- Unwrap(temppost[iii]);
+          _ <- invoke SETBIT(iii,bit);
+        }
         return ;
     }
 

@@ -25,7 +25,7 @@ package OT {
 
     oracle VIEW() -> Bits(q) {
         for i: 1<= i <= t {
-            assert (not (z[i] == None as Bool));
+            assert not (z[i] == None as Bool);
             flag[i] <- Some(true);
                           }
         r <-$ Bits(q); 

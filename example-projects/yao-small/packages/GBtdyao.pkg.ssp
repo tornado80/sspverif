@@ -37,15 +37,15 @@ package GBtdyao {
                  }
               Z[i]  <-  Some(ZZ);}
         for ii: 1 <= ii <= d {
-             assert (not (C[ii] == None as Table(Integer,(Integer,Integer, Table((Bool,Bool),Bool)))));
+             assert not (C[ii] == None as Table(Integer,(Integer,Integer, Table((Bool,Bool),Bool))));
              for jj: 1 <= jj <= w {
              layer    <- Unwrap(C[ii]);
              gate     <- Unwrap(layer[jj]);
              (l,r,op) <- parse gate;
-             assert (not (op[(true,  true)] == None as Bool));
-             assert (not (op[(true, false)] == None as Bool));
-             assert (not (op[(false, true)] == None as Bool));
-             assert (not (op[(false,false)] == None as Bool));
+             assert not (op[(true,  true)] == None as Bool);
+             assert not (op[(true, false)] == None as Bool);
+             assert not (op[(false, true)] == None as Bool);
+             assert not (op[(false,false)] == None as Bool);
              bl  <- true; br <- true;
              z   <- Unwrap(op[(bl,br)]);
              YY      <- Unwrap(Z[ii]); XX <- Unwrap(Z[(ii-1)]);
