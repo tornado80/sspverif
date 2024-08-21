@@ -756,6 +756,21 @@ pub fn handle_for_loop<'a>(
 
 use crate::util::scope::{Declaration, Scope};
 
+fn handle_types_def_list(
+    ctx: &mut ParseGameContext,
+    ast: Pair<Rule>,
+) -> Result<Vec<(String, Type)>, ParseGameError> {
+    ast.into_inner()
+        .map(|pair_ast| {
+            let mut inner = pair_ast.into_inner();
+            let name = inner.next().unwrap().as_str();
+            let ty = handle_type(&ctx.parse_ctx(), inner.next().unwrap())?;
+
+            Ok((name.to_string(), ty))
+        })
+        .collect()
+}
+
 pub fn handle_instance_assign_list(
     ctx: &mut ParseGameContext,
     ast: Pair<Rule>,
@@ -766,12 +781,12 @@ pub fn handle_instance_assign_list(
         Vec<(PackageConstIdentifier, Expression)>,
         Vec<(String, Type)>,
     ),
-    super::composition::ParseGameError,
+    ParseGameError,
 > {
     debug_assert_matches!(ast.as_rule(), Rule::instance_assign_list);
     let span = ast.as_span();
     let mut params = vec![];
-    let types = vec![];
+    let mut types = vec![];
 
     for elem in ast.into_inner() {
         match elem.as_rule() {
@@ -799,15 +814,8 @@ pub fn handle_instance_assign_list(
                 }
             }
             Rule::types_def => {
-                todo!();
-                /*
-                    let mut defs = handle_types_def_list(
-                        elem.into_inner().next().unwrap(),
-                        inst_name,
-                        ctx.file_name,
-                    )?;
-                    types.append(&mut defs);
-                */
+                let mut defs = handle_types_def_list(ctx, elem.into_inner().next().unwrap())?;
+                types.append(&mut defs);
             }
             _ => unreachable!("{:#?}", elem),
         }
