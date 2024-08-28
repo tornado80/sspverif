@@ -36,6 +36,8 @@ package KXReal {
                         /* responder nonce */
                  Maybe(Bits(n)),
                         /* MAC key */
+                 Maybe((Integer,Integer,Bits(n),Bits(n),Bits(n))),
+                        /* SID */
                  Integer))
                         /* nbr of messages sent */
 
@@ -53,57 +55,60 @@ package KXReal {
         if (ltk_ == None)
            {ltk_   <- LTK[(U,u,V,v)];}
         ltk        <- Unwrap(ltk_);
-        State[ctr_] <- Some((U,u,V,v,ltk,None,None,None,None,None,0));
+        State[ctr_] <- Some((U,u,V,v,ltk,None,None,None,None,None,None,0));
         return ctr_;
     }
 
 oracle Send1(ctr: Integer) -> Bits(n)
     {
         assert not (State[ctr] == None);     /* session has been initialized */
-        (U,u,V,v,ltk,acc,k,ni_,nr,kmac,mess) <- parse Unwrap(State[ctr]);
+        (U,u,V,v,ltk,acc,k,ni_,nr,kmac,sid,mess) <- parse Unwrap(State[ctr]);
         assert (u == false);                 /* session belongs to initiator */
         assert (mess == 0);                  /* session has not yet sent its first message */
         ni        <-$ Bits(n);
-        State[ctr] <- Some((U,u,V,v,ltk,acc,k,Some(ni),nr,kmac,1));
+        State[ctr] <- Some((U,u,V,v,ltk,acc,k,Some(ni),nr,kmac,sid,1));
         return ni;
     } 
 
 oracle Send2(ctr: Integer, ni: Bits(n)) -> (Bits(n),Bits(n))
     {
         assert not (State[ctr] == None);     /* session has been initialized */
-        (V,v,U,u,ltk,acc,k_,ni_,nr_,kmac_,mess)   <- parse Unwrap(State[ctr]);
+        (V,v,U,u,ltk,acc,k_,ni_,nr_,kmac_,sid_,mess)   <- parse Unwrap(State[ctr]);
         assert (v    == true );              /* session belongs to responder */
         assert (mess == 0    );              /* session has not yet sent its first message */
         assert (acc  == None );              /* session is still running           */
         nr         <-$ Bits(n);
         (k, kmac)  <-  parse prf(U,V,ni,nr); /* need role agreement here, to be fixed */
         tau        <-  mac(kmac,U,V,ni,nr,2);
-        State[ctr] <-  Some((V,v,U,u,ltk,acc,Some(k),Some(ni),Some(nr),Some(kmac),1));
+        sid        <- (U,V,ni,nr,tau);
+        State[ctr] <-  Some((V,v,U,u,ltk,acc,Some(k),Some(ni),Some(nr),Some(kmac),Some(sid),1));
         return (nr,tau);
     } 
 
 oracle Send3(ctr: Integer, nr: Bits(n), tau: Bits(n)) -> (Bits(n), Bits(n))
     {
         assert not (State[ctr] == None);    /* session has been initialized */
-        (U,u,V,v,ltk,acc,k_,ni,nr_,kmac_,mess)     <- parse Unwrap(State[ctr]);
+        (U,u,V,v,ltk,acc,k_,ni,nr_,kmac_,sid_,mess)     <- parse Unwrap(State[ctr]);
         assert (u    == false);              /* session belongs to initiator       */
         assert (mess == 1);                  /* session has sent its first message */
         assert (acc  == None);               /* session is still running           */
         (k, kmac)  <- parse prf(U,V,Unwrap(ni),nr);
         if not (mac(kmac,U,V,Unwrap(ni),nr,2) == tau) {return (zeron,zeron);}
         tau_       <- mac(kmac,V,U,Unwrap(ni),nr,3);
-        State[ctr] <- Some((U,u,V,v,ltk,Some(true),Some(k),ni,Some(nr),Some(kmac),2));
+        sid        <- (U,V,Unwrap(ni),nr,tau);
+        State[ctr] <- Some((U,u,V,v,ltk,Some(true),Some(k),ni,Some(nr),Some(kmac),Some(sid),2));
+        _ <- invoke Set(sid,Unwrap(k));
         return (Unwrap(ni),tau_);
     } 
 
 oracle Send4(ctr: Integer, ni: Bits(n), tau:Bits(n)) -> Bool
     {
         assert not (State[ctr] == None);     /* session has been initialized */
-        (V,v,U,u,ltk,acc,k_,ni_,nr,kmac,mess)     <- parse Unwrap(State[ctr]);
-        assert (v    == true);                   /* session belongs to responder       */
+        (V,v,U,u,ltk,acc,k_,ni_,nr,kmac,sid,mess)     <- parse Unwrap(State[ctr]);
+        assert (v    == true);                /* session belongs to responder       */
         assert (mess == 1);                   /* session has sent its first message */
         assert (acc  == None);                /* session is still running           */
-        if (not (mac(Unwrap(kmac),U,V,ni,Unwrap(nr),3) == tau) or
+        if (not (mac(Unwrap(kmac),U,V,ni,Unwrap(nr),sid,3) == tau) or
             not (ni == Unwrap(ni_)))
             {
              acc <- Some(false);
@@ -112,7 +117,7 @@ oracle Send4(ctr: Integer, ni: Bits(n), tau:Bits(n)) -> Bool
             }
         acc <- Some(true);
              /* todo: update state */
+        _ <- invoke Set(sid,Unwrap(k));
         return true;  
     } 
-
 }
