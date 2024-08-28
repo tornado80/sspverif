@@ -1,4 +1,4 @@
-package PRFReal {
+package MACReal {
     params {
         n: Integer,
         prf: fn Bits(n), Bits(n) -> Bits(n),
