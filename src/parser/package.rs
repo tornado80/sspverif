@@ -625,6 +625,7 @@ pub fn handle_expression(
         Rule::expr_tuple => {
             if let Some(expected_type) = expected_type {
                 let Type::Tuple(types) = expected_type else {
+                    // what if there is an expected type, but it's not a tuple?
                     let inner_types = ast
                         .into_inner()
                         .map(|expr| handle_expression(ctx, expr, None).map(|expr| expr.get_type()))
@@ -639,10 +640,30 @@ pub fn handle_expression(
                     .into());
                 };
 
+                let expr_asts = ast.into_inner().collect::<Vec<_>>();
+
+                // what if there is an expected type and it's a tuple, but it's the wrong length?
+                if expr_asts.len() != types.len() {
+                    let inner_types = expr_asts
+                        .into_iter()
+                        .map(|expr| handle_expression(ctx, expr, None).map(|expr| expr.get_type()))
+                        .collect::<Result<Vec<_>, _>>()?;
+
+                    return Err(TypeMismatchError {
+                        at: (span.start()..span.end()).into(),
+                        expected: expected_type.to_owned(),
+                        got: Type::Tuple(inner_types),
+                        source_code: ctx.named_source(),
+                    }
+                    .into());
+                }
+
                 Expression::Tuple(
-                    ast.into_inner()
-                        .map(|expr| {
-                            handle_expression(ctx, expr, Some(&Type::Tuple(types.to_owned())))
+                    expr_asts
+                        .into_iter()
+                        .zip(types.into_iter())
+                        .map(|(ast, expected_type)| {
+                            handle_expression(ctx, ast, Some(expected_type))
                         })
                         .collect::<Result<_, _>>()?,
                 )
