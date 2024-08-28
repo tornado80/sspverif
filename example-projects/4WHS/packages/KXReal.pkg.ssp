@@ -53,7 +53,7 @@ package KXReal {
         if (ltk_ == None)
            {ltk_   <- LTK[(U,u,V,v)];}
         ltk        <- Unwrap(ltk_);
-        State[ctr] <- Some((U,u,V,v,ltk,None as Bool,None as Bits(n),None as Bits(n),None as Bits(n),None as Bits(n),0));
+        State[ctr] <- Some((U,u,V,v,ltk,None,None,None,None,None,0));
         return ctr;
     }
 
