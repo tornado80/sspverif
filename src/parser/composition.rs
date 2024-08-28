@@ -415,7 +415,7 @@ pub fn handle_for_loop_body<'a>(
             Rule::instance_decl => handle_instance_decl_multi_inst(ctx, comp_spec)?,
 
             Rule::compose_decl_multi_inst => {
-                handle_compose_assign_body_list_multi_inst(ctx, comp_spec)?;
+                handle_compose_assign_body_list(ctx, comp_spec)?;
             }
             _ => unreachable!(),
         }
@@ -424,28 +424,28 @@ pub fn handle_for_loop_body<'a>(
     Ok(())
 }
 
-/*
-This functions parses the body of a compose block. It returns internal edges and exports.
- */
 pub fn handle_compose_assign_body_list(
     ctx: &mut ParseGameContext,
     ast: Pair<Rule>,
 ) -> Result<(), ParseGameError> {
-    handle_compose_assign_body_list_multi_inst(ctx, ast)
-}
+    debug_assert!(matches!(
+        ast.as_rule(),
+        Rule::compose_decl | Rule::compose_decl_multi_inst
+    ));
 
-pub fn handle_compose_assign_body_list_multi_inst(
-    ctx: &mut ParseGameContext,
-    ast: Pair<Rule>,
-) -> Result<(), ParseGameError> {
     for body in ast.into_inner() {
+        debug_assert!(matches!(
+            body.as_rule(),
+            Rule::compose_assign_body | Rule::compose_assign_body_multi_inst
+        ));
+
         let mut inner = body.into_inner();
         let src_inst_name = inner.next().unwrap().as_str();
 
-        let maybe_src_indices = inner.peek().unwrap();
-        let source_instance_idx = if matches!(maybe_src_indices.as_rule(), Rule::indices_ident) {
-            inner.next();
-            maybe_src_indices
+        let source_instance_idx = if inner.peek().unwrap().as_rule() == Rule::indices_ident {
+            inner
+                .next()
+                .unwrap()
                 .into_inner()
                 .map(
                     // TODO: Error handling
@@ -459,40 +459,43 @@ pub fn handle_compose_assign_body_list_multi_inst(
             vec![]
         };
 
-        match src_inst_name {
-            "adversary" => {
-                for multi_inst_export in handle_export_compose_assign_list_multi_inst(ctx, inner)? {
-                    match multi_inst_export.try_into() {
-                        Ok(export) => ctx.add_export(export),
-                        Err(NotSingleInstanceExportError(multi_export)) => {
-                            ctx.add_multi_inst_export(multi_export)
-                        }
+        let compose_assign_list_ast = inner.next().unwrap();
+        debug_assert_eq!(compose_assign_list_ast.as_rule(), Rule::compose_assign_list);
+
+        if src_inst_name == "adversary" {
+            for multi_inst_export in
+                handle_export_compose_assign_list_multi_inst(ctx, compose_assign_list_ast)?
+            {
+                match multi_inst_export.try_into() {
+                    Ok(export) => ctx.add_export(export),
+                    Err(NotSingleInstanceExportError(multi_export)) => {
+                        ctx.add_multi_inst_export(multi_export)
                     }
                 }
             }
-            _ => {
-                let source_pkgidx = ctx
-                    .instances_table
-                    .get(src_inst_name)
-                    .unwrap_or_else(|| {
-                        panic!(
-                            "instance {} not found in composition {}",
-                            src_inst_name, ctx.file_name
-                        )
-                    })
-                    .0;
+        } else {
+            let source_pkgidx = ctx
+                .instances_table
+                .get(src_inst_name)
+                .unwrap_or_else(|| {
+                    panic!(
+                        "instance {} not found in composition {}",
+                        src_inst_name, ctx.file_name
+                    )
+                })
+                .0;
 
-                for multi_instance_edge in handle_edges_compose_assign_list_multi_inst(
-                    ctx,
-                    inner,
-                    &source_instance_idx,
-                    source_pkgidx,
-                )? {
-                    match multi_instance_edge.try_into() {
-                        Ok(edge) => ctx.add_edge(edge),
-                        Err(NotSingleInstanceEdgeError(multi_edge)) => {
-                            ctx.add_multi_inst_edge(multi_edge)
-                        }
+            for multi_instance_edge in handle_edges_compose_assign_list_multi_inst(
+                ctx,
+                compose_assign_list_ast,
+                &source_instance_idx,
+                source_pkgidx,
+            )? {
+                println!("found edge {:?}", multi_instance_edge);
+                match multi_instance_edge.try_into() {
+                    Ok(edge) => ctx.add_edge(edge),
+                    Err(NotSingleInstanceEdgeError(multi_edge)) => {
+                        ctx.add_multi_inst_edge(multi_edge)
                     }
                 }
             }
@@ -504,11 +507,13 @@ pub fn handle_compose_assign_body_list_multi_inst(
 
 fn handle_export_compose_assign_list_multi_inst(
     ctx: &mut ParseGameContext,
-    ast: Pairs<Rule>,
+    ast: Pair<Rule>,
 ) -> Result<Vec<MultiInstanceExport>, ParseGameError> {
+    assert_eq!(ast.as_rule(), Rule::compose_assign_list);
+
     let mut exports = vec![];
 
-    for assignment in ast {
+    for assignment in ast.into_inner() {
         assert_eq!(assignment.as_rule(), Rule::compose_assign);
 
         let mut assignment = assignment.into_inner();
@@ -585,13 +590,15 @@ fn handle_export_compose_assign_list_multi_inst(
 
 fn handle_edges_compose_assign_list_multi_inst(
     ctx: &mut ParseGameContext,
-    ast: Pairs<Rule>,
+    ast: Pair<Rule>,
     source_instance_idx: &[Identifier],
     source_pkgidx: usize,
 ) -> Result<Vec<MultiInstanceEdge>, ParseGameError> {
+    assert_eq!(ast.as_rule(), Rule::compose_assign_list);
+
     let mut edges = vec![];
 
-    for assignment in ast {
+    for assignment in ast.into_inner() {
         assert_eq!(assignment.as_rule(), Rule::compose_assign);
 
         let mut assignment = assignment.into_inner();

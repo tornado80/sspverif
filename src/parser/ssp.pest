@@ -85,7 +85,7 @@ compose_assign_body_list_multi_inst = _{ (compose_assign_body_multi_inst ~ ","? 
 compose_assign_body             = { identifier ~ ":" ~ "{" ~ compose_assign_list? ~ "}" }
 compose_assign_body_multi_inst  = { identifier ~ indices_ident? ~ ":" ~ "{" ~ compose_assign_list? ~ "}" }
 
-compose_assign_list = _{ compose_assign ~ ( "," ~ compose_assign )* ~ ","? }
+compose_assign_list = { compose_assign ~ ( "," ~ compose_assign )* ~ ","? }
 
 compose_assign      =  { compose_assign_modifier? ~ identifier ~ ":" ~ identifier }
 
