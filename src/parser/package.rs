@@ -23,10 +23,7 @@ use crate::{
     },
     statement::{CodeBlock, FilePosition, Statement},
     types::Type,
-    util::{
-        resolver::Named,
-        scope::{Declaration, OracleContext, Scope},
-    },
+    util::scope::{Declaration, OracleContext, Scope},
     writers::smt::{
         declare::declare_const,
         exprs::{SmtAnd, SmtAssert, SmtEq2, SmtExpr, SmtIte, SmtLt, SmtLte, SmtNot},
@@ -1140,22 +1137,21 @@ pub fn handle_oracle_def(
     ctx.scope.enter();
 
     for (name, tipe) in &sig.args {
-        ctx.scope
-            .declare(
-                name,
-                Declaration::Identifier(Identifier::PackageIdentifier(
-                    PackageIdentifier::OracleArg(PackageOracleArgIdentifier {
-                        pkg_name: ctx.pkg_name.to_string(),
-                        oracle_name: sig.name.clone(),
-                        name: name.clone(),
-                        tipe: tipe.clone(),
-                        pkg_inst_name: None,
-                        game_name: None,
-                        game_inst_name: None,
-                        proof_name: None,
-                    }),
-                )),
-            )?;
+        ctx.scope.declare(
+            name,
+            Declaration::Identifier(Identifier::PackageIdentifier(PackageIdentifier::OracleArg(
+                PackageOracleArgIdentifier {
+                    pkg_name: ctx.pkg_name.to_string(),
+                    oracle_name: sig.name.clone(),
+                    name: name.clone(),
+                    tipe: tipe.clone(),
+                    pkg_inst_name: None,
+                    game_name: None,
+                    game_inst_name: None,
+                    proof_name: None,
+                },
+            ))),
+        )?;
     }
 
     let code = handle_code(ctx, inner.next().unwrap(), &sig)?;
@@ -1411,67 +1407,6 @@ impl MultiInstanceIndices {
                 "in smt_range_predicate, found unhandled expression variant {expr:?}",
                 expr = other
             ),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Hash, PartialEq, PartialOrd, Eq, Ord)]
-pub struct ForSpec {
-    ident: Identifier,
-    start: Expression,
-    end: Expression,
-    start_comp: ForComp,
-    end_comp: ForComp,
-}
-
-impl Named for ForSpec {
-    fn as_name(&self) -> &str {
-        self.ident.ident_ref()
-    }
-}
-
-impl ForSpec {
-    pub fn new(
-        ident: Identifier,
-        start: Expression,
-        end: Expression,
-        start_comp: ForComp,
-        end_comp: ForComp,
-    ) -> Self {
-        Self {
-            ident,
-            start,
-            end,
-            start_comp,
-            end_comp,
-        }
-    }
-
-    pub fn ident(&self) -> &Identifier {
-        &self.ident
-    }
-
-    pub fn start(&self) -> &Expression {
-        &self.start
-    }
-
-    pub fn end(&self) -> &Expression {
-        &self.end
-    }
-
-    pub fn start_comp(&self) -> &ForComp {
-        &self.start_comp
-    }
-
-    pub fn end_comp(&self) -> &ForComp {
-        &self.end_comp
-    }
-
-    pub(crate) fn map_identifiers<F: Fn(&Identifier) -> Identifier>(&self, f: F) -> Self {
-        Self {
-            start: map_ident_expr(&self.start, &f),
-            end: map_ident_expr(&self.end, &f),
-            ..self.clone()
         }
     }
 }
