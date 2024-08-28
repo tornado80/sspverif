@@ -25,7 +25,7 @@ use crate::{
     types::Type,
     util::{
         resolver::{Resolver, SliceResolver},
-        scope::{AlreadyDefinedError, Declaration, Scope},
+        scope::{Declaration, Scope, Error as ScopeError},
     },
 };
 
@@ -140,7 +140,7 @@ impl<'a> ParseProofContext<'a> {
             pkgs: packages.values().cloned().collect(),
         }
     }
-    fn declare(&mut self, name: &str, clone: Declaration) -> Result<(), AlreadyDefinedError> {
+    fn declare(&mut self, name: &str, clone: Declaration) -> Result<(), ScopeError> {
         self.scope.declare(name, clone)
     }
     // TODO: check dupes here?

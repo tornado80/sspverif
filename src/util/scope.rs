@@ -3,6 +3,7 @@ use thiserror::Error;
 use crate::identifier::Identifier;
 use crate::package::OracleSig;
 use std::collections::{HashMap, HashSet};
+use miette::Diagnostic;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum OracleContext {
@@ -32,7 +33,7 @@ impl Declaration {
     }
 }
 
-#[derive(Debug, Error)]
+#[derive(Debug, Error, Diagnostic)]
 pub enum Error {
     #[error("identifier `{0}` already declared with {1:?}")]
     AlreadyDefined(String, Declaration),
@@ -43,9 +44,6 @@ pub struct Scope {
     entries: Vec<HashMap<String, Declaration>>,
     types: HashSet<Declaration>,
 }
-
-#[derive(Debug, Clone, Copy)]
-pub struct AlreadyDefinedError;
 
 impl Default for Scope {
     fn default() -> Self {
@@ -85,7 +83,7 @@ impl Scope {
         &mut self,
         id: &str,
         scope_type: Declaration,
-    ) -> Result<(), AlreadyDefinedError> {
+    ) -> Result<(), Error> {
         self.types.insert(scope_type.clone());
         if self.lookup(id).is_none() {
             if let Some(last) = self.entries.last_mut() {
@@ -95,7 +93,7 @@ impl Scope {
                 panic!("scope declare: scope stack is empty");
             }
         } else {
-            Err(AlreadyDefinedError) // already defined
+            Err(Error::AlreadyDefined(id.to_string(), self.lookup(id).unwrap())) // already defined
         }
     }
 

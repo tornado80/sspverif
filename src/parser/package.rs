@@ -146,6 +146,10 @@ pub enum ParsePackageError {
 
     #[error(transparent)]
     #[diagnostic(transparent)]
+    Scope(#[from] crate::util::scope::Error),
+
+    #[error(transparent)]
+    #[diagnostic(transparent)]
     ForLoopIdentifersDontMatch(#[from] ForLoopIdentifersDontMatchError),
 }
 
@@ -1151,8 +1155,7 @@ pub fn handle_oracle_def(
                         proof_name: None,
                     }),
                 )),
-            )
-            .unwrap();
+            )?;
     }
 
     let code = handle_code(ctx, inner.next().unwrap(), &sig)?;
