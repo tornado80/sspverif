@@ -22,8 +22,6 @@ use crate::{
         NotSingleInstanceEdgeError, NotSingleInstanceExportError, OracleSig, Package,
         PackageInstance,
     },
-    statement::FilePosition,
-    //transforms::{resolvetypes::ResolveTypesPackageInstanceTransform, PackageInstanceTransform},
     types::Type,
     util::scope::AlreadyDefinedError,
 };

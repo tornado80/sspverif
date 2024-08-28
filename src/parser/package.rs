@@ -622,11 +622,38 @@ pub fn handle_expression(
                 .map(|expr| handle_expression(ctx, expr, None))
                 .collect::<Result<_, _>>()?,
         ),
-        Rule::expr_tuple => Expression::Tuple(
-            ast.into_inner()
-                .map(|expr| handle_expression(ctx, expr, None))
-                .collect::<Result<_, _>>()?,
-        ),
+        Rule::expr_tuple => {
+            if let Some(expected_type) = expected_type {
+                let Type::Tuple(types) = expected_type else {
+                    let inner_types = ast
+                        .into_inner()
+                        .map(|expr| handle_expression(ctx, expr, None).map(|expr| expr.get_type()))
+                        .collect::<Result<Vec<_>, _>>()?;
+
+                    return Err(TypeMismatchError {
+                        at: (span.start()..span.end()).into(),
+                        expected: expected_type.to_owned(),
+                        got: Type::Tuple(inner_types),
+                        source_code: ctx.named_source(),
+                    }
+                    .into());
+                };
+
+                Expression::Tuple(
+                    ast.into_inner()
+                        .map(|expr| {
+                            handle_expression(ctx, expr, Some(&Type::Tuple(types.to_owned())))
+                        })
+                        .collect::<Result<_, _>>()?,
+                )
+            } else {
+                Expression::Tuple(
+                    ast.into_inner()
+                        .map(|expr| handle_expression(ctx, expr, None))
+                        .collect::<Result<_, _>>()?,
+                )
+            }
+        }
         Rule::expr_set => Expression::Set(
             ast.into_inner()
                 .map(|expr| handle_expression(ctx, expr, None))
