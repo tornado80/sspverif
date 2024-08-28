@@ -2,97 +2,117 @@ package KXReal {
     params {
         n: Integer,
         zeron: Bits(n),
-        prf: fn Bits(n), Int, Int, Bits(n), Bits(n) -> Bits(n), Bits(n),
-        mac: fn Bits(n), Bits(n), Int -> Bits(n),
+        prf: fn Bits(n), Integer, Integer, Bits(n), Bits(n) -> (Bits(n), Bits(n)),
+        mac: fn Bits(n), Bits(n), Integer -> Bits(n),
     }
     
     state {
-          LTK:  Table((Int,Bool,Int,Bool ), Bits(n)),   /* First integer corresponds to initiator */
-          ACC:  Table((Int,Bool), Bool),      /* 0: initiator, 
-                                                 1: responder, 
-                                                 None: running, 
-                                                 1: accepted, 
-                                                 0: rejected   */
-          K:    Table((Int,Bool,Int), Bits(n)),   /* session key */
-          Peer: Table((Int,Bool,Int), Int),       /* Intended Peer */
-          NI:   Table((Int,Bool,Int), Bits(n)),   /* initiator nonce */
-          NR:   Table((Int,Bool,Int), Bits(n)),   /* responder nonce */
-          MACK: Table((Int,Bool,Int), Bits(n)),   /* MAC key */
-          CTR:  Table((Int,Bool), Int),           /* administrative session identifier */
+          LTK:  Table((Integer,Bool,Integer,Bool), Bits(n)),   /* Honest keys */
+          ctr:  Integer,                                   /* administrative identifier  */
+          State: Table(Integer,
+                  /*    administrative identifier  */
+                (
+                 Integer,
+                  /*    ID of owner of the session */
+                 Bool,
+                  /*    0: initiator, 
+                        1: responder,*/ 
+                 Integer,
+                  /* Intended Peer */
+                 Bool,
+                  /*    0: initiator, 
+                        1: responder,*/ 
+                 Bits(n),
+                  /*    ltk          */
+                 Maybe(Bool),
+                  /* None: running, 
+                        1: accepted, 
+                        0: rejected   */
+                 Maybe(Bits(n)),
+                        /* session key */
+                 Maybe(Bits(n)),
+                        /* initiator nonce */
+                 Maybe(Bits(n)),
+                        /* responder nonce */
+                 Maybe(Bits(n)),
+                        /* MAC key */
+                 Integer))
+                        /* nbr of messages sent */
+
           }
 
-    oracle NewSession(U: Int, u: Bool, V: Int, v: Bool) -> Int {
-        assert not (u = v);                   /* Own role most be different from role of intended peer */
-        if (CTR[U,u]= None)
-           {
-            CTR[U,u] <-0
-           }
-        CTR[U,u] <- CTR[U,u] + 1 ; 
-        ctr <- CTR[U,u];
-        Peer[U,u,ctr] <- V\\
-        if ((LTK[U,u,V,v]= None) and (LTK[V,v,U,u]= None))
+    oracle NewSession(U: Integer, u: Bool, V: Integer, v: Bool, ltk_: Maybe(Bits(n))) -> Integer {
+        assert not (u == v);       /* Different roles */
+        ctr <- (ctr + 1) ; 
+        if ((LTK[(U,u,V,v)]== None) and (LTK[(V,v,U,u)]== None))
            {
             r            <-$ Bits(n);
-            LTK[U,u,V,v] <-r;
-            LTK[V,v,U,u] <-r;
+            LTK[(U,u,V,v)] <-Some(r);
+            LTK[(V,v,U,u)] <-Some(r);
            }
+        if (ltk_ == None)
+           {ltk_   <- LTK[(U,u,V,v)];}
+        ltk        <- Unwrap(ltk_);
+        State[ctr] <- Some((U,u,V,v,ltk,None as Bool,None as Bits(n),None as Bits(n),None as Bits(n),None as Bits(n),0));
+        return ctr;
     }
 
-oracle Send1(U: Int,u: Bool,ctr: Int) -> Bits(n)
+oracle Send1(ctr: Integer) -> Bits(n)
     {
-        assert (u=0)                       /* session belongs to initiator */
-        assert not (Peer[U,u,ctr] = None); /* session has been initialized */
-        assert NI[U,u,ctr] = None;         /* session has not yet sent its first message */
-        ni          <-$ Bits(n)
-        NI[U,u,ctr] <-Some(ni);
-        return ni
+        assert not (State[ctr] == None);     /* session has been initialized */
+        (U,u,V,v,ltk,acc,k,ni,nr,kmac,mess) <- parse Unwrap(State[ctr]);
+        assert (u == 0)     ;                  /* session belongs to initiator */
+        assert (mess == 0);                  /* session has not yet sent its first message */
+        ni_        <-$ Bits(n);
+        State[ctr] <- Some(U,u,V,v,ltk,acc,k,Some(ni_),nr,kmac,1);
+        return ni;
     } 
 
-oracle Send2(V: Int,v: Bool,ctr: Int, ni: Bits(n)) -> Bits(n),Bits(n)
+oracle Send2(ctr: Integer, ni: Bits(n)) -> (Bits(n),Bits(n))
     {
-        assert (v=1)                       /* session belongs to responder */
-        assert not (Peer[V,v,ctr] = None); /* session has been initialized */
-        assert NR[V,v,ctr] = None;         /* session has not yet sent its first message */
-        nr            <-$ Bits(nr)
-        NR[V,v,ctr]   <-Some(nr);
-        NI[V,v,ctr]   <-Some(ni);
-        ksess, kmac   <- prf(Unwrap(Peer[V,v,ctr]),V,ni,nr);
-        K[V,v,ctr]    <- Some(ksess);
-        MACK[V,v,ctr] <- Some(kmac);
-        tau           <- mac(kmac,Peer[V,v,ctr],V,ni,nr,2);
-        return nr,tau
+        assert not (State[ctr] == None);     /* session has been initialized */
+        (V,v,U,u,ltk,acc,k_,ni_,nr_,kmac_,mess)   <- parse Unwrap(State[ctr]);
+        assert (v    == 1);                  /* session belongs to responder */
+        assert (mess == 0);                  /* session has not yet sent its first message */
+        assert (acc  == None);               /* session is still running           */
+        nr_        <-$ Bits(nr);
+        (k, kmac)  <-  parse prf(U,V,ni,nr); /* need role agreement here, to be fixed */
+        tau        <-  mac(kmac,U,V,ni,nr,2);
+        State[ctr] <-  Some(V,v,U,u,ltk,acc,Some(k),Some(ni_),Some(nr),Some(kmac),1);
+        return (nr,tau);
     } 
 
-oracle Send3(U: Int,u: Bool,ctr: Int, nr: Bits(n), tau:Bits(n)) -> Bits(n)
+oracle Send3(ctr: Integer, nr: Bits(n), tau: Bits(n)) -> Bits(n)
     {
-        assert (u=0)                       /* session belongs to initiator       */
-        assert not (Peer[U,u,ctr] = None); /* session has been initialized       */
-        assert not (NR[U,u,ctr] = None);   /* session has sent its first message */
-        assert (ACC[U,u,ctr] = None);      /* session is still running           */
-        ni <- Unwrap(NI[U,u,ctr]);
-        ksess, kmac   <- prf(U,Unwrap(Peer[U,u,ctr]),ni,nr);
-        if not (mac(kmac,Peer[U,u,ctr],V,ni,nr,2) = tau) {return zeron,zeron;}
-        ACC[U,u,ctr]  <- Some(1);
-        NR[U,u,ctr]   <- Some(nr);
-        K[U,u,ctr]    <- Some(ksess);
-        MACK[U,u,ctr] <- Some(kmac);
-        tau'          <- mac(kmac,Peer[U,u,ctr],U,ni,nr,3);
-        return ni,tau'
+        assert not (State[ctr] == None);    /* session has been initialized */
+        (U,u,V,v,ltk,acc,k_,ni,nr_,kmac,mess)     <- parse Unwrap(State[ctr]);
+        assert (u    == 0);                  /* session belongs to initiator       */
+        assert (mess == 1);                  /* session has sent its first message */
+        assert (acc  == None);               /* session is still running           */
+        (k, kmac)  <- parse prf(U,V,Unwrap(ni),nr);
+        if not (mac(kmac,U,V,ni,nr,2) == tau) {return (zeron,zeron);}
+        tau_       <- mac(kmac,V,U,ni,nr,3);
+        State[ctr] <- Some(U,u,V,v,ltk,Some(true),Some(k),ni,Some(nr),Some(kmac),2);
+        return (ni,tau_);
     } 
 
-oracle Send4(V: Int,v: Bool,ctr: Int,S ni: Bits(n), tau:Bits(n)) -> Bool
+oracle Send4(ctr: Integer, ni: Bits(n), tau:Bits(n)) -> Bool
     {
-        assert (v=1)                       /* session belongs to responder       */
-        assert not (Peer[V,v,ctr] = None); /* session has been initialized       */
-        assert not (NR[V,v,ctr] = None);   /* session has sent its first message */
-        assert (ACC[V,v,ctr] = None);      /* session is still running           */
-        if (not mac(kmac,Peer[V,v,ctr],V,ni,nr,3) = tau or
-            not ni = Unwrap(NI[V,v,ctr]))
+        assert not (State[ctr] == None);     /* session has been initialized */
+        (V,v,U,u,ltk,acc,k_,ni_,nr_,kmac_,mess)     <- parse Unwrap(State[ctr]);
+        assert (v    == 1);                   /* session belongs to responder       */
+        assert (mess == 1);                   /* session has sent its first message */
+        assert (acc  == None);                /* session is still running           */
+        if (not (mac(kmac,U,V,Unwrap(ni),Unwrap(nr),3) == tau) or
+            not (ni == Unwrap(ni_)))
             {
-             ACC[V,v,ctr] \gets Some(0);
+             acc <- Some(false);
+             /* todo: update state */
              return 0;
             }
-        ACC[V,v,ctr] \gets Some(1);
+        acc <- Some(true);
+             /* todo: update state */
         return 1;  
     } 
 
+}
