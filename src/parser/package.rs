@@ -661,7 +661,7 @@ pub fn handle_expression(
                 Expression::Tuple(
                     expr_asts
                         .into_iter()
-                        .zip(types.into_iter())
+                        .zip(types.iter())
                         .map(|(ast, expected_type)| {
                             handle_expression(ctx, ast, Some(expected_type))
                         })
