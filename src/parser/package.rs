@@ -1223,7 +1223,7 @@ pub fn handle_oracle_imports_oracle_sig(
                     multi_inst_idx.extend_from_slice(&indices);
                     inner.next();
                 }
-                Rule::fn_maybe_arglist => {
+                Rule::oracle_maybe_arglist => {
                     if !next.as_str().is_empty() {
                         arglist = handle_arglist(ctx, next.into_inner().next().unwrap())?;
                     }

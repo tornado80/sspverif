@@ -425,7 +425,7 @@ fn format_import_oracles(
                 let mut inner = entry.into_inner();
                 let ident = inner.next().unwrap().as_str();
                 let mut args = inner.next().unwrap();
-                let ident = if !matches!(args.as_rule(), Rule::fn_maybe_arglist) {
+                let ident = if !matches!(args.as_rule(), Rule::oracle_maybe_arglist) {
                     let results = args
                         .into_inner()
                         .map(|pair| format_expr(pair))

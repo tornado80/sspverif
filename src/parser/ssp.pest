@@ -130,7 +130,7 @@ tipe = _{ type_integer | type_bool | type_string | type_bits | type_maybe | type
   type_maybe = { "Maybe(" ~ tipe ~ ")" }
   type_fn = { "fn" ~ fn_arglist ~ "->" ~ tipe }
     fn_arglist = { fn_arg_spec ~ ( "," ~ fn_arg_spec )* }
-    fn_arg_spec = { ( identifier ~ ":" )? ~ tipe }
+    fn_arg_spec = { tipe }
   type_tuple = { "(" ~ tipe ~ ( "," ~ tipe )* ~ ")"}
   type_empty = { "()" }
   type_list = { "List(" ~ tipe ~ ")"}
@@ -139,15 +139,17 @@ tipe = _{ type_integer | type_bool | type_string | type_bits | type_maybe | type
 
 state = { kw_state ~ "{" ~ decl_list? ~ "}"  }
 
-fn_maybe_arglist = { fn_arglist? }
-
 import_oracles = {kw_import ~ kw_oracles ~ "{" ~ import_oracles_body ~ "}" }
 import_oracles_body = { (import_oracles_for | import_oracles_oracle_sig ~ "," )* }
-import_oracles_oracle_sig = { identifier ~ indices_expr? ~ "(" ~ fn_maybe_arglist ~ ")" ~ ("->" ~ tipe)? }
+import_oracles_oracle_sig = { identifier ~ indices_expr? ~ "(" ~ oracle_maybe_arglist ~ ")" ~ ("->" ~ tipe)? }
 import_oracles_for = { kw_for ~ identifier ~ ":" ~ expression ~ for_comp ~ identifier ~ for_comp ~ expression ~ "{" ~ import_oracles_body ~ "}" }
 
 oracle_def = { kw_oracle ~ oracle_sig ~ "{" ~ code ~ "}" }
-oracle_sig = { identifier ~ "(" ~ fn_maybe_arglist ~ ")" ~ ("->" ~ tipe)? }
+oracle_sig = { identifier ~ "(" ~ oracle_maybe_arglist ~ ")" ~ ("->" ~ tipe)? }
+    oracle_maybe_arglist = { oracle_arglist? }
+    oracle_arglist = { oracle_arg_spec ~ ( "," ~ oracle_arg_spec )* }
+    oracle_arg_spec = { identifier ~ ":" ~ tipe }
+
 
 
 identifier = @{ ( ASCII_ALPHA | "_" ) ~ ( ASCII_ALPHA | ASCII_DIGIT | "_" )* }
