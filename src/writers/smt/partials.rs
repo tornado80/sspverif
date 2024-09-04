@@ -98,7 +98,7 @@ impl PartialStep {
 
 use super::patterns::*;
 
-struct SmtDefineFunction<B: Into<SmtExpr>> {
+pub struct SmtDefineFunction<B: Into<SmtExpr>> {
     name: String,
     args: Vec<(String, SmtExpr)>,
     ret_sort: SmtExpr,

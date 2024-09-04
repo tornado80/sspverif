@@ -40,7 +40,7 @@ use std::convert::TryInto;
 use std::hash::Hash;
 
 #[derive(Clone, Debug)]
-pub struct PackageParseContext<'a> {
+pub struct ParsePackageContext<'a> {
     pub file_name: &'a str,
     pub file_content: &'a str,
     pub scope: Scope,
@@ -54,11 +54,11 @@ pub struct PackageParseContext<'a> {
 }
 
 impl<'a> ParseContext<'a> {
-    fn pkg_parse_context(self, pkg_name: &'a str) -> PackageParseContext {
+    fn pkg_parse_context(self, pkg_name: &'a str) -> ParsePackageContext {
         let mut scope = Scope::new();
         scope.enter();
 
-        PackageParseContext {
+        ParsePackageContext {
             file_name: self.file_name,
             file_content: self.file_content,
             pkg_name,
@@ -73,12 +73,12 @@ impl<'a> ParseContext<'a> {
     }
 }
 
-impl<'a> PackageParseContext<'a> {
-    fn named_source(&self) -> NamedSource<String> {
+impl<'a> ParsePackageContext<'a> {
+    pub(crate) fn named_source(&self) -> NamedSource<String> {
         NamedSource::new(self.file_name, self.file_content.to_string())
     }
 
-    fn parse_ctx(&self) -> ParseContext<'a> {
+    pub(crate) fn parse_ctx(&self) -> ParseContext<'a> {
         ParseContext {
             file_name: self.file_name,
             file_content: self.file_content,
@@ -88,8 +88,8 @@ impl<'a> PackageParseContext<'a> {
     }
 }
 
-impl<'a> From<PackageParseContext<'a>> for ParseContext<'a> {
-    fn from(value: PackageParseContext<'a>) -> Self {
+impl<'a> From<ParsePackageContext<'a>> for ParseContext<'a> {
+    fn from(value: ParsePackageContext<'a>) -> Self {
         Self {
             file_name: value.file_name,
             file_content: value.file_content,
@@ -153,7 +153,7 @@ pub enum ParsePackageError {
 #[derive(Error, Debug)]
 pub enum ParseOracleSigError {}
 
-impl<'a> PackageParseContext<'a> {
+impl<'a> ParsePackageContext<'a> {
     fn with_scope(self, scope: Scope) -> Self {
         Self { scope, ..self }
     }
@@ -180,7 +180,7 @@ pub enum IdentType {
 }
 
 pub fn handle_pkg_spec(
-    mut ctx: PackageParseContext,
+    mut ctx: ParsePackageContext,
     pkg_spec: Pair<Rule>,
 ) -> Result<Package, ParsePackageError> {
     // TODO(2024-04-03): get rid of the unwraps in params, state, import_oracles
@@ -239,7 +239,7 @@ pub fn handle_pkg_spec(
 }
 
 pub fn handle_decl_list(
-    ctx: &mut PackageParseContext,
+    ctx: &mut ParsePackageContext,
     decl_list: Pair<Rule>,
     ident_type: IdentType,
 ) -> Result<(), ParsePackageError> {
@@ -299,7 +299,7 @@ pub fn handle_decl_list(
 
 // TODO: identifier is optional, type needs custom type info
 pub fn handle_arglist(
-    ctx: &PackageParseContext,
+    ctx: &ParsePackageContext,
     arglist: Pair<Rule>,
 ) -> Result<Vec<(String, Type)>, NoSuchTypeError> {
     let parse_ctx = ctx.parse_ctx();
@@ -720,7 +720,7 @@ pub fn handle_identifier_in_code_rhs(
 }
 
 pub fn handle_identifier_in_code_lhs(
-    ctx: &mut PackageParseContext,
+    ctx: &mut ParsePackageContext,
     name_ast: Pair<Rule>,
     oracle_name: &str,
     expression_type: Type,
@@ -789,7 +789,7 @@ pub enum ParseIdentifierError {
 }
 
 pub fn handle_code(
-    ctx: &mut PackageParseContext,
+    ctx: &mut ParsePackageContext,
     code: Pair<Rule>,
     oracle_sig: &OracleSig,
 ) -> Result<CodeBlock, ParsePackageError> {
@@ -1125,7 +1125,7 @@ pub enum ParseOracleDefError {
 }
 
 pub fn handle_oracle_def(
-    ctx: &mut PackageParseContext,
+    ctx: &mut ParsePackageContext,
     oracle_def: Pair<Rule>,
 ) -> Result<(), ParsePackageError> {
     let span = oracle_def.as_span();
@@ -1170,7 +1170,7 @@ pub fn handle_oracle_def(
 }
 
 pub fn handle_oracle_sig(
-    ctx: &PackageParseContext,
+    ctx: &ParsePackageContext,
     oracle_sig: Pair<Rule>,
 ) -> Result<OracleSig, ParsePackageError> {
     let mut inner = oracle_sig.into_inner();
@@ -1197,7 +1197,7 @@ pub fn handle_oracle_sig(
 }
 
 pub fn handle_oracle_imports_oracle_sig(
-    ctx: &mut PackageParseContext,
+    ctx: &mut ParsePackageContext,
     oracle_sig: Pair<Rule>,
     loopvar_scope: &Scope,
 ) -> Result<OracleSig, ParsePackageError> {
@@ -1446,7 +1446,7 @@ pub enum ParseImportOraclesError {
 }
 
 pub fn handle_import_oracles_body(
-    ctx: &mut PackageParseContext,
+    ctx: &mut ParsePackageContext,
     ast: Pair<Rule>,
     loopvar_scope: &mut Scope,
 ) -> Result<(), ParsePackageError> {
@@ -1556,6 +1556,43 @@ pub fn handle_import_oracles_body(
             _ => unreachable!(),
         }
     }
+    Ok(())
+}
+
+pub fn handle_import_oracles_oracle_sig(
+    ctx: &mut ParsePackageContext,
+    ast: Pair<Rule>,
+    loopvar_scope: &mut Scope,
+) -> Result<(), ParsePackageError> {
+    assert_eq!(ast.as_rule(), Rule::import_oracles_oracle_sig);
+    let span = ast.as_span();
+    let sig = handle_oracle_imports_oracle_sig(ctx, ast, loopvar_scope)?;
+    let source_span = SourceSpan::from(span.start()..span.end());
+    if ctx
+        .imported_oracles
+        .insert(sig.name.clone(), (sig.clone(), source_span))
+        .is_some()
+    {
+        return Err(OracleAlreadyImportedError {
+            source_code: NamedSource::new(ctx.file_name, ctx.file_content.to_string()),
+            at: source_span,
+            oracle_name: sig.name.clone(),
+        }
+        .into());
+    }
+
+    ctx.scope.declare(
+        &sig.name,
+        Declaration::Oracle(
+            OracleContext::Package {
+                pkg_name: ctx.pkg_name.to_string(),
+            },
+            sig.clone(),
+        ),
+        // we already checked that the oracle has not yet been imported, so this
+        // shouldn't fail?
+    )?;
+
     Ok(())
 }
 
