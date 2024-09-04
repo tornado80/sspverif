@@ -7,10 +7,11 @@ package KXReal {
     }
     
     state {
-          LTK:   Table((Integer,Bool,Integer,Bool), Bits(n)), /* Honest keys */
-          ctr_:  Integer,                                     /* administrative identifier  */
+          LTK:   Table(Integer, Bits(n)),    /* administrative kid, keys    */
+          H:     Table(Integer, Bool),       /* administrative kid, honesty */
+          ctr_:  Integer,                    /* administrative sid  */
           State: Table(Integer,
-                  /*    administrative identifier  */
+                  /*    administrative sid  */
                 (
                  Integer,
                   /*    ID of owner of the session */
@@ -43,18 +44,16 @@ package KXReal {
 
           }
 
-    oracle NewSession(U: Integer, u: Bool, V: Integer, v: Bool, ltk_: Maybe(Bits(n))) -> Integer {
-        assert not (u == v);       /* Different roles */
-        ctr_ <- (ctr_ + 1) ; 
-        if ((LTK[(U,u,V,v)]== None) and (LTK[(V,v,U,u)]== None))
-           {
-            r            <-$ Bits(n);
-            LTK[(U,u,V,v)] <-Some(r);
-            LTK[(V,v,U,u)] <-Some(r);
-           }
-        if (ltk_ == None)
-           {ltk_   <- LTK[(U,u,V,v)];}
-        ltk        <- Unwrap(ltk_);
+              import oracles {
+        Set(sid: (Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n))), Bits(n)),
+    }
+
+
+    oracle NewSession(U: Integer, u: Bool, V: Integer, v: Bool, kid: Integer) -> Integer {
+        assert not (u == v);            /* Different roles */
+        assert not (LTK[kid] == None);  /* key exists */
+        ctr_        <- (ctr_ + 1) ; 
+        ltk         <- Unwrap(LTK[kid]);
         State[ctr_] <- Some((U,u,V,v,ltk,None,None,None,None,None,None,0));
         return ctr_;
     }
@@ -65,8 +64,9 @@ oracle Send1(ctr: Integer) -> Bits(n)
         (U,u,V,v,ltk,acc,k,ni_,nr,kmac,sid,mess) <- parse Unwrap(State[ctr]);
         assert (u == false);                 /* session belongs to initiator */
         assert (mess == 0);                  /* session has not yet sent its first message */
-        ni        <-$ Bits(n);
-        State[ctr] <- Some((U,u,V,v,ltk,acc,k,Some(ni),nr,kmac,sid,1));
+        assert (acc  == None );              /* session is still running           */
+        ni         <-$ Bits(n);
+        State[ctr] <-  Some((U,u,V,v,ltk,acc,k,Some(ni),nr,kmac,sid,1));
         return ni;
     } 
 
