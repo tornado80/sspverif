@@ -10,6 +10,7 @@ package KXReal {
           LTK:   Table(Integer, Bits(n)),    /* administrative kid, keys    */
           H:     Table(Integer, Bool),       /* administrative kid, honesty */
           ctr_:  Integer,                    /* administrative sid  */
+          kid_:  Integer,                    /* administrative kid  */
           State: Table(Integer,
                   /*    administrative sid  */
                 (
@@ -37,7 +38,7 @@ package KXReal {
                         /* responder nonce */
                  Maybe(Bits(n)),
                         /* MAC key */
-                 Maybe((Integer,Integer,Bits(n),Bits(n),Bits(n))),
+                 Maybe((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)))),
                         /* SID */
                  Integer))
                         /* nbr of messages sent */
@@ -45,11 +46,25 @@ package KXReal {
           }
 
               import oracles {
-        Set(sid: (Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n))), Bits(n)),
+        Set(sid: (Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n))), k: Bits(n)),
+    }
+
+oracle NewKey(ltk: Maybe(Bits(n))) -> Integer {
+      kid_ <- (kid_ + 1);
+      if (ltk == None)
+      {
+        ltk_ <-$Bits(n);
+        LTK[kid_] <- Some(ltk_);
+        H[kid_]   <- Some(true); 
+      }
+      else {
+        LTK[kid_] <- ltk;
+        H[kid_]   <- Some(false);}
+      return kid_;
     }
 
 
-    oracle NewSession(U: Integer, u: Bool, V: Integer, v: Bool, kid: Integer) -> Integer {
+oracle NewSession(U: Integer, u: Bool, V: Integer, v: Bool, kid: Integer) -> Integer {
         assert not (u == v);            /* Different roles */
         assert not (LTK[kid] == None);  /* key exists */
         ctr_        <- (ctr_ + 1) ; 
@@ -80,7 +95,7 @@ oracle Send2(ctr: Integer, ni: Bits(n)) -> (Bits(n),Bits(n))
         nr         <-$ Bits(n);
         (k, kmac)  <-  parse prf(U,V,ni,nr); /* need role agreement here, to be fixed */
         tau        <-  mac(kmac,U,V,ni,nr,2);
-        sid        <- (U,V,ni,nr,tau);
+        sid        <- (U,V,Some(ni),Some(nr),Some(tau));
         State[ctr] <-  Some((V,v,U,u,ltk,acc,Some(k),Some(ni),Some(nr),Some(kmac),Some(sid),1));
         return (nr,tau);
     } 
@@ -94,8 +109,8 @@ oracle Send3(ctr: Integer, nr: Bits(n), tau: Bits(n)) -> (Bits(n), Bits(n))
         assert (acc  == None);               /* session is still running           */
         (k, kmac)  <- parse prf(U,V,Unwrap(ni),nr);
         if not (mac(kmac,U,V,Unwrap(ni),nr,2) == tau) {return (zeron,zeron);}
-        tau_       <- mac(kmac,V,U,Unwrap(ni),nr,3);
-        sid        <- (U,V,Unwrap(ni),nr,tau);
+        tau_       <- mac(kmac,U,V,Unwrap(ni),nr,3);
+        sid        <- (U,V,ni,Some(nr),Some(tau));
         State[ctr] <- Some((U,u,V,v,ltk,Some(true),Some(k),ni,Some(nr),Some(kmac),Some(sid),2));
         _ <- invoke Set(sid,k);
         return (Unwrap(ni),tau_);
@@ -104,21 +119,21 @@ oracle Send3(ctr: Integer, nr: Bits(n), tau: Bits(n)) -> (Bits(n), Bits(n))
 oracle Send4(ctr: Integer, ni: Bits(n), tau:Bits(n)) -> Bool
     {
         assert not (State[ctr] == None);     /* session has been initialized */
-        (V,v,U,u,ltk,acc,k_,ni_,nr,kmac,sid,mess)     <- parse Unwrap(State[ctr]);
+        (V,v,U,u,ltk,acc,k,ni_,nr,kmac,sid_,mess)     <- parse Unwrap(State[ctr]);
         assert (v    == true);                /* session belongs to responder       */
         assert (mess == 1);                   /* session has sent its first message */
         assert (acc  == None);                /* session is still running           */
-        if (not (mac(Unwrap(kmac),U,V,ni,Unwrap(nr),sid,3) == tau) or
+        if (not (mac(Unwrap(kmac),U,V,ni,Unwrap(nr),3) == tau) or
             not (ni == Unwrap(ni_)))
             {
              acc <- Some(false);
-             State[ctr] <- Some(V,v,U,u,ltk,acc,k_,ni_,nr,kmac,sid,mess);
+             State[ctr] <- Some((V,v,U,u,ltk,acc,k,ni_,nr,kmac,sid_,mess));
              return false;
             }
         acc <- Some(true);
-        sid        <- (U,V,ni,Unwrap(nr),tau);
-        State[ctr] <- Some(V,v,U,u,ltk,acc,k_,ni_,nr,kmac,sid,mess);
-        _ <- invoke Set(sid,k);
+        sid        <- (U,V,Some(ni),nr,Some(tau));
+        State[ctr] <- Some((V,v,U,u,ltk,acc,k,ni_,nr,kmac,Some(sid),mess));
+        _ <- invoke Set(sid,Unwrap(k));
         return true;  
     } 
 }
