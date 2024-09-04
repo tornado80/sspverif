@@ -8,7 +8,7 @@ composition Hybrid {
     instance mod_prf = modPRF {
         params {
             n:   n,
-            prf: prf,
+          prf: prf,
         }
     }
     

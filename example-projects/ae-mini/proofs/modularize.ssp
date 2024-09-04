@@ -1,0 +1,63 @@
+proof Modularize {
+    const n: Integer;
+  
+    instance monprfreal = Monprfreal {
+        params {
+            n  : n  ,
+        }
+    }
+
+    instance modprfreal = Modprfreal {
+        params {
+            n  : n  ,
+        }
+    }
+
+    instance monprfideal = Monprfideal {
+        params {
+            n  : n  ,
+        }
+    }
+
+    instance modprfideal = Modprfreal {
+        params {
+            n  : n  ,
+        }
+    }
+
+
+    assumptions {
+        MonPRF: monprfreal ~ monprfideal
+    }
+
+    gamehops {
+    equivalence modprfreal monprfreal 
+        {
+            EVAL: 
+            {
+                invariant: [
+                    ./proofs/invariant-PRF.smt2
+                ]
+
+                lemmas {
+                    aborts-equal-EVAL:   []
+                    invariant-EVAL:      [no-abort-EVAL]
+                    same-output-EVAL:    [no-abort-EVAL]
+                }
+            }
+            GET: 
+            {
+                invariant: [
+                    ./proofs/invariant-PRF.smt2
+                ]
+
+                lemmas {
+                    aborts-equal-GET:   []
+                    invariant-GET:      [no-abort-GET]
+                    same-output-GET:    [no-abort-GET]
+                }
+            }
+        }
+
+    }
+}

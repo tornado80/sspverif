@@ -1,11 +1,10 @@
-composition Monprfreal {
+composition Monprfideal {
     const n: Integer;
-    const prf: fn Bits(n), Bits(n) -> Bits(n);
+/*    const prf: fn Bits(n), Bits(n) -> Bits(n);*/
     
-    instance prf = PRFReal {
+    instance prf = PRFIdeal {
         params {
             n:   n,
-          prf: prf,
         }
     }
 
