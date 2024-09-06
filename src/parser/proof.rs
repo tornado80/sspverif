@@ -25,7 +25,7 @@ use crate::{
     types::Type,
     util::{
         resolver::{Resolver, SliceResolver},
-        scope::{Declaration, Scope, Error as ScopeError},
+        scope::{Declaration, Error as ScopeError, Scope},
     },
 };
 
@@ -360,6 +360,8 @@ fn handle_instance_assign_list(
                             name,
                             tipe: value.get_type(),
                             inst_info: None,
+                            game_inst_name: None,
+                            proof_name: None,
                         },
                         value,
                     )

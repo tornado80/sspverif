@@ -261,6 +261,8 @@ pub fn handle_comp_spec_list<'a>(
                             name: name.clone(),
                             tipe,
                             inst_info: None,
+                            game_inst_name: None,
+                            proof_name: None,
                         }
                         .into(),
                     ),

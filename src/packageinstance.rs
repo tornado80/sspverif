@@ -292,12 +292,7 @@ pub(crate) mod instantiate {
                 ),
 
                 Statement::Assign(ident, index, value, pos) => Statement::Assign(
-                    rewrite_identifier(
-                        self.inst_name,
-                        self.parent_name,
-                        ident,
-                        self.type_assignments,
-                    ),
+                    rewrite_lhs_identifier(self, ident, self.type_assignments),
                     index.clone().map(|expr| self.rewrite_expression(&expr)),
                     self.rewrite_expression(value),
                     *pos,
@@ -305,25 +300,13 @@ pub(crate) mod instantiate {
                 Statement::Parse(idents, expr, pos) => Statement::Parse(
                     idents
                         .iter()
-                        .map(|ident| {
-                            rewrite_identifier(
-                                self.inst_name,
-                                self.parent_name,
-                                ident,
-                                self.type_assignments,
-                            )
-                        })
+                        .map(|ident| rewrite_lhs_identifier(self, ident, self.type_assignments))
                         .collect(),
                     self.rewrite_expression(expr),
                     *pos,
                 ),
                 Statement::Sample(ident, index, sample_id, tipe, pos) => Statement::Sample(
-                    rewrite_identifier(
-                        self.inst_name,
-                        self.parent_name,
-                        ident,
-                        self.type_assignments,
-                    ),
+                    rewrite_lhs_identifier(self, ident, self.type_assignments),
                     index.clone().map(|expr| self.rewrite_expression(&expr)),
                     *sample_id,
                     tipe.rewrite(&type_rewrite_rules),
@@ -339,12 +322,7 @@ pub(crate) mod instantiate {
                     tipe,
                     file_pos,
                 } => Statement::InvokeOracle {
-                    id: rewrite_identifier(
-                        self.inst_name,
-                        self.parent_name,
-                        id,
-                        self.type_assignments,
-                    ),
+                    id: rewrite_lhs_identifier(self, id, self.type_assignments),
                     opt_idx: opt_idx.clone().map(|expr| self.rewrite_expression(&expr)),
                     opt_dst_inst_idx: opt_dst_inst_idx
                         .clone()
@@ -438,107 +416,18 @@ pub(crate) mod instantiate {
                     })
                     .unwrap(),
 
+                // can only happen in oracle code, i.e. package code
+                (_, Expression::TableAccess(ident, expr)) => {
+                    Expression::TableAccess(rewrite_lhs_identifier(self, &ident, &[]), expr)
+                }
+
                 (_, expr) => expr,
             })
         }
     }
 
-    pub(crate) fn rewrite_expression(
-        inst_name: &str,
-        game_name: &str,
-        expr: &Expression,
-        const_assignments: &[(Identifier, Expression)],
-        type_assignments: &[(String, Type)],
-    ) -> Expression {
-        expr.map(|expr| match expr {
-            Expression::Identifier(Identifier::PackageIdentifier(PackageIdentifier::Const(
-                pkg_const_ident,
-            ))) => const_assignments
-                .iter()
-                .find_map(|(search, replace)| match (search, replace) {
-                    (Identifier::PackageIdentifier(PackageIdentifier::Const(search)), new_expr) => {
-                        if search.name == pkg_const_ident.name {
-                            let new_expr = new_expr.map(|expr| match expr {
-                                Expression::Identifier(Identifier::GameIdentifier(game_ident)) => {
-                                    let inst_info = GameIdentInstanciationInfo {
-                                        lower: pkg_const_ident.clone(),
-                                        pkg_inst_name: inst_name.to_string(),
-                                    };
-
-                                    Expression::Identifier(Identifier::GameIdentifier(
-                                        game_ident.with_instance_info(inst_info),
-                                    ))
-                                }
-                                other => other,
-                            });
-                            Some(new_expr)
-                        } else {
-                            None
-                        }
-                    }
-
-                    other => {
-                        unreachable!(
-                            "expected a game identifier when rewriting, got {other:?}",
-                            other = other
-                        )
-                    }
-                })
-                .unwrap(),
-
-            Expression::Identifier(Identifier::GameIdentifier(GameIdentifier::Const(
-                game_const_ident,
-            ))) => const_assignments
-                .iter()
-                .find_map(|(search, replace)| match (search, replace) {
-                    (Identifier::GameIdentifier(GameIdentifier::Const(search)), new_expr) => {
-                        if search.name == game_const_ident.name {
-                            let new_expr = new_expr.map(|expr| match expr {
-                                Expression::Identifier(Identifier::ProofIdentifier(
-                                    proof_ident,
-                                )) => {
-                                    let inst_info = ProofIdentInstanciationInfo {
-                                        lower: game_const_ident.clone(),
-                                        game_inst_name: inst_name.to_string(),
-                                    };
-
-                                    Expression::Identifier(Identifier::ProofIdentifier(
-                                        proof_ident.with_instance_info(inst_info),
-                                    ))
-                                }
-                                other => other,
-                            });
-                            Some(new_expr)
-                        } else {
-                            None
-                        }
-                    }
-
-                    other => {
-                        unreachable!(
-                            "expected a proof identifier when rewriting, got {other:?}",
-                            other = other
-                        )
-                    }
-                })
-                .unwrap_or_else(||  panic!("tried finding a value for {game_const_ident:?}, but that was not in the list of declared values {const_assignments:?}", game_const_ident = game_const_ident, const_assignments = const_assignments)),
-
-            Expression::Identifier(other_ident) => Expression::Identifier(rewrite_identifier(
-                inst_name,
-                game_name,
-                &other_ident,
-                type_assignments,
-            )),
-            Expression::TableAccess(ident, expr) => {
-                Expression::TableAccess(rewrite_identifier(inst_name, game_name, &ident, type_assignments), expr)
-            },
-            other => other.clone(),
-        })
-    }
-
-    pub(crate) fn rewrite_identifier(
-        pkg_inst_name: &str,
-        game_name: &str,
+    pub(crate) fn rewrite_lhs_identifier(
+        ctx: &InstantiationContext,
         ident: &Identifier,
         type_assignments: &[(String, Type)],
     ) -> Identifier {
@@ -547,7 +436,7 @@ pub(crate) mod instantiate {
             .map(|(name, tipe)| (Type::UserDefined(name.to_string()), tipe.clone()))
             .collect();
 
-        match ident {
+        let mut new_ident = match ident {
             Identifier::PackageIdentifier(pkg_ident) => {
                 let pkg_ident = match pkg_ident {
                     PackageIdentifier::Const(_) => {
@@ -558,16 +447,12 @@ pub(crate) mod instantiate {
                     }
                     PackageIdentifier::State(state_ident) => {
                         PackageIdentifier::State(PackageStateIdentifier {
-                            pkg_inst_name: Some(pkg_inst_name.to_string()),
-                            game_name: Some(game_name.to_string()),
                             tipe: state_ident.tipe.rewrite(&type_rewrite_rules),
                             ..state_ident.clone()
                         })
                     }
                     PackageIdentifier::Local(local_ident) => {
                         PackageIdentifier::Local(PackageLocalIdentifier {
-                            pkg_inst_name: Some(pkg_inst_name.to_string()),
-                            game_name: Some(game_name.to_string()),
                             tipe: local_ident.tipe.rewrite(&type_rewrite_rules),
                             ..local_ident.clone()
                         })
@@ -579,23 +464,17 @@ pub(crate) mod instantiate {
 
                     PackageIdentifier::OracleArg(arg_ident) => {
                         PackageIdentifier::OracleArg(PackageOracleArgIdentifier {
-                            pkg_inst_name: Some(pkg_inst_name.to_string()),
-                            game_name: Some(game_name.to_string()),
                             tipe: arg_ident.tipe.rewrite(&type_rewrite_rules),
                             ..arg_ident.clone()
                         })
                     }
                     PackageIdentifier::ImportsLoopVar(loopvar_ident) => {
                         PackageIdentifier::ImportsLoopVar(PackageImportsLoopVarIdentifier {
-                            pkg_inst_name: Some(pkg_inst_name.to_string()),
-                            game_name: Some(game_name.to_string()),
                             ..loopvar_ident.clone()
                         })
                     }
                     PackageIdentifier::CodeLoopVar(loopvar_ident) => {
                         PackageIdentifier::CodeLoopVar(PackageOracleCodeLoopVarIdentifier {
-                            pkg_inst_name: Some(pkg_inst_name.to_string()),
-                            game_name: Some(game_name.to_string()),
                             ..loopvar_ident.clone()
                         })
                     }
@@ -612,6 +491,18 @@ pub(crate) mod instantiate {
             ),
 
             other => unreachable!("won't rewrite deprecated identifier {:?}", other),
+        };
+
+        match ctx.src {
+            InstantiationSource::Package { .. } => {
+                new_ident.set_pkg_inst_info(ctx.inst_name.to_string(), ctx.parent_name.to_string());
+            }
+            InstantiationSource::Game { .. } => {
+                new_ident
+                    .set_game_inst_info(ctx.inst_name.to_string(), ctx.parent_name.to_string());
+            }
         }
+
+        new_ident
     }
 }

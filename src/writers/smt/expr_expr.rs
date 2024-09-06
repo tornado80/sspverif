@@ -108,6 +108,7 @@ impl From<Expression> for SmtExpr {
             Expression::Identifier(Identifier::PackageIdentifier(PackageIdentifier::State(
                 pkg_state_ident,
             ))) => {
+                println!("{pkg_state_ident:?}");
                 let pattern = PackageStatePattern {
                     game_inst_name: &pkg_state_ident.game_inst_name.unwrap(),
                     pkg_inst_name: &pkg_state_ident.pkg_inst_name.unwrap(),
