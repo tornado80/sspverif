@@ -7,10 +7,11 @@ package KXReal {
     }
     
     state {
-          LTK:   Table(Integer, Bits(n)),    /* administrative kid, keys    */
-          H:     Table(Integer, Bool),       /* administrative kid, honesty */
-          ctr_:  Integer,                    /* administrative sid  */
-          kid_:  Integer,                    /* administrative kid  */
+          LTK:   Table(Integer, Bits(n)),       /* administrative kid, keys    */
+          H:     Table(Integer, Bool),          /* administrative kid, honesty */
+          ctr_:  Integer,                       /* administrative sid  */
+          kid_:  Integer,                       /* administrative kid  */
+          Keys:  Table((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n))),(Bits(n),Maybe(Bool))), /* session key table  */
           State: Table(Integer,
                   /*    administrative sid  */
                 (
@@ -112,7 +113,17 @@ oracle Send3(ctr: Integer, nr: Bits(n), tau: Bits(n)) -> (Bits(n), Bits(n))
         tau_       <- mac(kmac,U,V,Unwrap(ni),nr,3);
         sid        <- (U,V,ni,Some(nr),Some(tau));
         State[ctr] <- Some((U,u,V,v,ltk,Some(true),Some(k),ni,Some(nr),Some(kmac),Some(sid),2));
-        _ <- invoke Set(sid,k);
+        entry      <- Keys[sid];
+        k__        <- Unwrap(k);
+        assert ((entry == None) or 
+                (Unwrap(entry) == (k__,Some(true )  ))   or
+                (Unwrap(entry) == (k__,Some(false)  ))   or
+                (Unwrap(entry) == (k__,None as Bool ))
+               );
+        if (entry == None)
+            {
+        Keys[sid]  <- Some((k__,None as Bool));
+            }
         return (Unwrap(ni),tau_);
     } 
 
@@ -133,7 +144,33 @@ oracle Send4(ctr: Integer, ni: Bits(n), tau:Bits(n)) -> Bool
         acc <- Some(true);
         sid        <- (U,V,Some(ni),nr,Some(tau));
         State[ctr] <- Some((V,v,U,u,ltk,acc,k,ni_,nr,kmac,Some(sid),mess));
-        _ <- invoke Set(sid,Unwrap(k));
-        return true;  
+        entry      <- Keys[sid];
+        k__        <- Unwrap(k);
+        assert ((entry == None) or
+                (Unwrap(entry) == (k__,Some(true )  ))   or
+                (Unwrap(entry) == (k__,Some(false)  ))   or
+                (Unwrap(entry) == (k__,None  as Bool))
+               );
+        if (entry == None)
+            {
+        Keys[sid]  <- Some((k,None as Bool));
+            }
+       return true;  
     } 
 }
+
+oracle Test(ctr) -> Bits(n)
+    {
+    (U,u,V,v,ltk,acc,k,ni,nr,kmac,sid,mess) <- parse Unwrap(State[ctr]);
+    assert (Some(Keys[Unwrap(sid)]) == (k,None as Bool) ) /* only allowed to test/reveal sid once */
+    Keys[Unwrap(sid)] <- (k,true)                 /* mark key as tested */
+    return k
+    }
+
+oracle Reveal(ctr) -> Bits(n)
+    {
+    (U,u,V,v,ltk,acc,k,ni,nr,kmac,sid,mess) <- parse Unwrap(State[ctr]);
+    assert (Some(Keys[Unwrap(sid)]) == (k,None as Bool) ) /* only allowed to test/reveal sid once */
+    Keys[Unwrap(sid)] <- (k,false)                 /* mark key as revealed */
+    return k
+    }
