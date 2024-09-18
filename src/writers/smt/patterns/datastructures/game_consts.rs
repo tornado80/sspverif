@@ -1,0 +1,95 @@
+use crate::{
+    impl_Into_for_PlainSort,
+    package::Composition,
+    types::Type,
+    writers::smt::{
+        patterns::{DatastructurePattern, DatastructureSpec},
+        sorts::SmtPlainSort,
+    },
+};
+
+pub struct GameConstsPattern<'a> {
+    pub game_name: &'a str,
+}
+
+#[derive(PartialEq, Eq)]
+pub struct GameConstsSelector<'a> {
+    name: &'a str,
+    ty: &'a Type,
+}
+
+pub struct GameConstsDeclareInfo<'a> {
+    pub(crate) game: &'a Composition,
+}
+
+pub struct GameConstsSort<'a> {
+    pub game_name: &'a str,
+}
+
+impl<'a> SmtPlainSort for GameConstsSort<'a> {
+    fn sort_name(&self) -> String {
+        let game_name = self.game_name;
+        format!("<GameConsts-{game_name}>")
+    }
+}
+
+impl_Into_for_PlainSort!('a, GameConstsSort<'a>);
+
+impl<'a> DatastructurePattern<'a> for GameConstsPattern<'a> {
+    type Sort = GameConstsSort<'a>;
+
+    type Constructor = ();
+
+    type Selector = GameConstsSelector<'a>;
+
+    type DeclareInfo = GameConstsDeclareInfo<'a>;
+
+    const CAMEL_CASE: &'static str = "GameConsts";
+
+    const KEBAB_CASE: &'static str = "game-consts";
+
+    fn sort(&self) -> Self::Sort {
+        GameConstsSort {
+            game_name: self.game_name,
+        }
+    }
+
+    fn constructor_name(&self, _cons: &Self::Constructor) -> String {
+        let kebab_case = Self::KEBAB_CASE;
+        let Self { game_name } = self;
+
+        format!("mk-{kebab_case}-{game_name}")
+    }
+
+    fn selector_name(&self, sel: &Self::Selector) -> String {
+        let kebab_case = Self::KEBAB_CASE;
+        let const_name = sel.name;
+        let Self { game_name } = self;
+
+        format!("{kebab_case}-{game_name}-{const_name}")
+    }
+
+    fn selector_sort(&self, sel: &Self::Selector) -> crate::writers::smt::exprs::SmtExpr {
+        sel.ty.into()
+    }
+
+    fn datastructure_spec(&self, info: &'a Self::DeclareInfo) -> DatastructureSpec<'a, Self> {
+        let fields = info
+            .game
+            .consts
+            .iter()
+            // function parameters are just declared as smtlib functions globally, so we don't
+            // want them to be part of this datatype. This way we also stay compatible with
+            // solvers that don't support higher-order functions.
+            .filter(|(_name, ty)| !matches!(ty, crate::types::Type::Fn(_, _)))
+            .map(|(name, ty)| GameConstsSelector { name, ty })
+            .collect();
+
+        DatastructureSpec(vec![((), fields)])
+    }
+
+    fn matchfield_name(&self, sel: &Self::Selector) -> String {
+        let const_name = sel.name;
+        format!("<match-{const_name}>")
+    }
+}

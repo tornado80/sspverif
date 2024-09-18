@@ -1,7 +1,9 @@
+pub mod game_consts;
 mod game_state;
 mod intermediate_state;
 mod normal_return;
 mod partial_return;
+pub mod pkg_consts;
 mod pkg_state;
 mod return_value;
 
