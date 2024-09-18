@@ -106,7 +106,7 @@ impl Expression {
             Expression::Some(expr) => Type::Maybe(Box::new(expr.get_type())),
             Expression::Unwrap(expr) => match expr.get_type() {
                 Type::Maybe(tipe) => *tipe,
-                _ => unreachable!("{expr:?}", expr = expr),
+                _ => unreachable!("Unwrapping non-maybe {expr:?}", expr = expr),
             },
 
             Expression::Sum(expr)
