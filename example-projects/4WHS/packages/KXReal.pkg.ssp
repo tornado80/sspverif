@@ -146,7 +146,7 @@ oracle Send4(ctr: Integer, ni: Bits(n), tau:Bits(n)) -> Bits(n)
             {
         Keys[sid]  <- Some((k,None as Bool));
             }
-        tau_       <- mac(zeron,-1,-1,zeron,zeron,4);
+        tau_       <- mac(kmac,0,0,zeron,zeron,4);
        return tau_;  
     } 
 

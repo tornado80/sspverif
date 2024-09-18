@@ -204,7 +204,7 @@ oracle Send4(ctr: Integer, ni: Bits(n), tau:Bits(n)) -> Bool
         assert (u    == false);              /* session belongs to initiator       */
         assert (mess == 2);                  /* session has sent its 2nd message */
         assert (acc  == None);               /* session is still running           */
-        if not (mac(Unwrap(kmac),-1,-1,zeron,zeron,3) == tau) {return false;}
+        if not (mac(Unwrap(kmac),0,0,zeron,zeron,3) == tau) {return false;}
         k          <- prf(ltk,U,V,ni,Unwrap(nr),true);
         sid        <- (U,V,ni,Some(nr),Some(tau));
         State[ctr] <- Some((U,u,V,v,ltk,Some(true),Some(k),ni,Some(nr),Some(kmac),Some(sid),2));
