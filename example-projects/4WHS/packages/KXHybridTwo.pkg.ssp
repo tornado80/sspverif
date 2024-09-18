@@ -196,23 +196,47 @@ oracle Send4(ctr: Integer, ni: Bits(n), tau:Bits(n)) -> Bool
             }
        return true;  
     } 
-}
 
-oracle Test(ctr) -> Bits(n)
+    oracle Send5(ctr: Integer, tau: Bits(n)) -> Bool
+    {
+        assert not (State[ctr] == None);    /* session has been initialized */
+        (U,u,V,v,ltk,acc,k,ni,nr,kmac,sid_,mess)     <- parse Unwrap(State[ctr]);
+        assert (u    == false);              /* session belongs to initiator       */
+        assert (mess == 2);                  /* session has sent its 2nd message */
+        assert (acc  == None);               /* session is still running           */
+        if not (mac(Unwrap(kmac),-1,-1,zeron,zeron,3) == tau) {return false;}
+        k          <- prf(ltk,U,V,ni,Unwrap(nr),true);
+        sid        <- (U,V,ni,Some(nr),Some(tau));
+        State[ctr] <- Some((U,u,V,v,ltk,Some(true),Some(k),ni,Some(nr),Some(kmac),Some(sid),2));
+        entry      <- Keys[sid];
+        assert ((entry == None) or 
+                (Unwrap(entry) == (k,Some(true )  ))   or
+                (Unwrap(entry) == (k,Some(false)  ))   or
+                (Unwrap(entry) == (k,None as Bool ))
+               );
+        if (entry == None)
+            {
+        Keys[sid]  <- Some((k,None as Bool));
+            }
+        return (Unwrap(ni),tau_);
+    } 
+
+
+oracle Test(ctr: Integer) -> Bits(n)
     {
     assert (tested == false);
     tested <- true;
     (U,u,V,v,ltk,acc,k,ni,nr,kmac,sid,mess) <- parse Unwrap(State[ctr]);
-    assert (Some(Keys[Unwrap(sid)]) == (k,None as Bool) ); /* only allowed to test/reveal sid once */
+    assert (Unwrap(Keys[Unwrap(sid)]) == (k,None as Bool) ); /* only allowed to test/reveal sid once */
     Keys[Unwrap(sid)] <- (k,true);                         /* mark key as tested */
     if b {k <-$ Bits(n);}
-    return k
+    return k;
     }
 
-oracle Reveal(ctr) -> Bits(n)
+oracle Reveal(ctr: Integer) -> Bits(n)
     {
     (U,u,V,v,ltk,acc,k,ni,nr,kmac,sid,mess) <- parse Unwrap(State[ctr]);
-    assert (Some(Keys[Unwrap(sid)]) == (k,None as Bool) ) /* only allowed to test/reveal sid once */
-    Keys[Unwrap(sid)] <- (k,false)                 /* mark key as revealed */
-    return k
+    assert (Unwrap(Keys[Unwrap(sid)]) == (k, None as Bool) ); /* only allowed to test/reveal sid once */
+    Unwrap(Keys[Unwrap(sid)]) <- (k, false)                 /* mark key as revealed */
+    return k;
     }
