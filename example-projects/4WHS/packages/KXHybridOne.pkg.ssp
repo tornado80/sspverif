@@ -185,17 +185,17 @@ oracle Test(ctr: Integer) -> Bits(n)
     tested <- true;
     (U,u,V,v,ltk,acc,k,ni,nr,kmac,sid,mess) <- parse Unwrap(State[ctr]);
     assert (Unwrap(Keys[Unwrap(sid)]) 
-        == (k, None as Bool) ); /* only allowed to test/reveal sid once */
-    Keys[Unwrap(sid)] <- Some((Unwrap(k),true));                         /* mark key as tested */
-    if b {k <-$ Bits(n);}
-    return Unwrap(k);
+        == (Unwrap(k), None as Bool) ); /* only allowed to test/reveal sid once */
+    Keys[Unwrap(sid)] <- Some((Unwrap(k),Some(true)));                         /* mark key as tested */
+    if b {k_ <-$ Bits(n);}
+    return k_;
     }
 
 oracle Reveal(ctr: Integer) -> Bits(n)
     {
     (U,u,V,v,ltk,acc,k,ni,nr,kmac,sid,mess) <- parse Unwrap(State[ctr]);
-    assert (Unwrap(Keys[Unwrap(sid)]) == (k, None as Bool) ); /* only allowed to test/reveal sid once */
-    Keys[Unwrap(sid)] <- Some(k, false);                 /* mark key as revealed */
+    assert (Unwrap(Keys[Unwrap(sid)]) == (Unwrap(k), None as Bool) ); /* only allowed to test/reveal sid once */
+    Keys[Unwrap(sid)] <- Some((Unwrap(k), Some(false)));                 /* mark key as revealed */
     return Unwrap(k);
     }
     }
