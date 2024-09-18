@@ -14,7 +14,7 @@ pub struct PackageConstsPattern<'a> {
 
 #[derive(PartialEq, Eq)]
 pub struct PackageConstsSelector<'a> {
-    name: &'a str,
+    pub(crate) name: &'a str,
     ty: &'a Type,
 }
 

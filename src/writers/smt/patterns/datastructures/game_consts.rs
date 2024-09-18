@@ -3,6 +3,7 @@ use crate::{
     package::Composition,
     types::Type,
     writers::smt::{
+        exprs::{SmtExpr, SmtLet},
         patterns::{DatastructurePattern, DatastructureSpec},
         sorts::SmtPlainSort,
     },
@@ -91,5 +92,33 @@ impl<'a> DatastructurePattern<'a> for GameConstsPattern<'a> {
     fn matchfield_name(&self, sel: &Self::Selector) -> String {
         let const_name = sel.name;
         format!("<match-{const_name}>")
+    }
+}
+
+pub fn bind_game_consts<Inner: Into<SmtExpr>>(
+    game: &Composition,
+    game_consts: &SmtExpr,
+    inner: Inner,
+) -> SmtLet<Inner> {
+    let game_name = game.name();
+
+    let pattern = GameConstsPattern { game_name };
+    let declare_info = GameConstsDeclareInfo { game };
+    let spec = pattern.datastructure_spec(&declare_info);
+
+    // unpack the only (constructor, selector_list) pair
+    let (_, selectors) = &spec.0[0];
+
+    SmtLet {
+        bindings: selectors
+            .iter()
+            .map(|selector| {
+                (
+                    selector.name.to_string(),
+                    pattern.access_unchecked(selector, game_consts.clone()),
+                )
+            })
+            .collect(),
+        body: inner,
     }
 }
