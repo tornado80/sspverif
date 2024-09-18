@@ -1,5 +1,14 @@
 use crate::expressions::Expression;
-use crate::identifier::Identifier;
+use crate::identifier::game_ident::{
+    GameConstIdentifier, GameIdentInstanciationInfo, GameIdentifier,
+};
+use crate::identifier::pkg_ident::{
+    PackageConstIdentifier, PackageIdentifier, PackageLocalIdentifier, PackageStateIdentifier,
+};
+use crate::identifier::proof_ident::{
+    ProofConstIdentifier, ProofIdentInstanciationInfo, ProofIdentifier,
+};
+use crate::identifier::{self, Identifier};
 use crate::package::{OracleDef, PackageInstance};
 use crate::proof::GameInstance;
 use crate::split::{SplitPath, SplitType};
@@ -907,6 +916,43 @@ impl<'a> CompositionSmtWriter<'a> {
             smt_expr.into()
         }
     }
+    fn identifier_name(&self, ident: &Identifier) -> String {
+        match &ident {
+            // TODO: we got rid of this Identifier variant. Need to update to the new ones
+            Identifier::Generated(name, _) => name.clone(),
+            Identifier::PackageIdentifier(PackageIdentifier::Const(PackageConstIdentifier {
+                name,
+                pkg_inst_name: Some(pkg_inst_name),
+                game_inst_name: Some(game_inst_name),
+                proof_name: Some(proof_name),
+                ..
+            })) => format!("ident-pkg-const-{proof_name}-{game_inst_name}-{pkg_inst_name}-{name}"),
+            Identifier::PackageIdentifier(PackageIdentifier::State(PackageStateIdentifier {
+                name,
+                pkg_inst_name: Some(pkg_inst_name),
+                game_inst_name: Some(game_inst_name),
+                proof_name: Some(proof_name),
+                ..
+            })) => format!("ident-pkg-state-{proof_name}-{game_inst_name}-{pkg_inst_name}-{name}"),
+            Identifier::PackageIdentifier(PackageIdentifier::Local(PackageLocalIdentifier {
+                name,
+                pkg_inst_name: Some(pkg_inst_name),
+                game_inst_name: Some(game_inst_name),
+                proof_name: Some(proof_name),
+                ..
+            })) => format!("ident-pkg-local-{proof_name}-{game_inst_name}-{pkg_inst_name}-{name}"),
+            other => {
+                unreachable!(
+                    "found unsupported identifier type: {other:?}",
+                    other = other
+                )
+            }
+        }
+    }
+
+    fn smt_identifier(&self, ident: &Identifier) -> SmtExpr {
+        self.identifier_name(ident).into()
+    }
 
     fn smt_build_assign<OCTX: GenericOracleContext>(
         &self,
@@ -921,30 +967,15 @@ impl<'a> CompositionSmtWriter<'a> {
         //eprintln!(r#"DEBUG code_smt_helper Assign {expr:?} to identifier {ident:?}")"#);
 
         // first build the unwrap expression, if we have to
-        let outexpr = if let Expression::Unwrap(inner) = &expr {
+        let outexpr = if let Expression::Unwrap(inner) = expr {
             ("maybe-get", *inner.clone()).into()
         } else {
-            expr.clone().into() // TODO maybe this should be inner??
+            expr.clone().into()
         };
 
         // then build the table store smt expression, in case we have to
         let outexpr = if let Some(idx) = opt_idx {
-            let oldvalue: SmtExpr = match &ident {
-                // TODO: we got rid of this Identifier variant. Need to update to the new ones
-                //
-                // &Identifier::State(PackageState { name, .. }) => {
-                //     //assert_eq!(pkgname, inst_name, "failed assertion: in an oracle in instance {inst_name} I found a state identifier with {pkgname}. I assumed these would always be equal.");
-                //     oracle_ctx
-                //         .pkg_inst_ctx()
-                //         .smt_access_pkgstate(names::var_selfstate_name(), name)
-                //         .unwrap()
-                // }
-                //
-                Identifier::Generated(_, _) => ident.clone().into(),
-                _ => {
-                    unreachable!("")
-                }
-            };
+            let oldvalue: SmtExpr = self.smt_identifier(ident);
 
             ("store", oldvalue, idx.clone(), outexpr).into()
         } else {
@@ -952,40 +983,13 @@ impl<'a> CompositionSmtWriter<'a> {
         };
 
         // build the actual smt assignment
-        let smtout = match ident {
-            // TODO: we got rid of this Identifier variant. Need to update to the new ones
-            //
-            // Identifier::State(PackageState { name, .. }) => {
-            //     //assert_eq!(pkgname, inst_name, "failed assertion: in an oracle in instance {inst_name} I found a state identifier with {pkgname}. I assumed these would always be equal.");
-            //     SmtLet {
-            //         bindings: vec![(
-            //             names::var_selfstate_name(),
-            //             oracle_ctx
-            //                 .pkg_inst_ctx()
-            //                 .smt_update_pkgstate(names::var_selfstate_name(), name, outexpr)
-            //                 .unwrap()
-            //                 .into(),
-            //         )],
-            //         body: result,
-            //     }
-            // }
-            Identifier::Generated(name, _) => SmtLet {
-                bindings: vec![(name.clone(), outexpr)]
-                    .into_iter()
-                    .filter(|(name, _)| name != "_:")
-                    .collect(),
-                body: result,
-            },
-
-            _ => {
-                unreachable!("can't assign to {:#?}", ident)
-            }
-        };
+        let smtout = SmtLet {
+            bindings: vec![(ident.smt_identifier(), outexpr)],
+            body: { result },
+        }
+        .into();
 
         // if it's an unwrap, also wrap it with the unwrap check.
-        // TODO: are we sure we don't want to deconstruct `inner` here?
-        // it seems impossible to me that expr ever matches here,
-        // because above we make sure it's an Expression::Typed.
         if let Expression::Unwrap(inner) = expr {
             SmtIte {
                 cond: SmtEq2 {
@@ -1000,7 +1004,7 @@ impl<'a> CompositionSmtWriter<'a> {
             }
             .into()
         } else {
-            smtout.into()
+            smtout
         }
     }
 

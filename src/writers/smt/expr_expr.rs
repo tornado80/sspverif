@@ -17,8 +17,9 @@ impl From<Identifier> for SmtExpr {
 
 impl From<Expression> for SmtExpr {
     fn from(expr: Expression) -> SmtExpr {
+        let expr_string = format!("{expr:?}");
         //eprintln!("DEBUG expr->smt: {expr:?}");
-        match expr {
+        let out = match expr {
             Expression::EmptyTable(t) => {
                 if let Type::Table(idxtipe, valtipe) = t {
                     (
@@ -108,7 +109,6 @@ impl From<Expression> for SmtExpr {
             Expression::Identifier(Identifier::PackageIdentifier(PackageIdentifier::State(
                 pkg_state_ident,
             ))) => {
-                println!("{pkg_state_ident:?}");
                 let pattern = PackageStatePattern {
                     game_inst_name: &pkg_state_ident.game_inst_name.unwrap(),
                     pkg_inst_name: &pkg_state_ident.pkg_inst_name.unwrap(),
@@ -256,6 +256,8 @@ impl From<Expression> for SmtExpr {
             _ => {
                 panic!("not implemented: {:?}", expr);
             }
-        }
+        };
+        println!("rewriting to expression from {expr_string} to {out:?}");
+        out
     }
 }

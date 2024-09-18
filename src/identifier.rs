@@ -1,3 +1,6 @@
+use game_ident::{GameIdentInstanciationInfo, GameIdentifier};
+use proof_ident::ProofIdentInstanciationInfo;
+
 use crate::{expressions::Expression, parser::package::ForComp, types::Type};
 
 use self::{
@@ -25,6 +28,18 @@ impl From<GameConstIdentifier> for Identifier {
 impl From<PackageOracleCodeLoopVarIdentifier> for Identifier {
     fn from(value: PackageOracleCodeLoopVarIdentifier) -> Self {
         Identifier::PackageIdentifier(PackageIdentifier::CodeLoopVar(value))
+    }
+}
+
+impl From<PackageIdentifier> for Identifier {
+    fn from(value: PackageIdentifier) -> Self {
+        Identifier::PackageIdentifier(value)
+    }
+}
+
+impl From<GameIdentifier> for Identifier {
+    fn from(value: GameIdentifier) -> Self {
+        Identifier::GameIdentifier(value)
     }
 }
 
@@ -580,6 +595,24 @@ impl Identifier {
             Identifier::GameIdentifier(id) => id.set_game_inst_info(game_inst_name, proof_name),
             Identifier::ProofIdentifier(_) => {}
             Identifier::Generated(_, _) => {}
+        }
+    }
+
+    pub(crate) fn with_instance_info(
+        &mut self,
+        game_ident_inst_info: Option<GameIdentInstanciationInfo>,
+        proof_ident_inst_info: Option<ProofIdentInstanciationInfo>,
+    ) -> Self {
+        match (self, game_ident_inst_info, proof_ident_inst_info) {
+            (ident @ Identifier::PackageIdentifier(_), _, _) => ident.clone(),
+            (ident @ Identifier::Generated(_, _), _, _) => ident.clone(),
+            (Identifier::GameIdentifier(game_ident), Some(inst_info), None) => {
+                Identifier::GameIdentifier(game_ident.clone().with_instance_info(inst_info))
+            }
+            (Identifier::ProofIdentifier(proof_ident), None, Some(inst_info)) => {
+                Identifier::ProofIdentifier(proof_ident.clone().with_instance_info(inst_info))
+            }
+            (other, _, _) => unreachable!("{other:?}"),
         }
     }
 }

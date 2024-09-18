@@ -1038,7 +1038,7 @@ pub fn handle_code(
                         ctx,
                         target_ident_name_ast,
                         oracle_name,
-                        expected_type,
+                        expected_type.clone(),
                     )
                     ?;
 
@@ -1049,7 +1049,7 @@ pub fn handle_code(
                         name: oracle_name.to_owned(),
                         args,
                         target_inst_name: None,
-                        tipe: None,
+                        tipe: Some(expected_type),
                         file_pos: source_span,
                     }
                 }

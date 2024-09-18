@@ -860,6 +860,7 @@ pub fn handle_instance_decl_multi_inst<'a>(
     let span = ast.as_span();
     let mut inner = ast.into_inner();
     let inst_name = inner.next().unwrap().as_str();
+    let game_name = ctx.game_name;
 
     let indices_ast = inner.next().unwrap();
     let indices = indices_ast
@@ -926,13 +927,14 @@ pub fn handle_instance_decl_multi_inst<'a>(
 
     let multi_instance_indices = MultiInstanceIndices::new(indices);
 
-    let inst = PackageInstance {
-        name: inst_name.to_owned(),
-        params: param_list,
-        types: type_list,
-        pkg: pkg.clone(),
+    let inst = PackageInstance::new(
+        inst_name,
+        game_name,
+        pkg,
         multi_instance_indices,
-    };
+        param_list,
+        type_list,
+    );
 
     ctx.add_pkg_instance(inst, span);
 
