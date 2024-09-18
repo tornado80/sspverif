@@ -227,16 +227,17 @@ oracle Test(ctr: Integer) -> Bits(n)
     assert (tested == false);
     tested <- true;
     (U,u,V,v,ltk,acc,k,ni,nr,kmac,sid,mess) <- parse Unwrap(State[ctr]);
-    assert (Unwrap(Keys[Unwrap(sid)]) == (k,None as Bool) ); /* only allowed to test/reveal sid once */
-    Keys[Unwrap(sid)] <- (k,true);                         /* mark key as tested */
+    assert (Unwrap(Keys[Unwrap(sid)]) == (k, None as Bool) ); /* only allowed to test/reveal sid once */
+    Keys[Unwrap(sid)] <- Some(k,true);                         /* mark key as tested */
     if b {k <-$ Bits(n);}
-    return k;
+    return Unwrap(k);
     }
 
 oracle Reveal(ctr: Integer) -> Bits(n)
     {
     (U,u,V,v,ltk,acc,k,ni,nr,kmac,sid,mess) <- parse Unwrap(State[ctr]);
     assert (Unwrap(Keys[Unwrap(sid)]) == (k, None as Bool) ); /* only allowed to test/reveal sid once */
-    Unwrap(Keys[Unwrap(sid)]) <- (k, false)                 /* mark key as revealed */
-    return k;
+    Keys[Unwrap(sid)] <- Some(k, false);                 /* mark key as revealed */
+    return Unwrap(k);
     }
+}
