@@ -1,25 +1,38 @@
 package PRFReal {
     params {
         n: Integer,
-        prf: fn Bits(n), Bits(n) -> (Bits(n), Bits(n))
+        prf: fn Bits(n), Integer, Integer, Bits(n), Bits(n), Bool ->  Bits(n),
     }
     
     state {
-        ltk: Maybe(Bits(n)),
-          K: Table(Bits(n), (Bits(n),Bits(n))),
+          LTK:   Table(Integer, Bits(n)),       /* administrative kid, keys    */
+          H:     Table(Integer, Bool),          /* administrative kid, honesty */
+          K:     Table((Integer,Integer,Integer,Bits(n),Bits(n),Bool), Bits(n)), /* output keys */
+          kid_:   Integer,
     }
 
-    oracle Eval(h: Bits(n)) -> Bits(n) {
-        if (ltk == None) {
-            ltk_ <-$ Bits(n);
-	          ltk <- Some(ltk_);        
-        }
-        if (K[h] == None) {
-            K[h] <- Some(prf(Unwrap(ltk), h));
+oracle NewKey(ltk: Maybe(Bits(n))) -> Integer {
+      kid_ <- (kid_ + 1);
+      if (ltk == None)
+      {
+        ltk_ <-$Bits(n);
+        LTK[kid_] <- Some(ltk_);
+        H[kid_]   <- Some(true); 
+      }
+      else {
+        LTK[kid_] <- ltk;
+        H[kid_]   <- Some(false);}
+      return kid_;
+    }
+
+    oracle Eval(h: Integer, a: Integer, b: Integer, c: Bits(n), d: Bits(n), e: Bool) {
+        assert not (LTK[h] == None);
+        if (K[(h,a,b,c,d,e)] == None) {
+            K[(h,a,b,c,d,e)] <- Some(prf(h,a,b,c,d,e));
         }
     }
 
-        oracle Get(h: Bits(n)) -> (Bits(n), Bits(n)) {
+        oracle Get(h: (Integer,Integer,Integer,Bits(n),Bits(n),Bool)) -> Bits(n) {
         return Unwrap(K[h]);
     } 
 }

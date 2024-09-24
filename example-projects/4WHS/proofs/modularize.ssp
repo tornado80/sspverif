@@ -1,7 +1,7 @@
 proof WHSProto {
     const n: Integer;
     const m: Integer;
-    const prf: fn Bits(n), Bits(n) -> (Bits(n),Bits(n));
+    const prf: fn Bits(n), Integer, Integer, Bits(n), Bits(n), Bool ->  Bits(n);
     const mac: fn Bits(n),Bits(n) -> Bits(n);
     const verify: fn Bits(n),Bits(n),Bits(n) -> Bool;
   

@@ -14,6 +14,7 @@ package KXHybridOne {
           ctr_:  Integer,                       /* administrative sid          */
           kid_:  Integer,                       /* administrative kid          */
           Keys:  Table((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n))),(Bits(n),Maybe(Bool))), /* session key table  */
+          Test:  Table((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n))),Bits(n)), /* random key table  */
           Nonces: Table(Bits(n),Bool),
           State: Table(Integer,
                   /*    administrative sid  */
@@ -140,7 +141,7 @@ oracle Send4(ctr: Integer, ni: Bits(n), tau:Bits(n)) -> Bits(n)
         acc        <- Some(true);
         k          <- prf(ltk,U,V,ni,Unwrap(nr),true);
         sid        <- (U,V,Some(ni),nr,Some(tau));
-        State[ctr] <- Some((V,v,U,u,ltk,acc,Some(k),ni_,nr,kmac,Some(sid),mess));
+        State[ctr] <- Some((V,v,U,u,ltk,acc,Some(k),ni_,nr,kmac,Some(sid),2));
         entry      <- Keys[sid];
         assert ((entry == None) or
                 (Unwrap(entry) == (k,Some(true )  ))   or
@@ -165,7 +166,7 @@ oracle Send4(ctr: Integer, ni: Bits(n), tau:Bits(n)) -> Bits(n)
         if not (mac(Unwrap(kmac),0,0,zeron,zeron,3) == tau) {return false;}
         k          <- prf(ltk,U,V,ni,nr,true);
         sid        <- (U,V,ni,nr,Some(tau));
-        State[ctr] <- Some((U,u,V,v,ltk,Some(true),Some(k),ni,nr,kmac,Some(sid),2));
+        State[ctr] <- Some((U,u,V,v,ltk,Some(true),Some(k),ni,nr,kmac,Some(sid),3));
         entry      <- Keys[sid];
         assert ((entry == None) or 
                 (Unwrap(entry) == (k,Some(true )  ))   or
@@ -179,23 +180,27 @@ oracle Send4(ctr: Integer, ni: Bits(n), tau:Bits(n)) -> Bits(n)
         return true;
     } 
 
-oracle Test(ctr: Integer) -> Bits(n)
-    {
-    assert (tested == false);
-    tested <- true;
-    (U,u,V,v,ltk,acc,k,ni,nr,kmac,sid,mess) <- parse Unwrap(State[ctr]);
-    assert (Unwrap(Keys[Unwrap(sid)]) 
-        == (Unwrap(k), None as Bool) ); /* only allowed to test/reveal sid once */
-    Keys[Unwrap(sid)] <- Some((Unwrap(k),Some(true)));                         /* mark key as tested */
-    if b {k_ <-$ Bits(n);}
-    return k_;
-    }
 
 oracle Reveal(ctr: Integer) -> Bits(n)
     {
     (U,u,V,v,ltk,acc,k,ni,nr,kmac,sid,mess) <- parse Unwrap(State[ctr]);
-    assert (Unwrap(Keys[Unwrap(sid)]) == (Unwrap(k), None as Bool) ); /* only allowed to test/reveal sid once */
-    Keys[Unwrap(sid)] <- Some((Unwrap(k), Some(false)));                 /* mark key as revealed */
+    assert (acc == Some(true));
+    assert (Unwrap(Keys[Unwrap(sid)]) 
+        == (Unwrap(k), None as Bool) ); /* only allowed to test/reveal sid once */
+    Keys[Unwrap(sid)] <- Some((Unwrap(k),Some(false)));    /* mark key as revealed */
     return Unwrap(k);
     }
+
+oracle Test(ctr: Integer) -> Bits(n)
+    {
+    (U,u,V,v,ltk,acc,k,ni,nr,kmac,sid,mess) <- parse Unwrap(State[ctr]);
+    assert (acc == Some(true));
+    assert (Unwrap(Keys[Unwrap(sid)]) 
+        == (Unwrap(k), None as Bool) ); /* only allowed to test/reveal sid once */
+    Keys[Unwrap(sid)] <- Some((Unwrap(k),Some(true)));    /* mark key as tested */
+    k_ <- Unwrap(k);
+    if b {k_ <- Unwrap(Test[Unwrap(sid)]);}
+    return k_;
+    }
+    
     }
