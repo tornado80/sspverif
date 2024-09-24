@@ -106,14 +106,22 @@ impl<'a> PackageInstanceContext<'a> {
     }
 
     pub fn pkg_state_pattern(&self) -> PackageStatePattern<'a> {
-        let game_inst_ctx = self.game_inst_ctx();
-        let game_inst_name = game_inst_ctx.game_inst.name();
-        let pkg_inst_name = self.pkg_inst_name();
+        let pkg_name = &self.pkg_inst().pkg.name;
 
-        PackageStatePattern {
-            game_inst_name,
-            pkg_inst_name,
-        }
+        let mut params: Vec<_> = self
+            .game_inst()
+            .consts
+            .iter()
+            .map(|(ident, expr)| (ident.name.to_string(), expr))
+            .collect();
+
+        params.sort();
+        let params = params
+            .into_iter()
+            .map(|(_, expr)| expr.clone().into())
+            .collect();
+
+        PackageStatePattern { pkg_name, params }
     }
 
     pub fn smt_sorts_return(&self) -> Vec<SmtExpr> {
@@ -161,7 +169,7 @@ impl<'a> PackageInstanceContext<'a> {
 
         Some(PackageStateSelector {
             name: field_name,
-            tipe,
+            ty: tipe,
         })
     }
 

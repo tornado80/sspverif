@@ -1,4 +1,4 @@
-use super::patterns::{game_consts, pkg_consts, DatastructurePattern};
+use super::patterns::{game_consts, pkg_consts, pkg_state, DatastructurePattern};
 use crate::{
     parser::tests::*,
     writers::smt::{
@@ -7,6 +7,7 @@ use crate::{
             const_mapping::define_fun,
             game_consts::{GameConstsSelector, GameConstsSort},
             pkg_consts::{PackageConstsSelector, PackageConstsSort},
+            pkg_state::PackageStateSelector,
         },
     },
 };
@@ -157,4 +158,86 @@ fn test_const_datatypes_remap_consts() {
     assert_eq!(constructor_list.len(), 2);
     assert_eq!(constructor_list[0].to_string(), "<mk-pkg-consts-TinyPkg>");
     assert_eq!(constructor_list[1].to_string(), "(+ m 1)\n");
+}
+
+#[test]
+fn test_state_datatypes_remap_consts() {
+    let pkgs = packages::parse_files(&["PRF.pkg.ssp", "KeyReal.pkg.ssp"]);
+    let game = games::parse_file("small_PRF.ssp", &pkgs);
+
+    // check prf package instance
+
+    let pkg_inst = &game
+        .pkgs
+        .iter()
+        .find(|pkg_inst| pkg_inst.name == "prf")
+        .unwrap();
+    let pkg = &pkg_inst.pkg;
+
+    assert_eq!(pkg.state.len(), 1);
+
+    let pkg_name = &pkg.name;
+    let pkg = &pkgs[pkg_name];
+    let params = pkg_inst
+        .params
+        .iter()
+        .map(|(_ident, expr)| expr.clone().into())
+        .collect();
+
+    let pkg_state_pattern = pkg_state::PackageStatePattern { pkg_name, params };
+    let pkg_state_spec = pkg_state_pattern.datastructure_spec(pkg);
+
+    let pkg_state_constructors = &pkg_state_spec.0;
+    assert_eq!(pkg_state_constructors.len(), 1);
+    let (_, pkg_state_selectors) = &pkg_state_constructors[0];
+    assert_eq!(pkg_state_selectors.len(), 1);
+
+    let PackageStateSelector { ty, .. } = &pkg_state_selectors[0];
+    let (name, state_ty, _) = &pkg.state[0];
+
+    println!("state entry {name:?} {ty:?} {state_ty:?}");
+    assert_eq!(ty, &state_ty);
+
+    assert_eq!(
+        pkg_state_pattern.constructor_name(&()),
+        "<mk-state-PRF-<$<!n!><!prf!>$>>"
+    );
+
+    // check key package instance
+
+    let pkg_inst = &game
+        .pkgs
+        .iter()
+        .find(|pkg_inst| pkg_inst.name == "key")
+        .unwrap();
+    let pkg = &pkg_inst.pkg;
+
+    assert_eq!(pkg.state.len(), 1);
+
+    let pkg_name = &pkg.name;
+    let pkg = &pkgs[pkg_name];
+    let params = pkg_inst
+        .params
+        .iter()
+        .map(|(_ident, expr)| expr.clone().into())
+        .collect();
+
+    let pkg_state_pattern = pkg_state::PackageStatePattern { pkg_name, params };
+    let pkg_state_spec = pkg_state_pattern.datastructure_spec(pkg);
+
+    let pkg_state_constructors = &pkg_state_spec.0;
+    assert_eq!(pkg_state_constructors.len(), 1);
+    let (_, pkg_state_selectors) = &pkg_state_constructors[0];
+    assert_eq!(pkg_state_selectors.len(), 1);
+
+    let PackageStateSelector { ty, .. } = &pkg_state_selectors[0];
+    let (name, state_ty, _) = &pkg.state[0];
+
+    println!("state entry {name:?} {ty:?} {state_ty:?}");
+    assert_eq!(ty, &state_ty);
+
+    assert_eq!(
+        pkg_state_pattern.constructor_name(&()),
+        "<mk-state-KeyReal-<$<!n!>$>>"
+    );
 }
