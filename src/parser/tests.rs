@@ -13,6 +13,8 @@ mod complete;
 /// errors - and the right ones.
 mod sound;
 
+const TESTDATA_SSPCODE_PATH: &str = "testdata/ssp-code/";
+
 fn slice_source_span<'a>(
     source: &'a miette::NamedSource<String>,
     span: &'a miette::SourceSpan,
