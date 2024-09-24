@@ -166,6 +166,7 @@ pub trait DatastructurePattern<'a> {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct DatastructureSpec<'a, P: DatastructurePattern<'a> + ?Sized>(
     pub Vec<(P::Constructor, Vec<P::Selector>)>,
 );

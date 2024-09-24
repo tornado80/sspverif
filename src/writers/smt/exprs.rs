@@ -369,6 +369,7 @@ impl From<SspSmtVar> for SmtExpr {
     }
 }
 
+#[derive(Debug)]
 pub struct SmtLet<B>
 where
     B: Into<SmtExpr>,

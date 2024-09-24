@@ -10,3 +10,6 @@ pub mod names;
 pub mod partials;
 pub mod patterns;
 pub mod sorts;
+
+#[cfg(test)]
+mod tests;

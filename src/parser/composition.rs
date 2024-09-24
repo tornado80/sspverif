@@ -1005,25 +1005,7 @@ pub fn handle_instance_decl<'a>(
     // check that const param lists match
     let mut typed_params: Vec<_> = param_list
         .iter()
-        .map(|(pkg_param, comp_param)| match comp_param {
-            Expression::Identifier(id) => {
-                let maybe_type = ctx.get_const(id.ident_ref());
-
-                // TODO: return an error here
-                assert!(
-                    maybe_type.is_some(),
-                    "constant not specified: {} at {:?}",
-                    id.ident(),
-                    span
-                );
-                (pkg_param.ident(), maybe_type.unwrap().clone())
-            }
-            Expression::BooleanLiteral(_) => (pkg_param.ident(), Type::Boolean),
-            Expression::IntegerLiteral(_) => (pkg_param.ident(), Type::Integer),
-            otherwise => {
-                panic!("unhandled expression: {:?}", otherwise)
-            }
-        })
+        .map(|(pkg_param, expr)| (pkg_param.ident(), expr.get_type()))
         .collect();
     typed_params.sort();
 

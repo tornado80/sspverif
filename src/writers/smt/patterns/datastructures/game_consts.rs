@@ -9,20 +9,18 @@ use crate::{
     },
 };
 
+#[derive(Debug, Clone)]
 pub struct GameConstsPattern<'a> {
     pub game_name: &'a str,
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub struct GameConstsSelector<'a> {
-    name: &'a str,
-    ty: &'a Type,
+    pub(crate) name: &'a str,
+    pub(crate) ty: &'a Type,
 }
 
-pub struct GameConstsDeclareInfo<'a> {
-    pub(crate) game: &'a Composition,
-}
-
+#[derive(Debug, Clone)]
 pub struct GameConstsSort<'a> {
     pub game_name: &'a str,
 }
@@ -43,7 +41,7 @@ impl<'a> DatastructurePattern<'a> for GameConstsPattern<'a> {
 
     type Selector = GameConstsSelector<'a>;
 
-    type DeclareInfo = GameConstsDeclareInfo<'a>;
+    type DeclareInfo = Composition;
 
     const CAMEL_CASE: &'static str = "GameConsts";
 
@@ -76,7 +74,6 @@ impl<'a> DatastructurePattern<'a> for GameConstsPattern<'a> {
 
     fn datastructure_spec(&self, info: &'a Self::DeclareInfo) -> DatastructureSpec<'a, Self> {
         let fields = info
-            .game
             .consts
             .iter()
             // function parameters are just declared as smtlib functions globally, so we don't
@@ -103,8 +100,7 @@ pub fn bind_game_consts<Inner: Into<SmtExpr>>(
     let game_name = game.name();
 
     let pattern = GameConstsPattern { game_name };
-    let declare_info = GameConstsDeclareInfo { game };
-    let spec = pattern.datastructure_spec(&declare_info);
+    let spec = pattern.datastructure_spec(game);
 
     // unpack the only (constructor, selector_list) pair
     let (_, selectors) = &spec.0[0];

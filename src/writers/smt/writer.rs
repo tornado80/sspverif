@@ -1123,15 +1123,17 @@ impl<'a> CompositionSmtWriter<'a> {
             oracle_args: &oracle_sig.args,
         };
 
-        oracle_pattern.define_fun(SmtLet {
-            bindings: vec![(
-                var_selfstate.name(),
-                game_inst_ctx
-                    .smt_access_gamestate_pkgstate(var_globalstate.name(), pkg_inst_name)
-                    .unwrap(),
-            )],
-            body: self.smt_codeblock_nonsplit(&oracle_ctx, def.code.clone()),
-        })
+        oracle_pattern
+            .define_fun(SmtLet {
+                bindings: vec![(
+                    var_selfstate.name(),
+                    game_inst_ctx
+                        .smt_access_gamestate_pkgstate(var_globalstate.name(), pkg_inst_name)
+                        .unwrap(),
+                )],
+                body: self.smt_codeblock_nonsplit(&oracle_ctx, def.code.clone()),
+            })
+            .into()
     }
 
     fn smt_define_split_oracle_fn(&self, split_oracle_ctx: &SplitOracleContext) -> SmtExpr {

@@ -1,15 +1,17 @@
 use crate::{
-    package::{Composition, PackageInstance},
+    package::{Composition, Package, PackageInstance},
     writers::smt::{
-        exprs::SmtExpr,
+        exprs::{SmtExpr, SmtLet},
         patterns::{
             datastructures::{game_consts::GameConstsSort, pkg_consts::PackageConstsSort},
             game_consts::bind_game_consts,
-            pkg_consts::{PackageConstsDeclareInfo, PackageConstsPattern},
+            pkg_consts::PackageConstsPattern,
             DatastructurePattern, FunctionPattern,
         },
     },
 };
+
+use super::SmtDefineFun;
 
 pub struct ConstMappingFunction<'a> {
     pub game_name: &'a str,
@@ -47,13 +49,20 @@ impl<'a> FunctionPattern for ConstMappingFunction<'a> {
     }
 }
 
-pub fn define_fun(game: &Composition, pkg_inst_name: &str) -> Option<SmtExpr> {
+pub fn define_fun<'a>(
+    game: &'a Composition,
+    pkg: &'a Package,
+    pkg_inst_name: &'a str,
+) -> Option<SmtDefineFun<SmtLet<SmtExpr>, PackageConstsSort<'a>>> {
     let pkg_inst = game
         .pkgs
         .iter()
         .find(|pkg_inst| pkg_inst.name == pkg_inst_name)?;
 
-    let pkg = &pkg_inst.pkg;
+    if pkg_inst.pkg.name != pkg.name {
+        // TODO: return an error here
+        return None;
+    }
     let pkg_name = &pkg.name;
 
     let mapping_fun = ConstMappingFunction {
@@ -63,8 +72,7 @@ pub fn define_fun(game: &Composition, pkg_inst_name: &str) -> Option<SmtExpr> {
     };
 
     let pkg_consts = PackageConstsPattern { pkg_name };
-    let pkg_consts_declare_info = PackageConstsDeclareInfo { pkg };
-    let pkg_consts_spec = pkg_consts.datastructure_spec(&pkg_consts_declare_info);
+    let pkg_consts_spec = pkg_consts.datastructure_spec(pkg);
 
     Some(
         mapping_fun.define_fun(bind_game_consts(

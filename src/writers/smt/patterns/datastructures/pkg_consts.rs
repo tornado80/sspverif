@@ -8,20 +8,18 @@ use crate::{
     },
 };
 
+#[derive(Debug)]
 pub struct PackageConstsPattern<'a> {
     pub pkg_name: &'a str,
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct PackageConstsSelector<'a> {
     pub(crate) name: &'a str,
-    ty: &'a Type,
+    pub(crate) ty: &'a Type,
 }
 
-pub struct PackageConstsDeclareInfo<'a> {
-    pub(crate) pkg: &'a Package,
-}
-
+#[derive(Debug, PartialEq)]
 pub struct PackageConstsSort<'a> {
     pub pkg_name: &'a str,
 }
@@ -42,7 +40,7 @@ impl<'a> DatastructurePattern<'a> for PackageConstsPattern<'a> {
 
     type Selector = PackageConstsSelector<'a>;
 
-    type DeclareInfo = PackageConstsDeclareInfo<'a>;
+    type DeclareInfo = Package;
 
     const CAMEL_CASE: &'static str = "PackageConsts";
 
@@ -58,7 +56,7 @@ impl<'a> DatastructurePattern<'a> for PackageConstsPattern<'a> {
         let kebab_case = Self::KEBAB_CASE;
         let Self { pkg_name } = self;
 
-        format!("mk-{kebab_case}-{pkg_name}")
+        format!("<mk-{kebab_case}-{pkg_name}>")
     }
 
     fn selector_name(&self, sel: &Self::Selector) -> String {
@@ -66,7 +64,7 @@ impl<'a> DatastructurePattern<'a> for PackageConstsPattern<'a> {
         let const_name = sel.name;
         let Self { pkg_name } = self;
 
-        format!("{kebab_case}-{pkg_name}-{const_name}")
+        format!("<{kebab_case}-{pkg_name}-{const_name}>")
     }
 
     fn selector_sort(&self, sel: &Self::Selector) -> crate::writers::smt::exprs::SmtExpr {
@@ -75,7 +73,6 @@ impl<'a> DatastructurePattern<'a> for PackageConstsPattern<'a> {
 
     fn datastructure_spec(&self, info: &'a Self::DeclareInfo) -> DatastructureSpec<'a, Self> {
         let fields = info
-            .pkg
             .params
             .iter()
             // function parameters are just declared as smtlib functions globally, so we don't

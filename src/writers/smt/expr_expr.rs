@@ -106,38 +106,7 @@ impl From<Expression> for SmtExpr {
                 }
                 list
             }),
-            Expression::Identifier(Identifier::PackageIdentifier(PackageIdentifier::State(
-                pkg_state_ident,
-            ))) => {
-                let pattern = PackageStatePattern {
-                    game_inst_name: &pkg_state_ident.game_inst_name.unwrap(),
-                    pkg_inst_name: &pkg_state_ident.pkg_inst_name.unwrap(),
-                };
-                let selector = PackageStateSelector {
-                    name: &pkg_state_ident.name,
-                    tipe: &pkg_state_ident.tipe,
-                };
-
-                // can't use `access` because that would require the Package.
-                pattern.access_unchecked(&selector, &SelfStatePattern)
-            }
-            Expression::Identifier(Identifier::ProofIdentifier(ProofIdentifier::Const(
-                ProofConstIdentifier {
-                    name, inst_info, ..
-                },
-            ))) => {
-                let game_inst_name = inst_info.unwrap().game_inst_name;
-                (
-                    format!("composition-param-{game_inst_name}-{name}"),
-                    &GlobalStatePattern,
-                )
-                    .into()
-            }
-            Expression::Identifier(Identifier::PackageIdentifier(pkg_ident)) => {
-                pkg_ident.ident_ref().into()
-            }
-
-            Expression::Identifier(Identifier::Generated(identname, _)) => SmtExpr::Atom(identname),
+            Expression::Identifier(ident) => SmtExpr::Atom(ident.ident()),
 
             // TODO
             // I would love to use PackageStatePattern here, but in order to use the access

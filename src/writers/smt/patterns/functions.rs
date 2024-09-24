@@ -17,20 +17,14 @@ pub trait FunctionPattern {
     fn function_args(&self) -> Vec<(String, SmtExpr)>;
     fn function_return_sort(&self) -> Self::ReturnSort;
 
-    fn define_fun<B: Into<SmtExpr>>(&self, body: B) -> SmtExpr {
-        (
-            "define-fun",
-            self.function_name(),
-            SmtExpr::List(
-                self.function_args()
-                    .into_iter()
-                    .map(|pair| -> SmtExpr { pair.into() })
-                    .collect(),
-            ),
-            self.function_return_sort(),
+    fn define_fun<B: Into<SmtExpr>>(&self, body: B) -> SmtDefineFun<B, Self::ReturnSort> {
+        SmtDefineFun {
+            is_rec: false,
+            name: self.function_name(),
+            args: self.function_args(),
+            ty: self.function_return_sort(),
             body,
-        )
-            .into()
+        }
     }
 
     fn define_fun_rec<B: Into<SmtExpr>>(&self, body: B) -> SmtExpr {
@@ -53,5 +47,39 @@ pub trait FunctionPattern {
         let mut call: Vec<SmtExpr> = vec![self.function_name().into()];
         call.extend(args.iter().cloned());
         SmtExpr::List(call)
+    }
+}
+
+#[derive(Debug)]
+pub struct SmtDefineFun<Body: Into<SmtExpr>, ReturnSort: SmtSort> {
+    pub(crate) is_rec: bool,
+    pub(crate) name: String,
+    pub(crate) args: Vec<(String, SmtExpr)>,
+    pub(crate) ty: ReturnSort,
+    pub(crate) body: Body,
+}
+
+impl<Body: Into<SmtExpr>, ReturnSort: SmtSort> From<SmtDefineFun<Body, ReturnSort>> for SmtExpr {
+    fn from(value: SmtDefineFun<Body, ReturnSort>) -> Self {
+        let command_name = if value.is_rec {
+            "define-fun-rec"
+        } else {
+            "define-fun"
+        };
+
+        (
+            command_name,
+            value.name,
+            SmtExpr::List(
+                value
+                    .args
+                    .into_iter()
+                    .map(|pair| -> SmtExpr { pair.into() })
+                    .collect(),
+            ),
+            value.ty,
+            value.body,
+        )
+            .into()
     }
 }

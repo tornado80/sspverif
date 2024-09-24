@@ -337,6 +337,40 @@ pub enum GameHop {
     Equivalence(Equivalence),
 }
 
+impl GameHop {
+    /// Returns `true` if the game hop is [`Reduction`].
+    ///
+    /// [`Reduction`]: GameHop::Reduction
+    #[must_use]
+    pub fn is_reduction(&self) -> bool {
+        matches!(self, Self::Reduction(..))
+    }
+
+    /// Returns `true` if the game hop is [`Equivalence`].
+    ///
+    /// [`Equivalence`]: GameHop::Equivalence
+    #[must_use]
+    pub fn is_equivalence(&self) -> bool {
+        matches!(self, Self::Equivalence(..))
+    }
+
+    pub fn as_reduction(&self) -> Option<&Reduction> {
+        if let Self::Reduction(v) = self {
+            Some(v)
+        } else {
+            None
+        }
+    }
+
+    pub fn as_equivalence(&self) -> Option<&Equivalence> {
+        if let Self::Equivalence(v) = self {
+            Some(v)
+        } else {
+            None
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct Proof {
     pub(crate) name: String,
@@ -391,5 +425,11 @@ impl Proof {
 
     pub fn packages(&self) -> &[Package] {
         &self.pkgs
+    }
+
+    pub(crate) fn find_game_instance(&self, game_inst_name: &str) -> Option<&GameInstance> {
+        self.instances
+            .iter()
+            .find(|inst| inst.name == game_inst_name)
     }
 }
