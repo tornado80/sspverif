@@ -1,5 +1,6 @@
 mod datastructures;
 mod functions;
+pub mod instance_names;
 mod proof_constants;
 mod variables;
 

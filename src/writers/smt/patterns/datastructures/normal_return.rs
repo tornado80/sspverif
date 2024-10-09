@@ -1,16 +1,34 @@
 use super::{DatastructurePattern, DatastructureSpec};
+use crate::expressions::Expression;
+use crate::identifier::game_ident::GameConstIdentifier;
+use crate::identifier::pkg_ident::PackageConstIdentifier;
 use crate::types::Type;
+use crate::writers::smt::patterns::instance_names::{encode_params, only_expression};
 use crate::writers::smt::{exprs::SmtExpr, sorts::SmtPlainSort};
 
 pub struct ReturnPattern<'a> {
-    pub game_inst_name: &'a str,
-    pub pkg_inst_name: &'a str,
+    pub game_name: &'a str,
+    pub game_params: &'a [(GameConstIdentifier, Expression)],
+    pub pkg_name: &'a str,
+    pub pkg_params: &'a [(PackageConstIdentifier, Expression)],
     pub oracle_name: &'a str,
 }
 
+impl<'a> ReturnPattern<'a> {
+    fn pkg_expr_params(&self) -> impl Iterator<Item = &Expression> {
+        self.pkg_params.iter().map(|(_, expr)| expr)
+    }
+
+    fn game_expr_params(&self) -> impl Iterator<Item = &Expression> {
+        self.game_params.iter().map(|(_, expr)| expr)
+    }
+}
+
 pub struct ReturnSort<'a> {
-    pub game_inst_name: &'a str,
-    pub pkg_inst_name: &'a str,
+    pub game_name: &'a str,
+    pub game_params: &'a [(GameConstIdentifier, Expression)],
+    pub pkg_name: &'a str,
+    pub pkg_params: &'a [(PackageConstIdentifier, Expression)],
     pub oracle_name: &'a str,
 }
 
@@ -21,12 +39,16 @@ impl<'a> SmtPlainSort for ReturnSort<'a> {
     fn sort_name(&self) -> String {
         let camel_case = ReturnPattern::CAMEL_CASE;
         let Self {
-            game_inst_name,
-            pkg_inst_name,
+            game_name,
+            pkg_name,
             oracle_name,
+            game_params,
+            pkg_params,
         } = self;
 
-        format!("{camel_case}-{game_inst_name}-{pkg_inst_name}-{oracle_name}")
+        let game_encoded_params = encode_params(only_expression(*game_params));
+        let pkg_encoded_params = encode_params(only_expression(*pkg_params));
+        format!("<{camel_case}-{game_name}-{game_encoded_params}-{pkg_name}-{pkg_encoded_params}-{oracle_name}>")
     }
 }
 
@@ -45,47 +67,60 @@ impl<'a> DatastructurePattern<'a> for ReturnPattern<'a> {
     type DeclareInfo = &'a Type;
     type Sort = ReturnSort<'a>;
 
-    const CAMEL_CASE: &'static str = "Return";
-    const KEBAB_CASE: &'static str = "return";
+    const CAMEL_CASE: &'static str = "OracleReturn";
+    const KEBAB_CASE: &'static str = "oracle-return";
 
     fn sort(&self) -> ReturnSort<'a> {
         let ReturnPattern {
-            game_inst_name,
-            pkg_inst_name,
+            game_name,
+            pkg_name,
             oracle_name,
+            game_params,
+            pkg_params,
+            ..
         } = self;
         ReturnSort {
-            game_inst_name,
-            pkg_inst_name,
+            game_name,
+            pkg_name,
             oracle_name,
+            game_params,
+            pkg_params,
         }
     }
 
     fn constructor_name(&self, _cons: &Self::Constructor) -> String {
         let kebab_case = Self::KEBAB_CASE;
         let Self {
-            game_inst_name,
-            pkg_inst_name,
+            game_name,
+            pkg_name,
             oracle_name,
+            ..
         } = self;
 
-        format!("mk-{kebab_case}-{game_inst_name}-{pkg_inst_name}-{oracle_name}")
+        let game_encoded_params = encode_params(self.game_expr_params());
+        let pkg_encoded_params = encode_params(self.pkg_expr_params());
+
+        format!("<mk-{kebab_case}-{game_name}-{game_encoded_params}-{pkg_name}-{pkg_encoded_params}-{oracle_name}>")
     }
 
     fn selector_name(&self, sel: &Self::Selector) -> String {
         let kebab_case = Self::KEBAB_CASE;
         let Self {
-            game_inst_name,
-            pkg_inst_name,
+            game_name,
+            pkg_name,
             oracle_name,
+            ..
         } = self;
+
+        let game_encoded_params = encode_params(self.game_expr_params());
+        let pkg_encoded_params = encode_params(self.pkg_expr_params());
 
         let field_name = match sel {
             ReturnSelector::GameState => "game-state",
             ReturnSelector::ReturnValueOrAbort { .. } => "return-value-or-abort",
         };
 
-        format!("{kebab_case}-{game_inst_name}-{pkg_inst_name}-{oracle_name}-{field_name}")
+        format!("<{kebab_case}-{game_name}-{game_encoded_params}-{pkg_name}-{pkg_encoded_params}-{oracle_name}-{field_name}>")
     }
 
     fn matchfield_name(&self, sel: &Self::Selector) -> String {
@@ -108,9 +143,16 @@ impl<'a> DatastructurePattern<'a> for ReturnPattern<'a> {
     }
 
     fn selector_sort(&self, sel: &Self::Selector) -> SmtExpr {
-        let Self { game_inst_name, .. } = self;
+        let Self {
+            game_name,
+            game_params,
+            ..
+        } = self;
 
-        let game_state_pattern = super::game_state::GameStatePattern { game_inst_name };
+        let game_state_pattern = super::game_state::GameStatePattern {
+            game_name,
+            params: game_params.clone(),
+        };
 
         match sel {
             ReturnSelector::GameState => game_state_pattern.sort().sort_name().into(),
@@ -124,11 +166,15 @@ impl<'a> DatastructurePattern<'a> for ReturnPattern<'a> {
 impl<'a> ReturnPattern<'a> {
     pub fn global_const_name(&self) -> String {
         let Self {
-            game_inst_name,
-            pkg_inst_name,
+            game_name,
+            pkg_name,
             oracle_name,
+            ..
         } = self;
 
-        format!("return-{game_inst_name}-{pkg_inst_name}-{oracle_name}")
+        let game_encoded_params = encode_params(self.game_expr_params());
+        let pkg_encoded_params = encode_params(self.pkg_expr_params());
+
+        format!("<!return-{game_name}-{game_encoded_params}-{pkg_name}-{pkg_encoded_params}-{oracle_name}>")
     }
 }

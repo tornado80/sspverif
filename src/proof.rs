@@ -19,6 +19,14 @@ pub(crate) struct GameInstance {
     pub(crate) consts: Vec<(GameConstIdentifier, Expression)>,
 }
 
+impl GameInstance {
+    pub fn params(&self) -> impl Iterator<Item = (&str, &Expression)> {
+        self.consts
+            .iter()
+            .map(|(name, expr)| (name.name.as_str(), expr))
+    }
+}
+
 impl_Named!(GameInstance);
 
 mod instantiate {

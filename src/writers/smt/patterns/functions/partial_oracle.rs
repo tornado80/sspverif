@@ -1,16 +1,21 @@
 use crate::{
+    expressions::Expression,
+    identifier::{game_ident::GameConstIdentifier, pkg_ident::PackageConstIdentifier},
     split::SplitPath,
     writers::smt::{
         exprs::SmtExpr,
         patterns::{
+            instance_names::{encode_params, only_expression},
             DatastructurePattern as _, FunctionPattern, PartialReturnPattern, PartialReturnSort,
         },
     },
 };
 
 pub struct PartialOraclePattern<'a> {
-    pub game_inst_name: &'a str,
-    pub pkg_inst_name: &'a str,
+    pub game_name: &'a str,
+    pub pkg_name: &'a str,
+    pub game_params: &'a [(GameConstIdentifier, Expression)],
+    pub pkg_params: &'a [(PackageConstIdentifier, Expression)],
     pub oracle_name: &'a str,
     pub split_path: &'a SplitPath,
 }
@@ -20,14 +25,19 @@ impl<'a> FunctionPattern for PartialOraclePattern<'a> {
 
     fn function_name(&self) -> String {
         let PartialOraclePattern {
-            game_inst_name,
-            pkg_inst_name,
+            game_name,
+            pkg_name,
             oracle_name,
             split_path,
+            game_params,
+            pkg_params,
         } = self;
 
+        let game_params = encode_params(only_expression(*game_params));
+        let pkg_params = encode_params(only_expression(*pkg_params));
+
         let path = split_path.smt_name();
-        format!("oracle-{game_inst_name}-{pkg_inst_name}-{oracle_name}-{path}")
+        format!("<oracle-{game_name}-{game_params}-{pkg_name}-{pkg_params}-{oracle_name}-{path}>")
     }
 
     fn function_args(&self) -> Vec<(String, SmtExpr)> {
@@ -36,14 +46,18 @@ impl<'a> FunctionPattern for PartialOraclePattern<'a> {
 
     fn function_return_sort(&self) -> PartialReturnSort<'a> {
         let Self {
-            game_inst_name,
-            pkg_inst_name,
+            game_name,
+            game_params,
+            pkg_name,
+            pkg_params,
             oracle_name,
             ..
         } = self;
         let partial_return_pattern = PartialReturnPattern {
-            game_inst_name,
-            pkg_inst_name,
+            game_name,
+            game_params,
+            pkg_name,
+            pkg_params,
             oracle_name,
         };
 

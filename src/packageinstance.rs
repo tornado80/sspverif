@@ -42,6 +42,16 @@ impl PackageInstance {
             .map(|d| d.sig)
             .collect()
     }
+
+    pub fn params(&self) -> Vec<(&str, &Expression)> {
+        let mut params: Vec<_> = self
+            .params
+            .iter()
+            .map(|(name, expr)| (name.name.as_str(), expr))
+            .collect();
+        params.sort();
+        params
+    }
 }
 
 impl PackageInstance {

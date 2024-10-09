@@ -5,6 +5,7 @@ use crate::{
         exprs::SmtExpr,
         patterns::{
             const_mapping::define_fun,
+            declare_datatype,
             game_consts::{GameConstsSelector, GameConstsSort},
             pkg_consts::{PackageConstsSelector, PackageConstsSort},
             pkg_state::PackageStateSelector,
@@ -178,11 +179,7 @@ fn test_state_datatypes_remap_consts() {
 
     let pkg_name = &pkg.name;
     let pkg = &pkgs[pkg_name];
-    let params = pkg_inst
-        .params
-        .iter()
-        .map(|(_ident, expr)| expr.clone().into())
-        .collect();
+    let params = &pkg_inst.params;
 
     let pkg_state_pattern = pkg_state::PackageStatePattern { pkg_name, params };
     let pkg_state_spec = pkg_state_pattern.datastructure_spec(pkg);
@@ -216,11 +213,7 @@ fn test_state_datatypes_remap_consts() {
 
     let pkg_name = &pkg.name;
     let pkg = &pkgs[pkg_name];
-    let params = pkg_inst
-        .params
-        .iter()
-        .map(|(_ident, expr)| expr.clone().into())
-        .collect();
+    let params = &pkg_inst.params;
 
     let pkg_state_pattern = pkg_state::PackageStatePattern { pkg_name, params };
     let pkg_state_spec = pkg_state_pattern.datastructure_spec(pkg);
@@ -240,4 +233,6 @@ fn test_state_datatypes_remap_consts() {
         pkg_state_pattern.constructor_name(&()),
         "<mk-state-KeyReal-<$<!n!>$>>"
     );
+
+    println!("{}", declare_datatype(&pkg_state_pattern, &pkg_state_spec));
 }

@@ -9,7 +9,7 @@ use crate::{
         partials::PartialsDatatype,
         patterns::{
             declare_datatype, DatastructurePattern, GameStateDeclareInfo, GameStatePattern,
-            GameStateSelector, GameStateSort, GlobalStatePattern, VariablePattern,
+            GameStateSelector, GlobalStatePattern, VariablePattern,
         },
     },
 };
@@ -69,16 +69,10 @@ impl<'a> GameInstanceContext<'a> {
         }
     }
 
-    pub fn smt_sort_gamestate(&self) -> SmtExpr {
-        GameStateSort {
-            game_inst_name: self.game_inst.name(),
-        }
-        .into()
-    }
-
     pub(crate) fn smt_declare_gamestate(&self, sample_info: &SampleInfo) -> SmtExpr {
         let game_state_pattern = GameStatePattern {
-            game_inst_name: self.game_inst.name(),
+            game_name: self.game_inst.game_name(),
+            params: &self.game_inst.consts,
         };
         let declare_info = GameStateDeclareInfo {
             game_inst: self.game_inst,
@@ -95,7 +89,8 @@ impl<'a> GameInstanceContext<'a> {
         pkg_inst_name: &str,
     ) -> Option<SmtExpr> {
         let game_state_pattern = GameStatePattern {
-            game_inst_name: self.game_inst.name(),
+            game_name: self.game_inst.game_name(),
+            params: &self.game_inst.consts,
         };
         let declare_info = GameStateDeclareInfo {
             game_inst: self.game_inst,
@@ -118,14 +113,22 @@ impl<'a> GameInstanceContext<'a> {
 
         let _game_inst_name = self.game_inst.name();
 
-        let selector = GameStateSelector::PackageInstance { pkg_inst_name };
+        let pkg_ctx = self.pkg_inst_ctx_by_name(pkg_inst_name).unwrap();
+        let sort = pkg_ctx.pkg_state_pattern().sort();
+
+        let selector = GameStateSelector::PackageInstance {
+            pkg_inst_name,
+            sort,
+        };
 
         game_state_pattern.access(&spec, &selector, state)
     }
 
     pub fn game_state_pattern(&self) -> GameStatePattern {
-        let game_inst_name = self.game_inst.name();
-        GameStatePattern { game_inst_name }
+        let game_name = self.game_inst.game_name();
+        let params = &self.game_inst.consts;
+
+        GameStatePattern { game_name, params }
     }
 
     fn game_state_declare_info(&self, sample_info: &'a SampleInfo) -> GameStateDeclareInfo {
@@ -151,30 +154,14 @@ impl<'a> GameInstanceContext<'a> {
         let declare_info = self.game_state_declare_info(sample_info);
         let spec = game_state_pattern.datastructure_spec(&declare_info);
 
+        let pkg_ctx = self.pkg_inst_ctx_by_name(target_name).unwrap();
+
         let pkgstate_selector = GameStateSelector::PackageInstance {
             pkg_inst_name: target_name,
+            sort: pkg_ctx.pkg_state_pattern().sort(),
         };
 
         game_state_pattern.update(&spec, &pkgstate_selector, gamestate, new_pkgstate)
-    }
-
-    pub fn smt_access_gamestate_const<S: Into<SmtExpr>>(
-        &self,
-        state: S,
-        param_name: &str,
-        sample_info: &SampleInfo,
-    ) -> Option<SmtExpr> {
-        let game_state_pattern = self.game_state_pattern();
-        let declare_info = self.game_state_declare_info(sample_info);
-        let spec = game_state_pattern.datastructure_spec(&declare_info);
-
-        let tipe = self.param_type(param_name)?.clone();
-        let const_selector = GameStateSelector::Const {
-            const_name: param_name,
-            tipe,
-        };
-
-        game_state_pattern.access(&spec, &const_selector, state)
     }
 
     pub fn smt_access_gamestate_rand<S: Into<SmtExpr>>(

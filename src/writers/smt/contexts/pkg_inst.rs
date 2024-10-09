@@ -101,6 +101,10 @@ impl<'a> PackageInstanceContext<'a> {
         &self.game().pkgs[self.inst_offs].name
     }
 
+    pub fn pkg_name(&self) -> &'a str {
+        &self.game().pkgs[self.inst_offs].pkg.name
+    }
+
     pub fn pkg_inst(&self) -> &'a PackageInstance {
         &self.game().pkgs[self.inst_offs]
     }
@@ -108,18 +112,7 @@ impl<'a> PackageInstanceContext<'a> {
     pub fn pkg_state_pattern(&self) -> PackageStatePattern<'a> {
         let pkg_name = &self.pkg_inst().pkg.name;
 
-        let mut params: Vec<_> = self
-            .game_inst()
-            .consts
-            .iter()
-            .map(|(ident, expr)| (ident.name.to_string(), expr))
-            .collect();
-
-        params.sort();
-        let params = params
-            .into_iter()
-            .map(|(_, expr)| expr.clone().into())
-            .collect();
+        let params = &self.pkg_inst().params;
 
         PackageStatePattern { pkg_name, params }
     }

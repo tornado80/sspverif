@@ -157,19 +157,19 @@ impl<'a> PackageInstanceContext<'a> {
         datatype: &PartialsDatatype,
     ) -> SmtExpr {
         let game_inst_ctx = self.game_inst_ctx();
-        let game_inst_name = game_inst_ctx.game_inst().name();
-        let pkg_inst_name = &self.pkg_inst_name();
+        let game_name = game_inst_ctx.game().name();
+        let pkg_name = self.pkg_name();
+        let pkg_params = &self.pkg_inst().params;
+        let game_params = &self.game_inst().consts;
         let oracle_name = &datatype.real_oracle_sig.name;
 
-        let function_pattern = DispatchOraclePattern {
-            game_inst_name,
-            pkg_inst_name,
-            oracle_sig: &datatype.real_oracle_sig,
-        };
+        let octx = self.oracle_ctx_by_name(oracle_name).unwrap();
+
+        let function_pattern = octx.dispatch_oracle_pattern();
 
         let intermediate_state_pattern = IntermediateStatePattern {
-            game_inst_name,
-            pkg_inst_name,
+            pkg_name,
+            params: pkg_params,
             oracle_name,
         };
 
@@ -181,8 +181,10 @@ impl<'a> PackageInstanceContext<'a> {
             |con| match con {
                 IntermediateStateConstructor::End => {
                     let partial_return_pattern = PartialReturnPattern {
-                        game_inst_name,
-                        pkg_inst_name,
+                        game_name,
+                        game_params,
+                        pkg_name,
+                        pkg_params,
                         oracle_name,
                     };
 
@@ -192,10 +194,12 @@ impl<'a> PackageInstanceContext<'a> {
                 }
                 IntermediateStateConstructor::OracleState(split_path) => {
                     let partial_oracle_function_pattern = PartialOraclePattern {
-                        game_inst_name,
-                        pkg_inst_name,
+                        game_name,
+                        pkg_name,
                         oracle_name,
                         split_path,
+                        pkg_params,
+                        game_params,
                     };
 
                     let oracle_fun_name = partial_oracle_function_pattern.function_name();

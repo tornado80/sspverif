@@ -1,10 +1,13 @@
 use datastructures::{IntermediateStatePattern, ReturnPattern};
 
 use crate::{
+    expressions::Expression,
+    identifier::{game_ident::GameConstIdentifier, pkg_ident::PackageConstIdentifier},
     types::Type,
     writers::smt::{
         declare,
         exprs::SmtExpr,
+        patterns::instance_names::encode_params,
         sorts::{SmtReturnValue, SmtSort},
     },
 };
@@ -26,8 +29,15 @@ pub trait ConstantPattern {
 }
 
 pub struct GameState<'a> {
-    pub game_inst_name: &'a str,
+    pub game_name: &'a str,
+    pub params: &'a [(GameConstIdentifier, Expression)],
     pub variant: &'a str,
+}
+
+impl<'a> GameState<'a> {
+    fn expr_params(&self) -> impl Iterator<Item = &Expression> {
+        self.params.iter().map(|(_, expr)| expr)
+    }
 }
 
 impl<'a> ConstantPattern for GameState<'a> {
@@ -35,17 +45,18 @@ impl<'a> ConstantPattern for GameState<'a> {
 
     fn name(&self) -> String {
         let Self {
-            game_inst_name,
-            variant,
-            ..
+            game_name, variant, ..
         } = self;
 
-        format!("game-state-{game_inst_name}-{variant}")
+        let encoded_params = encode_params(self.expr_params());
+
+        format!("<game-state-{game_name}-{encoded_params}-{variant}>")
     }
 
     fn sort(&self) -> Self::Sort {
         GameStatePattern {
-            game_inst_name: self.game_inst_name,
+            game_name: self.game_name,
+            params: self.params,
         }
         .sort()
     }
@@ -55,7 +66,7 @@ impl<'a> ConstantPattern for GameState<'a> {
 pub struct OracleArgs<'a> {
     pub oracle_name: &'a str,
     pub arg_name: &'a str,
-    pub arg_type: &'a Type, // TODO maybe this shouldn't be here?
+    pub arg_type: &'a Type,
 }
 
 impl<'a> ConstantPattern for OracleArgs<'a> {
@@ -68,7 +79,7 @@ impl<'a> ConstantPattern for OracleArgs<'a> {
             ..
         } = self;
 
-        format!("arg-{oracle_name}-{arg_name}")
+        format!("<arg-{oracle_name}-{arg_name}>")
     }
 
     fn sort(&self) -> Self::Sort {
@@ -78,7 +89,13 @@ impl<'a> ConstantPattern for OracleArgs<'a> {
 
 pub struct ReturnConst<'a> {
     pub game_inst_name: &'a str,
+    pub game_name: &'a str,
+    pub game_params: &'a [(GameConstIdentifier, Expression)],
+
     pub pkg_inst_name: &'a str,
+    pub pkg_name: &'a str,
+    pub pkg_params: &'a [(PackageConstIdentifier, Expression)],
+
     pub oracle_name: &'a str,
 }
 
@@ -92,13 +109,15 @@ impl<'a> ConstantPattern for ReturnConst<'a> {
             ..
         } = self;
 
-        format!("return-{game_inst_name}-{oracle_name}")
+        format!("<return-{game_inst_name}-{oracle_name}>")
     }
 
     fn sort(&self) -> Self::Sort {
         ReturnPattern {
-            game_inst_name: self.game_inst_name,
-            pkg_inst_name: self.pkg_inst_name,
+            game_name: self.game_name,
+            game_params: self.game_params,
+            pkg_name: self.pkg_name,
+            pkg_params: self.pkg_params,
             oracle_name: self.oracle_name,
         }
         .sort()
@@ -108,6 +127,10 @@ impl<'a> ConstantPattern for ReturnConst<'a> {
 pub struct PartialReturnConst<'a> {
     pub game_inst_name: &'a str,
     pub pkg_inst_name: &'a str,
+    pub game_name: &'a str,
+    pub pkg_name: &'a str,
+    pub game_params: &'a [(GameConstIdentifier, Expression)],
+    pub pkg_params: &'a [(PackageConstIdentifier, Expression)],
     pub oracle_name: &'a str,
 }
 
@@ -121,20 +144,24 @@ impl<'a> ConstantPattern for PartialReturnConst<'a> {
             oracle_name,
             ..
         } = self;
-        format!("partial-return-{game_inst_name}-{pkg_inst_name}-{oracle_name}")
+        format!("<partial-return-{game_inst_name}-{pkg_inst_name}-{oracle_name}>")
     }
 
     fn sort(&self) -> Self::Sort {
         let Self {
-            game_inst_name,
-            pkg_inst_name,
             oracle_name,
+            game_name,
+            pkg_name,
+            game_params,
+            pkg_params,
             ..
         } = self;
 
         PartialReturnPattern {
-            game_inst_name,
-            pkg_inst_name,
+            game_name,
+            game_params,
+            pkg_name,
+            pkg_params,
             oracle_name,
         }
         .sort()
@@ -144,6 +171,8 @@ impl<'a> ConstantPattern for PartialReturnConst<'a> {
 pub struct IntermediateStateConst<'a> {
     pub game_inst_name: &'a str,
     pub pkg_inst_name: &'a str,
+    pub pkg_name: &'a str,
+    pub pkg_params: &'a [(PackageConstIdentifier, Expression)],
     pub oracle_name: &'a str,
     pub variant: &'a str,
 }
@@ -159,20 +188,20 @@ impl<'a> ConstantPattern for IntermediateStateConst<'a> {
             ..
         } = self;
 
-        format!("intermediate-state-{game_inst_name}-{oracle_name}-{variant}")
+        format!("<intermediate-state-{game_inst_name}-{oracle_name}-{variant}>")
     }
 
     fn sort(&self) -> Self::Sort {
         let Self {
-            game_inst_name,
-            pkg_inst_name,
+            pkg_name,
+            pkg_params,
             oracle_name,
             ..
         } = self;
 
         IntermediateStatePattern {
-            game_inst_name,
-            pkg_inst_name,
+            pkg_name,
+            params: pkg_params,
             oracle_name,
         }
         .sort()

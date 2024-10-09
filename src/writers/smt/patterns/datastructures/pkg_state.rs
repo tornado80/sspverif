@@ -1,8 +1,10 @@
 use crate::{
+    expressions::Expression,
+    identifier::pkg_ident::PackageConstIdentifier,
     package::Package,
     types::Type,
     writers::smt::{
-        exprs::{smt_to_string, SmtExpr},
+        patterns::instance_names::{encode_params, only_expression},
         sorts::SmtPlainSort,
     },
 };
@@ -11,7 +13,7 @@ use super::{DatastructurePattern, DatastructureSpec};
 
 pub struct PackageStatePattern<'a> {
     pub pkg_name: &'a str,
-    pub params: Vec<SmtExpr>,
+    pub params: &'a [(PackageConstIdentifier, Expression)],
 }
 
 impl<'a> PackageStatePattern<'a> {
@@ -21,7 +23,7 @@ impl<'a> PackageStatePattern<'a> {
         if self.params.is_empty() {
             pkg_name.to_string()
         } else {
-            let encoded_params = encode_smt_exprs(&self.params);
+            let encoded_params = encode_params(only_expression(self.params));
             format!("{pkg_name}-{encoded_params}")
         }
     }
@@ -33,9 +35,10 @@ pub struct PackageStateSelector<'a> {
     pub ty: &'a Type,
 }
 
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct PackageStateSort<'a> {
     pub pkg_name: &'a str,
-    pub encoded_params: String,
+    pub params: &'a [(PackageConstIdentifier, Expression)],
 }
 
 use crate::impl_Into_for_PlainSort;
@@ -44,10 +47,9 @@ impl_Into_for_PlainSort!('a, PackageStateSort<'a>);
 impl<'a> SmtPlainSort for PackageStateSort<'a> {
     fn sort_name(&self) -> String {
         let camel_case = PackageStatePattern::CAMEL_CASE;
-        let Self {
-            pkg_name,
-            encoded_params,
-        } = self;
+        let Self { pkg_name, params } = self;
+
+        let encoded_params = encode_params(only_expression(*params));
 
         format!("<{camel_case}_{pkg_name}_{encoded_params}>")
     }
@@ -65,16 +67,13 @@ impl<'a> DatastructurePattern<'a> for PackageStatePattern<'a> {
 
     fn sort(&self) -> PackageStateSort<'a> {
         let PackageStatePattern { pkg_name, params } = self;
-        PackageStateSort {
-            pkg_name,
-            encoded_params: encode_smt_exprs(&params),
-        }
+        PackageStateSort { pkg_name, params }
     }
 
     fn constructor_name(&self, _cons: &Self::Constructor) -> String {
         let kebab_case = Self::KEBAB_CASE;
         let Self { pkg_name, params } = self;
-        let encoded_params = encode_smt_exprs(&params);
+        let encoded_params = encode_params(only_expression(*params));
 
         format!("<mk-{kebab_case}-{pkg_name}-{encoded_params}>")
     }
@@ -82,7 +81,7 @@ impl<'a> DatastructurePattern<'a> for PackageStatePattern<'a> {
     fn selector_name(&self, sel: &Self::Selector) -> String {
         let kebab_case = Self::KEBAB_CASE;
         let Self { pkg_name, params } = self;
-        let encoded_params = encode_smt_exprs(&params);
+        let encoded_params = encode_params(only_expression(*params));
 
         let PackageStateSelector {
             name: field_name, ..
@@ -111,23 +110,5 @@ impl<'a> DatastructurePattern<'a> for PackageStatePattern<'a> {
             .map(|(name, tipe, _file_pos)| PackageStateSelector { name, ty: tipe });
 
         DatastructureSpec(vec![((), selectors.collect())])
-    }
-}
-
-fn encode_smt_exprs(exprs: &[SmtExpr]) -> String {
-    let initial = "<$".to_string();
-    let mut inner = exprs.iter().fold(initial, |mut acc, expr| {
-        acc.push_str(&encode_smt_expr(expr));
-        acc
-    });
-    inner.push_str("$>");
-    inner
-}
-
-fn encode_smt_expr(expr: &SmtExpr) -> String {
-    match expr {
-        SmtExpr::Comment(_) => "".to_string(),
-        SmtExpr::Atom(atom) => format!("<!{atom}!>"),
-        SmtExpr::List(exprs) => encode_smt_exprs(exprs),
     }
 }

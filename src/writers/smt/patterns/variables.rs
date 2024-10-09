@@ -92,7 +92,7 @@ impl<'a> VariablePattern for &'a SelfStatePattern {
     type Sort = PackageStateSort<'a>;
 
     fn name(&self) -> String {
-        "__self_state".to_string()
+        "<pkg-state>".to_string()
     }
 
     fn sort(&self, spec_info: &Self::SpecInfo) -> Self::Sort {
@@ -107,7 +107,7 @@ impl<'a> VariablePattern for &'a GlobalStatePattern {
     type Sort = GameStateSort<'a>;
 
     fn name(&self) -> String {
-        "__global_state".to_string()
+        "<game-state>".to_string()
     }
 
     fn sort(&self, spec_info: &Self::SpecInfo) -> Self::Sort {

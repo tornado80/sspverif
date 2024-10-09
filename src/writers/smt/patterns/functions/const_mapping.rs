@@ -1,5 +1,5 @@
 use crate::{
-    package::{Composition, Package, PackageInstance},
+    package::{Composition, Package},
     writers::smt::{
         exprs::{SmtExpr, SmtLet},
         patterns::{

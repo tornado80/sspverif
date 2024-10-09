@@ -1,10 +1,13 @@
 use crate::{
+    expressions::Expression,
+    identifier::{game_ident::GameConstIdentifier, pkg_ident::PackageConstIdentifier},
     types::Type,
     writers::smt::{
         exprs::SmtExpr,
         patterns::{
-            DatastructurePattern as _, FunctionPattern, GameStatePattern, GlobalStatePattern,
-            ReturnPattern, ReturnSort, VariablePattern as _,
+            game_consts::GameConstsPattern, instance_names::encode_params,
+            DatastructurePattern as _, FunctionPattern, GameStatePattern, ReturnPattern,
+            ReturnSort,
         },
     },
 };
@@ -13,10 +16,22 @@ pub const ORACLE_ARG_GAME_STATE: &str = "__global_state";
 pub const ORACLE_ARG_INTERMEDIATE_STATE: &str = "__intermediate_state";
 
 pub struct OraclePattern<'a> {
-    pub game_inst_name: &'a str,
-    pub pkg_inst_name: &'a str,
+    pub game_name: &'a str,
+    pub pkg_name: &'a str,
     pub oracle_name: &'a str,
     pub oracle_args: &'a [(String, Type)],
+    pub game_params: &'a [(GameConstIdentifier, Expression)],
+    pub pkg_params: &'a [(PackageConstIdentifier, Expression)],
+}
+
+impl<'a> OraclePattern<'a> {
+    fn pkg_expr_params(&self) -> impl Iterator<Item = &Expression> {
+        self.pkg_params.iter().map(|(_, expr)| expr)
+    }
+
+    fn game_expr_params(&self) -> impl Iterator<Item = &Expression> {
+        self.game_params.iter().map(|(_, expr)| expr)
+    }
 }
 
 impl<'a> FunctionPattern for OraclePattern<'a> {
@@ -24,50 +39,69 @@ impl<'a> FunctionPattern for OraclePattern<'a> {
 
     fn function_name(&self) -> String {
         let Self {
-            game_inst_name,
-            pkg_inst_name,
+            game_name,
+            pkg_name,
             oracle_name,
             ..
         } = self;
 
-        format!("oracle-{game_inst_name}-{pkg_inst_name}-{oracle_name}")
+        let encoded_game_params = encode_params(self.pkg_expr_params());
+        let encoded_pkg_params = encode_params(self.pkg_expr_params());
+
+        format!("<oracle-{game_name}-{encoded_game_params}-{pkg_name}-{encoded_pkg_params}-{oracle_name}>")
     }
 
     fn function_args(&self) -> Vec<(String, SmtExpr)> {
         let Self {
-            game_inst_name,
+            game_name,
+            game_params,
             oracle_args,
             ..
         } = self;
 
-        let game_state_pattern = GameStatePattern { game_inst_name };
-
-        let global_state_pattern = &GlobalStatePattern;
-        let mut args: Vec<(String, SmtExpr)> =
-            vec![global_state_pattern.name_sort_tuple(&game_state_pattern)];
-
-        args.extend(
-            oracle_args
-                .iter()
-                .cloned()
-                .map(|(name, tipe)| (name, tipe.into())),
+        // build the (name sort) tuple for the game state variable
+        let game_state_pair = (
+            "<game-state>".to_string(),
+            GameStatePattern {
+                game_name,
+                params: game_params,
+            }
+            .sort()
+            .into(),
         );
 
-        args
+        let game_const_pair = (
+            "<game-consts>".to_string(),
+            GameConstsPattern { game_name }.sort().into(),
+        );
+
+        vec![game_state_pair, game_const_pair]
+            .into_iter()
+            .chain(
+                oracle_args
+                    .iter()
+                    .cloned()
+                    .map(|(name, tipe)| (name, tipe.into())),
+            )
+            .collect()
     }
 
     fn function_return_sort(&self) -> ReturnSort<'a> {
         let Self {
-            game_inst_name,
-            pkg_inst_name,
+            game_name,
+            pkg_name,
             oracle_name,
+            game_params,
+            pkg_params,
             ..
         } = self;
 
         ReturnPattern {
-            game_inst_name,
-            pkg_inst_name,
+            game_name,
+            pkg_name,
             oracle_name,
+            game_params: game_params.clone(),
+            pkg_params: pkg_params.clone(),
         }
         .sort()
     }

@@ -48,15 +48,14 @@ impl<'a> SplitOracleContext<'a> {
 
     pub fn intermediate_state_pattern(&self) -> IntermediateStatePattern<'a> {
         let pkg_inst_ctx = self.pkg_inst_ctx();
-        let game_inst_ctx = self.game_inst_ctx();
 
         IntermediateStatePattern {
-            game_inst_name: game_inst_ctx.game_inst().name(),
-            pkg_inst_name: pkg_inst_ctx.pkg_inst_name(),
+            pkg_name: pkg_inst_ctx.pkg_inst_name(),
+            params: &pkg_inst_ctx.pkg_inst().params,
             oracle_name: &self.oracle_def().sig.name,
         }
     }
-    //
+
     // returns none if the wrong number of arguments were provided
     pub fn smt_invoke_oracle<GS, IS, ARGS>(
         &self,
@@ -74,14 +73,18 @@ impl<'a> SplitOracleContext<'a> {
         let pkg_inst = &game.pkgs[self.pkg_inst_offs];
         let osig = &pkg_inst.pkg.split_oracles[self.split_oracle_offs].sig;
 
-        let game_inst_name = game_inst.name();
-        let pkg_inst_name = &pkg_inst.name;
+        let game_name = game_inst.game_name();
+        let game_params = &game_inst.consts;
+        let pkg_name = &pkg_inst.pkg.name;
+        let pkg_params = &pkg_inst.params;
         let oracle_name = &osig.name;
         let split_path = &osig.path;
 
         let pattern = PartialOraclePattern {
-            game_inst_name,
-            pkg_inst_name,
+            game_name,
+            game_params,
+            pkg_name,
+            pkg_params,
             oracle_name,
             split_path,
         };
