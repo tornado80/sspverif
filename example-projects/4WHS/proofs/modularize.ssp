@@ -15,6 +15,7 @@ proof WHSProto {
     instance monprfideal = Monprfideal {
         params {
             n  : n  ,
+  	        prf: prf,
         }
     }
 

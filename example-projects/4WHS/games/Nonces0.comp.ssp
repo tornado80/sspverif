@@ -1,0 +1,16 @@
+composition Nonces0 {
+        const n: Integer;
+    
+    instance Nonces0 = Nonces {
+        params {
+        n: n,
+        b: false,
+        }
+    }
+
+    compose {
+        adversary: {
+            Sample: Nonces0,
+        },
+    }
+}

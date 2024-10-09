@@ -1,7 +1,8 @@
-package MACReal {
+package MAC {
     params {
         n: Integer,
         prf: fn Bits(n), Bits(n) -> Bits(n),
+        b: Bool,
     }
     
     state {

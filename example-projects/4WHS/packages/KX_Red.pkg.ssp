@@ -1,7 +1,6 @@
-package KXHybridOne {
+package KX_Red {
     params {
         b: Bool,
-        tested: Bool,
         n: Integer,
         zeron: Bits(n),
         prf: fn Bits(n), Integer, Integer, Bits(n), Bits(n), Bool ->  Bits(n),
@@ -15,7 +14,6 @@ package KXHybridOne {
           kid_:  Integer,                       /* administrative kid          */
           Keys:  Table((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n))),(Bits(n),Maybe(Bool))), /* session key table  */
           Test:  Table((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n))),Bits(n)), /* random key table  */
-          Nonces: Table(Bits(n),Bool),
           State: Table(Integer,
                   /*    administrative sid  */
                 (
@@ -50,8 +48,8 @@ package KXHybridOne {
 
           }
 
-              import oracles {
-        Set(sid: (Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n))), k: Bits(n)),
+                        import oracles {
+        Sample() -> Bits(n),
     }
 
 oracle NewKey(ltk: Maybe(Bits(n))) -> Integer {
@@ -85,9 +83,7 @@ oracle Send1(ctr: Integer) -> Bits(n)
         assert (u == false);                 /* session belongs to initiator */
         assert (mess == 0);                  /* session has not yet sent its first message */
         assert (acc  == None );              /* session is still running           */
-        ni         <-$ Bits(n);
-        assert (Nonces[ni] == None);
-        Nonces[ni] <- Some(true);
+        ni         <- invoke Sample();
         State[ctr] <-  Some((U,u,V,v,ltk,acc,k,Some(ni),nr,kmac,sid,1));
         return ni;
     } 
@@ -99,9 +95,7 @@ oracle Send2(ctr: Integer, ni: Bits(n)) -> (Bits(n),Bits(n))
         assert (v    == true );              /* session belongs to responder */
         assert (mess == 0    );              /* session has not yet sent its first message */
         assert (acc  == None );              /* session is still running           */
-        nr         <-$ Bits(n);
-        assert (Nonces[nr] == None);
-        Nonces[nr] <- Some(true);
+        nr         <- invoke Sample();
         kmac       <-  prf(ltk,U,V,ni,nr,false); /* need role agreement here, to be fixed */
         tau        <-  mac(kmac,U,V,ni,nr,2);
         sid        <- (U,V,Some(ni),Some(nr),Some(tau));
