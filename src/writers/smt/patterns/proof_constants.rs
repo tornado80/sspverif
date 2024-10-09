@@ -28,40 +28,6 @@ pub trait ConstantPattern {
     }
 }
 
-pub struct GameState<'a> {
-    pub game_name: &'a str,
-    pub params: &'a [(GameConstIdentifier, Expression)],
-    pub variant: &'a str,
-}
-
-impl<'a> GameState<'a> {
-    fn expr_params(&self) -> impl Iterator<Item = &Expression> {
-        self.params.iter().map(|(_, expr)| expr)
-    }
-}
-
-impl<'a> ConstantPattern for GameState<'a> {
-    type Sort = datastructures::GameStateSort<'a>;
-
-    fn name(&self) -> String {
-        let Self {
-            game_name, variant, ..
-        } = self;
-
-        let encoded_params = encode_params(self.expr_params());
-
-        format!("<game-state-{game_name}-{encoded_params}-{variant}>")
-    }
-
-    fn sort(&self) -> Self::Sort {
-        GameStatePattern {
-            game_name: self.game_name,
-            params: self.params,
-        }
-        .sort()
-    }
-}
-
 #[derive(Clone, Debug)]
 pub struct OracleArgs<'a> {
     pub oracle_name: &'a str,

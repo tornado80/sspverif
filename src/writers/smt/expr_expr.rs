@@ -1,11 +1,5 @@
 use super::exprs::SmtExpr;
-use super::patterns::{
-    DatastructurePattern, GlobalStatePattern, PackageStatePattern, PackageStateSelector,
-    SelfStatePattern,
-};
 use crate::expressions::Expression;
-use crate::identifier::pkg_ident::PackageIdentifier;
-use crate::identifier::proof_ident::{ProofConstIdentifier, ProofIdentifier};
 use crate::identifier::Identifier;
 use crate::types::Type;
 

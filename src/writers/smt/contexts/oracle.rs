@@ -1,9 +1,12 @@
-use std::backtrace;
-
-use crate::package::{Export, OracleDef};
+use crate::hacks::ReturnValueDeclaration;
+use crate::package::OracleDef;
+use crate::transforms::samplify::SampleInfo;
 use crate::types::Type;
+use crate::writers::smt::exprs::SmtAs;
+use crate::writers::smt::patterns::oracle_args::OracleArgPattern;
 use crate::writers::smt::patterns::{
-    declare_datatype, DatastructurePattern, DispatchOraclePattern, OraclePattern,
+    declare_datatype, oracle_args, variables::GameStatePattern as GameStateVariablePattern,
+    variables::VariablePattern as _, DatastructurePattern, DispatchOraclePattern, OraclePattern,
     ReturnConstructor, ReturnPattern, ReturnSelector, ReturnValue, ReturnValueConstructor,
 };
 
@@ -12,25 +15,9 @@ use super::super::names;
 
 use super::{GameInstanceContext, GenericOracleContext, OracleContext, PackageInstanceContext};
 
+// Patterns
 impl<'a> OracleContext<'a> {
-    pub fn is_exported(&self) -> bool {
-        let export_needle = Export(self.pkg_inst_offs, self.oracle_def().sig.clone());
-        self.game_inst_context
-            .game_inst
-            .game()
-            .exports
-            .contains(&export_needle)
-    }
-
-    pub fn is_split(&self) -> bool {
-        println!(
-            "oracle_ctx.is_split called from {}",
-            backtrace::Backtrace::force_capture()
-        );
-        false
-    }
-
-    pub fn oracle_pattern(&'a self) -> OraclePattern<'a> {
+    pub(crate) fn oracle_pattern(&'a self) -> OraclePattern<'a> {
         let game_inst = &self.game_inst_context.game_inst;
         let pkg_inst = &game_inst.game().pkgs[self.pkg_inst_offs];
 
@@ -52,7 +39,7 @@ impl<'a> OracleContext<'a> {
         }
     }
 
-    pub fn dispatch_oracle_pattern(&'a self) -> DispatchOraclePattern<'a> {
+    pub(crate) fn dispatch_oracle_pattern(&'a self) -> DispatchOraclePattern<'a> {
         let game_inst = &self.game_inst_context.game_inst;
         let pkg_inst = &game_inst.game().pkgs[self.pkg_inst_offs];
 
@@ -92,11 +79,42 @@ impl<'a> OracleContext<'a> {
         }
     }
 
+    pub(crate) fn return_value_pattern(&self) -> ReturnValue {
+        ReturnValue {
+            inner_type: self.return_type(),
+        }
+    }
+
+    pub(crate) fn oracle_arg_game_consts_pattern(&self) -> oracle_args::GameConstsPattern {
+        oracle_args::GameConstsPattern {
+            game_name: self.game_inst_ctx().game().name(),
+        }
+    }
+    pub(crate) fn oracle_arg_game_state_pattern(&self) -> oracle_args::GameStatePattern {
+        oracle_args::GameStatePattern {
+            game_name: self.game_inst_ctx().game().name(),
+            game_params: &self.game_inst_ctx().game_inst().consts,
+        }
+    }
+
+    // TODO: (2024-10-09): oracle arg patterns for value args
+}
+
+// Getters
+impl<'a> OracleContext<'a> {
     fn return_type(&self) -> &Type {
         &self.oracle_def().sig.tipe
     }
 
-    pub fn smt_arg_name(&self, arg_name: &str) -> SmtExpr {
+    pub(crate) fn oracle_def(&self) -> &'a OracleDef {
+        &self.game_inst_context.game_inst.game().pkgs[self.pkg_inst_offs]
+            .pkg
+            .oracles[self.oracle_offs]
+    }
+}
+// SMT Code Generation
+impl<'a> OracleContext<'a> {
+    pub(crate) fn smt_arg_name(&self, arg_name: &str) -> SmtExpr {
         let game = self.game_inst_context.game_inst.game();
         let pkg_inst = &game.pkgs[self.pkg_inst_offs];
         let odef = &pkg_inst.pkg.oracles[self.oracle_offs];
@@ -104,17 +122,11 @@ impl<'a> OracleContext<'a> {
         names::oracle_nonsplit_arg_name(&odef.sig.name, arg_name).into()
     }
 
-    pub fn oracle_def(&self) -> &'a OracleDef {
-        &self.game_inst_context.game_inst.game().pkgs[self.pkg_inst_offs]
-            .pkg
-            .oracles[self.oracle_offs]
-    }
-
-    pub fn smt_sort_return(&self) -> SmtExpr {
+    pub(crate) fn smt_sort_return(&self) -> SmtExpr {
         self.return_pattern().sort().into()
     }
 
-    pub fn smt_declare_return(&self) -> SmtExpr {
+    pub(crate) fn smt_declare_return(&self) -> SmtExpr {
         let return_type = self.return_type();
         let pattern = self.return_pattern();
         let spec = pattern.datastructure_spec(&return_type);
@@ -122,7 +134,7 @@ impl<'a> OracleContext<'a> {
         declare_datatype(&pattern, &spec)
     }
 
-    pub fn smt_construct_return<S, V>(&self, state: S, value: V) -> SmtExpr
+    pub(crate) fn smt_construct_return<S, V>(&self, state: S, value: V) -> SmtExpr
     where
         S: Into<SmtExpr>,
         V: Into<SmtExpr>,
@@ -169,7 +181,7 @@ impl<'a> OracleContext<'a> {
             .unwrap()
     }
 
-    pub fn smt_access_return_state<R>(&self, ret: R) -> SmtExpr
+    pub(crate) fn smt_access_return_state<R>(&self, ret: R) -> SmtExpr
     where
         R: Into<SmtExpr>,
     {
@@ -186,34 +198,30 @@ impl<'a> OracleContext<'a> {
             .unwrap()
     }
 
-    pub fn smt_select_return_state<R, L>(&self, ret: R, state_length: L) -> SmtExpr
-    where
-        R: Into<SmtExpr>,
-        L: Into<SmtExpr>,
-    {
-        ("select", self.smt_access_return_state(ret), state_length).into()
+    pub(crate) fn smt_access_return_is_abort<R: Into<SmtExpr>>(&self, ret: R) -> SmtExpr {
+        let return_type = &self.return_type();
+        let return_pattern = self.return_pattern();
+        let return_spec = return_pattern.datastructure_spec(return_type);
+        let return_value = return_pattern
+            .access(
+                &return_spec,
+                &ReturnSelector::ReturnValueOrAbort { return_type },
+                ret,
+            )
+            .unwrap();
+
+        ("=", return_value, self.smt_construct_abort_return_value()).into()
     }
 
-    pub fn smt_store_return_state<R: Into<SmtExpr>, L: Into<SmtExpr>, S: Into<SmtExpr>>(
-        &self,
-        ret: R,
-        state_length: L,
-        state: S,
-    ) -> SmtExpr {
-        (
-            "store",
-            self.smt_access_return_state(ret),
-            state_length,
-            state,
-        )
-            .into()
+    pub(crate) fn smt_construct_abort_return_value(&self) -> SmtExpr {
+        let pattern = self.return_value_pattern();
+        let spec = pattern.datastructure_spec(&());
+        pattern
+            .call_constructor(&spec, &ReturnValueConstructor::Abort, |_| None)
+            .unwrap()
     }
 
-    pub fn smt_access_return_is_abort<R: Into<SmtExpr>>(&self, ret: R) -> SmtExpr {
-        ("=", ret, self.smt_construct_abort()).into()
-    }
-
-    pub fn smt_access_return_value<R: Into<SmtExpr>>(&self, ret: R) -> SmtExpr {
+    pub(crate) fn smt_access_return_value<R: Into<SmtExpr>>(&self, ret: R) -> SmtExpr {
         let game_inst = self.game_inst_context.game_inst;
         let pkg_inst = &game_inst.game().pkgs[self.pkg_inst_offs];
         let osig = &pkg_inst.pkg.oracles[self.oracle_offs].sig;
@@ -232,7 +240,7 @@ impl<'a> OracleContext<'a> {
     }
 
     // returns none if the wrong number of arguments were provided
-    pub fn smt_invoke_oracle<S, ARGS>(&self, gamestates: S, args: ARGS) -> Option<SmtExpr>
+    pub(crate) fn smt_invoke_oracle<S, ARGS>(&self, gamestate: S, args: ARGS) -> Option<SmtExpr>
     where
         S: Into<SmtExpr>,
         ARGS: Iterator<Item = SmtExpr>,
@@ -249,7 +257,7 @@ impl<'a> OracleContext<'a> {
 
         let mut cmdline = Vec::with_capacity(expected_len);
         cmdline.push(names::oracle_function_name(game_name, pkg_inst_name, oracle_name).into());
-        cmdline.push(gamestates.into());
+        cmdline.push(gamestate.into());
         cmdline.extend(args);
 
         if cmdline.len() != expected_len {
@@ -258,8 +266,29 @@ impl<'a> OracleContext<'a> {
 
         Some(SmtExpr::List(cmdline))
     }
+
+    /// writes the changes we made to local package state variables back into the package and game state
+    pub(crate) fn smt_write_back_state(&self, sample_info: &SampleInfo) -> SmtExpr {
+        let game_inst_ctx = self.game_inst_ctx();
+        let pkg_inst_ctx = self.pkg_inst_ctx();
+        let pkg_inst = self.pkg_inst_ctx().pkg_inst();
+        let game_state = oracle_args::GameStatePattern {
+            game_name: game_inst_ctx.game_name(),
+            game_params: game_inst_ctx.game_params(),
+        };
+
+        game_inst_ctx
+            .smt_update_gamestate_pkgstate(
+                game_state.local_arg_name(),
+                sample_info,
+                &pkg_inst.name,
+                pkg_inst_ctx.smt_update_pkgstate_from_locals().unwrap(),
+            )
+            .unwrap()
+    }
 }
 
+// Contexts
 impl<'a> GenericOracleContext for OracleContext<'a> {
     fn game_inst_ctx(&self) -> GameInstanceContext<'a> {
         self.game_inst_context.clone()
@@ -284,11 +313,15 @@ impl<'a> GenericOracleContext for OracleContext<'a> {
         &self.oracle_def().sig.tipe
     }
 
-    fn smt_game_state(&self) -> SmtExpr {
-        "__global_state".into()
+    fn smt_write_back_state(&self, sample_info: &SampleInfo) -> SmtExpr {
+        self.smt_write_back_state(sample_info)
     }
 
-    fn smt_construct_abort(&self) -> SmtExpr {
+    fn smt_game_state(&self) -> SmtExpr {
+        "<game-state>".into()
+    }
+
+    fn smt_construct_abort<S: Into<SmtExpr>>(&self, game_state: S) -> SmtExpr {
         let game_inst = self.game_inst_context.game_inst;
         let pkg_inst = &game_inst.game().pkgs[self.pkg_inst_offs];
         let osig = &pkg_inst.pkg.oracles[self.oracle_offs].sig;
@@ -314,10 +347,11 @@ impl<'a> GenericOracleContext for OracleContext<'a> {
 
         let return_spec = return_pattern.datastructure_spec(&return_type);
 
+        let game_state = game_state.into();
         return_pattern
             .call_constructor(&return_spec, &ReturnConstructor, |sel: &ReturnSelector| {
                 Some(match sel {
-                    ReturnSelector::GameState => self.smt_game_state(),
+                    ReturnSelector::GameState => game_state.clone(),
                     ReturnSelector::ReturnValueOrAbort { .. } => abort_as.clone(),
                 })
             })

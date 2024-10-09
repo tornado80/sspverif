@@ -5,7 +5,7 @@ use crate::{
         exprs::SmtExpr,
         names,
         partials::PartialsDatatype,
-        patterns::{FunctionPattern, IntermediateStatePattern, PartialOraclePattern},
+        patterns::{oracle_args::{self, OracleArgPattern}, FunctionPattern, IntermediateStatePattern, PartialOraclePattern},
     },
 };
 
@@ -130,7 +130,30 @@ impl<'a> GenericOracleContext for SplitOracleContext<'a> {
         "__global_state".into()
     }
 
-    fn smt_construct_abort(&self) -> SmtExpr {
+    fn smt_write_back_state(
+        &self,
+        sample_info: &crate::transforms::samplify::SampleInfo,
+    ) -> SmtExpr {
+        let game_inst_ctx = self.game_inst_ctx();
+        let pkg_inst_ctx = self.pkg_inst_ctx();
+        let pkg_inst = self.pkg_inst_ctx().pkg_inst();
+
+        let game_state = oracle_args::GameStatePattern {
+            game_name: game_inst_ctx.game_name(),
+            game_params: game_inst_ctx.game_params(),
+        };
+
+        game_inst_ctx
+            .smt_update_gamestate_pkgstate(
+                game_state.local_arg_name(),
+                sample_info,
+                &pkg_inst.name,
+                pkg_inst_ctx.smt_update_pkgstate_from_locals().unwrap(),
+            )
+            .unwrap()
+    }
+
+    fn smt_construct_abort<S: Into<SmtExpr>>(&self, _game_state: S) -> SmtExpr {
         let game = self.game_inst_context.game();
         let game_name = &game.name;
         let inst_name = &self.pkg_inst_ctx().pkg_inst().name;

@@ -5,13 +5,14 @@ use crate::{
     writers::smt::{
         exprs::SmtExpr,
         patterns::{
-            instance_names::encode_params, DatastructurePattern as _, FunctionPattern,
-            GameStatePattern, IntermediateStatePattern, PartialReturnPattern, PartialReturnSort,
+            self, instance_names::encode_params, oracle_args::OracleArgPattern as _,
+            DatastructurePattern as _, FunctionPattern, IntermediateStatePattern,
+            PartialReturnPattern, PartialReturnSort,
         },
     },
 };
 
-use super::oracle::{ORACLE_ARG_GAME_STATE, ORACLE_ARG_INTERMEDIATE_STATE};
+use super::oracle::ORACLE_ARG_INTERMEDIATE_STATE;
 
 pub struct DispatchOraclePattern<'a> {
     pub game_name: &'a str,
@@ -50,44 +51,51 @@ impl<'a> FunctionPattern for DispatchOraclePattern<'a> {
 
     fn function_args(&self) -> Vec<(String, SmtExpr)> {
         let DispatchOraclePattern {
-            oracle_sig,
+            oracle_sig:
+                OracleSig {
+                    name: oracle_name,
+                    args: oracle_args,
+                    ..
+                },
             game_name,
+            game_params,
             pkg_name,
             pkg_params,
             ..
         } = self;
 
-        let oracle_name = &oracle_sig.name;
-        let game_state_pattern = GameStatePattern {
-            game_name,
-            params: self.game_params,
-        };
         let intermediate_state_pattern = IntermediateStatePattern {
             pkg_name,
             params: pkg_params,
             oracle_name,
         };
 
-        let mut args = vec![
-            (
-                ORACLE_ARG_GAME_STATE.to_string(),
-                game_state_pattern.sort().into(),
-            ),
+        let game_state = patterns::oracle_args::GameStatePattern {
+            game_name,
+            game_params,
+        };
+
+        let game_consts = patterns::oracle_args::GameConstsPattern { game_name };
+
+        let game_state_pair = (game_state.local_arg_name(), game_state.sort().into());
+        let game_const_pair = (game_consts.local_arg_name(), game_consts.sort().into());
+
+        vec![
+            game_state_pair,
+            game_const_pair,
             (
                 ORACLE_ARG_INTERMEDIATE_STATE.to_string(),
                 intermediate_state_pattern.sort().into(),
             ),
-        ];
-
-        args.extend(
-            oracle_sig
-                .args
+        ]
+        .into_iter()
+        .chain(
+            oracle_args
                 .iter()
                 .cloned()
                 .map(|(name, tipe)| (name, tipe.into())),
-        );
-
-        args
+        )
+        .collect()
     }
 
     fn function_return_sort(&self) -> PartialReturnSort<'a> {

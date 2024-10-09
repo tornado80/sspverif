@@ -5,14 +5,13 @@ use crate::{
     writers::smt::{
         exprs::SmtExpr,
         patterns::{
-            game_consts::GameConstsPattern, instance_names::encode_params,
-            DatastructurePattern as _, FunctionPattern, GameStatePattern, ReturnPattern,
-            ReturnSort,
+            self, instance_names::encode_params, oracle_args::OracleArgPattern as _,
+            DatastructurePattern as _, FunctionPattern, ReturnPattern, ReturnSort,
         },
     },
 };
 
-pub const ORACLE_ARG_GAME_STATE: &str = "__global_state";
+pub const ORACLE_ARG_GAME_STATE: &str = "<game-state>";
 pub const ORACLE_ARG_INTERMEDIATE_STATE: &str = "__intermediate_state";
 
 pub struct OraclePattern<'a> {
@@ -27,10 +26,6 @@ pub struct OraclePattern<'a> {
 impl<'a> OraclePattern<'a> {
     fn pkg_expr_params(&self) -> impl Iterator<Item = &Expression> {
         self.pkg_params.iter().map(|(_, expr)| expr)
-    }
-
-    fn game_expr_params(&self) -> impl Iterator<Item = &Expression> {
-        self.game_params.iter().map(|(_, expr)| expr)
     }
 }
 
@@ -59,21 +54,15 @@ impl<'a> FunctionPattern for OraclePattern<'a> {
             ..
         } = self;
 
-        // build the (name sort) tuple for the game state variable
-        let game_state_pair = (
-            "<game-state>".to_string(),
-            GameStatePattern {
-                game_name,
-                params: game_params,
-            }
-            .sort()
-            .into(),
-        );
+        let game_state = patterns::oracle_args::GameStatePattern {
+            game_name,
+            game_params,
+        };
 
-        let game_const_pair = (
-            "<game-consts>".to_string(),
-            GameConstsPattern { game_name }.sort().into(),
-        );
+        let game_consts = patterns::oracle_args::GameConstsPattern { game_name };
+
+        let game_state_pair = (game_state.local_arg_name(), game_state.sort().into());
+        let game_const_pair = (game_consts.local_arg_name(), game_consts.sort().into());
 
         vec![game_state_pair, game_const_pair]
             .into_iter()
@@ -100,8 +89,8 @@ impl<'a> FunctionPattern for OraclePattern<'a> {
             game_name,
             pkg_name,
             oracle_name,
-            game_params: game_params.clone(),
-            pkg_params: pkg_params.clone(),
+            game_params,
+            pkg_params,
         }
         .sort()
     }

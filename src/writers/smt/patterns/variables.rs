@@ -49,7 +49,8 @@ use crate::{
 };
 
 use super::{
-    DatastructurePattern, GameStatePattern, GameStateSort, PackageStatePattern, PackageStateSort,
+    DatastructurePattern, GameStatePattern as GameStateDataStructurePattern, GameStateSort,
+    PackageStatePattern, PackageStateSort,
 };
 
 pub trait VariablePattern {
@@ -68,7 +69,8 @@ macro_rules! impl_VariablePatternIntoSmtExpr {
     ($lifetime:lifetime, $type:ty) => {
         impl<$lifetime> From<$type> for $crate::writers::smt::exprs::SmtExpr {
             fn from(value: $type) -> Self {
-                <$type as $crate::writers::smt::patterns::VariablePattern>::name(&value).into()
+                <$type as $crate::writers::smt::patterns::variables::VariablePattern>::name(&value)
+                    .into()
             }
         }
     };
@@ -82,7 +84,7 @@ macro_rules! impl_VariablePatternIntoSmtExpr {
 }
 
 impl_VariablePatternIntoSmtExpr!('a, &'a SelfStatePattern);
-impl_VariablePatternIntoSmtExpr!('a, &'a GlobalStatePattern);
+impl_VariablePatternIntoSmtExpr!('a, &'a GameStatePattern);
 impl_VariablePatternIntoSmtExpr!('a, LocalVariablePattern<'a>);
 
 pub struct SelfStatePattern;
@@ -100,10 +102,10 @@ impl<'a> VariablePattern for &'a SelfStatePattern {
     }
 }
 
-pub struct GlobalStatePattern;
+pub struct GameStatePattern;
 
-impl<'a> VariablePattern for &'a GlobalStatePattern {
-    type SpecInfo = GameStatePattern<'a>;
+impl<'a> VariablePattern for &'a GameStatePattern {
+    type SpecInfo = GameStateDataStructurePattern<'a>;
     type Sort = GameStateSort<'a>;
 
     fn name(&self) -> String {

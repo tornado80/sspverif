@@ -1,5 +1,6 @@
 use crate::{
     proof::GameInstance,
+    transforms::samplify::SampleInfo,
     types::Type,
     writers::smt::{exprs::SmtExpr, names},
 };
@@ -54,7 +55,8 @@ pub trait GenericOracleContext {
     fn oracle_args(&self) -> &[(String, Type)];
     fn oracle_return_type(&self) -> &Type;
 
+    fn smt_write_back_state(&self, sample_info: &SampleInfo) -> SmtExpr;
     fn smt_game_state(&self) -> SmtExpr;
 
-    fn smt_construct_abort(&self) -> SmtExpr;
+    fn smt_construct_abort<S: Into<SmtExpr>>(&self, game_state: S) -> SmtExpr;
 }

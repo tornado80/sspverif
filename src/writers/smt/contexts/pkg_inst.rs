@@ -1,7 +1,10 @@
+use crate::identifier::pkg_ident::{PackageIdentifier, PackageStateIdentifier};
+use crate::identifier::Identifier;
 use crate::package::{Composition, PackageInstance};
 use crate::proof::GameInstance;
 use crate::split::SplitPath;
 use crate::writers::smt::partials::PartialsDatatype;
+use crate::writers::smt::patterns::pkg_consts::PackageConstsPattern;
 use crate::writers::smt::patterns::{declare_datatype, PackageStateSelector};
 use crate::writers::smt::{
     contexts::{GameInstanceContext, OracleContext, PackageInstanceContext, SplitOracleContext},
@@ -10,19 +13,19 @@ use crate::writers::smt::{
 };
 
 impl<'a> PackageInstanceContext<'a> {
-    pub fn game_inst_ctx(&self) -> GameInstanceContext<'a> {
+    pub(crate) fn game_inst_ctx(&self) -> GameInstanceContext<'a> {
         self.game_ctx.clone()
     }
 
-    pub fn game_inst(&self) -> &'a GameInstance {
+    pub(crate) fn game_inst(&self) -> &'a GameInstance {
         self.game_ctx.game_inst
     }
 
-    pub fn game(&self) -> &'a Composition {
+    pub(crate) fn game(&self) -> &'a Composition {
         self.game_inst().game()
     }
 
-    pub fn split_oracle_ctx_by_name(
+    pub(crate) fn split_oracle_ctx_by_name(
         &self,
         oracle_name: &str,
         partials: &'a PartialsDatatype,
@@ -43,7 +46,7 @@ impl<'a> PackageInstanceContext<'a> {
         })
     }
 
-    pub fn oracle_ctx_by_name(&self, oracle_name: &str) -> Option<OracleContext<'a>> {
+    pub(crate) fn oracle_ctx_by_name(&self, oracle_name: &str) -> Option<OracleContext<'a>> {
         let inst_offs = self.inst_offs;
         let inst = &self.game().pkgs[inst_offs];
         let oracle_offs = inst
@@ -59,7 +62,7 @@ impl<'a> PackageInstanceContext<'a> {
         })
     }
 
-    pub fn split_oracle_ctx_by_name_and_path(
+    pub(crate) fn split_oracle_ctx_by_name_and_path(
         &self,
         oracle_name: &str,
         oracle_path: &SplitPath,
@@ -81,7 +84,10 @@ impl<'a> PackageInstanceContext<'a> {
         })
     }
 
-    pub fn oracle_ctx_by_oracle_offs(&self, oracle_offs: usize) -> Option<OracleContext<'a>> {
+    pub(crate) fn oracle_ctx_by_oracle_offs(
+        &self,
+        oracle_offs: usize,
+    ) -> Option<OracleContext<'a>> {
         let oracle_count = self.game().pkgs[self.inst_offs].pkg.oracles.len();
         if oracle_offs >= oracle_count {
             return None;
@@ -97,19 +103,25 @@ impl<'a> PackageInstanceContext<'a> {
         })
     }
 
-    pub fn pkg_inst_name(&self) -> &'a str {
+    pub(crate) fn pkg_inst_name(&self) -> &'a str {
         &self.game().pkgs[self.inst_offs].name
     }
 
-    pub fn pkg_name(&self) -> &'a str {
+    pub(crate) fn pkg_name(&self) -> &'a str {
         &self.game().pkgs[self.inst_offs].pkg.name
     }
 
-    pub fn pkg_inst(&self) -> &'a PackageInstance {
+    pub(crate) fn pkg_inst(&self) -> &'a PackageInstance {
         &self.game().pkgs[self.inst_offs]
     }
 
-    pub fn pkg_state_pattern(&self) -> PackageStatePattern<'a> {
+    pub(crate) fn pkg_consts_pattern(&self) -> PackageConstsPattern<'a> {
+        PackageConstsPattern {
+            pkg_name: &self.pkg_inst().pkg.name,
+        }
+    }
+
+    pub(crate) fn pkg_state_pattern(&self) -> PackageStatePattern<'a> {
         let pkg_name = &self.pkg_inst().pkg.name;
 
         let params = &self.pkg_inst().params;
@@ -117,18 +129,15 @@ impl<'a> PackageInstanceContext<'a> {
         PackageStatePattern { pkg_name, params }
     }
 
-    pub fn smt_sorts_return(&self) -> Vec<SmtExpr> {
-        let oracle_count = self.game().pkgs[self.inst_offs].pkg.oracles.len();
+    pub(crate) fn smt_declare_pkg_consts(&self) -> SmtExpr {
+        let pkg = &self.pkg_inst().pkg;
+        let pattern = self.pkg_consts_pattern();
+        let spec = pattern.datastructure_spec(pkg);
 
-        (0..oracle_count)
-            .map(|i| {
-                let octx = self.oracle_ctx_by_oracle_offs(i).unwrap();
-                octx.smt_sort_return()
-            })
-            .collect()
+        declare_datatype(&pattern, &spec)
     }
 
-    pub fn smt_declare_pkgstate(&self) -> SmtExpr {
+    pub(crate) fn smt_declare_pkgstate(&self) -> SmtExpr {
         let pkg = &self.pkg_inst().pkg;
         let pattern = self.pkg_state_pattern();
         let spec = pattern.datastructure_spec(pkg);
@@ -136,7 +145,7 @@ impl<'a> PackageInstanceContext<'a> {
         declare_datatype(&pattern, &spec)
     }
 
-    pub fn smt_access_pkgstate<S: Into<SmtExpr>>(
+    pub(crate) fn smt_access_pkgstate<S: Into<SmtExpr>>(
         &self,
         pkg_state: S,
         field_name: &str,
@@ -166,27 +175,30 @@ impl<'a> PackageInstanceContext<'a> {
         })
     }
 
-    pub fn smt_update_pkgstate<S, V>(&self, state: S, field_name: &str, value: V) -> Option<SmtExpr>
-    where
-        S: Clone + Into<SmtExpr>,
-        V: Clone + Into<SmtExpr>,
-    {
+    pub(crate) fn smt_update_pkgstate_from_locals(&self) -> Option<SmtExpr> {
         let game = self.game();
+        let game_inst = self.game_inst();
         let pkg_inst = &game.pkgs[self.inst_offs];
         let pkg = &pkg_inst.pkg;
-
-        let state: SmtExpr = state.into();
+        let pkg_name = &pkg.name;
 
         let pkg_state_pattern = self.pkg_state_pattern();
         let pkg_state_spec = pkg_state_pattern.datastructure_spec(pkg);
-        pkg_state_pattern.call_constructor(&pkg_state_spec, &(), |sel| {
-            let PackageStateSelector { name, .. } = sel;
 
-            Some(if name == &field_name {
-                value.clone().into()
-            } else {
-                self.smt_access_pkgstate(state.clone(), name)?
-            })
+        pkg_state_pattern.call_constructor(&pkg_state_spec, &(), |sel| {
+            let PackageStateSelector { name, ty } = *sel;
+            Some(
+                Identifier::PackageIdentifier(PackageIdentifier::State(PackageStateIdentifier {
+                    pkg_name: pkg_name.clone(),
+                    name: name.to_string(),
+                    tipe: ty.clone(),
+                    pkg_inst_name: Some(pkg_inst.name.clone()),
+                    game_name: Some(game.name.clone()),
+                    game_inst_name: Some(game_inst.name.clone()),
+                    proof_name: None,
+                }))
+                .into(),
+            )
         })
     }
 }
