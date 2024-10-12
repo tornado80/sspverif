@@ -15,6 +15,7 @@ pub trait FunctionPattern {
 
     fn function_name(&self) -> String;
     fn function_args(&self) -> Vec<(String, SmtExpr)>;
+    fn function_args_count(&self) -> usize;
     fn function_return_sort(&self) -> Self::ReturnSort;
 
     fn define_fun<B: Into<SmtExpr>>(&self, body: B) -> SmtDefineFun<B, Self::ReturnSort> {
@@ -43,10 +44,14 @@ pub trait FunctionPattern {
             .into()
     }
 
-    fn call(&self, args: &[SmtExpr]) -> SmtExpr {
-        let mut call: Vec<SmtExpr> = vec![self.function_name().into()];
-        call.extend(args.iter().cloned());
-        SmtExpr::List(call)
+    fn call(&self, args: &[SmtExpr]) -> Option<SmtExpr> {
+        if args.len() == self.function_args_count() {
+            let mut call: Vec<SmtExpr> = vec![self.function_name().into()];
+            call.extend(args.iter().cloned());
+            Some(SmtExpr::List(call))
+        } else {
+            None
+        }
     }
 }
 

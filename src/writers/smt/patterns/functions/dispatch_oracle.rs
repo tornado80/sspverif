@@ -118,4 +118,8 @@ impl<'a> FunctionPattern for DispatchOraclePattern<'a> {
 
         partial_return_pattern.sort()
     }
+
+    fn function_args_count(&self) -> usize {
+        todo!()
+    }
 }

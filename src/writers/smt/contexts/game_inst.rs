@@ -42,17 +42,25 @@ impl<'a> GameInstanceContext<'a> {
 
 // Patterms
 impl<'a> GameInstanceContext<'a> {
-    pub(crate) fn datastructure_game_state_pattern(&self) -> GameStatePattern {
-        GameStatePattern {
-            game_name: self.game_name(),
-            params: self.game_params(),
-        }
-    }
-
     pub(crate) fn oracle_arg_game_state_pattern(&self) -> patterns::oracle_args::GameStatePattern {
         patterns::oracle_args::GameStatePattern {
             game_name: self.game_name(),
             game_params: self.game_params(),
+        }
+    }
+
+    pub(crate) fn datastructure_game_state_pattern(&self) -> GameStatePattern {
+        let game_name = self.game_inst.game_name();
+        let params = &self.game_inst.consts;
+
+        GameStatePattern { game_name, params }
+    }
+
+    fn game_state_declare_info(&self, sample_info: &'a SampleInfo) -> GameStateDeclareInfo {
+        let game_inst = self.game_inst;
+        GameStateDeclareInfo {
+            game_inst,
+            sample_info,
         }
     }
 }
@@ -65,8 +73,10 @@ impl<'a> GameInstanceContext<'a> {
             sample_info,
         };
 
-        let spec = self.game_state_pattern().datastructure_spec(&declare_info);
-        declare_datatype(&self.game_state_pattern(), &spec)
+        let spec = self
+            .datastructure_game_state_pattern()
+            .datastructure_spec(&declare_info);
+        declare_datatype(&self.datastructure_game_state_pattern(), &spec)
     }
 
     pub(crate) fn smt_declare_game_consts(&self) -> SmtExpr {
@@ -97,13 +107,16 @@ impl<'a> GameInstanceContext<'a> {
         };
 
         let declare_info = self.game_state_declare_info(&sample_info);
-        let spec = self.game_state_pattern().datastructure_spec(&declare_info);
+        let spec = self
+            .datastructure_game_state_pattern()
+            .datastructure_spec(&declare_info);
         let selector = GameStateSelector::PackageInstance {
             pkg_inst_name,
             sort: pkg_ctx.pkg_state_pattern().sort(),
         };
 
-        self.game_state_pattern().access(&spec, &selector, state)
+        self.datastructure_game_state_pattern()
+            .access(&spec, &selector, state)
     }
     pub(crate) fn smt_access_gamestate_rand<S: Into<SmtExpr>>(
         &self,
@@ -112,25 +125,13 @@ impl<'a> GameInstanceContext<'a> {
         sample_id: usize,
     ) -> Option<SmtExpr> {
         let declare_info = self.game_state_declare_info(sample_info);
-        let spec = self.game_state_pattern().datastructure_spec(&declare_info);
+        let spec = self
+            .datastructure_game_state_pattern()
+            .datastructure_spec(&declare_info);
         let selector = GameStateSelector::Randomness { sample_id };
 
-        self.game_state_pattern().access(&spec, &selector, state)
-    }
-
-    pub(crate) fn game_state_pattern(&self) -> GameStatePattern {
-        let game_name = self.game_inst.game_name();
-        let params = &self.game_inst.consts;
-
-        GameStatePattern { game_name, params }
-    }
-
-    fn game_state_declare_info(&self, sample_info: &'a SampleInfo) -> GameStateDeclareInfo {
-        let game_inst = self.game_inst;
-        GameStateDeclareInfo {
-            game_inst,
-            sample_info,
-        }
+        self.datastructure_game_state_pattern()
+            .access(&spec, &selector, state)
     }
 
     pub(crate) fn smt_update_gamestate_pkgstate<S, V>(
@@ -147,14 +148,20 @@ impl<'a> GameInstanceContext<'a> {
         let pkg_ctx = self.pkg_inst_ctx_by_name(target_name).unwrap();
 
         let declare_info = self.game_state_declare_info(sample_info);
-        let spec = self.game_state_pattern().datastructure_spec(&declare_info);
+        let spec = self
+            .datastructure_game_state_pattern()
+            .datastructure_spec(&declare_info);
         let pkgstate_selector = GameStateSelector::PackageInstance {
             pkg_inst_name: target_name,
             sort: pkg_ctx.pkg_state_pattern().sort(),
         };
 
-        self.game_state_pattern()
-            .update(&spec, &pkgstate_selector, gamestate, new_pkgstate)
+        self.datastructure_game_state_pattern().update(
+            &spec,
+            &pkgstate_selector,
+            gamestate,
+            new_pkgstate,
+        )
     }
 
     pub(crate) fn smt_update_gamestate_rand<S, V>(
@@ -169,10 +176,12 @@ impl<'a> GameInstanceContext<'a> {
         V: Clone + Into<SmtExpr>,
     {
         let declare_info = self.game_state_declare_info(sample_info);
-        let spec = self.game_state_pattern().datastructure_spec(&declare_info);
+        let spec = self
+            .datastructure_game_state_pattern()
+            .datastructure_spec(&declare_info);
         let selector = GameStateSelector::Randomness { sample_id };
 
-        self.game_state_pattern()
+        self.datastructure_game_state_pattern()
             .update(&spec, &selector, state, new_value)
     }
 

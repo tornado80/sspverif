@@ -140,6 +140,7 @@ pub trait DatastructurePattern<'a> {
         .into()
     }
 
+    // NOTE: ReturnValue has a custom implementation! make sure to also update that
     fn call_constructor<F>(
         &self,
         spec: &DatastructureSpec<'a, Self>,

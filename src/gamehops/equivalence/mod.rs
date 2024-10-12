@@ -3,6 +3,7 @@ use std::fmt::Write;
 use std::iter::FromIterator;
 
 use crate::util::resolver::Named;
+use crate::writers::smt::contexts::GameInstanceContext;
 use crate::writers::smt::patterns::oracle_args::{
     OldNewOracleArgPattern as _, UnitOracleArgPattern as _,
 };
@@ -261,19 +262,15 @@ impl<'a> EquivalenceContext<'a> {
 
         /////// state constants
 
-        let game_state_left = patterns::oracle_args::GameStatePattern {
-            game_name: left_game_name,
-            game_params: &left.consts,
-        };
-        let game_state_right = patterns::oracle_args::GameStatePattern {
-            game_name: right_game_name,
-            game_params: &right.consts,
-        };
+        let game_state_left = gctx_left.oracle_arg_game_state_pattern();
+        let game_state_right = gctx_right.oracle_arg_game_state_pattern();
+
+        // the new ones are declared in the declare-then-assert loop below
 
         out.push(game_state_left.declare_old(left_game_inst_name));
-        out.push(game_state_left.declare_new(left_game_inst_name));
+        //out.push(game_state_left.declare_new(left_game_inst_name));
         out.push(game_state_right.declare_old(right_game_inst_name));
-        out.push(game_state_right.declare_new(right_game_inst_name));
+        //out.push(game_state_right.declare_new(right_game_inst_name));
 
         ////// consts constants
 
@@ -567,19 +564,15 @@ impl<'a> EquivalenceContext<'a> {
         }
         .name();
 
-        let state_left = patterns::oracle_args::GameStatePattern {
-            game_name: game_name_left,
-            game_params: game_params_left,
-        };
-        let state_right = patterns::oracle_args::GameStatePattern {
-            game_name: game_name_right,
-            game_params: game_params_right,
-        };
+        let state_left = gctx_left.oracle_arg_game_state_pattern();
+        let state_right = gctx_right.oracle_arg_game_state_pattern();
 
-        let state_left_new_name = state_left.new_global_const_name(game_inst_name_left);
+        let state_left_new_name =
+            state_left.new_global_const_name(game_inst_name_left, oracle_name.to_string());
         let state_left_old_name = state_left.old_global_const_name(game_inst_name_left);
 
-        let state_right_new_name = state_right.new_global_const_name(game_inst_name_right);
+        let state_right_new_name =
+            state_right.new_global_const_name(game_inst_name_right, oracle_name.to_string());
         let state_right_old_name = state_right.old_global_const_name(game_inst_name_right);
 
         let intermediate_state_left_new_name = patterns::IntermediateStateConst {
@@ -884,8 +877,8 @@ impl<'a> EquivalenceContext<'a> {
         let build_relation_call = |name: &str| -> SmtExpr {
             (
                 name,
-                &state_left.new_global_const_name(game_inst_name_left),
-                &state_right.new_global_const_name(game_inst_name_right),
+                &state_left.new_global_const_name(game_inst_name_left, oracle_name.to_string()),
+                &state_right.new_global_const_name(game_inst_name_right, oracle_name.to_string()),
             )
                 .into()
         };
@@ -902,8 +895,8 @@ impl<'a> EquivalenceContext<'a> {
         let build_invariant_new_call = |name: &str| -> SmtExpr {
             (
                 name,
-                &state_left.new_global_const_name(game_inst_name_left),
-                &state_right.new_global_const_name(game_inst_name_right),
+                &state_left.new_global_const_name(game_inst_name_left, oracle_name.to_string()),
+                &state_right.new_global_const_name(game_inst_name_right, oracle_name.to_string()),
             )
                 .into()
         };
@@ -1062,16 +1055,15 @@ impl<'a> EquivalenceContext<'a> {
         game_inst: &GameInstance,
         sample_info: &SampleInfo,
     ) -> SmtExpr {
+        let gctx = GameInstanceContext::new(game_inst);
         let game = game_inst.game();
         let game_inst_name = game_inst.as_name();
         let game_name = &game.name;
         let params = &game_inst.consts;
 
-        let state_name = patterns::oracle_args::GameStatePattern {
-            game_name,
-            game_params: params,
-        }
-        .old_global_const_name(game_inst_name);
+        let state_name = gctx
+            .oracle_arg_game_state_pattern()
+            .old_global_const_name(game_inst_name);
 
         let pattern = patterns::GameStatePattern { game_name, params };
         let info = patterns::GameStateDeclareInfo {
@@ -1305,11 +1297,9 @@ fn build_partial_returns(
                 .iter()
                 .map(|(arg_name, _)| octx.smt_arg_name(arg_name));
 
-            let game_state_name = patterns::oracle_args::GameStatePattern {
-                game_name,
-                game_params,
-            }
-            .old_global_const_name(game_inst_name);
+            let game_state_name = gctx
+                .oracle_arg_game_state_pattern()
+                .old_global_const_name(game_inst_name);
 
             let intermediate_state_name = patterns::IntermediateStateConst {
                 game_inst_name,
@@ -1336,6 +1326,7 @@ fn build_partial_returns(
         })
         .collect()
 }
+
 fn build_returns(game_inst: &GameInstance) -> Vec<(SmtExpr, SmtExpr)> {
     let gctx = contexts::GameInstanceContext::new(game_inst);
     let game_name = &game_inst.game().name;
@@ -1379,16 +1370,20 @@ fn build_returns(game_inst: &GameInstance) -> Vec<(SmtExpr, SmtExpr)> {
         };
 
         let state = octx.oracle_arg_game_state_pattern();
+        let consts = octx.oracle_arg_game_consts_pattern();
 
         let old_state_const = state.old_global_const_name(game_inst_name);
-        let new_state_const = state.new_global_const_name(game_inst_name);
+        let new_state_const = state.new_global_const_name(game_inst_name, oracle_name.to_string());
+        let consts_const = consts.unit_global_const_name(game_inst_name);
 
         let args = sig
             .args
             .iter()
             .map(|(arg_name, _)| octx.smt_arg_name(arg_name));
 
-        let oracle_func_evaluation = octx.smt_invoke_oracle(old_state_const, args).unwrap();
+        let oracle_func_evaluation = octx
+            .smt_call_oracle_fn(old_state_const, consts_const, args)
+            .unwrap();
 
         let return_pattern = octx.return_pattern();
         let return_spec = return_pattern.datastructure_spec(&return_type);
@@ -1429,7 +1424,7 @@ fn build_returns(game_inst: &GameInstance) -> Vec<(SmtExpr, SmtExpr)> {
         out.push((return_const.declare(), constrain_return.into()));
         out.push((return_value_const.declare(), constrain_return_value.into()));
         out.push((
-            state.declare_new(game_inst_name),
+            state.declare_new(game_inst_name, oracle_name.to_string()),
             constrain_new_state.into(),
         ));
     }
@@ -1450,14 +1445,10 @@ fn build_rands(
             let sample_id = sample_item.sample_id;
             let tipe = &sample_item.tipe;
             let game_inst_name = game_inst.name();
-            let game_name = game_inst.game_name();
-            let params = &game_inst.consts;
 
-            let state = patterns::oracle_args::GameStatePattern {
-                game_name,
-                game_params: params,
-            }
-            .old_global_const_name(game_inst_name);
+            let state = gctx
+                .oracle_arg_game_state_pattern()
+                .old_global_const_name(game_inst_name);
 
             let randctr_name = format!("randctr-{game_inst_name}-{sample_id}");
             let randval_name = format!("randval-{game_inst_name}-{sample_id}");

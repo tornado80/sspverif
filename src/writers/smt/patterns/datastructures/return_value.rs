@@ -1,8 +1,14 @@
-use crate::{types::Type, writers::smt::sorts::SmtReturnValue};
+use crate::{
+    types::Type,
+    writers::smt::{
+        exprs::{SmtAs, SmtExpr},
+        sorts::SmtReturnValue,
+    },
+};
 
 use super::{DatastructurePattern, DatastructureSpec};
 
-#[derive(PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub enum ReturnValueConstructor {
     Return,
     Abort,
@@ -69,5 +75,42 @@ impl<'a> DatastructurePattern<'a> for ReturnValue<'a> {
 
     fn matchfield_name(&self, _sel: &Self::Selector) -> String {
         "returnvalue".to_string()
+    }
+
+    // we need to override the default implementation, because we have to wrap "mk-abort" in an
+    // `as`.
+    fn call_constructor<F>(
+        &self,
+        spec: &DatastructureSpec<'a, Self>,
+        con: &Self::Constructor,
+        mut f: F,
+    ) -> Option<SmtExpr>
+    where
+        F: FnMut(&Self::Selector) -> Option<SmtExpr>,
+    {
+        if *con == ReturnValueConstructor::Abort {
+            return Some(
+                SmtAs {
+                    term: "mk-abort",
+                    sort: self.sort(),
+                }
+                .into(),
+            );
+        }
+
+        let (con, sels) = spec.0.iter().find(|(cur_con, _sels)| con == cur_con)?;
+
+        // smt-lib doesn't like parens around constructors without any fields/selectors
+        if sels.is_empty() {
+            return Some(self.constructor_name(con).into());
+        }
+
+        let mut call = Vec::with_capacity(sels.len() + 1);
+        call.push(self.constructor_name(con).into());
+        for sel in sels {
+            call.push(f(sel)?);
+        }
+
+        Some(SmtExpr::List(call))
     }
 }

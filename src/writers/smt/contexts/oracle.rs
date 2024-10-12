@@ -1,12 +1,10 @@
-use crate::hacks::ReturnValueDeclaration;
 use crate::package::OracleDef;
 use crate::transforms::samplify::SampleInfo;
 use crate::types::Type;
-use crate::writers::smt::exprs::SmtAs;
 use crate::writers::smt::patterns::oracle_args::OracleArgPattern;
+use crate::writers::smt::patterns::FunctionPattern;
 use crate::writers::smt::patterns::{
-    declare_datatype, oracle_args, variables::GameStatePattern as GameStateVariablePattern,
-    variables::VariablePattern as _, DatastructurePattern, DispatchOraclePattern, OraclePattern,
+    declare_datatype, oracle_args, DatastructurePattern, DispatchOraclePattern, OraclePattern,
     ReturnConstructor, ReturnPattern, ReturnSelector, ReturnValue, ReturnValueConstructor,
 };
 
@@ -122,10 +120,6 @@ impl<'a> OracleContext<'a> {
         names::oracle_nonsplit_arg_name(&odef.sig.name, arg_name).into()
     }
 
-    pub(crate) fn smt_sort_return(&self) -> SmtExpr {
-        self.return_pattern().sort().into()
-    }
-
     pub(crate) fn smt_declare_return(&self) -> SmtExpr {
         let return_type = self.return_type();
         let pattern = self.return_pattern();
@@ -239,34 +233,6 @@ impl<'a> OracleContext<'a> {
             .unwrap()
     }
 
-    // returns none if the wrong number of arguments were provided
-    pub(crate) fn smt_invoke_oracle<S, ARGS>(&self, gamestate: S, args: ARGS) -> Option<SmtExpr>
-    where
-        S: Into<SmtExpr>,
-        ARGS: Iterator<Item = SmtExpr>,
-    {
-        let game_inst = self.game_inst_context.game_inst;
-        let pkg_inst = &game_inst.game().pkgs[self.pkg_inst_offs];
-        let osig = &pkg_inst.pkg.oracles[self.oracle_offs].sig;
-
-        let game_name = game_inst.name();
-        let pkg_inst_name = &pkg_inst.name;
-        let oracle_name = &osig.name;
-
-        let expected_len = 2 + osig.args.len();
-
-        let mut cmdline = Vec::with_capacity(expected_len);
-        cmdline.push(names::oracle_function_name(game_name, pkg_inst_name, oracle_name).into());
-        cmdline.push(gamestate.into());
-        cmdline.extend(args);
-
-        if cmdline.len() != expected_len {
-            return None;
-        }
-
-        Some(SmtExpr::List(cmdline))
-    }
-
     /// writes the changes we made to local package state variables back into the package and game state
     pub(crate) fn smt_write_back_state(&self, sample_info: &SampleInfo) -> SmtExpr {
         let game_inst_ctx = self.game_inst_ctx();
@@ -341,8 +307,6 @@ impl<'a> GenericOracleContext for OracleContext<'a> {
             )
             .unwrap();
 
-        let abort_as: SmtExpr = ("as", abort, return_value_pattern.sort()).into();
-
         let return_pattern = self.return_pattern();
 
         let return_spec = return_pattern.datastructure_spec(&return_type);
@@ -352,9 +316,28 @@ impl<'a> GenericOracleContext for OracleContext<'a> {
             .call_constructor(&return_spec, &ReturnConstructor, |sel: &ReturnSelector| {
                 Some(match sel {
                     ReturnSelector::GameState => game_state.clone(),
-                    ReturnSelector::ReturnValueOrAbort { .. } => abort_as.clone(),
+                    ReturnSelector::ReturnValueOrAbort { .. } => abort.clone(),
                 })
             })
             .unwrap()
+    }
+
+    // returns none if the wrong number of arguments were provided
+    fn smt_call_oracle_fn<
+        GameState: Into<SmtExpr>,
+        GameConsts: Into<SmtExpr>,
+        Args: IntoIterator<Item = SmtExpr>,
+    >(
+        &self,
+        game_state: GameState,
+        game_consts: GameConsts,
+        args: Args,
+    ) -> Option<SmtExpr> {
+        let pattern = self.oracle_pattern();
+
+        let base_args = [game_state.into(), game_consts.into()].into_iter();
+        let call_args: Vec<_> = base_args.chain(args).collect();
+
+        pattern.call(&call_args)
     }
 }

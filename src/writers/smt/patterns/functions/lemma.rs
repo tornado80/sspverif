@@ -35,13 +35,17 @@ impl<'a> FunctionPattern for LemmaFunction<'a> {
 
     fn function_args(&self) -> Vec<(String, SmtExpr)> {
         let _state_left_pattern = GameStatePattern {
-            game_name: &self.left_game_name,
-            params: &self.left_game_params,
+            game_name: self.left_game_name,
+            params: self.left_game_params,
         };
         vec![]
     }
 
     fn function_return_sort(&self) -> Self::ReturnSort {
+        todo!()
+    }
+
+    fn function_args_count(&self) -> usize {
         todo!()
     }
 }

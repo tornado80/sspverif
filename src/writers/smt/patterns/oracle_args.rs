@@ -11,17 +11,17 @@ mod value_arg;
 pub use game_consts::*;
 pub use game_state::*;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub enum OldNewVariant {
     Old,
-    New,
+    New { oracle_name: String },
 }
 
 impl Display for OldNewVariant {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             OldNewVariant::Old => write!(f, "old"),
-            OldNewVariant::New => write!(f, "new"),
+            OldNewVariant::New { oracle_name } => write!(f, "new-{oracle_name}"),
         }
     }
 }
@@ -44,16 +44,16 @@ pub trait OldNewOracleArgPattern: OracleArgPattern<Variant = OldNewVariant> {
         self.global_const_name(game_inst_name, &OldNewVariant::Old)
     }
 
-    fn new_global_const_name(&self, game_inst_name: &str) -> String {
-        self.global_const_name(game_inst_name, &OldNewVariant::New)
+    fn new_global_const_name(&self, game_inst_name: &str, oracle_name: String) -> String {
+        self.global_const_name(game_inst_name, &OldNewVariant::New { oracle_name })
     }
 
     fn declare_old(&self, game_inst_name: &str) -> SmtExpr {
         self.declare(game_inst_name, &OldNewVariant::Old)
     }
 
-    fn declare_new(&self, game_inst_name: &str) -> SmtExpr {
-        self.declare(game_inst_name, &OldNewVariant::New)
+    fn declare_new(&self, game_inst_name: &str, oracle_name: String) -> SmtExpr {
+        self.declare(game_inst_name, &OldNewVariant::New { oracle_name })
     }
 }
 

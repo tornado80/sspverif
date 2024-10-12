@@ -47,6 +47,10 @@ impl<'a> FunctionPattern for ConstMappingFunction<'a> {
             pkg_name: self.pkg_name,
         }
     }
+
+    fn function_args_count(&self) -> usize {
+        1
+    }
 }
 
 pub fn define_fun<'a>(

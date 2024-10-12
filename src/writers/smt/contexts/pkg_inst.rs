@@ -1,6 +1,9 @@
-use crate::identifier::pkg_ident::{PackageIdentifier, PackageStateIdentifier};
+use crate::expressions::Expression;
+use crate::identifier::pkg_ident::{
+    PackageConstIdentifier, PackageIdentifier, PackageStateIdentifier,
+};
 use crate::identifier::Identifier;
-use crate::package::{Composition, PackageInstance};
+use crate::package::{Composition, Package, PackageInstance};
 use crate::proof::GameInstance;
 use crate::split::SplitPath;
 use crate::writers::smt::partials::PartialsDatatype;
@@ -103,16 +106,24 @@ impl<'a> PackageInstanceContext<'a> {
         })
     }
 
+    pub(crate) fn pkg_inst(&self) -> &'a PackageInstance {
+        &self.game().pkgs[self.inst_offs]
+    }
+
+    pub(crate) fn pkg(&self) -> &'a Package {
+        &self.pkg_inst().pkg
+    }
+
     pub(crate) fn pkg_inst_name(&self) -> &'a str {
-        &self.game().pkgs[self.inst_offs].name
+        &self.pkg_inst().name
     }
 
     pub(crate) fn pkg_name(&self) -> &'a str {
-        &self.game().pkgs[self.inst_offs].pkg.name
+        &self.pkg().name
     }
 
-    pub(crate) fn pkg_inst(&self) -> &'a PackageInstance {
-        &self.game().pkgs[self.inst_offs]
+    pub(crate) fn pkg_params(&self) -> &'a [(PackageConstIdentifier, Expression)] {
+        &self.pkg_inst().params
     }
 
     pub(crate) fn pkg_consts_pattern(&self) -> PackageConstsPattern<'a> {

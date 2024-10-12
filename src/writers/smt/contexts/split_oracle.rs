@@ -5,7 +5,10 @@ use crate::{
         exprs::SmtExpr,
         names,
         partials::PartialsDatatype,
-        patterns::{oracle_args::{self, OracleArgPattern}, FunctionPattern, IntermediateStatePattern, PartialOraclePattern},
+        patterns::{
+            oracle_args::{self, OracleArgPattern},
+            FunctionPattern, IntermediateStatePattern, PartialOraclePattern,
+        },
     },
 };
 
@@ -57,7 +60,7 @@ impl<'a> SplitOracleContext<'a> {
     }
 
     // returns none if the wrong number of arguments were provided
-    pub fn smt_invoke_oracle<GS, IS, ARGS>(
+    pub(crate) fn smt_invoke_oracle<GS, IS, ARGS>(
         &self,
         gamestate: GS,
         intermediate_state: IS,
@@ -102,6 +105,17 @@ impl<'a> SplitOracleContext<'a> {
         }
 
         Some(SmtExpr::List(cmdline))
+    }
+
+    pub(crate) fn oracle_pattern(&self) -> PartialOraclePattern {
+        PartialOraclePattern {
+            game_name: self.game_inst_context.game_name(),
+            game_params: self.game_inst_context.game_params(),
+            pkg_name: self.pkg_inst_ctx().pkg_name(),
+            pkg_params: self.pkg_inst_ctx().pkg_params(),
+            oracle_name: self.oracle_name(),
+            split_path: self.split_path(),
+        }
     }
 }
 
@@ -165,5 +179,24 @@ impl<'a> GenericOracleContext for SplitOracleContext<'a> {
             &oracle_name_with_path,
         )
         .into()])
+    }
+
+    // returns none if the wrong number of arguments were provided
+    fn smt_call_oracle_fn<
+        GameState: Into<SmtExpr>,
+        GameConsts: Into<SmtExpr>,
+        Args: IntoIterator<Item = SmtExpr>,
+    >(
+        &self,
+        game_state: GameState,
+        game_consts: GameConsts,
+        args: Args,
+    ) -> Option<SmtExpr> {
+        let pattern = self.oracle_pattern();
+
+        let base_args = [game_state.into(), game_consts.into()].into_iter();
+        let call_args: Vec<_> = base_args.chain(args).collect();
+
+        pattern.call(&call_args)
     }
 }

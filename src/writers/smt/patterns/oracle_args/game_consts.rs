@@ -11,11 +11,11 @@ impl<'a> OracleArgPattern for GameConstsPattern<'a> {
     type Variant = ();
 
     fn global_const_name(&self, game_inst_name: &str, _variant: &()) -> String {
-        format!("<<game-state-{game_inst_name}>>")
+        format!("<<game-consts-{game_inst_name}>>")
     }
 
     fn local_arg_name(&self) -> String {
-        "<game-state>".to_string()
+        "<game-consts>".to_string()
     }
 
     fn sort(&self) -> Self::Sort {

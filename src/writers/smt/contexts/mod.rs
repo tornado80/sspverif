@@ -59,4 +59,15 @@ pub trait GenericOracleContext {
     fn smt_game_state(&self) -> SmtExpr;
 
     fn smt_construct_abort<S: Into<SmtExpr>>(&self, game_state: S) -> SmtExpr;
+
+    fn smt_call_oracle_fn<
+        GameState: Into<SmtExpr>,
+        GameConsts: Into<SmtExpr>,
+        Args: IntoIterator<Item = SmtExpr>,
+    >(
+        &self,
+        game_state: GameState,
+        game_consts: GameConsts,
+        args: Args,
+    ) -> Option<SmtExpr>;
 }

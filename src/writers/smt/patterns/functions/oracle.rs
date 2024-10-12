@@ -75,6 +75,11 @@ impl<'a> FunctionPattern for OraclePattern<'a> {
             .collect()
     }
 
+    fn function_args_count(&self) -> usize {
+        // game state, game consts, args
+        2 + self.oracle_args.len()
+    }
+
     fn function_return_sort(&self) -> ReturnSort<'a> {
         let Self {
             game_name,

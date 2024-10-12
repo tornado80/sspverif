@@ -44,6 +44,10 @@ impl<'a> FunctionPattern for PartialOraclePattern<'a> {
         todo!()
     }
 
+    fn function_args_count(&self) -> usize {
+        todo!()
+    }
+
     fn function_return_sort(&self) -> PartialReturnSort<'a> {
         let Self {
             game_name,

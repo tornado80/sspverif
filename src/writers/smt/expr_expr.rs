@@ -3,12 +3,6 @@ use crate::expressions::Expression;
 use crate::identifier::Identifier;
 use crate::types::Type;
 
-impl From<Identifier> for SmtExpr {
-    fn from(value: Identifier) -> Self {
-        Expression::Identifier(value).into()
-    }
-}
-
 impl From<Expression> for SmtExpr {
     fn from(expr: Expression) -> SmtExpr {
         let expr_string = format!("{expr:?}");
@@ -100,7 +94,7 @@ impl From<Expression> for SmtExpr {
                 }
                 list
             }),
-            Expression::Identifier(ident) => SmtExpr::Atom(ident.ident()),
+            Expression::Identifier(ident) => ident.into(),
 
             // TODO
             // I would love to use PackageStatePattern here, but in order to use the access
