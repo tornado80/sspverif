@@ -11,7 +11,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define-fun
-    randomness-mapping-EVAL
+    randomness-mapping-Eval
     (
         (ltk-mod     Bits_n)
         (ltk-mon     Bits_n)
