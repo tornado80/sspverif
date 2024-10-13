@@ -10,7 +10,7 @@ use crate::{
         game_ident::{GameConstIdentifier, GameIdentifier},
         Identifier,
     },
-    proof::GameHop,
+    proof::{Claim, ClaimType, GameHop},
     statement::Statement,
     types::Type,
     util::prover_process::{Communicator, ProverBackend},
@@ -126,6 +126,40 @@ fn small_multi_inst_game() {
 #[test]
 fn untyped_none_type_inference_works() {
     let (name, pkg) = parse_file("none_inference_return.ssp");
+}
+
+#[test]
+fn equivalence_parses() {
+    let packages = parse_files(&["tiny.ssp"]);
+    let games = games::parse_files(&["small.ssp"], &packages);
+    let proof = proofs::parse_file("equivalence-small-small.ssp", &packages, &games);
+
+    let eq = proof
+        .game_hops
+        .iter()
+        .find_map(|hop| match hop {
+            GameHop::Equivalence(eq) => Some(eq),
+            _ => None,
+        })
+        .unwrap();
+
+    assert_eq!(eq.left_name, "smallA");
+    assert_eq!(eq.right_name, "smallB");
+    assert_eq!(
+        eq.invariants,
+        vec![("N".to_string(), vec!["./invariant.smt".to_string()])]
+    );
+    assert_eq!(
+        eq.trees,
+        vec![(
+            "N".into(),
+            vec![Claim {
+                name: "smt_ident".into(),
+                tipe: ClaimType::Lemma,
+                dependencies: vec![]
+            }]
+        )]
+    );
 }
 
 #[test]
