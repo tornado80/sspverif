@@ -243,10 +243,10 @@ impl ClaimType {
 #[derive(Debug, Clone)]
 pub struct Equivalence {
     // these two are game instance names
-    left_name: String,
-    right_name: String,
-    invariants: Vec<(String, Vec<String>)>,
-    trees: Vec<(String, Vec<Claim>)>,
+    pub(crate) left_name: String,
+    pub(crate) right_name: String,
+    pub(crate) invariants: Vec<(String, Vec<String>)>,
+    pub(crate) trees: Vec<(String, Vec<Claim>)>,
 }
 
 impl Equivalence {
@@ -286,9 +286,15 @@ impl Equivalence {
     }
 
     pub fn invariants_by_oracle_name(&self, oracle_name: &str) -> Vec<String> {
-        SliceResolver(&self.invariants)
-            .resolve_value(oracle_name)
-            .map(|(_oname, inv_file_names)| inv_file_names.clone())
+        self.invariants
+            .iter()
+            .find_map(|(oracle_name_, invariants)| {
+                if oracle_name_.as_str() == oracle_name {
+                    Some(invariants.clone())
+                } else {
+                    None
+                }
+            })
             .unwrap_or(vec![])
     }
 
