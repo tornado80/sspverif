@@ -10,11 +10,15 @@
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define-fun randomness-mapping-EVAL (        
+(define-fun
+    randomness-mapping-EVAL
+    (
         (ltk-mod     Bits_n)
         (ltk-mon     Bits_n)
-        true
-))
+    )
+    Bool
+    true
+)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
