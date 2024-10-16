@@ -31,8 +31,12 @@ impl<'a> GameInstanceContext<'a> {
         self.game_inst().game()
     }
 
-    pub(crate) fn game_name(&self) -> &str {
+    pub(crate) fn game_name(&self) -> &'a str {
         self.game().name()
+    }
+
+    pub(crate) fn game_inst_name(&self) -> &'a str {
+        self.game_inst().name()
     }
 
     pub(crate) fn game_params(&self) -> &[(GameConstIdentifier, Expression)] {

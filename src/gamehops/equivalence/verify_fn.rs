@@ -28,6 +28,7 @@ pub fn verify(eq: &Equivalence, proof: &Proof, mut prover: Communicator) -> Resu
     for oracle_sig in eqctx.oracle_sequence() {
         println!("verify: oracle:{oracle_sig:?}");
         write!(prover, "(push 1)").unwrap();
+        eqctx.emit_return_value_helpers(&mut prover, &oracle_sig.name)?;
         eqctx.emit_invariant(&mut prover, &oracle_sig.name)?;
 
         for claim in eqctx.eq.proof_tree_by_oracle_name(&oracle_sig.name) {

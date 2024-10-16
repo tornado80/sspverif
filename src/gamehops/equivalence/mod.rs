@@ -451,6 +451,73 @@ impl<'a> EquivalenceContext<'a> {
         Ok(())
     }
 
+    fn emit_return_value_helpers(&self, comm: &mut Communicator, oracle_name: &str) -> Result<()> {
+        let left_gctx = self.left_game_ctx();
+        let left_octx = left_gctx.exported_oracle_ctx_by_name(oracle_name).unwrap();
+        let left_pctx = left_octx.pkg_inst_ctx();
+
+        let right_gctx = self.right_game_ctx();
+        let right_octx = right_gctx.exported_oracle_ctx_by_name(oracle_name).unwrap();
+        let right_pctx = right_octx.pkg_inst_ctx();
+
+        let left_return_value = left_octx.return_value_const_pattern();
+        let right_return_value = right_octx.return_value_const_pattern();
+
+        let left_is_abort = ReturnIsAbortConst {
+            game_inst_name: left_gctx.game_inst().name(),
+            pkg_inst_name: left_pctx.pkg_inst_name(),
+            oracle_name,
+            tipe: left_octx.oracle_return_type(),
+        };
+
+        let right_is_abort = ReturnIsAbortConst {
+            game_inst_name: right_gctx.game_inst().name(),
+            pkg_inst_name: right_pctx.pkg_inst_name(),
+            oracle_name,
+            tipe: right_octx.oracle_return_type(),
+        };
+
+        let consts: [(_, SmtExpr); 3] = [
+            (
+                "<equal-aborts>",
+                SmtEq2 {
+                    lhs: left_is_abort.value(left_return_value.name()),
+                    rhs: right_is_abort.value(right_return_value.name()),
+                }
+                .into(),
+            ),
+            (
+                "<no-aborts>",
+                SmtAnd(vec![
+                    SmtNot(left_is_abort.value(left_return_value.name())).into(),
+                    SmtNot(right_is_abort.value(right_return_value.name())).into(),
+                ])
+                .into(),
+            ),
+            (
+                "<same-outputs>",
+                SmtEq2 {
+                    lhs: left_return_value.name(),
+                    rhs: right_return_value.name(),
+                }
+                .into(),
+            ),
+        ];
+
+        for (name, value) in consts {
+            let declare = declare_const(name, SmtBool);
+            let constrain = SmtAssert(SmtEq2 {
+                lhs: name,
+                rhs: value,
+            });
+
+            comm.write_smt(declare)?;
+            comm.write_smt(constrain)?;
+        }
+
+        Ok(())
+    }
+
     fn emit_invariant(&self, comm: &mut Communicator, oracle_name: &str) -> Result<()> {
         for file_name in &self.eq.invariants_by_oracle_name(oracle_name) {
             println!("reading file {file_name}");
