@@ -35,20 +35,20 @@
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define-fun invariant-EVAL      (
-        (state-mod  CompositionState-modprfreal )
-        (state-mon  CompositionState-monprfreal)
+(define-fun invariant-Eval      (
+        (state-mod  <GameState_Modprfreal_<$<!n!>$>> )
+        (state-mon  <GameState_Monprfreal_<$<!n!>$>>)
 )
     Bool
     (let
 
 ; getting ltk and table K out
 (
-(ltk-mod (state-modprfreal-modprf-ltk     (composition-pkgstate-modprfreal-modprf state-mod)))
-(  K-mod (state-modprfreal-key-K          (composition-pkgstate-modprfreal-modprf state-mod)))
-(ltk-mon (state-monprfreal-monprfreal-ltk (composition-pkgstate-modprfreal-modprf state-mon)))
-(  K-mon (state-monprfreal-red-K          (composition-pkgstate-modprfreal-modprf state-mon)))
-
+(ltk-mod (<state-modPRF-<$<!n!>$>-ltk>     (<game-Modprfreal-<$<!n!>$>-pkgstate-mod_prf> state-mod)))
+(  K-mod (<state-KeyReal-<$<!n!>$>-K>      (<game-Modprfreal-<$<!n!>$>-pkgstate-key> state-mod)))
+(ltk-mon (<state-PRFReal-<$<!n!>$>-ltk>    (<game-Monprfreal-<$<!n!>$>-pkgstate-prf> state-mon)))
+(  K-mon (<state-ReductionPRF-<$<!n!>$>-K> (<game-Monprfreal-<$<!n!>$>-pkgstate-red> state-mon)))
+)
 
 (and
 ; ltk are equal
@@ -57,4 +57,4 @@
 (= K-mod   K-mon)
 )
 
-)))
+))
