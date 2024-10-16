@@ -13,19 +13,27 @@
 (define-fun
     randomness-mapping-Eval
     (
-        (ltk-mod     Bits_n)
-        (ltk-mon     Bits_n)
+        (ctr-left      Int)
+        (ctr-right     Int) 
+        (id-left       Int)
+        (id-right      Int) 
+        (new-left      Int)
+        (new-right     Int)
     )
     Bool
-    true
-)
+(and
+(= ctr-left  new-left )
+(= ctr-right new-right)
+(= id-left  1)
+(= id-right 1)
+))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; Invariant --- note that the invariant needs to be game-global 
 ;               Having different variants for EVAL & GET allows to prove wrong things.
 ;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define-fun invariant-EVAL      (
         (state-mod  CompositionState-modprfreal )
