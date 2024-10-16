@@ -2,7 +2,7 @@
 ; If ltk (or K) are equal (or use the same randomness), then both games 
 ;    - produce the same output
 ;    - abort iff the other aborts
-;    - have same ltk and same K afterwards
+;    - have same ltk and same table K afterwards
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
@@ -11,7 +11,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define-fun
-    randomness-mapping-Eval
+    randomness-mapping-PRF
     (
         (ctr-left      Int)
         (ctr-right     Int) 
@@ -35,14 +35,14 @@
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define-fun invariant-Eval      (
+(define-fun invariant-PRF      (
         (state-mod  <GameState_Modprfreal_<$<!n!>$>> )
         (state-mon  <GameState_Monprfreal_<$<!n!>$>>)
 )
     Bool
     (let
 
-; getting ltk and table K out
+; getting ltk and table K out of state
 (
 (ltk-mod (<state-modPRF-<$<!n!>$>-ltk>     (<game-Modprfreal-<$<!n!>$>-pkgstate-mod_prf> state-mod)))
 (  K-mod (<state-KeyReal-<$<!n!>$>-K>      (<game-Modprfreal-<$<!n!>$>-pkgstate-key> state-mod)))
