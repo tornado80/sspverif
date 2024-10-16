@@ -267,7 +267,8 @@ pub fn tex_write_package(package: &PackageInstance, target: &Path) -> std::io::R
 
     for oracle in &package.pkg.oracles {
         let oraclefname = tex_write_oracle(oracle, &package.name, target)?;
-        writeln!(file, "\\input{{{}}}\\pchspace", oraclefname)?;
+        let oraclefname = Path::new(&oraclefname).strip_prefix(fname.clone().parent().unwrap()).unwrap().to_str();
+        writeln!(file, "\\input{{{}}}\\pchspace", oraclefname.unwrap())?;
     }
     writeln!(file, "\\end{{pchstack}}\\end{{pcvstack}}")?;
 
