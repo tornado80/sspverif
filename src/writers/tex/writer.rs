@@ -385,7 +385,7 @@ pub fn tex_write_composition(
     target: &Path,
 ) -> std::io::Result<()> {
     let fname = target.join(format!("Composition_{}.tex", name));
-    let mut file = File::create(fname)?;
+    let mut file = File::create(fname.clone())?;
 
     tex_write_document_header(&file)?;
 
@@ -394,14 +394,16 @@ pub fn tex_write_composition(
     writeln!(file, "\\maketitle")?;
 
     let graphfname = tex_write_composition_graph_file(composition, name, target)?;
+    let graphfname = Path::new(&graphfname).strip_prefix(fname.clone().parent().unwrap()).unwrap().to_str();
     writeln!(file, "\\begin{{center}}")?;
-    writeln!(file, "\\input{{{}}}", graphfname)?;
+    writeln!(file, "\\input{{{}}}", graphfname.unwrap())?;
     writeln!(file, "\\end{{center}}")?;
 
     for pkg in &composition.pkgs {
         let pkgfname = tex_write_package(pkg, target)?;
+        let pkgfname = Path::new(&pkgfname).strip_prefix(fname.clone().parent().unwrap()).unwrap().to_str();
         writeln!(file, "\\begin{{center}}")?;
-        writeln!(file, "\\input{{{}}}", pkgfname)?;
+        writeln!(file, "\\input{{{}}}", pkgfname.unwrap())?;
         writeln!(file, "\\end{{center}}")?;
     }
 
@@ -425,15 +427,15 @@ pub fn tex_write_proof(proof: &Proof, name: &str, target: &Path) -> std::io::Res
     for instance in &proof.instances {
         writeln!(file, "\\subsection{{{} Game}}", instance.name())?;
 
-        let graphfname = target.join(format!("CompositionGraph_{}.tex", instance.name()));
+        let graphfname = format!("CompositionGraph_{}.tex", instance.name());
         writeln!(file, "\\begin{{center}}")?;
-        writeln!(file, "\\input{{{}}}", graphfname.display())?;
+        writeln!(file, "\\input{{{}}}", graphfname)?;
         writeln!(file, "\\end{{center}}")?;
 
         for package in &instance.game().pkgs {
-            let pkgfname = target.join(format!("Package_{}.tex", package.name));
+            let pkgfname = format!("Package_{}.tex", package.name);
             writeln!(file, "\\begin{{center}}")?;
-            writeln!(file, "\\input{{{}}}", pkgfname.display())?;
+            writeln!(file, "\\input{{{}}}", pkgfname)?;
             writeln!(file, "\\end{{center}}")?;
         }
     }
