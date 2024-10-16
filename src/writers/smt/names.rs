@@ -33,9 +33,9 @@ pub(crate) fn fn_sample_rand_name<S: Into<SmtExpr>>(game_name: &str, rand_sort: 
 }
 
 pub(crate) fn oracle_nonsplit_arg_name(oracle_name: &str, arg_name: &str) -> String {
-    format!("arg-{oracle_name}-{arg_name}")
+    format!("<arg-{oracle_name}-{arg_name}>")
 }
 
 pub(crate) fn oracle_split_arg_name(game_name: &str, oracle_name: &str, arg_name: &str) -> String {
-    format!("arg-{game_name}-{oracle_name}-{arg_name}")
+    format!("<arg-{game_name}-{oracle_name}-{arg_name}>")
 }
