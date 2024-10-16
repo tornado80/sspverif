@@ -6,6 +6,7 @@ use crate::writers::smt::{
 
 mod oracle_args;
 
+mod return_is_abort;
 mod return_normal;
 mod return_partial;
 mod return_value;
@@ -13,6 +14,7 @@ mod return_value;
 mod state_intermediate;
 
 pub(crate) use oracle_args::*;
+pub(crate) use return_is_abort::*;
 pub(crate) use return_normal::*;
 pub(crate) use return_partial::*;
 pub(crate) use return_value::*;

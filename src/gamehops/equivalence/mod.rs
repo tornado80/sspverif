@@ -4,9 +4,13 @@ use std::iter::FromIterator;
 
 use crate::util::resolver::Named;
 use crate::writers::smt::contexts::GameInstanceContext;
+use crate::writers::smt::declare::declare_const;
+use crate::writers::smt::partials::SmtMatch;
 use crate::writers::smt::patterns::oracle_args::{
     OldNewOracleArgPattern as _, UnitOracleArgPattern as _,
 };
+use crate::writers::smt::patterns::ReturnIsAbortConst;
+use crate::writers::smt::sorts::SmtBool;
 use crate::{
     hacks,
     package::{Export, OracleSig, SplitExport},
@@ -1369,6 +1373,13 @@ fn build_returns(game_inst: &GameInstance) -> Vec<(SmtExpr, SmtExpr)> {
             tipe: &sig.tipe,
         };
 
+        let is_abort_const_pattern = ReturnIsAbortConst {
+            game_inst_name,
+            pkg_inst_name,
+            oracle_name,
+            tipe: &sig.tipe,
+        };
+
         let state = octx.oracle_arg_game_state_pattern();
         let consts = octx.oracle_arg_game_consts_pattern();
 
@@ -1421,8 +1432,14 @@ fn build_returns(game_inst: &GameInstance) -> Vec<(SmtExpr, SmtExpr)> {
             rhs: access_new_state,
         });
 
+        let constrain_is_abort = SmtAssert(SmtEq2 {
+            lhs: is_abort_const_pattern.name(),
+            rhs: is_abort_const_pattern.value(return_value_const.name()),
+        });
+
         out.push((return_const.declare(), constrain_return.into()));
         out.push((return_value_const.declare(), constrain_return_value.into()));
+        out.push((is_abort_const_pattern.declare(), constrain_is_abort.into()));
         out.push((
             state.declare_new(game_inst_name, oracle_name.to_string()),
             constrain_new_state.into(),
