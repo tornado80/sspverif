@@ -40,9 +40,9 @@ proof Modularize {
                 ]
 
                 lemmas {
-                    aborts-equal-EVAL:   []
-                    invariant-EVAL:      [no-abort-EVAL]
-                    same-output-EVAL:    [no-abort-EVAL]
+                    aborts-equal-Eval:   []
+                    invariant-Eval:      [no-abort-Eval]
+                    same-output-Eval:    [no-abort-Eval]
                 }
             }
             Get:
@@ -52,9 +52,9 @@ proof Modularize {
                 ]
 
                 lemmas {
-                    aborts-equal-GET:   []
-                    invariant-GET:      [no-abort-GET]
-                    same-output-GET:    [no-abort-GET]
+                    aborts-equal-Get:   []
+                    invariant-Get:      [no-abort-Get]
+                    same-output-Get:    [no-abort-Get]
                 }
             }
         }
