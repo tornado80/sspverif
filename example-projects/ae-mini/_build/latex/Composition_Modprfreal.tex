@@ -1,0 +1,22 @@
+\documentclass[a4paper,landscape]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[operators]{cryptocode}
+\usepackage{tikz}
+\renewcommand\O[1]{\ensuremath{\mathsf{#1}}}
+\newcommand{\M}[1]{\ensuremath{\text{\texttt{#1}}}}
+\newcommand{\n}[1]{\ensuremath{\mathit{#1}}}
+\tikzstyle{package} = [inner sep=1pt,align=center,rounded corners,draw,minimum width=2cm,minimum height=1cm,font=\small]
+\tikzstyle{onarrow} = [inner sep=1pt,font=\scriptsize,anchor=east,at end,xshift=-0.1mm,align=left,fill=white]
+\title{Modprfreal Game}
+\begin{document}
+\maketitle
+\begin{center}
+\input{CompositionGraph_Modprfreal.tex}
+\end{center}
+\begin{center}
+\input{Package_mod_prf.tex}
+\end{center}
+\begin{center}
+\input{Package_key.tex}
+\end{center}
+\end{document}

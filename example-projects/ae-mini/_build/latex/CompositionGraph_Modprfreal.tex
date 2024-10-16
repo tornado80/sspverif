@@ -1,0 +1,8 @@
+\begin{tikzpicture}
+\node[align=center,package,fill=white] (node1) at (0, 0) {\M{key}\\\M{KeyReal}};
+\node[align=center,package,fill=white] (node0) at (-4, -1) {\M{mod\_prf}\\\M{modPRF}};
+\draw[-latex,rounded corners] (node0) -- ($(node0.east) + (1,0)$) |- node[onarrow] {\O{Set}} (node1);
+\node[package] (nodea) at (-8, -2) {$A$};
+\draw[-latex,rounded corners] (nodea) -- ($(nodea.east) + (1,0)$) |- node[onarrow] {\O{Eval}} (node0);
+\draw[-latex,rounded corners] (nodea) -- ($(nodea.east) + (1,0)$) |- node[onarrow] {\O{Get}} (node1);
+\end{tikzpicture}

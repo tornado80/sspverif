@@ -44,9 +44,9 @@ proof Modularize {
                 ]
 
                 lemmas {
-                    aborts-equal-EVAL:   []
-                    invariant-PRF:      [no-abort-EVAL]
-                    same-output-EVAL:    [no-abort-EVAL]
+                    aborts-equal:   []
+                    invariant-PRF:  [no-abort]
+                    same-output:    [no-abort]
                 }
             }
             Get:
@@ -56,9 +56,9 @@ proof Modularize {
                 ]
 
                 lemmas {
-                    aborts-equal-GET:   []
-                    invariant-PRF:      [no-abort-GET]
-                    same-output-GET:    [no-abort-GET]
+                    aborts-equal:   []
+                    invariant-PRF:  [no-abort-GET]
+                    same-output:    [no-abort-GET]
                 }
             }
         }

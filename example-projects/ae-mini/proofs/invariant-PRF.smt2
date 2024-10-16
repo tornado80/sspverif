@@ -50,9 +50,10 @@
 (  K-mon (<state-ReductionPRF-<$<!n!>$>-K> (<game-Monprfreal-<$<!n!>$>-pkgstate-red> state-mon)))
 )
 
-(and
 ; ltk are equal
-; T   are equal
+; K   are equal
+
+(and
 (= ltk-mod ltk-mon)
 (= K-mod   K-mon)
 )

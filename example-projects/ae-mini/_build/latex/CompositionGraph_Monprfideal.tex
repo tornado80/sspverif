@@ -1,0 +1,8 @@
+\begin{tikzpicture}
+\node[align=center,package,fill=white] (node0) at (0, 0) {\M{prf}\\\M{PRFIdeal}};
+\node[align=center,package,fill=white] (node1) at (-4, -1) {\M{red}\\\M{ReductionPRF}};
+\draw[-latex,rounded corners] (node1) -- ($(node1.east) + (1,0)$) |- node[onarrow] {\O{Eval}} (node0);
+\node[package] (nodea) at (-8, -2) {$A$};
+\draw[-latex,rounded corners] (nodea) -- ($(nodea.east) + (1,0)$) |- node[onarrow] {\O{Eval}} (node1);
+\draw[-latex,rounded corners] (nodea) -- ($(nodea.east) + (1,0)$) |- node[onarrow] {\O{Get}} (node1);
+\end{tikzpicture}

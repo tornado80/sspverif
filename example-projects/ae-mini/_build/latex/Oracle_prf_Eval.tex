@@ -1,0 +1,6 @@
+\procedure{\O{Eval}(h)}{
+\pcif \n{ltk} = \O{none}(\O{Bits("n")}) \pcthen\\
+\pcind\n{ltk\_} \stackrel{1}{\sample} \O{Bits("n")}\\
+\pcind \n{ltk} \gets \O{some}(\n{ltk\_})\\
+ \pcreturn \O{prf}(\O{unwrap}(\n{ltk}), \n{h})\\
+}
