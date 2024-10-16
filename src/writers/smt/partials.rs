@@ -234,8 +234,8 @@ impl<'a> PackageInstanceContext<'a> {
 #[derive(Debug, Clone)]
 pub struct SmtMatch<E, B>
 where
-    E: Into<SmtExpr> + std::fmt::Debug + Clone,
-    B: Into<SmtExpr> + std::fmt::Debug + Clone,
+    E: Into<SmtExpr>,
+    B: Into<SmtExpr>,
 {
     pub expr: E,
     pub cases: Vec<SmtMatchCase<B>>,
@@ -243,8 +243,8 @@ where
 
 impl<E, B> From<SmtMatch<E, B>> for SmtExpr
 where
-    E: Into<SmtExpr> + std::fmt::Debug + Clone,
-    B: Into<SmtExpr> + std::fmt::Debug + Clone,
+    E: Into<SmtExpr>,
+    B: Into<SmtExpr>,
 {
     fn from(value: SmtMatch<E, B>) -> SmtExpr {
         let cases = value
@@ -270,7 +270,7 @@ where
 #[derive(Debug, Clone)]
 pub struct SmtMatchCase<B>
 where
-    B: Into<SmtExpr> + std::fmt::Debug + Clone,
+    B: Into<SmtExpr>,
 {
     pub constructor: String,
     pub args: Vec<String>,

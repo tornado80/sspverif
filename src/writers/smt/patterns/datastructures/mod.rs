@@ -120,7 +120,7 @@ pub trait DatastructurePattern<'a> {
 
     fn match_expr<E, F>(&self, expr: E, spec: &DatastructureSpec<'a, Self>, f: F) -> SmtExpr
     where
-        E: Clone + std::fmt::Debug + Into<SmtExpr>,
+        E: Into<SmtExpr>,
         F: Fn(&Self::Constructor) -> SmtExpr,
     {
         SmtMatch {
