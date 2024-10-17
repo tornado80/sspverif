@@ -13,20 +13,22 @@
 (define-fun
     randomness-mapping-PRF
     (
-        (ctr-left      Int)
-        (ctr-right     Int) 
-        (id-left       Int)
-        (id-right      Int) 
-        (new-left      Int)
-        (new-right     Int)
+        (ctr-mon     Int)
+        (ctr-mod     Int) 
+        (id-mon      Int)
+        (id-mod      Int) 
+        (icr-mon     Int)
+        (icr-mod     Int)
     )
     Bool
 (and
-(= ctr-left  new-left )
-(= ctr-right new-right)
+(= ctr-mon ctr-mod)
+(= ctr-mon icr-mod)
+(= ctr-mon icr-mod)
 (= id-left  1)
 (= id-right 1)
-))
+)
+)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
@@ -52,10 +54,12 @@
 
 ; ltk are equal
 ; K   are equal
+; randomness counters are equal
 
 (and
 (= ltk-mod ltk-mon)
 (= K-mod   K-mon)
+(= ctr-mon ctr-mod)
 )
 
 ))
