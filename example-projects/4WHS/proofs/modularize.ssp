@@ -1,9 +1,10 @@
 proof WHSProto {
+    const b: Bool;
     const n: Integer;
     const m: Integer;
+    const zeron: Bits(n);
     const prf: fn Bits(n), Integer, Integer, Bits(n), Bits(n), Bool ->  Bits(n);
-    const mac: fn Bits(n),Bits(n) -> Bits(n);
-    const verify: fn Bits(n),Bits(n),Bits(n) -> Bool;
+    const mac: fn Bits(n), Bits(n), Integer -> Bits(n);
   
     instance Noncesideal = Nonces {
         params {
@@ -35,6 +36,29 @@ proof WHSProto {
         }
     }
 
+    instance KX_Red_0 = KX_Red {
+        params {
+            bnonces : false,
+            b       : b    ,
+            n       : n    ,
+            zeron   : zeron,
+  	        prf     : prf  ,
+            mac     : mac  ,
+        }
+    }
+
+    instance KX_Red_1 = KX_Red {
+        params {
+            bnonces : true,
+            b       : b    ,
+            n       : n    ,
+            zeron   : zeron,
+  	        prf     : prf  ,
+            mac     : mac  ,
+        }
+    }
+
+
 
     assumptions {
         prf:    PRFreal    ~ PRFideal
@@ -47,11 +71,11 @@ proof WHSProto {
         {
             assumption nonces
 
-            map KX_Red_0 Noncesreal {
+            map Noncesreal KX_Red_0  {
                 nonces    : nonces
             }
 
-            map KX_Red_1 Noncesideal {
+            map Noncesideal KX_Red_1 {
                 nonces    : nonces
             }
         }

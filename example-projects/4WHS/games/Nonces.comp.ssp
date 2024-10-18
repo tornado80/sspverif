@@ -2,7 +2,7 @@ composition Nonces {
         const n: Integer;
         const b: Bool;
     
-    instance Nonces = Nonces {
+    instance nonces = Nonces {
         params {
         n: n,
         b: b,
@@ -11,7 +11,7 @@ composition Nonces {
 
     compose {
         adversary: {
-            Sample: Nonces,
+            Sample: nonces,
         },
     }
 }
