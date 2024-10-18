@@ -1,4 +1,5 @@
 \procedure{\O{Set}(k, h)}{
 \pcif \n{K}[\n{h}] = \O{none}(\O{Bits("n")}) \pcthen\\
-\pcind \n{K}[\n{h}] \gets \O{some}(\n{k})
+\pcind\n{k} \stackrel{2}{\sample} \O{Bits("n")}\\
+\pcind \n{K}[\n{h}] \gets \O{some}(\n{k})\\
 }

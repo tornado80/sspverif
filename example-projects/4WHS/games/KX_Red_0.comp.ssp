@@ -1,9 +1,9 @@
 composition KX_Red_0 {
+        const b: Bool;
         const n: Integer;
         const zeron: Bits(n);
         const prf: fn Bits(n), Integer, Integer, Bits(n), Bits(n), Bool ->  Bits(n);
         const mac: fn Bits(n), Bits(n), Integer -> Bits(n);
-        const b: b;
     
     instance KX_Red = KX_Red {
         params {
@@ -27,13 +27,13 @@ composition KX_Red_0 {
             Sample: Nonces0,
         }
         adversary: {
-            Send1:  K_Red,
-            Send2:  K_Red,
-            Send3:  K_Red,
-            Send4:  K_Red,
-            Send5:  K_Red,
-            Reveal: K_Red,
-            Test:   K_Red,
+            Send1:  KX_Red,
+            Send2:  KX_Red,
+            Send3:  KX_Red,
+            Send4:  KX_Red,
+            Send5:  KX_Red,
+            Reveal: KX_Red,
+            Test:   KX_Red,
             NewSession: KX_Red,
             NewKey: KX_Red,
         },

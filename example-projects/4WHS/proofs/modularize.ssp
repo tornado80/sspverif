@@ -5,37 +5,54 @@ proof WHSProto {
     const mac: fn Bits(n),Bits(n) -> Bits(n);
     const verify: fn Bits(n),Bits(n),Bits(n) -> Bool;
   
-    instance monprfreal = Monprfreal {
+    instance Noncesideal = Nonces {
         params {
-            n  : n  ,
-  	        prf: prf,
+            b  : true,
+            n  : n   ,
         }
     }
 
-    instance monprfideal = Monprfideal {
+    instance Noncesreal = Nonces {
         params {
-            n  : n  ,
-  	        prf: prf,
+            b  : false,
+            n  : n    ,
+        }
+    }
+
+    instance PRFideal = PRF {
+        params {
+            b  : true,
+            n  : n   ,
+  	        prf: prf ,
+        }
+    }
+
+    instance PRFreal = PRF {
+        params {
+            b  : false,
+            n  : n    ,
+  	        prf: prf  ,
         }
     }
 
 
     assumptions {
-        Monprf: monprfreal ~ monprfideal
+        prf:    PRFreal    ~ PRFideal
+        nonces: Noncesreal ~ Noncesideal
     }
 
     gamehops 
     {
-        reduction monprfreal monprfideal  
+        reduction KX_Red_0 KX_Red_1  
         {
-            assumption Monprf
+            assumption nonces
 
-            map monprfreal monprfreal {
-                prf    : prf
+            map KX_Red_0 Noncesreal {
+                nonces    : nonces
             }
 
-            map monprfideal monprfideal {
-                prf    : prf
+            map KX_Red_1 Noncesideal {
+                nonces    : nonces
             }
         }
     }

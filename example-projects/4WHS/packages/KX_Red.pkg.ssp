@@ -6,6 +6,9 @@ package KX_Red {
         prf: fn Bits(n), Integer, Integer, Bits(n), Bits(n), Bool ->  Bits(n),
         mac: fn Bits(n), Bits(n), Integer -> Bits(n),
             }
+    import oracles {
+        Sample() -> Bits(n), 
+    }
     
     state {
           LTK:   Table(Integer, Bits(n)),       /* administrative kid, keys    */
@@ -47,10 +50,6 @@ package KX_Red {
                         /* nbr of messages sent */
 
           }
-
-                        import oracles {
-        Sample() -> Bits(n),
-    }
 
 oracle NewKey(ltk: Maybe(Bits(n))) -> Integer {
       kid_ <- (kid_ + 1);
