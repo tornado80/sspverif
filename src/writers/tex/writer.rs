@@ -297,6 +297,70 @@ fn tex_write_document_header(mut file: &File) -> std::io::Result<()> {
     Ok(())
 }
 
+fn smt_write_composition_graph(
+    mut file: &File,
+    composition: &Composition,
+    pkgmap: &[(std::string::String, std::string::String)],
+) -> std::io::Result<()> {
+
+    writeln!(file, "(declare-const num-pkgs Int)");
+    writeln!(file, "(declare-const width Int)");
+    writeln!(file, "(declare-const height Int)");
+    writeln!(file, "(assert (= num-pkgs {}))", composition.pkgs.len());
+    
+    for i in 0..composition.pkgs.len() {
+        let pkg = &composition.pkgs[i].name; 
+        writeln!(file, "(declare-const {pkg}-column Int)");
+        writeln!(file, "(assert (< 0 {pkg}-column width))");
+        writeln!(file, "(declare-const {pkg}-top Int)");
+        writeln!(file, "(declare-const {pkg}-bottom Int)");
+        writeln!(file, "(assert (< 0 {pkg}-bottom (- {pkg}-top 1) height))");
+    }
+
+    for Edge(from, to, oracle) in &composition.edges {
+        let pkga = &composition.pkgs[*from].name;
+        let pkgb = &composition.pkgs[*to].name;
+        
+        writeln!(file, "(declare-const edge-{pkga}-{pkgb}-height Int)");
+        writeln!(file, "(assert (< {pkga}-bottom edge-{pkga}-{pkgb}-height {pkga}-top))");
+        writeln!(file, "(assert (< {pkgb}-bottom edge-{pkga}-{pkgb}-height {pkgb}-top))");
+        writeln!(file, "(assert (< {pkga}-column {pkgb}-column))");
+    }
+
+    for i in 0..composition.pkgs.len() {
+        for j in 0..i {
+            let pkga = &composition.pkgs[i].name;
+            let pkgb = &composition.pkgs[j].name;
+            writeln!(file, "
+(assert (not (exists ((l Int))
+               (and
+                 (<= {pkga}-bottom l {pkga}-top)
+                 (<= {pkgb}-bottom l {pkgb}-top)
+                 (= {pkga}-column {pkgb}-column)))))");
+        }
+    }
+
+    for i in 0..composition.pkgs.len() {
+        for Edge(from, to, oracle) in &composition.edges {
+            let pkga = &composition.pkgs[*from].name;
+            let pkgb = &composition.pkgs[*to].name;
+            let pkgc = &composition.pkgs[i].name;
+
+            writeln!(file, "
+(assert (not (exists ((l Int))
+               (and 
+                 (=  edge-{pkga}-{pkgb}-height l)
+                 (<  {pkga}-column {pkgc}-column {pkgb}-column)
+                 (<= (- {pkgc}-bottom 1) l (+ {pkgc}-top 1))))))"); 
+        }
+    }
+    
+    writeln!(file, "(minimize width)");
+    writeln!(file, "(minimize height)");
+    writeln!(file, "(check-sat)");
+    Ok(())
+}
+
 fn tex_write_composition_graph(
     mut file: &File,
     composition: &Composition,
@@ -373,9 +437,12 @@ fn tex_write_composition_graph_file(
     target: &Path,
 ) -> std::io::Result<String> {
     let fname = target.join(format!("CompositionGraph_{}.tex", name));
+    let smtname = target.join(format!("CompositionGraph_{}.smt", name));
     let mut file = File::create(fname.clone())?;
+    let mut smtfile = File::create(smtname.clone())?;
 
     tex_write_composition_graph(&file, composition, &Vec::new())?;
+    smt_write_composition_graph(&smtfile, composition, &Vec::new())?;
 
     Ok(fname.to_str().unwrap().to_string())
 }
