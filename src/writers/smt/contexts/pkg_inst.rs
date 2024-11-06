@@ -6,9 +6,10 @@ use crate::identifier::Identifier;
 use crate::package::{Composition, Package, PackageInstance};
 use crate::proof::GameInstance;
 use crate::split::SplitPath;
+use crate::types::Type;
 use crate::writers::smt::partials::PartialsDatatype;
 use crate::writers::smt::patterns::pkg_consts::PackageConstsPattern;
-use crate::writers::smt::patterns::{declare_datatype, PackageStateSelector};
+use crate::writers::smt::patterns::{declare_datatype, PackageStateSelector, SmtDefineFun};
 use crate::writers::smt::{
     contexts::{GameInstanceContext, OracleContext, PackageInstanceContext, SplitOracleContext},
     exprs::SmtExpr,
@@ -17,7 +18,7 @@ use crate::writers::smt::{
 
 impl<'a> PackageInstanceContext<'a> {
     pub(crate) fn game_inst_ctx(&self) -> GameInstanceContext<'a> {
-        self.game_ctx.clone()
+        self.game_ctx
     }
 
     pub(crate) fn game_inst(&self) -> &'a GameInstance {
@@ -42,7 +43,7 @@ impl<'a> PackageInstanceContext<'a> {
             .position(|odef| odef.sig.name == oracle_name)?;
 
         Some(SplitOracleContext {
-            game_inst_context: self.game_ctx.clone(),
+            game_inst_context: self.game_ctx,
             pkg_inst_offs: inst_offs,
             split_oracle_offs,
             partials,
@@ -59,7 +60,7 @@ impl<'a> PackageInstanceContext<'a> {
             .position(|odef| odef.sig.name == oracle_name)?;
 
         Some(OracleContext {
-            game_inst_context: self.game_ctx.clone(),
+            game_inst_context: self.game_ctx,
             pkg_inst_offs: inst_offs,
             oracle_offs,
         })
@@ -80,7 +81,7 @@ impl<'a> PackageInstanceContext<'a> {
             .position(|odef| odef.sig.name == oracle_name && &odef.sig.path == oracle_path)?;
 
         Some(SplitOracleContext {
-            game_inst_context: self.game_ctx.clone(),
+            game_inst_context: self.game_ctx,
             pkg_inst_offs: inst_offs,
             split_oracle_offs,
             partials,
@@ -96,7 +97,7 @@ impl<'a> PackageInstanceContext<'a> {
             return None;
         }
 
-        let game_ctx = self.game_ctx.clone();
+        let game_ctx = self.game_ctx;
         let inst_offs = self.inst_offs;
 
         Some(OracleContext {
@@ -196,7 +197,7 @@ impl<'a> PackageInstanceContext<'a> {
         let pkg_state_pattern = self.pkg_state_pattern();
         let pkg_state_spec = pkg_state_pattern.datastructure_spec(pkg);
 
-        pkg_state_pattern.call_constructor(&pkg_state_spec, &(), |sel| {
+        pkg_state_pattern.call_constructor(&pkg_state_spec, vec![], &(), |sel| {
             let PackageStateSelector { name, ty } = *sel;
             Some(
                 Identifier::PackageIdentifier(PackageIdentifier::State(PackageStateIdentifier {
@@ -211,5 +212,81 @@ impl<'a> PackageInstanceContext<'a> {
                 .into(),
             )
         })
+    }
+
+    // TODO: find a way to return an iterator here
+    pub(crate) fn smt_define_param_functions(&self) -> Vec<SmtDefineFun<Expression>> {
+        /// looks up the constant assigment for constant with name `name` in game instance
+        /// `game_inst`.
+        fn get_assignment(
+            pkg_inst: &PackageInstance,
+            name: &str,
+        ) -> Option<(PackageConstIdentifier, Expression)> {
+            pkg_inst
+                .params
+                .iter()
+                .find(|(ident, _)| name == ident.name)
+                .cloned()
+        }
+
+        let game_inst_name = self.game_inst().name();
+        let pkg_inst_name = self.pkg_inst_name();
+
+        // the assigments for all function parameters declared in the game
+        self.pkg()
+            .params
+            .iter()
+            .filter_map(|(name, ty, _)| match ty {
+                Type::Fn(args, ret) => {
+                    let (ident, expr) = get_assignment(self.pkg_inst(), name)
+                        .expect("this can't fail because it means a parameter isn't assigned");
+                    Some((ident.clone(), args.clone(), ret.clone(), expr.clone()))
+                }
+                _ => None,
+            })
+            .map(|(ident, args, ret, expr)| {
+                let func_name = &ident.name;
+
+                // (ident, type) pairs for the arguments
+                let args_idents: Vec<_> = args
+                    .iter()
+                    .enumerate()
+                    .map(|(i, ty)| (Identifier::Generated(format!("arg-{i}"), ty.clone())))
+                    .collect();
+
+                // (smt-name, type) pairs for the arguments
+                let named_args: Vec<_> = args_idents
+                    .iter()
+                    .map(|ident| (ident.smt_identifier(), ident.get_type().into()))
+                    .collect();
+
+                // build the expression for the args in the call to the function declared in the
+                // proof
+                let arg_exprs: Vec<_> = args_idents
+                    .iter()
+                    .cloned()
+                    .map(|ident| ident.into())
+                    .collect();
+
+                // the expression assigned to the parameter must be an identifer, since we don't
+                // have anoymous functions
+                let Expression::Identifier(proof_func) = expr else {
+                    unreachable!()
+                };
+
+                // build the call to the function declared in the proof
+                let proof_fn_call = Expression::FnCall(proof_func.clone(), arg_exprs);
+
+                // build the function definition of the function for the game instance, which just
+                // calls the function declared in the proof
+                SmtDefineFun {
+                    is_rec: false,
+                    name: format!("<<func-pkg-{game_inst_name}-{pkg_inst_name}-{func_name}>>"),
+                    args: named_args,
+                    sort: (*ret).into(),
+                    body: proof_fn_call,
+                }
+            })
+            .collect()
     }
 }

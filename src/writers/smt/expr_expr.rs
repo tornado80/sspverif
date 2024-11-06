@@ -1,13 +1,14 @@
 use super::exprs::SmtExpr;
 use crate::expressions::Expression;
+use crate::identifier::game_ident::{GameConstIdentifier, GameIdentifier};
+use crate::identifier::pkg_ident::{PackageConstIdentifier, PackageIdentifier};
+use crate::identifier::proof_ident::{ProofConstIdentifier, ProofIdentifier};
 use crate::identifier::Identifier;
 use crate::types::Type;
 
 impl From<Expression> for SmtExpr {
     fn from(expr: Expression) -> SmtExpr {
-        let expr_string = format!("{expr:?}");
-        //eprintln!("DEBUG expr->smt: {expr:?}");
-        let out = match expr {
+        match expr {
             Expression::EmptyTable(t) => {
                 if let Type::Table(idxtipe, valtipe) = t {
                     (
@@ -158,15 +159,54 @@ impl From<Expression> for SmtExpr {
                 SmtExpr::List(call)
             }
              */
-            Expression::FnCall(id, exprs) => {
-                let mut call = vec![SmtExpr::Atom(id.ident())];
+            Expression::FnCall(id, exprs) => match id {
+                Identifier::PackageIdentifier(PackageIdentifier::Const(
+                    PackageConstIdentifier {
+                        name,
+                        game_inst_name: Some(game_inst_name),
+                        pkg_inst_name: Some(pkg_inst_name),
+                        ..
+                    },
+                )) => {
+                    let func_name = format!("<<func-pkg-{game_inst_name}-{pkg_inst_name}-{name}>>");
+                    let mut call = vec![SmtExpr::Atom(func_name)];
 
-                for expr in exprs {
-                    call.push(expr.into());
+                    for expr in exprs {
+                        call.push(expr.into());
+                    }
+
+                    SmtExpr::List(call)
                 }
 
-                SmtExpr::List(call)
-            }
+                Identifier::GameIdentifier(GameIdentifier::Const(GameConstIdentifier {
+                    name,
+                    game_inst_name: Some(game_inst_name),
+                    ..
+                })) => {
+                    let func_name = format!("<<func-game-{game_inst_name}-{name}>>");
+                    let mut call = vec![SmtExpr::Atom(func_name)];
+
+                    for expr in exprs {
+                        call.push(expr.into());
+                    }
+
+                    SmtExpr::List(call)
+                }
+                Identifier::ProofIdentifier(ProofIdentifier::Const(ProofConstIdentifier {
+                    name,
+                    ..
+                })) => {
+                    let func_name = format!("<<func-proof-{name}>>");
+                    let mut call = vec![SmtExpr::Atom(func_name)];
+
+                    for expr in exprs {
+                        call.push(expr.into());
+                    }
+
+                    SmtExpr::List(call)
+                }
+                other => unreachable!("unexpected identifier in function call: {other:?}"),
+            },
             Expression::List(inner) => {
                 let t = inner[0].get_type();
 
@@ -213,8 +253,6 @@ impl From<Expression> for SmtExpr {
             _ => {
                 panic!("not implemented: {:?}", expr);
             }
-        };
-        println!("rewriting to expression from {expr_string} to {out:?}");
-        out
+        }
     }
 }

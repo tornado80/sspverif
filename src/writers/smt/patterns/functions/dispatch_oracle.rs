@@ -3,12 +3,14 @@ use crate::{
     identifier::{game_ident::GameConstIdentifier, pkg_ident::PackageConstIdentifier},
     package::OracleSig,
     writers::smt::{
-        exprs::SmtExpr,
         patterns::{
-            self, instance_names::encode_params, oracle_args::OracleArgPattern as _,
+            self,
+            instance_names::{encode_params, only_non_function_expression},
+            oracle_args::OracleArgPattern as _,
             DatastructurePattern as _, FunctionPattern, IntermediateStatePattern,
-            PartialReturnPattern, PartialReturnSort,
+            PartialReturnPattern,
         },
+        sorts::Sort,
     },
 };
 
@@ -22,18 +24,7 @@ pub struct DispatchOraclePattern<'a> {
     pub oracle_sig: &'a OracleSig,
 }
 
-impl<'a> DispatchOraclePattern<'a> {
-    fn game_expr_params(&self) -> impl Iterator<Item = &Expression> {
-        self.game_params.iter().map(|(_, expr)| expr)
-    }
-
-    fn pkg_expr_params(&self) -> impl Iterator<Item = &Expression> {
-        self.pkg_params.iter().map(|(_, expr)| expr)
-    }
-}
-
 impl<'a> FunctionPattern for DispatchOraclePattern<'a> {
-    type ReturnSort = PartialReturnSort<'a>;
     fn function_name(&self) -> String {
         let Self {
             game_name,
@@ -42,14 +33,14 @@ impl<'a> FunctionPattern for DispatchOraclePattern<'a> {
             ..
         } = self;
 
-        let game_params = encode_params(self.game_expr_params());
-        let pkg_params = encode_params(self.pkg_expr_params());
+        let game_params = encode_params(only_non_function_expression(self.game_params));
+        let pkg_params = encode_params(only_non_function_expression(self.pkg_params));
 
         let oracle_name = &oracle_sig.name;
         format!("oracle-{game_name}-{game_params}-{pkg_name}-{pkg_params}-{oracle_name}")
     }
 
-    fn function_args(&self) -> Vec<(String, SmtExpr)> {
+    fn function_args(&self) -> Vec<(String, Sort)> {
         let DispatchOraclePattern {
             oracle_sig:
                 OracleSig {
@@ -85,7 +76,7 @@ impl<'a> FunctionPattern for DispatchOraclePattern<'a> {
             game_const_pair,
             (
                 ORACLE_ARG_INTERMEDIATE_STATE.to_string(),
-                intermediate_state_pattern.sort().into(),
+                intermediate_state_pattern.sort(vec![]).into(),
             ),
         ]
         .into_iter()
@@ -98,7 +89,7 @@ impl<'a> FunctionPattern for DispatchOraclePattern<'a> {
         .collect()
     }
 
-    fn function_return_sort(&self) -> PartialReturnSort<'a> {
+    fn function_return_sort(&self) -> Sort {
         let Self {
             game_name,
             game_params,
@@ -116,7 +107,7 @@ impl<'a> FunctionPattern for DispatchOraclePattern<'a> {
             oracle_name: &oracle_sig.name,
         };
 
-        partial_return_pattern.sort()
+        partial_return_pattern.sort(vec![])
     }
 
     fn function_args_count(&self) -> usize {

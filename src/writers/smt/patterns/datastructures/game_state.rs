@@ -1,42 +1,29 @@
 use crate::{
     expressions::Expression,
     identifier::game_ident::GameConstIdentifier,
-    impl_Into_for_PlainSort,
     proof::GameInstance,
     transforms::samplify::SampleInfo,
     types::Type,
     writers::smt::{
         exprs::SmtExpr,
         patterns::{
-            instance_names::{encode_params, only_expression},
+            instance_names::{encode_params, only_non_function_expression},
             DatastructurePattern, DatastructureSpec, PackageStatePattern,
         },
-        sorts::SmtPlainSort,
+        sorts::Sort,
     },
 };
 
-use super::PackageStateSort;
-
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct GameStatePattern<'a> {
     pub game_name: &'a str,
     pub params: &'a [(GameConstIdentifier, Expression)],
 }
 
-impl<'a> GameStatePattern<'a> {
-    fn expr_params(&self) -> impl Iterator<Item = &Expression> {
-        self.params.iter().map(|(_, expr)| expr)
-    }
-}
-
-#[derive(PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum GameStateSelector<'a> {
-    PackageInstance {
-        pkg_inst_name: &'a str,
-        sort: PackageStateSort<'a>,
-    },
-    Randomness {
-        sample_id: usize,
-    },
+    PackageInstance { pkg_inst_name: &'a str, sort: Sort },
+    Randomness { sample_id: usize },
 }
 
 pub struct GameStateDeclareInfo<'a> {
@@ -44,43 +31,26 @@ pub struct GameStateDeclareInfo<'a> {
     pub sample_info: &'a SampleInfo,
 }
 
-pub struct GameStateSort<'a> {
-    pub game_name: &'a str,
-    pub params: &'a [(GameConstIdentifier, Expression)],
-}
-
-impl<'a> SmtPlainSort for GameStateSort<'a> {
-    fn sort_name(&self) -> String {
-        let Self { game_name, params } = self;
-        let camel_case = <GameStatePattern as DatastructurePattern>::CAMEL_CASE;
-        let encoded_params = encode_params(only_expression(*params));
-
-        format!("<{camel_case}_{game_name}_{encoded_params}>")
-    }
-}
-
-impl_Into_for_PlainSort!('a, GameStateSort<'a>);
-
 impl<'a> DatastructurePattern<'a> for GameStatePattern<'a> {
     type Constructor = ();
     type Selector = GameStateSelector<'a>;
     type DeclareInfo = GameStateDeclareInfo<'a>;
-    type Sort = GameStateSort<'a>;
 
     const CAMEL_CASE: &'static str = "GameState";
     const KEBAB_CASE: &'static str = "game";
 
-    fn sort(&self) -> GameStateSort<'a> {
-        let Self {
-            game_name, params, ..
-        } = self;
-        GameStateSort { game_name, params }
+    fn sort_name(&self) -> String {
+        let Self { game_name, params } = self;
+        let camel_case = <GameStatePattern as DatastructurePattern>::CAMEL_CASE;
+        let encoded_params = encode_params(only_non_function_expression(*params));
+
+        format!("<{camel_case}_{game_name}_{encoded_params}>")
     }
 
     fn constructor_name(&self, _cons: &Self::Constructor) -> String {
         let kebab_case = Self::KEBAB_CASE;
         let Self { game_name, .. } = self;
-        let encoded_params = encode_params(self.expr_params());
+        let encoded_params = encode_params(only_non_function_expression(self.params));
 
         format!("<mk-{kebab_case}-{game_name}-{encoded_params}>")
     }
@@ -88,7 +58,7 @@ impl<'a> DatastructurePattern<'a> for GameStatePattern<'a> {
     fn selector_name(&self, sel: &Self::Selector) -> String {
         let kebab_case = Self::KEBAB_CASE;
         let Self { game_name, .. } = self;
-        let encoded_params = encode_params(self.expr_params());
+        let encoded_params = encode_params(only_non_function_expression(self.params));
 
         let (kind_name, field_name) = match sel {
             GameStateSelector::PackageInstance { pkg_inst_name, .. } => {
@@ -127,7 +97,7 @@ impl<'a> DatastructurePattern<'a> for GameStatePattern<'a> {
             let params = &inst.params;
             let pkg_name = &inst.pkg.name;
 
-            let sort = PackageStatePattern { pkg_name, params }.sort();
+            let sort = PackageStatePattern { pkg_name, params }.sort(vec![]);
 
             GameStateSelector::PackageInstance {
                 pkg_inst_name: &inst.name,
