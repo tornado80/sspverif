@@ -11,6 +11,9 @@ use crate::statement::{CodeBlock, Statement};
 use crate::types::Type;
 use crate::util::prover_process::ProverBackend;
 use crate::util::prover_process::{Communicator, ProverResponse};
+use crate::writers::tex::SmtModelParser;
+use crate::writers::tex::Rule;
+
 
 /// TODO: Move to struct so we can have verbose versions (e.g. writing types to expressions)
 
@@ -309,7 +312,6 @@ fn tex_smt_write_composition_graph(
 
     let mut model = String::new();
 
-
     for width in 1..20 {
     let mut comm = Communicator::new(backend.unwrap()).unwrap();
     
@@ -370,7 +372,8 @@ fn tex_smt_write_composition_graph(
             break;
         }
     }
-    println!("{}", model);
+    let model = SmtModelParser::parse_model(&model);
+    println!("{:#?}", model);
     Ok(())
 }
 
