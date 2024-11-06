@@ -9,6 +9,8 @@ use crate::proof::GameHop;
 use crate::proof::Proof;
 use crate::statement::{CodeBlock, Statement};
 use crate::types::Type;
+use crate::util::prover_process::ProverBackend;
+use crate::util::prover_process::{Communicator, ProverResponse};
 
 /// TODO: Move to struct so we can have verbose versions (e.g. writing types to expressions)
 
@@ -297,41 +299,49 @@ fn tex_write_document_header(mut file: &File) -> std::io::Result<()> {
     Ok(())
 }
 
-fn smt_write_composition_graph(
+fn tex_smt_write_composition_graph(
+    backend: &Option<ProverBackend>,
     mut file: &File,
     composition: &Composition,
     pkgmap: &[(std::string::String, std::string::String)],
 ) -> std::io::Result<()> {
+    use std::fmt::Write;
 
-    writeln!(file, "(declare-const num-pkgs Int)");
-    writeln!(file, "(declare-const width Int)");
-    writeln!(file, "(declare-const height Int)");
-    writeln!(file, "(assert (= num-pkgs {}))", composition.pkgs.len());
+    let mut model = String::new();
+
+
+    for width in 1..20 {
+    let mut comm = Communicator::new(backend.unwrap()).unwrap();
+    
+    writeln!(comm, "(declare-const num-pkgs Int)");
+    writeln!(comm, "(declare-const width Int)");
+    writeln!(comm, "(declare-const height Int)");
+    writeln!(comm, "(assert (= num-pkgs {}))", composition.pkgs.len());
     
     for i in 0..composition.pkgs.len() {
         let pkg = &composition.pkgs[i].name; 
-        writeln!(file, "(declare-const {pkg}-column Int)");
-        writeln!(file, "(assert (< 0 {pkg}-column width))");
-        writeln!(file, "(declare-const {pkg}-top Int)");
-        writeln!(file, "(declare-const {pkg}-bottom Int)");
-        writeln!(file, "(assert (< 0 {pkg}-bottom (- {pkg}-top 1) height))");
+        writeln!(comm, "(declare-const {pkg}-column Int)");
+        writeln!(comm, "(assert (< 0 {pkg}-column width))");
+        writeln!(comm, "(declare-const {pkg}-top Int)");
+        writeln!(comm, "(declare-const {pkg}-bottom Int)");
+        writeln!(comm, "(assert (< 0 {pkg}-bottom (- {pkg}-top 1) height))");
     }
 
     for Edge(from, to, oracle) in &composition.edges {
         let pkga = &composition.pkgs[*from].name;
         let pkgb = &composition.pkgs[*to].name;
         
-        writeln!(file, "(declare-const edge-{pkga}-{pkgb}-height Int)");
-        writeln!(file, "(assert (< {pkga}-bottom edge-{pkga}-{pkgb}-height {pkga}-top))");
-        writeln!(file, "(assert (< {pkgb}-bottom edge-{pkga}-{pkgb}-height {pkgb}-top))");
-        writeln!(file, "(assert (< {pkga}-column {pkgb}-column))");
+        writeln!(comm, "(declare-const edge-{pkga}-{pkgb}-height Int)");
+        writeln!(comm, "(assert (< {pkga}-bottom edge-{pkga}-{pkgb}-height {pkga}-top))");
+        writeln!(comm, "(assert (< {pkgb}-bottom edge-{pkga}-{pkgb}-height {pkgb}-top))");
+        writeln!(comm, "(assert (< {pkga}-column {pkgb}-column))");
     }
 
     for i in 0..composition.pkgs.len() {
         for j in 0..i {
             let pkga = &composition.pkgs[i].name;
             let pkgb = &composition.pkgs[j].name;
-            writeln!(file, "
+            writeln!(comm, "
 (assert (not (exists ((l Int))
                (and
                  (<= {pkga}-bottom l {pkga}-top)
@@ -346,7 +356,7 @@ fn smt_write_composition_graph(
             let pkgb = &composition.pkgs[*to].name;
             let pkgc = &composition.pkgs[i].name;
 
-            writeln!(file, "
+            writeln!(comm, "
 (assert (not (exists ((l Int))
                (and 
                  (=  edge-{pkga}-{pkgb}-height l)
@@ -354,10 +364,13 @@ fn smt_write_composition_graph(
                  (<= (- {pkgc}-bottom 1) l (+ {pkgc}-top 1))))))"); 
         }
     }
-    
-    writeln!(file, "(minimize width)");
-    writeln!(file, "(minimize height)");
-    writeln!(file, "(check-sat)");
+
+        if comm.check_sat().unwrap() == ProverResponse::Sat {
+            model = comm.get_model().unwrap();
+            break;
+        }
+    }
+    println!("{}", model);
     Ok(())
 }
 
@@ -432,6 +445,7 @@ fn tex_write_composition_graph(
 }
 
 fn tex_write_composition_graph_file(
+    backend: &Option<ProverBackend>,
     composition: &Composition,
     name: &str,
     target: &Path,
@@ -442,12 +456,13 @@ fn tex_write_composition_graph_file(
     let mut smtfile = File::create(smtname.clone())?;
 
     tex_write_composition_graph(&file, composition, &Vec::new())?;
-    smt_write_composition_graph(&smtfile, composition, &Vec::new())?;
+    tex_smt_write_composition_graph(backend, &smtfile, composition, &Vec::new())?;
 
     Ok(fname.to_str().unwrap().to_string())
 }
 
 pub fn tex_write_composition(
+    backend: &Option<ProverBackend>,
     composition: &Composition,
     name: &str,
     target: &Path,
@@ -461,7 +476,7 @@ pub fn tex_write_composition(
     writeln!(file, "\\begin{{document}}")?;
     writeln!(file, "\\maketitle")?;
 
-    let graphfname = tex_write_composition_graph_file(composition, name, target)?;
+    let graphfname = tex_write_composition_graph_file(backend, composition, name, target)?;
     let graphfname = Path::new(&graphfname).strip_prefix(fname.clone().parent().unwrap()).unwrap().to_str();
     writeln!(file, "\\begin{{center}}")?;
     writeln!(file, "\\input{{{}}}", graphfname.unwrap())?;
