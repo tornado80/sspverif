@@ -1,5 +1,5 @@
 use crate::{
-    proof::{Equivalence, GameInstance, Proof},
+    proof::GameInstance,
     transforms::samplify::SampleInfo,
     types::Type,
     writers::smt::{exprs::SmtExpr, names},

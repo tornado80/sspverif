@@ -143,7 +143,7 @@ impl<'a> OracleContext<'a> {
     pub(crate) fn smt_declare_return(&self) -> SmtExpr {
         let return_type = self.return_type();
         let pattern = self.return_pattern();
-        let spec = pattern.datastructure_spec(&return_type);
+        let spec = pattern.datastructure_spec(return_type);
 
         declare_datatype(&pattern, &spec)
     }
@@ -179,7 +179,7 @@ impl<'a> OracleContext<'a> {
 
         let return_pattern = self.return_pattern();
 
-        let return_spec = return_pattern.datastructure_spec(&return_type);
+        let return_spec = return_pattern.datastructure_spec(return_type);
 
         let state_smt: SmtExpr = state.into();
 
@@ -213,7 +213,7 @@ impl<'a> OracleContext<'a> {
         let return_type = &osig.tipe;
 
         let pattern = self.return_pattern();
-        let spec = pattern.datastructure_spec(&return_type);
+        let spec = pattern.datastructure_spec(return_type);
 
         pattern
             .access(&spec, &ReturnSelector::GameState, ret)
@@ -256,7 +256,7 @@ impl<'a> OracleContext<'a> {
         let return_type = &osig.tipe;
 
         let pattern = self.return_pattern();
-        let spec = pattern.datastructure_spec(&return_type);
+        let spec = pattern.datastructure_spec(return_type);
 
         pattern
             .access(
@@ -345,7 +345,7 @@ impl<'a> GenericOracleContext<'a> for OracleContext<'a> {
 
         let return_pattern = self.return_pattern();
 
-        let return_spec = return_pattern.datastructure_spec(&return_type);
+        let return_spec = return_pattern.datastructure_spec(return_type);
 
         let game_state = game_state.into();
         return_pattern

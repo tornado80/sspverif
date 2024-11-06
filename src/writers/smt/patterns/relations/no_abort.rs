@@ -1,5 +1,5 @@
 use crate::writers::smt::{
-    exprs::{SmtAnd, SmtEq2, SmtExpr, SmtIs, SmtLet, SmtNot},
+    exprs::{SmtAnd, SmtExpr, SmtIs, SmtNot},
     patterns::{
         relation::Relation, DatastructurePattern, FunctionPattern, ReturnSelector, ReturnValue,
         ReturnValueConstructor, SmtDefineFun,

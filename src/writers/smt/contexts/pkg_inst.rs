@@ -18,7 +18,7 @@ use crate::writers::smt::{
 
 impl<'a> PackageInstanceContext<'a> {
     pub(crate) fn game_inst_ctx(&self) -> GameInstanceContext<'a> {
-        self.game_ctx.clone()
+        self.game_ctx
     }
 
     pub(crate) fn game_inst(&self) -> &'a GameInstance {
@@ -43,7 +43,7 @@ impl<'a> PackageInstanceContext<'a> {
             .position(|odef| odef.sig.name == oracle_name)?;
 
         Some(SplitOracleContext {
-            game_inst_context: self.game_ctx.clone(),
+            game_inst_context: self.game_ctx,
             pkg_inst_offs: inst_offs,
             split_oracle_offs,
             partials,
@@ -60,7 +60,7 @@ impl<'a> PackageInstanceContext<'a> {
             .position(|odef| odef.sig.name == oracle_name)?;
 
         Some(OracleContext {
-            game_inst_context: self.game_ctx.clone(),
+            game_inst_context: self.game_ctx,
             pkg_inst_offs: inst_offs,
             oracle_offs,
         })
@@ -81,7 +81,7 @@ impl<'a> PackageInstanceContext<'a> {
             .position(|odef| odef.sig.name == oracle_name && &odef.sig.path == oracle_path)?;
 
         Some(SplitOracleContext {
-            game_inst_context: self.game_ctx.clone(),
+            game_inst_context: self.game_ctx,
             pkg_inst_offs: inst_offs,
             split_oracle_offs,
             partials,
@@ -97,7 +97,7 @@ impl<'a> PackageInstanceContext<'a> {
             return None;
         }
 
-        let game_ctx = self.game_ctx.clone();
+        let game_ctx = self.game_ctx;
         let inst_offs = self.inst_offs;
 
         Some(OracleContext {

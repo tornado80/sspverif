@@ -1,9 +1,6 @@
 use crate::writers::smt::{
-    exprs::{SmtEq2, SmtExpr, SmtIs, SmtLet},
-    patterns::{
-        relation::Relation, DatastructurePattern, FunctionPattern, ReturnSelector, ReturnValue,
-        ReturnValueConstructor, SmtDefineFun,
-    },
+    exprs::{SmtEq2, SmtExpr},
+    patterns::{relation::Relation, DatastructurePattern, FunctionPattern, ReturnSelector},
 };
 
 impl<'a> Relation<'a> {

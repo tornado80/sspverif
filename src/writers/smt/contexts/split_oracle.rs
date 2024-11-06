@@ -39,7 +39,7 @@ impl<'a> SplitOracleContext<'a> {
     }
 
     fn game_inst_ctx(&self) -> GameInstanceContext<'a> {
-        self.game_inst_context.clone()
+        self.game_inst_context
     }
 
     fn pkg_inst_ctx(&self) -> PackageInstanceContext<'a> {

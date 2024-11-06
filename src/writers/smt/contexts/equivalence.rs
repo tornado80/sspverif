@@ -80,12 +80,4 @@ impl<'a> EquivalenceContext<'a> {
         self.relation_pattern("same-output", oracle_name)
             .build_same_output()
     }
-
-    // TODO:
-    // - add functions to build basic relation patterns, each constructing the function body,
-    //   calling above fucntion
-    //   - left-no-abort
-    //   - right-no-abort
-    //   - no-abort
-    //   - ??
 }

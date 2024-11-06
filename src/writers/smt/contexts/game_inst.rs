@@ -306,7 +306,7 @@ impl<'a> GameInstanceContext<'a> {
             .iter()
             .position(|pkg| pkg.name == inst_name)
             .map(|inst_offs| PackageInstanceContext {
-                game_ctx: self.clone(),
+                game_ctx: *self,
                 inst_offs,
             })
     }
@@ -320,7 +320,7 @@ impl<'a> GameInstanceContext<'a> {
         }
 
         Some(PackageInstanceContext {
-            game_ctx: self.clone(),
+            game_ctx: *self,
             inst_offs,
         })
     }
@@ -337,7 +337,7 @@ impl<'a> GameInstanceContext<'a> {
             .find(|Export(_, osig)| osig.name == oracle_name)?;
 
         let inst_ctx = PackageInstanceContext {
-            game_ctx: self.clone(),
+            game_ctx: *self,
             inst_offs,
         };
 
@@ -364,7 +364,7 @@ impl<'a> GameInstanceContext<'a> {
             .iter()
             .find(|SplitExport(_inst_offs, osig)| osig.name == oracle_name)
             .map(|SplitExport(inst_offs, _osig)| PackageInstanceContext {
-                game_ctx: self.clone(),
+                game_ctx: *self,
                 inst_offs: *inst_offs,
             })
     }
