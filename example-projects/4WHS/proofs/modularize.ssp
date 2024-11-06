@@ -36,6 +36,17 @@ proof WHSProto {
         }
     }
 
+    instance KX_0 = KX_Red {
+        params {
+            bnonces : false,
+            b       : b    ,
+            n       : n    ,
+            zeron   : zeron,
+  	        prf     : prf  ,
+            mac     : mac  ,
+        }
+    }
+
     instance KX_Red_0 = KX_Red {
         params {
             bnonces : false,
