@@ -1206,11 +1206,11 @@ impl<'a> EquivalenceContext<'a> {
     }
 
     pub fn smt_define_randeq_function(&self) -> SmtExpr {
-        let left_game = self.left_game_inst_ctx().game();
-        let right_game = self.right_game_inst_ctx().game();
+        let left_game_inst = self.left_game_inst_ctx().game_inst();
+        let right_game_inst = self.right_game_inst_ctx().game_inst();
 
-        let left_game_name = &left_game.name;
-        let right_game_name = &right_game.name;
+        let left_game_inst_name = &left_game_inst.name;
+        let right_game_inst_name = &right_game_inst.name;
 
         /*
          *
@@ -1281,12 +1281,12 @@ impl<'a> EquivalenceContext<'a> {
                 then: (
                     "=",
                     (
-                        format!("__sample-rand-{left_game_name}-{sort}"),
+                        format!("__sample-rand-{left_game_inst_name}-{sort}"),
                         "sample-id-left",
                         "sample-ctr-left",
                     ),
                     (
-                        format!("__sample-rand-{right_game_name}-{sort}"),
+                        format!("__sample-rand-{right_game_inst_name}-{sort}"),
                         "sample-id-right",
                         "sample-ctr-right",
                     ),

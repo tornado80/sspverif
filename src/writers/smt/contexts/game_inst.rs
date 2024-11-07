@@ -214,7 +214,7 @@ impl<'a> GameInstanceContext<'a> {
         ctr: CTR,
         tipe: &Type,
     ) -> SmtExpr {
-        let rand_fn_name = names::fn_sample_rand_name(&self.game_inst.game().name, tipe);
+        let rand_fn_name = names::fn_sample_rand_name(&self.game_inst.name, tipe);
         (rand_fn_name, sample_id, ctr).into()
     }
 

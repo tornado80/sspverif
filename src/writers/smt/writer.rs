@@ -738,7 +738,7 @@ impl<'a> CompositionSmtWriter<'a> {
         let sample_id = sample_id.expect("found a None sample_id");
         let game_inst_ctx = self.context();
 
-        let game_name = game_inst_ctx.game().name();
+        let game_inst_name = game_inst_ctx.game_inst_name();
 
         let gamestate = oracle_ctx.smt_game_state();
         // ctr is the current "i-th sampling for sample id sample_id"
@@ -752,7 +752,7 @@ impl<'a> CompositionSmtWriter<'a> {
                 )
             });
 
-        let rand_fn_name = names::fn_sample_rand_name(game_name, tipe);
+        let rand_fn_name = names::fn_sample_rand_name(game_inst_name, tipe);
 
         let rand_val: SmtExpr = (rand_fn_name, format!("{sample_id}"), ctr.clone()).into();
 
@@ -1213,8 +1213,7 @@ impl<'a> CompositionSmtWriter<'a> {
 
     fn smt_composition_randomness(&mut self) -> Vec<SmtExpr> {
         let game_inst_ctx = self.context();
-        let _game_inst = game_inst_ctx.game_inst();
-        let game = game_inst_ctx.game();
+        let game_inst = game_inst_ctx.game_inst();
         let mut result: Vec<_> = self
             .sample_info
             .tipes
@@ -1226,7 +1225,7 @@ impl<'a> CompositionSmtWriter<'a> {
                     "declare-fun",
                     format!(
                         "__sample-rand-{}-{}",
-                        game.name,
+                        game_inst.name,
                         smt_to_string(tipeexpr.clone())
                     ),
                     (SmtExpr::Atom("Int".into()), SmtExpr::Atom("Int".into())),
