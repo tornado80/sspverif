@@ -312,7 +312,7 @@ fn tex_smt_write_composition_graph(
 
     let mut model = String::new();
 
-    for width in 1..20 {
+    for height in 2..50 {
     let mut comm = Communicator::new(backend.unwrap()).unwrap();
     
     writeln!(comm, "(declare-const num-pkgs Int)");
@@ -366,7 +366,9 @@ fn tex_smt_write_composition_graph(
                  (<= (- {pkgc}-bottom 1) l (+ {pkgc}-top 1))))))"); 
         }
     }
-
+        
+        writeln!(comm, "(assert (< height {height}))");
+        
         if comm.check_sat().unwrap() == ProverResponse::Sat {
             model = comm.get_model().unwrap();
             break;
