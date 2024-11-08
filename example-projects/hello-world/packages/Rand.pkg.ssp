@@ -13,5 +13,10 @@ package Rand {
         y <- (ctr + rand);
         return y;
         }
+
+    oracle UselessOracle() -> Integer  {
+        assert false;
+        return 1;
+        }
 }
 

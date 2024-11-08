@@ -17,6 +17,7 @@ package Fwd {
         }
 
     oracle UselessOracle() -> Integer  {
+        assert false;
         return 1;
         }
 

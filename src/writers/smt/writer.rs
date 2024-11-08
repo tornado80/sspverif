@@ -683,27 +683,10 @@ impl<'a> CompositionSmtWriter<'a> {
 
     fn smt_build_abort<OCTX: GenericOracleContext<'a>>(&self, oracle_ctx: &OCTX) -> SmtExpr {
         let new_game_state = oracle_ctx.smt_write_back_state(self.sample_info);
-        let game_inst_ctx = oracle_ctx.game_inst_ctx();
-        let pkg_inst = oracle_ctx.pkg_inst_ctx().pkg_inst();
-
-        let var_gamestate = &GameStatePattern;
-
-        let new_gamestate = game_inst_ctx
-            .smt_update_gamestate_pkgstate(
-                var_gamestate,
-                self.sample_info,
-                &pkg_inst.name,
-                new_game_state,
-            )
-            .unwrap();
-
-        let body = oracle_ctx.smt_construct_abort(var_gamestate);
-
-        SmtLet {
-            bindings: vec![(var_gamestate.name(), new_gamestate)],
-            body,
-        }
-        .into()
+        let var_game_state = &GameStatePattern;
+        let body = oracle_ctx.smt_construct_abort(var_game_state);
+        let bindings = vec![(var_game_state.name(), new_game_state)];
+        SmtLet { bindings, body }.into()
     }
 
     /*
