@@ -1175,7 +1175,7 @@ impl<'a> CompositionSmtWriter<'a> {
             .collect()
     }
 
-    fn smt_oracle_functions(&self) -> Vec<SmtExpr> {
+    pub(crate) fn smt_oracle_functions(&self) -> Vec<SmtExpr> {
         let game_inst_ctx = self.context();
         let game_inst_name = game_inst_ctx.game_inst().name();
         let game_name = game_inst_ctx.game().name();
@@ -1190,7 +1190,7 @@ impl<'a> CompositionSmtWriter<'a> {
         comment.into_iter().chain(code).collect()
     }
 
-    fn smt_composition_paramfuncs(&self) -> Vec<SmtExpr> {
+    pub(crate) fn smt_composition_paramfuncs(&self) -> Vec<SmtExpr> {
         let game_inst_ctx = self.context();
 
         None.into_iter()
@@ -1211,7 +1211,7 @@ impl<'a> CompositionSmtWriter<'a> {
             .collect()
     }
 
-    fn smt_composition_randomness(&mut self) -> Vec<SmtExpr> {
+    pub(crate) fn smt_composition_randomness(&mut self) -> Vec<SmtExpr> {
         let game_inst_ctx = self.context();
         let game_inst = game_inst_ctx.game_inst();
         let mut result: Vec<_> = self
@@ -1238,7 +1238,7 @@ impl<'a> CompositionSmtWriter<'a> {
         result
     }
 
-    fn smt_composition_partial_stuff(&self) -> Vec<SmtExpr> {
+    pub(crate) fn smt_composition_partial_stuff(&self) -> Vec<SmtExpr> {
         let game_inst_ctx = self.context();
         let game = game_inst_ctx.game();
 

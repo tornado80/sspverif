@@ -29,6 +29,10 @@ impl<'a> PackageInstanceContext<'a> {
         self.game_inst().game()
     }
 
+    pub(crate) fn oracle_contexts(self) -> impl Iterator<Item = OracleContext<'a>> {
+        (0..self.pkg().oracles.len()).map(move |i| self.oracle_ctx_by_oracle_offs(i).unwrap())
+    }
+
     pub(crate) fn split_oracle_ctx_by_name(
         &self,
         oracle_name: &str,
@@ -97,7 +101,7 @@ impl<'a> PackageInstanceContext<'a> {
             return None;
         }
 
-        let game_ctx = self.game_ctx;
+        let game_ctx = self.game_ctx.clone();
         let inst_offs = self.inst_offs;
 
         Some(OracleContext {

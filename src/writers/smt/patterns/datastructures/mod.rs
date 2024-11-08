@@ -41,7 +41,7 @@ pub fn declare_datatype<'a, P: DatastructurePattern<'a>>(
 pub trait DatastructurePattern<'a> {
     type Constructor: Eq;
     type Selector: Eq;
-    type DeclareInfo;
+    type DeclareInfo: 'a;
 
     const CAMEL_CASE: &'static str;
     const KEBAB_CASE: &'static str;

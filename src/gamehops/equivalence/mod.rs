@@ -1,14 +1,17 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeSet, HashMap, HashSet};
 use std::fmt::Write;
 use std::iter::FromIterator;
 
 use crate::util::resolver::Named;
 use crate::writers::smt::contexts::GameInstanceContext;
 use crate::writers::smt::declare::declare_const;
+use crate::writers::smt::patterns::game_consts::GameConstsPattern;
 use crate::writers::smt::patterns::oracle_args::{
     OldNewOracleArgPattern as _, UnitOracleArgPattern as _,
 };
-use crate::writers::smt::patterns::{FunctionPattern, ReturnIsAbortConst};
+use crate::writers::smt::patterns::{
+    declare_datatype, FunctionPattern, GameStateDeclareInfo, ReturnIsAbortConst,
+};
 use crate::writers::smt::sorts::Sort;
 use crate::{
     hacks,
@@ -42,6 +45,7 @@ mod verify_fn;
 use error::{Error, Result};
 pub use verify_fn::verify;
 
+#[derive(Clone, Copy)]
 pub(crate) struct EquivalenceContext<'a> {
     equivalence: &'a Equivalence,
     proof: &'a Proof,
@@ -61,7 +65,7 @@ impl<'a> EquivalenceContext<'a> {
 
 // subcontexts
 impl<'a> EquivalenceContext<'a> {
-    pub(crate) fn left_game_inst_ctx(&self) -> contexts::GameInstanceContext<'a> {
+    pub(crate) fn left_game_inst_ctx(self) -> contexts::GameInstanceContext<'a> {
         let game_inst = self
             .proof()
             .find_game_instance(self.equivalence().left_name())
@@ -70,7 +74,7 @@ impl<'a> EquivalenceContext<'a> {
         contexts::GameInstanceContext::new(game_inst)
     }
 
-    pub(crate) fn right_game_inst_ctx(&self) -> contexts::GameInstanceContext<'a> {
+    pub(crate) fn right_game_inst_ctx(self) -> contexts::GameInstanceContext<'a> {
         let game_inst = self
             .proof()
             .find_game_instance(self.equivalence().right_name())
@@ -149,8 +153,29 @@ impl<'a> EquivalenceContext<'a> {
 
         let mut out = vec![];
 
-        out.append(&mut left_writer.smt_composition_all());
-        out.append(&mut right_writer.smt_composition_all());
+        out.append(&mut left_writer.smt_composition_randomness());
+        out.append(&mut right_writer.smt_composition_randomness());
+        out.append(&mut left_writer.smt_composition_paramfuncs());
+        out.append(&mut right_writer.smt_composition_paramfuncs());
+
+        out.extend(self.smt_package_const_definitions());
+        out.extend(self.smt_package_state_definitions());
+
+        out.extend(self.smt_game_const_definitions());
+        out.extend(self.smt_game_state_definitions());
+
+        out.extend(self.smt_package_return_definitions());
+
+        //out.append(&mut left_writer.smt_datatypes());
+        // out.append(&mut right_writer.smt_datatypes());
+
+        out.append(&mut left_writer.smt_oracle_functions());
+        out.append(&mut right_writer.smt_oracle_functions());
+        out.append(&mut left_writer.smt_composition_partial_stuff());
+        out.append(&mut right_writer.smt_composition_partial_stuff());
+
+        //out.append(&mut left_writer.smt_composition_all());
+        //out.append(&mut right_writer.smt_composition_all());
 
         for decl in out {
             comm.write_smt(decl)?
@@ -1095,7 +1120,7 @@ impl<'a> EquivalenceContext<'a> {
         types
     }
 
-    fn sample_info_left(&self) -> &'a SampleInfo {
+    fn sample_info_left(self) -> &'a SampleInfo {
         let aux_resolver = SliceResolver(self.auxs);
         let (_, (_, sample_info, _)) = aux_resolver
             .resolve_value(self.equivalence.left_name())
@@ -1103,7 +1128,7 @@ impl<'a> EquivalenceContext<'a> {
         sample_info
     }
 
-    fn sample_info_right(&self) -> &'a SampleInfo {
+    fn sample_info_right(self) -> &'a SampleInfo {
         let aux_resolver = SliceResolver(self.auxs);
         let (_, (_, sample_info, _)) = aux_resolver
             .resolve_value(self.equivalence.right_name())
@@ -1155,6 +1180,141 @@ impl<'a> EquivalenceContext<'a> {
             .iter()
             .map(|SplitExport(_, split_oracle_sig)| split_oracle_sig)
             .collect()
+    }
+
+    /// Returns an iterator of all the package const datatypes that need to be defined for this
+    /// equivalence proof. It makes sure to skip duplicate definitions, which may occur if a
+    /// package is used more than once.
+    pub(crate) fn smt_package_const_definitions(self) -> impl Iterator<Item = SmtExpr> + 'a {
+        let mut already_defined = BTreeSet::new();
+
+        Some(self)
+            .into_iter()
+            .flat_map(|ectx| {
+                vec![ectx.left_game_inst_ctx(), ectx.right_game_inst_ctx()].into_iter()
+            })
+            .flat_map(|gctx| gctx.pkg_inst_contexts())
+            .map(|pctx| {
+                let pattern = pctx.pkg_consts_pattern();
+                let spec = pattern.datastructure_spec(pctx.pkg());
+
+                (pattern, spec)
+            })
+            .filter_map(move |(pattern, spec)| {
+                if already_defined.insert(pattern.sort_name()) {
+                    Some(declare_datatype(&pattern, &spec))
+                } else {
+                    None
+                }
+            })
+    }
+
+    /// Returns an iterator of all the package state datatypes that need to be defined for this
+    /// equivalence proof. It makes sure to skip duplicate definitions, which may occur if a
+    /// package is used more than once.
+    pub(crate) fn smt_package_state_definitions(self) -> impl Iterator<Item = SmtExpr> + 'a {
+        let mut already_defined = BTreeSet::new();
+
+        Some(self)
+            .into_iter()
+            .flat_map(|ectx| {
+                vec![ectx.left_game_inst_ctx(), ectx.right_game_inst_ctx()].into_iter()
+            })
+            .flat_map(|gctx| gctx.pkg_inst_contexts())
+            .filter_map(move |pctx| {
+                let pattern = pctx.pkg_state_pattern();
+                let spec = pattern.datastructure_spec(pctx.pkg());
+
+                if already_defined.insert(pattern.sort_name()) {
+                    Some(declare_datatype(&pattern, &spec))
+                } else {
+                    None
+                }
+            })
+    }
+
+    /// Returns an iterator of all the package state datatypes that need to be defined for this
+    /// equivalence proof. It makes sure to skip duplicate definitions, which may occur if a
+    /// package is used more than once.
+    pub(crate) fn smt_package_return_definitions(self) -> impl Iterator<Item = SmtExpr> + 'a {
+        let mut already_defined = BTreeSet::new();
+
+        Some(self)
+            .into_iter()
+            .flat_map(|ectx| {
+                vec![ectx.left_game_inst_ctx(), ectx.right_game_inst_ctx()].into_iter()
+            })
+            .flat_map(|gctx| gctx.pkg_inst_contexts())
+            .flat_map(|pctx| pctx.oracle_contexts())
+            .filter_map(move |octx| {
+                let pattern = octx.return_pattern();
+                let spec = pattern.datastructure_spec(&octx.oracle_sig().tipe);
+
+                if already_defined.insert(pattern.sort_name()) {
+                    Some(declare_datatype(&pattern, &spec))
+                } else {
+                    None
+                }
+            })
+    }
+
+    /// Returns an iterator of all the game state datatypes that need to be defined for this
+    /// equivalence proof. It makes sure to skip duplicate definitions, which may occur if a
+    /// package is used more than once.
+    pub(crate) fn smt_game_state_definitions(self) -> impl Iterator<Item = SmtExpr> + 'a {
+        let mut already_defined = BTreeSet::new();
+
+        Some(self)
+            .into_iter()
+            .flat_map(move |ectx| {
+                vec![
+                    (ectx.left_game_inst_ctx(), self.sample_info_left()),
+                    (ectx.right_game_inst_ctx(), self.sample_info_right()),
+                ]
+                .into_iter()
+            })
+            .filter_map(move |(gctx, sample_info)| {
+                let declare_info = GameStateDeclareInfo {
+                    game_inst: gctx.game_inst(),
+                    sample_info,
+                };
+
+                let pattern = gctx.datastructure_game_state_pattern();
+                let spec = pattern.datastructure_spec(&declare_info);
+
+                if already_defined.insert(pattern.sort_name()) {
+                    let datatype = declare_datatype(&pattern, &spec);
+                    println!("#### DT {datatype:?}");
+                    Some(datatype)
+                } else {
+                    None
+                }
+            })
+    }
+
+    /// Returns an iterator of all the game const datatypes that need to be defined for this
+    /// equivalence proof. It makes sure to skip duplicate definitions, which may occur if a
+    /// package is used more than once.
+    pub(crate) fn smt_game_const_definitions(self) -> impl Iterator<Item = SmtExpr> + 'a {
+        let mut already_defined = BTreeSet::new();
+
+        Some(self)
+            .into_iter()
+            .flat_map(move |ectx| {
+                vec![ectx.left_game_inst_ctx(), ectx.right_game_inst_ctx()].into_iter()
+            })
+            .filter_map(move |gctx| {
+                let pattern = GameConstsPattern {
+                    game_name: gctx.game_name(),
+                };
+                let spec = pattern.datastructure_spec(gctx.game());
+
+                if already_defined.insert(pattern.sort_name()) {
+                    Some(declare_datatype(&pattern, &spec))
+                } else {
+                    None
+                }
+            })
     }
 
     pub fn smt_define_randctr_function(

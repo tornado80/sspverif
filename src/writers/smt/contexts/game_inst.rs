@@ -23,27 +23,27 @@ impl<'a> GameInstanceContext<'a> {
         GameInstanceContext { game_inst }
     }
 
-    pub(crate) fn pkg_inst_contexts(&self) -> impl Iterator<Item = PackageInstanceContext> {
-        (0..self.game().pkgs.len()).map(|i| self.pkg_inst_ctx_by_offs(i).unwrap())
+    pub(crate) fn pkg_inst_contexts(self) -> impl Iterator<Item = PackageInstanceContext<'a>> {
+        (0..self.game().pkgs.len()).map(move |i| self.pkg_inst_ctx_by_offs(i).unwrap())
     }
 
-    pub(crate) fn game_inst(&self) -> &'a GameInstance {
+    pub(crate) fn game_inst(self) -> &'a GameInstance {
         self.game_inst
     }
 
-    pub(crate) fn game(&self) -> &'a Composition {
+    pub(crate) fn game(self) -> &'a Composition {
         self.game_inst().game()
     }
 
-    pub(crate) fn game_name(&self) -> &'a str {
+    pub(crate) fn game_name(self) -> &'a str {
         self.game().name()
     }
 
-    pub(crate) fn game_inst_name(&self) -> &'a str {
+    pub(crate) fn game_inst_name(self) -> &'a str {
         self.game_inst().name()
     }
 
-    pub(crate) fn game_params(&self) -> &'a [(GameConstIdentifier, Expression)] {
+    pub(crate) fn game_params(self) -> &'a [(GameConstIdentifier, Expression)] {
         self.game_inst().consts.as_slice()
     }
 }
@@ -57,7 +57,7 @@ impl<'a> GameInstanceContext<'a> {
         }
     }
 
-    pub(crate) fn datastructure_game_state_pattern(&self) -> GameStatePattern<'a> {
+    pub(crate) fn datastructure_game_state_pattern(self) -> GameStatePattern<'a> {
         let game_name = self.game_name();
         let params = &self.game_inst.consts;
 
@@ -312,7 +312,7 @@ impl<'a> GameInstanceContext<'a> {
     }
 
     pub(crate) fn pkg_inst_ctx_by_offs(
-        &self,
+        self,
         inst_offs: usize,
     ) -> Option<PackageInstanceContext<'a>> {
         if inst_offs >= self.game_inst.game().pkgs.len() {
@@ -320,7 +320,7 @@ impl<'a> GameInstanceContext<'a> {
         }
 
         Some(PackageInstanceContext {
-            game_ctx: *self,
+            game_ctx: self,
             inst_offs,
         })
     }

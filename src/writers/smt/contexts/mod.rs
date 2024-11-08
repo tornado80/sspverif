@@ -42,7 +42,7 @@ pub struct OracleContext<'a> {
     oracle_offs: usize,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Copy)]
 pub struct PackageInstanceContext<'a> {
     game_ctx: GameInstanceContext<'a>,
     inst_offs: usize,
