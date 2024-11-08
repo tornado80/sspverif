@@ -38,16 +38,16 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define-fun invariant      (
-        (state-0  <GameState_composition_0_<$<!n!>$>> )
-        (state-1  <GameState_composition_1_<$<!n!>$>>)
+        (state-0  <GameState_Composition_<$<!n!>$>> )
+        (state-1  <GameState_Composition_<$<!n!>$>>)
 )
     Bool
     (let
 
 ; getting ctr out of state
 (
-(ctr-0 (<state-rand-<$<!n!>$>-ctr>     (<game-composition_0-<$<!n!>$>-pkgstate-rand> state-0)))
-(ctr-1 (<state-rand-<$<!n!>$>-ctr>    (<game-composition_1-<$<!n!>$>-pkgstate-rand> state-1)))
+(ctr-0 (<state-Rand-<$<!n!>$>-ctr>     (<game-Composition-<$<!n!>$>-pkgstate-rand> state-0)))
+(ctr-1 (<state-Rand-<$<!n!>$>-ctr>    (<game-Composition-<$<!n!>$>-pkgstate-rand> state-1)))
 )
 
 ; ctr are equal
@@ -57,3 +57,11 @@
 )
 
 ))
+
+(define-fun invariant-Oracle (
+        (state-0  <GameState_Composition_<$<!n!>$>> )
+        (state-1  <GameState_Composition_<$<!n!>$>>)
+)
+    Bool
+    (invariant state-0 state-1))
+

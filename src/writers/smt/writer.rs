@@ -1054,7 +1054,11 @@ impl<'a> CompositionSmtWriter<'a> {
         )
     */
 
-    fn smt_define_nonsplit_oracle_fn(&self, inst: &PackageInstance, def: &OracleDef) -> SmtExpr {
+    pub(crate) fn smt_define_nonsplit_oracle_fn(
+        &self,
+        inst: &PackageInstance,
+        def: &OracleDef,
+    ) -> SmtExpr {
         let pkg_inst_name = &inst.name;
         let oracle_sig = &def.sig;
         let oracle_name = &oracle_sig.name;
@@ -1167,7 +1171,7 @@ impl<'a> CompositionSmtWriter<'a> {
             .into()
     }
 
-    fn smt_oracle_code(&self, inst: &PackageInstance) -> Vec<SmtExpr> {
+    fn smt_oracle_code<'b>(&self, inst: &'b PackageInstance) -> Vec<SmtExpr> {
         inst.pkg
             .oracles
             .iter()

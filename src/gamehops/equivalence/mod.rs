@@ -166,11 +166,12 @@ impl<'a> EquivalenceContext<'a> {
 
         out.extend(self.smt_package_return_definitions());
 
+        out.extend(self.smt_oracle_function_definitions());
         //out.append(&mut left_writer.smt_datatypes());
         // out.append(&mut right_writer.smt_datatypes());
 
-        out.append(&mut left_writer.smt_oracle_functions());
-        out.append(&mut right_writer.smt_oracle_functions());
+        //out.append(&mut left_writer.smt_oracle_functions());
+        //out.append(&mut right_writer.smt_oracle_functions());
         out.append(&mut left_writer.smt_composition_partial_stuff());
         out.append(&mut right_writer.smt_composition_partial_stuff());
 
@@ -1311,6 +1312,42 @@ impl<'a> EquivalenceContext<'a> {
 
                 if already_defined.insert(pattern.sort_name()) {
                     Some(declare_datatype(&pattern, &spec))
+                } else {
+                    None
+                }
+            })
+    }
+
+    pub(crate) fn smt_oracle_function_definitions(self) -> impl Iterator<Item = SmtExpr> + 'a {
+        let mut already_defined = BTreeSet::new();
+
+        Some(self)
+            .into_iter()
+            .flat_map(move |ectx| {
+                let left_gctx = ectx.left_game_inst_ctx();
+                let right_gctx = ectx.right_game_inst_ctx();
+
+                vec![(left_gctx, ectx), (right_gctx, ectx)].into_iter()
+            })
+            .flat_map(|(gctx, ectx)| gctx.pkg_inst_contexts().map(move |pctx| (pctx, ectx)))
+            .flat_map(|(pctx, ectx)| pctx.oracle_contexts().map(move |octx| (octx, ectx)))
+            .filter_map(move |(octx, ectx)| {
+                let gctx = octx.game_inst_ctx();
+                let pctx = octx.pkg_inst_ctx();
+                let pattern = octx.oracle_pattern();
+
+                let game_inst = gctx.game_inst();
+
+                let writer = CompositionSmtWriter::new(
+                    game_inst,
+                    ectx.sample_info_left(),
+                    ectx.split_info_left(),
+                );
+
+                if already_defined.insert(pattern.function_name()) {
+                    let fundef =
+                        writer.smt_define_nonsplit_oracle_fn(pctx.pkg_inst(), octx.oracle_def());
+                    Some(fundef)
                 } else {
                     None
                 }

@@ -39,9 +39,9 @@ proof Proof {
                 ]
 
                 lemmas {
-                    equal-aborts-Oracle: []
-                    invariant:           [no-abort-Oracle]
-                    same-output-Oracle:  [no-abort-Oracle]
+                    equal-aborts: []
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
                 }
             }
         }
