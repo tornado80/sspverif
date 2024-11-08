@@ -26,11 +26,10 @@ proof Proof {
     }
 
     assumptions {
-        Assumption: assumption_0 ~ assumption_1
     }
 
     gamehops {
-    equivalence composition_0 composition_1 
+    equivalence assumption_0 composition_1
         {
             Oracle: 
             {
