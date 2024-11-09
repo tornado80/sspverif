@@ -11,7 +11,7 @@ use crate::statement::{CodeBlock, InvokeOracleStatement, Statement};
 use crate::types::Type;
 use crate::util::prover_process::ProverBackend;
 use crate::util::prover_process::{Communicator, ProverResponse};
-use crate::util::smtmodel::SmtModel;
+use crate::util::smtmodel::{SmtModel, SmtModelEntry};
 
 
 /// TODO: Move to struct so we can have verbose versions (e.g. writing types to expressions)
@@ -304,7 +304,7 @@ fn tex_write_document_header(mut file: &File) -> std::io::Result<()> {
     Ok(())
 }
 
-fn tex_smt_write_composition_graph(
+fn tex_solve_composition_graph(
     backend: &Option<ProverBackend>,
     composition: &Composition,
 ) -> Option<SmtModel> {
@@ -397,10 +397,76 @@ fn tex_smt_write_composition_graph(
 }
 
 fn tex_write_composition_graph(
+    backend: &Option<ProverBackend>,
     mut file: &File,
     composition: &Composition,
     pkgmap: &[(std::string::String, std::string::String)],
 ) -> std::io::Result<()> {
+
+    let mut write_node =
+        |mut file:&File, pkgname:&str, compname:&str, idx, top, bottom, column| -> std::io::Result<()> {
+        let fill =
+            if pkgmap
+            .iter()
+            .any(|(pname, _)| pkgname == *pname) {
+                "red!50"
+            } else {
+                "white"
+            };
+
+        writeln!(
+            file,
+            "\\node[anchor=south west,align=center,package,minimum height={}cm,fill={fill}]
+    (node{}) at ({},{})
+    {{\\M{{{}}}\\\\\\M{{{}}}}};",
+            top-bottom,
+            idx,
+            column*3,
+            bottom,
+            compname.replace('_', "\\_"),
+            pkgname.replace('_', "\\_")
+        )?;
+        Ok(())
+    };
+
+    
+    let solution = tex_solve_composition_graph(backend, composition);
+
+    if let Some(model) = solution {
+        writeln!(file, "\\begin{{tikzpicture}}")?;
+        //writeln!(file, "\\draw (-1,-1) grid (10,5);")?;
+        for i in 0..composition.pkgs.len() {
+            let pkgname = &composition.pkgs[i].name;
+            let SmtModelEntry::IntEntry{value: top, .. } =
+                model.get_value(&format!("{pkgname}-top")).unwrap();
+            let SmtModelEntry::IntEntry{value: bottom, .. } =
+                model.get_value(&format!("{pkgname}-bottom")).unwrap();
+            let SmtModelEntry::IntEntry{value: column, .. } =
+                model.get_value(&format!("{pkgname}-column")).unwrap();
+
+            write_node(file, pkgname, &composition.name, i, top, bottom, column)?;
+        }
+        for Edge(from, to, oracle) in &composition.edges {
+            let pkga = &composition.pkgs[*from].name;
+            let pkgb = &composition.pkgs[*to].name;
+
+            let SmtModelEntry::IntEntry{value: height, .. } =
+                model.get_value(&format!("edge-{pkga}-{pkgb}-height")).unwrap();
+            let SmtModelEntry::IntEntry{value: acolumn, .. } =
+                model.get_value(&format!("{pkga}-column")).unwrap();
+            let SmtModelEntry::IntEntry{value: bcolumn, .. } =
+                model.get_value(&format!("{pkgb}-column")).unwrap();
+
+
+            writeln!(file, "\\draw[-latex,rounded corners]
+    ({},{}) -- node[onarrow] {{\\O{{{}}}}} ({},{});",
+                     acolumn*3+2, height, oracle.name, bcolumn*3, height)?;
+                    
+        }
+        //writeln!(file, "\\draw[red,fill=red] (0,0) circle (.2);")?;
+        writeln!(file, "\\end{{tikzpicture}}")?;
+    } else {
+    
     let mut printed = Vec::new();
     let mut newly = Vec::new();
 
@@ -461,7 +527,7 @@ fn tex_write_composition_graph(
         writeln!(file, "\\draw[-latex,rounded corners] (nodea) -- ($(nodea.east) + (1,0)$) |- node[onarrow] {{\\O{{{}}}}} (node{});", oracle.name, to)?;
     }
     writeln!(file, "\\end{{tikzpicture}}")?;
-
+    }
     Ok(())
 }
 
@@ -474,8 +540,7 @@ fn tex_write_composition_graph_file(
     let fname = target.join(format!("CompositionGraph_{}.tex", name));
     let file = File::create(fname.clone())?;
 
-    tex_write_composition_graph(&file, composition, &Vec::new())?;
-    tex_smt_write_composition_graph(backend, composition);
+    tex_write_composition_graph(backend, &file, composition, &Vec::new())?;
 
     Ok(fname.to_str().unwrap().to_string())
 }
@@ -520,7 +585,7 @@ pub fn tex_write_composition(
     Ok(())
 }
 
-pub fn tex_write_proof(proof: &Proof, name: &str, target: &Path) -> std::io::Result<()> {
+pub fn tex_write_proof(backend: &Option<ProverBackend>, proof: &Proof, name: &str, target: &Path) -> std::io::Result<()> {
     let fname = target.join(format!("Proof_{}.tex", name));
     let mut file = File::create(fname)?;
 
@@ -566,6 +631,7 @@ pub fn tex_write_proof(proof: &Proof, name: &str, target: &Path) -> std::io::Res
                     .find(|instance| instance.name() == red.left().as_game_inst_name())
                     .unwrap();
                 tex_write_composition_graph(
+                    backend,
                     &file,
                     left_game_instance.game(),
                     red.left().pkg_maps(),
@@ -585,6 +651,7 @@ pub fn tex_write_proof(proof: &Proof, name: &str, target: &Path) -> std::io::Res
                     .find(|instance| instance.name() == red.right().as_game_inst_name())
                     .unwrap();
                 tex_write_composition_graph(
+                    backend,
                     &file,
                     right_game_instance.game(),
                     red.right().pkg_maps(),

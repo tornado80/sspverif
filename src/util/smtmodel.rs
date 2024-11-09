@@ -30,12 +30,20 @@ impl SmtModelParser {
 
 #[derive(Debug, Clone)]
 pub enum SmtModelEntry {
-    IntegerEntry{ name: String, value: i64 }
+    IntEntry{ name: String, value: i64 }
+}
+
+impl SmtModelEntry {
+    pub fn name(&self) -> &str {
+        match &self {
+            SmtModelEntry::IntEntry{ name, .. } => name
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
 pub struct SmtModel {
-    pub values: Vec<SmtModelEntry>
+    values: Vec<SmtModelEntry>
 }
 
 impl SmtModel {
@@ -43,10 +51,14 @@ impl SmtModel {
         let parsed = SmtModelParser::parse_model(&from);
         let transformed = parsed.into_iter().map(|(name, tipe, value)| {
             match tipe.as_str() {
-                "Int" => {SmtModelEntry::IntegerEntry{name, value: value.parse().unwrap()}}
+                "Int" => {SmtModelEntry::IntEntry{name, value: value.parse().unwrap()}}
                 _ => unimplemented!()
             }
         }).collect();
         Self { values: transformed }
+    }
+
+    pub fn get_value(&self, name: &str) -> Option<SmtModelEntry> {
+        self.values.iter().find(|entry| entry.name() == name).cloned()
     }
 }
