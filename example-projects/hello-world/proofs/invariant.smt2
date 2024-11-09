@@ -10,25 +10,20 @@
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define-fun
-    randomness-mapping-Oracle
-    (
-        (ctr-0     Int)
-        (ctr-1     Int) 
-        (id-0      Int)
-        (id-1      Int) 
-        (icr-0     Int)
-        (icr-1     Int)
-    )
-    Bool
-(and
-(= ctr-0 ctr-1)
-(= ctr-0 icr-1)
-(= ctr-0 icr-1)
-(= id-0      1)
-(= id-1      1)
-)
-)
+(define-fun randomness-mapping-Oracle
+  ( (ctr-0 Int)
+    (ctr-1 Int)
+    (id-0  Int)
+    (id-1  Int)
+    (icr-0 Int)
+    (icr-1 Int))
+  Bool
+  (and
+    (= ctr-0 ctr-1)
+    (= ctr-0 icr-1)
+    (= ctr-0 icr-1)
+    (= id-0      0)
+    (= id-1      0)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
@@ -37,31 +32,20 @@
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define-fun invariant      (
-        (state-0  <GameState_Assumption_<$<!n!>$>> )
-        (state-1  <GameState_Composition_<$<!n!>$>>)
-)
-    Bool
-    (let
+(define-fun invariant
+  ( (state-0  <GameState_Composition_<$<!n!>$>>)
+    (state-1  <GameState_Composition_<$<!n!>$>>))
+  Bool
+  (let
+    ; getting ctr out of state
+    ( (ctr-0 (<state-Rand-<$<!n!>$>-ctr> (<game-Composition-<$<!n!>$>-pkgstate-rand> state-0)))
+      (ctr-1 (<state-Rand-<$<!n!>$>-ctr> (<game-Composition-<$<!n!>$>-pkgstate-rand> state-1))))
 
-; getting ctr out of state
-(
-(ctr-0 (<state-Rand-<$<!n!>$>-ctr>     (<game-Assumption-<$<!n!>$>-pkgstate-rand> state-0)))
-(ctr-1 (<state-Rand-<$<!n!>$>-ctr>    (<game-Composition-<$<!n!>$>-pkgstate-rand> state-1)))
-)
+    ; ctr are equal
+    (= ctr-0 ctr-1)))
 
-; ctr are equal
-
-(and
-(= ctr-0 ctr-1)
-)
-
-))
-
-(define-fun invariant-Oracle (
-        (state-0  <GameState_Assumption_<$<!n!>$>> )
-        (state-1  <GameState_Composition_<$<!n!>$>>)
-)
-    Bool
-    (invariant state-0 state-1))
-
+(define-fun invariant-Oracle
+  ( (state-0  <GameState_Composition_<$<!n!>$>>)
+    (state-1  <GameState_Composition_<$<!n!>$>>))
+  Bool
+  (invariant state-0 state-1))
