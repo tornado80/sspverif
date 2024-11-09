@@ -12,7 +12,6 @@ use crate::types::Type;
 use crate::util::prover_process::ProverBackend;
 use crate::util::prover_process::{Communicator, ProverResponse};
 use crate::writers::tex::SmtModelParser;
-use crate::writers::tex::Rule;
 
 
 /// TODO: Move to struct so we can have verbose versions (e.g. writing types to expressions)
@@ -304,7 +303,7 @@ fn tex_write_document_header(mut file: &File) -> std::io::Result<()> {
 
 fn tex_smt_write_composition_graph(
     backend: &Option<ProverBackend>,
-    mut file: &File,
+    file: &File,
     composition: &Composition,
     pkgmap: &[(std::string::String, std::string::String)],
 ) -> std::io::Result<()> {
@@ -457,8 +456,8 @@ fn tex_write_composition_graph_file(
 ) -> std::io::Result<String> {
     let fname = target.join(format!("CompositionGraph_{}.tex", name));
     let smtname = target.join(format!("CompositionGraph_{}.smt", name));
-    let mut file = File::create(fname.clone())?;
-    let mut smtfile = File::create(smtname.clone())?;
+    let file = File::create(fname.clone())?;
+    let smtfile = File::create(smtname.clone())?;
 
     tex_write_composition_graph(&file, composition, &Vec::new())?;
     tex_smt_write_composition_graph(backend, &smtfile, composition, &Vec::new())?;

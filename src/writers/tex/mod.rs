@@ -12,7 +12,7 @@ pub struct SmtModelParser;
 impl SmtModelParser {
     pub fn parse_model(content: &str) -> Vec<(String,String,String)> {
         let mut ast = SmtModelParser::parse(Rule::model, content).unwrap();
-        let mut ast = ast.next().unwrap();
+        let ast = ast.next().unwrap();
         debug_assert_matches!(ast.as_rule(), Rule::model);
 
         ast.into_inner().map(|line| {

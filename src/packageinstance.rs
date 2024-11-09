@@ -6,7 +6,7 @@ use crate::{
     },
     package::{OracleDef, OracleSig, Package},
     parser::package::MultiInstanceIndices,
-    statement::{CodeBlock, Statement},
+    statement::Statement,
     types::Type,
 };
 
@@ -110,14 +110,12 @@ pub(crate) mod instantiate {
         identifier::{
             game_ident::{GameConstIdentifier, GameIdentInstanciationInfo, GameIdentifier},
             pkg_ident::{
-                PackageImportsLoopVarIdentifier, PackageLocalIdentifier,
-                PackageOracleArgIdentifier, PackageOracleCodeLoopVarIdentifier,
+                PackageLocalIdentifier,
+                PackageOracleArgIdentifier,
                 PackageStateIdentifier,
             },
             proof_ident::ProofIdentInstanciationInfo,
         },
-        package::Composition,
-        proof::GameInstance,
         split::{SplitOracleDef, SplitOracleSig, SplitPath, SplitType},
         statement::CodeBlock,
     };

@@ -1,14 +1,7 @@
-use itertools::Itertools;
-use std::collections::hash_map::DefaultHasher;
-use std::collections::HashSet;
-use std::hash::{Hash, Hasher};
-use std::iter::FromIterator;
 
 use crate::{
-    package::{Edge, PackageInstance},
-    project::error::{Error, Result},
+    project::error::Result,
     proof::{Proof, Reduction},
-    util::resolver::{Named, Resolver, SliceResolver},
 };
 
 /*
