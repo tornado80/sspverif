@@ -157,9 +157,7 @@ fn format_expr(expr_ast: Pair<Rule>) -> Result<String, project::error::Error> {
             let inner = format_type(expr_ast.into_inner().next().unwrap())?;
             format!("None as {inner}")
         }
-        Rule::expr_untyped_none => {
-            format!("None")
-        }
+        Rule::expr_untyped_none => "None".to_string(),
         Rule::expr_some => {
             let inner = format_expr(expr_ast.into_inner().next().unwrap())?;
             format!("Some({inner})")
@@ -616,7 +614,10 @@ fn format_compose_rule(
                     ""
                 };
 
-                let imports = compblock.next().unwrap().into_inner()
+                let imports = compblock
+                    .next()
+                    .unwrap()
+                    .into_inner()
                     .map(|pair| {
                         let mut pairs = pair.into_inner();
                         let with_indices = if pairs.peek().unwrap().as_rule()

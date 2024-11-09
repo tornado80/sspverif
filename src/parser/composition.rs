@@ -154,10 +154,6 @@ impl<'a> ParseGameContext<'a> {
         self.consts.insert(name, ty);
     }
 
-    fn get_const(&self, name: &str) -> Option<&Type> {
-        self.consts.get(name)
-    }
-
     fn add_edge(&mut self, edge: Edge) {
         self.edges.push(edge)
     }

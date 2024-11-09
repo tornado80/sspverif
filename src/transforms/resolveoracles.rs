@@ -1,12 +1,12 @@
 use crate::package::{Composition, Edge, OracleDef, Package, PackageInstance};
-use crate::statement::{CodeBlock, Statement};
+use crate::statement::{CodeBlock, InvokeOracleStatement, Statement};
 
 use std::collections::HashMap;
 
 pub struct Transformation<'a>(pub &'a Composition);
 
 #[derive(Debug)]
-pub struct ResolutionError(Vec<Statement>);
+pub(crate) struct ResolutionError(pub(crate) Vec<InvokeOracleStatement>);
 
 type Result<T> = std::result::Result<T, ResolutionError>;
 
@@ -14,45 +14,32 @@ fn transform_helper_outer(table: &HashMap<String, String>, block: CodeBlock) -> 
     fn transform_helper(
         table: &HashMap<String, String>,
         block: CodeBlock,
-        err_stmts: &mut Vec<Statement>,
+        err_stmts: &mut Vec<InvokeOracleStatement>,
     ) -> CodeBlock {
         let out = block
             .0
-            .iter()
-            .map(|stmt| match stmt {
-                Statement::InvokeOracle {
-                    id,
-                    opt_idx,
-                    name,
-                    args,
-                    tipe,
-                    file_pos,
-                    opt_dst_inst_idx,
-                    ..
-                } => {
-                    if let Some(pkgname) = table.get(name) {
-                        Statement::InvokeOracle {
-                            id: id.clone(),
-                            opt_idx: opt_idx.clone(),
-                            opt_dst_inst_idx: opt_dst_inst_idx.clone(),
-                            name: name.clone(),
-                            args: args.clone(),
-                            tipe: tipe.clone(),
+            .into_iter()
+            .filter_map(|stmt| match stmt {
+                Statement::InvokeOracle(invoke_oracle_stmt) => {
+                    if let Some(pkgname) = table.get(&invoke_oracle_stmt.name) {
+                        Some(Statement::InvokeOracle(InvokeOracleStatement {
                             target_inst_name: Some(pkgname.clone()),
-                            file_pos: file_pos.clone(),
-                        }
+                            ..invoke_oracle_stmt
+                        }))
                     } else {
-                        //return ResolutionError(stmt);
-                        panic!();
+                        err_stmts.push(invoke_oracle_stmt);
+                        None
                     }
                 }
-                Statement::IfThenElse(cond, ifcode, elsecode, file_pos) => Statement::IfThenElse(
-                    cond.clone(),
-                    transform_helper(table, ifcode.clone(), err_stmts),
-                    transform_helper(table, elsecode.clone(), err_stmts),
-                    file_pos.clone(),
-                ),
-                _ => stmt.clone(),
+                Statement::IfThenElse(cond, ifcode, elsecode, file_pos) => {
+                    Some(Statement::IfThenElse(
+                        cond.clone(),
+                        transform_helper(table, ifcode.clone(), err_stmts),
+                        transform_helper(table, elsecode.clone(), err_stmts),
+                        file_pos,
+                    ))
+                }
+                _ => Some(stmt),
             })
             .collect();
 

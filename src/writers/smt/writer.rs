@@ -3,7 +3,7 @@ use crate::identifier::Identifier;
 use crate::package::{OracleDef, PackageInstance};
 use crate::proof::GameInstance;
 use crate::split::{SplitPath, SplitType};
-use crate::statement::{CodeBlock, Statement};
+use crate::statement::{CodeBlock, InvokeOracleStatement, Statement};
 use crate::transforms::samplify::SampleInfo;
 use crate::transforms::split_partial::SplitInfo;
 use crate::types::Type;
@@ -76,79 +76,6 @@ impl<'a> CompositionSmtWriter<'a> {
         game_context.smt_access_gamestate_rand(self.sample_info, gamestate, sample_id)
     }
 
-    // builds a single (declare-datatype ...) expression for package instance `inst`
-    fn smt_pkg_state(&self, inst: &PackageInstance) -> SmtExpr {
-        self.get_package_instance_context(&inst.name)
-            .unwrap_or_else(|| {
-                panic!(
-                    "game {} does not contain package instance with name {}",
-                    self.game_inst.game().name,
-                    &inst.name
-                )
-            })
-            .smt_declare_pkgstate()
-    }
-
-    fn smt_pkg_consts(&self, inst: &PackageInstance) -> SmtExpr {
-        self.get_package_instance_context(&inst.name)
-            .unwrap()
-            .smt_declare_pkg_consts()
-    }
-
-    // build the (declare-datatype ...) expressions for all package consts and the joint composition consts
-    pub(crate) fn smt_datatypes_game_state(&self) -> Vec<SmtExpr> {
-        let mut states: Vec<SmtExpr> = self
-            .context()
-            .game()
-            .pkgs
-            .iter()
-            .map(|pkg| self.smt_pkg_state(pkg))
-            .collect();
-
-        states.push(self.context().smt_declare_gamestate(self.sample_info));
-
-        states
-    }
-
-    // build the (declare-datatype ...) expressions for all package states and the joint composition state
-    pub(crate) fn smt_datatypes_game_consts(&self) -> Vec<SmtExpr> {
-        let mut consts_decls: Vec<SmtExpr> = self
-            .context()
-            .game()
-            .pkgs
-            .iter()
-            .map(|pkg| self.smt_pkg_consts(pkg))
-            .collect();
-
-        consts_decls.push(self.context().smt_declare_game_consts());
-
-        consts_decls
-    }
-
-    fn smt_pkg_return(&self, inst: &PackageInstance) -> Vec<SmtExpr> {
-        let pkg_inst_ctx = self.get_package_instance_context(&inst.name).unwrap();
-
-        inst.get_oracle_sigs()
-            .iter()
-            .map(|osig| {
-                pkg_inst_ctx
-                    .oracle_ctx_by_name(&osig.name)
-                    .unwrap()
-                    .smt_declare_return()
-            })
-            .collect()
-    }
-
-    pub(crate) fn smt_datatypes_game_return(&self) -> Vec<SmtExpr> {
-        self.context()
-            .game()
-            .pkgs
-            .clone()
-            .iter()
-            .flat_map(|inst| self.smt_pkg_return(inst))
-            .collect()
-    }
-
     fn smt_codeblock_nonsplit(&self, oracle_ctx: &OracleContext, block: CodeBlock) -> SmtExpr {
         let game_inst_ctx = self.context();
         let game_inst = game_inst_ctx.game_inst();
@@ -196,16 +123,16 @@ impl<'a> CompositionSmtWriter<'a> {
                 Statement::Parse(idents, expr, _) => {
                     self.smt_build_parse(oracle_ctx, result, idents, expr)
                 }
-                Statement::InvokeOracle {
+                Statement::InvokeOracle(InvokeOracleStatement {
                     target_inst_name: None,
                     ..
-                } => {
+                }) => {
                     panic!("found an unresolved oracle invocation: {:#?}", stmt);
                 }
-                Statement::InvokeOracle { tipe: None, .. } => {
+                Statement::InvokeOracle(InvokeOracleStatement { tipe: None, .. }) => {
                     panic!("found an unresolved oracle invocation: {:#?}", stmt);
                 }
-                Statement::InvokeOracle {
+                Statement::InvokeOracle(InvokeOracleStatement {
                     id,
                     opt_idx,
                     name,
@@ -213,7 +140,7 @@ impl<'a> CompositionSmtWriter<'a> {
                     target_inst_name: Some(target),
                     tipe: Some(_),
                     ..
-                } => self.smt_build_invoke(oracle_ctx, result, id, opt_idx, name, args, target),
+                }) => self.smt_build_invoke(oracle_ctx, result, id, opt_idx, name, args, target),
                 Statement::Assign(ident, opt_idx, expr, _) => {
                     self.smt_build_assign(oracle_ctx, result, ident, opt_idx, expr)
                 }
@@ -271,16 +198,16 @@ impl<'a> CompositionSmtWriter<'a> {
                 Statement::Parse(idents, expr, _) => {
                     self.smt_build_parse(oracle_ctx, result, idents, expr)
                 }
-                Statement::InvokeOracle {
+                Statement::InvokeOracle(InvokeOracleStatement {
                     target_inst_name: None,
                     ..
-                } => {
+                }) => {
                     panic!("found an unresolved oracle invocation: {:#?}", stmt);
                 }
-                Statement::InvokeOracle { tipe: None, .. } => {
+                Statement::InvokeOracle(InvokeOracleStatement { tipe: None, .. }) => {
                     panic!("found an unresolved oracle invocation: {:#?}", stmt);
                 }
-                Statement::InvokeOracle {
+                Statement::InvokeOracle(InvokeOracleStatement {
                     id,
                     opt_idx,
                     name,
@@ -288,7 +215,7 @@ impl<'a> CompositionSmtWriter<'a> {
                     target_inst_name: Some(target),
                     tipe: Some(_),
                     ..
-                } => self.smt_build_invoke(oracle_ctx, result, id, opt_idx, name, args, target),
+                }) => self.smt_build_invoke(oracle_ctx, result, id, opt_idx, name, args, target),
                 Statement::Assign(ident, opt_idx, expr, _) => {
                     self.smt_build_assign(oracle_ctx, result, ident, opt_idx, expr)
                 }
@@ -1154,29 +1081,6 @@ impl<'a> CompositionSmtWriter<'a> {
             .into()
     }
 
-    fn smt_oracle_code<'b>(&self, inst: &'b PackageInstance) -> Vec<SmtExpr> {
-        inst.pkg
-            .oracles
-            .iter()
-            .map(|def| self.smt_define_nonsplit_oracle_fn(inst, def))
-            .collect()
-    }
-
-    pub(crate) fn smt_oracle_functions(&self) -> Vec<SmtExpr> {
-        let game_inst_ctx = self.context();
-        let game_inst_name = game_inst_ctx.game_inst().name();
-        let game_name = game_inst_ctx.game().name();
-        let comment = vec![SmtExpr::Comment(format!(
-            "Game instance {game_inst_name} of game {game_name}\n",
-        ))];
-        let ordered_pkgs = game_inst_ctx.game().ordered_pkgs();
-        let code = ordered_pkgs
-            .iter()
-            .flat_map(|inst| self.smt_oracle_code(inst));
-
-        comment.into_iter().chain(code).collect()
-    }
-
     pub(crate) fn smt_composition_paramfuncs(&self) -> Vec<SmtExpr> {
         let game_inst_ctx = self.context();
 
@@ -1312,29 +1216,6 @@ impl<'a> CompositionSmtWriter<'a> {
 
         let spec = prp.datastructure_spec(&());
         declare_datatype(&prp, &spec)
-    }
-
-    pub(crate) fn smt_composition_all(&mut self) -> Vec<SmtExpr> {
-        let rand = self.smt_composition_randomness();
-        let paramfuncs = self.smt_composition_paramfuncs();
-        let datatypes = self.smt_datatypes();
-        let oracle_funs = self.smt_oracle_functions();
-        let partial_stuff = self.smt_composition_partial_stuff();
-
-        rand.into_iter()
-            .chain(paramfuncs)
-            .chain(datatypes)
-            .chain(oracle_funs)
-            .chain(partial_stuff)
-            .collect()
-    }
-
-    pub(crate) fn smt_datatypes(&self) -> impl Iterator<Item = SmtExpr> {
-        let state = self.smt_datatypes_game_state();
-        let consts = self.smt_datatypes_game_consts();
-        let ret = self.smt_datatypes_game_return();
-
-        None.into_iter().chain(state).chain(consts).chain(ret)
     }
 }
 

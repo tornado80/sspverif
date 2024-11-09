@@ -3,7 +3,7 @@ use std::convert::Infallible;
 use crate::expressions::Expression;
 use crate::identifier::Identifier;
 use crate::package::Composition;
-use crate::statement::{CodeBlock, Statement};
+use crate::statement::{CodeBlock, InvokeOracleStatement, Statement};
 use crate::types::Type;
 
 pub type Error = Infallible;
@@ -103,13 +103,13 @@ pub fn tableinitialize(
                 }
                 newcode.push(stmt);
             }
-            Statement::InvokeOracle {
+            Statement::InvokeOracle(InvokeOracleStatement {
                 id: Identifier::Generated(ref id, _),
                 opt_idx: Some(ref idxexpr),
                 tipe: ref opt_ret_tipe,
                 ref file_pos,
                 ..
-            } => {
+            }) => {
                 let indextype = idxexpr.get_type();
                 let valuetype = match opt_ret_tipe {
                     Some(t) => t.to_owned(),

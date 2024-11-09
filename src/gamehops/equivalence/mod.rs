@@ -5,7 +5,6 @@ use std::iter::FromIterator;
 use crate::util::resolver::Named;
 use crate::writers::smt::contexts::GameInstanceContext;
 use crate::writers::smt::declare::declare_const;
-use crate::writers::smt::patterns::game_consts::GameConstsPattern;
 use crate::writers::smt::patterns::oracle_args::{
     OldNewOracleArgPattern as _, UnitOracleArgPattern as _,
 };
@@ -1285,7 +1284,6 @@ impl<'a> EquivalenceContext<'a> {
 
                 if already_defined.insert(pattern.sort_name()) {
                     let datatype = declare_datatype(&pattern, &spec);
-                    println!("#### DT {datatype:?}");
                     Some(datatype)
                 } else {
                     None
@@ -1305,9 +1303,7 @@ impl<'a> EquivalenceContext<'a> {
                 vec![ectx.left_game_inst_ctx(), ectx.right_game_inst_ctx()].into_iter()
             })
             .filter_map(move |gctx| {
-                let pattern = GameConstsPattern {
-                    game_name: gctx.game_name(),
-                };
+                let pattern = gctx.datastructure_game_consts_pattern();
                 let spec = pattern.datastructure_spec(gctx.game());
 
                 if already_defined.insert(pattern.sort_name()) {

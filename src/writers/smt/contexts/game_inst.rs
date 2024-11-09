@@ -10,8 +10,8 @@ use crate::{
         names,
         partials::PartialsDatatype,
         patterns::{
-            self, declare_datatype, game_consts::GameConstsPattern, DatastructurePattern,
-            GameStateDeclareInfo, GameStatePattern, GameStateSelector, SmtDefineFun,
+            self, game_consts::GameConstsPattern, DatastructurePattern, GameStateDeclareInfo,
+            GameStatePattern, GameStateSelector, SmtDefineFun,
         },
     },
 };
@@ -64,6 +64,12 @@ impl<'a> GameInstanceContext<'a> {
         GameStatePattern { game_name, params }
     }
 
+    pub(crate) fn datastructure_game_consts_pattern(self) -> GameConstsPattern<'a> {
+        let game_name = self.game_name();
+
+        GameConstsPattern { game_name }
+    }
+
     fn game_state_declare_info(&self, sample_info: &'a SampleInfo) -> GameStateDeclareInfo {
         let game_inst = self.game_inst;
         GameStateDeclareInfo {
@@ -75,27 +81,6 @@ impl<'a> GameInstanceContext<'a> {
 
 // SMT Code generation
 impl<'a> GameInstanceContext<'a> {
-    pub(crate) fn smt_declare_gamestate(&self, sample_info: &SampleInfo) -> SmtExpr {
-        let declare_info = GameStateDeclareInfo {
-            game_inst: self.game_inst,
-            sample_info,
-        };
-
-        let spec = self
-            .datastructure_game_state_pattern()
-            .datastructure_spec(&declare_info);
-        declare_datatype(&self.datastructure_game_state_pattern(), &spec)
-    }
-
-    pub(crate) fn smt_declare_game_consts(&self) -> SmtExpr {
-        let game_consts_pattern = GameConstsPattern {
-            game_name: self.game_inst.game_name(),
-        };
-
-        let spec = game_consts_pattern.datastructure_spec(self.game_inst.game());
-        declare_datatype(&game_consts_pattern, &spec)
-    }
-
     pub(crate) fn smt_access_gamestate_pkgstate<S: Into<SmtExpr>>(
         &self,
         state: S,

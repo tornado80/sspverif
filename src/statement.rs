@@ -22,16 +22,7 @@ pub enum Statement {
         Type,
         SourceSpan,
     ),
-    InvokeOracle {
-        id: Identifier,
-        opt_idx: Option<Expression>,
-        opt_dst_inst_idx: Option<Expression>,
-        name: String,
-        args: Vec<Expression>,
-        target_inst_name: Option<String>,
-        tipe: Option<Type>,
-        file_pos: SourceSpan,
-    },
+    InvokeOracle(InvokeOracleStatement),
     For(Identifier, Expression, Expression, CodeBlock, SourceSpan),
 }
 
@@ -44,10 +35,22 @@ impl Statement {
             | Statement::Parse(_, _, file_pos)
             | Statement::IfThenElse(_, _, _, file_pos)
             | Statement::Sample(_, _, _, _, file_pos)
-            | Statement::InvokeOracle { file_pos, .. }
+            | Statement::InvokeOracle(InvokeOracleStatement { file_pos, .. })
             | Statement::For(_, _, _, _, file_pos) => file_pos,
         }
     }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct InvokeOracleStatement {
+    pub(crate) id: Identifier,
+    pub(crate) opt_idx: Option<Expression>,
+    pub(crate) opt_dst_inst_idx: Option<Expression>,
+    pub(crate) name: String,
+    pub(crate) args: Vec<Expression>,
+    pub(crate) target_inst_name: Option<String>,
+    pub(crate) tipe: Option<Type>,
+    pub(crate) file_pos: SourceSpan,
 }
 
 #[derive(Clone, PartialEq, PartialOrd, Ord, Eq, Hash, Debug)]

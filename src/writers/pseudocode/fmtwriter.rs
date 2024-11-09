@@ -3,7 +3,7 @@ use std::fmt::Write;
 use crate::expressions::Expression;
 use crate::identifier::Identifier;
 use crate::package::{OracleDef, OracleSig, Package};
-use crate::statement::{CodeBlock, Statement};
+use crate::statement::{CodeBlock, InvokeOracleStatement, Statement};
 use crate::types::Type;
 
 type Result = std::fmt::Result;
@@ -236,7 +236,7 @@ impl<W: Write> FmtWriter<W> {
                     }
                 }
             }
-            Statement::InvokeOracle {
+            Statement::InvokeOracle(InvokeOracleStatement {
                 id,
                 opt_idx,
                 name,
@@ -244,7 +244,7 @@ impl<W: Write> FmtWriter<W> {
                 target_inst_name,
                 tipe: opt_tipe,
                 ..
-            } => {
+            }) => {
                 self.write_identifier(id)?;
 
                 if let Some(idx) = opt_idx {

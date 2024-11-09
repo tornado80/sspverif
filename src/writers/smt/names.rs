@@ -1,9 +1,5 @@
 use super::exprs::SmtExpr;
 
-pub(crate) fn oracle_function_name(game_name: &str, inst_name: &str, oracle_name: &str) -> String {
-    format!("oracle-{game_name}-{inst_name}-{oracle_name}")
-}
-
 pub(crate) fn return_constructor_abort_name(
     game_name: &str,
     inst_name: &str,

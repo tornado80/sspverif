@@ -110,14 +110,12 @@ pub(crate) mod instantiate {
         identifier::{
             game_ident::{GameConstIdentifier, GameIdentInstanciationInfo, GameIdentifier},
             pkg_ident::{
-                PackageLocalIdentifier,
-                PackageOracleArgIdentifier,
-                PackageStateIdentifier,
+                PackageLocalIdentifier, PackageOracleArgIdentifier, PackageStateIdentifier,
             },
             proof_ident::ProofIdentInstanciationInfo,
         },
         split::{SplitOracleDef, SplitOracleSig, SplitPath, SplitType},
-        statement::CodeBlock,
+        statement::{CodeBlock, InvokeOracleStatement},
     };
 
     use super::*;
@@ -310,7 +308,7 @@ pub(crate) mod instantiate {
                     tipe.rewrite(&type_rewrite_rules),
                     pos,
                 ),
-                Statement::InvokeOracle {
+                Statement::InvokeOracle(InvokeOracleStatement {
                     id,
                     opt_idx,
                     opt_dst_inst_idx,
@@ -319,7 +317,7 @@ pub(crate) mod instantiate {
                     target_inst_name,
                     tipe,
                     file_pos,
-                } => Statement::InvokeOracle {
+                }) => Statement::InvokeOracle(InvokeOracleStatement {
                     name,
                     target_inst_name,
                     file_pos,
@@ -334,7 +332,7 @@ pub(crate) mod instantiate {
                         .map(|expr| self.rewrite_expression(&expr))
                         .collect(),
                     tipe: tipe.clone().map(|tipe| tipe.rewrite(&type_rewrite_rules)),
-                },
+                }),
 
                 Statement::IfThenElse(cond, ifblock, elseblock, pos) => Statement::IfThenElse(
                     self.rewrite_expression(&cond),

@@ -7,12 +7,11 @@ use crate::identifier::Identifier;
 use crate::package::{Composition, Edge, Export, OracleDef, PackageInstance};
 use crate::proof::GameHop;
 use crate::proof::Proof;
-use crate::statement::{CodeBlock, Statement};
+use crate::statement::{CodeBlock, InvokeOracleStatement, Statement};
 use crate::types::Type;
 use crate::util::prover_process::ProverBackend;
 use crate::util::prover_process::{Communicator, ProverResponse};
 use crate::writers::tex::SmtModelParser;
-
 
 /// TODO: Move to struct so we can have verbose versions (e.g. writing types to expressions)
 
@@ -176,7 +175,7 @@ impl<'a> BlockWriter<'a> {
                     self.type_to_tex(tipe)
                 )?;
             }
-            Statement::InvokeOracle {
+            Statement::InvokeOracle(InvokeOracleStatement {
                 id: ident,
                 opt_idx: None,
                 name,
@@ -184,7 +183,7 @@ impl<'a> BlockWriter<'a> {
                 target_inst_name: Some(target_inst_name),
                 tipe: _,
                 ..
-            } => {
+            }) => {
                 writeln!(self.file,
                          "{}{} \\stackrel{{\\mathsf{{\\tiny{{invoke}}}}}}{{\\gets}} \\O{{{}}}({}) \\pccomment{{Pkg: {}}} \\\\",
                          genindentation(indentation),
@@ -193,7 +192,7 @@ impl<'a> BlockWriter<'a> {
                          target_inst_name.replace('_',"\\_")
                 )?;
             }
-            Statement::InvokeOracle {
+            Statement::InvokeOracle(InvokeOracleStatement {
                 id: ident,
                 opt_idx: Some(idxexpr),
                 name,
@@ -201,7 +200,7 @@ impl<'a> BlockWriter<'a> {
                 target_inst_name: Some(target_inst_name),
                 tipe: _,
                 ..
-            } => {
+            }) => {
                 writeln!(self.file,
                          "{}{}[{}] \\stackrel{{\\mathsf{{\\tiny invoke}}}}{{\\gets}} \\O{{{}}}({}) \\pccomment{{Pkg: {}}} \\\\",
                          genindentation(indentation),
@@ -212,10 +211,10 @@ impl<'a> BlockWriter<'a> {
                          target_inst_name.replace('_',"\\_")
                 )?;
             }
-            Statement::InvokeOracle {
+            Statement::InvokeOracle(InvokeOracleStatement {
                 target_inst_name: None,
                 ..
-            } => {
+            }) => {
                 unreachable!("Expect oracle-lowlevelified input")
             }
         }
@@ -271,7 +270,10 @@ pub fn tex_write_package(package: &PackageInstance, target: &Path) -> std::io::R
 
     for oracle in &package.pkg.oracles {
         let oraclefname = tex_write_oracle(oracle, &package.name, target)?;
-        let oraclefname = Path::new(&oraclefname).strip_prefix(fname.clone().parent().unwrap()).unwrap().to_str();
+        let oraclefname = Path::new(&oraclefname)
+            .strip_prefix(fname.clone().parent().unwrap())
+            .unwrap()
+            .to_str();
         writeln!(file, "\\input{{{}}}\\pchspace", oraclefname.unwrap())?;
     }
     writeln!(file, "\\end{{pchstack}}\\end{{pcvstack}}")?;
@@ -303,76 +305,91 @@ fn tex_write_document_header(mut file: &File) -> std::io::Result<()> {
 
 fn tex_smt_write_composition_graph(
     backend: &Option<ProverBackend>,
-    file: &File,
     composition: &Composition,
-    pkgmap: &[(std::string::String, std::string::String)],
 ) -> std::io::Result<()> {
     use std::fmt::Write;
 
     let mut model = String::new();
 
     for height in 2..50 {
-    let mut comm = Communicator::new(backend.unwrap()).unwrap();
-    
-    writeln!(comm, "(declare-const num-pkgs Int)");
-    writeln!(comm, "(declare-const width Int)");
-    writeln!(comm, "(declare-const height Int)");
-    writeln!(comm, "(assert (= num-pkgs {}))", composition.pkgs.len());
-    
-    for i in 0..composition.pkgs.len() {
-        let pkg = &composition.pkgs[i].name; 
-        writeln!(comm, "(declare-const {pkg}-column Int)");
-        writeln!(comm, "(assert (< 0 {pkg}-column width))");
-        writeln!(comm, "(declare-const {pkg}-top Int)");
-        writeln!(comm, "(declare-const {pkg}-bottom Int)");
-        writeln!(comm, "(assert (< 0 {pkg}-bottom (- {pkg}-top 1) height))");
-    }
+        let mut comm = Communicator::new(backend.unwrap()).unwrap();
 
-    for Edge(from, to, oracle) in &composition.edges {
-        let pkga = &composition.pkgs[*from].name;
-        let pkgb = &composition.pkgs[*to].name;
-        
-        writeln!(comm, "(declare-const edge-{pkga}-{pkgb}-height Int)");
-        writeln!(comm, "(assert (< {pkga}-bottom edge-{pkga}-{pkgb}-height {pkga}-top))");
-        writeln!(comm, "(assert (< {pkgb}-bottom edge-{pkga}-{pkgb}-height {pkgb}-top))");
-        writeln!(comm, "(assert (< {pkga}-column {pkgb}-column))");
-    }
+        writeln!(comm, "(declare-const num-pkgs Int)").unwrap();
+        writeln!(comm, "(declare-const width Int)").unwrap();
+        writeln!(comm, "(declare-const height Int)").unwrap();
+        writeln!(comm, "(assert (= num-pkgs {}))", composition.pkgs.len()).unwrap();
 
-    for i in 0..composition.pkgs.len() {
-        for j in 0..i {
-            let pkga = &composition.pkgs[i].name;
-            let pkgb = &composition.pkgs[j].name;
-            writeln!(comm, "
+        for i in 0..composition.pkgs.len() {
+            let pkg = &composition.pkgs[i].name;
+            writeln!(comm, "(declare-const {pkg}-column Int)").unwrap();
+            writeln!(comm, "(assert (< 0 {pkg}-column width))").unwrap();
+            writeln!(comm, "(declare-const {pkg}-top Int)").unwrap();
+            writeln!(comm, "(declare-const {pkg}-bottom Int)").unwrap();
+            writeln!(comm, "(assert (< 0 {pkg}-bottom (- {pkg}-top 1) height))").unwrap();
+        }
+
+        for Edge(from, to, _oracle) in &composition.edges {
+            let pkga = &composition.pkgs[*from].name;
+            let pkgb = &composition.pkgs[*to].name;
+
+            writeln!(comm, "(declare-const edge-{pkga}-{pkgb}-height Int)").unwrap();
+            writeln!(
+                comm,
+                "(assert (< {pkga}-bottom edge-{pkga}-{pkgb}-height {pkga}-top))"
+            )
+            .unwrap();
+            writeln!(
+                comm,
+                "(assert (< {pkgb}-bottom edge-{pkga}-{pkgb}-height {pkgb}-top))"
+            )
+            .unwrap();
+            writeln!(comm, "(assert (< {pkga}-column {pkgb}-column))").unwrap();
+        }
+
+        for i in 0..composition.pkgs.len() {
+            for j in 0..i {
+                let pkga = &composition.pkgs[i].name;
+                let pkgb = &composition.pkgs[j].name;
+                writeln!(
+                    comm,
+                    "
 (assert (not (exists ((l Int))
                (and
                  (<= {pkga}-bottom l {pkga}-top)
                  (<= {pkgb}-bottom l {pkgb}-top)
-                 (= {pkga}-column {pkgb}-column)))))");
+                 (= {pkga}-column {pkgb}-column)))))"
+                )
+                .unwrap();
+            }
         }
-    }
 
-    for i in 0..composition.pkgs.len() {
-        for Edge(from, to, oracle) in &composition.edges {
-            let pkga = &composition.pkgs[*from].name;
-            let pkgb = &composition.pkgs[*to].name;
-            let pkgc = &composition.pkgs[i].name;
+        for i in 0..composition.pkgs.len() {
+            for Edge(from, to, _oracle) in &composition.edges {
+                let pkga = &composition.pkgs[*from].name;
+                let pkgb = &composition.pkgs[*to].name;
+                let pkgc = &composition.pkgs[i].name;
 
-            writeln!(comm, "
+                writeln!(
+                    comm,
+                    "
 (assert (not (exists ((l Int))
                (and 
                  (=  edge-{pkga}-{pkgb}-height l)
                  (<  {pkga}-column {pkgc}-column {pkgb}-column)
-                 (<= (- {pkgc}-bottom 1) l (+ {pkgc}-top 1))))))"); 
+                 (<= (- {pkgc}-bottom 1) l (+ {pkgc}-top 1))))))"
+                )
+                .unwrap();
+            }
         }
-    }
-        
-        writeln!(comm, "(assert (< height {height}))");
-        
+
+        writeln!(comm, "(assert (< height {height}))").unwrap();
+
         if comm.check_sat().unwrap() == ProverResponse::Sat {
             model = comm.get_model().unwrap();
             break;
         }
     }
+
     let model = SmtModelParser::parse_model(&model);
     println!("{:#?}", model);
     Ok(())
@@ -403,8 +420,7 @@ fn tex_write_composition_graph(
             {
                 let fill = if pkgmap
                     .iter()
-                    .find(|(pkgname, _)| composition.pkgs[i].name == *pkgname)
-                    .is_some()
+                    .any(|(pkgname, _)| composition.pkgs[i].name == *pkgname)
                 {
                     "red!50"
                 } else {
@@ -455,12 +471,10 @@ fn tex_write_composition_graph_file(
     target: &Path,
 ) -> std::io::Result<String> {
     let fname = target.join(format!("CompositionGraph_{}.tex", name));
-    let smtname = target.join(format!("CompositionGraph_{}.smt", name));
     let file = File::create(fname.clone())?;
-    let smtfile = File::create(smtname.clone())?;
 
     tex_write_composition_graph(&file, composition, &Vec::new())?;
-    tex_smt_write_composition_graph(backend, &smtfile, composition, &Vec::new())?;
+    tex_smt_write_composition_graph(backend, composition)?;
 
     Ok(fname.to_str().unwrap().to_string())
 }
@@ -481,14 +495,20 @@ pub fn tex_write_composition(
     writeln!(file, "\\maketitle")?;
 
     let graphfname = tex_write_composition_graph_file(backend, composition, name, target)?;
-    let graphfname = Path::new(&graphfname).strip_prefix(fname.clone().parent().unwrap()).unwrap().to_str();
+    let graphfname = Path::new(&graphfname)
+        .strip_prefix(fname.clone().parent().unwrap())
+        .unwrap()
+        .to_str();
     writeln!(file, "\\begin{{center}}")?;
     writeln!(file, "\\input{{{}}}", graphfname.unwrap())?;
     writeln!(file, "\\end{{center}}")?;
 
     for pkg in &composition.pkgs {
         let pkgfname = tex_write_package(pkg, target)?;
-        let pkgfname = Path::new(&pkgfname).strip_prefix(fname.clone().parent().unwrap()).unwrap().to_str();
+        let pkgfname = Path::new(&pkgfname)
+            .strip_prefix(fname.clone().parent().unwrap())
+            .unwrap()
+            .to_str();
         writeln!(file, "\\begin{{center}}")?;
         writeln!(file, "\\input{{{}}}", pkgfname.unwrap())?;
         writeln!(file, "\\end{{center}}")?;

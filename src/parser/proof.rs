@@ -52,7 +52,7 @@ use super::{
 };
 
 #[derive(Debug)]
-pub struct ParseProofContext<'a> {
+pub(crate) struct ParseProofContext<'a> {
     pub file_name: &'a str,
     pub file_content: &'a str,
     pub scope: Scope,

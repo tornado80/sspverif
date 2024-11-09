@@ -5,7 +5,7 @@ use crate::expressions::Expression;
 use crate::identifier::pkg_ident::{PackageIdentifier, PackageLocalIdentifier};
 use crate::identifier::Identifier;
 use crate::package::{Composition, Edge, Export, OracleDef, OracleSig, SplitExport};
-use crate::statement::{CodeBlock, Statement};
+use crate::statement::{CodeBlock, InvokeOracleStatement, Statement};
 use crate::types::Type;
 
 pub struct SplitPartial;
@@ -236,17 +236,17 @@ impl Statement {
                 ifcode.0.iter().any(|stmt| stmt.needs_split(sig_mapping))
                     || elsecode.0.iter().any(|stmt| stmt.needs_split(sig_mapping))
             }
-            Statement::InvokeOracle {
+            Statement::InvokeOracle(InvokeOracleStatement {
                 name,
                 target_inst_name: Some(target_inst_name),
                 ..
-            } => sig_mapping
+            }) => sig_mapping
                 .keys()
                 .any(|(inst_name, osig)| inst_name == target_inst_name && &osig.name == name),
-            Statement::InvokeOracle {
+            Statement::InvokeOracle(InvokeOracleStatement {
                 target_inst_name: None,
                 ..
-            } => unreachable!(),
+            }) => unreachable!(),
             _ => false,
         }
     }
@@ -479,7 +479,7 @@ fn transform_codeblock(
                     sig_mapping,
                 ));
             }
-            Statement::InvokeOracle {
+            Statement::InvokeOracle(InvokeOracleStatement {
                 id,
                 opt_idx,
                 opt_dst_inst_idx,
@@ -489,7 +489,7 @@ fn transform_codeblock(
                 tipe,
                 file_pos,
                 ..
-            } => {
+            }) => {
                 let file_pos = *file_pos;
                 let oracle_name = name;
                 let (_, splits) = sig_mapping
@@ -515,7 +515,7 @@ fn transform_codeblock(
                         (
                             loopvars.clone(),
                             newpath,
-                            CodeBlock(vec![Statement::InvokeOracle {
+                            CodeBlock(vec![Statement::InvokeOracle(InvokeOracleStatement {
                                 // TODO: I am not sure if we maybe have to fill out the optional fields,
                                 //       but unfortunately this function does not ahve sufficent information.
                                 //       If it is needed, we can add it later, but have to pass more context
@@ -539,7 +539,7 @@ fn transform_codeblock(
                                 target_inst_name: Some(target_inst_name.to_string()),
                                 tipe: None,
                                 file_pos,
-                            }]),
+                            })]),
                             split_locals.clone(),
                         )
                     },
@@ -557,7 +557,7 @@ fn transform_codeblock(
                 result.push((
                     loopvars.clone(),
                     newpath,
-                    CodeBlock(vec![Statement::InvokeOracle {
+                    CodeBlock(vec![Statement::InvokeOracle(InvokeOracleStatement {
                         id: id.clone(),
                         opt_idx: opt_idx.clone(),
                         opt_dst_inst_idx: opt_dst_inst_idx.clone(),
@@ -566,7 +566,7 @@ fn transform_codeblock(
                         target_inst_name: Some(target_inst_name.to_string()),
                         tipe: tipe.clone(),
                         file_pos,
-                    }]),
+                    })]),
                     split_locals,
                 ))
             }
@@ -614,22 +614,22 @@ fn get_declarations(stmt: &Statement) -> Option<(String, Type)> {
         Statement::Assign(Identifier::Generated(id_name, _), None, expr, _) => {
             Some((id_name.to_string(), expr.get_type().clone()))
         }
-        Statement::InvokeOracle {
+        Statement::InvokeOracle(InvokeOracleStatement {
             id: Identifier::Generated(id_name, _),
             tipe: Some(tipe),
             opt_idx: Some(idx),
             ..
-        }
+        })
         | Statement::Sample(Identifier::Generated(id_name, _), Some(idx), _, tipe, _) => Some((
             id_name.to_string(),
             Type::Table(Box::new(idx.get_type().clone()), Box::new(tipe.clone())),
         )),
-        Statement::InvokeOracle {
+        Statement::InvokeOracle(InvokeOracleStatement {
             id: Identifier::Generated(id_name, _),
             tipe: Some(tipe),
             opt_idx: None,
             ..
-        }
+        })
         | Statement::Sample(Identifier::Generated(id_name, _), None, _, tipe, _) => {
             Some((id_name.to_string(), tipe.clone()))
         }

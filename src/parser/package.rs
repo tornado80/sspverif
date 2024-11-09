@@ -21,7 +21,7 @@ use crate::{
     parser::error::{
         ForLoopIdentifersDontMatchError, NoSuchOracleError, OracleAlreadyImportedError,
     },
-    statement::{CodeBlock, FilePosition, Statement},
+    statement::{CodeBlock, FilePosition, InvokeOracleStatement, Statement},
     types::Type,
     util::scope::{Declaration, OracleContext, Scope},
     writers::smt::{
@@ -1046,7 +1046,7 @@ pub fn handle_code(
                     )
                     ?;
 
-                    Statement::InvokeOracle {
+                    Statement::InvokeOracle (InvokeOracleStatement{
                         id: target_ident,
                         opt_idx,
                         opt_dst_inst_idx: dst_inst_index,
@@ -1055,7 +1055,7 @@ pub fn handle_code(
                         target_inst_name: None,
                         tipe: Some(expected_type),
                         file_pos: source_span,
-                    }
+                    })
                 }
                 Rule::parse => {
                     let mut inner = stmt.into_inner();

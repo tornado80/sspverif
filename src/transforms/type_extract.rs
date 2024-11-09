@@ -2,7 +2,7 @@ use std::collections::HashSet;
 use std::convert::Infallible;
 
 use crate::package::Composition;
-use crate::statement::{CodeBlock, Statement};
+use crate::statement::{CodeBlock, InvokeOracleStatement, Statement};
 use crate::types::Type;
 
 pub struct Transformation<'a>(pub &'a Composition);
@@ -61,12 +61,12 @@ fn extract_types_from_codeblock(set: &mut HashSet<Type>, cb: CodeBlock) {
             Statement::Sample(_, _, _, t, _) => {
                 set.insert(t);
             }
-            Statement::InvokeOracle {
+            Statement::InvokeOracle(InvokeOracleStatement {
                 opt_idx,
                 args,
                 tipe,
                 ..
-            } => {
+            }) => {
                 if let Some(expr) = opt_idx {
                     set.insert(expr.get_type());
                 }

@@ -1,4 +1,3 @@
-
 use crate::{
     project::error::Result,
     proof::{Proof, Reduction},
@@ -31,6 +30,6 @@ impl Composition {
 }
  */
 
-pub fn verify(red: &Reduction, proof: &Proof) -> Result<()> {
-    Ok(())
+pub fn verify(_red: &Reduction, _proof: &Proof) -> Result<()> {
+    todo!()
 }

@@ -5,7 +5,7 @@ use miette::SourceSpan;
 use crate::expressions::Expression;
 use crate::identifier::Identifier;
 use crate::package::Composition;
-use crate::statement::{CodeBlock, Statement};
+use crate::statement::{CodeBlock, InvokeOracleStatement, Statement};
 
 pub type Error = Infallible;
 
@@ -174,7 +174,7 @@ impl Unwrapifier {
                     newcode.extend(create_unwrap_stmts(unwraps, &file_pos));
                     newcode.push(Statement::Parse(idents, newexpr, file_pos));
                 }
-                Statement::InvokeOracle {
+                Statement::InvokeOracle(InvokeOracleStatement {
                     id,
                     opt_idx,
                     opt_dst_inst_idx,
@@ -183,7 +183,7 @@ impl Unwrapifier {
                     target_inst_name,
                     tipe,
                     file_pos,
-                } => {
+                }) => {
                     let opt_idx = opt_idx.map(|expr| {
                         let (newexpr, unwraps) = self.replace_unwrap(&expr);
                         newcode.extend(create_unwrap_stmts(unwraps, &file_pos));
@@ -197,7 +197,7 @@ impl Unwrapifier {
                             newexpr
                         })
                         .collect();
-                    newcode.push(Statement::InvokeOracle {
+                    newcode.push(Statement::InvokeOracle(InvokeOracleStatement {
                         id,
                         opt_idx,
                         opt_dst_inst_idx,
@@ -206,7 +206,7 @@ impl Unwrapifier {
                         target_inst_name,
                         tipe,
                         file_pos,
-                    });
+                    }));
                 }
             }
         }
