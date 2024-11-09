@@ -11,7 +11,8 @@ use crate::statement::{CodeBlock, InvokeOracleStatement, Statement};
 use crate::types::Type;
 use crate::util::prover_process::ProverBackend;
 use crate::util::prover_process::{Communicator, ProverResponse};
-use crate::writers::tex::SmtModelParser;
+use crate::util::smtmodel::SmtModel;
+
 
 /// TODO: Move to struct so we can have verbose versions (e.g. writing types to expressions)
 
@@ -306,7 +307,7 @@ fn tex_write_document_header(mut file: &File) -> std::io::Result<()> {
 fn tex_smt_write_composition_graph(
     backend: &Option<ProverBackend>,
     composition: &Composition,
-) -> std::io::Result<()> {
+) -> Option<SmtModel> {
     use std::fmt::Write;
 
     let mut model = String::new();
@@ -390,9 +391,9 @@ fn tex_smt_write_composition_graph(
         }
     }
 
-    let model = SmtModelParser::parse_model(&model);
+    let model = SmtModel::from_string(&model);
     println!("{:#?}", model);
-    Ok(())
+    Some(model)
 }
 
 fn tex_write_composition_graph(
@@ -474,7 +475,7 @@ fn tex_write_composition_graph_file(
     let file = File::create(fname.clone())?;
 
     tex_write_composition_graph(&file, composition, &Vec::new())?;
-    tex_smt_write_composition_graph(backend, composition)?;
+    tex_smt_write_composition_graph(backend, composition);
 
     Ok(fname.to_str().unwrap().to_string())
 }
