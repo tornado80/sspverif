@@ -12,6 +12,7 @@ composition Composition {
             n:   n,
         }
     }
+
     compose {
         adversary: {
             Oracle: fwd,

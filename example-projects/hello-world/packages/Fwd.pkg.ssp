@@ -4,23 +4,21 @@ package Fwd {
     }
 
     state {
-          ctr: Integer,
+        ctr: Integer,
     }
 
-        import oracles {
-        Oracle() -> Integer, 
+    import oracles {
+        Oracle() -> Integer,
     }
-     
+
     oracle Oracle() -> Integer  {
         y  <- invoke Oracle();
         return y;
-        }
+    }
 
     oracle UselessOracle() -> Integer  {
         assert false;
         return 1;
-        }
-
-
+    }
 }
 

@@ -29,10 +29,8 @@ proof Proof {
     }
 
     gamehops {
-    equivalence assumption_0 composition_1
-        {
-            Oracle: 
-            {
+        equivalence assumption_0 composition_1 {
+            Oracle: {
                 invariant: [
                     ./proofs/invariant.smt2
                 ]
@@ -44,6 +42,5 @@ proof Proof {
                 }
             }
         }
-
     }
 }

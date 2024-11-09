@@ -6,17 +6,17 @@ package Rand {
     state {
           ctr: Integer,
     }
-     
+
     oracle Oracle() -> Integer  {
         ctr  <- (ctr + 1);
         rand <-$ Integer;
         y <- (ctr + rand);
         return y;
-        }
+    }
 
     oracle UselessOracle() -> Integer  {
         assert false;
         return 1;
-        }
+    }
 }
 
