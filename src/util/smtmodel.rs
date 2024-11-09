@@ -30,7 +30,7 @@ impl SmtModelParser {
 
 #[derive(Debug, Clone)]
 pub enum SmtModelEntry {
-    IntEntry{ name: String, value: i64 }
+    IntEntry{ name: String, value: i32 }
 }
 
 impl SmtModelEntry {

@@ -1,6 +1,7 @@
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
+use std::collections::HashSet;
 
 use crate::expressions::Expression;
 use crate::identifier::Identifier;
@@ -300,7 +301,7 @@ fn tex_write_document_header(mut file: &File) -> std::io::Result<()> {
         "\\newcommand{{\\n}}[1]{{\\ensuremath{{\\mathit{{#1}}}}}}"
     )?;
     writeln!(file, "\\tikzstyle{{package}} = [inner sep=1pt,align=center,rounded corners,draw,minimum width=2cm,minimum height=1cm,font=\\small]")?;
-    writeln!(file, "\\tikzstyle{{onarrow}} = [inner sep=1pt,font=\\scriptsize,anchor=east,at end,xshift=-0.1mm,align=left,fill=white]")?;
+    writeln!(file, "\\tikzstyle{{onarrow}} = [inner sep=1pt,font=\\scriptsize,anchor=west,at start,align=left,fill=white]")?;
     Ok(())
 }
 
@@ -313,12 +314,20 @@ fn tex_solve_composition_graph(
     let mut model = String::new();
 
     for height in 2..50 {
+        let mut edges:HashSet<(usize, usize)> = HashSet::new();
         let mut comm = Communicator::new(backend.unwrap()).unwrap();
 
         writeln!(comm, "(declare-const num-pkgs Int)").unwrap();
         writeln!(comm, "(declare-const width Int)").unwrap();
         writeln!(comm, "(declare-const height Int)").unwrap();
         writeln!(comm, "(assert (= num-pkgs {}))", composition.pkgs.len()).unwrap();
+
+        // Adversary
+        writeln!(comm, "(declare-const --column Int)").unwrap();
+        writeln!(comm, "(assert (= 0 --column))").unwrap();
+        writeln!(comm, "(declare-const --top Int)").unwrap();
+        writeln!(comm, "(declare-const --bottom Int)").unwrap();
+        writeln!(comm, "(assert (< 0 --bottom (- --top 1) height))").unwrap();
 
         for i in 0..composition.pkgs.len() {
             let pkg = &composition.pkgs[i].name;
@@ -330,7 +339,29 @@ fn tex_solve_composition_graph(
         }
 
         for Edge(from, to, _oracle) in &composition.edges {
+            if edges.contains(&(usize::MAX, *to)) {continue};
+            edges.insert((usize::MAX,*to));
             let pkga = &composition.pkgs[*from].name;
+            let pkgb = &composition.pkgs[*to].name;
+
+            writeln!(comm, "(declare-const edge-{pkga}-{pkgb}-height Int)").unwrap();
+            writeln!(
+                comm,
+                "(assert (< {pkga}-bottom edge-{pkga}-{pkgb}-height {pkga}-top))"
+            )
+            .unwrap();
+            writeln!(
+                comm,
+                "(assert (< {pkgb}-bottom edge-{pkga}-{pkgb}-height {pkgb}-top))"
+            )
+            .unwrap();
+            writeln!(comm, "(assert (< {pkga}-column {pkgb}-column))").unwrap();
+        }
+        
+        for Export(to, _oracle) in &composition.exports {
+            if edges.contains(&(usize::MAX, *to)) {continue};
+            edges.insert((usize::MAX,*to));
+            let pkga = "-";
             let pkgb = &composition.pkgs[*to].name;
 
             writeln!(comm, "(declare-const edge-{pkga}-{pkgb}-height Int)").unwrap();
@@ -367,6 +398,22 @@ fn tex_solve_composition_graph(
         for i in 0..composition.pkgs.len() {
             for Edge(from, to, _oracle) in &composition.edges {
                 let pkga = &composition.pkgs[*from].name;
+                let pkgb = &composition.pkgs[*to].name;
+                let pkgc = &composition.pkgs[i].name;
+
+                writeln!(
+                    comm,
+                    "
+(assert (not (exists ((l Int))
+               (and 
+                 (=  edge-{pkga}-{pkgb}-height l)
+                 (<  {pkga}-column {pkgc}-column {pkgb}-column)
+                 (<= (- {pkgc}-bottom 1) l (+ {pkgc}-top 1))))))"
+                )
+                .unwrap();
+            }
+            for Export(to, _oracle) in &composition.exports {
+                let pkga = "-";
                 let pkgb = &composition.pkgs[*to].name;
                 let pkgc = &composition.pkgs[i].name;
 
@@ -419,10 +466,10 @@ fn tex_write_composition_graph(
             "\\node[anchor=south west,align=center,package,minimum height={}cm,fill={fill}]
     (node{}) at ({},{})
     {{\\M{{{}}}\\\\\\M{{{}}}}};",
-            top-bottom,
+            f64::from(top-bottom)/2.0,
             idx,
-            column*3,
-            bottom,
+            column*4,
+            f64::from(bottom)/2.0,
             compname.replace('_', "\\_"),
             pkgname.replace('_', "\\_")
         )?;
@@ -458,75 +505,76 @@ fn tex_write_composition_graph(
                 model.get_value(&format!("{pkgb}-column")).unwrap();
 
 
+            let height = f64::from(height)/2.0;
             writeln!(file, "\\draw[-latex,rounded corners]
     ({},{}) -- node[onarrow] {{\\O{{{}}}}} ({},{});",
-                     acolumn*3+2, height, oracle.name, bcolumn*3, height)?;
+                     acolumn*4+2, height, oracle.name, bcolumn*4, height)?;
+                    
+        }
+        for Export(to, oracle) in &composition.exports {
+            let pkgb = &composition.pkgs[*to].name;
+
+            let SmtModelEntry::IntEntry{value: height, .. } =
+                model.get_value(&format!("edge---{pkgb}-height")).unwrap();
+            let SmtModelEntry::IntEntry{value: acolumn, .. } =
+                model.get_value(&format!("--column")).unwrap();
+            let SmtModelEntry::IntEntry{value: bcolumn, .. } =
+                model.get_value(&format!("{pkgb}-column")).unwrap();
+
+
+            let height = f64::from(height)/2.0;
+            writeln!(file, "\\draw[-latex,rounded corners]
+    ({},{}) -- node[onarrow] {{\\O{{{}}}}} ({},{});",
+                     acolumn*4+2, height, oracle.name, bcolumn*4, height)?;
                     
         }
         //writeln!(file, "\\draw[red,fill=red] (0,0) circle (.2);")?;
         writeln!(file, "\\end{{tikzpicture}}")?;
-    } else {
-    
-    let mut printed = Vec::new();
-    let mut newly = Vec::new();
+    } else {    
+        let mut printed = Vec::new();
+        let mut newly = Vec::new();
+        
+        let mut tikzx = 0;
+        let mut tikzy = 0;
 
-    let mut tikzx = 0;
-    let mut tikzy = 0;
+        writeln!(file, "\\begin{{tikzpicture}}")?;
+        while printed.len() < composition.pkgs.len() {
+            for i in 0..composition.pkgs.len() {
+                if printed.contains(&i) {
+                    continue;
+                }
 
-    writeln!(file, "\\begin{{tikzpicture}}")?;
-    while printed.len() < composition.pkgs.len() {
-        for i in 0..composition.pkgs.len() {
-            if printed.contains(&i) {
-                continue;
-            }
-
-            if !composition
-                .edges
-                .iter()
-                .any(|Edge(from, to, _oracle)| i == *from && !printed.contains(to))
-            {
-                let fill = if pkgmap
+                if !composition
+                    .edges
                     .iter()
-                    .any(|(pkgname, _)| composition.pkgs[i].name == *pkgname)
+                    .any(|Edge(from, to, _oracle)| i == *from && !printed.contains(to))
                 {
-                    "red!50"
-                } else {
-                    "white"
-                };
+                    write_node(file, &composition.pkgs[i].name, &composition.name, i,
+                               tikzy+1, tikzy, tikzx)?;
+                    newly.push(i);
+                    tikzy -= 2;
 
-                writeln!(
-                    file,
-                    "\\node[align=center,package,fill={fill}] (node{}) at ({}, {}) {{\\M{{{}}}\\\\\\M{{{}}}}};",
-                    i,
-                    tikzx,
-                    tikzy,
-                    composition.pkgs[i].name.replace('_', "\\_"),
-                    composition.pkgs[i].pkg.name.replace('_', "\\_")
-                )?;
-                newly.push(i);
-                tikzy -= 2;
-
-                for Edge(from, to, oracle) in &composition.edges {
-                    if i == *from {
-                        writeln!(file, "\\draw[-latex,rounded corners] (node{}) -- ($(node{}.east) + (1,0)$) |- node[onarrow] {{\\O{{{}}}}} (node{});", from, from, oracle.name, to)?;
+                    for Edge(from, to, oracle) in &composition.edges {
+                        if i == *from {
+                            writeln!(file, "\\draw[-latex,rounded corners] (node{}) -- ($(node{}.east) + (1,0)$) |- node[onarrow] {{\\O{{{}}}}} (node{});", from, from, oracle.name, to)?;
+                        }
                     }
                 }
             }
+            printed.append(&mut newly);
+            tikzx -= 4;
+            tikzy = tikzx / 4;
         }
-        printed.append(&mut newly);
-        tikzx -= 4;
-        tikzy = tikzx / 4;
-    }
 
-    writeln!(
-        file,
-        "\\node[package] (nodea) at ({}, {}) {{$A$}};",
-        tikzx, tikzy
-    )?;
-    for Export(to, oracle) in &composition.exports {
-        writeln!(file, "\\draw[-latex,rounded corners] (nodea) -- ($(nodea.east) + (1,0)$) |- node[onarrow] {{\\O{{{}}}}} (node{});", oracle.name, to)?;
-    }
-    writeln!(file, "\\end{{tikzpicture}}")?;
+        writeln!(
+            file,
+            "\\node[package] (nodea) at ({}, {}) {{$A$}};",
+            tikzx, tikzy
+        )?;
+        for Export(to, oracle) in &composition.exports {
+            writeln!(file, "\\draw[-latex,rounded corners] (nodea) -- ($(nodea.east) + (1,0)$) |- node[onarrow] {{\\O{{{}}}}} (node{});", oracle.name, to)?;
+        }
+        writeln!(file, "\\end{{tikzpicture}}")?;
     }
     Ok(())
 }
