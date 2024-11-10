@@ -339,8 +339,8 @@ fn tex_solve_composition_graph(
         }
 
         for Edge(from, to, _oracle) in &composition.edges {
-            if edges.contains(&(usize::MAX, *to)) {continue};
-            edges.insert((usize::MAX,*to));
+            if edges.contains(&(*from, *to)) {continue};
+            edges.insert((*from,*to));
             let pkga = &composition.pkgs[*from].name;
             let pkgb = &composition.pkgs[*to].name;
 
@@ -493,26 +493,43 @@ fn tex_write_composition_graph(
 
             write_node(file, pkgname, &composition.name, i, top, bottom, column)?;
         }
-        for Edge(from, to, oracle) in &composition.edges {
-            let pkga = &composition.pkgs[*from].name;
-            let pkgb = &composition.pkgs[*to].name;
+        for from in 0..composition.pkgs.len() {
+            for to in 0..composition.pkgs.len() {
+                let oracles:Vec<_> = composition.edges.iter().filter_map(|Edge(f, t, oracle)|{
+                    if from == *f && to == *t {
+                        Some(oracle.name.clone())
+                    } else { None }
+                }).collect();
+                if oracles.is_empty() {continue;}
+                
+                let pkga = &composition.pkgs[from].name;
+                let pkgb = &composition.pkgs[to].name;
 
-            let SmtModelEntry::IntEntry{value: height, .. } =
-                model.get_value(&format!("edge-{pkga}-{pkgb}-height")).unwrap();
-            let SmtModelEntry::IntEntry{value: acolumn, .. } =
-                model.get_value(&format!("{pkga}-column")).unwrap();
-            let SmtModelEntry::IntEntry{value: bcolumn, .. } =
-                model.get_value(&format!("{pkgb}-column")).unwrap();
+                let SmtModelEntry::IntEntry{value: height, .. } =
+                    model.get_value(&format!("edge-{pkga}-{pkgb}-height")).unwrap();
+                let SmtModelEntry::IntEntry{value: acolumn, .. } =
+                    model.get_value(&format!("{pkga}-column")).unwrap();
+                let SmtModelEntry::IntEntry{value: bcolumn, .. } =
+                    model.get_value(&format!("{pkgb}-column")).unwrap();
 
 
-            let height = f64::from(height)/2.0;
-            writeln!(file, "\\draw[-latex,rounded corners]
-    ({},{}) -- node[onarrow] {{\\O{{{}}}}} ({},{});",
-                     acolumn*4+2, height, oracle.name, bcolumn*4, height)?;
-                    
+                let height = f64::from(height)/2.0;
+                let oracles = oracles.into_iter().map(|o| format!("\\O{{{o}}}")).collect::<Vec<_>>().join("\\\\");
+                writeln!(file, "\\draw[-latex,rounded corners]
+    ({},{}) -- node[onarrow] {{{}}} ({},{});",
+                         acolumn*4+2, height, oracles, bcolumn*4, height)?;
+                
+            }
         }
-        for Export(to, oracle) in &composition.exports {
-            let pkgb = &composition.pkgs[*to].name;
+        for to in 0..composition.pkgs.len() {
+            let oracles:Vec<_> = composition.exports.iter().filter_map(|Export(t, oracle)|{
+                if to == *t {
+                    Some(oracle.name.clone())
+                } else { None }
+            }).collect();
+            if oracles.is_empty() {continue;}
+
+            let pkgb = &composition.pkgs[to].name;
 
             let SmtModelEntry::IntEntry{value: height, .. } =
                 model.get_value(&format!("edge---{pkgb}-height")).unwrap();
@@ -523,9 +540,10 @@ fn tex_write_composition_graph(
 
 
             let height = f64::from(height)/2.0;
+            let oracles = oracles.into_iter().map(|o| format!("\\O{{{o}}}")).collect::<Vec<_>>().join("\\\\");
             writeln!(file, "\\draw[-latex,rounded corners]
-    ({},{}) -- node[onarrow] {{\\O{{{}}}}} ({},{});",
-                     acolumn*4+2, height, oracle.name, bcolumn*4, height)?;
+    ({},{}) -- node[onarrow] {{{}}} ({},{});",
+                     acolumn*4+2, height, oracles, bcolumn*4, height)?;
                     
         }
         //writeln!(file, "\\draw[red,fill=red] (0,0) circle (.2);")?;
