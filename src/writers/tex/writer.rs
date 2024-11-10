@@ -404,11 +404,8 @@ fn tex_solve_composition_graph(
                 writeln!(
                     comm,
                     "
-(assert (not (exists ((l Int))
-               (and 
-                 (=  edge-{pkga}-{pkgb}-height l)
-                 (<  {pkga}-column {pkgc}-column {pkgb}-column)
-                 (<= (- {pkgc}-bottom 1) l (+ {pkgc}-top 1))))))"
+(assert (not (and (< {pkga}-column {pkgc}-column {pkgb}-column)
+                  (< (- {pkgc}-bottom 1) edge-{pkga}-{pkgb}-height (+ {pkgc}-top 1)))))"
                 )
                 .unwrap();
             }
@@ -420,11 +417,8 @@ fn tex_solve_composition_graph(
                 writeln!(
                     comm,
                     "
-(assert (not (exists ((l Int))
-               (and 
-                 (=  edge-{pkga}-{pkgb}-height l)
-                 (<  {pkga}-column {pkgc}-column {pkgb}-column)
-                 (<= (- {pkgc}-bottom 1) l (+ {pkgc}-top 1))))))"
+(assert (not (and (<  {pkga}-column {pkgc}-column {pkgb}-column)
+                  (< (- {pkgc}-bottom 1) edge-{pkga}-{pkgb}-height (+ {pkgc}-top 1)))))"
                 )
                 .unwrap();
             }
@@ -439,7 +433,7 @@ fn tex_solve_composition_graph(
     }
 
     let model = SmtModel::from_string(&model);
-    println!("{:#?}", model);
+    println!("{}\n{:#?}", composition.name, model);
     Some(model)
 }
 
