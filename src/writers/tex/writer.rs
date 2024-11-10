@@ -475,7 +475,7 @@ fn tex_write_composition_graph(
 
     if let Some(model) = solution {
         writeln!(file, "\\begin{{tikzpicture}}")?;
-        //writeln!(file, "\\draw (-1,-1) grid (10,5);")?;
+        //writeln!(file, "\\draw[gray!50,step=.5] (-1,-1) grid (10,5);")?;
         for i in 0..composition.pkgs.len() {
             let pkgname = &composition.pkgs[i].name;
             let SmtModelEntry::IntEntry{value: top, .. } =
@@ -651,22 +651,22 @@ pub fn tex_write_proof(backend: &Option<ProverBackend>, proof: &Proof, name: &st
 
     tex_write_document_header(&file)?;
 
-    writeln!(file, "\\title{{Proof: {}}}", name)?;
+    writeln!(file, "\\title{{Proof: {}}}", name.replace('_', "\\_"))?;
     writeln!(file, "\\begin{{document}}")?;
     writeln!(file, "\\maketitle")?;
 
     writeln!(file, "\\section{{Games}}")?;
 
     for instance in &proof.instances {
-        writeln!(file, "\\subsection{{{} Game}}", instance.name())?;
+        writeln!(file, "\\subsection{{{} Game}}", instance.name().replace('_', "\\_"))?;
 
-        let graphfname = format!("CompositionGraph_{}.tex", instance.name());
+        let graphfname = format!("CompositionGraph_{}.tex", instance.game_name().replace('_', "\\_"));
         writeln!(file, "\\begin{{center}}")?;
         writeln!(file, "\\input{{{}}}", graphfname)?;
         writeln!(file, "\\end{{center}}")?;
 
         for package in &instance.game().pkgs {
-            let pkgfname = format!("Package_{}.tex", package.name);
+            let pkgfname = format!("Package_{}.tex", package.name.replace('_', "\\_"));
             writeln!(file, "\\begin{{center}}")?;
             writeln!(file, "\\input{{{}}}", pkgfname)?;
             writeln!(file, "\\end{{center}}")?;
@@ -676,13 +676,13 @@ pub fn tex_write_proof(backend: &Option<ProverBackend>, proof: &Proof, name: &st
     for game_hop in &proof.game_hops {
         match &game_hop {
             GameHop::Reduction(red) => {
-                writeln!(file, "\\section{{Reduction to {}}}", red.assumption_name())?;
+                writeln!(file, "\\section{{Reduction to {}}}", red.assumption_name().replace('_', "\\_"))?;
 
                 writeln!(
                     file,
                     "\\subsection{{Game {} with Assumption Game {} highlighted in red}}",
-                    red.left().as_game_inst_name(),
-                    red.left().as_assumption_game_inst_name()
+                    red.left().as_game_inst_name().replace('_', "\\_"),
+                    red.left().as_assumption_game_inst_name().replace('_', "\\_")
                 )?;
                 writeln!(file, "\\begin{{center}}")?;
                 let left_game_instance = proof
@@ -701,8 +701,8 @@ pub fn tex_write_proof(backend: &Option<ProverBackend>, proof: &Proof, name: &st
                 writeln!(
                     file,
                     "\\subsection{{Game {} with Assumption Game {} highlighted  in red}}",
-                    red.right().as_game_inst_name(),
-                    red.right().as_assumption_game_inst_name()
+                    red.right().as_game_inst_name().replace('_', "\\_"),
+                    red.right().as_assumption_game_inst_name().replace('_', "\\_")
                 )?;
                 writeln!(file, "\\begin{{center}}")?;
                 let right_game_instance = proof
@@ -722,8 +722,8 @@ pub fn tex_write_proof(backend: &Option<ProverBackend>, proof: &Proof, name: &st
                 writeln!(
                     file,
                     "\\section{{Equivalence between {} and {}}}",
-                    equiv.left_name(),
-                    equiv.right_name()
+                    equiv.left_name().replace('_', "\\_"),
+                    equiv.right_name().replace('_', "\\_")
                 )?;
             }
         }
