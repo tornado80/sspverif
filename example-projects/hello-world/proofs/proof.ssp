@@ -7,13 +7,13 @@ proof Proof {
         }
     }
 
-    instance composition = Composition {
+    instance medium_composition = MediumComposition {
         params {
             n: n,
         }
     }
 
-    instance composition_2 = Composition {
+    instance medium_composition_more_oracles = MediumCompositionMoreOracles {
         params {
             n: n,
         }
@@ -26,11 +26,11 @@ proof Proof {
     }
 
     assumptions {
-    Assumption: composition ~ small_composition
+    Assumption: medium_composition ~ small_composition
     }
 
     gamehops {
-        equivalence composition small_composition {
+        equivalence medium_composition small_composition {
             Oracle: {
                 invariant: [
                     ./proofs/invariant.smt2
@@ -44,15 +44,15 @@ proof Proof {
             }
         }
 
-        reduction big_composition composition_2  
+        reduction big_composition medium_composition_more_oracles  
         {
             assumption Assumption
 
-            map small_composition composition_2 {
+            map small_composition medium_composition_more_oracles {
                 rand    : rand
             }
 
-            map composition big_composition {
+            map medium_composition big_composition {
                 rand    : rand
                 fwd     : fwd
             }

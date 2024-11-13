@@ -15,6 +15,7 @@ package Rand {
 
     oracle UselessOracle() -> Integer  {
         assert false;
+        rand <-$ Bits(n);
         return 1;
     }
 }
