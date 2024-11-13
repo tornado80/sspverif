@@ -1,6 +1,9 @@
 use std::fmt::Display;
 
-use super::tokens::{Binary, Decimal, Hexadecimal, Numeral, ReservedWord, StringLiteral, Symbol};
+use super::{
+    attribute::AttributeValue,
+    tokens::{Binary, Decimal, Hexadecimal, Numeral, ReservedWord, StringLiteral, Symbol},
+};
 
 #[derive(Debug, Clone)]
 pub enum SpecConstant {
@@ -20,6 +23,16 @@ impl Display for SpecConstant {
             SpecConstant::Binary(bin) => bin.fmt(f),
             SpecConstant::String(s) => s.fmt(f),
         }
+    }
+}
+
+impl SpecConstant {
+    pub fn into_attribute_value(self) -> AttributeValue {
+        AttributeValue::Const(self)
+    }
+
+    pub fn into_sexpr(self) -> SExpr {
+        SExpr::Const(self)
     }
 }
 

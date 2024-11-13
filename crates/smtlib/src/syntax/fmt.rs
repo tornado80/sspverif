@@ -202,11 +202,11 @@ mod test {
             Term::Let(
                 vec![VarBinding(
                     Symbol::parse("foo").unwrap(),
-                    Numeral(23).into(),
+                    Numeral(23).into_const().into(),
                 )],
                 Box::new("foo".into()),
             ),
-            Numeral(42).into(),
+            Numeral(42).into_const().into(),
         ]))
         .into();
 

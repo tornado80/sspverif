@@ -21,15 +21,9 @@ impl From<Index> for SExpr {
 #[derive(Debug, Clone)]
 pub struct Identifier(pub Symbol, pub Vec<Index>);
 
-impl From<Symbol> for Identifier {
-    fn from(value: Symbol) -> Self {
-        Identifier(value, vec![])
-    }
-}
-
-impl From<&str> for Identifier {
-    fn from(value: &str) -> Self {
-        Identifier(Symbol::parse(value).unwrap(), vec![])
+impl<T: Into<Symbol>> From<T> for Identifier {
+    fn from(value: T) -> Self {
+        Identifier(value.into(), vec![])
     }
 }
 

@@ -1,5 +1,7 @@
 use std::fmt::Display;
 
+use super::s_expr::SpecConstant;
+
 pub const WHITE_SPACE: [char; 4] = ['\t', '\r', '\n', ' '];
 pub const SIMPLE_SYM_SPECIAL: [char; 17] = [
     '~', '!', '@', '$', '%', '^', '&', '*', '_', '-', '+', '=', '<', '>', '.', '?', '/',
@@ -63,6 +65,12 @@ impl Display for ReservedWord {
 #[derive(Debug, Clone)]
 pub struct Numeral(pub u64);
 
+impl Numeral {
+    pub fn into_const(self) -> SpecConstant {
+        SpecConstant::Numeral(self)
+    }
+}
+
 impl Display for Numeral {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
@@ -83,6 +91,11 @@ pub struct Decimal {
     pub zeroes: usize,
 }
 
+impl Decimal {
+    pub fn into_const(self) -> SpecConstant {
+        SpecConstant::Decimal(self)
+    }
+}
 impl Display for Decimal {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let Self { left, right, .. } = self;
@@ -97,6 +110,11 @@ pub struct Hexadecimal {
     pub nibbles: Vec<u8>,
 }
 
+impl Hexadecimal {
+    pub fn into_const(self) -> SpecConstant {
+        SpecConstant::Hexadecimal(self)
+    }
+}
 impl Display for Hexadecimal {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         assert!(!self.nibbles.is_empty());
@@ -117,6 +135,11 @@ pub struct Binary {
     pub bits: Vec<bool>,
 }
 
+impl Binary {
+    pub fn into_const(self) -> SpecConstant {
+        SpecConstant::Binary(self)
+    }
+}
 impl Display for Binary {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         assert!(!self.bits.is_empty());
@@ -135,6 +158,11 @@ impl Display for Binary {
 #[derive(Debug, Clone)]
 pub struct StringLiteral(String);
 
+impl StringLiteral {
+    pub fn into_const(self) -> SpecConstant {
+        SpecConstant::String(self)
+    }
+}
 impl Display for StringLiteral {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "\"{}\"", self.0)
@@ -150,9 +178,9 @@ impl Symbol {
     }
 }
 
-impl From<&str> for Symbol {
-    fn from(value: &str) -> Self {
-        Self::parse(value).unwrap()
+impl<T: AsRef<str>> From<T> for Symbol {
+    fn from(value: T) -> Self {
+        Self::parse(value.as_ref()).unwrap()
     }
 }
 

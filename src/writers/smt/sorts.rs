@@ -2,6 +2,62 @@ use crate::types::Type;
 
 use super::exprs::SmtExpr;
 
+use sspverif_smtlib::syntax::identifier::Identifier as SmtlibIdentifier;
+use sspverif_smtlib::syntax::sort::Sort as SmtlibSort;
+use sspverif_smtlib::theories;
+
+impl From<Sort> for SmtlibSort {
+    fn from(value: Sort) -> Self {
+        match value {
+            Sort::Int => theories::ints::int(),
+            Sort::Bool => theories::core::bool_(),
+            Sort::String => "String".into(),
+            Sort::Array(params) => SmtlibSort {
+                name: "Array".into(),
+                parameters: vec![params.0.into(), params.1.into()],
+            },
+            Sort::Parameter(name) => name.into(),
+            Sort::Other(name, params) => SmtlibSort {
+                name: name.into(),
+                parameters: params.into_iter().map(|sort| sort.into()).collect(),
+            },
+        }
+    }
+}
+
+impl From<Type> for SmtlibSort {
+    fn from(ty: Type) -> Self {
+        match ty {
+            Type::Integer => theories::ints::int(),
+            Type::String => "String".into(),
+            Type::Boolean => theories::core::bool_(),
+            Type::Bits(name) => format!("Bits_{name}").into(),
+            Type::Table(ty_idx, ty_val) => SmtlibSort {
+                name: "Array".into(),
+                parameters: vec![(*ty_idx).into(), Type::Maybe(ty_val).into()],
+            },
+            Type::Maybe(ty) => SmtlibSort {
+                name: "Maybe".into(),
+                parameters: vec![(*ty).into()],
+            },
+
+            Type::Tuple(tys) => SmtlibSort {
+                name: format!("Tuple{}", tys.len()).into(),
+                parameters: tys.into_iter().map(|ty| ty.into()).collect(),
+            },
+
+            Type::UserDefined(_) => todo!(),
+            Type::Set(_) => todo!(),
+            Type::List(_) => todo!(),
+            Type::Fn(_, _) => todo!(),
+            Type::AddiGroupEl(_) => todo!(),
+            Type::MultGroupEl(_) => todo!(),
+            Type::Empty => todo!(),
+            Type::Unknown => todo!(),
+        }
+    }
+}
+
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub enum Sort {
     Int,
