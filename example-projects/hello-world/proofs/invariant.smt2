@@ -10,7 +10,7 @@
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define-fun randomness-mapping-Oracle
+(define-fun randomness-mapping-UsefulOracle
   ( (ctr-0 Int)
     (ctr-1 Int)
     (id-0  Int)

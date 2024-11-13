@@ -1,4 +1,4 @@
-composition Composition {
+composition MediumComposition {
     const n: Integer;
 
     instance rand = Rand {
