@@ -36,10 +36,19 @@ proof WHSProto {
         }
     }
 
-    instance KX_0 = KX_Red {
+    instance KX_0 = KX {
         params {
-            bnonces : false,
-            b       : b    ,
+            b       : true ,
+            n       : n    ,
+            zeron   : zeron,
+  	        prf     : prf  ,
+            mac     : mac  ,
+        }
+    }
+
+    instance KX_1 = KX {
+        params {
+            b       : true,
             n       : n    ,
             zeron   : zeron,
   	        prf     : prf  ,
@@ -83,11 +92,11 @@ proof WHSProto {
             assumption nonces
 
             map Noncesreal KX_Red_0  {
-                nonces    : nonces
+                nonces    : Nonces
             }
 
             map Noncesideal KX_Red_1 {
-                nonces    : nonces
+                nonces    : Nonces
             }
         }
     }
