@@ -8,7 +8,6 @@ use crate::parser::{
     composition::handle_composition, package::handle_pkg, proof::handle_proof, SspParser,
 };
 use crate::proof::Proof;
-extern crate toml_edit;
 
 pub(crate) fn packages(root: PathBuf) -> Result<HashMap<String, Package>> {
     let mut dir = root;

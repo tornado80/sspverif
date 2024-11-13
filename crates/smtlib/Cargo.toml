@@ -1,0 +1,6 @@
+[package]
+name = "sspverif-smtlib"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
