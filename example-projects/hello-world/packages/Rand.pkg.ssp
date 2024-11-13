@@ -7,11 +7,10 @@ package Rand {
           ctr: Integer,
     }
 
-    oracle Oracle() -> Integer  {
+    oracle UsefulOracle() -> (Integer, Bits(n))  {
         ctr  <- (ctr + 1);
-        rand <-$ Integer;
-        y <- (ctr + rand);
-        return y;
+        rand <-$ Bits(n);
+        return (ctr, rand);
     }
 
     oracle UselessOracle() -> Integer  {

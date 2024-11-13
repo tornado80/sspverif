@@ -1,35 +1,51 @@
 proof Proof {
     const n: Integer;
   
-    instance assumption_0 = Assumption {
+    instance small_composition = SmallComposition {
         params {
             n: n,
         }
     }
 
-    instance assumption_1 = Assumption {
+    instance composition = Composition {
         params {
             n: n,
         }
     }
 
-    instance composition_0 = Composition {
+    instance composition_2 = Composition {
         params {
             n: n,
         }
     }
 
-    instance composition_1 = Composition {
+    instance big_composition = BigComposition {
         params {
             n: n,
         }
     }
 
     assumptions {
+    Assumption: composition ~ small_composition
     }
 
     gamehops {
-        equivalence assumption_0 composition_1 {
+        reduction big_composition composition_2  
+        {
+            assumption Assumption
+
+            map small_composition composition_2 {
+                rand    : rand
+            }
+
+            map composition big_composition {
+                rand    : rand
+                fwd     : fwd
+            }
+        }
+
+
+        equivalence composition small_composition {
             Oracle: {
                 invariant: [
                     ./proofs/invariant.smt2

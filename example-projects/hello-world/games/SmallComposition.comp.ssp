@@ -1,4 +1,4 @@
-composition Assumption {
+composition SmallComposition {
     const n: Integer;
 
     instance rand = Rand {
@@ -9,7 +9,7 @@ composition Assumption {
 
     compose {
         adversary: {
-            Oracle: rand,
+            UsefulOracle: rand,
         },
     }
 }

@@ -15,10 +15,10 @@ composition Composition {
 
     compose {
         adversary: {
-            Oracle: fwd,
+            UsefulOracle: fwd,
         },
         fwd: {
-            Oracle: rand,
+            UsefulOracle: rand,
         },
     }
 }
