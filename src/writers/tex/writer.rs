@@ -151,7 +151,17 @@ impl<'a> BlockWriter<'a> {
                     self.write_codeblock(elsecode, indentation + 1)?;
                 }
             }
-            Statement::For(_, _, _, _, _) => todo!(),
+            Statement::For(var, from, to, code, _) => {
+                writeln!(
+                    self.file,
+                    "{}\\pcfor {} < {} < {} \\pcdo\\\\",
+                    genindentation(indentation),
+                    self.expression_to_tex(from),
+                    self.ident_to_tex(var),
+                    self.expression_to_tex(to)
+                )?;
+                self.write_codeblock(code, indentation + 1)?;
+            },
             Statement::Sample(ident, None, maybecnt, tipe, _) => {
                 let cnt = maybecnt.expect("Expected samplified input");
 
