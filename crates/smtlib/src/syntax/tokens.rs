@@ -169,6 +169,12 @@ impl Display for StringLiteral {
     }
 }
 
+impl From<String> for StringLiteral {
+    fn from(value: String) -> Self {
+        StringLiteral(value)
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Symbol(String);
 

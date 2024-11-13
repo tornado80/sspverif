@@ -2,6 +2,7 @@ pub mod exprs;
 pub mod writer;
 
 pub mod expr_expr;
+mod expr_term;
 
 pub mod contexts;
 pub mod declare;
