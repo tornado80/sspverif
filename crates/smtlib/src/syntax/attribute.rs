@@ -5,7 +5,7 @@ use super::{
 
 #[derive(Debug, Clone)]
 pub enum AttributeValue {
-    Constant(SpecConstant),
+    Const(SpecConstant),
     Symbol(Symbol),
     SExpr(Vec<SExpr>),
 }
@@ -16,7 +16,7 @@ pub struct Attribute(pub Keyword, pub Option<AttributeValue>);
 impl From<AttributeValue> for SExpr {
     fn from(value: AttributeValue) -> Self {
         match value {
-            AttributeValue::Constant(con) => con.into(),
+            AttributeValue::Const(con) => con.into(),
             AttributeValue::Symbol(sym) => sym.into(),
             AttributeValue::SExpr(exprs) => SExpr::SExpr(exprs),
         }

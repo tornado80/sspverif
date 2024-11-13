@@ -20,20 +20,9 @@ impl From<QualifiedIdentifier> for SExpr {
     }
 }
 
-impl From<QualifiedIdentifier> for Term {
-    fn from(value: QualifiedIdentifier) -> Self {
-        Self::Base(value, vec![])
-    }
-}
-
-impl From<Symbol> for QualifiedIdentifier {
-    fn from(value: Symbol) -> Self {
-        QualifiedIdentifier(Identifier(value, vec![]), None)
-    }
-}
-impl From<&str> for QualifiedIdentifier {
-    fn from(value: &str) -> Self {
-        QualifiedIdentifier(Identifier(Symbol::parse(value).unwrap(), vec![]), None)
+impl<T: Into<Symbol>> From<T> for QualifiedIdentifier {
+    fn from(value: T) -> Self {
+        QualifiedIdentifier(Identifier(value.into(), vec![]), None)
     }
 }
 
@@ -71,9 +60,15 @@ pub enum Term {
     //Annotation(Box<Term>, Vec<Attribute>),
 }
 
-impl<T: Into<SpecConstant>> From<T> for Term {
+impl From<SpecConstant> for Term {
+    fn from(value: SpecConstant) -> Self {
+        Self::Const(value)
+    }
+}
+
+impl<T: Into<QualifiedIdentifier>> From<T> for Term {
     fn from(value: T) -> Self {
-        Self::Const(value.into())
+        Self::Base(value.into(), vec![])
     }
 }
 
@@ -113,20 +108,5 @@ impl From<Term> for SExpr {
             //     (*term).into(),
             // ]).chain(attrs.into_iter()),
         }
-    }
-}
-
-impl From<&str> for Term {
-    fn from(value: &str) -> Self {
-        Term::Base(
-            QualifiedIdentifier(Identifier(Symbol::parse(value).unwrap(), vec![]), None),
-            vec![],
-        )
-    }
-}
-
-impl From<Symbol> for Term {
-    fn from(value: Symbol) -> Self {
-        Term::Base(QualifiedIdentifier(Identifier(value, vec![]), None), vec![])
     }
 }

@@ -6,6 +6,15 @@ pub struct Sort {
     pub parameters: Vec<Sort>,
 }
 
+impl<T: Into<Identifier>> From<T> for Sort {
+    fn from(value: T) -> Self {
+        Sort {
+            name: value.into(),
+            parameters: vec![],
+        }
+    }
+}
+
 impl From<Sort> for SExpr {
     fn from(value: Sort) -> Self {
         if value.parameters.is_empty() {
