@@ -29,6 +29,7 @@ proof Proof {
     Assumption: composition ~ small_composition
     }
 
+    gamehops {
         equivalence composition small_composition {
             Oracle: {
                 invariant: [
@@ -43,7 +44,6 @@ proof Proof {
             }
         }
 
-    gamehops {
         reduction big_composition composition_2  
         {
             assumption Assumption
