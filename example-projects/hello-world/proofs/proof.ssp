@@ -29,6 +29,20 @@ proof Proof {
     Assumption: composition ~ small_composition
     }
 
+        equivalence composition small_composition {
+            Oracle: {
+                invariant: [
+                    ./proofs/invariant.smt2
+                ]
+
+                lemmas {
+                    equal-aborts: []
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+                }
+            }
+        }
+
     gamehops {
         reduction big_composition composition_2  
         {
@@ -41,21 +55,6 @@ proof Proof {
             map composition big_composition {
                 rand    : rand
                 fwd     : fwd
-            }
-        }
-
-
-        equivalence composition small_composition {
-            Oracle: {
-                invariant: [
-                    ./proofs/invariant.smt2
-                ]
-
-                lemmas {
-                    equal-aborts: []
-                    invariant:    [no-abort]
-                    same-output:  [no-abort]
-                }
             }
         }
     }

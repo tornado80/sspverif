@@ -21,7 +21,7 @@ composition BigComposition {
 
     compose {
         adversary: {
-            UsefulOracle: fwd,
+            UsefulOracle: fwd2,
         },
         fwd: {
             UsefulOracle: rand,
