@@ -13,7 +13,9 @@ use crate::types::Type;
 use crate::util::prover_process::ProverBackend;
 use crate::util::prover_process::{Communicator, ProverResponse};
 use crate::util::smtmodel::{SmtModel, SmtModelEntry};
-
+use crate::identifier::pkg_ident::PackageIdentifier;
+use crate::identifier::pkg_ident::PackageOracleCodeLoopVarIdentifier;
+use crate::parser::package::ForComp;
 
 /// TODO: Move to struct so we can have verbose versions (e.g. writing types to expressions)
 
@@ -42,6 +44,13 @@ impl<'a> BlockWriter<'a> {
         format!("\\O{{{:?}}}", tipe)
     }
 
+    fn forcomp_to_tex(&self, forcomp: &ForComp) -> String {
+        match forcomp {
+            ForComp::Lt => "<",
+            ForComp::Lte => "\\leq"
+        }.to_string()
+    }
+    
     fn expression_to_tex(&self, expr: &Expression) -> String {
         match expr {
             Expression::Bot => "\\bot".to_string(),
@@ -152,15 +161,22 @@ impl<'a> BlockWriter<'a> {
                 }
             }
             Statement::For(var, from, to, code, _) => {
-                writeln!(
-                    self.file,
-                    "{}\\pcfor {} < {} < {} \\pcdo\\\\",
-                    genindentation(indentation),
-                    self.expression_to_tex(from),
-                    self.ident_to_tex(var),
-                    self.expression_to_tex(to)
-                )?;
-                self.write_codeblock(code, indentation + 1)?;
+                println!("{:?}", var);
+                if let Identifier::PackageIdentifier(PackageIdentifier::CodeLoopVar(PackageOracleCodeLoopVarIdentifier{start_comp, end_comp, ..})) = var {
+                    writeln!(
+                        self.file,
+                        "{}\\pcfor {} {} {} {} {} \\pcdo\\\\",
+                        genindentation(indentation),
+                        self.expression_to_tex(from),
+                        self.forcomp_to_tex(start_comp),
+                        self.ident_to_tex(var),
+                        self.forcomp_to_tex(end_comp),
+                        self.expression_to_tex(to)
+                    )?;
+                    self.write_codeblock(code, indentation + 1)?;
+                } else {
+                    unreachable!();
+                }
             },
             Statement::Sample(ident, None, maybecnt, tipe, _) => {
                 let cnt = maybecnt.expect("Expected samplified input");
