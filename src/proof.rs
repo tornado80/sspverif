@@ -291,7 +291,7 @@ impl Equivalence {
         SliceResolver(&self.trees)
             .resolve_value(oracle_name)
             .map(|(_oname, tree)| tree.clone())
-            .unwrap_or(vec![])
+            .unwrap_or_else(|| panic!("can't find proof tree for {oracle_name}"))
     }
 }
 
