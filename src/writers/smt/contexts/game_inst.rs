@@ -245,7 +245,7 @@ impl<'a> GameInstanceContext<'a> {
                 // (smt-name, type) pairs for the arguments
                 let named_args: Vec<_> = args_idents
                     .iter()
-                    .map(|ident| (ident.smt_identifier(), ident.get_type().into()))
+                    .map(|ident| (ident.smt_identifier_string(), ident.get_type().into()))
                     .collect();
 
                 // build the expression for the args in the call to the function declared in the

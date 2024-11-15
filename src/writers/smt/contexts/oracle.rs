@@ -5,8 +5,8 @@ use crate::writers::smt::patterns::oracle_args::OracleArgPattern;
 use crate::writers::smt::patterns::proof_constants::ReturnValueConst;
 use crate::writers::smt::patterns::FunctionPattern;
 use crate::writers::smt::patterns::{
-    declare_datatype, oracle_args, DatastructurePattern, DispatchOraclePattern, OraclePattern,
-    ReturnConstructor, ReturnPattern, ReturnSelector, ReturnValue, ReturnValueConstructor,
+    oracle_args, DatastructurePattern, DispatchOraclePattern, OraclePattern, ReturnConstructor,
+    ReturnPattern, ReturnSelector, ReturnValue, ReturnValueConstructor,
 };
 
 use super::super::exprs::SmtExpr;
@@ -138,14 +138,6 @@ impl<'a> OracleContext<'a> {
         let odef = &pkg_inst.pkg.oracles[self.oracle_offs];
 
         names::oracle_nonsplit_arg_name(&odef.sig.name, arg_name).into()
-    }
-
-    pub(crate) fn smt_declare_return(&self) -> SmtExpr {
-        let return_type = self.return_type();
-        let pattern = self.return_pattern();
-        let spec = pattern.datastructure_spec(return_type);
-
-        declare_datatype(&pattern, &spec)
     }
 
     pub(crate) fn smt_construct_return<S, V>(&self, state: S, value: V) -> SmtExpr

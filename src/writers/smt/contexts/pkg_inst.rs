@@ -9,7 +9,7 @@ use crate::split::SplitPath;
 use crate::types::Type;
 use crate::writers::smt::partials::PartialsDatatype;
 use crate::writers::smt::patterns::pkg_consts::PackageConstsPattern;
-use crate::writers::smt::patterns::{declare_datatype, PackageStateSelector, SmtDefineFun};
+use crate::writers::smt::patterns::{PackageStateSelector, SmtDefineFun};
 use crate::writers::smt::{
     contexts::{GameInstanceContext, OracleContext, PackageInstanceContext, SplitOracleContext},
     exprs::SmtExpr,
@@ -101,7 +101,7 @@ impl<'a> PackageInstanceContext<'a> {
             return None;
         }
 
-        let game_ctx = self.game_ctx.clone();
+        let game_ctx = self.game_ctx;
         let inst_offs = self.inst_offs;
 
         Some(OracleContext {
@@ -143,22 +143,6 @@ impl<'a> PackageInstanceContext<'a> {
         let params = &self.pkg_inst().params;
 
         PackageStatePattern { pkg_name, params }
-    }
-
-    pub(crate) fn smt_declare_pkg_consts(&self) -> SmtExpr {
-        let pkg = &self.pkg_inst().pkg;
-        let pattern = self.pkg_consts_pattern();
-        let spec = pattern.datastructure_spec(pkg);
-
-        declare_datatype(&pattern, &spec)
-    }
-
-    pub(crate) fn smt_declare_pkgstate(&self) -> SmtExpr {
-        let pkg = &self.pkg_inst().pkg;
-        let pattern = self.pkg_state_pattern();
-        let spec = pattern.datastructure_spec(pkg);
-
-        declare_datatype(&pattern, &spec)
     }
 
     pub(crate) fn smt_access_pkgstate<S: Into<SmtExpr>>(
@@ -261,7 +245,7 @@ impl<'a> PackageInstanceContext<'a> {
                 // (smt-name, type) pairs for the arguments
                 let named_args: Vec<_> = args_idents
                     .iter()
-                    .map(|ident| (ident.smt_identifier(), ident.get_type().into()))
+                    .map(|ident| (ident.smt_identifier_string(), ident.get_type().into()))
                     .collect();
 
                 // build the expression for the args in the call to the function declared in the

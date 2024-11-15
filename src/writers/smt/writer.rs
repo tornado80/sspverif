@@ -840,7 +840,7 @@ impl<'a> CompositionSmtWriter<'a> {
 
         // then build the table store smt expression, in case we have to
         let outexpr = if let Some(idx) = opt_idx {
-            let oldvalue: SmtExpr = ident.smt_identifier().into();
+            let oldvalue: SmtExpr = ident.smt_identifier_string().into();
 
             ("store", oldvalue, idx.clone(), outexpr).into()
         } else {
@@ -849,7 +849,7 @@ impl<'a> CompositionSmtWriter<'a> {
 
         // build the actual smt assignment
         let smtout = SmtLet {
-            bindings: vec![(ident.smt_identifier(), outexpr)],
+            bindings: vec![(ident.smt_identifier_string(), outexpr)],
             body: { result },
         }
         .into();

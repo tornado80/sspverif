@@ -42,42 +42,17 @@ pub fn bool_() -> Sort {
     }
 }
 
-pub fn true_() -> Term {
-    Symbols::True.into()
-}
+use super::def_fun_assoc;
+use super::def_fun_plain;
 
-pub fn false_() -> Term {
-    Symbols::False.into()
-}
+def_fun_plain!(true_, Symbols::True, ());
+def_fun_plain!(false_, Symbols::False, ());
+def_fun_plain!(not, Symbols::Not, (term));
+def_fun_plain!(ite, Symbols::Ite, (cond, then, els));
 
-pub fn not(term: Term) -> Term {
-    Term::Base(Symbols::Not.into(), vec![term])
-}
-
-pub fn implies(pre: Term, post: Term) -> Term {
-    Term::Base(Symbols::Implies.into(), vec![pre, post])
-}
-
-pub fn and(terms: Vec<Term>) -> Term {
-    Term::Base(Symbols::And.into(), terms)
-}
-
-pub fn or(terms: Vec<Term>) -> Term {
-    Term::Base(Symbols::Or.into(), terms)
-}
-
-pub fn xor(terms: Vec<Term>) -> Term {
-    Term::Base(Symbols::Xor.into(), terms)
-}
-
-pub fn eq(terms: Vec<Term>) -> Term {
-    Term::Base(Symbols::Eq.into(), terms)
-}
-
-pub fn neq(terms: Vec<Term>) -> Term {
-    Term::Base(Symbols::Distinct.into(), terms)
-}
-
-pub fn ite(cond: Term, then: Term, els: Term) -> Term {
-    Term::Base(Symbols::Ite.into(), vec![cond, then, els])
-}
+def_fun_assoc!(implies, Symbols::Not);
+def_fun_assoc!(and, Symbols::And);
+def_fun_assoc!(or, Symbols::Or);
+def_fun_assoc!(xor, Symbols::Xor);
+def_fun_assoc!(eq, Symbols::Eq);
+def_fun_assoc!(distinct, Symbols::Distinct);

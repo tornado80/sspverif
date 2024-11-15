@@ -42,46 +42,18 @@ pub fn int() -> Sort {
     }
 }
 
-pub fn negate(term: Term) -> Term {
-    Term::Base(Symbols::Minus.into(), vec![term])
-}
+use super::def_fun_assoc;
+use super::def_fun_plain;
 
-pub fn sub(terms: Vec<Term>) -> Term {
-    Term::Base(Symbols::Minus.into(), terms)
-}
+def_fun_assoc!(add, Symbols::Plus);
+def_fun_assoc!(sub, Symbols::Minus);
+def_fun_assoc!(mul, Symbols::Asterisk);
+def_fun_assoc!(div, Symbols::Div);
 
-pub fn add(terms: Vec<Term>) -> Term {
-    Term::Base(Symbols::Plus.into(), terms)
-}
-
-pub fn mul(terms: Vec<Term>) -> Term {
-    Term::Base(Symbols::Asterisk.into(), terms)
-}
-
-pub fn div(terms: Vec<Term>) -> Term {
-    Term::Base(Symbols::Div.into(), terms)
-}
-
-pub fn modulo(lhs: Term, rhs: Term) -> Term {
-    Term::Base(Symbols::Mod.into(), vec![lhs, rhs])
-}
-
-pub fn abs(term: Term) -> Term {
-    Term::Base(Symbols::Abs.into(), vec![term])
-}
-
-pub fn lte(lhs: Term, rhs: Term) -> Term {
-    Term::Base(Symbols::Lte.into(), vec![lhs, rhs])
-}
-
-pub fn lt(lhs: Term, rhs: Term) -> Term {
-    Term::Base(Symbols::Lt.into(), vec![lhs, rhs])
-}
-
-pub fn gte(lhs: Term, rhs: Term) -> Term {
-    Term::Base(Symbols::Gte.into(), vec![lhs, rhs])
-}
-
-pub fn gt(lhs: Term, rhs: Term) -> Term {
-    Term::Base(Symbols::Gt.into(), vec![lhs, rhs])
-}
+def_fun_plain!(negate, Symbols::Minus, (term));
+def_fun_plain!(modulo, Symbols::Mod, (lhs, rhs));
+def_fun_plain!(abs, Symbols::Abs, (term));
+def_fun_plain!(lte, Symbols::Lte, (lhs, rhs));
+def_fun_plain!(lt, Symbols::Lt, (lhs, rhs));
+def_fun_plain!(gte, Symbols::Gte, (lhs, rhs));
+def_fun_plain!(gt, Symbols::Gt, (lhs, rhs));

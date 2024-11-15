@@ -32,13 +32,8 @@ pub fn array(key: impl Into<Sort>, value: impl Into<Sort>) -> Sort {
     }
 }
 
-pub fn select(array: Term, index: Term) -> Term {
-    Term::Base(Symbols::Select.into(), vec![array, index])
-}
-
-pub fn store(array: Term, index: Term, value: Term) -> Term {
-    Term::Base(Symbols::Store.into(), vec![array, index, value])
-}
+super::def_fun_plain!(select, Symbols::Select, (array, index));
+super::def_fun_plain!(store, Symbols::Select, (array, index, value));
 
 pub fn const_(key: impl Into<Sort>, value: impl Into<Sort>, base_term: Term) -> Term {
     Term::Base(
