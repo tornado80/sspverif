@@ -1,8 +1,11 @@
 use std::fmt::Write;
 
 use crate::{
-    gamehops::equivalence::error::{Error, Result},
-    proof::{Equivalence, Proof},
+    gamehops::equivalence::{
+        error::{Error, Result},
+        Equivalence,
+    },
+    proof::Proof,
     transforms::{proof_transforms::EquivalenceTransform, ProofTransform},
     util::prover_process::{Communicator, ProverResponse},
     writers::smt::exprs::SmtExpr,

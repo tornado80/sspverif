@@ -15,7 +15,7 @@ use crate::writers::smt::sorts::Sort;
 use crate::{
     hacks,
     package::{Export, OracleSig, SplitExport},
-    proof::{Claim, ClaimType, Equivalence, GameInstance, Proof},
+    proof::{Claim, ClaimType, GameInstance, Proof},
     split::{SplitOracleSig, SplitPath},
     transforms::{
         proof_transforms::EquivalenceTransform,
@@ -37,6 +37,75 @@ use crate::{
         writer::CompositionSmtWriter,
     },
 };
+
+// Equivalence contains the composisitions/games and the invariant data,
+// whereas the pure Equivalence just contains the names and file paths.
+// TODO: explore if we can keep references to the games in the project hashmap
+#[derive(Debug, Clone)]
+pub struct Equivalence {
+    // these two are game instance names
+    pub(crate) left_name: String,
+    pub(crate) right_name: String,
+    pub(crate) invariants: Vec<(String, Vec<String>)>,
+    pub(crate) trees: Vec<(String, Vec<Claim>)>,
+}
+
+impl Equivalence {
+    pub fn new(
+        left_name: String,
+        right_name: String,
+        mut invariants: Vec<(String, Vec<String>)>,
+        mut trees: Vec<(String, Vec<Claim>)>,
+    ) -> Self {
+        trees.sort();
+        invariants.sort();
+
+        Equivalence {
+            left_name,
+            right_name,
+            invariants, // TODO INV
+            trees,
+        }
+    }
+
+    pub fn trees(&self) -> &[(String, Vec<Claim>)] {
+        &self.trees
+    }
+
+    pub fn left_name(&self) -> &str {
+        &self.left_name
+    }
+
+    pub fn right_name(&self) -> &str {
+        &self.right_name
+    }
+
+    pub fn get_invariants(&self, offs: usize) -> Option<&[String]> {
+        self.invariants
+            .get(offs)
+            .map(|(_name, invariants)| invariants.as_slice())
+    }
+
+    pub fn invariants_by_oracle_name(&self, oracle_name: &str) -> Vec<String> {
+        self.invariants
+            .iter()
+            .find_map(|(oracle_name_, invariants)| {
+                if oracle_name_.as_str() == oracle_name {
+                    Some(invariants.clone())
+                } else {
+                    None
+                }
+            })
+            .unwrap_or(vec![])
+    }
+
+    pub fn proof_tree_by_oracle_name(&self, oracle_name: &str) -> Vec<Claim> {
+        SliceResolver(&self.trees)
+            .resolve_value(oracle_name)
+            .map(|(_oname, tree)| tree.clone())
+            .unwrap_or_else(|| panic!("can't find proof tree for {oracle_name}"))
+    }
+}
 
 pub mod error;
 mod verify_fn;

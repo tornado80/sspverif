@@ -1,4 +1,4 @@
-use crate::{proof::Equivalence, util::prover_process::ProverResponse};
+use crate::{gamehops::equivalence::Equivalence, util::prover_process::ProverResponse};
 
 #[derive(Debug)]
 pub enum Error {

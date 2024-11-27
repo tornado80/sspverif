@@ -2,6 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use crate::{
     expressions::Expression,
+    gamehops::equivalence::Equivalence,
     gamehops::reduction::{Assumption, Mapping, Reduction},
     identifier::{
         game_ident::{GameConstIdentifier, GameIdentifier},
@@ -22,7 +23,7 @@ use crate::{
         },
         Rule,
     },
-    proof::{Claim, Equivalence, GameHop, GameInstance, Proof},
+    proof::{Claim, GameHop, GameInstance, Proof},
     types::Type,
     util::{
         resolver::{Resolver, SliceResolver},

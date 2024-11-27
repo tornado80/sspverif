@@ -1,11 +1,13 @@
 use crate::{
     expressions::Expression,
-    gamehops::reduction::{Assumption, Reduction},
+    gamehops::{
+        equivalence::Equivalence,
+        reduction::{Assumption, Reduction},
+    },
     identifier::game_ident::GameConstIdentifier,
     package::{Composition, Package},
     packageinstance::instantiate::InstantiationContext,
     types::Type,
-    util::resolver::{Resolver, SliceResolver},
 };
 
 use crate::impl_Named;
@@ -74,7 +76,7 @@ mod instantiate {
 }
 
 impl GameInstance {
-    pub fn new(
+    pub(crate) fn new(
         game_inst_name: String,
         proof_name: String,
         game: Composition,
@@ -111,26 +113,26 @@ impl GameInstance {
         }
     }
 
-    pub fn with_other_game(&self, game: Composition) -> GameInstance {
+    pub(crate) fn with_other_game(&self, game: Composition) -> GameInstance {
         GameInstance {
             game,
             ..self.clone()
         }
     }
 
-    pub fn name(&self) -> &str {
+    pub(crate) fn name(&self) -> &str {
         &self.name
     }
 
-    pub fn types(&self) -> &[(String, Type)] {
+    pub(crate) fn types(&self) -> &[(String, Type)] {
         &self.types
     }
 
-    pub fn game_name(&self) -> &str {
+    pub(crate) fn game_name(&self) -> &str {
         &self.game.name
     }
 
-    pub fn game(&self) -> &Composition {
+    pub(crate) fn game(&self) -> &Composition {
         &self.game
     }
 }
@@ -151,75 +153,6 @@ impl ClaimType {
         } else {
             ClaimType::Lemma
         }
-    }
-}
-
-// Equivalence contains the composisitions/games and the invariant data,
-// whereas the pure Equivalence just contains the names and file paths.
-// TODO: explore if we can keep references to the games in the project hashmap
-#[derive(Debug, Clone)]
-pub struct Equivalence {
-    // these two are game instance names
-    pub(crate) left_name: String,
-    pub(crate) right_name: String,
-    pub(crate) invariants: Vec<(String, Vec<String>)>,
-    pub(crate) trees: Vec<(String, Vec<Claim>)>,
-}
-
-impl Equivalence {
-    pub fn new(
-        left_name: String,
-        right_name: String,
-        mut invariants: Vec<(String, Vec<String>)>,
-        mut trees: Vec<(String, Vec<Claim>)>,
-    ) -> Self {
-        trees.sort();
-        invariants.sort();
-
-        Equivalence {
-            left_name,
-            right_name,
-            invariants, // TODO INV
-            trees,
-        }
-    }
-
-    pub fn trees(&self) -> &[(String, Vec<Claim>)] {
-        &self.trees
-    }
-
-    pub fn left_name(&self) -> &str {
-        &self.left_name
-    }
-
-    pub fn right_name(&self) -> &str {
-        &self.right_name
-    }
-
-    pub fn get_invariants(&self, offs: usize) -> Option<&[String]> {
-        self.invariants
-            .get(offs)
-            .map(|(_name, invariants)| invariants.as_slice())
-    }
-
-    pub fn invariants_by_oracle_name(&self, oracle_name: &str) -> Vec<String> {
-        self.invariants
-            .iter()
-            .find_map(|(oracle_name_, invariants)| {
-                if oracle_name_.as_str() == oracle_name {
-                    Some(invariants.clone())
-                } else {
-                    None
-                }
-            })
-            .unwrap_or(vec![])
-    }
-
-    pub fn proof_tree_by_oracle_name(&self, oracle_name: &str) -> Vec<Claim> {
-        SliceResolver(&self.trees)
-            .resolve_value(oracle_name)
-            .map(|(_oname, tree)| tree.clone())
-            .unwrap_or_else(|| panic!("can't find proof tree for {oracle_name}"))
     }
 }
 
@@ -313,7 +246,7 @@ pub struct Proof {
 }
 
 impl Proof {
-    pub fn new(
+    pub(crate) fn new(
         name: String,
         consts: Vec<(String, Type)>,
         instances: Vec<GameInstance>,
@@ -331,30 +264,30 @@ impl Proof {
         }
     }
 
-    pub fn with_new_instances(&self, instances: Vec<GameInstance>) -> Proof {
+    pub(crate) fn with_new_instances(&self, instances: Vec<GameInstance>) -> Proof {
         Proof {
             instances,
             ..self.clone()
         }
     }
 
-    pub fn as_name(&self) -> &str {
+    pub(crate) fn as_name(&self) -> &str {
         &self.name
     }
 
-    pub fn game_hops(&self) -> &[GameHop] {
+    pub(crate) fn game_hops(&self) -> &[GameHop] {
         &self.game_hops
     }
 
-    pub fn instances(&self) -> &[GameInstance] {
+    pub(crate) fn instances(&self) -> &[GameInstance] {
         &self.instances
     }
 
-    pub fn assumptions(&self) -> &[Assumption] {
+    pub(crate) fn assumptions(&self) -> &[Assumption] {
         &self.assumptions
     }
 
-    pub fn packages(&self) -> &[Package] {
+    pub(crate) fn packages(&self) -> &[Package] {
         &self.pkgs
     }
 
