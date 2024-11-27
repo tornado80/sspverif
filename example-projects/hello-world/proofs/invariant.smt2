@@ -11,12 +11,12 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define-fun randomness-mapping-UsefulOracle
-  ( (base-ctr-0 Int)
-    (base-ctr-1 Int)
-    (id-0  Int)
-    (id-1  Int)
-    (scr-0 Int)
-    (scr-1 Int))
+  ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
+    (base-ctr-1 Int) ; This is the counter in the beginning of the oracle call on the left.
+    (id-0  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+    (id-1  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+    (scr-0 Int)      ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+    (scr-1 Int))     ; This is the counter which gets incremented each time a sampling is done with the same sample id.
   Bool
   (and
     (= scr-1 base-ctr-1)
