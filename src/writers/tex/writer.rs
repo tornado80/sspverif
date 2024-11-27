@@ -485,12 +485,12 @@ fn tex_write_composition_graph(
             file,
             "\\node[anchor=south west,align=center,package,minimum height={}cm,fill={fill}]
     (node{}) at ({},{})
-    {{\\M{{{}}}\\\\\\M{{{}}}}};",
+    {{\\M{{{}}}}};",
             f64::from(top-bottom)/2.0,
             idx,
             column*4,
             f64::from(bottom)/2.0,
-            compname.replace('_', "\\_"),
+            //compname.replace('_', "\\_"),
             pkgname.replace('_', "\\_")
         )?;
         Ok(())
