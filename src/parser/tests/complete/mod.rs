@@ -6,11 +6,12 @@ use super::{
 use crate::{
     expressions::Expression,
     gamehops::equivalence,
+    gamehops::GameHop,
     identifier::{
         game_ident::{GameConstIdentifier, GameIdentifier},
         Identifier,
     },
-    proof::{Claim, ClaimType, GameHop},
+    proof::{Claim, ClaimType},
     statement::Statement,
     types::Type,
     util::prover_process::{Communicator, ProverBackend},

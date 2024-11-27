@@ -13,9 +13,9 @@ use error::Result;
 use crate::util::prover_process::Communicator;
 //use crate::transforms::typecheck::wire_proofs;
 use crate::{
-    gamehops::{equivalence, reduction},
+    gamehops::{equivalence, reduction, GameHop},
     package::{Composition, Package},
-    proof::{GameHop, Proof},
+    proof::Proof,
     transforms::Transformation,
     util::prover_process::ProverBackend,
 };
@@ -131,7 +131,12 @@ impl Project {
             let (transformed, _) = crate::transforms::resolveoracles::Transformation(&transformed)
                 .transform()
                 .unwrap();
-            crate::writers::tex::writer::tex_write_composition(&backend, &transformed, name, path.as_path())?;
+            crate::writers::tex::writer::tex_write_composition(
+                &backend,
+                &transformed,
+                name,
+                path.as_path(),
+            )?;
         }
 
         for (name, proof) in &self.proofs {

@@ -4,6 +4,7 @@ use crate::{
     expressions::Expression,
     gamehops::equivalence::Equivalence,
     gamehops::reduction::{Assumption, Mapping, Reduction},
+    gamehops::GameHop,
     identifier::{
         game_ident::{GameConstIdentifier, GameIdentifier},
         pkg_ident::PackageConstIdentifier,
@@ -23,7 +24,7 @@ use crate::{
         },
         Rule,
     },
-    proof::{Claim, GameHop, GameInstance, Proof},
+    proof::{Claim, GameInstance, Proof},
     types::Type,
     util::{
         resolver::{Resolver, SliceResolver},
