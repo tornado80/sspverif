@@ -1,7 +1,4 @@
-use crate::{
-    project::error::Result,
-    proof::{Proof, Reduction},
-};
+use crate::{project::error::Result, proof::Proof};
 
 /*
 approach:
@@ -29,6 +26,79 @@ impl Composition {
     fn
 }
  */
+
+#[derive(Clone, Debug)]
+pub struct Mapping {
+    game_inst_name: String,
+    assumption_game_inst_name: String,
+
+    // these also need validation
+    // but let's not resolve them
+    pkg_maps: Vec<(String, String)>,
+}
+
+impl Mapping {
+    pub fn new(
+        assumption_game_inst_name: String,
+        game_inst_name: String,
+        pkg_maps: Vec<(String, String)>,
+    ) -> Mapping {
+        Mapping {
+            game_inst_name,
+            assumption_game_inst_name,
+            pkg_maps,
+        }
+    }
+
+    pub fn as_game_inst_name(&self) -> &str {
+        &self.game_inst_name
+    }
+
+    pub fn as_assumption_game_inst_name(&self) -> &str {
+        &self.assumption_game_inst_name
+    }
+
+    pub fn pkg_maps(&self) -> &[(String, String)] {
+        &self.pkg_maps
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Assumption {
+    pub name: String,
+    pub left_name: String,
+    pub right_name: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct Reduction {
+    left: Mapping,
+    right: Mapping,
+
+    assumption_name: String,
+}
+
+impl Reduction {
+    pub fn new(left: Mapping, right: Mapping, assumption_name: String) -> Self {
+        Self {
+            left,
+            right,
+            assumption_name,
+        }
+    }
+
+    pub fn left(&self) -> &Mapping {
+        &self.left
+    }
+
+    pub fn right(&self) -> &Mapping {
+        &self.right
+    }
+
+    pub fn assumption_name(&self) -> &str {
+        &self.assumption_name
+    }
+}
 
 pub fn verify(_red: &Reduction, _proof: &Proof) -> Result<()> {
     todo!()

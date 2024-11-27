@@ -1,6 +1,6 @@
 use crate::{
+    gamehops::reduction::Assumption,
     package::{Composition, OracleDef, Package, PackageInstance},
-    proof::Assumption,
 };
 
 pub trait Resolver<'a, T>: IndexLifetime<'a, usize, Output = T> {
