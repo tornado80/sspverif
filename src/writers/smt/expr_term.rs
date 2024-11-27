@@ -1,7 +1,15 @@
-use crate::{expressions::Expression, types::Type};
+use crate::{
+    expressions::Expression,
+    identifier::{
+        game_ident::{GameConstIdentifier, GameIdentifier},
+        pkg_ident::{PackageConstIdentifier, PackageIdentifier},
+        proof_ident::{ProofConstIdentifier, ProofIdentifier},
+        Identifier,
+    },
+    types::Type,
+};
 use sspverif_smtlib::{
     syntax::{
-        s_expr::SpecConstant,
         term::{QualifiedIdentifier, Term},
         tokens::{Numeral, StringLiteral},
     },
@@ -21,6 +29,7 @@ fn build_some<T: Into<Term>>(term: T) -> Term {
 
 impl From<Expression> for Term {
     fn from(expr: Expression) -> Self {
+        let ty = expr.get_type();
         match expr {
             Expression::EmptyTable(t) => {
                 if let Type::Table(ty_idx, ty_val) = t {
@@ -60,6 +69,7 @@ impl From<Expression> for Term {
             Expression::Mul(lhs, rhs) => theories::ints::mul(vec![*lhs, *rhs]),
             Expression::Div(lhs, rhs) => theories::ints::div(vec![*lhs, *rhs]),
             Expression::Mod(lhs, rhs) => theories::ints::modulo(*lhs, *rhs),
+            Expression::Neg(expr) => theories::ints::negate(*expr),
             Expression::Not(expr) => theories::core::not(*expr),
             Expression::And(exprs) => theories::core::and(exprs),
             Expression::Or(exprs) => theories::core::or(exprs),
@@ -68,11 +78,65 @@ impl From<Expression> for Term {
             Expression::Bot => "bot".into(),
             Expression::TableAccess(table, index) => theories::array_ex::select(table, *index),
 
-            Expression::Tuple(_) => todo!(),
-            Expression::List(_) => todo!(),
-            Expression::Set(_) => todo!(),
-            Expression::FnCall(_, _) => todo!(),
-            Expression::Neg(_) => todo!(),
+            Expression::Tuple(exprs) => Term::Base(
+                format!("mk-tuple{}", exprs.len()).into(),
+                exprs.into_iter().map(|expr| expr.into()).collect(),
+            ),
+            Expression::List(exprs) => {
+                let nil = QualifiedIdentifier("nil".into(), Some(ty.into())).into();
+
+                exprs.into_iter().rev().fold(nil, |acc, cur| {
+                    Term::Base("insert".into(), vec![acc, cur.into()])
+                })
+            }
+            Expression::Set(exprs) => {
+                let empty_set = Term::Base(
+                    QualifiedIdentifier("const".into(), Some(ty.into())),
+                    vec![theories::core::false_()],
+                );
+
+                exprs.into_iter().fold(empty_set, |set, el| {
+                    Term::Base(
+                        "store".into(),
+                        vec![set, el.into(), theories::core::true_()],
+                    )
+                })
+            }
+            Expression::FnCall(id, exprs) => {
+                let func_name = match id {
+                    Identifier::PackageIdentifier(PackageIdentifier::Const(
+                        PackageConstIdentifier {
+                            name,
+                            game_inst_name: Some(game_inst_name),
+                            pkg_inst_name: Some(pkg_inst_name),
+                            ..
+                        },
+                    )) => {
+                        format!("<<func-pkg-{game_inst_name}-{pkg_inst_name}-{name}>>")
+                    }
+
+                    Identifier::GameIdentifier(GameIdentifier::Const(GameConstIdentifier {
+                        name,
+                        game_inst_name: Some(game_inst_name),
+                        ..
+                    })) => {
+                        format!("<<func-game-{game_inst_name}-{name}>>")
+                    }
+                    Identifier::ProofIdentifier(ProofIdentifier::Const(ProofConstIdentifier {
+                        name,
+                        ..
+                    })) => {
+                        format!("<<func-proof-{name}>>")
+                    }
+                    other => unreachable!("unexpected identifier in function call: {other:?}"),
+                };
+
+                Term::Base(
+                    func_name.into(),
+                    exprs.into_iter().map(|e| e.into()).collect(),
+                )
+            }
+
             Expression::Inv(_) => todo!(),
             Expression::Pow(_, _) => todo!(),
             Expression::Sum(_) => todo!(),

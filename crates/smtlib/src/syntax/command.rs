@@ -72,6 +72,12 @@ impl From<SortDec> for SExpr {
 #[derive(Debug, Clone)]
 pub struct SelectorDec(Symbol, Sort);
 
+impl SelectorDec {
+    pub fn new(sym: Symbol, sort: Sort) -> Self {
+        Self(sym, sort)
+    }
+}
+
 impl From<SelectorDec> for SExpr {
     fn from(value: SelectorDec) -> Self {
         SExpr::SExpr(vec![value.0.into(), value.1.into()])
@@ -80,6 +86,12 @@ impl From<SelectorDec> for SExpr {
 
 #[derive(Debug, Clone)]
 pub struct ConstructorDec(Symbol, Vec<SelectorDec>);
+
+impl ConstructorDec {
+    pub fn new(sym: Symbol, selectors: impl IntoIterator<Item = SelectorDec>) -> Self {
+        Self(sym, selectors.into_iter().collect())
+    }
+}
 
 impl From<ConstructorDec> for SExpr {
     fn from(value: ConstructorDec) -> Self {
@@ -94,6 +106,12 @@ impl From<ConstructorDec> for SExpr {
 
 #[derive(Debug, Clone)]
 pub struct DatatypeDec(Vec<Symbol>, Vec<ConstructorDec>);
+
+impl DatatypeDec {
+    pub fn new(par_syms: Vec<Symbol>, cons: impl IntoIterator<Item = ConstructorDec>) -> Self {
+        Self(par_syms, cons.into_iter().collect())
+    }
+}
 
 impl From<DatatypeDec> for SExpr {
     fn from(value: DatatypeDec) -> Self {

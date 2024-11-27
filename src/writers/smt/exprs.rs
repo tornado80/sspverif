@@ -1,5 +1,7 @@
 use std::fmt::Display;
 
+use sspverif_smtlib::syntax::s_expr::SExpr;
+
 use crate::types::Type;
 
 use super::sorts::Sort;
@@ -15,21 +17,35 @@ pub enum SmtExpr {
     List(Vec<SmtExpr>),
 }
 
+impl From<SExpr> for SmtExpr {
+    fn from(value: SExpr) -> Self {
+        match value {
+            SExpr::Const(con) => SmtExpr::Atom(con.to_string()),
+            SExpr::Symbol(sym) => SmtExpr::Atom(sym.to_string()),
+            SExpr::SExpr(exprs) => {
+                SmtExpr::List(exprs.into_iter().map(|expr| expr.into()).collect())
+            }
+            SExpr::Reserved(res) => SmtExpr::Atom(res.to_string()),
+            SExpr::HintComment(com) => SmtExpr::Comment(com),
+        }
+    }
+}
+
 impl From<Vec<SmtExpr>> for SmtExpr {
     fn from(lst: Vec<SmtExpr>) -> Self {
         SmtExpr::List(lst)
     }
 }
 
-impl From<&str> for SmtExpr {
-    fn from(atom: &str) -> Self {
-        SmtExpr::Atom(atom.to_string())
-    }
-}
-
 impl From<String> for SmtExpr {
     fn from(atom: String) -> Self {
         SmtExpr::Atom(atom)
+    }
+}
+
+impl From<&str> for SmtExpr {
+    fn from(atom: &str) -> Self {
+        SmtExpr::Atom(atom.to_string())
     }
 }
 

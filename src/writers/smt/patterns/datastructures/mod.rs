@@ -14,6 +14,13 @@ pub use partial_return::*;
 pub use pkg_state::*;
 pub use return_value::*;
 
+use sspverif_smtlib::syntax::{
+    command::{Command, ConstructorDec, DatatypeDec, SelectorDec},
+    sort::Sort as SmtlibSort,
+    term::Term,
+    tokens::Symbol,
+};
+
 use crate::writers::smt::{
     declare::declare_datatype as base_declare_datatype,
     exprs::SmtExpr,
@@ -177,3 +184,58 @@ pub trait DatastructurePattern<'a> {
 pub struct DatastructureSpec<'a, P: DatastructurePattern<'a> + ?Sized>(
     pub Vec<(P::Constructor, Vec<P::Selector>)>,
 );
+
+pub trait Datatype {
+    type Constructor: Eq;
+    type Selector: Eq;
+
+    const CAMEL_CASE: &'static str;
+    const KEBAB_CASE: &'static str;
+
+    fn sort_symbol(&self) -> Symbol;
+    fn sort_par_sort_symbols(&self) -> Vec<Symbol>;
+
+    fn constructors(&self) -> impl Iterator<Item = Self::Constructor>;
+    fn selectors(&self, cons: &Self::Constructor) -> impl Iterator<Item = Self::Selector>;
+
+    fn constructor_symbol(&self, cons: &Self::Constructor) -> Symbol;
+
+    fn selector_symbol(&self, sel: &Self::Selector) -> Symbol;
+    fn selector_sort(&self, sel: &Self::Selector) -> SmtlibSort;
+
+    fn selector_dec(&self, sel: &Self::Selector) -> SelectorDec {
+        SelectorDec::new(self.selector_symbol(sel), self.selector_sort(sel))
+    }
+
+    fn constructor_dec(&self, cons: &Self::Constructor) -> ConstructorDec {
+        ConstructorDec::new(
+            self.constructor_symbol(cons),
+            self.selectors(cons).map(|sel| self.selector_dec(&sel)),
+        )
+    }
+
+    fn datatype_dec(&self) -> DatatypeDec {
+        DatatypeDec::new(
+            self.sort_par_sort_symbols(),
+            self.constructors().map(|con| self.constructor_dec(&con)),
+        )
+    }
+
+    fn command(&self) -> Command {
+        Command::DeclareDatatype(self.sort_symbol(), self.datatype_dec())
+    }
+
+    fn call_constructor(
+        &self,
+        cons: &Self::Constructor,
+        args: impl Fn(&Self::Selector) -> Option<Term>,
+    ) -> Option<Term> {
+        let args: Option<_> = self.selectors(cons).map(|sel| args(&sel)).collect();
+
+        Some(Term::Base(self.constructor_symbol(cons).into(), args?))
+    }
+
+    fn call_selector(&self, sel: &Self::Selector, term: impl Into<Term>) -> Term {
+        Term::Base(self.selector_symbol(sel).into(), vec![term.into()])
+    }
+}

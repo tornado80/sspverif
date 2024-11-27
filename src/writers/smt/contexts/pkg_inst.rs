@@ -1,3 +1,5 @@
+use sspverif_smtlib::syntax::term::Term;
+
 use crate::expressions::Expression;
 use crate::identifier::pkg_ident::{
     PackageConstIdentifier, PackageIdentifier, PackageStateIdentifier,
@@ -9,7 +11,9 @@ use crate::split::SplitPath;
 use crate::types::Type;
 use crate::writers::smt::partials::PartialsDatatype;
 use crate::writers::smt::patterns::pkg_consts::PackageConstsPattern;
-use crate::writers::smt::patterns::{PackageStateSelector, SmtDefineFun};
+use crate::writers::smt::patterns::{
+    Datatype as _, PackageStateDatatype, PackageStateSelector, SmtDefineFun,
+};
 use crate::writers::smt::{
     contexts::{GameInstanceContext, OracleContext, PackageInstanceContext, SplitOracleContext},
     exprs::SmtExpr,
@@ -25,8 +29,16 @@ impl<'a> PackageInstanceContext<'a> {
         self.game_ctx.game_inst
     }
 
+    pub(crate) fn game_inst_name(&self) -> &'a str {
+        self.game_inst().name()
+    }
+
     pub(crate) fn game(&self) -> &'a Composition {
         self.game_inst().game()
+    }
+
+    pub(crate) fn game_name(&self) -> &'a str {
+        self.game_inst().game_name()
     }
 
     pub(crate) fn oracle_contexts(self) -> impl Iterator<Item = OracleContext<'a>> {
@@ -172,6 +184,25 @@ impl<'a> PackageInstanceContext<'a> {
         Some(PackageStateSelector {
             name: field_name,
             ty: tipe,
+        })
+    }
+
+    pub(crate) fn smt_update_pkgstate_from_locals_new(&self) -> Option<Term> {
+        self.package_state_datatype().call_constructor(&(), |sel| {
+            let (name, ty, _) = &self.pkg().state[*sel];
+
+            Some(
+                Identifier::PackageIdentifier(PackageIdentifier::State(PackageStateIdentifier {
+                    pkg_name: self.pkg_name().to_string(),
+                    name: name.to_string(),
+                    tipe: ty.clone(),
+                    pkg_inst_name: Some(self.pkg_inst_name().to_string()),
+                    game_name: Some(self.game_name().to_string()),
+                    game_inst_name: Some(self.game_inst_name().to_string()),
+                    proof_name: None,
+                }))
+                .into(),
+            )
         })
     }
 

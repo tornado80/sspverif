@@ -888,7 +888,7 @@ impl<'a> EquivalenceContext<'a> {
 
         let mut dependencies_code: Vec<SmtExpr> = vec![
             randomness_mapping.into(),
-            build_invariant_old_call(&format!("invariant-{oracle_name}")),
+            build_invariant_old_call("invariant"),
         ];
 
         for dep in dep_calls {
@@ -1092,7 +1092,7 @@ impl<'a> EquivalenceContext<'a> {
 
         let mut dependencies_code: Vec<SmtExpr> = vec![
             randomness_mapping.into(),
-            build_invariant_old_call(&format!("invariant-{oracle_name}")),
+            build_invariant_old_call("invariant"),
         ];
 
         for dep in dep_calls {

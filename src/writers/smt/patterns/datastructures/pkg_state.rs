@@ -3,10 +3,14 @@ use crate::{
     identifier::pkg_ident::PackageConstIdentifier,
     package::Package,
     types::Type,
-    writers::smt::patterns::instance_names::{encode_params, only_non_function_expression},
+    writers::smt::{
+        contexts::PackageInstanceContext,
+        names,
+        patterns::instance_names::{encode_params, only_non_function_expression},
+    },
 };
 
-use super::{DatastructurePattern, DatastructureSpec};
+use super::{DatastructurePattern, DatastructureSpec, Datatype};
 
 pub struct PackageStatePattern<'a> {
     pub pkg_name: &'a str,
@@ -19,14 +23,78 @@ pub struct PackageStateSelector<'a> {
     pub ty: &'a Type,
 }
 
+pub(crate) struct PackageStateDatatype<'a>(PackageInstanceContext<'a>);
+
+impl<'a> PackageInstanceContext<'a> {
+    pub(crate) fn package_state_datatype(self) -> PackageStateDatatype<'a> {
+        PackageStateDatatype(self)
+    }
+}
+
+impl<'a> Datatype for PackageStateDatatype<'a> {
+    type Constructor = ();
+
+    type Selector = usize;
+
+    const CAMEL_CASE: &'static str = "PackageState";
+
+    const KEBAB_CASE: &'static str = "pkg-state";
+
+    fn sort_symbol(&self) -> sspverif_smtlib::syntax::tokens::Symbol {
+        let encoded_params = encode_params(only_non_function_expression(self.0.pkg_params()));
+
+        names::concat_camel_case(&[Self::CAMEL_CASE, self.0.pkg_name(), &encoded_params]).into()
+    }
+
+    fn sort_par_sort_symbols(&self) -> Vec<sspverif_smtlib::syntax::tokens::Symbol> {
+        vec![]
+    }
+
+    fn constructors(&self) -> impl Iterator<Item = Self::Constructor> {
+        Some(()).into_iter()
+    }
+
+    fn selectors(&self, _con: &Self::Constructor) -> impl Iterator<Item = Self::Selector> {
+        0..self.0.pkg().state.len()
+    }
+
+    fn constructor_symbol(
+        &self,
+        _cons: &Self::Constructor,
+    ) -> sspverif_smtlib::syntax::tokens::Symbol {
+        let encoded_params = encode_params(only_non_function_expression(self.0.pkg_params()));
+
+        names::concat_kebab_case(&["mk", Self::KEBAB_CASE, self.0.pkg_name(), &encoded_params])
+            .into()
+    }
+
+    fn selector_symbol(&self, sel: &Self::Selector) -> sspverif_smtlib::syntax::tokens::Symbol {
+        let (param_name, _, _) = &self.0.pkg().state[*sel];
+        let encoded_params = encode_params(only_non_function_expression(self.0.pkg_params()));
+
+        names::concat_kebab_case(&[
+            Self::KEBAB_CASE,
+            self.0.pkg_name(),
+            &encoded_params,
+            param_name,
+        ])
+        .into()
+    }
+
+    fn selector_sort(&self, sel: &Self::Selector) -> sspverif_smtlib::syntax::sort::Sort {
+        let (_, ty, _) = &self.0.pkg().state[*sel];
+        ty.into()
+    }
+}
+
 impl<'a> DatastructurePattern<'a> for PackageStatePattern<'a> {
     type Constructor = ();
     type Selector = PackageStateSelector<'a>;
     type DeclareInfo = Package;
 
-    const CAMEL_CASE: &'static str = "State";
+    const CAMEL_CASE: &'static str = "PackageState";
 
-    const KEBAB_CASE: &'static str = "state";
+    const KEBAB_CASE: &'static str = "pkg-state";
 
     fn sort_name(&self) -> String {
         let camel_case = Self::CAMEL_CASE;

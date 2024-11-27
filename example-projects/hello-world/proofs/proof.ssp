@@ -31,7 +31,7 @@ proof Proof {
 
     gamehops {
         equivalence medium_composition small_composition {
-            Oracle: {
+            UsefulOracle: {
                 invariant: [
                     ./proofs/invariant.smt2
                 ]

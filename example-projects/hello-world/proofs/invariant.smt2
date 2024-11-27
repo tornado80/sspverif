@@ -11,17 +11,16 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define-fun randomness-mapping-UsefulOracle
-  ( (ctr-0 Int)
-    (ctr-1 Int)
+  ( (base-ctr-0 Int)
+    (base-ctr-1 Int)
     (id-0  Int)
     (id-1  Int)
-    (icr-0 Int)
-    (icr-1 Int))
+    (scr-0 Int)
+    (scr-1 Int))
   Bool
   (and
-    (= ctr-0 ctr-1)
-    (= ctr-0 icr-1)
-    (= ctr-0 icr-1)
+    (= scr-1 base-ctr-1)
+    (= scr-0 base-ctr-0)
     (= id-0      0)
     (= id-1      0)))
 
@@ -33,21 +32,13 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define-fun invariant
-  ( (state-0  <GameState_SmallComposition_<$<!n!>$>>)
-    (state-1  <GameState_MediumComposition_<$<!n!>$>>))
+  ( (state-1  <GameState_MediumComposition_<$<!n!>$>>)
+    (state-0  <GameState_SmallComposition_<$<!n!>$>>))
   Bool
   (let
     ; getting ctr out of state
-    ( (ctr-0 (<state-Rand-<$<!n!>$>-ctr> (<game-SmallComposition-<$<!n!>$>-pkgstate-rand> state-0)))
-      (ctr-1 (<state-Rand-<$<!n!>$>-ctr> (<game-MediumComposition-<$<!n!>$>-pkgstate-rand> state-1))))
+    ( (ctr-0 (<pkg-state-Rand-<$<!n!>$>-ctr> (<game-SmallComposition-<$<!n!>$>-pkgstate-rand> state-0)))
+      (ctr-1 (<pkg-state-Rand-<$<!n!>$>-ctr> (<game-MediumComposition-<$<!n!>$>-pkgstate-rand> state-1))))
 
     ; ctr are equal
     (= ctr-0 ctr-1)))
-
-;;;; Chris: This function should not exist?
-;
-;(define-fun invariant-Oracle
-;  ( (state-0  <GameState_SmallComposition_<$<!n!>$>>)
-;    (state-1  <GameState_MediumComposition_<$<!n!>$>>))
-;  Bool
-;  (invariant state-0 state-1))

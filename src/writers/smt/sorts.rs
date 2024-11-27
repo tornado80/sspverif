@@ -2,7 +2,6 @@ use crate::types::Type;
 
 use super::exprs::SmtExpr;
 
-use sspverif_smtlib::syntax::identifier::Identifier as SmtlibIdentifier;
 use sspverif_smtlib::syntax::sort::Sort as SmtlibSort;
 use sspverif_smtlib::theories;
 
@@ -25,8 +24,8 @@ impl From<Sort> for SmtlibSort {
     }
 }
 
-impl From<Type> for SmtlibSort {
-    fn from(ty: Type) -> Self {
+impl From<&Type> for SmtlibSort {
+    fn from(ty: &Type) -> Self {
         match ty {
             Type::Integer => theories::ints::int(),
             Type::String => "String".into(),
@@ -34,16 +33,19 @@ impl From<Type> for SmtlibSort {
             Type::Bits(name) => format!("Bits_{name}").into(),
             Type::Table(ty_idx, ty_val) => SmtlibSort {
                 name: "Array".into(),
-                parameters: vec![(*ty_idx).into(), Type::Maybe(ty_val).into()],
+                parameters: vec![
+                    (**ty_idx).clone().into(),
+                    Type::Maybe((*ty_val).clone()).into(),
+                ],
             },
             Type::Maybe(ty) => SmtlibSort {
                 name: "Maybe".into(),
-                parameters: vec![(*ty).into()],
+                parameters: vec![(**ty).clone().into()],
             },
 
             Type::Tuple(tys) => SmtlibSort {
                 name: format!("Tuple{}", tys.len()).into(),
-                parameters: tys.into_iter().map(|ty| ty.into()).collect(),
+                parameters: tys.iter().map(|ty| ty.into()).collect(),
             },
 
             Type::UserDefined(_) => todo!(),
@@ -55,6 +57,12 @@ impl From<Type> for SmtlibSort {
             Type::Empty => todo!(),
             Type::Unknown => todo!(),
         }
+    }
+}
+
+impl From<Type> for SmtlibSort {
+    fn from(value: Type) -> Self {
+        (&value).into()
     }
 }
 

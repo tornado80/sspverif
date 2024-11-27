@@ -211,7 +211,7 @@ fn test_state_datatypes_remap_consts() {
 
     assert_eq!(
         pkg_state_pattern.constructor_name(&()),
-        "<mk-state-PRF-<$<!n!>$>>"
+        "<mk-package-state-PRF-<$<!n!>$>>"
     );
 
     // check key package instance
@@ -245,7 +245,7 @@ fn test_state_datatypes_remap_consts() {
 
     assert_eq!(
         pkg_state_pattern.constructor_name(&()),
-        "<mk-state-KeyReal-<$<!n!>$>>"
+        "<mk-package-state-KeyReal-<$<!n!>$>>"
     );
 
     println!("{}", declare_datatype(&pkg_state_pattern, &pkg_state_spec));
