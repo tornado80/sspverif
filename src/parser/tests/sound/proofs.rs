@@ -1,7 +1,7 @@
 use crate::parser::{
     error::{
         AssumptionExportsNotSufficientError, AssumptionMappingContainsDifferentPackagesError,
-        ReductionPackageInstanceParameterMismatchError,
+        ReductionPackageInstanceParameterMismatchError, InconsistentReductions
     },
     proof::ParseProofError,
     tests::{games, packages, proofs, slice_source_span},
@@ -325,6 +325,59 @@ fn fail_reduction_non_matching_package_fail() {
     let report = miette::Report::new(err);
     println!("the error prints like this:\n{:?}", report)
 }
+
+
+
+
+#[test]
+fn fail_reduction_changes_fail() {
+    let pkgs = packages::parse_files(&[
+        "Enc.pkg.ssp",
+        "Encnocall.pkg.ssp",
+        "KeyIdeal.pkg.ssp",
+        "KeyReal.pkg.ssp",
+        "PRF.pkg.ssp",
+    ]);
+
+    let games = games::parse_files(
+        &[
+            "AssumptionIdeal.comp.ssp",
+            "AssumptionReal.comp.ssp",
+            "ConstructionRealMoreBadWiring.comp.ssp",
+            "ConstructionIdeal.comp.ssp",
+        ],
+        &pkgs,
+    );
+
+    let err = proofs::parse_file_fails(
+        "reduction-changes-should-fail.ssp",
+        &pkgs,
+        &games,
+    );
+
+//    let ParseProofError::InconsistentReductions(
+//        InconsistentReductions {
+//            construction_pkg_inst_name,
+//
+//            construction_pkg_name
+//        },
+//    ) = &err
+//    else {
+        panic!("expected a different error. got {}", err)
+//    };
+//
+//    assert_eq!(construction_pkg_inst_name, "key");
+//    assert_eq!(construction_pkg_name, "KeyIdeal");
+
+//    let report = miette::Report::new(err);
+//    println!("the error prints like this:\n{:?}", report)
+}
+
+
+
+
+
+
 
 #[test]
 fn fail_wrong_params_in_reduction_should_fail() {

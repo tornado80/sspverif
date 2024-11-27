@@ -464,6 +464,20 @@ pub struct AssumptionMappingMissesPackageInstanceError {
 }
 
 #[derive(Debug, Diagnostic, Error)]
+#[error("The edge {pkg_inst_name} exists in game X but not in game Y, yielding an inconsistent reduction")]
+#[diagnostic(code(ssbee::code::proof::reduction::mapping::duplicate_package_instance))]
+pub struct InconsistentReductions {
+    #[source_code]
+    pub source_code: miette::NamedSource<String>,
+
+    #[label("in this mapping")]
+    pub at: SourceSpan,
+
+    pub pkg_inst_name: String,
+}
+
+
+#[derive(Debug, Diagnostic, Error)]
 #[error("The construction package instance `{construction_pkg_inst_name}` has an incoming edge with oracle `{oracle_name}`, but the mapped assumption package instance `{assumption_pkg_inst_name}` doesn't")]
 #[diagnostic(code(ssbee::code::proof::reduction::mapping::assumption_exports_insufficient))]
 pub struct AssumptionExportsNotSufficientError {
