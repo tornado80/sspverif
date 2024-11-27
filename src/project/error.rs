@@ -7,6 +7,8 @@ use thiserror::Error;
 pub enum Error {
     #[error("error showing equivalence: {0}")]
     EquivalenceError(#[from] crate::gamehops::equivalence::error::Error),
+    #[error("error showing reduction: {0}")]
+    ReductionError(#[from] crate::gamehops::reduction::ReductionError),
     #[error("consistency check failed with {0}")]
     ProofCheck(String),
     #[error("io error: {0}")]

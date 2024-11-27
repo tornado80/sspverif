@@ -558,9 +558,13 @@ fn handle_reduction_body(
 
     let map1_ast = ast.next().unwrap();
     let map2_ast = ast.next().unwrap();
+    let map3_ast = ast.next().unwrap();
 
-    let mapping1 = handle_mapspec(ctx, map1_ast, &assumption)?;
-    let mapping2 = handle_mapspec(ctx, map2_ast, &assumption)?;
+    let mapping1 = handle_mapspec_assumption(ctx, map1_ast, &assumption)?;
+    let mapping2 = handle_mapspec_assumption(ctx, map2_ast, &assumption)?;
+
+    // TODO: implement reduction mapspec and do third check in there
+    //let mapping3 = handle_mapspec_reduction(ctx, map3_ast, &mapping1, &mapping2)?;
 
     if mapping1.as_game_inst_name() == mapping2.as_game_inst_name() {
         panic!();
@@ -648,7 +652,7 @@ fn handle_reduction_body(
     Ok(reduction)
 }
 
-fn handle_mapspec(
+fn handle_mapspec_assumption(
     ctx: &mut ParseProofContext,
     ast: Pair<Rule>,
     assumption: &Assumption,
@@ -896,119 +900,79 @@ fn handle_mapspec(
         }
     }
 
-    // check that packages that are mapped only call packages that are also mapped
-
-    let bigger_game = construction_game_inst.game();
-    for Edge(from, to, _sig) in &bigger_game.edges {
-        let from_name = &bigger_game.pkgs[*from].name;
-        let to_name = &bigger_game.pkgs[*to].name;
-        if construction_game_pkg_inst_names.contains_key(from_name)
-            && !construction_game_pkg_inst_names.contains_key(to_name)
-        {
-            todo!("write error message that mapping isn't a clean cut and mapped packages call unmapped packages")
-        }
-    }
-
-    // check that if an oracle can be called by adversary or reduction in the construction game,
-    // then it must be exported in the assumption game.
-    // specifically, check that
-    // for all mapped construction packa or goes to the adversaryge instances mapped_pkg_inst
-    //   for every incoming export into mapped_pkg_inst
-    //     require that the oracle at the edge is exported.
-    //   for every incoming edge e into mapped_pkg_inst
-    //     if e.src is not maapped
-    //       require that the oracle at the edge is exported.
-    //
-    // said differently,
-    // for all edges `(from, to, osig)` in the construction game
-    //   if `to` is mapped to `assumption_to` and `from` isn't
-    //     require that in the assumption game, there is an export `(assumption_to, osig)`
-    // for all exports `(to, osig)` in the construction game
-    //   if `to` is mapped to `assumption_to`
-    //     require that in the assumption game, there is an export `(assumption_to, osig)`
-    //
-    for Edge(src, dst, osig) in &construction_game_inst.game().edges {
-        let src_is_mapped = pkg_offset_mapping
+    // assumption wires: check that the assumption subgraph of the
+    // bigger game is wired just like the assumption game graph
+    for (construction_game_pkg_inst_offs, assumption_game_pkg_inst_offs) in &pkg_offset_mapping {
+        let construction_game_assumptionpart_edges = construction_game_inst
+            .game()
+            .edges
             .iter()
-            .any(|(_, constr_src)| constr_src == src);
-        let dst_mapping =
-            pkg_offset_mapping
-                .iter()
-                .find_map(|(assumption_dst, construction_dst)| {
-                    if dst == construction_dst {
-                        Some(*assumption_dst)
-                    } else {
-                        None
-                    }
-                });
+            .filter(|edge| edge.0 == *construction_game_pkg_inst_offs);
 
-        if let Some(assumption_dst) = dst_mapping {
-            let export_exists =
+        // edge exists in construction => edge exists in assumption
+        for construction_edge in construction_game_assumptionpart_edges {
+            let (_, assumption_game_to) = pkg_offset_mapping
+                .iter()
+                .find(|(constr, _)| *constr == construction_edge.1)
+                .unwrap();
+
+            let edge_exists_in_assumption =
                 assumption_game_inst
                     .game()
-                    .exports
+                    .edges
                     .iter()
-                    .any(|Export(found_dst, found_osig)| {
-                        *found_dst == assumption_dst && found_osig == osig
+                    .any(|assumption_game_edge| {
+                        assumption_game_edge.0 == *assumption_game_pkg_inst_offs
+                            && assumption_game_edge.1 == *assumption_game_to
                     });
 
-            if !src_is_mapped && !export_exists {
-                let assumption_dst_name = &assumption_game_inst.game().pkgs[assumption_dst].name;
-                let (assumption_ast, construction_ast) = mappings
+            if !edge_exists_in_assumption {
+                panic!("assumption wires")
+            }
+        }
+
+        // edge exists in assumption => edge exists in construction
+        for assumption_edge in &assumption_game_inst.game().edges {
+            let (construction_game_to, _) = pkg_offset_mapping
+                .iter()
+                .find(|(_, assumpt)| *assumpt == assumption_edge.1)
+                .unwrap();
+
+            let edge_exists_in_construction =
+                construction_game_inst
+                    .game()
+                    .edges
                     .iter()
-                    .find(|pair| pair.0.as_str() == assumption_dst_name)
-                    .unwrap();
+                    .any(|construction_game_edge| {
+                        construction_game_edge.0 == *construction_game_pkg_inst_offs
+                            && construction_game_edge.1 == *construction_game_to
+                    });
 
-                let assumption_span = assumption_ast.as_span();
-                let assumption_at = (assumption_span.start()..assumption_span.end()).into();
-
-                let construction_span = construction_ast.as_span();
-                let construction_at = (construction_span.start()..construction_span.end()).into();
-
-                let assumption_pkg_inst_name = assumption_game_inst.game().pkgs[assumption_dst]
-                    .name
-                    .clone();
-                let construction_pkg_inst_name =
-                    construction_game_inst.game().pkgs[*dst].name.clone();
-                let oracle_name = osig.name.clone();
-
-                return Err(AssumptionExportsNotSufficientError {
-                    source_code: ctx.named_source(),
-                    assumption_at,
-                    construction_at,
-                    assumption_pkg_inst_name,
-                    construction_pkg_inst_name,
-                    oracle_name,
-                }
-                .into());
+            if !edge_exists_in_construction {
+                panic!("assumption wires")
             }
         }
     }
 
-    for Export(dst, osig) in &construction_game_inst.game().exports {
-        let dst_mapping =
-            pkg_offset_mapping
+    // cross-cut wires: check that all wires from the reduction subgraph into
+    // the assumption subgraph point to oracles which the assumption game exports
+    for Edge(constr_src, constr_dst, constr_sig) in &construction_game_inst.game().edges {
+        if let Some((_, assump_dst)) = pkg_offset_mapping
+            .iter()
+            .find(|(constr, _)| *constr == *constr_dst)
+        {
+            let src_is_in_reduction_part = pkg_offset_mapping
                 .iter()
-                .find_map(|(assumption_dst, construction_dst)| {
-                    if dst == construction_dst {
-                        Some(*assumption_dst)
-                    } else {
-                        None
-                    }
-                });
+                .all(|(constr, _)| *constr != *constr_src);
 
-        if let Some(assumption_dst) = dst_mapping {
-            let export_exists =
-                assumption_game_inst
-                    .game()
-                    .exports
-                    .iter()
-                    .any(|Export(found_dst, found_osig)| {
-                        *found_dst == assumption_dst && found_osig == osig
-                    });
+            let dst_in_assumption_game_is_exported = assumption_game_inst
+                .game()
+                .exports
+                .iter()
+                .any(|export| export.0 == *assump_dst);
 
-            if !export_exists {
-                let assumption_dst_name = &assumption_game_inst.game().pkgs[assumption_dst].name;
+            if src_is_in_reduction_part && !dst_in_assumption_game_is_exported {
+                let assumption_dst_name = &assumption_game_inst.game().pkgs[*assump_dst].name;
                 let (assumption_ast, construction_ast) = mappings
                     .iter()
                     .find(|pair| pair.0.as_str() == assumption_dst_name)
@@ -1020,12 +984,11 @@ fn handle_mapspec(
                 let construction_span = construction_ast.as_span();
                 let construction_at = (construction_span.start()..construction_span.end()).into();
 
-                let assumption_pkg_inst_name = assumption_game_inst.game().pkgs[assumption_dst]
-                    .name
-                    .clone();
+                let assumption_pkg_inst_name =
+                    assumption_game_inst.game().pkgs[*assump_dst].name.clone();
                 let construction_pkg_inst_name =
-                    construction_game_inst.game().pkgs[*dst].name.clone();
-                let oracle_name = osig.name.clone();
+                    construction_game_inst.game().pkgs[*constr_src].name.clone();
+                let oracle_name = constr_sig.name.clone();
 
                 return Err(AssumptionExportsNotSufficientError {
                     source_code: ctx.named_source(),
