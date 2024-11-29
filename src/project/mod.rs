@@ -231,7 +231,7 @@ impl<'a> Project<'a> {
             let proof = &self.proofs[proof_key];
             for (i, game_hop) in proof.game_hops().iter().enumerate() {
                 match game_hop {
-                    GameHop::Reduction(red) => reduction::verify(red, proof)?,
+                    GameHop::Reduction(_) => { /* the reduction has been verified at parse time */ }
                     GameHop::Equivalence(eq) => {
                         let transcript_file: std::fs::File;
                         let prover = if transcript {

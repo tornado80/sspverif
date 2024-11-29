@@ -139,7 +139,3 @@ impl<'a> NewReduction<'a> {
 
 #[derive(Debug, Error, Diagnostic)]
 pub enum ReductionError {}
-
-pub fn verify(_red: &NewReduction, _proof: &Proof) -> Result<(), ReductionError> {
-    Ok(())
-}
