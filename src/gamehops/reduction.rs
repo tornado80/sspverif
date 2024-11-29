@@ -1,7 +1,4 @@
-use miette::Diagnostic;
-use thiserror::Error;
-
-use crate::proof::Proof;
+use crate::{project::error::Result, proof::Proof};
 
 /*
 approach:
@@ -103,9 +100,6 @@ impl Reduction {
     }
 }
 
-#[derive(Debug, Error, Diagnostic)]
-pub enum ReductionError {}
-
-pub fn verify(_red: &Reduction, _proof: &Proof) -> Result<(), ReductionError> {
+pub fn verify(_red: &Reduction, _proof: &Proof) -> Result<()> {
     todo!()
 }

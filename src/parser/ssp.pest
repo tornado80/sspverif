@@ -43,7 +43,7 @@ proof_spec_list = { const_decl* ~ instance_decl* ~ assumptions? ~ game_hops }
   game_hops = { kw_gamehops ~ "{" ~ ( reduction | equivalence )* ~ "}"}
 
     reduction = { kw_reduction ~ identifier ~ identifier ~ "{" ~ reduction_spec ~ "}"}
-      reduction_spec = { assumption_spec ~ map_spec ~ map_spec ~ map_spec }
+      reduction_spec = { assumption_spec ~ map_spec ~ map_spec }
         assumption_spec = { kw_assumption ~ identifier }
         map_spec = { kw_map ~ identifier ~ identifier ~ map_spec_block }
         map_spec_block = { "{" ~ ( identifier ~ ":" ~ identifier )* ~ "}" }
