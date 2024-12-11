@@ -36,19 +36,9 @@ proof WHSProto {
         }
     }
 
-    instance KX_0 = KX {
+    instance KX = KX {
         params {
-            b       : true ,
-            n       : n    ,
-            zeron   : zeron,
-  	        prf     : prf  ,
-            mac     : mac  ,
-        }
-    }
-
-    instance KX_1 = KX {
-        params {
-            b       : true,
+            b       : b ,
             n       : n    ,
             zeron   : zeron,
   	        prf     : prf  ,
@@ -78,6 +68,57 @@ proof WHSProto {
         }
     }
 
+    instance H1 = H1 {
+        params {
+        b: b,
+        n: n,
+        zeron: zeron,
+        prf: prf,
+        mac: mac,
+        }
+    }
+
+    instance H1_Red_0 = H1_Red {
+        params {
+        b: b,
+        n: n,
+        zeron: zeron,
+        prf: prf,
+        mac: mac,
+        bprf: false,
+        }
+    }
+
+    instance H1_Red_1 = H1_Red {
+        params {
+        b: b,
+        n: n,
+        zeron: zeron,
+        prf: prf,
+        mac: mac,
+        bprf: true,
+        }
+    }
+
+        instance H2_0 = H2 {
+        params {
+        b: false,
+        n: n,
+        zeron: zeron,
+        prf: prf,
+        mac: mac,
+        }
+    }
+
+        instance H2_1 = H2 {
+        params {
+        b: true,
+        n: n,
+        zeron: zeron,
+        prf: prf,
+        mac: mac,
+        }
+    }
 
 
     assumptions {
@@ -99,5 +140,19 @@ proof WHSProto {
                 nonces    : Nonces
             }
         }
+
+        reduction H1_Red_0 H1_Red_1  
+        {
+            assumption prf
+
+            map PRFreal H1_Red_0  {
+                PRF    : PRF
+            }
+
+            map PRFideal H1_Red_1 {
+                PRF    : PRF
+            }
+        }
+
     }
 }

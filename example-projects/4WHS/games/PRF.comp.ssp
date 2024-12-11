@@ -3,7 +3,7 @@ composition PRF {
     const prf: fn Bits(n), Integer, Integer, Bits(n), Bits(n), Bool ->  Bits(n);
     const b: Bool;
     
-    instance prf = PRF {
+    instance PRF = PRF {
         params {
             n:   n,
           prf:   prf,
@@ -13,8 +13,8 @@ composition PRF {
 
     compose {
         adversary: {
-            NewKey: prf,
-            Eval: prf,
+            NewKey: PRF,
+            Eval: PRF,
         },
     }
 }
