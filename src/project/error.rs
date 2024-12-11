@@ -13,6 +13,10 @@ pub enum Error {
     IOError(#[from] IOError),
     #[error("package {0} defined in both {1} and {2}")]
     RedefinedPackage(String, String, String),
+    #[error("game {0} defined in both {1} and {2}")]
+    RedefinedGame(String, String, String),
+    #[error("proof {0} defined in both {1} and {2}")]
+    RedefinedProof(String, String, String),
     #[error("error parsing utf-8: {0}")]
     FromUtf8Error(#[from] std::string::FromUtf8Error),
     #[error("error in interaction with child process: {0}")]

@@ -47,6 +47,7 @@ use super::{
         AssumptionMappingParameterMismatchError,
         AssumptionMappingRightGameInstanceIsFromAssumption, DuplicateGameParameterDefinitionError,
         MissingGameParameterDefinitionError, NoSuchGameParameterError, NoSuchTypeError,
+        ReductionInconsistentAssumptionBoundaryError,
         ReductionPackageInstanceParameterMismatchError, UndefinedAssumptionError,
         UndefinedGameError, UndefinedGameInstanceError, UndefinedPackageInstanceError,
     },
@@ -63,23 +64,16 @@ pub(crate) struct ParseProofContext<'a> {
     pub types: Vec<String>,
 
     pub proof_name: &'a str,
-    pub packages: &'a HashMap<String, Package>,
-    pub games: &'a HashMap<String, Composition>,
 
     pub consts: HashMap<String, Type>,
     pub instances: Vec<GameInstance>,
     pub instances_table: HashMap<String, (usize, GameInstance)>,
     pub assumptions: Vec<Assumption>,
-    pub game_hops: Vec<GameHop>,
+    pub game_hops: Vec<GameHop<'a>>,
 }
 
 impl<'a> ParseContext<'a> {
-    fn proof_context(
-        self,
-        proof_name: &'a str,
-        packages: &'a HashMap<String, Package>,
-        games: &'a HashMap<String, Composition>,
-    ) -> ParseProofContext<'a> {
+    fn proof_context(self, proof_name: &'a str) -> ParseProofContext<'a> {
         let Self {
             file_name,
             file_content,
@@ -91,8 +85,6 @@ impl<'a> ParseContext<'a> {
             file_name,
             file_content,
             proof_name,
-            packages,
-            games,
 
             scope,
 
@@ -123,26 +115,6 @@ impl<'a> ParseProofContext<'a> {
 }
 
 impl<'a> ParseProofContext<'a> {
-    fn into_proof(self) -> Proof {
-        let Self {
-            proof_name,
-            packages,
-            consts,
-            instances,
-            assumptions,
-            game_hops,
-            ..
-        } = self;
-
-        Proof {
-            name: proof_name.to_string(),
-            consts: consts.into_iter().collect(),
-            instances,
-            assumptions,
-            game_hops,
-            pkgs: packages.values().cloned().collect(),
-        }
-    }
     fn declare(&mut self, name: &str, clone: Declaration) -> Result<(), ScopeError> {
         self.scope.declare(name, clone)
     }
@@ -155,7 +127,7 @@ impl<'a> ParseProofContext<'a> {
             .insert(game_inst.name().to_string(), (offset, game_inst));
     }
 
-    fn get_game_instance(&self, name: &str) -> Option<(usize, &GameInstance)> {
+    pub(crate) fn get_game_instance(&self, name: &str) -> Option<(usize, &GameInstance)> {
         self.instances_table
             .get(name)
             .map(|(offset, game_inst)| (*offset, game_inst))
@@ -243,6 +215,10 @@ pub enum ParseProofError {
 
     #[diagnostic(transparent)]
     #[error(transparent)]
+    ReductionInconsistentAssumptionBoundary(#[from] ReductionInconsistentAssumptionBoundaryError),
+
+    #[diagnostic(transparent)]
+    #[error(transparent)]
     ReductionPackageInstanceParameterMismatch(
         #[from] ReductionPackageInstanceParameterMismatchError,
     ),
@@ -252,19 +228,19 @@ pub enum ParseProofError {
     AssumptionExportsNotSufficient(#[from] AssumptionExportsNotSufficientError),
 }
 
-pub fn handle_proof(
-    file_name: &str,
-    file_content: &str,
-    ast: Pair<Rule>,
-    pkgs: &HashMap<String, Package>,
-    games: &HashMap<String, Composition>,
-) -> Result<Proof, ParseProofError> {
+pub fn handle_proof<'a>(
+    file_name: &'a str,
+    file_content: &'a str,
+    ast: Pair<'a, Rule>,
+    pkgs: HashMap<String, Package>,
+    games: HashMap<String, Composition>,
+) -> Result<Proof<'a>, ParseProofError> {
     let mut iter = ast.into_inner();
     let proof_name = iter.next().unwrap().as_str();
     let proof_ast = iter.next().unwrap();
 
     let ctx = ParseContext::new(file_name, file_content);
-    let mut ctx = ctx.proof_context(proof_name, pkgs, games);
+    let mut ctx = ctx.proof_context(proof_name);
     ctx.scope.enter();
 
     for ast in proof_ast.into_inner() {
@@ -289,18 +265,35 @@ pub fn handle_proof(
                 handle_game_hops(&mut ctx, ast.into_inner())?;
             }
             Rule::instance_decl => {
-                handle_instance_decl(&mut ctx, ast)?;
+                handle_instance_decl(&mut ctx, ast, &games)?;
             }
             otherwise => unreachable!("found {:?} in proof", otherwise),
         }
     }
 
-    Ok(ctx.into_proof())
+    let ParseProofContext {
+        proof_name,
+        consts,
+        instances,
+        assumptions,
+        game_hops,
+        ..
+    } = ctx;
+
+    Ok(Proof {
+        name: proof_name.to_string(),
+        consts: consts.into_iter().collect(),
+        instances,
+        assumptions,
+        game_hops,
+        pkgs: pkgs.into_values().collect(),
+    })
 }
 
-fn handle_instance_decl(
-    ctx: &mut ParseProofContext,
-    ast: Pair<Rule>,
+fn handle_instance_decl<'a>(
+    ctx: &mut ParseProofContext<'a>,
+    ast: Pair<'a, Rule>,
+    games: &HashMap<String, Composition>,
 ) -> Result<(), ParseProofError> {
     let mut ast = ast.into_inner();
 
@@ -310,7 +303,7 @@ fn handle_instance_decl(
     let game_name = game_name_ast.as_str();
     let body_ast = ast.next().unwrap();
 
-    let game = ctx.games.get(game_name).ok_or(UndefinedGameError {
+    let game = games.get(game_name).ok_or(UndefinedGameError {
         source_code: ctx.named_source(),
         at: (game_name_span.start()..game_name_span.end()).into(),
         game_name: game_name.to_string(),
@@ -323,8 +316,8 @@ fn handle_instance_decl(
         .map(|(ident, expr)| (ident.clone(), expr.clone()))
         .collect();
 
-    println!("printing constant assignment in the parser:");
-    println!("  {consts_as_ident:#?}");
+    // println!("printing constant assignment in the parser:");
+    // println!("  {consts_as_ident:#?}");
 
     let game_inst = GameInstance::new(
         game_inst_name,
@@ -420,11 +413,14 @@ fn handle_assumptions(
     Ok(())
 }
 
-fn handle_game_hops(ctx: &mut ParseProofContext, ast: Pairs<Rule>) -> Result<(), ParseProofError> {
+fn handle_game_hops<'a>(
+    ctx: &mut ParseProofContext<'a>,
+    ast: Pairs<'a, Rule>,
+) -> Result<(), ParseProofError> {
     for hop_ast in ast {
         let game_hop = match hop_ast.as_rule() {
             Rule::equivalence => handle_equivalence(ctx, hop_ast)?,
-            Rule::reduction => handle_reduction(ctx, hop_ast)?,
+            Rule::reduction => super::reduction::handle_reduction(ctx, hop_ast)?,
             otherwise => unreachable!("found {:?} in game_hops", otherwise),
         };
         ctx.game_hops.extend(game_hop)
@@ -433,10 +429,10 @@ fn handle_game_hops(ctx: &mut ParseProofContext, ast: Pairs<Rule>) -> Result<(),
     Ok(())
 }
 
-fn handle_equivalence(
+fn handle_equivalence<'a>(
     ctx: &mut ParseProofContext,
-    ast: Pair<Rule>,
-) -> Result<Vec<GameHop>, ParseProofError> {
+    ast: Pair<'a, Rule>,
+) -> Result<Vec<GameHop<'a>>, ParseProofError> {
     let mut ast = ast.into_inner();
     let ((left_name, left_name_span), (right_name, right_name_span)) = handle_string_pair(&mut ast);
 
@@ -516,541 +512,6 @@ fn handle_lemma_line(ast: Pair<Rule>) -> (String, Vec<String>) {
     (name, deps)
 }
 
-fn handle_reduction(
-    ctx: &mut ParseProofContext,
-    ast: Pair<Rule>,
-) -> Result<Vec<GameHop>, ParseProofError> {
-    let mut ast = ast.into_inner();
-
-    let left_name_ast = ast.next().unwrap();
-    let right_name_ast = ast.next().unwrap();
-    let body_ast = ast.next().unwrap();
-
-    let reduction = handle_reduction_body(ctx, left_name_ast, right_name_ast, body_ast)?;
-
-    Ok(vec![GameHop::Reduction(reduction)])
-}
-
-fn handle_reduction_body(
-    ctx: &mut ParseProofContext,
-    left_name: Pair<Rule>,
-    _right_name: Pair<Rule>,
-    body: Pair<Rule>,
-) -> Result<Reduction, ParseProofError> {
-    let reduction_span = body.as_span();
-    let mut ast = body.into_inner();
-    let assumptions_spec_ast = ast.next().unwrap();
-    let assumptions_name_ast = assumptions_spec_ast.into_inner().next().unwrap();
-    let assumptions_name_span = assumptions_name_ast.as_span();
-    let assumption_name = assumptions_name_ast.as_str();
-
-    // check that assumption_name turns up in the assumptions list
-    // and fetch the assumption definition
-    let assumption_resolver = SliceResolver(&ctx.assumptions);
-    let assumption = assumption_resolver
-        .resolve_value(assumption_name)
-        .ok_or(UndefinedAssumptionError {
-            source_code: ctx.named_source(),
-            at: (assumptions_name_span.start()..assumptions_name_span.end()).into(),
-            assumption_name: assumption_name.to_string(),
-        })?
-        .clone();
-
-    let map1_ast = ast.next().unwrap();
-    let map2_ast = ast.next().unwrap();
-
-    let mapping1 = handle_mapspec(ctx, map1_ast, &assumption)?;
-    let mapping2 = handle_mapspec(ctx, map2_ast, &assumption)?;
-
-    if mapping1.as_game_inst_name() == mapping2.as_game_inst_name() {
-        panic!();
-        // TODO reutrn err
-    }
-
-    if mapping1.as_assumption_game_inst_name() == mapping2.as_assumption_game_inst_name() {
-        panic!();
-        // TODO reutrn err
-    }
-
-    let (_, left_game_inst) = ctx.get_game_instance(mapping1.as_game_inst_name()).unwrap();
-    let (_, right_game_inst) = ctx.get_game_instance(mapping2.as_game_inst_name()).unwrap();
-
-    let mut unmapped_pkg_insts1: Vec<_> = {
-        let mapped_bigger_pkg_insts = mapping1
-            .pkg_maps()
-            .iter()
-            .map(|(_, bigger_pkg_inst_name)| bigger_pkg_inst_name)
-            .collect::<HashSet<_>>();
-        left_game_inst
-            .game()
-            .pkgs
-            .iter()
-            .filter(|pkg_inst| !mapped_bigger_pkg_insts.contains(&pkg_inst.name))
-            .collect()
-    };
-
-    unmapped_pkg_insts1.sort_by(|left, right| left.name.cmp(&right.name));
-
-    let mut unmapped_pkg_insts2: Vec<_> = {
-        let mapped_bigger_pkg_insts = mapping2
-            .pkg_maps()
-            .iter()
-            .map(|(_, bigger_pkg_inst_name)| bigger_pkg_inst_name)
-            .collect::<HashSet<_>>();
-        right_game_inst
-            .game()
-            .pkgs
-            .iter()
-            .filter(|pkg_inst| !mapped_bigger_pkg_insts.contains(&pkg_inst.name))
-            .collect()
-    };
-
-    unmapped_pkg_insts2.sort_by(|left, right| left.name.cmp(&right.name));
-
-    for (left, right) in unmapped_pkg_insts1.iter().zip(unmapped_pkg_insts2.iter()) {
-        match package_instances_diff(ctx, left, left_game_inst, right, right_game_inst) {
-            PackageInstanceDiff::DifferentPackage(left_pkg_name, right_pkg_name) => {
-                return Err(ReductionContainsDifferentPackagesError {
-                    source_code: ctx.named_source(),
-                    at_reduction: (reduction_span.start()..reduction_span.end()).into(),
-                    left_pkg_inst_name: left.name.clone(),
-                    right_pkg_inst_name: right.name.clone(),
-
-                    left_pkg_name,
-                    right_pkg_name,
-                }
-                .into());
-            }
-            PackageInstanceDiff::DifferentParams(param_diff) => {
-                return Err(ReductionPackageInstanceParameterMismatchError {
-                    source_code: ctx.named_source(),
-                    at_reduction: (reduction_span.start()..reduction_span.end()).into(),
-                    left_pkg_inst_name: left.name.clone(),
-                    right_pkg_inst_name: right.name.clone(),
-
-                    param_names: param_diff.iter().map(|(name, _, _)| &name.name).join(", "),
-                }
-                .into());
-            }
-            PackageInstanceDiff::Same => {}
-        }
-    }
-
-    let game1_is_left = mapping1.as_game_inst_name() == left_name.as_str();
-    let (left, right) = if game1_is_left {
-        (mapping1, mapping2)
-    } else {
-        (mapping2, mapping1)
-    };
-
-    let reduction = Reduction::new(left, right, assumption_name.to_string());
-
-    Ok(reduction)
-}
-
-fn handle_mapspec(
-    ctx: &mut ParseProofContext,
-    ast: Pair<Rule>,
-    assumption: &Assumption,
-) -> Result<Mapping, ParseProofError> {
-    let mapping_span = ast.as_span();
-    let mut ast = ast.into_inner();
-
-    let (
-        (assumption_game_inst_name, assumption_game_inst_name_span),
-        (construction_game_inst_name, construction_game_inst_name_span),
-    ) = handle_string_pair(&mut ast);
-
-    // check that game instance names can be resolved
-    let assumption_game_inst = SliceResolver(&ctx.instances)
-        .resolve_value(&assumption_game_inst_name)
-        .ok_or(UndefinedGameInstanceError {
-            source_code: ctx.named_source(),
-            at: (assumption_game_inst_name_span.start()..assumption_game_inst_name_span.end())
-                .into(),
-            game_inst_name: assumption_game_inst_name.clone(),
-        })?;
-    let construction_game_inst = SliceResolver(&ctx.instances)
-        .resolve_value(&construction_game_inst_name)
-        .ok_or(UndefinedGameInstanceError {
-            source_code: ctx.named_source(),
-            at: (construction_game_inst_name_span.start()..construction_game_inst_name_span.end())
-                .into(),
-            game_inst_name: construction_game_inst_name.clone(),
-        })?;
-
-    let assumption_game_is_really_assumption_game = assumption_game_inst_name
-        == assumption.left_name
-        || assumption_game_inst_name == assumption.right_name;
-
-    let construction_game_is_actually_assumption_game = construction_game_inst_name
-        == assumption.left_name
-        || construction_game_inst_name == assumption.right_name;
-
-    if !assumption_game_is_really_assumption_game {
-        println!("{assumption:?}");
-        return Err(AssumptionMappingLeftGameInstanceIsNotFromAssumption {
-            source_code: ctx.named_source(),
-            at: (assumption_game_inst_name_span.start()..assumption_game_inst_name_span.end())
-                .into(),
-            game_instance_name: assumption_game_inst_name.to_string(),
-            assumption_left_game_instance_name: assumption.left_name.clone(),
-            assumption_right_game_instance_name: assumption.right_name.clone(),
-        }
-        .into());
-    }
-
-    if construction_game_is_actually_assumption_game {
-        println!("{assumption:?}");
-        return Err(AssumptionMappingRightGameInstanceIsFromAssumption {
-            source_code: ctx.named_source(),
-            at: (construction_game_inst_name_span.start()..construction_game_inst_name_span.end())
-                .into(),
-            game_instance_name: construction_game_inst_name.to_string(),
-            model_left_game_instance_name: assumption_game_inst_name.clone(),
-            model_right_game_instance_name: construction_game_inst_name.clone(),
-        }
-        .into());
-    }
-
-    let mappings: Vec<_> = ast.flat_map(Pair::into_inner).tuples().collect();
-
-    let mut assumption_game_pkg_inst_names: HashMap<String, &Pair<'_, Rule>> = HashMap::new();
-    let mut construction_game_pkg_inst_names: HashMap<String, &Pair<'_, Rule>> = HashMap::new();
-
-    let mut pkg_offset_mapping = vec![];
-
-    // check mappings are valid
-    for (assumption_game_pkg_inst_name_ast, construction_game_pkg_inst_name_ast) in &mappings {
-        let assumption_game_pkg_inst_name = assumption_game_pkg_inst_name_ast.as_str();
-        let construction_game_pkg_inst_name = construction_game_pkg_inst_name_ast.as_str();
-
-        // check for duplicates
-        if let Some(prev_map) = assumption_game_pkg_inst_names.get(assumption_game_pkg_inst_name) {
-            let span_this = assumption_game_pkg_inst_name_ast.as_span();
-            let at_this = (span_this.start()..span_this.end()).into();
-
-            let span_prev = prev_map.as_span();
-            let at_prev = (span_prev.start()..span_prev.end()).into();
-
-            let pkg_inst_name = assumption_game_pkg_inst_name.to_string();
-
-            return Err(AssumptionMappingDuplicatePackageInstanceError {
-                source_code: ctx.named_source(),
-                at_this,
-                at_prev,
-                pkg_inst_name,
-            }
-            .into());
-        }
-
-        if let Some(prev_map) =
-            construction_game_pkg_inst_names.get(construction_game_pkg_inst_name)
-        {
-            let span_this = construction_game_pkg_inst_name_ast.as_span();
-            let at_this = (span_this.start()..span_this.end()).into();
-
-            let span_prev = prev_map.as_span();
-            let at_prev = (span_prev.start()..span_prev.end()).into();
-
-            let pkg_inst_name = assumption_game_pkg_inst_name.to_string();
-
-            return Err(AssumptionMappingDuplicatePackageInstanceError {
-                source_code: ctx.named_source(),
-                at_this,
-                at_prev,
-                pkg_inst_name,
-            }
-            .into());
-        }
-        assumption_game_pkg_inst_names.insert(
-            assumption_game_pkg_inst_name.to_string(),
-            assumption_game_pkg_inst_name_ast,
-        );
-        construction_game_pkg_inst_names.insert(
-            construction_game_pkg_inst_name.to_string(),
-            construction_game_pkg_inst_name_ast,
-        );
-
-        // get the package instances
-        let Some((assumption_game_pkg_inst_offset, assumption_game_pkg_inst)) =
-            assumption_game_inst
-                .game()
-                .pkgs
-                .iter()
-                .position(|pkg_inst| assumption_game_pkg_inst_name == pkg_inst.name)
-                .map(|offs| (offs, &assumption_game_inst.game().pkgs[offs]))
-        else {
-            let span = assumption_game_pkg_inst_name_ast.as_span();
-            let at = (span.start()..span.end()).into();
-            return Err(UndefinedPackageInstanceError {
-                source_code: ctx.named_source(),
-                at,
-                pkg_inst_name: assumption_game_pkg_inst_name.to_string(),
-                in_game: assumption_game_inst.game().name.clone(),
-            }
-            .into());
-        };
-
-        let Some((construction_game_pkg_inst_offset, construction_game_pkg_inst)) =
-            construction_game_inst
-                .game()
-                .pkgs
-                .iter()
-                .position(|pkg_inst| construction_game_pkg_inst_name == pkg_inst.name)
-                .map(|offs| (offs, &construction_game_inst.game().pkgs[offs]))
-        else {
-            let span = construction_game_pkg_inst_name_ast.as_span();
-            let at = (span.start()..span.end()).into();
-            return Err(UndefinedPackageInstanceError {
-                source_code: ctx.named_source(),
-                at,
-                pkg_inst_name: assumption_game_pkg_inst_name.to_string(),
-                in_game: construction_game_inst.game().name.clone(),
-            }
-            .into());
-        };
-
-        // check that the mapped package instances are equivalent, i.e. same package and same
-        // parameters.
-        match package_instances_diff(
-            ctx,
-            assumption_game_pkg_inst,
-            assumption_game_inst,
-            construction_game_pkg_inst,
-            construction_game_inst,
-        ) {
-            PackageInstanceDiff::DifferentPackage(assumption_pkg_name, construction_pkg_name) => {
-                let span_assumption = assumption_game_pkg_inst_name_ast.as_span();
-                let at_assumption = (span_assumption.start()..span_assumption.end()).into();
-
-                let span_construction = construction_game_pkg_inst_name_ast.as_span();
-                let at_construction = (span_construction.start()..span_construction.end()).into();
-
-                let assumption_pkg_inst_name = assumption_game_pkg_inst_name.to_string();
-                let construction_pkg_inst_name = construction_game_pkg_inst_name.to_string();
-
-                return Err(AssumptionMappingContainsDifferentPackagesError {
-                    source_code: ctx.named_source(),
-                    at_assumption,
-                    at_construction,
-
-                    assumption_pkg_inst_name,
-                    construction_pkg_inst_name,
-
-                    assumption_pkg_name,
-                    construction_pkg_name,
-                }
-                .into());
-            }
-            PackageInstanceDiff::DifferentParams(different_params) => {
-                let span_assumption = assumption_game_pkg_inst_name_ast.as_span();
-                let at_assumption = (span_assumption.start()..span_assumption.end()).into();
-
-                let span_construction = construction_game_pkg_inst_name_ast.as_span();
-                let at_construction = (span_construction.start()..span_construction.end()).into();
-
-                let assumption_pkg_inst_name = assumption_game_pkg_inst_name.to_string();
-                let construction_pkg_inst_name = construction_game_pkg_inst_name.to_string();
-
-                let param_names = different_params
-                    .iter()
-                    .map(|(id, _, _)| &id.name)
-                    .join(", ");
-
-                return Err(AssumptionMappingParameterMismatchError {
-                    source_code: ctx.named_source(),
-                    at_assumption,
-                    at_construction,
-
-                    assumption_pkg_inst_name,
-                    construction_pkg_inst_name,
-
-                    param_names,
-                }
-                .into());
-            }
-            PackageInstanceDiff::Same => {}
-        }
-
-        pkg_offset_mapping.push((
-            assumption_game_pkg_inst_offset,
-            construction_game_pkg_inst_offset,
-        ));
-    }
-
-    // read all mappings. now check we mapped all package instances of the assumption.
-
-    for pkg_inst in &assumption_game_inst.game().pkgs {
-        if !assumption_game_pkg_inst_names.contains_key(&pkg_inst.name) {
-            let span = mapping_span;
-            let at = (span.start()..span.end()).into();
-            let pkg_inst_name = pkg_inst.name.to_string();
-            return Err(AssumptionMappingMissesPackageInstanceError {
-                source_code: ctx.named_source(),
-                at,
-
-                pkg_inst_name,
-            }
-            .into());
-        }
-    }
-
-    // check that packages that are mapped only call packages that are also mapped
-
-    let bigger_game = construction_game_inst.game();
-    for Edge(from, to, _sig) in &bigger_game.edges {
-        let from_name = &bigger_game.pkgs[*from].name;
-        let to_name = &bigger_game.pkgs[*to].name;
-        if construction_game_pkg_inst_names.contains_key(from_name)
-            && !construction_game_pkg_inst_names.contains_key(to_name)
-        {
-            todo!("write error message that mapping isn't a clean cut and mapped packages call unmapped packages")
-        }
-    }
-
-    // check that if an oracle can be called by adversary or reduction in the construction game,
-    // then it must be exported in the assumption game.
-    // specifically, check that
-    // for all mapped construction packa or goes to the adversaryge instances mapped_pkg_inst
-    //   for every incoming export into mapped_pkg_inst
-    //     require that the oracle at the edge is exported.
-    //   for every incoming edge e into mapped_pkg_inst
-    //     if e.src is not maapped
-    //       require that the oracle at the edge is exported.
-    //
-    // said differently,
-    // for all edges `(from, to, osig)` in the construction game
-    //   if `to` is mapped to `assumption_to` and `from` isn't
-    //     require that in the assumption game, there is an export `(assumption_to, osig)`
-    // for all exports `(to, osig)` in the construction game
-    //   if `to` is mapped to `assumption_to`
-    //     require that in the assumption game, there is an export `(assumption_to, osig)`
-    //
-    for Edge(src, dst, osig) in &construction_game_inst.game().edges {
-        let src_is_mapped = pkg_offset_mapping
-            .iter()
-            .any(|(_, constr_src)| constr_src == src);
-        let dst_mapping =
-            pkg_offset_mapping
-                .iter()
-                .find_map(|(assumption_dst, construction_dst)| {
-                    if dst == construction_dst {
-                        Some(*assumption_dst)
-                    } else {
-                        None
-                    }
-                });
-
-        if let Some(assumption_dst) = dst_mapping {
-            let export_exists =
-                assumption_game_inst
-                    .game()
-                    .exports
-                    .iter()
-                    .any(|Export(found_dst, found_osig)| {
-                        *found_dst == assumption_dst && found_osig == osig
-                    });
-
-            if !src_is_mapped && !export_exists {
-                let assumption_dst_name = &assumption_game_inst.game().pkgs[assumption_dst].name;
-                let (assumption_ast, construction_ast) = mappings
-                    .iter()
-                    .find(|pair| pair.0.as_str() == assumption_dst_name)
-                    .unwrap();
-
-                let assumption_span = assumption_ast.as_span();
-                let assumption_at = (assumption_span.start()..assumption_span.end()).into();
-
-                let construction_span = construction_ast.as_span();
-                let construction_at = (construction_span.start()..construction_span.end()).into();
-
-                let assumption_pkg_inst_name = assumption_game_inst.game().pkgs[assumption_dst]
-                    .name
-                    .clone();
-                let construction_pkg_inst_name =
-                    construction_game_inst.game().pkgs[*dst].name.clone();
-                let oracle_name = osig.name.clone();
-
-                return Err(AssumptionExportsNotSufficientError {
-                    source_code: ctx.named_source(),
-                    assumption_at,
-                    construction_at,
-                    assumption_pkg_inst_name,
-                    construction_pkg_inst_name,
-                    oracle_name,
-                }
-                .into());
-            }
-        }
-    }
-
-    for Export(dst, osig) in &construction_game_inst.game().exports {
-        let dst_mapping =
-            pkg_offset_mapping
-                .iter()
-                .find_map(|(assumption_dst, construction_dst)| {
-                    if dst == construction_dst {
-                        Some(*assumption_dst)
-                    } else {
-                        None
-                    }
-                });
-
-        if let Some(assumption_dst) = dst_mapping {
-            let export_exists =
-                assumption_game_inst
-                    .game()
-                    .exports
-                    .iter()
-                    .any(|Export(found_dst, found_osig)| {
-                        *found_dst == assumption_dst && found_osig == osig
-                    });
-
-            if !export_exists {
-                let assumption_dst_name = &assumption_game_inst.game().pkgs[assumption_dst].name;
-                let (assumption_ast, construction_ast) = mappings
-                    .iter()
-                    .find(|pair| pair.0.as_str() == assumption_dst_name)
-                    .unwrap();
-
-                let assumption_span = assumption_ast.as_span();
-                let assumption_at = (assumption_span.start()..assumption_span.end()).into();
-
-                let construction_span = construction_ast.as_span();
-                let construction_at = (construction_span.start()..construction_span.end()).into();
-
-                let assumption_pkg_inst_name = assumption_game_inst.game().pkgs[assumption_dst]
-                    .name
-                    .clone();
-                let construction_pkg_inst_name =
-                    construction_game_inst.game().pkgs[*dst].name.clone();
-                let oracle_name = osig.name.clone();
-
-                return Err(AssumptionExportsNotSufficientError {
-                    source_code: ctx.named_source(),
-                    assumption_at,
-                    construction_at,
-                    assumption_pkg_inst_name,
-                    construction_pkg_inst_name,
-                    oracle_name,
-                }
-                .into());
-            }
-        }
-    }
-
-    let mapping = Mapping::new(
-        assumption_game_inst_name,
-        construction_game_inst_name,
-        mappings
-            .into_iter()
-            .map(|(ast1, ast2)| (ast1.as_str().to_string(), ast2.as_str().to_string()))
-            .collect_vec(),
-    );
-    Ok(mapping)
-}
-
 fn handle_string_triplet<'a>(
     ast: &mut Pairs<'a, Rule>,
 ) -> ((String, Span<'a>), (String, Span<'a>), (String, Span<'a>)) {
@@ -1062,7 +523,19 @@ fn handle_string_triplet<'a>(
     (strs.remove(0), strs.remove(0), strs.remove(0))
 }
 
-fn handle_string_pair<'a>(ast: &mut Pairs<'a, Rule>) -> ((String, Span<'a>), (String, Span<'a>)) {
+pub(crate) fn handle_identifiers<'a, T: crate::parser::ast::Identifier<'a>, const N: usize>(
+    ast: &mut Pairs<'a, Rule>,
+) -> [T; N] {
+    ast.take(N)
+        .map(T::from)
+        .collect::<Vec<_>>()
+        .try_into()
+        .unwrap()
+}
+
+pub(crate) fn handle_string_pair<'a>(
+    ast: &mut Pairs<'a, Rule>,
+) -> ((String, Span<'a>), (String, Span<'a>)) {
     let mut strs: Vec<_> = ast
         .take(2)
         .map(|str| (str.as_str().to_string(), str.as_span()))
@@ -1076,115 +549,4 @@ fn next_pairs<'a>(ast: &'a mut Pairs<Rule>) -> Pairs<'a, Rule> {
 
 fn next_str<'a>(ast: &'a mut Pairs<Rule>) -> &'a str {
     ast.next().unwrap().as_str()
-}
-
-fn package_instances_diff(
-    ctx: &ParseProofContext,
-    left_pkg_inst: &PackageInstance,
-    left_game_inst: &GameInstance,
-    right_pkg_inst: &PackageInstance,
-    right_game_inst: &GameInstance,
-) -> PackageInstanceDiff {
-    if left_pkg_inst.pkg.name != right_pkg_inst.pkg.name {
-        return PackageInstanceDiff::DifferentPackage(
-            left_pkg_inst.pkg.name.clone(),
-            right_pkg_inst.pkg.name.clone(),
-        );
-    }
-
-    // if parsing went well so far, all parameters should have been assigned. since they are
-    // the same package type, they need to have the same parameters. for the next check we need
-    // to be able to rely on that, so we just make sure here.
-    assert_eq!(left_pkg_inst.params.len(), right_pkg_inst.params.len());
-
-    let mut different_params = vec![];
-
-    // compare the values of individual parameters
-    for (param_ident, left_param_expr) in &left_pkg_inst.params {
-        let (_, right_param_expr) = right_pkg_inst
-                .params
-                .iter()
-                .find(|(other_param_ident, _)| param_ident.name == other_param_ident.name)
-            .unwrap_or_else(|| panic!("expected both package instances {} and {} in mapping for reduction between games instances {} and {} to contain parameter {}",
-                left_pkg_inst.name, right_pkg_inst.name, left_game_inst.name(), right_game_inst.name(), param_ident.ident(),
-            ));
-
-        // here we compare whether param_expr and other_param_expr match.
-        // problem 1: they have identifiers in them that contain things like game names
-        // problem 2: we have the game identifiers here, but we need the proof identifiers,
-        //            because otherwise we just compare the name strings used in the game
-        //            and ignore the values assigned to the in game instantiation
-        //
-        // we solve both problems using Expression::map, which both resolves the game identifiers
-        // to proof identifiers and redacts game- and package-specific information.
-
-        fn resolve_and_redact_expr(
-            game_inst_const_mapping: &[(GameConstIdentifier, Expression)],
-            expr: Expression,
-        ) -> Expression {
-            match expr {
-                // redact game and package specific information from proof identifiers
-                Expression::Identifier(Identifier::ProofIdentifier(ProofIdentifier::Const(
-                    mut proof_const,
-                ))) => {
-                    proof_const.inst_info = None;
-                    Expression::Identifier(proof_const.into())
-                }
-                Expression::Identifier(Identifier::ProofIdentifier(ProofIdentifier::LoopVar(
-                    mut proof_loopvar,
-                ))) => {
-                    proof_loopvar.inst_info = None;
-                    Expression::Identifier(proof_loopvar.into())
-                }
-
-                // resolve game const identifiers
-                Expression::Identifier(Identifier::GameIdentifier(GameIdentifier::Const(
-                    ref game_const,
-                ))) => {
-                    let (_, assigned_expr) = game_inst_const_mapping
-                        .iter()
-                        .find(|(game_inst_param, _)| game_inst_param.name == game_const.name)
-                        // This should have been caught by the type checker, so we assume it can't
-                        // happen and panic
-                        .unwrap_or_else(|| panic!("couldn't find identifier {game_const:?} in const mapping {game_inst_const_mapping:?}"));
-
-                    assigned_expr.map(|expr| resolve_and_redact_expr(game_inst_const_mapping, expr))
-                }
-
-                // leave the rest
-                other => other,
-            }
-        }
-
-        let redacted_left_param_expr =
-            left_param_expr.map(|expr| resolve_and_redact_expr(&left_game_inst.consts, expr));
-        let redacted_right_param_expr =
-            right_param_expr.map(|expr| resolve_and_redact_expr(&right_game_inst.consts, expr));
-
-        println!("comparing {}", param_ident.ident_ref());
-        println!("  left:  {left_param_expr:?}");
-        println!("   redacted:  {redacted_left_param_expr:?}");
-        println!("  right: {right_param_expr:?}");
-        println!("   redacted:  {redacted_right_param_expr:?}");
-
-        if redacted_left_param_expr != redacted_right_param_expr {
-            different_params.push((
-                param_ident.clone(),
-                left_param_expr.clone(),
-                right_param_expr.clone(),
-            ));
-        }
-    }
-
-    if !different_params.is_empty() {
-        PackageInstanceDiff::DifferentParams(different_params)
-    } else {
-        PackageInstanceDiff::Same
-    }
-}
-
-enum PackageInstanceDiff {
-    DifferentPackage(String, String),
-    DifferentParams(Vec<(PackageConstIdentifier, Expression, Expression)>),
-    Same,
 }

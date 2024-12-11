@@ -6,10 +6,15 @@
  *
  */
 use std::io::ErrorKind;
+use std::path::Path;
 use std::{collections::HashMap, path::PathBuf};
 
-use error::Result;
+use error::{Error, Result};
 
+use crate::parser::composition::handle_composition;
+use crate::parser::package::handle_pkg;
+use crate::parser::proof::handle_proof;
+use crate::parser::SspParser;
 use crate::util::prover_process::Communicator;
 //use crate::transforms::typecheck::wire_proofs;
 use crate::{
@@ -35,21 +40,151 @@ mod resolve;
 
 pub mod error;
 
+pub struct Files {
+    proofs: Vec<(String, String)>,
+    games: Vec<(String, String)>,
+    packages: Vec<(String, String)>,
+}
+
+impl Files {
+    pub fn load(root: &Path) -> Result<Self> {
+        fn load_files(path: impl AsRef<Path>) -> Result<Vec<(String, String)>> {
+            std::fs::read_dir(path.as_ref())?
+                .map(|dir_entry| {
+                    let dir_entry = dir_entry?;
+                    let file_name = dir_entry.file_name();
+                    let Some(file_name) = file_name.to_str() else {
+                        return Ok(None);
+                    };
+
+                    if file_name.ends_with(".ssp") {
+                        let file_content = std::fs::read_to_string(dir_entry.path())?;
+                        Ok(Some((file_name.to_string(), file_content)))
+                    } else {
+                        Ok(None)
+                    }
+                })
+                .filter_map(Result::transpose)
+                .collect()
+        }
+
+        Ok(Self {
+            proofs: load_files(root.join(PROOFS_DIR))?,
+            games: load_files(root.join(GAMES_DIR))?,
+            packages: load_files(root.join(PACKAGES_DIR))?,
+        })
+    }
+
+    pub(crate) fn packages(&self) -> impl Iterator<Item = Result<Package>> + '_ {
+        let mut filenames: HashMap<String, &String> = HashMap::new();
+
+        self.packages.iter().map(move |(file_name, file_content)| {
+            let mut ast =
+                SspParser::parse_package(file_content).map_err(|e| (file_name.as_str(), e))?;
+
+            let (pkg_name, pkg) = handle_pkg(file_name, file_content, ast.next().unwrap())
+                .map_err(Error::ParsePackage)?;
+
+            if let Some(other_filename) = filenames.insert(pkg_name.clone(), file_name) {
+                return Err(Error::RedefinedPackage(
+                    pkg_name,
+                    file_name.to_string(),
+                    other_filename.to_string(),
+                ));
+            }
+
+            Ok(pkg)
+        })
+    }
+
+    pub(crate) fn games<'a>(&'a self) -> Result<impl Iterator<Item = Result<Composition>> + 'a> {
+        let pkgs: HashMap<_, _> = self
+            .packages()
+            .map(|pkg| pkg.map(|pkg| (pkg.name.clone(), pkg)))
+            .collect::<Result<_>>()?;
+
+        let mut filenames: HashMap<String, &String> = HashMap::new();
+
+        let parse_iter = self.games.iter().map(move |(file_name, file_content)| {
+            let mut ast =
+                SspParser::parse_composition(file_content).map_err(|e| (file_name.as_str(), e))?;
+
+            let game = handle_composition(file_name, file_content, ast.next().unwrap(), &pkgs)
+                .map_err(Error::ParseGame)?;
+
+            if let Some(other_filename) = filenames.insert(game.name.clone(), file_name) {
+                return Err(Error::RedefinedGame(
+                    game.name,
+                    file_name.to_string(),
+                    other_filename.to_string(),
+                ));
+            }
+
+            Ok(game)
+        });
+
+        Ok(parse_iter)
+    }
+
+    pub(crate) fn proofs<'a>(&'a self) -> Result<impl Iterator<Item = Result<Proof<'a>>> + 'a> {
+        let pkgs: HashMap<_, _> = self
+            .packages()
+            .map(|pkg| pkg.map(|pkg| (pkg.name.clone(), pkg)))
+            .collect::<Result<_>>()?;
+
+        let games: HashMap<_, _> = self
+            .games()?
+            .map(|game| game.map(|game| (game.name.clone(), game)))
+            .collect::<Result<_>>()?;
+
+        let mut filenames: HashMap<String, &String> = HashMap::new();
+
+        let parse_iter = self.games.iter().map(move |(file_name, file_content)| {
+            let mut ast =
+                SspParser::parse_proof(file_content).map_err(|e| (file_name.as_str(), e))?;
+
+            let proof = handle_proof(
+                file_name,
+                file_content,
+                ast.next().unwrap(),
+                pkgs.clone(),
+                games.clone(),
+            )
+            .map_err(Error::ParseProof)?;
+
+            if let Some(other_filename) = filenames.insert(proof.name.clone(), file_name) {
+                return Err(Error::RedefinedGame(
+                    proof.name,
+                    file_name.to_string(),
+                    other_filename.to_string(),
+                ));
+            }
+
+            Ok(proof)
+        });
+
+        Ok(parse_iter)
+    }
+}
+
 #[derive(Debug)]
-pub struct Project {
+pub struct Project<'a> {
     root_dir: PathBuf,
     packages: HashMap<String, Package>,
     //assumptions: HashMap<String, Assumption>,
     games: HashMap<String, Composition>,
     //game_hops: Vec<GameHop>,
-    proofs: HashMap<String, Proof>,
+    proofs: HashMap<String, Proof<'a>>,
 }
 
-impl Project {
-    pub fn load() -> Result<Project> {
+impl<'a> Project<'a> {
+    pub fn load(files: &'a Files) -> Result<Project<'a>> {
         let root_dir = find_project_root()?;
 
-        let packages = load::packages(root_dir.clone())?;
+        let packages: HashMap<_, _> = files
+            .packages()
+            .map(|pkg| pkg.map(|pkg| (pkg.name.clone(), pkg)))
+            .collect::<Result<_>>()?;
 
         /* we already typecheck during parsing, and the typecheck transform uses a bunch of deprecated
            stuff, so we just comment it out.
@@ -64,7 +199,7 @@ impl Project {
         }
          */
 
-        let games = load::games(root_dir.clone(), &packages)?;
+        let games = load::games(&files.games, &packages)?;
         // let mut game_names: Vec<_> = games.keys().collect();
         // game_names.sort();
         //
@@ -74,7 +209,7 @@ impl Project {
         //     typecheck_comp(game, &mut scope)?;
         // }
 
-        let proofs = load::proofs(root_dir.clone(), &packages, &games)?;
+        let proofs = load::proofs(&files.proofs, packages.to_owned(), games.to_owned())?;
 
         let project = Project {
             root_dir,
@@ -96,7 +231,7 @@ impl Project {
             let proof = &self.proofs[proof_key];
             for (i, game_hop) in proof.game_hops().iter().enumerate() {
                 match game_hop {
-                    GameHop::Reduction(red) => reduction::verify(red, proof)?,
+                    GameHop::Reduction(_) => { /* the reduction has been verified at parse time */ }
                     GameHop::Equivalence(eq) => {
                         let transcript_file: std::fs::File;
                         let prover = if transcript {
@@ -321,5 +456,23 @@ pub fn find_project_root() -> std::io::Result<std::path::PathBuf> {
             None => return Err(std::io::Error::from(ErrorKind::NotFound)),
             Some(parent) => dir = parent.into(),
         }
+    }
+}
+
+struct OneshotIteratorClosure<T, C>(Option<C>)
+where
+    C: FnOnce() -> T;
+
+impl<T, C: FnOnce() -> T> OneshotIteratorClosure<T, C> {
+    fn new(c: C) -> Self {
+        Self(Some(c))
+    }
+}
+
+impl<T, C: FnOnce() -> T> std::iter::Iterator for OneshotIteratorClosure<T, C> {
+    type Item = T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        Some(self.0.take()?())
     }
 }

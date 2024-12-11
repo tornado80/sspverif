@@ -1,3 +1,4 @@
+use std::path::Path;
 use std::{collections::HashMap, path::PathBuf};
 
 use super::*;
@@ -9,102 +10,72 @@ use crate::parser::{
 };
 use crate::proof::Proof;
 
-pub(crate) fn packages(root: PathBuf) -> Result<HashMap<String, Package>> {
-    let mut dir = root;
-    dir.push(PACKAGES_DIR);
-    let dir_str = dir.to_str().expect("coun't get the path string");
-
+pub(crate) fn packages(files: &[(String, String)]) -> Result<HashMap<String, Package>> {
     let mut pkgs = HashMap::new();
     let mut pkgs_filenames: HashMap<String, String> = HashMap::new();
 
-    for dir_entry in std::fs::read_dir(dir_str)? {
-        let dir_entry = dir_entry?;
-        let filename = dir_entry.file_name();
-        if let Some(file_name) = filename.to_str() {
-            if file_name.ends_with(PACKAGE_EXT) {
-                let file_content = &std::fs::read_to_string(dir_entry.path())?;
+    for (file_name, file_content) in files {
+        let mut ast =
+            SspParser::parse_package(file_content).map_err(|e| (file_name.as_str(), e))?;
+        let (pkg_name, pkg) = handle_pkg(file_name, file_content, ast.next().unwrap())
+            .map_err(Error::ParsePackage)?;
 
-                let mut ast = SspParser::parse_package(file_content).map_err(|e| (file_name, e))?;
-                let (pkg_name, pkg) = handle_pkg(file_name, file_content, ast.next().unwrap())
-                    .map_err(Error::ParsePackage)?;
-
-                if let Some(other_filename) = pkgs_filenames.get(&pkg_name) {
-                    return Err(Error::RedefinedPackage(
-                        pkg_name,
-                        file_name.to_string(),
-                        other_filename.to_string(),
-                    ));
-                }
-
-                pkgs.insert(pkg_name.clone(), pkg);
-                pkgs_filenames.insert(pkg_name, file_name.to_string());
-            }
+        if let Some(other_filename) = pkgs_filenames.get(&pkg_name) {
+            return Err(Error::RedefinedPackage(
+                pkg_name,
+                file_name.to_string(),
+                other_filename.to_string(),
+            ));
         }
+
+        pkgs.insert(pkg_name.clone(), pkg);
+        pkgs_filenames.insert(pkg_name, file_name.to_string());
     }
 
     Ok(pkgs)
 }
 
 pub(crate) fn games(
-    root: PathBuf,
+    files: &[(String, String)],
     pkgs: &HashMap<String, Package>,
 ) -> Result<HashMap<String, Composition>> {
-    let mut dir = root;
-    dir.push(GAMES_DIR);
-    let dir_str = dir.to_str().expect("coun't get the path string");
-
     let mut games = HashMap::new();
 
-    for dir_entry in std::fs::read_dir(dir_str)? {
-        let dir_entry = dir_entry?;
-        if let Some(file_name) = dir_entry.file_name().to_str() {
-            if file_name.ends_with(GAME_EXT) {
-                let file_content = std::fs::read_to_string(dir_entry.path())?;
-                let mut ast =
-                    SspParser::parse_composition(&file_content).map_err(|err| (file_name, err))?;
+    for (file_name, file_content) in files {
+        let mut ast =
+            SspParser::parse_composition(&file_content).map_err(|err| (file_name.as_str(), err))?;
 
-                let comp = handle_composition(file_name, &file_content, ast.next().unwrap(), pkgs)?;
-                let comp_name = comp.name.clone();
+        let comp = handle_composition(file_name, &file_content, ast.next().unwrap(), pkgs)?;
+        let comp_name = comp.name.clone();
 
-                games.insert(comp_name, comp);
-            }
-        }
+        games.insert(comp_name, comp);
     }
 
     Ok(games)
 }
 
-pub(crate) fn proofs(
-    root: PathBuf,
-    pkgs: &HashMap<String, Package>,
-    games: &HashMap<String, Composition>,
-) -> Result<HashMap<String, Proof>> {
-    let mut dir = root;
-    dir.push(PROOFS_DIR);
-    let dir_str = dir.to_str().expect("couldn't get the path string");
-
+pub(crate) fn proofs<'a>(
+    files: &'a [(String, String)],
+    pkgs: HashMap<String, Package>,
+    games: HashMap<String, Composition>,
+) -> Result<HashMap<String, Proof<'a>>> {
     let mut proofs = HashMap::new();
 
-    for dir_entry in std::fs::read_dir(dir_str)? {
-        let dir_entry = dir_entry?;
-        if let Some(file_name) = dir_entry.file_name().to_str() {
-            if file_name.ends_with(".ssp") {
-                // TODO make a constant and figure out if we really need the sub-extensions
+    for (file_name, file_content) in files {
+        let parse_result =
+            SspParser::parse_proof(&file_content).map_err(|err| (file_name.as_str(), err))?;
 
-                let file_content = std::fs::read_to_string(dir_entry.path())?;
-                let parse_result = SspParser::parse_proof(&file_content);
-                if let Err(e) = parse_result {
-                    return Err((file_name, e).into());
-                }
+        let mut ast = parse_result;
+        let proof = handle_proof(
+            file_name,
+            &file_content,
+            ast.next().unwrap(),
+            pkgs.clone(),
+            games.clone(),
+        )?;
+        let proof_name = proof.as_name().to_string();
 
-                let mut ast = parse_result.unwrap();
-                let proof =
-                    handle_proof(file_name, &file_content, ast.next().unwrap(), pkgs, games)?;
-                let proof_name = proof.as_name().to_string();
-
-                proofs.insert(proof_name, proof);
-            }
-        }
+        proofs.insert(proof_name, proof);
     }
 
     Ok(proofs)

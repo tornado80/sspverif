@@ -15,7 +15,8 @@ use crate::{
 fn test_const_datatypes_eq_small_small() {
     let pkgs = packages::parse_files(&["tiny.ssp"]);
     let games = games::parse_files(&["small.ssp"], &pkgs);
-    let proof = proofs::parse_file("equivalence-small-small.ssp", &pkgs, &games);
+    let proof_file = proofs::read_file("equivalence-small-small.ssp");
+    let proof = proofs::parse(&proof_file, "equivalence-small-small.ssp", &pkgs, &games);
 
     let equivalence = proof
         .game_hops
@@ -211,7 +212,7 @@ fn test_state_datatypes_remap_consts() {
 
     assert_eq!(
         pkg_state_pattern.constructor_name(&()),
-        "<mk-package-state-PRF-<$<!n!>$>>"
+        "<mk-pkg-state-PRF-<$<!n!>$>>"
     );
 
     // check key package instance
@@ -245,7 +246,7 @@ fn test_state_datatypes_remap_consts() {
 
     assert_eq!(
         pkg_state_pattern.constructor_name(&()),
-        "<mk-package-state-KeyReal-<$<!n!>$>>"
+        "<mk-pkg-state-KeyReal-<$<!n!>$>>"
     );
 
     println!("{}", declare_datatype(&pkg_state_pattern, &pkg_state_spec));

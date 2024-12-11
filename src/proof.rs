@@ -192,16 +192,16 @@ impl crate::util::resolver::Named for Claim {
 }
 
 #[derive(Clone, Debug)]
-pub struct Proof {
+pub struct Proof<'a> {
     pub(crate) name: String,
     pub(crate) consts: Vec<(String, Type)>,
     pub(crate) instances: Vec<GameInstance>,
     pub(crate) assumptions: Vec<Assumption>,
-    pub(crate) game_hops: Vec<GameHop>,
+    pub(crate) game_hops: Vec<GameHop<'a>>,
     pub(crate) pkgs: Vec<Package>,
 }
 
-impl Proof {
+impl Proof<'_> {
     pub(crate) fn new(
         name: String,
         consts: Vec<(String, Type)>,

@@ -34,6 +34,14 @@ pub struct PackageInstance {
 }
 
 impl PackageInstance {
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn pkg_name(&self) -> &str {
+        &self.pkg.name
+    }
+
     pub fn get_oracle_sigs(&self) -> Vec<OracleSig> {
         self.pkg
             .oracles

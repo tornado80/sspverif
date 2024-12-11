@@ -1,4 +1,6 @@
-use crate::{project::error::Result, proof::Proof};
+use crate::{parser::reduction::NewReductionMapping, project::error::Result, proof::Proof};
+use miette::Diagnostic;
+use thiserror::Error;
 
 /*
 approach:
@@ -100,6 +102,39 @@ impl Reduction {
     }
 }
 
-pub fn verify(_red: &Reduction, _proof: &Proof) -> Result<()> {
-    Ok(())
+#[derive(Debug, Clone)]
+pub struct NewReduction<'a> {
+    left: NewReductionMapping<'a>,
+    right: NewReductionMapping<'a>,
+
+    assumption_name: String,
 }
+
+impl<'a> NewReduction<'a> {
+    pub fn new(
+        left: NewReductionMapping<'a>,
+        right: NewReductionMapping<'a>,
+        assumption_name: String,
+    ) -> Self {
+        Self {
+            left,
+            right,
+            assumption_name,
+        }
+    }
+
+    pub fn left(&self) -> &NewReductionMapping<'a> {
+        &self.left
+    }
+
+    pub fn right(&self) -> &NewReductionMapping<'a> {
+        &self.right
+    }
+
+    pub fn assumption_name(&self) -> &str {
+        &self.assumption_name
+    }
+}
+
+#[derive(Debug, Error, Diagnostic)]
+pub enum ReductionError {}

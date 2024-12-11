@@ -116,13 +116,13 @@ pub use verify_fn::verify;
 #[derive(Clone, Copy)]
 pub(crate) struct EquivalenceContext<'a> {
     equivalence: &'a Equivalence,
-    proof: &'a Proof,
+    proof: &'a Proof<'a>,
     auxs: &'a <EquivalenceTransform as ProofTransform>::Aux,
 }
 
 // simple getters
 impl<'a> EquivalenceContext<'a> {
-    pub(crate) fn proof(&self) -> &'a Proof {
+    pub(crate) fn proof(&self) -> &'a Proof<'a> {
         self.proof
     }
 
