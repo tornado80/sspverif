@@ -49,6 +49,20 @@ pub struct Package {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Edge(pub usize, pub usize, pub OracleSig);
 
+impl Edge {
+    pub fn from(&self) -> usize {
+        self.0
+    }
+
+    pub fn to(&self) -> usize {
+        self.1
+    }
+
+    pub fn sig(&self) -> &OracleSig {
+        &self.2
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MultiInstanceEdge {
     // name, from, to. name: from <= name < to
@@ -61,6 +75,16 @@ pub struct MultiInstanceEdge {
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Export(pub usize, pub OracleSig);
+
+impl Export {
+    pub fn to(&self) -> usize {
+        self.0
+    }
+
+    pub fn sig(&self) -> &OracleSig {
+        &self.1
+    }
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct MultiInstanceExport {
@@ -180,6 +204,10 @@ impl Composition {
 }
 
 impl Package {
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
     pub fn map_oracle<E>(
         &self,
         f: &mut impl FnMut(&OracleDef) -> Result<OracleDef, E>,

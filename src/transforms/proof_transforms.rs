@@ -21,10 +21,10 @@ impl super::ProofTransform for EquivalenceTransform {
         ),
     )>;
 
-    fn transform_proof(
+    fn transform_proof<'a>(
         &self,
-        proof: &crate::proof::Proof,
-    ) -> Result<(crate::proof::Proof, Self::Aux), Self::Err> {
+        proof: &'a crate::proof::Proof<'a>,
+    ) -> Result<(crate::proof::Proof<'a>, Self::Aux), Self::Err> {
         let results = proof.instances().iter().map(transform_game_inst);
         let (instances, auxs) = itertools::process_results(results, |res| res.unzip())?;
         let proof = proof.with_new_instances(instances);

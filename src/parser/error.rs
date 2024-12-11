@@ -404,7 +404,7 @@ pub struct AssumptionMappingParameterMismatchError {
 }
 
 #[derive(Debug, Diagnostic, Error)]
-#[error("The package instances {left_pkg_inst_name} and {right_pkg_inst_name} in a reduction have different package types")]
+#[error("The package instances {left_pkg_inst_name} and {right_pkg_inst_name} in a reduction have different package types: {left_pkg_name} != {right_pkg_name}")]
 #[diagnostic(code(ssbee::code::proof::reduction::mapping::reduction_package_mismatch))]
 pub struct ReductionContainsDifferentPackagesError {
     #[source_code]
@@ -433,6 +433,28 @@ pub struct ReductionPackageInstanceParameterMismatchError {
     pub right_pkg_inst_name: String,
 
     pub param_names: String,
+}
+
+#[derive(Debug, Diagnostic, Error)]
+#[error("The package instances {pkg_inst_name_1} and {pkg_inst_name_2} should be the same, but {pkg_inst_name_1} is in the assumption part of {game_name_1}, whereas {pkg_inst_name_2} is in the reduction part of {pkg_inst_name_2}")]
+#[diagnostic(code(
+    ssbee::code::proof::reduction::mapping::reduction_inconsistent_assumption_boundary
+))]
+pub struct ReductionInconsistentAssumptionBoundaryError {
+    #[source_code]
+    pub source_code: miette::NamedSource<String>,
+
+    #[label("in this reduction")]
+    pub at_reduction: SourceSpan,
+
+    #[label("mapped here")]
+    pub at_mapping_entry: SourceSpan,
+
+    pub pkg_inst_name_1: String,
+    pub pkg_inst_name_2: String,
+
+    pub game_name_1: String,
+    pub game_name_2: String,
 }
 
 #[derive(Debug, Diagnostic, Error)]
@@ -476,8 +498,7 @@ pub struct InconsistentReductions {
     pub pkg_inst_name: String,
 }
 
-
-#[derive(Debug, Diagnostic, Error)]
+#[derive(Debug, Diagnostic, Error, Clone)]
 #[error("The construction package instance `{construction_pkg_inst_name}` has an incoming edge with oracle `{oracle_name}`, but the mapped assumption package instance `{assumption_pkg_inst_name}` doesn't")]
 #[diagnostic(code(ssbee::code::proof::reduction::mapping::assumption_exports_insufficient))]
 pub struct AssumptionExportsNotSufficientError {

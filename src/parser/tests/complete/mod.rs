@@ -133,7 +133,13 @@ fn untyped_none_type_inference_works() {
 fn equivalence_parses() {
     let packages = parse_files(&["tiny.ssp"]);
     let games = games::parse_files(&["small.ssp"], &packages);
-    let proof = proofs::parse_file("equivalence-small-small.ssp", &packages, &games);
+    let proof_file = proofs::read_file("equivalence-small-small.ssp");
+    let proof = proofs::parse(
+        &proof_file,
+        "equivalence-small-small.ssp",
+        &packages,
+        &games,
+    );
 
     let eq = proof
         .game_hops
@@ -168,7 +174,13 @@ fn equivalence_parses() {
 fn equivalence_gamehome_generates_code() {
     let packages = parse_files(&["tiny.ssp"]);
     let games = games::parse_files(&["small.ssp"], &packages);
-    let proof = proofs::parse_file("equivalence-small-small.ssp", &packages, &games);
+    let proof_file = proofs::read_file("equivalence-small-small.ssp");
+    let proof = proofs::parse(
+        &proof_file,
+        "equivalence-small-small.ssp",
+        &packages,
+        &games,
+    );
 
     let eq = proof
         .game_hops

@@ -8,6 +8,9 @@ pub mod error;
 pub mod proof;
 mod wire_checks;
 
+pub mod ast;
+pub mod reduction;
+
 use pest::Parser;
 extern crate pest;
 

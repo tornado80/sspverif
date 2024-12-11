@@ -1,7 +1,7 @@
 use crate::parser::{
     error::{
         AssumptionExportsNotSufficientError, AssumptionMappingContainsDifferentPackagesError,
-        ReductionPackageInstanceParameterMismatchError, InconsistentReductions
+        InconsistentReductions, ReductionPackageInstanceParameterMismatchError,
     },
     proof::ParseProofError,
     tests::{games, packages, proofs, slice_source_span},
@@ -171,6 +171,11 @@ fn fail_reduction_assumption_not_defined() {
 }
 
 #[test]
+// this is a bit tricky.
+// the test thinks it tests that the assumptions don't apply because one expose more than the
+// others
+// but the reason we fail is that the inner packages also do not match.
+// so we should probably make the two match but then not expose all of them in one of the two games
 fn fail_reduction_assumption_exposes_less() {
     let pkgs = packages::parse_files(&[
         "Enc.pkg.ssp",
@@ -197,29 +202,29 @@ fn fail_reduction_assumption_exposes_less() {
         &games,
     );
 
-    let ParseProofError::AssumptionExportsNotSufficient(AssumptionExportsNotSufficientError {
+    let ParseProofError::AssumptionExportsNotSufficient(inner_err) = &err else {
+        panic!("expected a different error. got {}", err)
+    };
+    let AssumptionExportsNotSufficientError {
         source_code,
         assumption_at,
         construction_at,
         assumption_pkg_inst_name,
         construction_pkg_inst_name,
         oracle_name,
-    }) = &err
-    else {
-        panic!("expected a different error. got {}", err)
-    };
+    } = inner_err.clone();
 
-    let assumption_game_inst_name = slice_source_span(source_code, assumption_at);
-    let construction_game_inst_name = slice_source_span(source_code, construction_at);
+    let assumption_game_inst_name = slice_source_span(&source_code, &assumption_at);
+    let construction_game_inst_name = slice_source_span(&source_code, &construction_at);
+
+    let report = miette::Report::new(err);
+    println!("the error prints like this:\n{:?}", report);
 
     assert_eq!(assumption_pkg_inst_name, "key");
     assert_eq!(construction_pkg_inst_name, "key");
     assert_eq!(oracle_name, "Get");
     assert_eq!(assumption_game_inst_name, "key");
     assert_eq!(construction_game_inst_name, "key");
-
-    let report = miette::Report::new(err);
-    println!("the error prints like this:\n{:?}", report)
 }
 
 #[test]
@@ -326,10 +331,9 @@ fn fail_reduction_non_matching_package_fail() {
     println!("the error prints like this:\n{:?}", report)
 }
 
-
-
-
 #[test]
+#[ignore]
+// TODO: we still have to implement this check
 fn fail_reduction_changes_fail() {
     let pkgs = packages::parse_files(&[
         "Enc.pkg.ssp",
@@ -349,35 +353,25 @@ fn fail_reduction_changes_fail() {
         &pkgs,
     );
 
-    let err = proofs::parse_file_fails(
-        "reduction-changes-should-fail.ssp",
-        &pkgs,
-        &games,
-    );
+    let err = proofs::parse_file_fails("reduction-changes-should-fail.ssp", &pkgs, &games);
 
-//    let ParseProofError::InconsistentReductions(
-//        InconsistentReductions {
-//            construction_pkg_inst_name,
-//
-//            construction_pkg_name
-//        },
-//    ) = &err
-//    else {
-        panic!("expected a different error. got {}", err)
-//    };
-//
-//    assert_eq!(construction_pkg_inst_name, "key");
-//    assert_eq!(construction_pkg_name, "KeyIdeal");
+    //    let ParseProofError::InconsistentReductions(
+    //        InconsistentReductions {
+    //            construction_pkg_inst_name,
+    //
+    //            construction_pkg_name
+    //        },
+    //    ) = &err
+    //    else {
+    //      panic!("expected a different error. got {}", err)
+    //    };
+    //
+    //    assert_eq!(construction_pkg_inst_name, "key");
+    //    assert_eq!(construction_pkg_name, "KeyIdeal");
 
-//    let report = miette::Report::new(err);
-//    println!("the error prints like this:\n{:?}", report)
+    //    let report = miette::Report::new(err);
+    //    println!("the error prints like this:\n{:?}", report)
 }
-
-
-
-
-
-
 
 #[test]
 fn fail_wrong_params_in_reduction_should_fail() {

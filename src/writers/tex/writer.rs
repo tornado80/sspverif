@@ -9,7 +9,9 @@ use crate::identifier::pkg_ident::PackageIdentifier;
 use crate::identifier::pkg_ident::PackageOracleCodeLoopVarIdentifier;
 use crate::identifier::Identifier;
 use crate::package::{Composition, Edge, Export, OracleDef, PackageInstance};
+use crate::parser::ast::Identifier as _;
 use crate::parser::package::ForComp;
+use crate::parser::reduction::NewReductionMappingEntry;
 use crate::proof::Proof;
 use crate::statement::{CodeBlock, InvokeOracleStatement, Statement};
 use crate::types::Type;
@@ -479,7 +481,7 @@ fn tex_write_composition_graph(
     backend: &Option<ProverBackend>,
     mut file: &File,
     composition: &Composition,
-    pkgmap: &[(std::string::String, std::string::String)],
+    pkgmap: &[NewReductionMappingEntry],
 ) -> std::io::Result<()> {
     let mut write_node = |mut file: &File,
                           pkgname: &str,
@@ -489,7 +491,7 @@ fn tex_write_composition_graph(
                           bottom,
                           column|
      -> std::io::Result<()> {
-        let fill = if pkgmap.iter().any(|(pname, _)| pkgname == *pname) {
+        let fill = if pkgmap.iter().any(|entry| pkgname == entry.left().as_str()) {
             "red!50"
         } else {
             "white"
@@ -778,44 +780,40 @@ pub fn tex_write_proof(
                 writeln!(
                     file,
                     "\\subsection{{Game {} with Assumption Game {} highlighted in red}}",
-                    red.left().as_game_inst_name().replace('_', "\\_"),
-                    red.left()
-                        .as_assumption_game_inst_name()
-                        .replace('_', "\\_")
+                    red.left().left().as_str().replace('_', "\\_"),
+                    red.left().right().as_str().replace('_', "\\_")
                 )?;
                 writeln!(file, "\\begin{{center}}")?;
                 let left_game_instance = proof
                     .instances
                     .iter()
-                    .find(|instance| instance.name() == red.left().as_game_inst_name())
+                    .find(|instance| instance.name() == red.left().left().as_str())
                     .unwrap();
                 tex_write_composition_graph(
                     backend,
                     &file,
                     left_game_instance.game(),
-                    red.left().pkg_maps(),
+                    red.left().entries(),
                 )?;
                 writeln!(file, "\\end{{center}}")?;
 
                 writeln!(
                     file,
                     "\\subsection{{Game {} with Assumption Game {} highlighted  in red}}",
-                    red.right().as_game_inst_name().replace('_', "\\_"),
-                    red.right()
-                        .as_assumption_game_inst_name()
-                        .replace('_', "\\_")
+                    red.right().left().as_str().replace('_', "\\_"),
+                    red.right().right().as_str().replace('_', "\\_")
                 )?;
                 writeln!(file, "\\begin{{center}}")?;
                 let right_game_instance = proof
                     .instances
                     .iter()
-                    .find(|instance| instance.name() == red.right().as_game_inst_name())
+                    .find(|instance| instance.name() == red.right().left().as_str())
                     .unwrap();
                 tex_write_composition_graph(
                     backend,
                     &file,
                     right_game_instance.game(),
-                    red.right().pkg_maps(),
+                    red.right().entries(),
                 )?;
                 writeln!(file, "\\end{{center}}")?;
             }

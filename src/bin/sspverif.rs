@@ -184,7 +184,11 @@ struct WireCheck {
 }
 
 fn prove(p: &Prove) -> Result<(), project::error::Error> {
-    project::Project::load()?.prove(p.prover, p.transcript)
+    let project_root = project::find_project_root()?;
+    let files = project::Files::load(&project_root)?;
+    let project = project::Project::load(&files)?;
+
+    project.prove(p.prover, p.transcript)
 }
 
 fn explain(_game_name: &str, _dst: &Option<String>) -> Result<(), project::error::Error> {
@@ -201,7 +205,11 @@ fn explain(_game_name: &str, _dst: &Option<String>) -> Result<(), project::error
 }
 
 fn latex(l: &Latex) -> Result<(), project::error::Error> {
-    project::Project::load()?.latex(l.prover)
+    let project_root = project::find_project_root()?;
+    let files = project::Files::load(&project_root)?;
+    let project = project::Project::load(&files)?;
+
+    project.latex(l.prover)
 }
 
 fn format(f: &Format) -> Result<(), project::error::Error> {
@@ -215,7 +223,11 @@ fn format(f: &Format) -> Result<(), project::error::Error> {
 }
 
 fn wire_check(game_name: &str, dst_idx: usize) -> Result<(), project::error::Error> {
-    project::Project::load()?.print_wire_check_smt(game_name, dst_idx);
+    let project_root = project::find_project_root()?;
+    let files = project::Files::load(&project_root)?;
+    let project = project::Project::load(&files)?;
+
+    project.print_wire_check_smt(game_name, dst_idx);
     Ok(())
 }
 
