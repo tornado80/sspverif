@@ -479,3 +479,49 @@ impl<L: Into<SmtExpr>, R: Into<SmtExpr>> From<SmtGte<L, R>> for SmtExpr {
         ("not", ("<", val.0, val.1)).into()
     }
 }
+
+#[derive(Debug, Clone)]
+pub struct SmtMatch<E, B>
+where
+    E: Into<SmtExpr>,
+    B: Into<SmtExpr>,
+{
+    pub expr: E,
+    pub cases: Vec<SmtMatchCase<B>>,
+}
+
+impl<E, B> From<SmtMatch<E, B>> for SmtExpr
+where
+    E: Into<SmtExpr>,
+    B: Into<SmtExpr>,
+{
+    fn from(value: SmtMatch<E, B>) -> SmtExpr {
+        let cases = value
+            .cases
+            .into_iter()
+            .map(|case| {
+                let pattern = if case.args.is_empty() {
+                    case.constructor.into()
+                } else {
+                    let mut pattern = vec![case.constructor.into()];
+                    pattern.extend(case.args.into_iter().map(|s| s.into()));
+                    SmtExpr::List(pattern)
+                };
+
+                SmtExpr::List(vec![pattern, case.body.into()])
+            })
+            .collect();
+
+        ("match", value.expr, SmtExpr::List(cases)).into()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct SmtMatchCase<B>
+where
+    B: Into<SmtExpr>,
+{
+    pub constructor: String,
+    pub args: Vec<String>,
+    pub body: B,
+}

@@ -1,16 +1,16 @@
 pub mod game_consts;
 pub mod game_state;
-mod intermediate_state;
+//mod intermediate_state;
 mod normal_return;
-mod partial_return;
+//mod partial_return;
 pub mod pkg_consts;
 pub mod pkg_state;
 mod return_value;
 
 pub use game_state::*;
-pub use intermediate_state::*;
+//pub use intermediate_state::*;
 pub use normal_return::*;
-pub use partial_return::*;
+//pub use partial_return::*;
 pub use pkg_state::*;
 pub use return_value::*;
 
@@ -23,8 +23,7 @@ use sspverif_smtlib::syntax::{
 
 use crate::writers::smt::{
     declare::declare_datatype as base_declare_datatype,
-    exprs::SmtExpr,
-    partials::{SmtMatch, SmtMatchCase},
+    exprs::{SmtExpr, SmtMatch, SmtMatchCase},
     sorts::Sort,
 };
 

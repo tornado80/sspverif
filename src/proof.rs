@@ -47,16 +47,16 @@ mod instantiate {
             .map(|oracle_def| inst_ctx.rewrite_oracle_def(oracle_def.clone()))
             .collect();
 
-        let new_split_oracles = pkg_inst
-            .pkg
-            .split_oracles
-            .iter()
-            .map(|split_oracle_def| inst_ctx.rewrite_split_oracle_def(split_oracle_def.clone()))
-            .collect();
+        // let new_split_oracles = pkg_inst
+        //     .pkg
+        //     .split_oracles
+        //     .iter()
+        //     .map(|split_oracle_def| inst_ctx.rewrite_split_oracle_def(split_oracle_def.clone()))
+        //     .collect();
 
         let pkg = Package {
             oracles: new_oracles,
-            split_oracles: new_split_oracles,
+            // split_oracles: new_split_oracles,
             ..pkg_inst.pkg.clone()
         };
 

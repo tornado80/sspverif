@@ -274,26 +274,26 @@ impl<W: Write> Writer<W> {
                 }
                 self.write_string("\n")?;
             }
-            Statement::IfThenElse(cond, ifcode, elsecode, _) => {
+            Statement::IfThenElse(ite) => {
                 // check if this an assert
-                if ifcode.0.is_empty()
-                    && elsecode.0.len() == 1
-                    && matches!(elsecode.0[0], Statement::Abort(_))
+                if ite.then_block.0.is_empty()
+                    && ite.else_block.0.len() == 1
+                    && matches!(ite.else_block.0[0], Statement::Abort(_))
                 {
                     self.write_string("assert (")?;
-                    self.write_expression(cond)?;
+                    self.write_expression(&ite.cond)?;
                     self.write_string(");\n")?;
                     return Ok(());
                 }
 
                 self.write_string("if (")?;
-                self.write_expression(cond)?;
+                self.write_expression(&ite.cond)?;
                 self.write_string(") ")?;
-                self.write_codeblock(ifcode)?;
+                self.write_codeblock(&ite.then_block)?;
 
-                if !elsecode.0.is_empty() {
+                if !ite.else_block.0.is_empty() {
                     self.write_string(" else ")?;
-                    self.write_codeblock(elsecode)?;
+                    self.write_codeblock(&ite.else_block)?;
                 }
 
                 self.write_string("\n")?;

@@ -21,7 +21,7 @@ use crate::{
     parser::error::{
         ForLoopIdentifersDontMatchError, NoSuchOracleError, OracleAlreadyImportedError,
     },
-    statement::{CodeBlock, FilePosition, InvokeOracleStatement, Statement},
+    statement::{CodeBlock, FilePosition, IfThenElse, InvokeOracleStatement, Statement},
     types::Type,
     util::scope::{Declaration, OracleContext, Scope},
     writers::smt::{
@@ -231,7 +231,7 @@ pub fn handle_pkg_spec(
             .map(|(_k, (v, loc))| (v.clone(), *loc))
             .collect(),
         state: ctx.state,
-        split_oracles: vec![],
+        //split_oracles: vec![],
 
         file_name: ctx.file_name.to_string(),
         file_contents: ctx.file_content.to_string(),
@@ -822,7 +822,7 @@ pub fn handle_code(
     code.into_inner()
         .map(|stmt| {
             let span = stmt.as_span();
-            let source_span = SourceSpan::from(span.start()..span.end());
+            let full_span = (span.start()..span.end()).into();
 
             // TODO: check that we return in all cases (so we know the code we pass to the
             //       transforms is known to be valid)
@@ -831,19 +831,38 @@ pub fn handle_code(
                 // assign | return_stmt | abort | ite
                 Rule::ite => {
                     let mut inner = stmt.into_inner();
-                    let cond_expr = handle_expression(&ctx.parse_ctx(), inner.next().unwrap(), Some(&Type::Boolean))?;
-                    let ifcode = handle_code(
+                    let cond = handle_expression(&ctx.parse_ctx(), inner.next().unwrap(), Some(&Type::Boolean))?;
+                    let then_ast = inner.next().unwrap();
+                    let then_span = then_ast.as_span();
+                    let then_block = handle_code(
                         ctx,
-                        inner.next().unwrap(),
+                        then_ast,
                         oracle_sig,
                     )?;
                     let maybe_elsecode = inner.next();
-                    let elsecode = match maybe_elsecode {
-                        None => CodeBlock(vec![]),
-                        Some(c) => handle_code(ctx, c, oracle_sig)?,
+                    let (else_span, else_block) = match maybe_elsecode {
+                        None => (None, CodeBlock(vec![])),
+                        Some(c) => (Some(c.as_span()), handle_code(ctx, c, oracle_sig)?),
                     };
 
-                    Statement::IfThenElse(cond_expr, ifcode, elsecode, source_span)
+                    let else_span = if let Some(else_span) = else_span {
+                        (else_span.start()..else_span.end()).into()
+                    } else {
+                        (then_span.end()..then_span.end()).into()
+                    };
+                    let then_span = (then_span.start()..then_span.end()).into();
+
+                    let ite = IfThenElse{
+                        cond,
+                        then_block,
+                        else_block,
+                        then_span,
+                        else_span,
+                        full_span,
+                    };
+
+
+                    Statement::IfThenElse(ite)
                 }
                 Rule::return_stmt => {
                     let mut inner = stmt.into_inner();
@@ -851,19 +870,16 @@ pub fn handle_code(
 
 
                     let expr = maybe_expr.map(|expr| handle_expression(&ctx.parse_ctx(), expr, Some(&oracle_sig.tipe))).transpose()?;
-                    Statement::Return(expr, source_span)
+                    Statement::Return(expr, full_span)
                 }
                 Rule::assert => {
                     let mut inner = stmt.into_inner();
                     let expr = handle_expression(&ctx.parse_ctx(), inner.next().unwrap(), Some(&Type::Boolean))?;
-                    Statement::IfThenElse(
-                        expr,
-                        CodeBlock(vec![]),
-                        CodeBlock(vec![Statement::Abort(source_span)]),
-                         source_span,
-                    )
+
+                    Statement::IfThenElse(IfThenElse { cond: expr, then_block: CodeBlock(vec![]), else_block: CodeBlock(vec![Statement::Abort(full_span)]), then_span: full_span, else_span: full_span, full_span })
+                    
                 }
-                Rule::abort => Statement::Abort(source_span),
+                Rule::abort => Statement::Abort(full_span),
                 Rule::sample => {
                     let mut inner = stmt.into_inner();
                     let name_ast = inner.next().unwrap();
@@ -875,7 +891,7 @@ pub fn handle_code(
                         tipe.clone(),
                     )
                     ?;
-                    Statement::Sample(ident, None, None, tipe, source_span)
+                    Statement::Sample(ident, None, None, tipe, full_span)
                 }
 
                 Rule::assign => {
@@ -898,7 +914,7 @@ pub fn handle_code(
                         expected_type,
                     )?;
 
-                    Statement::Assign(ident, None, expr, source_span)
+                    Statement::Assign(ident, None, expr, full_span)
                 }
 
                 Rule::table_sample => {
@@ -913,7 +929,7 @@ pub fn handle_code(
                         Type::Table(Box::new(index.get_type()),  Box::new(tipe.clone())),
                     )
                         ?;
-                    Statement::Sample(ident, Some(index), None, tipe, source_span)
+                    Statement::Sample(ident, Some(index), None, tipe, full_span)
                 }
 
                 Rule::table_assign => {
@@ -958,7 +974,7 @@ pub fn handle_code(
                     )
                         ?;
 
-                    Statement::Assign(ident, Some(index), expr, source_span)
+                    Statement::Assign(ident, Some(index), expr, full_span)
                 }
 
                 Rule::invocation => {
@@ -1054,7 +1070,7 @@ pub fn handle_code(
                         args,
                         target_inst_name: None,
                         tipe: Some(expected_type),
-                        file_pos: source_span,
+                        file_pos: full_span,
                     })
                 }
                 Rule::parse => {
@@ -1079,7 +1095,7 @@ pub fn handle_code(
                         .collect::<Result<_,_>>()?;
 
 
-                    Statement::Parse(idents, expr, source_span)
+                    Statement::Parse(idents, expr, full_span)
                 }
                 Rule::for_ => {
                     let mut parsed: Vec<Pair<Rule>> = stmt.into_inner().collect();
@@ -1128,7 +1144,7 @@ pub fn handle_code(
                         handle_code(ctx, parsed.remove(4),oracle_sig)?;
                     ctx.scope.leave();
 
-                    Statement::For(loopvar, lower_bound, upper_bound, body, source_span)
+                    Statement::For(loopvar, lower_bound, upper_bound, body, full_span)
                 }
                 _ => {
                     unreachable!("{:#?}", stmt)

@@ -8,7 +8,7 @@ use crate::{
     writers::smt::{
         exprs::SmtExpr,
         names,
-        partials::PartialsDatatype,
+        //partials::PartialsDatatype,
         patterns::{
             self, game_consts::GameConstsPattern, DatastructurePattern, GameStateDeclareInfo,
             GameStatePattern, GameStateSelector, SmtDefineFun,
@@ -16,7 +16,7 @@ use crate::{
     },
 };
 
-use super::{GameInstanceContext, OracleContext, PackageInstanceContext, SplitOracleContext};
+use super::{GameInstanceContext, OracleContext, PackageInstanceContext};
 
 impl<'a> GameInstanceContext<'a> {
     pub(crate) fn new(game_inst: &'a GameInstance) -> Self {
@@ -329,28 +329,28 @@ impl<'a> GameInstanceContext<'a> {
         inst_ctx.oracle_ctx_by_name(oracle_name)
     }
 
-    pub(crate) fn exported_split_oracle_ctx_by_name(
-        &self,
-        oracle_name: &str,
-        partials: &'a PartialsDatatype,
-    ) -> Option<SplitOracleContext<'a>> {
-        let inst_ctx = self.pkg_inst_ctx_by_exported_split_oracle_name(oracle_name)?;
-
-        inst_ctx.split_oracle_ctx_by_name(oracle_name, partials)
-    }
-
-    pub(crate) fn pkg_inst_ctx_by_exported_split_oracle_name(
-        &self,
-        oracle_name: &str,
-    ) -> Option<PackageInstanceContext<'a>> {
-        self.game_inst
-            .game()
-            .split_exports
-            .iter()
-            .find(|SplitExport(_inst_offs, osig)| osig.name == oracle_name)
-            .map(|SplitExport(inst_offs, _osig)| PackageInstanceContext {
-                game_ctx: *self,
-                inst_offs: *inst_offs,
-            })
-    }
+    // pub(crate) fn exported_split_oracle_ctx_by_name(
+    //     &self,
+    //     oracle_name: &str,
+    //     partials: &'a PartialsDatatype,
+    // ) -> Option<SplitOracleContext<'a>> {
+    //     let inst_ctx = self.pkg_inst_ctx_by_exported_split_oracle_name(oracle_name)?;
+    //
+    //     inst_ctx.split_oracle_ctx_by_name(oracle_name, partials)
+    // }
+    //
+    // pub(crate) fn pkg_inst_ctx_by_exported_split_oracle_name(
+    //     &self,
+    //     oracle_name: &str,
+    // ) -> Option<PackageInstanceContext<'a>> {
+    //     self.game_inst
+    //         .game()
+    //         .split_exports
+    //         .iter()
+    //         .find(|SplitExport(_inst_offs, osig)| osig.name == oracle_name)
+    //         .map(|SplitExport(inst_offs, _osig)| PackageInstanceContext {
+    //             game_ctx: *self,
+    //             inst_offs: *inst_offs,
+    //         })
+    // }
 }

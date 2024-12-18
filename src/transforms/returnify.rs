@@ -1,11 +1,13 @@
+use miette::SourceSpan;
+
 use crate::package::Composition;
-use crate::statement::{CodeBlock, FilePosition, Statement};
+use crate::statement::{CodeBlock, FilePosition, IfThenElse, Statement};
 use crate::types::Type;
 
 #[derive(Clone, Debug)]
 pub enum Error {
     MissingReturn {
-        file_pos: FilePosition,
+        file_pos: SourceSpan,
         pkg_inst_name: String,
         oracle_name: String,
     },
@@ -26,19 +28,21 @@ impl super::GameTransform for TransformNg {
                 for (i, oracle) in newinst.pkg.oracles.clone().iter().enumerate() {
                     newinst.pkg.oracles[i].code = returnify(
                         &oracle.code,
+                        oracle.file_pos,
                         oracle.sig.tipe == Type::Empty,
                         &inst.name,
                         &oracle.sig.name,
                     )?;
                 }
-                for (i, oracle) in newinst.pkg.split_oracles.clone().iter().enumerate() {
-                    newinst.pkg.split_oracles[i].code = returnify(
-                        &oracle.code,
-                        oracle.sig.tipe == Type::Empty,
-                        &inst.name,
-                        &oracle.sig.name,
-                    )?;
-                }
+                // for (i, oracle) in newinst.pkg.split_oracles.clone().iter().enumerate() {
+                //     newinst.pkg.split_oracles[i].code = returnify(
+                //         &oracle.code,
+                //         oracle.file_pos,
+                //         oracle.sig.tipe == Type::Empty,
+                //         &inst.name,
+                //         &oracle.sig.name,
+                //     )?;
+                // }
                 Ok(newinst)
             })
             .collect();
@@ -74,6 +78,7 @@ mod old {
                     for (i, oracle) in newinst.pkg.oracles.clone().iter().enumerate() {
                         newinst.pkg.oracles[i].code = returnify(
                             &oracle.code,
+                            oracle.file_pos,
                             oracle.sig.tipe == Type::Empty,
                             &inst.name,
                             &oracle.sig.name,
@@ -95,35 +100,42 @@ mod old {
 
 pub fn returnify(
     cb: &CodeBlock,
+    span: SourceSpan,
     none_ok: bool,
     pkg_inst_name: &str,
     oracle_name: &str,
 ) -> Result<CodeBlock, Error> {
     match cb.0.last() {
-        Some(Statement::IfThenElse(expr, ifcode, elsecode, file_pos)) => {
+        Some(Statement::IfThenElse(ite)) => {
             let mut retval = cb.0.clone();
             retval.pop();
-            retval.push(Statement::IfThenElse(
-                expr.clone(),
-                returnify(ifcode, none_ok, pkg_inst_name, oracle_name)?,
-                returnify(elsecode, none_ok, pkg_inst_name, oracle_name)?,
-                *file_pos,
-            ));
+            retval.push(Statement::IfThenElse(IfThenElse {
+                then_block: returnify(
+                    &ite.then_block,
+                    ite.then_span,
+                    none_ok,
+                    pkg_inst_name,
+                    oracle_name,
+                )?,
+                else_block: returnify(
+                    &ite.else_block,
+                    ite.else_span,
+                    none_ok,
+                    pkg_inst_name,
+                    oracle_name,
+                )?,
+                ..ite.clone()
+            }));
             Ok(CodeBlock(retval))
         }
         Some(Statement::Return(_, _)) | Some(Statement::Abort(_)) => Ok(cb.clone()),
         Some(other) => {
             if !none_ok {
-                panic!(
-                    r#"
-                Err(Error::MissingReturn {{
-                    file_pos: other.file_pos(), # {:?}
-                    oracle_name,                # {oracle_name}
-                    pkg_inst_name,              # {pkg_inst_name}
-                }})
-                "#,
-                    other.file_pos()
-                )
+                Err(Error::MissingReturn {
+                    file_pos: other.file_pos(),
+                    oracle_name: oracle_name.to_string(),
+                    pkg_inst_name: pkg_inst_name.to_string(),
+                })
             } else {
                 let mut retval = cb.0.clone();
                 retval.push(Statement::Return(None, other.file_pos()));
@@ -131,18 +143,13 @@ pub fn returnify(
             }
         }
         None => {
+            // the codeblock is empty
             if !none_ok {
-                panic!(
-                    r#"
-                Err(Error::MissingReturn {{
-                    file_pos: other.file_pos(), #
-                    oracle_name,                # {oracle_name}
-                    pkg_inst_name,              # {pkg_inst_name}
-                }})
-                "#,
-                    oracle_name = oracle_name,
-                    pkg_inst_name = pkg_inst_name
-                )
+                Err(Error::MissingReturn {
+                    file_pos: span,
+                    oracle_name: oracle_name.to_string(),
+                    pkg_inst_name: pkg_inst_name.to_string(),
+                })
             } else {
                 let mut retval = cb.0.clone();
                 retval.push(Statement::Return(None, (0..1).into())); // TODO proper source span!
@@ -168,7 +175,7 @@ mod test {
     use crate::expressions::Expression;
     use crate::identifier::pkg_ident::{PackageIdentifier, PackageLocalIdentifier};
     use crate::identifier::Identifier;
-    use crate::statement::{CodeBlock, Statement};
+    use crate::statement::{CodeBlock, IfThenElse, Statement};
     use crate::types::Type;
 
     fn pkg_local_test_ident(name: &str, tipe: Type) -> Identifier {
@@ -194,7 +201,7 @@ mod test {
         };
         assert_eq!(
             code,
-            returnify(&code, true, "some_pkg_inst", "some_oracle").unwrap()
+            returnify(&code, file_pos, true, "some_pkg_inst", "some_oracle").unwrap()
         );
     }
 
@@ -208,7 +215,7 @@ mod test {
         };
         assert_eq!(
             code,
-            returnify(&code, true, "some_pkg_inst", "some_oracle").unwrap()
+            returnify(&code, file_pos, true, "some_pkg_inst", "some_oracle").unwrap()
         );
     }
 
@@ -222,7 +229,7 @@ mod test {
         };
         assert_eq!(
             code,
-            returnify(&code, true, "some_pkg_inst", "some_oracle").unwrap()
+            returnify(&code, file_pos, true, "some_pkg_inst", "some_oracle").unwrap()
         );
     }
 
@@ -239,11 +246,11 @@ mod test {
         };
         assert_eq!(
             after,
-            returnify(&before, true, "some_pkg_inst", "some_oracle").unwrap()
+            returnify(&before, file_pos, true, "some_pkg_inst", "some_oracle").unwrap()
         );
         assert_eq!(
             after,
-            returnify(&after, true, "some_pkg_inst", "some_oracle").unwrap()
+            returnify(&after, file_pos, true, "some_pkg_inst", "some_oracle").unwrap()
         );
     }
 
@@ -254,37 +261,56 @@ mod test {
         let d = pkg_local_test_ident("d", Type::Integer);
         let e = pkg_local_test_ident("e", Type::Integer);
         let before = block! {
-            Statement::IfThenElse(
+            Statement::IfThenElse(IfThenElse {
+                cond:
+
                 Expression::new_equals(vec![&(a.clone().into()),
                                             &(a.clone().into())]),
+                then_block:
                 block!{
                     Statement::Sample(d.clone(), None, None, Type::Integer, file_pos)
                 },
-                block!{
+
+                else_block: block!{
                     Statement::Sample(e.clone(), None, None, Type::Integer, file_pos),
                     Statement::Return(None, file_pos)
-                }, file_pos)
+                },
+
+                then_span:file_pos,
+                else_span:file_pos,
+                full_span:file_pos,
+            })
         };
         let after = block! {
-            Statement::IfThenElse(
+            Statement::IfThenElse( IfThenElse {
+                cond:
                 Expression::new_equals(vec![&(a.clone().into()),
                                             &(a.clone().into())]),
+
+                then_block:
                 block!{
                     Statement::Sample(d, None, None, Type::Integer, file_pos),
                     Statement::Return(None, file_pos)
                 },
+
+                else_block:
                 block!{
                     Statement::Sample(e, None, None, Type::Integer, file_pos),
                     Statement::Return(None, file_pos)
-                }, file_pos)
+                },
+
+                then_span: file_pos,
+                else_span: file_pos,
+                full_span: file_pos
+            })
         };
         assert_eq!(
             after,
-            returnify(&before, true, "some_pkg_inst", "some_oracle").unwrap()
+            returnify(&before, file_pos, true, "some_pkg_inst", "some_oracle").unwrap()
         );
         assert_eq!(
             after,
-            returnify(&after, true, "some_pkg_inst", "some_oracle").unwrap()
+            returnify(&after, file_pos, true, "some_pkg_inst", "some_oracle").unwrap()
         );
     }
 
@@ -295,36 +321,46 @@ mod test {
         let d = pkg_local_test_ident("d", Type::Integer);
         let e = pkg_local_test_ident("e", Type::Integer);
         let before = block! {
-            Statement::IfThenElse(
-                Expression::new_equals(vec![&(a.clone().into()),
-                                            &(a.clone().into())]),
-                block!{
+            Statement::IfThenElse(IfThenElse{
+                cond: Expression::new_equals(vec![&(a.clone().into()),
+                                                  &(a.clone().into())]),
+                then_block: block!{
                     Statement::Sample(d.clone(), None, None, Type::Integer, file_pos)
                 },
-                block!{
+                else_block: block!{
                     Statement::Sample(e.clone(), None, None, Type::Integer, file_pos)
-                }, file_pos)
+                },
+                then_span: file_pos,
+                else_span: file_pos,
+                full_span: file_pos,
+            })
         };
         let after = block! {
-            Statement::IfThenElse(
-                Expression::new_equals(vec![&(a.clone().into()),
-                                            &(a.clone().into())]),
-                block!{
+            Statement::IfThenElse(IfThenElse {
+                cond: Expression::new_equals(vec![&(a.clone().into()),
+                                                  &(a.clone().into())]),
+                then_block: block!{
                     Statement::Sample(d.clone(), None, None, Type::Integer, file_pos),
                     Statement::Return(None, file_pos)
                 },
-                block!{
+
+                else_block: block!{
                     Statement::Sample(e.clone(), None, None, Type::Integer, file_pos),
                     Statement::Return(None, file_pos)
-                }, file_pos)
+                },
+
+                then_span: file_pos,
+                else_span: file_pos,
+                full_span: file_pos,
+            })
         };
         assert_eq!(
             after,
-            returnify(&before, true, "some_pkg_inst", "some_oracle").unwrap()
+            returnify(&before, file_pos, true, "some_pkg_inst", "some_oracle").unwrap()
         );
         assert_eq!(
             after,
-            returnify(&after, true, "some_pkg_inst", "some_oracle").unwrap()
+            returnify(&after, file_pos, true, "some_pkg_inst", "some_oracle").unwrap()
         );
     }
 }

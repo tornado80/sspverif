@@ -4,17 +4,17 @@ mod oracle_args;
 
 mod return_is_abort;
 mod return_normal;
-mod return_partial;
+//mod return_partial;
 mod return_value;
 
-mod state_intermediate;
+//mod state_intermediate;
 
 pub(crate) use oracle_args::*;
 pub(crate) use return_is_abort::*;
 pub(crate) use return_normal::*;
-pub(crate) use return_partial::*;
+//pub(crate) use return_partial::*;
 pub(crate) use return_value::*;
-pub(crate) use state_intermediate::*;
+//pub(crate) use state_intermediate::*;
 
 pub trait ConstantPattern {
     fn name(&self) -> String;

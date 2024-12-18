@@ -20,7 +20,6 @@ use crate::{
     transforms::{
         proof_transforms::EquivalenceTransform,
         samplify::{Position, SampleInfo},
-        split_partial::SplitInfoEntry,
         ProofTransform,
     },
     types::Type,
@@ -32,7 +31,6 @@ use crate::{
         contexts::{self, GenericOracleContext},
         declare,
         exprs::{SmtAnd, SmtAssert, SmtEq2, SmtExpr, SmtForall, SmtImplies, SmtIte, SmtNot},
-        partials::{into_partial_dtypes, PartialsDatatype},
         patterns::{self, ConstantPattern, DatastructurePattern},
         writer::CompositionSmtWriter,
     },
@@ -214,10 +212,8 @@ impl<'a> EquivalenceContext<'a> {
             .resolve_value(self.equivalence.right_name())
             .unwrap();
 
-        let mut left_writer =
-            CompositionSmtWriter::new(left, self.sample_info_left(), self.split_info_left());
-        let mut right_writer =
-            CompositionSmtWriter::new(right, self.sample_info_right(), self.split_info_right());
+        let mut left_writer = CompositionSmtWriter::new(left, self.sample_info_left());
+        let mut right_writer = CompositionSmtWriter::new(right, self.sample_info_right());
 
         let mut out = vec![];
 
@@ -240,8 +236,8 @@ impl<'a> EquivalenceContext<'a> {
 
         //out.append(&mut left_writer.smt_oracle_functions());
         //out.append(&mut right_writer.smt_oracle_functions());
-        out.append(&mut left_writer.smt_composition_partial_stuff());
-        out.append(&mut right_writer.smt_composition_partial_stuff());
+        // out.append(&mut left_writer.smt_composition_partial_stuff());
+        // out.append(&mut right_writer.smt_composition_partial_stuff());
 
         //out.append(&mut left_writer.smt_composition_all());
         //out.append(&mut right_writer.smt_composition_all());
@@ -444,62 +440,62 @@ impl<'a> EquivalenceContext<'a> {
 
         ////// split stuff
 
-        let mut processed = HashSet::new();
-        for SplitExport(pkg_inst_offs, oracle_sig) in &left_game.split_exports {
-            let pkg_inst = &left_game.pkgs[*pkg_inst_offs];
-
-            let pkg_inst_name = &pkg_inst.name;
-            let pkg_name = &pkg_inst.pkg.name;
-            let pkg_params = &pkg_inst.params;
-            let oracle_name = &oracle_sig.name;
-
-            if processed.contains(oracle_name) {
-                continue;
-            }
-
-            processed.insert(oracle_name);
-
-            let decl_intermediate_state_left = patterns::IntermediateStateConst {
-                game_inst_name: left_game_inst_name,
-                pkg_inst_name,
-                pkg_name,
-                pkg_params,
-                oracle_name,
-                variant: "old",
-            };
-
-            out.push(decl_intermediate_state_left.declare());
-        }
-
-        let mut processed = HashSet::new();
-        for SplitExport(pkg_inst_offs, oracle_sig) in &right_game.split_exports {
-            let pkg_inst_name = &right_game.pkgs[*pkg_inst_offs].name;
-            let pkg_params = &right_game.pkgs[*pkg_inst_offs].params;
-            let pkg_name = &right_game.pkgs[*pkg_inst_offs].pkg.name;
-            let oracle_name = &oracle_sig.name;
-
-            if processed.contains(oracle_name) {
-                continue;
-            }
-
-            processed.insert(oracle_name);
-
-            let decl_intermediate_state_right = patterns::IntermediateStateConst {
-                game_inst_name: right_game_inst_name,
-                pkg_inst_name,
-                pkg_name,
-                pkg_params,
-                oracle_name,
-                variant: "old",
-            };
-
-            out.push(decl_intermediate_state_right.declare());
-        }
+        // let mut processed = HashSet::new();
+        // for SplitExport(pkg_inst_offs, oracle_sig) in &left_game.split_exports {
+        //     let pkg_inst = &left_game.pkgs[*pkg_inst_offs];
+        //
+        //     let pkg_inst_name = &pkg_inst.name;
+        //     let pkg_name = &pkg_inst.pkg.name;
+        //     let pkg_params = &pkg_inst.params;
+        //     let oracle_name = &oracle_sig.name;
+        //
+        //     if processed.contains(oracle_name) {
+        //         continue;
+        //     }
+        //
+        //     processed.insert(oracle_name);
+        //
+        //     let decl_intermediate_state_left = patterns::IntermediateStateConst {
+        //         game_inst_name: left_game_inst_name,
+        //         pkg_inst_name,
+        //         pkg_name,
+        //         pkg_params,
+        //         oracle_name,
+        //         variant: "old",
+        //     };
+        //
+        //     out.push(decl_intermediate_state_left.declare());
+        // }
+        //
+        // let mut processed = HashSet::new();
+        // for SplitExport(pkg_inst_offs, oracle_sig) in &right_game.split_exports {
+        //     let pkg_inst_name = &right_game.pkgs[*pkg_inst_offs].name;
+        //     let pkg_params = &right_game.pkgs[*pkg_inst_offs].params;
+        //     let pkg_name = &right_game.pkgs[*pkg_inst_offs].pkg.name;
+        //     let oracle_name = &oracle_sig.name;
+        //
+        //     if processed.contains(oracle_name) {
+        //         continue;
+        //     }
+        //
+        //     processed.insert(oracle_name);
+        //
+        //     let decl_intermediate_state_right = patterns::IntermediateStateConst {
+        //         game_inst_name: right_game_inst_name,
+        //         pkg_inst_name,
+        //         pkg_name,
+        //         pkg_params,
+        //         oracle_name,
+        //         variant: "old",
+        //     };
+        //
+        //     out.push(decl_intermediate_state_right.declare());
+        // }
 
         /////// arguments for non-split and split oracles
 
-        let left_partial_datatypes = into_partial_dtypes(self.split_info_left());
-        let right_partial_datatypes = into_partial_dtypes(self.split_info_right());
+        // let left_partial_datatypes = into_partial_dtypes(self.split_info_left());
+        // let right_partial_datatypes = into_partial_dtypes(self.split_info_right());
 
         // write declarations of arguments for the exports in left
         for Export(_, sig) in &left.game().exports {
@@ -512,41 +508,41 @@ impl<'a> EquivalenceContext<'a> {
                 }
             }
 
-            if let Some(partial_dtype) = left_partial_datatypes
-                .iter()
-                .find(|dtype| dtype.real_oracle_sig.name == sig.name)
-            {
-                let orcl_ctx = gctx_left
-                    .exported_split_oracle_ctx_by_name(&sig.name, partial_dtype)
-                    .unwrap();
-                for (arg_name, arg_type) in &sig.args {
-                    out.push(declare::declare_const(
-                        orcl_ctx.smt_arg_name(arg_name),
-                        arg_type.clone().into(),
-                    ));
-                }
-            }
+            // if let Some(partial_dtype) = left_partial_datatypes
+            //     .iter()
+            //     .find(|dtype| dtype.real_oracle_sig.name == sig.name)
+            // {
+            //     let orcl_ctx = gctx_left
+            //         .exported_split_oracle_ctx_by_name(&sig.name, partial_dtype)
+            //         .unwrap();
+            //     for (arg_name, arg_type) in &sig.args {
+            //         out.push(declare::declare_const(
+            //             orcl_ctx.smt_arg_name(arg_name),
+            //             arg_type.clone().into(),
+            //         ));
+            //     }
+            // }
         }
 
         // write declarations of arguments for the split oracles of the right.
         // the non-split ones are shared between games and have already been
         // added for the loop above.
-        for Export(_, sig) in &right.game().exports {
-            if let Some(partial_dtype) = right_partial_datatypes
-                .iter()
-                .find(|dtype| dtype.real_oracle_sig.name == sig.name)
-            {
-                let orcl_ctx = gctx_right
-                    .exported_split_oracle_ctx_by_name(&sig.name, partial_dtype)
-                    .unwrap();
-                for (arg_name, arg_type) in &sig.args {
-                    out.push(declare::declare_const(
-                        orcl_ctx.smt_arg_name(arg_name),
-                        arg_type.clone().into(),
-                    ));
-                }
-            }
-        }
+        // for Export(_, sig) in &right.game().exports {
+        //     if let Some(partial_dtype) = right_partial_datatypes
+        //         .iter()
+        //         .find(|dtype| dtype.real_oracle_sig.name == sig.name)
+        //     {
+        //         let orcl_ctx = gctx_right
+        //             .exported_split_oracle_ctx_by_name(&sig.name, partial_dtype)
+        //             .unwrap();
+        //         for (arg_name, arg_type) in &sig.args {
+        //             out.push(declare::declare_const(
+        //                 orcl_ctx.smt_arg_name(arg_name),
+        //                 arg_type.clone().into(),
+        //             ));
+        //         }
+        //     }
+        // }
 
         ////// return values
 
@@ -560,15 +556,15 @@ impl<'a> EquivalenceContext<'a> {
             out.push(constrain);
         }
 
-        for (decl_ret, constrain) in build_partial_returns(left, &left_partial_datatypes) {
-            out.push(decl_ret);
-            out.push(constrain);
-        }
-
-        for (decl_ret, constrain) in build_partial_returns(right, &right_partial_datatypes) {
-            out.push(decl_ret);
-            out.push(constrain);
-        }
+        // for (decl_ret, constrain) in build_partial_returns(left, &left_partial_datatypes) {
+        //     out.push(decl_ret);
+        //     out.push(constrain);
+        // }
+        //
+        // for (decl_ret, constrain) in build_partial_returns(right, &right_partial_datatypes) {
+        //     out.push(decl_ret);
+        //     out.push(constrain);
+        // }
 
         /////// randomess counters
 
@@ -700,277 +696,277 @@ impl<'a> EquivalenceContext<'a> {
         Ok(())
     }
 
-    fn split_oracle_sig_by_exported_name(
-        &'a self,
-        oracle_name: &str,
-    ) -> Option<&'a SplitOracleSig> {
-        let gctx_left = self.left_game_inst_ctx();
-
-        gctx_left
-            .game()
-            .split_exports
-            .iter()
-            .find(|SplitExport(_, sig)| sig.name == oracle_name)
-            .and_then(|SplitExport(inst_idx, _)| {
-                gctx_left.game().pkgs[*inst_idx]
-                    .pkg
-                    .split_oracles
-                    .iter()
-                    .find(|odef| odef.sig.name == oracle_name)
-                    .map(|odef| &odef.sig)
-            })
-    }
-
-    fn emit_split_claim_assert(
-        &self,
-        comm: &mut Communicator,
-        oracle_name: &str,
-        path: &SplitPath,
-        claim: &Claim,
-    ) -> Result<()> {
-        println!("name: {oracle_name}");
-        println!("path: {path:?}");
-
-        let gctx_left = self.left_game_inst_ctx();
-        let gctx_right = self.right_game_inst_ctx();
-
-        let game_inst_name_left = self.equivalence.left_name();
-        let game_inst_name_right = self.equivalence.right_name();
-
-        let game_name_left = &gctx_left.game().name;
-        let game_name_right = &gctx_right.game().name;
-
-        let game_params_left = &gctx_left.game_inst().consts;
-        let game_params_right = &gctx_right.game_inst().consts;
-
-        let pkg_inst_ctx_left = gctx_left
-            .pkg_inst_ctx_by_exported_split_oracle_name(oracle_name)
-            .unwrap();
-        let pkg_inst_ctx_right = gctx_right
-            .pkg_inst_ctx_by_exported_split_oracle_name(oracle_name)
-            .unwrap();
-
-        let pkg_inst_name_left = pkg_inst_ctx_left.pkg_inst_name();
-        let pkg_inst_name_right = pkg_inst_ctx_right.pkg_inst_name();
-
-        let pkg_name_left = pkg_inst_ctx_left.pkg_name();
-        let pkg_name_right = pkg_inst_ctx_right.pkg_name();
-
-        let pkg_params_left = &pkg_inst_ctx_left.pkg_inst().params;
-        let pkg_params_right = &pkg_inst_ctx_right.pkg_inst().params;
-
-        let args: Vec<_> = self
-            .split_oracle_sig_by_exported_name(oracle_name)
-            .unwrap()
-            .args
-            .iter()
-            .map(|(arg_name, arg_type)| patterns::OracleArgs {
-                oracle_name,
-                arg_name,
-                arg_type,
-            })
-            .collect();
-
-        // find the package instance which is marked as exporting
-        // the oracle of this name, both left and right.
-        let left_partial_return_name = patterns::PartialReturnConst {
-            game_name: game_name_left,
-            game_params: game_params_left,
-            pkg_name: pkg_name_left,
-            pkg_params: pkg_params_left,
-            game_inst_name: game_inst_name_left,
-            pkg_inst_name: pkg_inst_name_left,
-            oracle_name,
-        }
-        .name();
-
-        let right_partial_return_name = patterns::PartialReturnConst {
-            game_name: game_name_right,
-            game_params: game_params_right,
-            game_inst_name: game_inst_name_right,
-            pkg_name: pkg_name_right,
-            pkg_params: pkg_params_right,
-            pkg_inst_name: pkg_inst_name_right,
-            oracle_name,
-        }
-        .name();
-
-        let state_left = gctx_left.oracle_arg_game_state_pattern();
-        let state_right = gctx_right.oracle_arg_game_state_pattern();
-
-        let state_left_new_name =
-            state_left.new_global_const_name(game_inst_name_left, oracle_name.to_string());
-        let state_left_old_name = state_left.old_global_const_name(game_inst_name_left);
-
-        let state_right_new_name =
-            state_right.new_global_const_name(game_inst_name_right, oracle_name.to_string());
-        let state_right_old_name = state_right.old_global_const_name(game_inst_name_right);
-
-        let intermediate_state_left_new_name = patterns::IntermediateStateConst {
-            game_inst_name: game_inst_name_left,
-            pkg_inst_name: pkg_inst_name_left,
-            pkg_name: pkg_name_left,
-            pkg_params: pkg_params_left,
-            oracle_name,
-            variant: &format!("new-{oracle_name}"),
-        }
-        .name();
-
-        let intermediate_state_left_old_name = patterns::IntermediateStateConst {
-            game_inst_name: game_inst_name_left,
-            pkg_inst_name: pkg_inst_name_left,
-            pkg_name: pkg_name_left,
-            pkg_params: pkg_params_left,
-            oracle_name,
-            variant: "old",
-        }
-        .name();
-
-        let intermediate_state_right_new_name = patterns::IntermediateStateConst {
-            game_inst_name: game_inst_name_right,
-            pkg_inst_name: pkg_inst_name_right,
-            pkg_name: pkg_name_right,
-            pkg_params: pkg_params_right,
-            oracle_name,
-            variant: &format!("new-{oracle_name}"),
-        }
-        .name();
-
-        let intermediate_state_right_old_name = patterns::IntermediateStateConst {
-            game_inst_name: game_inst_name_right,
-            pkg_inst_name: pkg_inst_name_right,
-            pkg_name: pkg_name_right,
-            pkg_params: pkg_params_right,
-            oracle_name,
-            variant: "old",
-        }
-        .name();
-
-        let randomness_mapping = SmtForall {
-            bindings: vec![
-                ("randmap-sample-id-left".into(), Type::Integer.into()),
-                ("randmap-sample-ctr-left".into(), Type::Integer.into()),
-                ("randmap-sample-id-right".into(), Type::Integer.into()),
-                ("randmap-sample-ctr-right".into(), Type::Integer.into()),
-            ],
-            body: (
-                "=>",
-                (
-                    format!("randomness-mapping-{oracle_name}"),
-                    (
-                        format!("get-rand-ctr-{game_inst_name_left}"),
-                        "randmap-sample-id-left",
-                    ),
-                    (
-                        format!("get-rand-ctr-{game_inst_name_right}"),
-                        "randmap-sample-id-right",
-                    ),
-                    "randmap-sample-id-left",
-                    "randmap-sample-id-right",
-                    "randmap-sample-ctr-left",
-                    "randmap-sample-ctr-right",
-                ),
-                (
-                    "rand-is-eq",
-                    "randmap-sample-id-left",
-                    "randmap-sample-id-right",
-                    "randmap-sample-ctr-left",
-                    "randmap-sample-ctr-right",
-                ),
-            ),
-        };
-
-        // this helper builds an smt expression that calls the
-        // function with the given name with the old states,
-        // return values and the respective arguments.
-        // We expect that function to return a boolean, which makes
-        // it a relation.
-        let build_lemma_call = |name: &str| {
-            let mut tmp: Vec<SmtExpr> = vec![
-                name.into(),
-                state_left_old_name.clone().into(),
-                state_right_old_name.clone().into(),
-                intermediate_state_left_old_name.clone().into(),
-                intermediate_state_right_old_name.clone().into(),
-                left_partial_return_name.clone().into(),
-                right_partial_return_name.clone().into(),
-            ];
-
-            for arg in args {
-                tmp.push(arg.name().into());
-            }
-
-            SmtExpr::List(tmp)
-        };
-
-        let build_relation_call = |name: &str| -> SmtExpr {
-            (
-                name,
-                &state_left_new_name,
-                &state_right_new_name,
-                &intermediate_state_left_new_name,
-                &intermediate_state_right_new_name,
-            )
-                .into()
-        };
-
-        let build_invariant_old_call = |name: &str| -> SmtExpr {
-            (
-                name,
-                &state_left_old_name,
-                &state_right_old_name,
-                &intermediate_state_left_old_name,
-                &intermediate_state_right_old_name,
-            )
-                .into()
-        };
-
-        let build_invariant_new_call = |name: &str| -> SmtExpr {
-            (
-                name,
-                &state_left_new_name,
-                &state_right_new_name,
-                &intermediate_state_left_new_name,
-                &intermediate_state_right_new_name,
-            )
-                .into()
-        };
-
-        let dep_calls: Vec<_> = claim
-            .dependencies()
-            .iter()
-            .map(|dep_name| {
-                let claim_type = ClaimType::guess_from_name(dep_name);
-                match claim_type {
-                    ClaimType::Lemma => build_lemma_call.clone()(dep_name),
-                    ClaimType::Relation => build_relation_call(dep_name),
-                    ClaimType::Invariant => unreachable!(),
-                }
-            })
-            .collect();
-
-        let postcond_call = match claim.tipe {
-            ClaimType::Lemma => build_lemma_call.clone()(&claim.name),
-            ClaimType::Relation => build_relation_call(&claim.name),
-            ClaimType::Invariant => build_invariant_new_call(&claim.name),
-        };
-
-        let mut dependencies_code: Vec<SmtExpr> = vec![
-            randomness_mapping.into(),
-            build_invariant_old_call("invariant"),
-        ];
-
-        for dep in dep_calls {
-            dependencies_code.push(dep)
-        }
-
-        comm.write_smt(crate::writers::smt::exprs::SmtAssert(SmtNot(SmtImplies(
-            SmtAnd(dependencies_code),
-            postcond_call,
-        ))))?;
-
-        Ok(())
-    }
+    // fn split_oracle_sig_by_exported_name(
+    //     &'a self,
+    //     oracle_name: &str,
+    // ) -> Option<&'a SplitOracleSig> {
+    //     let gctx_left = self.left_game_inst_ctx();
+    //
+    //     gctx_left
+    //         .game()
+    //         .split_exports
+    //         .iter()
+    //         .find(|SplitExport(_, sig)| sig.name == oracle_name)
+    //         .and_then(|SplitExport(inst_idx, _)| {
+    //             gctx_left.game().pkgs[*inst_idx]
+    //                 .pkg
+    //                 .split_oracles
+    //                 .iter()
+    //                 .find(|odef| odef.sig.name == oracle_name)
+    //                 .map(|odef| &odef.sig)
+    //         })
+    // }
+    //
+    // fn emit_split_claim_assert(
+    //     &self,
+    //     comm: &mut Communicator,
+    //     oracle_name: &str,
+    //     path: &SplitPath,
+    //     claim: &Claim,
+    // ) -> Result<()> {
+    //     println!("name: {oracle_name}");
+    //     println!("path: {path:?}");
+    //
+    //     let gctx_left = self.left_game_inst_ctx();
+    //     let gctx_right = self.right_game_inst_ctx();
+    //
+    //     let game_inst_name_left = self.equivalence.left_name();
+    //     let game_inst_name_right = self.equivalence.right_name();
+    //
+    //     let game_name_left = &gctx_left.game().name;
+    //     let game_name_right = &gctx_right.game().name;
+    //
+    //     let game_params_left = &gctx_left.game_inst().consts;
+    //     let game_params_right = &gctx_right.game_inst().consts;
+    //
+    //     let pkg_inst_ctx_left = gctx_left
+    //         .pkg_inst_ctx_by_exported_split_oracle_name(oracle_name)
+    //         .unwrap();
+    //     let pkg_inst_ctx_right = gctx_right
+    //         .pkg_inst_ctx_by_exported_split_oracle_name(oracle_name)
+    //         .unwrap();
+    //
+    //     let pkg_inst_name_left = pkg_inst_ctx_left.pkg_inst_name();
+    //     let pkg_inst_name_right = pkg_inst_ctx_right.pkg_inst_name();
+    //
+    //     let pkg_name_left = pkg_inst_ctx_left.pkg_name();
+    //     let pkg_name_right = pkg_inst_ctx_right.pkg_name();
+    //
+    //     let pkg_params_left = &pkg_inst_ctx_left.pkg_inst().params;
+    //     let pkg_params_right = &pkg_inst_ctx_right.pkg_inst().params;
+    //
+    //     let args: Vec<_> = self
+    //         .split_oracle_sig_by_exported_name(oracle_name)
+    //         .unwrap()
+    //         .args
+    //         .iter()
+    //         .map(|(arg_name, arg_type)| patterns::OracleArgs {
+    //             oracle_name,
+    //             arg_name,
+    //             arg_type,
+    //         })
+    //         .collect();
+    //
+    //     // find the package instance which is marked as exporting
+    //     // the oracle of this name, both left and right.
+    //     let left_partial_return_name = patterns::PartialReturnConst {
+    //         game_name: game_name_left,
+    //         game_params: game_params_left,
+    //         pkg_name: pkg_name_left,
+    //         pkg_params: pkg_params_left,
+    //         game_inst_name: game_inst_name_left,
+    //         pkg_inst_name: pkg_inst_name_left,
+    //         oracle_name,
+    //     }
+    //     .name();
+    //
+    //     let right_partial_return_name = patterns::PartialReturnConst {
+    //         game_name: game_name_right,
+    //         game_params: game_params_right,
+    //         game_inst_name: game_inst_name_right,
+    //         pkg_name: pkg_name_right,
+    //         pkg_params: pkg_params_right,
+    //         pkg_inst_name: pkg_inst_name_right,
+    //         oracle_name,
+    //     }
+    //     .name();
+    //
+    //     let state_left = gctx_left.oracle_arg_game_state_pattern();
+    //     let state_right = gctx_right.oracle_arg_game_state_pattern();
+    //
+    //     let state_left_new_name =
+    //         state_left.new_global_const_name(game_inst_name_left, oracle_name.to_string());
+    //     let state_left_old_name = state_left.old_global_const_name(game_inst_name_left);
+    //
+    //     let state_right_new_name =
+    //         state_right.new_global_const_name(game_inst_name_right, oracle_name.to_string());
+    //     let state_right_old_name = state_right.old_global_const_name(game_inst_name_right);
+    //
+    //     let intermediate_state_left_new_name = patterns::IntermediateStateConst {
+    //         game_inst_name: game_inst_name_left,
+    //         pkg_inst_name: pkg_inst_name_left,
+    //         pkg_name: pkg_name_left,
+    //         pkg_params: pkg_params_left,
+    //         oracle_name,
+    //         variant: &format!("new-{oracle_name}"),
+    //     }
+    //     .name();
+    //
+    //     let intermediate_state_left_old_name = patterns::IntermediateStateConst {
+    //         game_inst_name: game_inst_name_left,
+    //         pkg_inst_name: pkg_inst_name_left,
+    //         pkg_name: pkg_name_left,
+    //         pkg_params: pkg_params_left,
+    //         oracle_name,
+    //         variant: "old",
+    //     }
+    //     .name();
+    //
+    //     let intermediate_state_right_new_name = patterns::IntermediateStateConst {
+    //         game_inst_name: game_inst_name_right,
+    //         pkg_inst_name: pkg_inst_name_right,
+    //         pkg_name: pkg_name_right,
+    //         pkg_params: pkg_params_right,
+    //         oracle_name,
+    //         variant: &format!("new-{oracle_name}"),
+    //     }
+    //     .name();
+    //
+    //     let intermediate_state_right_old_name = patterns::IntermediateStateConst {
+    //         game_inst_name: game_inst_name_right,
+    //         pkg_inst_name: pkg_inst_name_right,
+    //         pkg_name: pkg_name_right,
+    //         pkg_params: pkg_params_right,
+    //         oracle_name,
+    //         variant: "old",
+    //     }
+    //     .name();
+    //
+    //     let randomness_mapping = SmtForall {
+    //         bindings: vec![
+    //             ("randmap-sample-id-left".into(), Type::Integer.into()),
+    //             ("randmap-sample-ctr-left".into(), Type::Integer.into()),
+    //             ("randmap-sample-id-right".into(), Type::Integer.into()),
+    //             ("randmap-sample-ctr-right".into(), Type::Integer.into()),
+    //         ],
+    //         body: (
+    //             "=>",
+    //             (
+    //                 format!("randomness-mapping-{oracle_name}"),
+    //                 (
+    //                     format!("get-rand-ctr-{game_inst_name_left}"),
+    //                     "randmap-sample-id-left",
+    //                 ),
+    //                 (
+    //                     format!("get-rand-ctr-{game_inst_name_right}"),
+    //                     "randmap-sample-id-right",
+    //                 ),
+    //                 "randmap-sample-id-left",
+    //                 "randmap-sample-id-right",
+    //                 "randmap-sample-ctr-left",
+    //                 "randmap-sample-ctr-right",
+    //             ),
+    //             (
+    //                 "rand-is-eq",
+    //                 "randmap-sample-id-left",
+    //                 "randmap-sample-id-right",
+    //                 "randmap-sample-ctr-left",
+    //                 "randmap-sample-ctr-right",
+    //             ),
+    //         ),
+    //     };
+    //
+    //     // this helper builds an smt expression that calls the
+    //     // function with the given name with the old states,
+    //     // return values and the respective arguments.
+    //     // We expect that function to return a boolean, which makes
+    //     // it a relation.
+    //     let build_lemma_call = |name: &str| {
+    //         let mut tmp: Vec<SmtExpr> = vec![
+    //             name.into(),
+    //             state_left_old_name.clone().into(),
+    //             state_right_old_name.clone().into(),
+    //             intermediate_state_left_old_name.clone().into(),
+    //             intermediate_state_right_old_name.clone().into(),
+    //             left_partial_return_name.clone().into(),
+    //             right_partial_return_name.clone().into(),
+    //         ];
+    //
+    //         for arg in args {
+    //             tmp.push(arg.name().into());
+    //         }
+    //
+    //         SmtExpr::List(tmp)
+    //     };
+    //
+    //     let build_relation_call = |name: &str| -> SmtExpr {
+    //         (
+    //             name,
+    //             &state_left_new_name,
+    //             &state_right_new_name,
+    //             &intermediate_state_left_new_name,
+    //             &intermediate_state_right_new_name,
+    //         )
+    //             .into()
+    //     };
+    //
+    //     let build_invariant_old_call = |name: &str| -> SmtExpr {
+    //         (
+    //             name,
+    //             &state_left_old_name,
+    //             &state_right_old_name,
+    //             &intermediate_state_left_old_name,
+    //             &intermediate_state_right_old_name,
+    //         )
+    //             .into()
+    //     };
+    //
+    //     let build_invariant_new_call = |name: &str| -> SmtExpr {
+    //         (
+    //             name,
+    //             &state_left_new_name,
+    //             &state_right_new_name,
+    //             &intermediate_state_left_new_name,
+    //             &intermediate_state_right_new_name,
+    //         )
+    //             .into()
+    //     };
+    //
+    //     let dep_calls: Vec<_> = claim
+    //         .dependencies()
+    //         .iter()
+    //         .map(|dep_name| {
+    //             let claim_type = ClaimType::guess_from_name(dep_name);
+    //             match claim_type {
+    //                 ClaimType::Lemma => build_lemma_call.clone()(dep_name),
+    //                 ClaimType::Relation => build_relation_call(dep_name),
+    //                 ClaimType::Invariant => unreachable!(),
+    //             }
+    //         })
+    //         .collect();
+    //
+    //     let postcond_call = match claim.tipe {
+    //         ClaimType::Lemma => build_lemma_call.clone()(&claim.name),
+    //         ClaimType::Relation => build_relation_call(&claim.name),
+    //         ClaimType::Invariant => build_invariant_new_call(&claim.name),
+    //     };
+    //
+    //     let mut dependencies_code: Vec<SmtExpr> = vec![
+    //         randomness_mapping.into(),
+    //         build_invariant_old_call("invariant"),
+    //     ];
+    //
+    //     for dep in dep_calls {
+    //         dependencies_code.push(dep)
+    //     }
+    //
+    //     comm.write_smt(crate::writers::smt::exprs::SmtAssert(SmtNot(SmtImplies(
+    //         SmtAnd(dependencies_code),
+    //         postcond_call,
+    //     ))))?;
+    //
+    //     Ok(())
+    // }
 
     fn oracle_sig_by_exported_name(&'a self, oracle_name: &str) -> Option<&'a OracleSig> {
         let gctx_left = self.left_game_inst_ctx();
@@ -1178,10 +1174,10 @@ impl<'a> EquivalenceContext<'a> {
 
     fn types(&self) -> Vec<Type> {
         let aux_resolver = SliceResolver(self.auxs);
-        let (_, (types_left, _, _)) = aux_resolver
+        let (_, (types_left, _)) = aux_resolver
             .resolve_value(self.equivalence.left_name())
             .unwrap();
-        let (_, (types_right, _, _)) = aux_resolver
+        let (_, (types_right, _)) = aux_resolver
             .resolve_value(self.equivalence.right_name())
             .unwrap();
         let mut types: Vec<_> = types_left.union(types_right).cloned().collect();
@@ -1191,7 +1187,7 @@ impl<'a> EquivalenceContext<'a> {
 
     fn sample_info_left(self) -> &'a SampleInfo {
         let aux_resolver = SliceResolver(self.auxs);
-        let (_, (_, sample_info, _)) = aux_resolver
+        let (_, (_, sample_info)) = aux_resolver
             .resolve_value(self.equivalence.left_name())
             .unwrap();
         sample_info
@@ -1199,27 +1195,27 @@ impl<'a> EquivalenceContext<'a> {
 
     fn sample_info_right(self) -> &'a SampleInfo {
         let aux_resolver = SliceResolver(self.auxs);
-        let (_, (_, sample_info, _)) = aux_resolver
+        let (_, (_, sample_info)) = aux_resolver
             .resolve_value(self.equivalence.right_name())
             .unwrap();
         sample_info
     }
 
-    fn split_info_left(&self) -> &'a Vec<SplitInfoEntry> {
-        let aux_resolver = SliceResolver(self.auxs);
-        let (_, (_, _, split_info)) = aux_resolver
-            .resolve_value(self.equivalence.left_name())
-            .unwrap();
-        split_info
-    }
-
-    fn split_info_right(&self) -> &'a Vec<SplitInfoEntry> {
-        let aux_resolver = SliceResolver(self.auxs);
-        let (_, (_, _, split_info)) = aux_resolver
-            .resolve_value(self.equivalence.right_name())
-            .unwrap();
-        split_info
-    }
+    // fn split_info_left(&self) -> &'a Vec<SplitInfoEntry> {
+    //     let aux_resolver = SliceResolver(self.auxs);
+    //     let (_, (_, _, split_info)) = aux_resolver
+    //         .resolve_value(self.equivalence.left_name())
+    //         .unwrap();
+    //     split_info
+    // }
+    //
+    // fn split_info_right(&self) -> &'a Vec<SplitInfoEntry> {
+    //     let aux_resolver = SliceResolver(self.auxs);
+    //     let (_, (_, _, split_info)) = aux_resolver
+    //         .resolve_value(self.equivalence.right_name())
+    //         .unwrap();
+    //     split_info
+    // }
 
     fn oracle_sequence(&self) -> Vec<&'a OracleSig> {
         let game_inst = SliceResolver(self.proof.instances())
@@ -1236,20 +1232,20 @@ impl<'a> EquivalenceContext<'a> {
             .collect()
     }
 
-    fn split_oracle_sequence(&self) -> Vec<&'a SplitOracleSig> {
-        let game_inst = SliceResolver(self.proof.instances())
-            .resolve_value(self.equivalence.left_name())
-            .unwrap();
-
-        println!("oracle sequence: {:?}", game_inst.game().exports);
-
-        game_inst
-            .game()
-            .split_exports
-            .iter()
-            .map(|SplitExport(_, split_oracle_sig)| split_oracle_sig)
-            .collect()
-    }
+    // fn split_oracle_sequence(&self) -> Vec<&'a SplitOracleSig> {
+    //     let game_inst = SliceResolver(self.proof.instances())
+    //         .resolve_value(self.equivalence.left_name())
+    //         .unwrap();
+    //
+    //     println!("oracle sequence: {:?}", game_inst.game().exports);
+    //
+    //     game_inst
+    //         .game()
+    //         .split_exports
+    //         .iter()
+    //         .map(|SplitExport(_, split_oracle_sig)| split_oracle_sig)
+    //         .collect()
+    // }
 
     /// Returns an iterator of all the package const datatypes that need to be defined for this
     /// equivalence proof. It makes sure to skip duplicate definitions, which may occur if a
@@ -1406,7 +1402,7 @@ impl<'a> EquivalenceContext<'a> {
                 let writer = CompositionSmtWriter::new(
                     game_inst,
                     ectx.sample_info_left(),
-                    ectx.split_info_left(),
+                    //ectx.split_info_left(),
                 );
 
                 if already_defined.insert(pattern.function_name()) {
@@ -1610,91 +1606,91 @@ fn check_matching_parameters(left: &GameInstance, right: &GameInstance) -> Resul
     Ok(())
 }
 
-fn build_partial_returns(
-    game_inst: &GameInstance,
-    partial_dtypes: &[PartialsDatatype],
-) -> Vec<(SmtExpr, SmtExpr)> {
-    let gctx = contexts::GameInstanceContext::new(game_inst);
-    let game = gctx.game();
-    let game_inst_name = game_inst.name();
-
-    let mut seen = HashSet::new();
-
-    // write declarations of right return constants and constrain them
-    game.split_exports
-        .iter()
-        .filter(|SplitExport(_, sig)| {
-            let out = !seen.contains(&sig.name);
-            seen.insert(&sig.name);
-            out
-        })
-        .map(|SplitExport(inst_idx, sig)| {
-            let pkg_inst = &game.pkgs[*inst_idx];
-
-            let game_name = &game.name;
-            let game_params = &game_inst.consts;
-
-            let pkg_params = &pkg_inst.params;
-            let pkg_name = &pkg_inst.pkg.name;
-            let pkg_inst_name = &pkg_inst.name;
-
-            let oracle_name = &sig.name;
-            let pattern = patterns::PartialReturnConst {
-                game_name,
-                game_params,
-                game_inst_name,
-                pkg_name,
-                pkg_params,
-                pkg_inst_name,
-                oracle_name,
-            };
-
-            let partial_dtype = partial_dtypes
-                .iter()
-                .find(|partials| {
-                    &partials.pkg_inst_name == pkg_inst_name
-                        && &partials.real_oracle_sig.name == oracle_name
-                })
-                .unwrap();
-
-            let octx = gctx
-                .exported_split_oracle_ctx_by_name(&sig.name, partial_dtype)
-                .unwrap();
-
-            let args = sig
-                .args
-                .iter()
-                .map(|(arg_name, _)| octx.smt_arg_name(arg_name));
-
-            let game_state_name = gctx
-                .oracle_arg_game_state_pattern()
-                .old_global_const_name(game_inst_name);
-
-            let intermediate_state_name = patterns::IntermediateStateConst {
-                game_inst_name,
-                pkg_inst_name,
-                pkg_name,
-                pkg_params,
-                oracle_name,
-                variant: "old",
-            }
-            .name();
-
-            let invok = octx
-                .smt_invoke_oracle(game_state_name, intermediate_state_name, args)
-                .unwrap();
-
-            let partial_return_name = pattern.name();
-            let constrain_return: SmtExpr = SmtAssert(SmtEq2 {
-                lhs: partial_return_name,
-                rhs: invok,
-            })
-            .into();
-
-            (pattern.declare(), constrain_return)
-        })
-        .collect()
-}
+// fn build_partial_returns(
+//     game_inst: &GameInstance,
+//     partial_dtypes: &[PartialsDatatype],
+// ) -> Vec<(SmtExpr, SmtExpr)> {
+//     let gctx = contexts::GameInstanceContext::new(game_inst);
+//     let game = gctx.game();
+//     let game_inst_name = game_inst.name();
+//
+//     let mut seen = HashSet::new();
+//
+//     // write declarations of right return constants and constrain them
+//     game.split_exports
+//         .iter()
+//         .filter(|SplitExport(_, sig)| {
+//             let out = !seen.contains(&sig.name);
+//             seen.insert(&sig.name);
+//             out
+//         })
+//         .map(|SplitExport(inst_idx, sig)| {
+//             let pkg_inst = &game.pkgs[*inst_idx];
+//
+//             let game_name = &game.name;
+//             let game_params = &game_inst.consts;
+//
+//             let pkg_params = &pkg_inst.params;
+//             let pkg_name = &pkg_inst.pkg.name;
+//             let pkg_inst_name = &pkg_inst.name;
+//
+//             let oracle_name = &sig.name;
+//             let pattern = patterns::PartialReturnConst {
+//                 game_name,
+//                 game_params,
+//                 game_inst_name,
+//                 pkg_name,
+//                 pkg_params,
+//                 pkg_inst_name,
+//                 oracle_name,
+//             };
+//
+//             let partial_dtype = partial_dtypes
+//                 .iter()
+//                 .find(|partials| {
+//                     &partials.pkg_inst_name == pkg_inst_name
+//                         && &partials.real_oracle_sig.name == oracle_name
+//                 })
+//                 .unwrap();
+//
+//             let octx = gctx
+//                 .exported_split_oracle_ctx_by_name(&sig.name, partial_dtype)
+//                 .unwrap();
+//
+//             let args = sig
+//                 .args
+//                 .iter()
+//                 .map(|(arg_name, _)| octx.smt_arg_name(arg_name));
+//
+//             let game_state_name = gctx
+//                 .oracle_arg_game_state_pattern()
+//                 .old_global_const_name(game_inst_name);
+//
+//             let intermediate_state_name = patterns::IntermediateStateConst {
+//                 game_inst_name,
+//                 pkg_inst_name,
+//                 pkg_name,
+//                 pkg_params,
+//                 oracle_name,
+//                 variant: "old",
+//             }
+//             .name();
+//
+//             let invok = octx
+//                 .smt_invoke_oracle(game_state_name, intermediate_state_name, args)
+//                 .unwrap();
+//
+//             let partial_return_name = pattern.name();
+//             let constrain_return: SmtExpr = SmtAssert(SmtEq2 {
+//                 lhs: partial_return_name,
+//                 rhs: invok,
+//             })
+//             .into();
+//
+//             (pattern.declare(), constrain_return)
+//         })
+//         .collect()
+// }
 
 fn build_returns(game_inst: &GameInstance) -> Vec<(SmtExpr, SmtExpr)> {
     let gctx = contexts::GameInstanceContext::new(game_inst);

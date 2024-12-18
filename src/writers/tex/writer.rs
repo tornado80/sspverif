@@ -36,7 +36,7 @@ struct BlockWriter<'a> {
 
 impl<'a> BlockWriter<'a> {
     fn new(file: &'a mut File, lossy: bool) -> BlockWriter<'a> {
-        BlockWriter { file , lossy }
+        BlockWriter { file, lossy }
     }
 
     fn ident_to_tex(&self, ident: &Identifier) -> String {
@@ -53,7 +53,7 @@ impl<'a> BlockWriter<'a> {
     fn type_to_tex_short(&self, tipe: &Type) -> String {
         match tipe {
             Type::Tuple(_) => format!("\\O{{Tuple[..]}}"),
-            _ => format!("\\O{{{:?}}}", tipe)
+            _ => format!("\\O{{{:?}}}", tipe),
         }
     }
     fn forcomp_to_tex(&self, forcomp: &ForComp) -> String {
@@ -69,7 +69,8 @@ impl<'a> BlockWriter<'a> {
         let mut lines = Vec::new();
         let mut line = Vec::new();
         let mut len = 0;
-        loop { // maybe this should be a minipage and latex figures linesbreaking ...
+        loop {
+            // maybe this should be a minipage and latex figures linesbreaking ...
             match it.next() {
                 None => {
                     if line.len() > 0 {
@@ -89,10 +90,12 @@ impl<'a> BlockWriter<'a> {
                 }
             }
         }
-        format!("\\begin{{array}}{{c}}{}\\end{{array}}",
-                lines.join("\\pclb"))
+        format!(
+            "\\begin{{array}}{{c}}{}\\end{{array}}",
+            lines.join("\\pclb")
+        )
     }
-    
+
     fn expression_to_tex(&self, expr: &Expression) -> String {
         match expr {
             Expression::Bot => "\\bot".to_string(),
@@ -136,24 +139,31 @@ impl<'a> BlockWriter<'a> {
                 .map(|expr| self.expression_to_tex(expr))
                 .collect::<Vec<_>>()
                 .join(" = "),
-            Expression::Or(exprs) => format!("({})", exprs
-                .iter()
-                .map(|expr| self.expression_to_tex(expr))
-                .collect::<Vec<_>>()
-                .join(" \\vee ")),
-            Expression::And(exprs) => format!("({})", exprs
-                .iter()
-                .map(|expr| self.expression_to_tex(expr))
-                .collect::<Vec<_>>()
-                .join(" \\wedge ")),
+            Expression::Or(exprs) => format!(
+                "({})",
+                exprs
+                    .iter()
+                    .map(|expr| self.expression_to_tex(expr))
+                    .collect::<Vec<_>>()
+                    .join(" \\vee ")
+            ),
+            Expression::And(exprs) => format!(
+                "({})",
+                exprs
+                    .iter()
+                    .map(|expr| self.expression_to_tex(expr))
+                    .collect::<Vec<_>>()
+                    .join(" \\wedge ")
+            ),
             Expression::Tuple(exprs) => {
-                format!("\\left({}\\right)",
-                        self.list_to_matrix(
-                            &exprs
-                                .iter()
-                                .map(|expr| self.expression_to_tex(expr))
-                                .collect::<Vec<_>>()
-                        )
+                format!(
+                    "\\left({}\\right)",
+                    self.list_to_matrix(
+                        &exprs
+                            .iter()
+                            .map(|expr| self.expression_to_tex(expr))
+                            .collect::<Vec<_>>()
+                    )
                 )
             }
             Expression::FnCall(name, args) => {
@@ -213,19 +223,24 @@ impl<'a> BlockWriter<'a> {
                     "{}\\pcparse {} \\pcas \\left({}\\right)\\\\",
                     genindentation(indentation),
                     self.expression_to_tex(expr),
-                    self.list_to_matrix(&ids.iter()
-                        .map(|ident| self.ident_to_tex(ident))
-                        .collect::<Vec<_>>())
+                    self.list_to_matrix(
+                        &ids.iter()
+                            .map(|ident| self.ident_to_tex(ident))
+                            .collect::<Vec<_>>()
+                    )
                 )?;
             }
-            Statement::IfThenElse(expr, ifcode, elsecode, _) => {
-                if ifcode.0.len() == 0  && elsecode.0.len() == 1 && matches!(elsecode.0[0], Statement::Abort(_)) {
+            Statement::IfThenElse(ite) => {
+                if ite.then_block.0.is_empty()
+                    && ite.else_block.0.len() == 1
+                    && matches!(ite.else_block.0[0], Statement::Abort(_))
+                {
                     // Special Case for asserts
                     writeln!(
                         self.file,
                         "{}\\pcassert {} \\\\",
                         genindentation(indentation),
-                        self.expression_to_tex(expr)
+                        self.expression_to_tex(&ite.cond)
                     )?;
                 } else {
                     //default
@@ -233,12 +248,12 @@ impl<'a> BlockWriter<'a> {
                         self.file,
                         "{}\\pcif {} \\pcthen\\\\",
                         genindentation(indentation),
-                        self.expression_to_tex(expr)
+                        self.expression_to_tex(&ite.cond)
                     )?;
-                    self.write_codeblock(ifcode, indentation + 1)?;
-                    if !elsecode.0.is_empty() {
+                    self.write_codeblock(&ite.then_block, indentation + 1)?;
+                    if !ite.else_block.0.is_empty() {
                         writeln!(self.file, "{}\\pcelse\\\\", genindentation(indentation))?;
-                        self.write_codeblock(elsecode, indentation + 1)?;
+                        self.write_codeblock(&ite.else_block, indentation + 1)?;
                     }
                 }
             }
@@ -353,7 +368,13 @@ pub fn tex_write_oracle(
     compname: &str,
     target: &Path,
 ) -> std::io::Result<String> {
-    let fname = target.join(format!("Oracle_{}_{}_in_{}{}.tex", pkgname, oracle.sig.name, compname, if lossy {"_lossy"} else {""}));
+    let fname = target.join(format!(
+        "Oracle_{}_{}_in_{}{}.tex",
+        pkgname,
+        oracle.sig.name,
+        compname,
+        if lossy { "_lossy" } else { "" }
+    ));
     let mut file = File::create(fname.clone())?;
     let mut writer = BlockWriter::new(&mut file, lossy);
 
@@ -377,8 +398,18 @@ pub fn tex_write_oracle(
     Ok(fname.to_str().unwrap().to_string())
 }
 
-pub fn tex_write_package(lossy: bool, composition: &Composition, package: &PackageInstance, target: &Path) -> std::io::Result<String> {
-    let fname = target.join(format!("Package_{}_in_{}{}.tex", package.name, composition.name, if lossy {"_lossy"} else {""} ));
+pub fn tex_write_package(
+    lossy: bool,
+    composition: &Composition,
+    package: &PackageInstance,
+    target: &Path,
+) -> std::io::Result<String> {
+    let fname = target.join(format!(
+        "Package_{}_in_{}{}.tex",
+        package.name,
+        composition.name,
+        if lossy { "_lossy" } else { "" }
+    ));
     let mut file = File::create(fname.clone())?;
 
     writeln!(
@@ -388,7 +419,8 @@ pub fn tex_write_package(lossy: bool, composition: &Composition, package: &Packa
     )?;
 
     for oracle in &package.pkg.oracles {
-        let oraclefname = tex_write_oracle(lossy, oracle, &package.name, &composition.name, target)?;
+        let oraclefname =
+            tex_write_oracle(lossy, oracle, &package.name, &composition.name, target)?;
         let oraclefname = Path::new(&oraclefname)
             .strip_prefix(fname.clone().parent().unwrap())
             .unwrap()
@@ -405,10 +437,7 @@ fn tex_write_document_header(mut file: &File) -> std::io::Result<()> {
     writeln!(file, "\\usepackage[margin=1in]{{geometry}}")?;
     writeln!(file, "\\usepackage[sets,operators]{{cryptocode}}")?;
     writeln!(file, "\\usepackage{{tikz}}")?;
-    writeln!(
-        file,
-        "\\newcommand{{\\pcas}}{{~\\highlightkeyword{{as}}}}"
-    )?;
+    writeln!(file, "\\newcommand{{\\pcas}}{{~\\highlightkeyword{{as}}}}")?;
     writeln!(
         file,
         "\\newcommand\\lit[1]{{\\ensuremath{{\\mathtt{{#1}}}}}}"
@@ -784,7 +813,11 @@ pub fn tex_write_composition(
     name: &str,
     target: &Path,
 ) -> std::io::Result<()> {
-    let fname = target.join(format!("Composition_{}{}.tex", name, if lossy {"_lossy"} else {""}));
+    let fname = target.join(format!(
+        "Composition_{}{}.tex",
+        name,
+        if lossy { "_lossy" } else { "" }
+    ));
     let mut file = File::create(fname.clone())?;
 
     tex_write_document_header(&file)?;
@@ -825,7 +858,11 @@ pub fn tex_write_proof(
     name: &str,
     target: &Path,
 ) -> std::io::Result<()> {
-    let fname = target.join(format!("Proof_{}{}.tex", name, if lossy {"_lossy"} else {""}));
+    let fname = target.join(format!(
+        "Proof_{}{}.tex",
+        name,
+        if lossy { "_lossy" } else { "" }
+    ));
     let mut file = File::create(fname)?;
 
     tex_write_document_header(&file)?;
@@ -852,7 +889,12 @@ pub fn tex_write_proof(
         writeln!(file, "\\end{{center}}")?;
 
         for package in &instance.game().pkgs {
-            let pkgfname = format!("Package_{}_in_{}{}.tex", package.name.replace('_', "\\_"), instance.game().name.replace('_', "\\_"), if lossy {"_lossy"} else {""} );
+            let pkgfname = format!(
+                "Package_{}_in_{}{}.tex",
+                package.name.replace('_', "\\_"),
+                instance.game().name.replace('_', "\\_"),
+                if lossy { "_lossy" } else { "" }
+            );
             writeln!(file, "\\begin{{center}}")?;
             writeln!(file, "\\input{{{}}}", pkgfname)?;
             writeln!(file, "\\end{{center}}")?;

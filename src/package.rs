@@ -39,7 +39,7 @@ pub struct Package {
     pub params: Vec<(String, Type, SourceSpan)>,
     pub state: Vec<(String, Type, SourceSpan)>,
     pub oracles: Vec<OracleDef>,
-    pub split_oracles: Vec<SplitOracleDef>,
+    //pub split_oracles: Vec<SplitOracleDef>,
     pub imports: Vec<(OracleSig, SourceSpan)>,
 
     pub file_name: String,

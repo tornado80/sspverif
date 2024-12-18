@@ -1,3 +1,5 @@
+use miette::SourceSpan;
+
 use crate::{
     expressions::Expression, identifier::Identifier, statement::CodeBlock, types::Type,
     writers::smt::exprs::SmtExpr,
@@ -26,6 +28,7 @@ impl SplitOracleSig {
 pub struct SplitOracleDef {
     pub sig: SplitOracleSig,
     pub code: CodeBlock,
+    pub file_pos: SourceSpan,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]

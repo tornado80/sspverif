@@ -1,6 +1,6 @@
 use crate::expressions::Expression;
 use crate::package::Composition;
-use crate::statement::{CodeBlock, Statement};
+use crate::statement::{CodeBlock, IfThenElse, Statement};
 use crate::types::Type;
 use std::collections::HashSet;
 use std::convert::Infallible;
@@ -90,11 +90,10 @@ pub fn samplify(
     let mut newcode = Vec::new();
     for stmt in cb.0.clone() {
         match stmt {
-            Statement::IfThenElse(expr, ifcode, elsecode, file_pos) => {
-                newcode.push(Statement::IfThenElse(
-                    expr,
-                    samplify(
-                        &ifcode,
+            Statement::IfThenElse(ite) => {
+                newcode.push(Statement::IfThenElse(IfThenElse {
+                    then_block: samplify(
+                        &ite.then_block,
                         game_name,
                         pkg_name,
                         inst_name,
@@ -102,8 +101,8 @@ pub fn samplify(
                         sampletypes,
                         positions,
                     )?,
-                    samplify(
-                        &elsecode,
+                    else_block: samplify(
+                        &ite.else_block,
                         game_name,
                         pkg_name,
                         inst_name,
@@ -111,8 +110,8 @@ pub fn samplify(
                         sampletypes,
                         positions,
                     )?,
-                    file_pos,
-                ));
+                    ..ite
+                }));
             }
             Statement::For(iter, start, end, code, file_pos) => newcode.push(Statement::For(
                 iter,

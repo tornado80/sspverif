@@ -14,7 +14,7 @@ pub enum Statement {
     Return(Option<Expression>, SourceSpan),
     Assign(Identifier, Option<Expression>, Expression, SourceSpan),
     Parse(Vec<Identifier>, Expression, SourceSpan),
-    IfThenElse(Expression, CodeBlock, CodeBlock, SourceSpan),
+    IfThenElse(IfThenElse),
     Sample(
         Identifier,
         Option<Expression>,
@@ -26,6 +26,16 @@ pub enum Statement {
     For(Identifier, Expression, Expression, CodeBlock, SourceSpan),
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct IfThenElse {
+    pub(crate) cond: Expression,
+    pub(crate) then_block: CodeBlock,
+    pub(crate) else_block: CodeBlock,
+    pub(crate) then_span: SourceSpan,
+    pub(crate) else_span: SourceSpan,
+    pub(crate) full_span: SourceSpan,
+}
+
 impl Statement {
     pub fn file_pos(&self) -> SourceSpan {
         *match self {
@@ -33,7 +43,10 @@ impl Statement {
             | Statement::Return(_, file_pos)
             | Statement::Assign(_, _, _, file_pos)
             | Statement::Parse(_, _, file_pos)
-            | Statement::IfThenElse(_, _, _, file_pos)
+            | Statement::IfThenElse(IfThenElse {
+                full_span: file_pos,
+                ..
+            })
             | Statement::Sample(_, _, _, _, file_pos)
             | Statement::InvokeOracle(InvokeOracleStatement { file_pos, .. })
             | Statement::For(_, _, _, _, file_pos) => file_pos,

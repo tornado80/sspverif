@@ -5,7 +5,7 @@ use miette::SourceSpan;
 use crate::expressions::Expression;
 use crate::identifier::Identifier;
 use crate::package::Composition;
-use crate::statement::{CodeBlock, InvokeOracleStatement, Statement};
+use crate::statement::{CodeBlock, IfThenElse, InvokeOracleStatement, Statement};
 
 pub type Error = Infallible;
 
@@ -93,16 +93,16 @@ impl Unwrapifier {
                 | Statement::Return(None, _) => {
                     newcode.push(stmt);
                 }
-                Statement::Return(Some(ref expr), ref file_pos) => {
+                Statement::Return(Some(ref expr), file_pos) => {
                     let (newexpr, unwraps) = self.replace_unwrap(expr);
                     if unwraps.is_empty() {
                         newcode.push(stmt);
                     } else {
                         newcode.extend(create_unwrap_stmts(unwraps, file_pos));
-                        newcode.push(Statement::Return(Some(newexpr), *file_pos));
+                        newcode.push(Statement::Return(Some(newexpr), file_pos));
                     }
                 }
-                Statement::Assign(ref id, ref opt_idx, ref expr, ref file_pos) => {
+                Statement::Assign(ref id, ref opt_idx, ref expr, file_pos) => {
                     // TODO: special case for direct unwraps
 
                     let opt_idx = opt_idx.clone().map(|idx| {
@@ -120,25 +120,25 @@ impl Unwrapifier {
                             id.clone(),
                             opt_idx.clone(),
                             newexpr,
-                            *file_pos,
+                            file_pos,
                         ));
                     }
                 }
-                Statement::IfThenElse(expr, ifcode, elsecode, file_pos) => {
-                    let (newexpr, unwraps) = self.replace_unwrap(&expr);
-                    newcode.extend(create_unwrap_stmts(unwraps, &file_pos));
-                    newcode.push(Statement::IfThenElse(
-                        newexpr,
-                        self.unwrapify(&ifcode)?,
-                        self.unwrapify(&elsecode)?,
-                        file_pos,
-                    ));
+                Statement::IfThenElse(ite) => {
+                    let (newcond, unwraps) = self.replace_unwrap(&ite.cond);
+                    newcode.extend(create_unwrap_stmts(unwraps, ite.full_span));
+                    newcode.push(Statement::IfThenElse(IfThenElse {
+                        cond: newcond,
+                        then_block: self.unwrapify(&ite.then_block)?,
+                        else_block: self.unwrapify(&ite.else_block)?,
+                        ..ite
+                    }));
                 }
                 Statement::For(ident, lower_bound, upper_bound, body, file_pos) => {
                     let (new_lower_bound, unwraps) = self.replace_unwrap(&lower_bound);
-                    newcode.extend(create_unwrap_stmts(unwraps, &file_pos));
+                    newcode.extend(create_unwrap_stmts(unwraps, file_pos));
                     let (new_upper_bound, unwraps) = self.replace_unwrap(&upper_bound);
-                    newcode.extend(create_unwrap_stmts(unwraps, &file_pos));
+                    newcode.extend(create_unwrap_stmts(unwraps, file_pos));
                     newcode.push(Statement::For(
                         ident,
                         new_lower_bound,
@@ -147,13 +147,7 @@ impl Unwrapifier {
                         file_pos,
                     ))
                 }
-                Statement::Sample(
-                    ref id,
-                    Some(ref expr),
-                    ref sample_id,
-                    ref tipe,
-                    ref file_pos,
-                ) => {
+                Statement::Sample(ref id, Some(ref expr), ref sample_id, ref tipe, file_pos) => {
                     let (newexpr, unwraps) = self.replace_unwrap(expr);
                     if unwraps.is_empty() {
                         newcode.push(stmt);
@@ -164,14 +158,14 @@ impl Unwrapifier {
                             Some(newexpr),
                             *sample_id,
                             tipe.clone(),
-                            *file_pos,
+                            file_pos,
                         ));
                     }
                 }
                 Statement::Parse(idents, expr, file_pos) => {
                     let (newexpr, unwraps) = self.replace_unwrap(&expr);
 
-                    newcode.extend(create_unwrap_stmts(unwraps, &file_pos));
+                    newcode.extend(create_unwrap_stmts(unwraps, file_pos));
                     newcode.push(Statement::Parse(idents, newexpr, file_pos));
                 }
                 Statement::InvokeOracle(InvokeOracleStatement {
@@ -186,14 +180,14 @@ impl Unwrapifier {
                 }) => {
                     let opt_idx = opt_idx.map(|expr| {
                         let (newexpr, unwraps) = self.replace_unwrap(&expr);
-                        newcode.extend(create_unwrap_stmts(unwraps, &file_pos));
+                        newcode.extend(create_unwrap_stmts(unwraps, file_pos));
                         newexpr
                     });
                     let args = args
                         .iter()
                         .map(|expr| {
                             let (newexpr, unwraps) = self.replace_unwrap(expr);
-                            newcode.extend(create_unwrap_stmts(unwraps, &file_pos));
+                            newcode.extend(create_unwrap_stmts(unwraps, file_pos));
                             newexpr
                         })
                         .collect();
@@ -214,10 +208,7 @@ impl Unwrapifier {
     }
 }
 
-fn create_unwrap_stmts(
-    unwraps: Vec<(Expression, String)>,
-    file_pos: &SourceSpan,
-) -> Vec<Statement> {
+fn create_unwrap_stmts(unwraps: Vec<(Expression, String)>, file_pos: SourceSpan) -> Vec<Statement> {
     unwraps
         .iter()
         .map(|(expr, varname)| {
@@ -225,7 +216,7 @@ fn create_unwrap_stmts(
                 Identifier::Generated(varname.clone(), expr.get_type()),
                 None,
                 expr.clone(),
-                *file_pos,
+                file_pos,
             )
         })
         .collect()

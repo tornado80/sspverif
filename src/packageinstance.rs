@@ -85,15 +85,15 @@ impl PackageInstance {
             .map(|oracle_def| inst_ctx.rewrite_oracle_def(oracle_def.clone()))
             .collect();
 
-        let new_split_oracles = pkg
-            .split_oracles
-            .iter()
-            .map(|split_oracle_def| inst_ctx.rewrite_split_oracle_def(split_oracle_def.clone()))
-            .collect();
+        // let new_split_oracles = pkg
+        //     .split_oracles
+        //     .iter()
+        //     .map(|split_oracle_def| inst_ctx.rewrite_split_oracle_def(split_oracle_def.clone()))
+        //     .collect();
 
         let pkg = Package {
             oracles: new_oracles,
-            split_oracles: new_split_oracles,
+            //split_oracles: new_split_oracles,
             ..pkg.clone()
         };
 
@@ -123,7 +123,7 @@ pub(crate) mod instantiate {
             proof_ident::ProofIdentInstanciationInfo,
         },
         split::{SplitOracleDef, SplitOracleSig, SplitPath, SplitType},
-        statement::{CodeBlock, InvokeOracleStatement},
+        statement::{CodeBlock, IfThenElse, InvokeOracleStatement},
     };
 
     use super::*;
@@ -220,67 +220,67 @@ pub(crate) mod instantiate {
             )
         }
 
-        pub(crate) fn rewrite_split_oracle_sig(
-            &self,
-            split_oracle_sig: &SplitOracleSig,
-        ) -> SplitOracleSig {
-            let type_rewrite_rules: Vec<_> = self
-                .type_assignments
-                .iter()
-                .map(|(name, tipe)| (Type::UserDefined(name.to_string()), tipe.clone()))
-                .collect();
-
-            SplitOracleSig {
-                name: split_oracle_sig.name.clone(),
-                args: split_oracle_sig
-                    .args
-                    .iter()
-                    .map(|(name, tipe)| (name.clone(), tipe.rewrite(&type_rewrite_rules)))
-                    .collect(),
-                partial_vars: split_oracle_sig
-                    .partial_vars
-                    .iter()
-                    .map(|(name, tipe)| (name.clone(), tipe.rewrite(&type_rewrite_rules)))
-                    .collect(),
-                path: SplitPath::new(
-                    split_oracle_sig
-                        .path
-                        .path()
-                        .iter()
-                        .map(|component| crate::split::SplitPathComponent {
-                            pkg_inst_name: component.pkg_inst_name.clone(),
-                            oracle_name: component.oracle_name.clone(),
-                            split_type: match &component.split_type {
-                                SplitType::Plain
-                                | SplitType::IfBranch
-                                | SplitType::ElseBranch
-                                | SplitType::Invoc(_) => component.split_type.clone(),
-                                SplitType::ForStep(ident, start, end) => SplitType::ForStep(
-                                    ident.clone(),
-                                    self.rewrite_expression(start),
-                                    self.rewrite_expression(end),
-                                ),
-                                SplitType::IfCondition(expr) => {
-                                    SplitType::IfCondition(self.rewrite_expression(expr))
-                                }
-                            },
-                            split_range: component.split_range.clone(),
-                        })
-                        .collect(),
-                ),
-                tipe: split_oracle_sig.tipe.rewrite(&type_rewrite_rules),
-            }
-        }
-
-        pub(crate) fn rewrite_split_oracle_def(
-            &self,
-            split_oracle_def: SplitOracleDef,
-        ) -> SplitOracleDef {
-            SplitOracleDef {
-                sig: self.rewrite_split_oracle_sig(&split_oracle_def.sig),
-                code: self.rewrite_oracle_code(split_oracle_def.code),
-            }
-        }
+        // pub(crate) fn rewrite_split_oracle_sig(
+        //     &self,
+        //     split_oracle_sig: &SplitOracleSig,
+        // ) -> SplitOracleSig {
+        //     let type_rewrite_rules: Vec<_> = self
+        //         .type_assignments
+        //         .iter()
+        //         .map(|(name, tipe)| (Type::UserDefined(name.to_string()), tipe.clone()))
+        //         .collect();
+        //
+        //     SplitOracleSig {
+        //         name: split_oracle_sig.name.clone(),
+        //         args: split_oracle_sig
+        //             .args
+        //             .iter()
+        //             .map(|(name, tipe)| (name.clone(), tipe.rewrite(&type_rewrite_rules)))
+        //             .collect(),
+        //         partial_vars: split_oracle_sig
+        //             .partial_vars
+        //             .iter()
+        //             .map(|(name, tipe)| (name.clone(), tipe.rewrite(&type_rewrite_rules)))
+        //             .collect(),
+        //         path: SplitPath::new(
+        //             split_oracle_sig
+        //                 .path
+        //                 .path()
+        //                 .iter()
+        //                 .map(|component| crate::split::SplitPathComponent {
+        //                     pkg_inst_name: component.pkg_inst_name.clone(),
+        //                     oracle_name: component.oracle_name.clone(),
+        //                     split_type: match &component.split_type {
+        //                         SplitType::Plain
+        //                         | SplitType::IfBranch
+        //                         | SplitType::ElseBranch
+        //                         | SplitType::Invoc(_) => component.split_type.clone(),
+        //                         SplitType::ForStep(ident, start, end) => SplitType::ForStep(
+        //                             ident.clone(),
+        //                             self.rewrite_expression(start),
+        //                             self.rewrite_expression(end),
+        //                         ),
+        //                         SplitType::IfCondition(expr) => {
+        //                             SplitType::IfCondition(self.rewrite_expression(expr))
+        //                         }
+        //                     },
+        //                     split_range: component.split_range.clone(),
+        //                 })
+        //                 .collect(),
+        //         ),
+        //         tipe: split_oracle_sig.tipe.rewrite(&type_rewrite_rules),
+        //     }
+        // }
+        //
+        // pub(crate) fn rewrite_split_oracle_def(
+        //     &self,
+        //     split_oracle_def: SplitOracleDef,
+        // ) -> SplitOracleDef {
+        //     SplitOracleDef {
+        //         sig: self.rewrite_split_oracle_sig(&split_oracle_def.sig),
+        //         code: self.rewrite_oracle_code(split_oracle_def.code),
+        //     }
+        // }
 
         pub(crate) fn rewrite_statement(&self, stmt: Statement) -> Statement {
             let type_rewrite_rules: Vec<_> = self
@@ -342,12 +342,12 @@ pub(crate) mod instantiate {
                     tipe: tipe.clone().map(|tipe| tipe.rewrite(&type_rewrite_rules)),
                 }),
 
-                Statement::IfThenElse(cond, ifblock, elseblock, pos) => Statement::IfThenElse(
-                    self.rewrite_expression(&cond),
-                    self.rewrite_oracle_code(ifblock),
-                    self.rewrite_oracle_code(elseblock),
-                    pos,
-                ),
+                Statement::IfThenElse(ite) => Statement::IfThenElse(IfThenElse {
+                    cond: self.rewrite_expression(&ite.cond),
+                    then_block: self.rewrite_oracle_code(ite.then_block),
+                    else_block: self.rewrite_oracle_code(ite.else_block),
+                    ..ite
+                }),
                 Statement::For(ident, start, end, code, pos) => Statement::For(
                     ident.clone(),
                     self.rewrite_expression(&start),

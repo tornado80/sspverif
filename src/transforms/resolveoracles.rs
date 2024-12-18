@@ -1,5 +1,5 @@
 use crate::package::{Composition, Edge, OracleDef, Package, PackageInstance};
-use crate::statement::{CodeBlock, InvokeOracleStatement, Statement};
+use crate::statement::{CodeBlock, IfThenElse, InvokeOracleStatement, Statement};
 
 use std::collections::HashMap;
 
@@ -31,14 +31,11 @@ fn transform_helper_outer(table: &HashMap<String, String>, block: CodeBlock) -> 
                         None
                     }
                 }
-                Statement::IfThenElse(cond, ifcode, elsecode, file_pos) => {
-                    Some(Statement::IfThenElse(
-                        cond.clone(),
-                        transform_helper(table, ifcode.clone(), err_stmts),
-                        transform_helper(table, elsecode.clone(), err_stmts),
-                        file_pos,
-                    ))
-                }
+                Statement::IfThenElse(ite) => Some(Statement::IfThenElse(IfThenElse {
+                    then_block: transform_helper(table, ite.then_block.clone(), err_stmts),
+                    else_block: transform_helper(table, ite.else_block.clone(), err_stmts),
+                    ..ite.clone()
+                })),
                 _ => Some(stmt),
             })
             .collect();

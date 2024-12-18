@@ -5,8 +5,8 @@ use crate::writers::smt::patterns::oracle_args::OracleArgPattern;
 use crate::writers::smt::patterns::proof_constants::ReturnValueConst;
 use crate::writers::smt::patterns::FunctionPattern;
 use crate::writers::smt::patterns::{
-    oracle_args, DatastructurePattern, DispatchOraclePattern, OraclePattern, ReturnConstructor,
-    ReturnPattern, ReturnSelector, ReturnValue, ReturnValueConstructor,
+    oracle_args, DatastructurePattern, OraclePattern, ReturnConstructor, ReturnPattern,
+    ReturnSelector, ReturnValue, ReturnValueConstructor,
 };
 
 use super::super::exprs::SmtExpr;
@@ -37,24 +37,24 @@ impl<'a> OracleContext<'a> {
         }
     }
 
-    pub(crate) fn dispatch_oracle_pattern(&self) -> DispatchOraclePattern<'a> {
-        let gctx: GameInstanceContext<'a> = self.game_inst_ctx();
-        let pctx: PackageInstanceContext<'a> = self.pkg_inst_ctx();
-
-        let game_name: &'a _ = gctx.game_name();
-        let pkg_name: &'a _ = pctx.pkg_name();
-        let oracle_sig: &'a _ = self.oracle_sig();
-        let game_params: &'a _ = gctx.game_params();
-        let pkg_params: &'a _ = pctx.pkg_params();
-
-        DispatchOraclePattern {
-            game_name,
-            game_params,
-            pkg_name,
-            pkg_params,
-            oracle_sig,
-        }
-    }
+    // pub(crate) fn dispatch_oracle_pattern(&self) -> DispatchOraclePattern<'a> {
+    //     let gctx: GameInstanceContext<'a> = self.game_inst_ctx();
+    //     let pctx: PackageInstanceContext<'a> = self.pkg_inst_ctx();
+    //
+    //     let game_name: &'a _ = gctx.game_name();
+    //     let pkg_name: &'a _ = pctx.pkg_name();
+    //     let oracle_sig: &'a _ = self.oracle_sig();
+    //     let game_params: &'a _ = gctx.game_params();
+    //     let pkg_params: &'a _ = pctx.pkg_params();
+    //
+    //     DispatchOraclePattern {
+    //         game_name,
+    //         game_params,
+    //         pkg_name,
+    //         pkg_params,
+    //         oracle_sig,
+    //     }
+    // }
 
     pub(crate) fn return_pattern(&self) -> ReturnPattern<'a> {
         let gctx: GameInstanceContext<'a> = self.game_inst_ctx();

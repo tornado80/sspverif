@@ -1,14 +1,14 @@
 pub mod const_mapping;
-pub mod dispatch_oracle;
+//pub mod dispatch_oracle;
 mod lemma;
 pub mod oracle;
-pub mod partial_oracle;
+//pub mod partial_oracle;
 
 pub mod relation;
 
-pub use dispatch_oracle::DispatchOraclePattern;
+//pub use dispatch_oracle::DispatchOraclePattern;
 pub use oracle::{OraclePattern, ORACLE_ARG_GAME_STATE, ORACLE_ARG_INTERMEDIATE_STATE};
-pub use partial_oracle::PartialOraclePattern;
+//pub use partial_oracle::PartialOraclePattern;
 
 use crate::writers::smt::{exprs::SmtExpr, sorts::Sort};
 

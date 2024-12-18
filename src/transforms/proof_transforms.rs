@@ -3,8 +3,8 @@ use std::{collections::HashSet, convert::Infallible};
 use crate::{proof::GameInstance, types::Type};
 
 use super::{
-    resolveoracles, returnify, samplify, split_partial, tableinitialize, treeify, type_extract,
-    unwrapify, GameTransform, Transformation,
+    resolveoracles, returnify, samplify, tableinitialize, treeify, type_extract, unwrapify,
+    GameTransform, Transformation,
 };
 
 pub struct EquivalenceTransform;
@@ -17,7 +17,7 @@ impl super::ProofTransform for EquivalenceTransform {
         (
             HashSet<Type>,
             samplify::SampleInfo,
-            split_partial::SplitInfo,
+            //split_partial::SplitInfo,
         ),
     )>;
 
@@ -43,7 +43,7 @@ fn transform_game_inst(
             (
                 HashSet<Type>,
                 samplify::SampleInfo,
-                split_partial::SplitInfo,
+                // split_partial::SplitInfo,
             ),
         ),
     ),
@@ -72,9 +72,9 @@ fn transform_game_inst(
     let (comp, _) = treeify::Transformation(&comp)
         .transform()
         .expect("treeify transformation failed unexpectedly");
-    let (comp, splits) = split_partial::SplitPartial
-        .transform_game(&comp)
-        .expect("split_partial transform failed unexpectedly");
+    // let (comp, splits) = split_partial::SplitPartial
+    //     .transform_game(&comp)
+    //     .expect("split_partial transform failed unexpectedly");
     // println!("#####################");
     // println!("{:#?}", comp);
     // println!("$$$$$$$$$$$$$$$$$$$$$");
@@ -84,6 +84,6 @@ fn transform_game_inst(
 
     Ok((
         game_inst.with_other_game(comp),
-        (game_inst.name().to_string(), (types, samplinginfo, splits)),
+        (game_inst.name().to_string(), (types, samplinginfo)),
     ))
 }

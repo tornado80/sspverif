@@ -5,8 +5,6 @@ use crate::{
     writers::smt::{exprs::SmtExpr, names},
 };
 
-use super::partials::PartialsDatatype;
-
 pub struct GlobalContext;
 
 impl GlobalContext {
@@ -20,20 +18,20 @@ mod equivalence;
 mod game_inst;
 mod oracle;
 mod pkg_inst;
-mod split_oracle;
+//mod split_oracle;
 
 #[derive(Clone, Debug, Copy)]
 pub struct GameInstanceContext<'a> {
     game_inst: &'a GameInstance,
 }
 
-#[derive(Clone, Debug)]
-pub struct SplitOracleContext<'a> {
-    game_inst_context: GameInstanceContext<'a>,
-    pkg_inst_offs: usize,
-    split_oracle_offs: usize,
-    partials: &'a PartialsDatatype,
-}
+// #[derive(Clone, Debug)]
+// pub struct SplitOracleContext<'a> {
+//     game_inst_context: GameInstanceContext<'a>,
+//     pkg_inst_offs: usize,
+//     split_oracle_offs: usize,
+//     partials: &'a PartialsDatatype,
+// }
 
 #[derive(Copy, Clone, Debug)]
 pub struct OracleContext<'a> {

@@ -44,10 +44,10 @@ fn extract_types_from_codeblock(set: &mut HashSet<Type>, cb: CodeBlock) {
             Statement::Parse(_, expr, _) => {
                 set.insert(expr.get_type());
             }
-            Statement::IfThenElse(cond, cb_left, cb_right, _) => {
-                set.insert(cond.get_type());
-                extract_types_from_codeblock(set, cb_left);
-                extract_types_from_codeblock(set, cb_right);
+            Statement::IfThenElse(ite) => {
+                set.insert(ite.cond.get_type());
+                extract_types_from_codeblock(set, ite.then_block);
+                extract_types_from_codeblock(set, ite.else_block);
             }
             Statement::For(_, lower_bound, upper_bound, body, _) => {
                 set.insert(lower_bound.get_type());

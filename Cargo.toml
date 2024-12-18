@@ -26,8 +26,8 @@ debug = true
 
 [dependencies]
 thiserror = "1.0.61"
-pest = "2.1"
-pest_derive = "2.1"
+pest = { version = "2.7", features = ["miette-error"] }
+pest_derive = "2.7"
 clap = { version = "4.0", features = ["derive"] }
 serde = "1.0.137"
 serde_derive = "1.0.137"

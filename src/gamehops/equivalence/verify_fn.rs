@@ -63,38 +63,38 @@ pub fn verify(eq: &Equivalence, proof: &Proof, mut prover: Communicator) -> Resu
         write!(prover, "(pop 1)").unwrap();
     }
 
-    for split_oracle_sig in eqctx.split_oracle_sequence() {
-        println!("verify: split oracle:{split_oracle_sig:?}");
-        write!(prover, "(push 1)").unwrap();
-        eqctx.emit_invariant(&mut prover, &split_oracle_sig.name)?;
-
-        for claim in eqctx
-            .equivalence
-            .proof_tree_by_oracle_name(&split_oracle_sig.name)
-        {
-            write!(prover, "(push 1)").unwrap();
-            eqctx.emit_split_claim_assert(
-                &mut prover,
-                &split_oracle_sig.name,
-                &split_oracle_sig.path,
-                &claim,
-            )?;
-
-            match prover.check_sat()? {
-                ProverResponse::Unsat => {}
-                response => {
-                    return Err(Error::ClaimProofFailed {
-                        claim_name: claim.name().to_string(),
-                        response,
-                        model: prover.get_model(),
-                    });
-                }
-            }
-            write!(prover, "(pop 1)").unwrap();
-        }
-
-        write!(prover, "(pop 1)").unwrap();
-    }
+    // for split_oracle_sig in eqctx.split_oracle_sequence() {
+    //     println!("verify: split oracle:{split_oracle_sig:?}");
+    //     write!(prover, "(push 1)").unwrap();
+    //     eqctx.emit_invariant(&mut prover, &split_oracle_sig.name)?;
+    //
+    //     for claim in eqctx
+    //         .equivalence
+    //         .proof_tree_by_oracle_name(&split_oracle_sig.name)
+    //     {
+    //         write!(prover, "(push 1)").unwrap();
+    //         eqctx.emit_split_claim_assert(
+    //             &mut prover,
+    //             &split_oracle_sig.name,
+    //             &split_oracle_sig.path,
+    //             &claim,
+    //         )?;
+    //
+    //         match prover.check_sat()? {
+    //             ProverResponse::Unsat => {}
+    //             response => {
+    //                 return Err(Error::ClaimProofFailed {
+    //                     claim_name: claim.name().to_string(),
+    //                     response,
+    //                     model: prover.get_model(),
+    //                 });
+    //             }
+    //         }
+    //         write!(prover, "(pop 1)").unwrap();
+    //     }
+    //
+    //     write!(prover, "(pop 1)").unwrap();
+    // }
 
     Ok(())
 }

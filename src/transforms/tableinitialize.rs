@@ -3,7 +3,7 @@ use std::convert::Infallible;
 use crate::expressions::Expression;
 use crate::identifier::Identifier;
 use crate::package::Composition;
-use crate::statement::{CodeBlock, InvokeOracleStatement, Statement};
+use crate::statement::{CodeBlock, IfThenElse, InvokeOracleStatement, Statement};
 use crate::types::Type;
 
 pub type Error = Infallible;
@@ -44,13 +44,13 @@ pub fn tableinitialize(
     let mut newcode = Vec::new();
     for stmt in cb.0.clone() {
         match stmt {
-            Statement::IfThenElse(expr, ifcode, elsecode, file_pos) => {
-                newcode.push(Statement::IfThenElse(
-                    expr,
-                    tableinitialize(&ifcode, new_initialized.clone())?,
-                    tableinitialize(&elsecode, new_initialized.clone())?,
-                    file_pos,
-                ));
+            Statement::IfThenElse(ite) => {
+                newcode.push(Statement::IfThenElse(IfThenElse {
+                    then_block: tableinitialize(&ite.then_block, new_initialized.clone())?,
+                    else_block: tableinitialize(&ite.else_block, new_initialized.clone())?,
+
+                    ..ite
+                }));
             }
             Statement::Assign(
                 Identifier::Generated(ref id, ref ty),
