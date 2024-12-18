@@ -55,6 +55,8 @@ impl<'a> BlockWriter<'a> {
     fn expression_to_tex(&self, expr: &Expression) -> String {
         match expr {
             Expression::Bot => "\\bot".to_string(),
+            Expression::IntegerLiteral(val) => format!("{}", val),
+            Expression::BooleanLiteral(val) => format!("\\lit{{{}}}", val),
             Expression::Identifier(ident) => self.ident_to_tex(ident),
             Expression::Not(expr) => format!("\\neg {}", self.expression_to_tex(expr)),
             Expression::Unwrap(expr) => format!("\\O{{unwrap}}({})", self.expression_to_tex(expr)),
