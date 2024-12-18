@@ -694,8 +694,8 @@ impl<'a> CompositionSmtWriter<'a> {
     ) -> SmtExpr {
         let bindings = idents
             .iter()
-            .filter(|ident| ident.ident() != "_")
             .enumerate()
+            .filter(|(_, ident)| ident.ident_ref() != "_")
             .map(|(i, ident)| (ident.ident(), (format!("el{}", i + 1), expr.clone()).into()))
             .collect();
 
