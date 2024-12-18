@@ -132,7 +132,7 @@ proof WHSProto {
         equivalence KX KX_Red_0 {
             UsefulOracle: {
                 invariant: [
-                    ./proofs/invariant.smt2
+                    ./proofs/invariant-KX-KX-Red.smt2
                 ]
 
                 lemmas {
@@ -142,7 +142,7 @@ proof WHSProto {
                 }
             }
         }
-        
+
         reduction KX_Red_0 KX_Red_1  
         {
             assumption nonces
