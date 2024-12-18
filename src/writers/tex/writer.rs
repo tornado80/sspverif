@@ -77,16 +77,16 @@ impl<'a> BlockWriter<'a> {
                 .map(|expr| self.expression_to_tex(expr))
                 .collect::<Vec<_>>()
                 .join(" = "),
-            Expression::Or(exprs) => exprs
+            Expression::Or(exprs) => format!("({})", exprs
                 .iter()
                 .map(|expr| self.expression_to_tex(expr))
                 .collect::<Vec<_>>()
-                .join(" \\vee "),
-            Expression::And(exprs) => exprs
+                .join(" \\vee ")),
+            Expression::And(exprs) => format!("({})", exprs
                 .iter()
                 .map(|expr| self.expression_to_tex(expr))
                 .collect::<Vec<_>>()
-                .join(" \\wedge "),
+                .join(" \\wedge ")),
             Expression::Tuple(exprs) => {
                 format!(
                     "({})",
