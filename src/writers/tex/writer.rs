@@ -278,9 +278,10 @@ impl<'a> BlockWriter<'a> {
 pub fn tex_write_oracle(
     oracle: &OracleDef,
     pkgname: &str,
+    compname: &str,
     target: &Path,
 ) -> std::io::Result<String> {
-    let fname = target.join(format!("Oracle_{}_{}.tex", pkgname, oracle.sig.name));
+    let fname = target.join(format!("Oracle_{}_{}_in_{}.tex", pkgname, oracle.sig.name, compname));
     let mut file = File::create(fname.clone())?;
     let mut writer = BlockWriter::new(&mut file);
 
@@ -315,7 +316,7 @@ pub fn tex_write_package(composition: &Composition, package: &PackageInstance, t
     )?;
 
     for oracle in &package.pkg.oracles {
-        let oraclefname = tex_write_oracle(oracle, &package.name, target)?;
+        let oraclefname = tex_write_oracle(oracle, &package.name, &composition.name, target)?;
         let oraclefname = Path::new(&oraclefname)
             .strip_prefix(fname.clone().parent().unwrap())
             .unwrap()
