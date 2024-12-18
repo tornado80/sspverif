@@ -58,6 +58,30 @@ impl<'a> BlockWriter<'a> {
         .to_string()
     }
 
+    fn list_to_matrix(&self, list: &[String]) -> String {
+        let mut it = list.iter();
+        let mut lines = Vec::new();
+        let mut line = Vec::new();
+        let mut len = 0;
+        loop {
+            match it.next() {
+                None => {break;}
+                Some(s) => {
+                    line.push(s.clone());
+                    if len + s.len() > 20 {
+                        lines.push(line.join(", "));
+                        line = Vec::new();
+                        len = 0;
+                    } else {
+                        len = len + s.len()
+                    }
+                }
+            }
+        }
+        format!("\\left(\\begin{{array}}{{c}}{}\\end{{array}}\\right)",
+                lines.join("\\pclb"))
+    }
+    
     fn expression_to_tex(&self, expr: &Expression) -> String {
         match expr {
             Expression::Bot => "\\bot".to_string(),
@@ -94,13 +118,11 @@ impl<'a> BlockWriter<'a> {
                 .collect::<Vec<_>>()
                 .join(" \\wedge ")),
             Expression::Tuple(exprs) => {
-                format!(
-                    "({})",
-                    exprs
+                self.list_to_matrix(
+                    &exprs
                         .iter()
                         .map(|expr| self.expression_to_tex(expr))
                         .collect::<Vec<_>>()
-                        .join(", ")
                 )
             }
             Expression::FnCall(name, args) => {
