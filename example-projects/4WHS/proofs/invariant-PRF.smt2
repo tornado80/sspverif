@@ -1,48 +1,95 @@
 ; Main idea of this invariant proof
-; If K and ltk are equal (or use the same randomness), then both games 
+; If ctr are equal in both games and they use the same randomness, then both games 
 ;    - produce the same output
 ;    - abort iff the other aborts
-;    - have same ltk and same K afterwards
+;    - have same ctr afterwards
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
-; Randomness mapping --- there is only randomness for ltk
+; Randomness mapping --- there is only 1 randomness counter
 ;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define-fun randomness-mapping-EVAL (        
-        (ltk-mod     Bits_n)
-        (ltk-mon     Bits_n)
-        true
-))
+(define-fun Send1
+  ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
+    (base-ctr-1 Int) ; This is the counter in the beginning of the oracle call on the left.
+    (id-0  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+    (id-1  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+    (scr-0 Int)      ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+    (scr-1 Int))     ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+  Bool
+  (and
+    (= scr-1 base-ctr-1)
+    (= scr-0 base-ctr-0)
+    (= id-0      id-1)))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(define-fun Send2
+  ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
+    (base-ctr-1 Int) ; This is the counter in the beginning of the oracle call on the left.
+    (id-0  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+    (id-1  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+    (scr-0 Int)      ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+    (scr-1 Int))     ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+  Bool
+  (and
+    (= scr-1 base-ctr-1)
+    (= scr-0 base-ctr-0)
+    (= id-0      id-1)))
+
+(define-fun Send3
+  ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
+    (base-ctr-1 Int) ; This is the counter in the beginning of the oracle call on the left.
+    (id-0  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+    (id-1  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+    (scr-0 Int)      ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+    (scr-1 Int))     ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+  Bool
+  (and
+    (= scr-1 base-ctr-1)
+    (= scr-0 base-ctr-0)
+    (= id-0      id-1)))
+
+(define-fun Send4
+  ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
+    (base-ctr-1 Int) ; This is the counter in the beginning of the oracle call on the left.
+    (id-0  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+    (id-1  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+    (scr-0 Int)      ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+    (scr-1 Int))     ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+  Bool
+  (and
+    (= scr-1 base-ctr-1)
+    (= scr-0 base-ctr-0)
+    (= id-0      id-1)))
+
+(define-fun Send5
+  ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
+    (base-ctr-1 Int) ; This is the counter in the beginning of the oracle call on the left.
+    (id-0  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+    (id-1  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+    (scr-0 Int)      ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+    (scr-1 Int))     ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+  Bool
+  (and
+    (= scr-1 base-ctr-1)
+    (= scr-0 base-ctr-0)
+    (= id-0      id-1)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; Invariant --- note that the invariant needs to be game-global 
-;               Having different variants for EVAL & GET allows to prove wrong things.
+;               Having different variants for Oracle & UselessOracle would allow to prove wrong things.
 ;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define-fun invariant-EVAL      (
-        (state-mod  CompositionState-modprfreal )
-        (state-mon  CompositionState-monprfreal)
-)
-    Bool
-    (let
+(define-fun invariant
+  ( (state-kx  <GameState_KX_<$<!n!>$>>)
+    (state-kxred  <GameState_KX_Red_<$<!n!>$>>))
+  Bool
+  (let
+    ; getting ctr out of state
+    ( (ctr-kxred (<pkg-state-Rand-<$<!n!>$>-ctr> (<game-SmallComposition-<$<!n!>$>-pkgstate-rand> state-0)))
+      (ctr-kx (<pkg-state-Rand-<$<!n!>$>-ctr> (<game-MediumComposition-<$<!n!>$>-pkgstate-rand> state-1))))
 
-; getting ltk and table K out
-(
-(ltk-mod (state-modprfreal-modprf-ltk     (composition-pkgstate-modprfreal-modprf state-mod)))
-(  K-mod (state-modprfreal-key-K          (composition-pkgstate-modprfreal-modprf state-mod)))
-(ltk-mon (state-monprfreal-monprfreal-ltk (composition-pkgstate-modprfreal-modprf state-mon)))
-(  K-mon (state-monprfreal-red-K          (composition-pkgstate-modprfreal-modprf state-mon)))
-
-
-(and
-; ltk are equal
-; T   are equal
-(= ltk-mod ltk-mon)
-(= K-mod   K-mon)
-)
-
-)))
+    ; ctr are equal
+    (= ctr-kxred ctr-kx)))

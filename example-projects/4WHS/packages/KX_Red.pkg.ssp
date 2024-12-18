@@ -90,7 +90,7 @@ oracle Send1(ctr: Integer) -> Bits(n)
 oracle Send2(ctr: Integer, ni: Bits(n)) -> (Bits(n),Bits(n))
     {
         assert not (State[ctr] == None);     /* session has been initialized */
-        (V,v,U,u,ltk,acc,k,ni_,nr_,kmac_,sid_,mess)   <- parse Unwrap(State[ctr]);
+        (V,v,U,u,ltk,acc,k_,ni_,nr_,kmac_,sid_,mess)   <- parse Unwrap(State[ctr]);
         assert (v    == true );              /* session belongs to responder */
         assert (mess == 0    );              /* session has not yet sent its first message */
         assert (acc  == None );              /* session is still running           */
@@ -136,14 +136,15 @@ oracle Send4(ctr: Integer, ni: Bits(n), tau:Bits(n)) -> Bits(n)
         sid        <- (U,V,Some(ni),nr,Some(tau));
         State[ctr] <- Some((V,v,U,u,ltk,acc,k,ni_,nr,kmac,Some(sid),2));
         entry      <- Keys[sid];
+        k_         <- Unwrap(k);
         assert ((entry == None) or
-                (Unwrap(entry) == (k,Some(true )  ))   or
-                (Unwrap(entry) == (k,Some(false)  ))   or
-                (Unwrap(entry) == (k,None  as Bool))
+                (Unwrap(entry) == (k_,Some(true )  ))   or
+                (Unwrap(entry) == (k_,Some(false)  ))   or
+                (Unwrap(entry) == (k_,None  as Bool))
                );
         if (entry == None)
             {
-        Keys[sid]  <- Some((k,None as Bool));
+        Keys[sid]  <- Some((k_,None as Bool));
         tmp        <-$ Bits(n);
         Test[sid]  <-  Some(tmp);
             }
@@ -159,8 +160,9 @@ oracle Send4(ctr: Integer, ni: Bits(n), tau:Bits(n)) -> Bits(n)
         assert (mess == 2);                  /* session has sent its 2nd message */
         assert (acc  == None);               /* session is still running           */
         if not (mac(Unwrap(kmac),0,0,zeron,zeron,3) == tau) {return false;}
-        State[ctr] <- Some((U,u,V,v,ltk,Some(true),Some(k),ni,nr,kmac,Some(sid),3));
-        k <- Unwrap(k_);
+        State[ctr] <- Some((U,u,V,v,ltk,Some(true),k_,ni,nr,kmac,sid_,3));
+        sid <- Unwrap(sid_);
+        k   <- Unwrap(k_);
         entry      <- Keys[sid];
         assert ((entry == None) or 
                 (Unwrap(entry) == (k,Some(true )  ))   or
