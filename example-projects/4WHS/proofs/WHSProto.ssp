@@ -156,6 +156,20 @@ proof WHSProto {
             }
         }
 
+        equivalence KX_Red_1 H1 {
+            UsefulOracle: {
+                invariant: [
+                    ./proofs/invariant-KX-Red-H1.smt2
+                ]
+
+                lemmas {
+                    equal-aborts: []
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+                }
+            }
+        }
+
         reduction H1_Red_0 H1_Red_1  
         {
             assumption prf

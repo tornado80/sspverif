@@ -21,8 +21,8 @@
   (and
     (= scr-1 base-ctr-1)
     (= scr-0 base-ctr-0)
-    (= id-0      1)  ; This is the 1st sampling in KX.
-    (= id-1      3)  ; This sampling happens in the Nonces package and is the 3rd sampling for some reason.
+    (= id-0      3)  ; This sampling happens in the Nonces package and is the 3rd sampling for some reason.
+    (= id-1      1)  ; This is the 1st sampling in H1. Check!!
     ))
 
 (define-fun Send2
@@ -36,8 +36,8 @@
   (and
     (= scr-1 base-ctr-1)
     (= scr-0 base-ctr-0)
-    (= id-0     2)   ; This is the a sampling in KX. This is the 2nd sampling (1st one was in Send1).
-    (= id-1     3)   ; This sampling happens in the Nonces package and is the 3rd sampling for some reason.
+    (= id-0     3)   ; This sampling happens in the Nonces package and is the 3rd sampling for some reason.
+    (= id-1     2)   ; This is a sampling in H1. This is the 2nd sampling (1st one was in Send1). Check!!
   ))
 
 (define-fun Send3
@@ -51,7 +51,7 @@
   (and
     (= scr-1 base-ctr-1)
     (= scr-0 base-ctr-0)
-    (= id-0      id-1)))
+    (= id-0      id-1))) ; no sampling happens
 
 (define-fun Send4
   ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
@@ -64,9 +64,9 @@
   (and
     (= scr-1 base-ctr-1)
     (= scr-0 base-ctr-0)
-    (= id-0      3)  ; This is the 3rd sampling in KX.
-    (= id-1      1)  ; This sampling happens in the KX_red package and is the 1st sampling.
-    ))
+    (= id-0      1)  ; This sampling happens in the KX_red package and is the 1st sampling.
+    (= id-1      3)  ; This is the 3rd sampling in H1. Check!!
+))
 
 (define-fun Send5
   ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
@@ -79,8 +79,8 @@
   (and
     (= scr-1 base-ctr-1)
     (= scr-0 base-ctr-0)
-    (= id-0      4)  ; This is the 4th sampling in KX.
-    (= id-1      2)  ; This sampling happens in the KX_red package and is the 2nd sampling.
+    (= id-0      2)  ; This sampling happens in the KX_red package and is the 2nd sampling.
+    (= id-1      4)  ; This is the 4th sampling in H1. Check!!
     ))
 
 (define-fun Reveal
@@ -94,7 +94,7 @@
   (and
     (= scr-1 base-ctr-1)
     (= scr-0 base-ctr-0)
-    (= id-0      id-1)))
+    (= id-0      id-1))) ; no sampling
 
 (define-fun Test
   ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
@@ -107,7 +107,7 @@
   (and
     (= scr-1 base-ctr-1)
     (= scr-0 base-ctr-0)
-    (= id-0      id-1)))
+    (= id-0      id-1))) ; no sampling
 
 (define-fun NewKey
   ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
@@ -133,7 +133,7 @@
   (and
     (= scr-1 base-ctr-1)
     (= scr-0 base-ctr-0)
-    (= id-0      id-1)))
+    (= id-0      id-1))) ; no sampling
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
