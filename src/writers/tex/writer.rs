@@ -44,6 +44,12 @@ impl<'a> BlockWriter<'a> {
         format!("\\O{{{:?}}}", tipe)
     }
 
+    fn type_to_tex_short(&self, tipe: &Type) -> String {
+        match tipe {
+            Type::Tuple(_) => format!("\\O{{Tuple[..]}}"),
+            _ => format!("\\O{{{:?}}}", tipe)
+        }
+    }
     fn forcomp_to_tex(&self, forcomp: &ForComp) -> String {
         match forcomp {
             ForComp::Lt => "<",
@@ -61,7 +67,7 @@ impl<'a> BlockWriter<'a> {
             Expression::Not(expr) => format!("\\neg {}", self.expression_to_tex(expr)),
             Expression::Unwrap(expr) => format!("\\O{{unwrap}}({})", self.expression_to_tex(expr)),
             Expression::Some(expr) => format!("\\O{{some}}({})", self.expression_to_tex(expr)),
-            Expression::None(tipe) => format!("\\O{{none}}({})", self.type_to_tex(tipe)),
+            Expression::None(tipe) => format!("\\O{{none}}({})", self.type_to_tex_short(tipe)),
             Expression::Add(lhs, rhs) => format!(
                 "({} + {})",
                 self.expression_to_tex(lhs),
