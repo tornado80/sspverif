@@ -65,17 +65,21 @@ impl<'a> BlockWriter<'a> {
         let mut len = 0;
         loop {
             match it.next() {
-                None => {break;}
+                None => {
+                    if line.len() > 0 {
+                        lines.push(line.join(", "));
+                    }
+                    break;
+                }
                 Some(s) => {
-                    line.push(s.clone());
-                    if len + s.len() > 20 {
+                    if len + s.len() > 30 {
                         line.push(String::new());
                         lines.push(line.join(", "));
                         line = Vec::new();
                         len = 0;
-                    } else {
-                        len = len + s.len()
                     }
+                    line.push(s.clone());
+                    len = len + s.len()
                 }
             }
         }
