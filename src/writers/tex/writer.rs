@@ -69,6 +69,7 @@ impl<'a> BlockWriter<'a> {
                 Some(s) => {
                     line.push(s.clone());
                     if len + s.len() > 20 {
+                        line.push(String::new());
                         lines.push(line.join(", "));
                         line = Vec::new();
                         len = 0;
@@ -78,7 +79,7 @@ impl<'a> BlockWriter<'a> {
                 }
             }
         }
-        format!("\\left(\\begin{{array}}{{c}}{}\\end{{array}}\\right)",
+        format!("\\begin{{array}}{{c}}{}\\end{{array}}",
                 lines.join("\\pclb"))
     }
     
@@ -118,11 +119,13 @@ impl<'a> BlockWriter<'a> {
                 .collect::<Vec<_>>()
                 .join(" \\wedge ")),
             Expression::Tuple(exprs) => {
-                self.list_to_matrix(
-                    &exprs
-                        .iter()
-                        .map(|expr| self.expression_to_tex(expr))
-                        .collect::<Vec<_>>()
+                format!("\\left({}\\right)",
+                        self.list_to_matrix(
+                            &exprs
+                                .iter()
+                                .map(|expr| self.expression_to_tex(expr))
+                                .collect::<Vec<_>>()
+                        )
                 )
             }
             Expression::FnCall(name, args) => {
@@ -179,13 +182,12 @@ impl<'a> BlockWriter<'a> {
             Statement::Parse(ids, expr, _) => {
                 writeln!(
                     self.file,
-                    "{}\\pcparse {} \\pcas {}\\\\",
+                    "{}\\pcparse {} \\pcas \\left({}\\right)\\\\",
                     genindentation(indentation),
                     self.expression_to_tex(expr),
-                    ids.iter()
+                    self.list_to_matrix(&ids.iter()
                         .map(|ident| self.ident_to_tex(ident))
-                        .collect::<Vec<_>>()
-                        .join(", ")
+                        .collect::<Vec<_>>())
                 )?;
             }
             Statement::IfThenElse(expr, ifcode, elsecode, _) => {
