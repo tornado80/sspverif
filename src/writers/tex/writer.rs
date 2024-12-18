@@ -304,8 +304,8 @@ pub fn tex_write_oracle(
     Ok(fname.to_str().unwrap().to_string())
 }
 
-pub fn tex_write_package(package: &PackageInstance, target: &Path) -> std::io::Result<String> {
-    let fname = target.join(format!("Package_{}.tex", package.name));
+pub fn tex_write_package(composition: &Composition, package: &PackageInstance, target: &Path) -> std::io::Result<String> {
+    let fname = target.join(format!("Package_{}_in_{}.tex", package.name, composition.name));
     let mut file = File::create(fname.clone())?;
 
     writeln!(
@@ -334,11 +334,15 @@ fn tex_write_document_header(mut file: &File) -> std::io::Result<()> {
     writeln!(file, "\\usepackage{{tikz}}")?;
     writeln!(
         file,
-        "\\renewcommand\\O[1]{{\\ensuremath{{\\mathsf{{#1}}}}}}"
+        "\\newcommand{{\\pcas}}{{~\\highlightkeyword{{as}}}}"
     )?;
     writeln!(
         file,
-        "\\newcommand{{\\pcas}}{{~\\highlightkeyword{{as}}}}"
+        "\\newcommand\\lit[1]{{\\ensuremath{{\\mathtt{{#1}}}}}}"
+    )?;
+    writeln!(
+        file,
+        "\\renewcommand\\O[1]{{\\ensuremath{{\\mathsf{{#1}}}}}}"
     )?;
     writeln!(
         file,
@@ -725,7 +729,7 @@ pub fn tex_write_composition(
     writeln!(file, "\\end{{center}}")?;
 
     for pkg in &composition.pkgs {
-        let pkgfname = tex_write_package(pkg, target)?;
+        let pkgfname = tex_write_package(composition, pkg, target)?;
         let pkgfname = Path::new(&pkgfname)
             .strip_prefix(fname.clone().parent().unwrap())
             .unwrap()
@@ -773,7 +777,7 @@ pub fn tex_write_proof(
         writeln!(file, "\\end{{center}}")?;
 
         for package in &instance.game().pkgs {
-            let pkgfname = format!("Package_{}.tex", package.name.replace('_', "\\_"));
+            let pkgfname = format!("Package_{}_in_{}.tex", package.name.replace('_', "\\_"), instance.game().name.replace('_', "\\_"));
             writeln!(file, "\\begin{{center}}")?;
             writeln!(file, "\\input{{{}}}", pkgfname)?;
             writeln!(file, "\\end{{center}}")?;
