@@ -328,6 +328,10 @@ fn tex_write_document_header(mut file: &File) -> std::io::Result<()> {
     )?;
     writeln!(
         file,
+        "\\newcommand{{\\pcas}}{{~\\highlightkeyword{{as}}}}"
+    )?;
+    writeln!(
+        file,
         "\\newcommand{{\\M}}[1]{{\\ensuremath{{\\text{{\\texttt{{#1}}}}}}}}"
     )?;
     writeln!(
