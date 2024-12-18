@@ -63,7 +63,7 @@ impl<'a> BlockWriter<'a> {
         let mut lines = Vec::new();
         let mut line = Vec::new();
         let mut len = 0;
-        loop {
+        loop { // maybe this should be a minipage and latex figures linesbreaking ...
             match it.next() {
                 None => {
                     if line.len() > 0 {
@@ -72,14 +72,14 @@ impl<'a> BlockWriter<'a> {
                     break;
                 }
                 Some(s) => {
-                    if len + s.len() > 30 {
+                    if len + s.len() > 20 {
                         line.push(String::new());
                         lines.push(line.join(", "));
                         line = Vec::new();
                         len = 0;
                     }
                     line.push(s.clone());
-                    len = len + s.len()
+                    len = len + std::cmp::max(6, s.len()) - 4 // latex makes string length and text length quite different
                 }
             }
         }
