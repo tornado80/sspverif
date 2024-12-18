@@ -128,6 +128,7 @@ proof WHSProto {
 
     gamehops 
     {
+
         equivalence KX KX_Red_0 {
             UsefulOracle: {
                 invariant: [
@@ -141,7 +142,6 @@ proof WHSProto {
                 }
             }
         }
-
         reduction KX_Red_0 KX_Red_1  
         {
             assumption nonces
