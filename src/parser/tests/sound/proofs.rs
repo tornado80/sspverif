@@ -347,7 +347,7 @@ fn fail_reduction_changes_fail() {
         &[
             "AssumptionIdeal.comp.ssp",
             "AssumptionReal.comp.ssp",
-            "ConstructionRealMoreBadWiring.comp.ssp",
+            "ConstructionReal-morebadwiring.comp.ssp",
             "ConstructionIdeal.comp.ssp",
         ],
         &pkgs,
