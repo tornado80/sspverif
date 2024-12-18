@@ -21,7 +21,9 @@
   (and
     (= scr-1 base-ctr-1)
     (= scr-0 base-ctr-0)
-    (= id-0      id-1)))
+    (= id-0      1)  ; This is the 1st sampling in KX.
+    (= id-1      3)  ; This sampling happens in the Nonces package and is the 3rd sampling for some reason.
+    ))
 
 (define-fun Send2
   ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
@@ -34,7 +36,9 @@
   (and
     (= scr-1 base-ctr-1)
     (= scr-0 base-ctr-0)
-    (= id-0      id-1)))
+    (= id-0     2)   ; This is the a sampling in KX. This is the 2nd sampling (1st one was in Send1).
+    (= id-1     3)   ; This sampling happens in the Nonces package and is the 3rd sampling for some reason.
+  ))
 
 (define-fun Send3
   ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
@@ -60,7 +64,9 @@
   (and
     (= scr-1 base-ctr-1)
     (= scr-0 base-ctr-0)
-    (= id-0      id-1)))
+    (= id-0      3)  ; This is the 3rd sampling in KX.
+    (= id-1      1)  ; This sampling happens in the KX_red package and is the 1st sampling.
+    ))
 
 (define-fun Send5
   ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
@@ -73,7 +79,9 @@
   (and
     (= scr-1 base-ctr-1)
     (= scr-0 base-ctr-0)
-    (= id-0      id-1)))
+    (= id-0      4)  ; This is the 4th sampling in KX.
+    (= id-1      2)  ; This sampling happens in the KX_red package and is the 2nd sampling.
+    ))
 
 (define-fun Reveal
   ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
@@ -136,9 +144,15 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define-fun invariant
-  ( (state-kx  <GameState_KX_<$<!n!>$>>)
+  ( (state-kx     <GameState_KX_<$<!n!>$>>)
     (state-kxred  <GameState_KX_Red_<$<!n!>$>>))
   Bool
+; getting package-state out of game-state and demaning equality
+(=
+(<game-KX-<$<!n!>$>-pkgstate-KX>     state-kx)    ;some params are still missing.
+(<game-KX_Red-<$<!n!>$>-pkgstate-KX> state-kxred) ;some params are still missing.
+)
+
 ;  (let
 ;    ; getting ctr out of state
 ;    ( (ctr-kxred (<pkg-state-Rand-<$<!n!>$>-ctr> (<game-SmallComposition-<$<!n!>$>-pkgstate-rand> state-0)))
@@ -146,6 +160,5 @@
 ;
 ;    ; ctr are equal
 ;    (= ctr-kxred ctr-kx))
-(state-kx state-kxred)   
 
 )
