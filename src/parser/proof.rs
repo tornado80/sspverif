@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 use crate::{
     expressions::Expression,
     gamehops::equivalence::Equivalence,
-    gamehops::reduction::{Assumption, Mapping, Reduction},
+    gamehops::reduction::Assumption,
     gamehops::GameHop,
     identifier::{
         game_ident::{GameConstIdentifier, GameIdentifier},

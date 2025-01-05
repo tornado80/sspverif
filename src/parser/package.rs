@@ -1326,13 +1326,14 @@ impl MultiInstanceIndices {
     }
 }
 
+/*
 /// A [`MultiInstanceIndicesGroup`] contains a list of [`MultiInstanceIndices`] that all represent
 /// the same index, but cover different ranges. The purpose is that the group folds the individual
 /// elements into a single one, by merging the ranges specified in the [`ForSpec`] entries.
 pub struct MultiInstanceIndicesGroup(Vec<MultiInstanceIndices>);
 
 impl MultiInstanceIndicesGroup {
-    pub fn new(v: Vec<MultiInstanceIndices>) -> Self {
+    pub(crate) fn new(v: Vec<MultiInstanceIndices>) -> Self {
         Self(v)
     }
 
@@ -1392,6 +1393,7 @@ impl MultiInstanceIndicesGroup {
         SmtExpr::List(add.chain(terms).chain(zero).collect())
     }
 }
+*/
 
 impl MultiInstanceIndices {
     /// returns smt code that checks whether a variable with name `varname` is in the range.

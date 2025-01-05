@@ -6,7 +6,7 @@ use pest::iterators::Pair;
 use crate::{
     expressions::Expression,
     gamehops::{
-        reduction::{Assumption, NewReduction},
+        reduction::{Assumption, Reduction},
         GameHop,
     },
     identifier::{
@@ -59,8 +59,8 @@ fn compare_reduction(
     inst_offs_right: usize,
     left_game_inst: &GameInstance,
     right_game_inst: &GameInstance,
-    mapping_left: &NewReductionMapping,
-    mapping_right: &NewReductionMapping,
+    mapping_left: &ReductionMapping,
+    mapping_right: &ReductionMapping,
 ) -> Result<(), ParseProofError> {
     let game_left = left_game_inst.game();
     let game_right = right_game_inst.game();
@@ -196,7 +196,7 @@ fn handle_reduction_body<'a>(
     left_name: Pair<'a, Rule>,
     right_name: Pair<'a, Rule>,
     body: Pair<'a, Rule>,
-) -> Result<NewReduction<'a>, ParseProofError> {
+) -> Result<Reduction<'a>, ParseProofError> {
     let reduction_span = body.as_span();
     let mut ast = body.into_inner();
     let assumptions_spec_ast = ast.next().unwrap();
@@ -338,7 +338,7 @@ fn handle_reduction_body<'a>(
         (mapping2, mapping1)
     };
 
-    let reduction = NewReduction::new(left, right, assumption_name.to_string());
+    let reduction = Reduction::new(left, right, assumption_name.to_string());
 
     Ok(reduction)
 }
@@ -347,7 +347,7 @@ fn handle_mapspec_assumption<'a>(
     ctx: &mut ParseProofContext,
     ast: Pair<'a, Rule>,
     assumption: &Assumption,
-) -> Result<NewReductionMapping<'a>, ParseProofError> {
+) -> Result<ReductionMapping<'a>, ParseProofError> {
     let mapping_span = ast.as_span();
     let mut ast = ast.into_inner();
 
@@ -818,7 +818,7 @@ fn handle_mapspec_assumption<'a>(
         }
     }
 
-    let mapping = NewReductionMapping {
+    let mapping = ReductionMapping {
         assumption: assumption_game_inst_name,
         construction: construction_game_inst_name,
         entries: mappings
@@ -943,14 +943,14 @@ enum PackageInstanceDiff {
 // ----
 
 #[derive(Clone, Debug)]
-pub struct NewReductionMapping<'a> {
+pub struct ReductionMapping<'a> {
     assumption: GameInstanceName<'a>,
     construction: GameInstanceName<'a>,
 
     entries: Vec<NewReductionMappingEntry<'a>>,
 }
 
-impl<'a> NewReductionMapping<'a> {
+impl<'a> ReductionMapping<'a> {
     pub(crate) fn assumption_game_instance_name(&self) -> &GameInstanceName<'a> {
         &self.assumption
     }

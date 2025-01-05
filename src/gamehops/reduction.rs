@@ -1,4 +1,4 @@
-use crate::{parser::reduction::NewReductionMapping, project::error::Result, proof::Proof};
+use crate::parser::reduction::ReductionMapping;
 use miette::Diagnostic;
 use thiserror::Error;
 
@@ -29,54 +29,6 @@ impl Composition {
 }
  */
 
-#[derive(Clone, Debug)]
-pub struct Mapping {
-    construction_game_inst_name: String,
-    assumption_game_inst_name: String,
-
-    // these also need validation
-    // but let's not resolve them
-    pkg_maps: Vec<(String, String)>,
-}
-
-impl Mapping {
-    pub fn new(
-        assumption_game_inst_name: String,
-        game_inst_name: String,
-        pkg_maps: Vec<(String, String)>,
-    ) -> Mapping {
-        Mapping {
-            construction_game_inst_name: game_inst_name,
-            assumption_game_inst_name,
-            pkg_maps,
-        }
-    }
-
-    pub fn construction_game_inst_name(&self) -> &str {
-        &self.construction_game_inst_name
-    }
-
-    pub fn assumption_game_inst_name(&self) -> &str {
-        &self.assumption_game_inst_name
-    }
-
-    // TODO: once we have proper Pairs in here, make these return the real span
-    pub fn construction_game_inst_name_span<'a>(&'a self) -> pest::Span<'a> {
-        let name = self.construction_game_inst_name();
-        pest::Span::new(name, 0, name.len()).unwrap()
-    }
-
-    // TODO: once we have proper Pairs in here, make these return the real span
-    pub fn assumption_game_inst_name_span<'a>(&'a self) -> pest::Span<'a> {
-        let name = self.assumption_game_inst_name();
-        pest::Span::new(name, 0, name.len()).unwrap()
-    }
-
-    pub fn pkg_maps(&self) -> &[(String, String)] {
-        &self.pkg_maps
-    }
-}
-
 #[derive(Debug, Clone)]
 pub struct Assumption {
     pub name: String,
@@ -85,47 +37,17 @@ pub struct Assumption {
 }
 
 #[derive(Debug, Clone)]
-pub struct Reduction {
-    left: Mapping,
-    right: Mapping,
+pub struct Reduction<'a> {
+    left: ReductionMapping<'a>,
+    right: ReductionMapping<'a>,
 
     assumption_name: String,
 }
 
-impl Reduction {
-    pub fn new(left: Mapping, right: Mapping, assumption_name: String) -> Self {
-        Self {
-            left,
-            right,
-            assumption_name,
-        }
-    }
-
-    pub fn left(&self) -> &Mapping {
-        &self.left
-    }
-
-    pub fn right(&self) -> &Mapping {
-        &self.right
-    }
-
-    pub fn assumption_name(&self) -> &str {
-        &self.assumption_name
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct NewReduction<'a> {
-    left: NewReductionMapping<'a>,
-    right: NewReductionMapping<'a>,
-
-    assumption_name: String,
-}
-
-impl<'a> NewReduction<'a> {
+impl<'a> Reduction<'a> {
     pub fn new(
-        left: NewReductionMapping<'a>,
-        right: NewReductionMapping<'a>,
+        left: ReductionMapping<'a>,
+        right: ReductionMapping<'a>,
         assumption_name: String,
     ) -> Self {
         Self {
@@ -135,11 +57,11 @@ impl<'a> NewReduction<'a> {
         }
     }
 
-    pub fn left(&self) -> &NewReductionMapping<'a> {
+    pub fn left(&self) -> &ReductionMapping<'a> {
         &self.left
     }
 
-    pub fn right(&self) -> &NewReductionMapping<'a> {
+    pub fn right(&self) -> &ReductionMapping<'a> {
         &self.right
     }
 
