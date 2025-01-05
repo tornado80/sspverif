@@ -1,6 +1,7 @@
-use crate::parser::reduction::ReductionMapping;
 use miette::Diagnostic;
 use thiserror::Error;
+
+use crate::parser::reduction::ReductionMapping;
 
 /*
 approach:
