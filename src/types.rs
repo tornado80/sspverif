@@ -21,42 +21,6 @@ pub enum Type {
 }
 
 impl Type {
-    pub fn new_bits(length: &str) -> Type {
-        Type::Bits(length.to_string())
-    }
-
-    #[allow(dead_code)]
-    pub fn new_list(t: &Type) -> Type {
-        Type::List(Box::new(t.clone()))
-    }
-
-    #[allow(dead_code)]
-    pub fn new_set(t: &Type) -> Type {
-        Type::Set(Box::new(t.clone()))
-    }
-
-    pub fn new_fn(args: Vec<Type>, ret: Type) -> Type {
-        Type::Fn(args, Box::new(ret))
-    }
-
-    pub fn default_value(&self) -> Expression {
-        match self {
-            Type::Integer => Expression::IntegerLiteral(0),
-            Type::String => Expression::StringLiteral("".to_string()),
-            Type::Boolean => Expression::BooleanLiteral("false".to_string()),
-            Type::List(_tipe) => Expression::List(vec![]),
-            Type::Tuple(tipes) => {
-                Expression::Tuple(tipes.iter().map(|tipe| tipe.default_value()).collect())
-            }
-            Type::Table(_, _) => Expression::EmptyTable(self.clone()),
-            Type::Maybe(tipe) => Expression::None(*tipe.clone()),
-            Type::Empty | Type::Fn(_, _) => {
-                panic!("No default value for type {:?}", self)
-            }
-            _ => todo!("No default value for type {:?}", self),
-        }
-    }
-
     pub(crate) fn rewrite(&self, rules: &[(Type, Type)]) -> Self {
         match self {
             Type::UserDefined(_) => {

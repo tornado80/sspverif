@@ -31,7 +31,7 @@ impl Composition {
 
 #[derive(Clone, Debug)]
 pub struct Mapping {
-    game_inst_name: String,
+    construction_game_inst_name: String,
     assumption_game_inst_name: String,
 
     // these also need validation
@@ -46,18 +46,30 @@ impl Mapping {
         pkg_maps: Vec<(String, String)>,
     ) -> Mapping {
         Mapping {
-            game_inst_name,
+            construction_game_inst_name: game_inst_name,
             assumption_game_inst_name,
             pkg_maps,
         }
     }
 
-    pub fn as_game_inst_name(&self) -> &str {
-        &self.game_inst_name
+    pub fn construction_game_inst_name(&self) -> &str {
+        &self.construction_game_inst_name
     }
 
-    pub fn as_assumption_game_inst_name(&self) -> &str {
+    pub fn assumption_game_inst_name(&self) -> &str {
         &self.assumption_game_inst_name
+    }
+
+    // TODO: once we have proper Pairs in here, make these return the real span
+    pub fn construction_game_inst_name_span<'a>(&'a self) -> pest::Span<'a> {
+        let name = self.construction_game_inst_name();
+        pest::Span::new(name, 0, name.len()).unwrap()
+    }
+
+    // TODO: once we have proper Pairs in here, make these return the real span
+    pub fn assumption_game_inst_name_span<'a>(&'a self) -> pest::Span<'a> {
+        let name = self.assumption_game_inst_name();
+        pest::Span::new(name, 0, name.len()).unwrap()
     }
 
     pub fn pkg_maps(&self) -> &[(String, String)] {

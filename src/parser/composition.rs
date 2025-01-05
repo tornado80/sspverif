@@ -436,20 +436,16 @@ pub fn handle_compose_assign_body_list(
         ));
 
         let mut inner = body.into_inner();
-        let src_inst_name = inner.next().unwrap().as_str();
+        let src_inst_name_ast = inner.next().unwrap();
+        let src_inst_name_span = src_inst_name_ast.as_span();
+        let src_inst_name = src_inst_name_ast.as_str();
 
         let source_instance_idx = if inner.peek().unwrap().as_rule() == Rule::indices_ident {
             inner
                 .next()
                 .unwrap()
                 .into_inner()
-                .map(
-                    // TODO: Error handling
-                    |idx_ident| match ctx.scope.lookup(idx_ident.as_str()).unwrap() {
-                        Declaration::Oracle(_, _) => panic!("expected an identifier"),
-                        Declaration::Identifier(ident) => ident,
-                    },
-                )
+                .map(|idx_ident| ctx.scope.lookup_identifier(idx_ident.as_str()).unwrap())
                 .collect()
         } else {
             vec![]
@@ -473,12 +469,12 @@ pub fn handle_compose_assign_body_list(
             let source_pkgidx = ctx
                 .instances_table
                 .get(src_inst_name)
-                .unwrap_or_else(|| {
-                    panic!(
-                        "instance {} not found in composition {}",
-                        src_inst_name, ctx.file_name
-                    )
-                })
+                .ok_or(UndefinedPackageInstanceError {
+                    source_code: ctx.named_source(),
+                    at: (src_inst_name_span.start()..src_inst_name_span.end()).into(),
+                    pkg_inst_name: src_inst_name.to_string(),
+                    in_game: ctx.game_name.to_string(),
+                })?
                 .0;
 
             for multi_instance_edge in handle_edges_compose_assign_list_multi_inst(

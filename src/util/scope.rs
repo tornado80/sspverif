@@ -2,8 +2,8 @@ use thiserror::Error;
 
 use crate::identifier::Identifier;
 use crate::package::OracleSig;
-use std::collections::{HashMap, HashSet};
 use miette::Diagnostic;
+use std::collections::{HashMap, HashSet};
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum OracleContext {
@@ -79,11 +79,7 @@ impl Scope {
      *  - No scope at all
      *  - Identifier exists somewhere in the scope tower already
      */
-    pub fn declare(
-        &mut self,
-        id: &str,
-        scope_type: Declaration,
-    ) -> Result<(), Error> {
+    pub fn declare(&mut self, id: &str, scope_type: Declaration) -> Result<(), Error> {
         self.types.insert(scope_type.clone());
         if self.lookup(id).is_none() {
             if let Some(last) = self.entries.last_mut() {
@@ -93,7 +89,10 @@ impl Scope {
                 panic!("scope declare: scope stack is empty");
             }
         } else {
-            Err(Error::AlreadyDefined(id.to_string(), self.lookup(id).unwrap())) // already defined
+            Err(Error::AlreadyDefined(
+                id.to_string(),
+                self.lookup(id).unwrap(),
+            )) // already defined
         }
     }
 
@@ -123,6 +122,13 @@ impl Scope {
         }
 
         None
+    }
+
+    pub fn lookup_identifier(&self, id: &str) -> Option<Identifier> {
+        self.lookup(id).and_then(|decl| match decl {
+            Declaration::Identifier(identifier) => Some(identifier),
+            Declaration::Oracle(_, _) => None,
+        })
     }
 }
 

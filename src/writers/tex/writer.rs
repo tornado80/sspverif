@@ -913,14 +913,22 @@ pub fn tex_write_proof(
                 writeln!(
                     file,
                     "\\subsection{{Game {} with Assumption Game {} highlighted in red}}",
-                    red.left().left().as_str().replace('_', "\\_"),
-                    red.left().right().as_str().replace('_', "\\_")
+                    red.left()
+                        .assumption_game_instance_name()
+                        .as_str()
+                        .replace('_', "\\_"),
+                    red.left()
+                        .construction_game_instance_name()
+                        .as_str()
+                        .replace('_', "\\_")
                 )?;
                 writeln!(file, "\\begin{{center}}")?;
                 let left_game_instance = proof
                     .instances
                     .iter()
-                    .find(|instance| instance.name() == red.left().left().as_str())
+                    .find(|instance| {
+                        instance.name() == red.left().assumption_game_instance_name().as_str()
+                    })
                     .unwrap();
                 tex_write_composition_graph(
                     backend,
@@ -933,14 +941,22 @@ pub fn tex_write_proof(
                 writeln!(
                     file,
                     "\\subsection{{Game {} with Assumption Game {} highlighted  in red}}",
-                    red.right().left().as_str().replace('_', "\\_"),
-                    red.right().right().as_str().replace('_', "\\_")
+                    red.right()
+                        .construction_game_instance_name()
+                        .as_str()
+                        .replace('_', "\\_"),
+                    red.right()
+                        .assumption_game_instance_name()
+                        .as_str()
+                        .replace('_', "\\_"),
                 )?;
                 writeln!(file, "\\begin{{center}}")?;
                 let right_game_instance = proof
                     .instances
                     .iter()
-                    .find(|instance| instance.name() == red.right().left().as_str())
+                    .find(|instance| {
+                        instance.name() == red.right().assumption_game_instance_name().as_str()
+                    })
                     .unwrap();
                 tex_write_composition_graph(
                     backend,

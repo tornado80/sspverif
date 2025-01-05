@@ -222,8 +222,8 @@ fn handle_reduction_body<'a>(
     let mapping1 = handle_mapspec_assumption(ctx, map1_ast, &assumption)?;
     let mapping2 = handle_mapspec_assumption(ctx, map2_ast, &assumption)?;
 
-    let left_game_inst = &ctx.get_game_instance(left_name.as_str()).unwrap().1;
-    let right_game_inst = &ctx.get_game_instance(right_name.as_str()).unwrap().1;
+    let left_game_inst = &ctx.game_instance(left_name.as_str()).unwrap().1;
+    let right_game_inst = &ctx.game_instance(right_name.as_str()).unwrap().1;
 
     let left_exports = &left_game_inst.game().exports;
 
@@ -250,19 +250,25 @@ fn handle_reduction_body<'a>(
     //let mapping3 = handle_mapspec_reduction(ctx, map3_ast, &mapping1, &mapping2)?;
 
     // these are the construction game names
-    if mapping1.left().as_str() == mapping2.left.as_str() {
+    if mapping1.assumption_game_instance_name().as_str() == mapping2.assumption.as_str() {
         panic!();
         // TODO reutrn err
     }
 
     // these are the assumption game names
-    if mapping1.right().as_str() == mapping2.right().as_str() {
+    if mapping1.construction_game_instance_name().as_str()
+        == mapping2.construction_game_instance_name().as_str()
+    {
         panic!();
         // TODO reutrn err
     }
 
-    let (_, left_game_inst) = ctx.get_game_instance(mapping1.left().as_str()).unwrap();
-    let (_, right_game_inst) = ctx.get_game_instance(mapping2.left().as_str()).unwrap();
+    let (_, left_game_inst) = ctx
+        .game_instance(mapping1.assumption_game_instance_name().as_str())
+        .unwrap();
+    let (_, right_game_inst) = ctx
+        .game_instance(mapping2.assumption_game_instance_name().as_str())
+        .unwrap();
 
     let mut unmapped_pkg_insts1: Vec<_> = {
         let mapped_bigger_pkg_insts = mapping1
@@ -325,7 +331,7 @@ fn handle_reduction_body<'a>(
         }
     }
 
-    let game1_is_left = mapping1.left().as_str() == left_name.as_str();
+    let game1_is_left = mapping1.assumption_game_instance_name().as_str() == left_name.as_str();
     let (left, right) = if game1_is_left {
         (mapping1, mapping2)
     } else {
@@ -357,7 +363,7 @@ fn handle_mapspec_assumption<'a>(
 
     // check that game instance names can be resolved
     let (_, assumption_game_inst) = ctx
-        .get_game_instance(assumption_game_inst_name.as_str())
+        .game_instance(assumption_game_inst_name.as_str())
         .ok_or(UndefinedGameInstanceError {
             source_code: ctx.named_source(),
             at: (assumption_game_inst_name.as_span().start()..assumption_game_inst_name_span.end())
@@ -366,7 +372,7 @@ fn handle_mapspec_assumption<'a>(
         })?;
 
     let (_, construction_game_inst) = ctx
-        .get_game_instance(construction_game_inst_name.as_str())
+        .game_instance(construction_game_inst_name.as_str())
         .ok_or(UndefinedGameInstanceError {
             source_code: ctx.named_source(),
             at: (construction_game_inst_name_span.start()..construction_game_inst_name_span.end())
@@ -813,8 +819,8 @@ fn handle_mapspec_assumption<'a>(
     }
 
     let mapping = NewReductionMapping {
-        left: assumption_game_inst_name,
-        right: construction_game_inst_name,
+        assumption: assumption_game_inst_name,
+        construction: construction_game_inst_name,
         entries: mappings
             .into_iter()
             .map(|(left, right)| NewReductionMappingEntry { left, right })
@@ -938,19 +944,19 @@ enum PackageInstanceDiff {
 
 #[derive(Clone, Debug)]
 pub struct NewReductionMapping<'a> {
-    left: GameInstanceName<'a>,
-    right: GameInstanceName<'a>,
+    assumption: GameInstanceName<'a>,
+    construction: GameInstanceName<'a>,
 
     entries: Vec<NewReductionMappingEntry<'a>>,
 }
 
 impl<'a> NewReductionMapping<'a> {
-    pub(crate) fn left(&self) -> &GameInstanceName<'a> {
-        &self.left
+    pub(crate) fn assumption_game_instance_name(&self) -> &GameInstanceName<'a> {
+        &self.assumption
     }
 
-    pub(crate) fn right(&self) -> &GameInstanceName<'a> {
-        &self.right
+    pub(crate) fn construction_game_instance_name(&self) -> &GameInstanceName<'a> {
+        &self.construction
     }
 
     pub(crate) fn entries(&self) -> &[NewReductionMappingEntry<'a>] {

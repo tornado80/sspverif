@@ -33,7 +33,7 @@ use crate::{
 };
 
 use itertools::Itertools;
-use miette::{Diagnostic, NamedSource};
+use miette::{Diagnostic, NamedSource, SourceSpan};
 use pest::{
     iterators::{Pair, Pairs},
     Span,
@@ -127,7 +127,7 @@ impl<'a> ParseProofContext<'a> {
             .insert(game_inst.name().to_string(), (offset, game_inst));
     }
 
-    pub(crate) fn get_game_instance(&self, name: &str) -> Option<(usize, &GameInstance)> {
+    pub(crate) fn game_instance(&self, name: &str) -> Option<(usize, &GameInstance)> {
         self.instances_table
             .get(name)
             .map(|(offset, game_inst)| (*offset, game_inst))
@@ -383,22 +383,18 @@ fn handle_assumptions(
         let ((name, _), (left_name, left_name_span), (right_name, right_name_span)) =
             handle_string_triplet(&mut pair.into_inner());
 
-        let inst_resolver = SliceResolver(&ctx.instances);
-
-        if inst_resolver.resolve_value(&left_name).is_none() {
-            return Err(UndefinedGameInstanceError {
+        ctx.game_instance(&left_name)
+            .ok_or(UndefinedGameInstanceError {
                 source_code: ctx.named_source(),
                 at: (left_name_span.start()..left_name_span.end()).into(),
-                game_inst_name: left_name,
-            }
-            .into());
-        }
+                game_inst_name: left_name.clone(),
+            })?;
 
-        if inst_resolver.resolve_value(&right_name).is_none() {
+        if ctx.game_instance(&right_name).is_none() {
             return Err(UndefinedGameInstanceError {
                 source_code: ctx.named_source(),
                 at: (right_name_span.start()..right_name_span.end()).into(),
-                game_inst_name: right_name,
+                game_inst_name: right_name.clone(),
             }
             .into());
         }
@@ -434,7 +430,7 @@ fn handle_equivalence<'a>(
     ast: Pair<'a, Rule>,
 ) -> Result<Vec<GameHop<'a>>, ParseProofError> {
     let mut ast = ast.into_inner();
-    let ((left_name, left_name_span), (right_name, right_name_span)) = handle_string_pair(&mut ast);
+    let (left_name, right_name) = handle_string_pair(&mut ast);
 
     let mut equivalences = vec![];
 
@@ -457,30 +453,29 @@ fn handle_equivalence<'a>(
         .map(|(oracle_name, inv_paths, _)| (oracle_name, inv_paths))
         .collect();
 
-    if SliceResolver(&ctx.instances)
-        .resolve_value(&left_name)
-        .is_none()
-    {
+    if ctx.game_instance(&left_name.as_str()).is_none() {
         return Err(UndefinedGameInstanceError {
             source_code: ctx.named_source(),
-            at: (left_name_span.start()..left_name_span.end()).into(),
-            game_inst_name: left_name,
+            at: (left_name.as_span().start()..left_name.as_span().end()).into(),
+            game_inst_name: left_name.as_str().to_string(),
         }
         .into());
     }
-    if SliceResolver(&ctx.instances)
-        .resolve_value(&right_name)
-        .is_none()
-    {
+    if ctx.game_instance(&right_name.as_str()).is_none() {
         return Err(UndefinedGameInstanceError {
             source_code: ctx.named_source(),
-            at: (right_name_span.start()..right_name_span.end()).into(),
-            game_inst_name: right_name,
+            at: (right_name.as_span().start()..right_name.as_span().end()).into(),
+            game_inst_name: right_name.as_str().to_string(),
         }
         .into());
     }
 
-    let eq = GameHop::Equivalence(Equivalence::new(left_name, right_name, invariants, trees));
+    let eq = GameHop::Equivalence(Equivalence::new(
+        left_name.as_str().to_string(),
+        right_name.as_str().to_string(),
+        invariants,
+        trees,
+    ));
 
     equivalences.push(eq);
 
@@ -533,14 +528,10 @@ pub(crate) fn handle_identifiers<'a, T: crate::parser::ast::Identifier<'a>, cons
         .unwrap()
 }
 
-pub(crate) fn handle_string_pair<'a>(
-    ast: &mut Pairs<'a, Rule>,
-) -> ((String, Span<'a>), (String, Span<'a>)) {
-    let mut strs: Vec<_> = ast
-        .take(2)
-        .map(|str| (str.as_str().to_string(), str.as_span()))
-        .collect();
-    (strs.remove(0), strs.remove(0))
+fn handle_string_pair<'a>(ast: &mut Pairs<'a, Rule>) -> (Pair<'a, Rule>, Pair<'a, Rule>) {
+    let [left, right] = ast.take(2).collect::<Vec<_>>().try_into().unwrap();
+
+    (left, right)
 }
 
 fn next_pairs<'a>(ast: &'a mut Pairs<Rule>) -> Pairs<'a, Rule> {
