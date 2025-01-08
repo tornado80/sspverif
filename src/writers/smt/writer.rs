@@ -692,11 +692,19 @@ impl<'a> CompositionSmtWriter<'a> {
         idents: &[Identifier],
         expr: &Expression,
     ) -> SmtExpr {
+        let Type::Tuple(types) = expr.get_type() else {
+            unreachable!("if this wasn't a tuple type, the type checker would have complained")
+        };
         let bindings = idents
             .iter()
             .enumerate()
             .filter(|(_, ident)| ident.ident_ref() != "_")
-            .map(|(i, ident)| (ident.ident(), (format!("el{}", i + 1), expr.clone()).into()))
+            .map(|(i, ident)| {
+                (
+                    ident.ident(),
+                    (format!("el{}-{}", types.len(), i + 1), expr.clone()).into(),
+                )
+            })
             .collect();
 
         SmtLet {

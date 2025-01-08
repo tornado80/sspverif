@@ -74,7 +74,7 @@ impl Display for TupleDeclaration {
             .join(" ");
 
         let ds: String = (1..n + 1)
-            .map(|i| format!("(el{i} T{i})"))
+            .map(|i| format!("(el{n}-{i} T{i})"))
             .collect::<Vec<_>>()
             .join(" ");
 
@@ -98,7 +98,7 @@ impl From<TupleDeclaration> for Vec<SmtExpr> {
             .collect::<Vec<_>>();
 
         let ds: Vec<SmtExpr> = (1..n + 1)
-            .map(|i| (format!("el{i}"), format!("T{i}")).into())
+            .map(|i| (format!("el{n}-{i}"), format!("T{i}")).into())
             .collect::<Vec<_>>();
 
         let mut fns = vec![format!("mk-tuple{n}").into()];
