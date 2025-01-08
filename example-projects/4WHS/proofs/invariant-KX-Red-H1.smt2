@@ -135,11 +135,10 @@
     (= scr-0 base-ctr-0)
     (= id-0      id-1))) ; no sampling
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
-; Invariant --- note that the invariant needs to be game-global 
-;               Having different variants for Oracle & UselessOracle would allow to prove wrong things.
+; Invariant --- note that the invariant needs to be game-global and not per oracle, 
+;               so that induction over the oracle calls remains meaningful.
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
