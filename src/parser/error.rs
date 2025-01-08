@@ -1,10 +1,12 @@
 use std::fmt::{Debug, Display};
 
-use miette::{Diagnostic, SourceSpan};
+use miette::{Diagnostic, NamedSource, SourceSpan};
 use pest::error::ErrorVariant;
 use thiserror::Error;
 
 use crate::types::Type;
+
+use super::Rule;
 
 pub enum NewError {}
 
@@ -436,7 +438,7 @@ pub struct ReductionPackageInstanceParameterMismatchError {
 }
 
 #[derive(Debug, Diagnostic, Error)]
-#[error("The package instances {pkg_inst_name_1} and {pkg_inst_name_2} should be the same, but {pkg_inst_name_1} is in the assumption part of {game_name_1}, whereas {pkg_inst_name_2} is in the reduction part of {pkg_inst_name_2}")]
+#[error("The package instances {pkg_inst_name_1} and {pkg_inst_name_2} should be the same, but {pkg_inst_name_1} is in the assumption part of {game_name_1}, whereas {pkg_inst_name_2} is in the reduction part of {game_name_2}")]
 #[diagnostic(code(
     ssbee::code::proof::reduction::mapping::reduction_inconsistent_assumption_boundary
 ))]
@@ -568,4 +570,38 @@ pub struct DuplicateEdgeDefinitionError {
     pub pkg_inst_name: String,
     pub oracle_name: String,
     pub game_name: String,
+}
+
+#[derive(miette::Diagnostic, Debug, thiserror::Error)]
+#[error("Reduction references construction game instance {name}, but that is not in the header")]
+pub struct InvalidGameInstanceInReductionError {
+    #[source_code]
+    pub source_code: miette::NamedSource<String>,
+
+    #[label("this is not in the header of the reduction")]
+    pub span: miette::SourceSpan,
+
+    #[label("this is not in the header of the reduction")]
+    pub header_span: miette::SourceSpan,
+
+    pub name: String,
+}
+
+impl InvalidGameInstanceInReductionError {
+    pub(crate) fn new(
+        source: miette::NamedSource<String>,
+        name_pair: &pest::iterators::Pair<Rule>,
+        header_span: impl Into<miette::SourceSpan>,
+    ) -> Self {
+        let name_start = name_pair.as_span().start();
+        let name_end = name_pair.as_span().end();
+        let span = (name_start..name_end).into();
+
+        Self {
+            source_code: source,
+            span,
+            header_span: header_span.into(),
+            name: name_pair.as_str().to_string(),
+        }
+    }
 }

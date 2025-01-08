@@ -36,6 +36,10 @@ macro_rules! impl_ast {
             fn as_span(&self) -> Span<'a> {
                 self.0.as_span()
             }
+
+            fn as_pair(&self) -> &Pair<'a, Rule> {
+                &self.0
+            }
         }
 
         impl<'a> From<Pair<'a, $crate::parser::Rule>> for $struct {
@@ -58,4 +62,5 @@ pub(crate) trait Identifier<'a>:
 {
     fn as_str(&self) -> &'a str;
     fn as_span(&self) -> Span<'a>;
+    fn as_pair(&self) -> &Pair<'a, Rule>;
 }

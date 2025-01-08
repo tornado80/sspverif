@@ -46,8 +46,8 @@ use super::{
         AssumptionExportsNotSufficientError, AssumptionMappingMissesPackageInstanceError,
         AssumptionMappingParameterMismatchError,
         AssumptionMappingRightGameInstanceIsFromAssumption, DuplicateGameParameterDefinitionError,
-        MissingGameParameterDefinitionError, NoSuchGameParameterError, NoSuchTypeError,
-        ReductionInconsistentAssumptionBoundaryError,
+        InvalidGameInstanceInReductionError, MissingGameParameterDefinitionError,
+        NoSuchGameParameterError, NoSuchTypeError, ReductionInconsistentAssumptionBoundaryError,
         ReductionPackageInstanceParameterMismatchError, UndefinedAssumptionError,
         UndefinedGameError, UndefinedGameInstanceError, UndefinedPackageInstanceError,
     },
@@ -226,6 +226,10 @@ pub enum ParseProofError {
     #[diagnostic(transparent)]
     #[error(transparent)]
     AssumptionExportsNotSufficient(#[from] AssumptionExportsNotSufficientError),
+
+    #[diagnostic(transparent)]
+    #[error(transparent)]
+    InvalidGameInstanceInReduction(#[from] InvalidGameInstanceInReductionError),
 }
 
 pub fn handle_proof<'a>(

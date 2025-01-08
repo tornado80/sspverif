@@ -609,7 +609,10 @@ fn tex_write_composition_graph(
                           bottom,
                           column|
      -> std::io::Result<()> {
-        let fill = if pkgmap.iter().any(|entry| pkgname == entry.left().as_str()) {
+        let fill = if pkgmap
+            .iter()
+            .any(|entry| pkgname == entry.assumption().as_str())
+        {
             "red!50"
         } else {
             "white"

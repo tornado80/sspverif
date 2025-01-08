@@ -18,7 +18,7 @@ use crate::{
     package::{Edge, PackageInstance},
     parser::error::{
         AssumptionMappingLeftGameInstanceIsNotFromAssumption,
-        AssumptionMappingRightGameInstanceIsFromAssumption,
+        AssumptionMappingRightGameInstanceIsFromAssumption, InvalidGameInstanceInReductionError,
     },
     proof::GameInstance,
     util::resolver::{Named, Resolver as _, SliceResolver},
@@ -64,26 +64,28 @@ fn compare_reduction(
 ) -> Result<(), ParseProofError> {
     let game_left = left_game_inst.game();
     let game_right = right_game_inst.game();
+
     let left_pkg_inst = &game_left.pkgs[inst_offs_left];
     let right_pkg_inst = &game_right.pkgs[inst_offs_right];
 
     let left_mapping_entry = mapping_left
         .entries
         .iter()
-        .find(|x| x.right().as_str() == left_pkg_inst.name());
+        .find(|mapping_entry| mapping_entry.construction().as_str() == left_pkg_inst.name());
 
     let right_mapping_entry = mapping_right
         .entries
         .iter()
-        .find(|x| x.right().as_str() == right_pkg_inst.name());
+        .find(|mapping_entry| mapping_entry.construction().as_str() == right_pkg_inst.name());
 
     match (left_mapping_entry, right_mapping_entry) {
         // both are in assumption, this is the happy "done" case
         (Some(_), Some(_)) => return Ok(()),
 
-        // one of them in the assumption, this is an error
+        // only one of them in the assumption, this is an error
         (Some(mapping_entry), None) => {
-            let mapping_entry_span = mapping_entry.right().as_span();
+            println!("asd");
+            let mapping_entry_span = mapping_entry.construction().as_span();
             Err(ReductionInconsistentAssumptionBoundaryError {
                 source_code: ctx.named_source(),
                 at_reduction: (reduction_span.start()..reduction_span.end()).into(),
@@ -95,7 +97,8 @@ fn compare_reduction(
             })
         }
         (None, Some(mapping_entry)) => {
-            let mapping_entry_span = mapping_entry.right().as_span();
+            println!("fgh");
+            let mapping_entry_span = mapping_entry.construction().as_span();
             Err(ReductionInconsistentAssumptionBoundaryError {
                 source_code: ctx.named_source(),
                 at_reduction: (reduction_span.start()..reduction_span.end()).into(),
@@ -107,8 +110,8 @@ fn compare_reduction(
             })
         }
 
-        // continue traversing
-        _ => Ok(()),
+        // still in reduction, continue traversing
+        (None, None) => Ok(()),
     }?;
 
     if left_pkg_inst.pkg.name() != right_pkg_inst.pkg.name() {
@@ -206,21 +209,103 @@ fn handle_reduction_body<'a>(
 
     // check that assumption_name turns up in the assumptions list
     // and fetch the assumption definition
-    let assumption_resolver = SliceResolver(&ctx.assumptions);
-    let assumption = assumption_resolver
-        .resolve_value(assumption_name)
+    let assumption = ctx
+        .assumptions
+        .iter()
+        .find(|assumption| assumption.name == assumption_name)
         .ok_or(UndefinedAssumptionError {
             source_code: ctx.named_source(),
             at: (assumptions_name_span.start()..assumptions_name_span.end()).into(),
             assumption_name: assumption_name.to_string(),
-        })?
-        .clone();
+        })?;
+
+    // Check that the reduction has different game instances before and after the game hop.
+    // This is not technically a problem, but it is a noop and likely unintended
+    if left_name.as_str() == right_name.as_str() {
+        let name = left_name.as_str();
+        let source = ctx.named_source();
+        let start = left_name.as_span().start();
+        let end = right_name.as_span().end();
+
+        #[derive(miette::Diagnostic, Debug, thiserror::Error)]
+        #[error("Reduction hash identical construction game instance {name} left and right")]
+        #[diagnostic(severity(Warning))]
+        struct SameConstructionGameInstanceWarning {
+            #[source_code]
+            source_code: miette::NamedSource<String>,
+
+            #[label("these probably should not be the same")]
+            span: miette::SourceSpan,
+
+            name: String,
+        }
+
+        let diag = SameConstructionGameInstanceWarning {
+            source_code: source,
+            span: (start..end).into(),
+            name: name.to_string(),
+        };
+
+        // TODO: find a better way to emit warnings
+        log::warn!("{diag:?}")
+    }
+
+    let construction_game_instance_names = [left_name.as_str(), right_name.as_str()];
 
     let map1_ast = ast.next().unwrap();
     let map2_ast = ast.next().unwrap();
 
-    let mapping1 = handle_mapspec_assumption(ctx, map1_ast, &assumption)?;
-    let mapping2 = handle_mapspec_assumption(ctx, map2_ast, &assumption)?;
+    let mapping1 = handle_mapspec_assumption(ctx, map1_ast, assumption)?;
+    let mapping2 = handle_mapspec_assumption(ctx, map2_ast, assumption)?;
+
+    let header_span = left_name.as_span().start()..right_name.as_span().end();
+
+    let (mapping_left, mapping_right) =
+        if mapping1.construction_game_instance_name().as_str() != right_name.as_str() {
+            // we know mapping1 should be for left and mapping2 should be for right
+
+            if mapping1.construction_game_instance_name().as_str() != left_name.as_str() {
+                return Err(InvalidGameInstanceInReductionError::new(
+                    ctx.named_source(),
+                    mapping1.construction_game_instance_name().as_pair(),
+                    header_span,
+                )
+                .into());
+            }
+
+            if mapping2.construction_game_instance_name().as_str() != right_name.as_str() {
+                return Err(InvalidGameInstanceInReductionError::new(
+                    ctx.named_source(),
+                    mapping2.construction_game_instance_name().as_pair(),
+                    header_span,
+                )
+                .into());
+            }
+
+            (mapping1, mapping2)
+        } else {
+            // we know mapping1 should be for right and mapping2 should be for left
+
+            if mapping1.construction_game_instance_name().as_str() != right_name.as_str() {
+                return Err(InvalidGameInstanceInReductionError::new(
+                    ctx.named_source(),
+                    mapping1.construction_game_instance_name().as_pair(),
+                    header_span,
+                )
+                .into());
+            }
+
+            if mapping2.construction_game_instance_name().as_str() != left_name.as_str() {
+                return Err(InvalidGameInstanceInReductionError::new(
+                    ctx.named_source(),
+                    mapping2.construction_game_instance_name().as_pair(),
+                    header_span,
+                )
+                .into());
+            }
+
+            (mapping2, mapping1)
+        };
 
     let left_game_inst = &ctx.game_instance(left_name.as_str()).unwrap().1;
     let right_game_inst = &ctx.game_instance(right_name.as_str()).unwrap().1;
@@ -242,39 +327,39 @@ fn handle_reduction_body<'a>(
             right_export.to(),
             left_game_inst,
             right_game_inst,
-            &mapping1,
-            &mapping2,
+            &mapping_left,
+            &mapping_right,
         )?;
     }
     // TODO: implement reduction mapspec and do third check in there
     //let mapping3 = handle_mapspec_reduction(ctx, map3_ast, &mapping1, &mapping2)?;
 
     // these are the construction game names
-    if mapping1.assumption_game_instance_name().as_str() == mapping2.assumption.as_str() {
+    if mapping_left.assumption_game_instance_name().as_str() == mapping_right.assumption.as_str() {
         panic!();
         // TODO reutrn err
     }
 
     // these are the assumption game names
-    if mapping1.construction_game_instance_name().as_str()
-        == mapping2.construction_game_instance_name().as_str()
+    if mapping_left.construction_game_instance_name().as_str()
+        == mapping_right.construction_game_instance_name().as_str()
     {
         panic!();
         // TODO reutrn err
     }
 
     let (_, left_game_inst) = ctx
-        .game_instance(mapping1.assumption_game_instance_name().as_str())
+        .game_instance(mapping_left.assumption_game_instance_name().as_str())
         .unwrap();
     let (_, right_game_inst) = ctx
-        .game_instance(mapping2.assumption_game_instance_name().as_str())
+        .game_instance(mapping_right.assumption_game_instance_name().as_str())
         .unwrap();
 
     let mut unmapped_pkg_insts1: Vec<_> = {
-        let mapped_bigger_pkg_insts = mapping1
+        let mapped_bigger_pkg_insts = mapping_left
             .entries()
             .iter()
-            .map(|entry| entry.left.as_str())
+            .map(|entry| entry.assumption.as_str())
             .collect::<HashSet<_>>();
         left_game_inst
             .game()
@@ -287,10 +372,10 @@ fn handle_reduction_body<'a>(
     unmapped_pkg_insts1.sort_by(|left, right| left.name.cmp(&right.name));
 
     let mut unmapped_pkg_insts2: Vec<_> = {
-        let mapped_bigger_pkg_insts = mapping2
+        let mapped_bigger_pkg_insts = mapping_right
             .entries()
             .iter()
-            .map(|entry| entry.left.as_str())
+            .map(|entry| entry.assumption.as_str())
             .collect::<HashSet<_>>();
         right_game_inst
             .game()
@@ -331,20 +416,13 @@ fn handle_reduction_body<'a>(
         }
     }
 
-    let game1_is_left = mapping1.assumption_game_instance_name().as_str() == left_name.as_str();
-    let (left, right) = if game1_is_left {
-        (mapping1, mapping2)
-    } else {
-        (mapping2, mapping1)
-    };
-
-    let reduction = Reduction::new(left, right, assumption_name.to_string());
+    let reduction = Reduction::new(mapping_left, mapping_right, assumption_name.to_string());
 
     Ok(reduction)
 }
 
 fn handle_mapspec_assumption<'a>(
-    ctx: &mut ParseProofContext,
+    ctx: &ParseProofContext,
     ast: Pair<'a, Rule>,
     assumption: &Assumption,
 ) -> Result<ReductionMapping<'a>, ParseProofError> {
@@ -823,7 +901,10 @@ fn handle_mapspec_assumption<'a>(
         construction: construction_game_inst_name,
         entries: mappings
             .into_iter()
-            .map(|(left, right)| NewReductionMappingEntry { left, right })
+            .map(|(left, right)| NewReductionMappingEntry {
+                assumption: left,
+                construction: right,
+            })
             .collect_vec(),
     };
     Ok(mapping)
@@ -966,8 +1047,8 @@ impl<'a> ReductionMapping<'a> {
 
 #[derive(Clone, Debug)]
 pub struct NewReductionMappingEntry<'a> {
-    left: PackageInstanceName<'a>,
-    right: PackageInstanceName<'a>,
+    assumption: PackageInstanceName<'a>,
+    construction: PackageInstanceName<'a>,
 }
 
 #[derive(Clone, Debug)]
@@ -978,11 +1059,11 @@ pub struct NewAssumption<'a> {
 }
 
 impl<'a> NewReductionMappingEntry<'a> {
-    pub(crate) fn left(&self) -> &PackageInstanceName<'a> {
-        &self.left
+    pub(crate) fn assumption(&self) -> &PackageInstanceName<'a> {
+        &self.assumption
     }
 
-    pub(crate) fn right(&self) -> &PackageInstanceName<'a> {
-        &self.right
+    pub(crate) fn construction(&self) -> &PackageInstanceName<'a> {
+        &self.construction
     }
 }
