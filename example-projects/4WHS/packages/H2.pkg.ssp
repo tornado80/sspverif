@@ -116,7 +116,7 @@ oracle Send2(ctr: Integer, ni: Bits(n)) -> (Bits(n),Bits(n))
                 PRF[(kid,U,V,Some(ni),Some(nr),true)] <- Some(k);     /* need role agreement here, to be fixed */
                 }
             }
-        tau        <-  mac(kmac,U,V,ni,nr,2);
+        tau        <-  mac(kmac,nr,2);
         sid        <- (U,V,Some(ni),Some(nr),Some(tau));
         State[ctr] <-  Some((V,v,U,u,kid,acc,Some(k),Some(ni),Some(nr),Some(kmac),Some(sid),1));
         return (nr,tau);
@@ -150,8 +150,8 @@ oracle Send3(ctr: Integer, nr: Bits(n), tau: Bits(n)) -> (Bits(n), Bits(n))
 /* stopped here            */
 /* xxxxxxxxxxxxxxxxxxxxxxx */
         kmac  <- prf(U,V,Unwrap(ni),nr,true);
-        if not (mac(kmac,U,V,Unwrap(ni),nr,2) == tau) {return (zeron,zeron);}
-        tau_       <- mac(kmac,U,V,Unwrap(ni),nr,3);
+        if not (mac(kmac,nr,2) == tau) {return (zeron,zeron);}
+        tau_       <- mac(kmac,Unwrap(ni),3);
         sid        <- (U,V,ni,Some(nr),Some(tau));
         State[ctr] <- Some((U,u,V,v,kid,Some(true),k_,ni,Some(nr),Some(kmac),Some(sid),2));
         return (Unwrap(ni),tau_);
@@ -164,7 +164,7 @@ oracle Send4(ctr: Integer, ni: Bits(n), tau:Bits(n)) -> Bits(n)
         assert (v    == true);                /* session belongs to responder       */
         assert (mess == 1);                   /* session has sent its first message */
         assert (acc  == None);                /* session is still running           */
-        if (not (mac(Unwrap(kmac),U,V,ni,Unwrap(nr),3) == tau) or
+        if (not (mac(Unwrap(kmac),ni,3) == tau) or
             not (ni == Unwrap(ni_)))
             {
              acc        <- Some(false);
@@ -187,7 +187,7 @@ oracle Send4(ctr: Integer, ni: Bits(n), tau:Bits(n)) -> Bits(n)
         tmp        <-$ Bits(n);
         Test[sid]  <-  Some(tmp);
             }
-        tau_       <- mac(kmac,0,0,zeron,zeron,4);
+        tau_       <- mac(Unwrap(kmac),zeron,4);
        return tau_;  
     } 
 
@@ -198,7 +198,7 @@ oracle Send4(ctr: Integer, ni: Bits(n), tau:Bits(n)) -> Bits(n)
         assert (u    == false);              /* session belongs to initiator       */
         assert (mess == 2);                  /* session has sent its 2nd message */
         assert (acc  == None);               /* session is still running           */
-        if not (mac(Unwrap(kmac),0,0,zeron,zeron,3) == tau) {return false;}
+        if not (mac(Unwrap(kmac),zeron,4) == tau) {return false;}
         State[ctr] <- Some((U,u,V,v,ltk,Some(true),k_,ni,nr,kmac,sid_,3));
         k   <- Unwrap(k_);
         sid <- Unwrap(sid_);
