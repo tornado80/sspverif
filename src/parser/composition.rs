@@ -2,9 +2,10 @@ use super::{
     common::*,
     error::{
         DuplicateEdgeDefinitionError, DuplicatePackageParameterDefinitionError,
-        MissingEdgeForImportedOracleError, MissingPackageParameterDefinitionError,
-        NoSuchPackageParameterError, NoSuchTypeError, UndefinedOracleError, UndefinedPackageError,
-        UndefinedPackageInstanceError, UnusedEdgeError,
+        InvalidGameInstanceInReductionError, MissingEdgeForImportedOracleError,
+        MissingPackageParameterDefinitionError, NoSuchPackageParameterError, NoSuchTypeError,
+        UndefinedOracleError, UndefinedPackageError, UndefinedPackageInstanceError,
+        UnusedEdgeError,
     },
     package::{handle_expression, ForComp, MultiInstanceIndices, ParsePackageError},
     ParseContext, Rule,
