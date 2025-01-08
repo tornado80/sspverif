@@ -214,16 +214,27 @@ impl<'a> BlockWriter<'a> {
                 )?;
             }
             Statement::IfThenElse(expr, ifcode, elsecode, _) => {
-                writeln!(
-                    self.file,
-                    "{}\\pcif {} \\pcthen\\\\",
-                    genindentation(indentation),
-                    self.expression_to_tex(expr)
-                )?;
-                self.write_codeblock(ifcode, indentation + 1)?;
-                if !elsecode.0.is_empty() {
-                    writeln!(self.file, "{}\\pcelse\\\\", genindentation(indentation))?;
-                    self.write_codeblock(elsecode, indentation + 1)?;
+                if ifcode.0.len() == 0  && elsecode.0.len() == 1 && matches!(elsecode.0[0], Statement::Abort(_)) {
+                    // Special Case for asserts
+                    writeln!(
+                        self.file,
+                        "{}\\pcassert {} \\\\",
+                        genindentation(indentation),
+                        self.expression_to_tex(expr)
+                    )?;
+                } else {
+                    //default
+                    writeln!(
+                        self.file,
+                        "{}\\pcif {} \\pcthen\\\\",
+                        genindentation(indentation),
+                        self.expression_to_tex(expr)
+                    )?;
+                    self.write_codeblock(ifcode, indentation + 1)?;
+                    if !elsecode.0.is_empty() {
+                        writeln!(self.file, "{}\\pcelse\\\\", genindentation(indentation))?;
+                        self.write_codeblock(elsecode, indentation + 1)?;
+                    }
                 }
             }
             Statement::For(var, from, to, code, _) => {
