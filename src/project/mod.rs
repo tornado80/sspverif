@@ -131,16 +131,21 @@ impl Project {
             let (transformed, _) = crate::transforms::resolveoracles::Transformation(&transformed)
                 .transform()
                 .unwrap();
-            crate::writers::tex::writer::tex_write_composition(
-                &backend,
-                &transformed,
-                name,
-                path.as_path(),
-            )?;
+            for lossy in [true, false] {
+                crate::writers::tex::writer::tex_write_composition(
+                    &backend,
+                    lossy,
+                    &transformed,
+                    name,
+                    path.as_path(),
+                )?;
+            }
         }
 
         for (name, proof) in &self.proofs {
-            crate::writers::tex::writer::tex_write_proof(&backend, proof, name, path.as_path())?;
+            for lossy in [true, false] {
+                crate::writers::tex::writer::tex_write_proof(&backend, lossy, proof, name, path.as_path())?;
+            }
         }
 
         Ok(())

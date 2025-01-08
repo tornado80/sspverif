@@ -29,11 +29,12 @@ fn genindentation(cnt: u8) -> String {
 
 struct BlockWriter<'a> {
     file: &'a mut File,
+    lossy: bool,
 }
 
 impl<'a> BlockWriter<'a> {
-    fn new(file: &'a mut File) -> BlockWriter<'a> {
-        BlockWriter { file }
+    fn new(file: &'a mut File, lossy: bool) -> BlockWriter<'a> {
+        BlockWriter { file , lossy }
     }
 
     fn ident_to_tex(&self, ident: &Identifier) -> String {
@@ -94,9 +95,27 @@ impl<'a> BlockWriter<'a> {
             Expression::BooleanLiteral(val) => format!("\\lit{{{}}}", val),
             Expression::Identifier(ident) => self.ident_to_tex(ident),
             Expression::Not(expr) => format!("\\neg {}", self.expression_to_tex(expr)),
-            Expression::Unwrap(expr) => format!("\\O{{unwrap}}({})", self.expression_to_tex(expr)),
-            Expression::Some(expr) => format!("\\O{{some}}({})", self.expression_to_tex(expr)),
-            Expression::None(tipe) => format!("\\O{{none}}({})", self.type_to_tex_short(tipe)),
+            Expression::Unwrap(expr) => {
+                if self.lossy {
+                    self.expression_to_tex(expr)
+                } else {
+                    format!("\\O{{unwrap}}({})", self.expression_to_tex(expr))
+                }
+            }
+            Expression::Some(expr) => {
+                if self.lossy {
+                    self.expression_to_tex(expr)
+                } else {
+                    format!("\\O{{some}}({})", self.expression_to_tex(expr))
+                }
+            }
+            Expression::None(tipe) => {
+                if self.lossy {
+                    "\\bot".to_string()
+                } else {
+                    format!("\\O{{none}}({})", self.type_to_tex_short(tipe))
+                }
+            }
             Expression::Add(lhs, rhs) => format!(
                 "({} + {})",
                 self.expression_to_tex(lhs),
@@ -312,14 +331,15 @@ impl<'a> BlockWriter<'a> {
 }
 
 pub fn tex_write_oracle(
+    lossy: bool,
     oracle: &OracleDef,
     pkgname: &str,
     compname: &str,
     target: &Path,
 ) -> std::io::Result<String> {
-    let fname = target.join(format!("Oracle_{}_{}_in_{}.tex", pkgname, oracle.sig.name, compname));
+    let fname = target.join(format!("Oracle_{}_{}_in_{}{}.tex", pkgname, oracle.sig.name, compname, if lossy {"_lossy"} else {""}));
     let mut file = File::create(fname.clone())?;
-    let mut writer = BlockWriter::new(&mut file);
+    let mut writer = BlockWriter::new(&mut file, lossy);
 
     writeln!(
         writer.file,
@@ -341,8 +361,8 @@ pub fn tex_write_oracle(
     Ok(fname.to_str().unwrap().to_string())
 }
 
-pub fn tex_write_package(composition: &Composition, package: &PackageInstance, target: &Path) -> std::io::Result<String> {
-    let fname = target.join(format!("Package_{}_in_{}.tex", package.name, composition.name));
+pub fn tex_write_package(lossy: bool, composition: &Composition, package: &PackageInstance, target: &Path) -> std::io::Result<String> {
+    let fname = target.join(format!("Package_{}_in_{}{}.tex", package.name, composition.name, if lossy {"_lossy"} else {""} ));
     let mut file = File::create(fname.clone())?;
 
     writeln!(
@@ -352,7 +372,7 @@ pub fn tex_write_package(composition: &Composition, package: &PackageInstance, t
     )?;
 
     for oracle in &package.pkg.oracles {
-        let oraclefname = tex_write_oracle(oracle, &package.name, &composition.name, target)?;
+        let oraclefname = tex_write_oracle(lossy, oracle, &package.name, &composition.name, target)?;
         let oraclefname = Path::new(&oraclefname)
             .strip_prefix(fname.clone().parent().unwrap())
             .unwrap()
@@ -743,11 +763,12 @@ fn tex_write_composition_graph_file(
 
 pub fn tex_write_composition(
     backend: &Option<ProverBackend>,
+    lossy: bool,
     composition: &Composition,
     name: &str,
     target: &Path,
 ) -> std::io::Result<()> {
-    let fname = target.join(format!("Composition_{}.tex", name));
+    let fname = target.join(format!("Composition_{}{}.tex", name, if lossy {"_lossy"} else {""}));
     let mut file = File::create(fname.clone())?;
 
     tex_write_document_header(&file)?;
@@ -766,7 +787,7 @@ pub fn tex_write_composition(
     writeln!(file, "\\end{{center}}")?;
 
     for pkg in &composition.pkgs {
-        let pkgfname = tex_write_package(composition, pkg, target)?;
+        let pkgfname = tex_write_package(lossy, composition, pkg, target)?;
         let pkgfname = Path::new(&pkgfname)
             .strip_prefix(fname.clone().parent().unwrap())
             .unwrap()
@@ -783,11 +804,12 @@ pub fn tex_write_composition(
 
 pub fn tex_write_proof(
     backend: &Option<ProverBackend>,
+    lossy: bool,
     proof: &Proof,
     name: &str,
     target: &Path,
 ) -> std::io::Result<()> {
-    let fname = target.join(format!("Proof_{}.tex", name));
+    let fname = target.join(format!("Proof_{}{}.tex", name, if lossy {"_lossy"} else {""}));
     let mut file = File::create(fname)?;
 
     tex_write_document_header(&file)?;
@@ -814,7 +836,7 @@ pub fn tex_write_proof(
         writeln!(file, "\\end{{center}}")?;
 
         for package in &instance.game().pkgs {
-            let pkgfname = format!("Package_{}_in_{}.tex", package.name.replace('_', "\\_"), instance.game().name.replace('_', "\\_"));
+            let pkgfname = format!("Package_{}_in_{}{}.tex", package.name.replace('_', "\\_"), instance.game().name.replace('_', "\\_"), if lossy {"_lossy"} else {""} );
             writeln!(file, "\\begin{{center}}")?;
             writeln!(file, "\\input{{{}}}", pkgfname)?;
             writeln!(file, "\\end{{center}}")?;
