@@ -42,7 +42,10 @@ impl<'a> BlockWriter<'a> {
     }
 
     fn type_to_tex(&self, tipe: &Type) -> String {
-        format!("\\O{{{:?}}}", tipe)
+        match tipe {
+            Type::Bits(n) => format!("\\bin^{{{}}}", n),
+            _ => format!("\\O{{{:?}}}", tipe),
+        }
     }
 
     fn type_to_tex_short(&self, tipe: &Type) -> String {
@@ -398,7 +401,7 @@ pub fn tex_write_package(lossy: bool, composition: &Composition, package: &Packa
 fn tex_write_document_header(mut file: &File) -> std::io::Result<()> {
     writeln!(file, "\\documentclass[a4paper,landscape]{{article}}")?;
     writeln!(file, "\\usepackage[margin=1in]{{geometry}}")?;
-    writeln!(file, "\\usepackage[operators]{{cryptocode}}")?;
+    writeln!(file, "\\usepackage[sets,operators]{{cryptocode}}")?;
     writeln!(file, "\\usepackage{{tikz}}")?;
     writeln!(
         file,
