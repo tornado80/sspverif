@@ -203,6 +203,22 @@ impl<'a> EquivalenceContext<'a> {
         Ok(())
     }
 
+    /// This emits the SMT-LIB constants for all the proof constants, game instance constants and
+    /// package instance constants.
+    fn emit_const_consts(&self, comm: &mut Communicator) -> Result<()> {
+        for (ident_name, ty) in &self.proof.consts {
+            let proof_const = patterns::constants::ProofConstant {
+                proof_name: &self.proof.name,
+                ident_name: ident_name.as_str(),
+                ty,
+            };
+
+            comm.write_smt(proof_const.declare())?;
+        }
+
+        todo!()
+    }
+
     fn emit_game_definitions(&self, comm: &mut Communicator) -> Result<()> {
         let instance_resolver = SliceResolver(self.proof.instances());
         let left = instance_resolver

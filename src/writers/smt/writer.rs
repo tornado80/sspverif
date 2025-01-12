@@ -979,23 +979,27 @@ impl<'a> CompositionSmtWriter<'a> {
             .smt_access_gamestate_pkgstate(var_globalstate, pkg_inst_name)
             .unwrap();
 
-        let pkgstate_unpack_bindings = inst
-            .pkg
-            .state
-            .iter()
-            .map(|(name, _ty, _)| {
-                (
-                    name.clone(),
-                    pkg_inst_ctx
-                        .smt_access_pkgstate(pkg_state.clone(), name)
-                        .unwrap(),
-                )
-            })
-            .collect();
+        let pkgstate_bindings = inst.pkg.state.iter().map(|(name, _ty, _)| {
+            (
+                name.clone(),
+                pkg_inst_ctx
+                    .smt_access_pkgstate(pkg_state.clone(), name)
+                    .unwrap(),
+            )
+        });
+
+        let pkgconst_bindings = None;
+
+        println!("pkg inst params: {:?}", &inst.params);
+
+        // inst
+        //     .params
+        //     .iter()
+        //     .map(|(id, expr)| (id.ident(), expr.clone().into()));
 
         octx.oracle_pattern()
             .define_fun(SmtLet {
-                bindings: pkgstate_unpack_bindings,
+                bindings: pkgstate_bindings.chain(pkgconst_bindings).collect(),
                 body: self.smt_codeblock_nonsplit(&octx, def.code.clone()),
             })
             .into()

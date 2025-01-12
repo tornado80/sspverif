@@ -1,5 +1,7 @@
 use crate::writers::smt::{declare, exprs::SmtExpr, sorts::Sort};
 
+pub(crate) mod constants;
+
 mod oracle_args;
 
 mod return_is_abort;
