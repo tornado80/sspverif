@@ -4,9 +4,9 @@ mod oracle_args;
 
 mod return_is_abort;
 mod return_normal;
-//mod return_partial;
 mod return_value;
 
+//mod return_partial;
 //mod state_intermediate;
 
 pub(crate) use oracle_args::*;

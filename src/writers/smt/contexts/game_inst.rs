@@ -80,7 +80,7 @@ impl<'a> GameInstanceContext<'a> {
 }
 
 // SMT Code generation
-impl<'a> GameInstanceContext<'a> {
+impl GameInstanceContext<'_> {
     pub(crate) fn smt_access_gamestate_pkgstate<S: Into<SmtExpr>>(
         &self,
         state: S,
@@ -111,6 +111,7 @@ impl<'a> GameInstanceContext<'a> {
         self.datastructure_game_state_pattern()
             .access(&spec, &selector, state)
     }
+
     pub(crate) fn smt_access_gamestate_rand<S: Into<SmtExpr>>(
         &self,
         sample_info: &SampleInfo,
