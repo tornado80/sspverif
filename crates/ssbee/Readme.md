@@ -20,9 +20,7 @@ _When it comes to **s**tate **s**eparating proofs, it's a busy **bee**!_
 
 You need a somewhat recent Rust toolchain. If you don't have that, look into rustup.
 
-Install the tool cloning the repo and running `cargo run --package ssbee`. Ensure that the installed binary is in your `PATH`. background-color: rgba(255, 0, 0, 0.05);
-  border-left: 4px solid #ff0000;
-  padding: 8px;
+Install the tool cloning the repo and running `cargo run --package ssbee`. Ensure that the installed binary is in your `PATH`.
 
 Enter a project directory and run `ssbee prove`. To get an idea how a projects is structured, see the `example-projects/hello-world` directory (documentation is on the roadmap...).
 
