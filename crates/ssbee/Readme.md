@@ -5,13 +5,7 @@ _When it comes to **s**tate **s**eparating proofs, it's a busy **bee**!_
 
 `ssbee` is a tool that helps you manage the tedious parts of working with the State-Separation Proofs framework for doing crypto proofs.
 
-<div style="background-color: rgba(255, 0, 0, 0.08);
-            border-left:      4px solid #ff0000;
-            padding:          8px;">
-
-This project is in early alpha. Expect insufficient documentation and  bugs, bugs, bugs!
-
-</div>
+> **This project is in early alpha. Expect insufficient documentation and  bugs, bugs, bugs!**
 
 ## Features
 
