@@ -13,8 +13,8 @@ package Rand {
         return (ctr, rand);
     }
 
-    oracle UselessOracle() -> Integer  {
-        assert false;
+    oracle UselessOracle(x: Integer) -> Integer  {
+        assert (x == 1);
         rand <-$ Bits(n);
         return 1;
     }
