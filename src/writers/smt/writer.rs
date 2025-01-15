@@ -703,15 +703,7 @@ impl<'a> CompositionSmtWriter<'a> {
             .iter()
             .filter(|ident| ident.ident() != "_")
             .enumerate()
-            .map(|(i, ident)| {
-                let ident = if let Identifier::Generated(ident, _) = ident {
-                    ident
-                } else {
-                    unreachable!()
-                };
-
-                (ident.clone(), (format!("el{}", i + 1), expr.clone()).into())
-            })
+            .map(|(i, ident)| (ident.ident(), (format!("el{}", i + 1), expr.clone()).into()))
             .collect();
 
         SmtLet {
