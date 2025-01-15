@@ -1,8 +1,13 @@
 use crate::{
     package::Package,
     types::Type,
-    writers::smt::patterns::{DatastructurePattern, DatastructureSpec},
+    writers::smt::{
+        exprs::{SmtExpr, SmtLet},
+        patterns::{DatastructurePattern, DatastructureSpec},
+    },
 };
+
+use super::game_consts::GameConstsSelector;
 
 #[derive(Debug)]
 pub struct PackageConstsPattern<'a> {
@@ -68,5 +73,32 @@ impl<'a> DatastructurePattern<'a> for PackageConstsPattern<'a> {
     fn matchfield_name(&self, sel: &Self::Selector) -> String {
         let const_name = sel.name;
         format!("<match-{const_name}>")
+    }
+}
+
+pub fn bind_pkg_consts<Inner: Into<SmtExpr>>(
+    pkg: &Package,
+    pkg_consts: &SmtExpr,
+    inner: Inner,
+) -> SmtLet<Inner> {
+    let pkg_name = pkg.name();
+
+    let pattern = PackageConstsPattern { pkg_name };
+    let spec = pattern.datastructure_spec(pkg);
+
+    // unpack the only (constructor, selector_list) pair
+    let (_, selectors) = &spec.0[0];
+
+    SmtLet {
+        bindings: selectors
+            .iter()
+            .map(|selector| {
+                (
+                    selector.name.to_string(),
+                    pattern.access_unchecked(selector, pkg_consts.clone()),
+                )
+            })
+            .collect(),
+        body: inner,
     }
 }

@@ -5,6 +5,8 @@ use std::iter::FromIterator;
 use crate::util::resolver::Named;
 use crate::writers::smt::contexts::GameInstanceContext;
 use crate::writers::smt::declare::declare_const;
+use crate::writers::smt::patterns::const_mapping::PackageConstMappingFunction;
+use crate::writers::smt::patterns::functions::const_mapping::define_fun;
 use crate::writers::smt::patterns::oracle_args::{
     OldNewOracleArgPattern as _, UnitOracleArgPattern as _,
 };
@@ -243,6 +245,8 @@ impl<'a> EquivalenceContext<'a> {
 
         out.extend(self.smt_game_const_definitions());
         out.extend(self.smt_game_state_definitions());
+
+        out.extend(self.smt_game_pkg_const_mapping_definitions());
 
         out.extend(self.smt_package_return_definitions());
 
@@ -1276,7 +1280,7 @@ impl<'a> EquivalenceContext<'a> {
             })
             .flat_map(|gctx| gctx.pkg_inst_contexts())
             .map(|pctx| {
-                let pattern = pctx.pkg_consts_pattern();
+                let pattern = pctx.datastructure_pkg_consts_pattern();
                 let spec = pattern.datastructure_spec(pctx.pkg());
 
                 (pattern, spec)
@@ -1392,6 +1396,29 @@ impl<'a> EquivalenceContext<'a> {
                 } else {
                     None
                 }
+            })
+    }
+
+    /// Returns an iterator over the functions that map the constant values of a game to that of a
+    /// package instance. Ranges over all package instances in all games.
+    pub(crate) fn smt_game_pkg_const_mapping_definitions(
+        self,
+    ) -> impl Iterator<Item = SmtExpr> + 'a {
+        let mut seen_game_names: HashSet<&str> = Default::default();
+
+        Some(self)
+            .into_iter()
+            .flat_map(move |ectx| {
+                vec![ectx.left_game_inst_ctx(), ectx.right_game_inst_ctx()].into_iter()
+            })
+            .filter(move |gctx| seen_game_names.insert(gctx.game_name()))
+            .flat_map(|gctx| {
+                gctx.game()
+                    .ordered_pkgs()
+                    .into_iter()
+                    .flat_map(move |pkg_inst| {
+                        define_fun(gctx.game(), &pkg_inst.pkg, &pkg_inst.name).map(SmtExpr::from)
+                    })
             })
     }
 

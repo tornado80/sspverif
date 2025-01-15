@@ -11,7 +11,7 @@ use crate::split::SplitPath;
 use crate::types::Type;
 use crate::writers::smt::patterns::pkg_consts::PackageConstsPattern;
 use crate::writers::smt::patterns::{
-    Datatype as _, PackageStateDatatype, PackageStateSelector, SmtDefineFun,
+    self, Datatype as _, PackageStateDatatype, PackageStateSelector, SmtDefineFun,
 };
 use crate::writers::smt::{
     contexts::{GameInstanceContext, OracleContext, PackageInstanceContext},
@@ -142,9 +142,19 @@ impl<'a> PackageInstanceContext<'a> {
         &self.pkg_inst().params
     }
 
-    pub(crate) fn pkg_consts_pattern(&self) -> PackageConstsPattern<'a> {
+    pub(crate) fn datastructure_pkg_consts_pattern(&self) -> PackageConstsPattern<'a> {
         PackageConstsPattern {
             pkg_name: &self.pkg_inst().pkg.name,
+        }
+    }
+
+    pub(crate) fn function_pkg_const_pattern(
+        &self,
+    ) -> patterns::functions::const_mapping::PackageConstMappingFunction<'a> {
+        patterns::functions::const_mapping::PackageConstMappingFunction {
+            game_name: self.game_name(),
+            pkg_name: self.pkg_name(),
+            pkg_inst_name: self.pkg_inst_name(),
         }
     }
 

@@ -979,6 +979,8 @@ impl<'a> CompositionSmtWriter<'a> {
             .smt_access_gamestate_pkgstate(var_globalstate, pkg_inst_name)
             .unwrap();
 
+        let inner = self.smt_codeblock_nonsplit(&octx, def.code.clone());
+
         let pkgstate_bindings = inst.pkg.state.iter().map(|(name, _ty, _)| {
             (
                 name.clone(),
@@ -988,21 +990,25 @@ impl<'a> CompositionSmtWriter<'a> {
             )
         });
 
-        let pkgconst_bindings = None;
+        let pkg_consts = pkg_inst_ctx
+            .function_pkg_const_pattern()
+            .call(&["<game-consts>".into()])
+            .unwrap();
+
+        let const_bindwrapped = patterns::datastructures::pkg_consts::bind_pkg_consts(
+            pkg_inst_ctx.pkg(),
+            &pkg_consts,
+            inner,
+        );
+
+        let state_bindwrapped = SmtLet {
+            bindings: pkgstate_bindings.collect(),
+            body: const_bindwrapped,
+        };
 
         println!("pkg inst params: {:?}", &inst.params);
 
-        // inst
-        //     .params
-        //     .iter()
-        //     .map(|(id, expr)| (id.ident(), expr.clone().into()));
-
-        octx.oracle_pattern()
-            .define_fun(SmtLet {
-                bindings: pkgstate_bindings.chain(pkgconst_bindings).collect(),
-                body: self.smt_codeblock_nonsplit(&octx, def.code.clone()),
-            })
-            .into()
+        octx.oracle_pattern().define_fun(state_bindwrapped).into()
     }
 
     // fn smt_define_split_oracle_fn(&self, split_oracle_ctx: &SplitOracleContext) -> SmtExpr {

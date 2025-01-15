@@ -1,5 +1,5 @@
-mod datastructures;
-mod functions;
+pub(crate) mod datastructures;
+pub(crate) mod functions;
 pub mod instance_names;
 pub mod oracle_args;
 pub mod proof_constants;

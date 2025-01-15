@@ -14,13 +14,13 @@ use crate::{
 
 use super::SmtDefineFun;
 
-pub struct ConstMappingFunction<'a> {
+pub struct PackageConstMappingFunction<'a> {
     pub game_name: &'a str,
     pub pkg_name: &'a str,
     pub pkg_inst_name: &'a str,
 }
 
-impl<'a> FunctionPattern for ConstMappingFunction<'a> {
+impl FunctionPattern for PackageConstMappingFunction<'_> {
     fn function_name(&self) -> String {
         let Self {
             game_name,
@@ -28,7 +28,7 @@ impl<'a> FunctionPattern for ConstMappingFunction<'a> {
             ..
         } = self;
 
-        format!("<pkg-consts-{game_name}-{pkg_inst_name}>")
+        format!("<pkgconsts-{game_name}-{pkg_inst_name}>")
     }
 
     fn function_args(&self) -> Vec<(String, Sort)> {
@@ -66,7 +66,7 @@ pub fn define_fun<'a>(
     }
     let pkg_name = &pkg.name;
 
-    let mapping_fun = ConstMappingFunction {
+    let mapping_fun = PackageConstMappingFunction {
         game_name: game.name(),
         pkg_inst_name,
         pkg_name,
