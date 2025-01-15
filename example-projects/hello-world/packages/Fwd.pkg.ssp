@@ -16,8 +16,9 @@ package Fwd {
         return y;
     }
 
-    oracle UselessOracle() -> Integer  {
-        assert false;
+    oracle UselessOracle(x: Integer) -> Integer  {
+        assert (x == 1);
+        rand <-$ Bits(n);
         return 1;
     }
 }
