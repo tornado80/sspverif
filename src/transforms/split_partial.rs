@@ -367,7 +367,7 @@ fn transform_codeblock(
         if code.0[i].needs_split(sig_mapping) {
             split_indices.push((i, locals.clone()));
         }
-        if let Some((decl_name, decl_type)) = get_declarations(&code.0[i]) {
+        for (decl_name, decl_type) in get_declarations(&code.0[i]) {
             match locals
                 .iter()
                 .position(|(found_name, _)| found_name == &decl_name)
@@ -594,12 +594,23 @@ fn transform_codeblock(
     result
 }
 
-fn get_declarations(stmt: &Statement) -> Option<(String, Type)> {
+fn get_declarations(stmt: &Statement) -> Vec<(String, Type)> {
     match stmt {
-        Statement::Parse(_ids, _expr, _) => {
-            todo!()
+        Statement::Parse(ids, expr, _) => {
+            let Type::Tuple(types) = expr.get_type() else {
+                panic!("value to parse should have been a tuple, we already typechecked. But it is {expr:?}");
+            };
+
+            assert_eq!(
+                ids.len(),
+                types.len(),
+                "ids and exprs must be of same length"
+            );
+
+            let names = ids.iter().map(Identifier::ident);
+            names.zip(types).collect()
         }
-        Statement::Assign(Identifier::Generated(id_name, _), Some(idx), expr, _) => Some((
+        Statement::Assign(Identifier::Generated(id_name, _), Some(idx), expr, _) => vec![(
             id_name.to_string(),
             Type::Table(Box::new(idx.get_type().clone()), {
                 let expr_outer_type = expr.get_type();
@@ -610,9 +621,9 @@ fn get_declarations(stmt: &Statement) -> Option<(String, Type)> {
 
                 expr_inner_type.clone()
             }),
-        )),
+        )],
         Statement::Assign(Identifier::Generated(id_name, _), None, expr, _) => {
-            Some((id_name.to_string(), expr.get_type().clone()))
+            vec![(id_name.to_string(), expr.get_type().clone())]
         }
         Statement::InvokeOracle(InvokeOracleStatement {
             id: Identifier::Generated(id_name, _),
@@ -620,10 +631,10 @@ fn get_declarations(stmt: &Statement) -> Option<(String, Type)> {
             opt_idx: Some(idx),
             ..
         })
-        | Statement::Sample(Identifier::Generated(id_name, _), Some(idx), _, tipe, _) => Some((
+        | Statement::Sample(Identifier::Generated(id_name, _), Some(idx), _, tipe, _) => vec![(
             id_name.to_string(),
             Type::Table(Box::new(idx.get_type().clone()), Box::new(tipe.clone())),
-        )),
+        )],
         Statement::InvokeOracle(InvokeOracleStatement {
             id: Identifier::Generated(id_name, _),
             tipe: Some(tipe),
@@ -631,9 +642,9 @@ fn get_declarations(stmt: &Statement) -> Option<(String, Type)> {
             ..
         })
         | Statement::Sample(Identifier::Generated(id_name, _), None, _, tipe, _) => {
-            Some((id_name.to_string(), tipe.clone()))
+            vec![(id_name.to_string(), tipe.clone())]
         }
-        _ => None,
+        _ => vec![],
     }
 }
 
