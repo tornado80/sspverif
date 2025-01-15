@@ -22,7 +22,7 @@ pub(crate) struct Relation<'a> {
     pub(crate) return_type: &'a Type,
 }
 
-impl<'a> Relation<'a> {
+impl Relation<'_> {
     pub(crate) fn arg_old_state_left(&self) -> (&'static str, Sort) {
         ("old-state-left", self.state_datatype_left.sort(vec![]))
     }
@@ -37,7 +37,7 @@ impl<'a> Relation<'a> {
     }
 }
 
-impl<'a> FunctionPattern for Relation<'a> {
+impl FunctionPattern for Relation<'_> {
     fn function_name(&self) -> String {
         format!(
             "<relation-{}-{}-{}-{}>",

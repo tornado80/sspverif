@@ -25,7 +25,7 @@ pub struct OraclePattern<'a> {
     pub pkg_params: &'a [(PackageConstIdentifier, Expression)],
 }
 
-impl<'a> FunctionPattern for OraclePattern<'a> {
+impl FunctionPattern for OraclePattern<'_> {
     fn function_name(&self) -> String {
         let Self {
             game_name,

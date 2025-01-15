@@ -122,7 +122,7 @@ impl<'a> DatastructurePattern<'a> for ReturnPattern<'a> {
     }
 }
 
-impl<'a> ReturnPattern<'a> {
+impl ReturnPattern<'_> {
     pub fn global_const_name(&self) -> String {
         let Self {
             game_name,
