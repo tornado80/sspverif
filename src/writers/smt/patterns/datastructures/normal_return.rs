@@ -18,7 +18,7 @@ pub struct ReturnPattern<'a> {
 #[derive(PartialEq, Eq)]
 pub struct ReturnConstructor;
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Debug)]
 pub enum ReturnSelector<'a> {
     GameState,
     ReturnValueOrAbort { return_type: &'a Type },

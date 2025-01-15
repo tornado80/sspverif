@@ -17,7 +17,7 @@ pub struct PackageStatePattern<'a> {
     pub params: &'a [(PackageConstIdentifier, Expression)],
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Debug)]
 pub struct PackageStateSelector<'a> {
     pub name: &'a str,
     pub ty: &'a Type,

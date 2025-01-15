@@ -30,7 +30,7 @@ pub struct SampleInfo {
     pub positions: Vec<Position>,
 }
 
-impl<'a> super::Transformation for Transformation<'a> {
+impl super::Transformation for Transformation<'_> {
     type Err = Infallible;
     type Aux = SampleInfo;
 

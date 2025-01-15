@@ -26,6 +26,7 @@ pub enum GameStateSelector<'a> {
     Randomness { sample_id: usize },
 }
 
+#[derive(Debug)]
 pub struct GameStateDeclareInfo<'a> {
     pub(crate) game_inst: &'a GameInstance,
     pub sample_info: &'a SampleInfo,

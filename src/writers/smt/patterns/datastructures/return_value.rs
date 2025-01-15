@@ -14,7 +14,7 @@ pub enum ReturnValueConstructor {
     Abort,
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Debug)]
 pub struct ReturnValueSelector;
 
 #[derive(PartialEq, Eq)]

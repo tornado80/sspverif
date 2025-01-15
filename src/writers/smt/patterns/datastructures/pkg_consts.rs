@@ -7,7 +7,6 @@ use crate::{
     },
 };
 
-use super::game_consts::GameConstsSelector;
 
 #[derive(Debug)]
 pub struct PackageConstsPattern<'a> {
