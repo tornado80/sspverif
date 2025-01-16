@@ -1431,22 +1431,27 @@ impl<'a> EquivalenceContext<'a> {
                 let left_gctx = ectx.left_game_inst_ctx();
                 let right_gctx = ectx.right_game_inst_ctx();
 
-                vec![(left_gctx, ectx), (right_gctx, ectx)].into_iter()
+                vec![
+                    (left_gctx, ectx.sample_info_left()),
+                    (right_gctx, ectx.sample_info_right()),
+                ]
+                .into_iter()
             })
-            .flat_map(|(gctx, ectx)| gctx.pkg_inst_contexts().map(move |pctx| (pctx, ectx)))
-            .flat_map(|(pctx, ectx)| pctx.oracle_contexts().map(move |octx| (octx, ectx)))
-            .filter_map(move |(octx, ectx)| {
+            .flat_map(|(gctx, sample_info)| {
+                gctx.pkg_inst_contexts()
+                    .map(move |pctx| (pctx, sample_info))
+            })
+            .flat_map(|(pctx, sample_info)| {
+                pctx.oracle_contexts().map(move |octx| (octx, sample_info))
+            })
+            .filter_map(move |(octx, sample_info)| {
                 let gctx = octx.game_inst_ctx();
                 let pctx = octx.pkg_inst_ctx();
                 let pattern = octx.oracle_pattern();
 
                 let game_inst = gctx.game_inst();
 
-                let writer = CompositionSmtWriter::new(
-                    game_inst,
-                    ectx.sample_info_left(),
-                    //ectx.split_info_left(),
-                );
+                let writer = CompositionSmtWriter::new(game_inst, sample_info);
 
                 if already_defined.insert(pattern.function_name()) {
                     let fundef =
