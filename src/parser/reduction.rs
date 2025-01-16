@@ -21,7 +21,7 @@ use crate::{
         AssumptionMappingRightGameInstanceIsFromAssumption, InvalidGameInstanceInReductionError,
     },
     proof::GameInstance,
-    util::resolver::{Named, Resolver as _, SliceResolver},
+    util::resolver::Named,
 };
 
 use super::{
