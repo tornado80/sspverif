@@ -1,14 +1,14 @@
-Proof NoonKemProof {
+proof NoonKemProof {
   const kem_sk_len: Integer;
   const kem_pk_len: Integer;
   const kem_ct_len: Integer;
   const kem_shk_len: Integer;
-  const kem_rand_len: Integer;
+  const kem_encaps_coins_len: Integer;
 
-  const encaps: fn (Bits(n_rand), Bits(pk_len)) -> (Bits(shk_len), Bits(ct_len));
-  const keygen: fn Bits(sk_len) -> Bits(pk_len);
+  const encaps: fn (Bits(kem_encaps_coins_len), Bits(kem_pk_len)) -> (Bits(kem_shk_len), Bits(kem_ct_len));
+  const keygen: fn Bits(kem_sk_len) -> Bits(kem_pk_len);
 
-  instance kem_real: KemAssumption {
+  instance kem_real = KemAssumption {
     params {
       is_ideal: false,
 
@@ -16,14 +16,14 @@ Proof NoonKemProof {
       kem_pk_len: kem_pk_len,
       kem_ct_len: kem_ct_len,
       kem_shk_len: kem_shk_len,
-      kem_rand_len: kem_rand_len,
+      kem_encaps_coins_len: kem_encaps_coins_len,
 
       encaps: encaps,
       keygen: keygen,
     }
   }
 
-  instance kem_ideal: KemAssumption {
+  instance kem_ideal = KemAssumption {
     params {
       is_ideal: true,
 
@@ -31,14 +31,14 @@ Proof NoonKemProof {
       kem_pk_len: kem_pk_len,
       kem_ct_len: kem_ct_len,
       kem_shk_len: kem_shk_len,
-      kem_rand_len: kem_rand_len,
+      kem_encaps_coins_len: kem_encaps_coins_len,
 
       encaps: encaps,
       keygen: keygen,
     }
   }
 
-  instance proto_real: MysteryProtocol {
+  instance proto_real = MysteryProtocol {
     params {
       is_ideal: false,
 
@@ -46,14 +46,14 @@ Proof NoonKemProof {
       kem_pk_len: kem_pk_len,
       kem_ct_len: kem_ct_len,
       kem_shk_len: kem_shk_len,
-      kem_rand_len: kem_rand_len,
+      kem_encaps_coins_len: kem_encaps_coins_len,
 
       encaps: encaps,
       keygen: keygen,
     }
   }
 
-  instance proto_ideal: MysteryProtocol {
+  instance proto_ideal = MysteryProtocol {
     params {
       is_ideal: true,
 
@@ -61,7 +61,7 @@ Proof NoonKemProof {
       kem_pk_len: kem_pk_len,
       kem_ct_len: kem_ct_len,
       kem_shk_len: kem_shk_len,
-      kem_rand_len: kem_rand_len,
+      kem_encaps_coins_len: kem_encaps_coins_len,
 
       encaps: encaps,
       keygen: keygen,

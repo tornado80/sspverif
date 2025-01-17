@@ -1,7 +1,8 @@
-/**
- * Sampling of keys based on key IDs.
- */
 package RandomKeysWithKeyID {
+
+  /**
+  * Sampling of keys based on key IDs.
+  */
   params {
     is_ideal: Bool,
 
@@ -21,7 +22,7 @@ package RandomKeysWithKeyID {
     /* do not allow overriding existing keys */
     assert (T[key_id] == None);
 
-    T[key_id] <- (Some(corrupt_key), false);
+    T[key_id] <- Some((corrupt_key, false));
     return;
   }
 
@@ -40,18 +41,17 @@ package RandomKeysWithKeyID {
 
   /* TODO this should be called `Get`? */
   /* Retrieve a key associated with a specific key ID.
-   * If this is the first use of the key ID, a fresh key
-   * will be sampled. If this key ID has already been used,
-   * the existing key is returned. This may be a corrupt key
-   * if the Corrupt oracle was used on this key ID.
-   */
-  oracle GetRand(key_id: Integer) -> (Bits(sk_len), Bool) {
-    if T[key_id] == None {
+   * If this is the first use of the key ID, a fresh key will be sampled.
+   * If this key ID has already been used, the existing key is returned.
+   * This may be a corrupt key if the Corrupt oracle was used on this key ID
+   * */
+  oracle GetRand(key_id: Integer) -> (Bits(key_len), Bool) {
+    if (T[key_id] == None) {
       key <-$ Bits(key_len);
-      T[key_id] <- (Some(key), true);
+      T[key_id] <- Some((key, true));
     }
 
-    return Unwrap(T[key_id])
+    return Unwrap(T[key_id]);
   }
 }
 

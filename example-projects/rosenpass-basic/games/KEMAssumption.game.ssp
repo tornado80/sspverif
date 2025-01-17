@@ -3,19 +3,19 @@ composition KemAssumption {
   const kem_pk_len: Integer;
   const kem_ct_len: Integer;
   const kem_shk_len: Integer;
-  const kem_rand_len: Integer;
+  const kem_encaps_coins_len: Integer;
 
   const is_ideal: Bool;
 
-  const encaps: fn (Bits(n_rand), Bits(pk_len)) -> (Bits(shk_len), Bits(ct_len));
-  const keygen: fn Bits(sk_len) -> Bits(pk_len);
+  const encaps: fn (Bits(kem_encaps_coins_len), Bits(kem_pk_len)) -> (Bits(kem_shk_len), Bits(kem_ct_len)); const keygen: fn Bits(kem_sk_len) -> Bits(kem_pk_len);
 
   instance kem = KEM {
     params {
-      sk_len: kem_sk_len,
-      pk_len: kem_pk_len,
-      ct_len: kem_ct_len,
-      shk_len: kem_shk_len,
+      kem_sk_len: kem_sk_len,
+      kem_pk_len: kem_pk_len,
+      kem_ct_len: kem_ct_len,
+      kem_shk_len: kem_shk_len,
+      kem_encaps_coins_len: kem_encaps_coins_len,
 
       encaps: encaps,
     }
@@ -25,37 +25,41 @@ composition KemAssumption {
     params {
       is_ideal: true,
 
-      sk_len: kem_sk_len,
-      pk_len: kem_pk_len,
+      kem_sk_len: kem_sk_len,
+      kem_pk_len: kem_pk_len,
 
       keygen: keygen,
     }
   }
 
-  instance kem_rand = RandomKeyWithKeyID {
+  instance kem_rand = RandomKeysWithKeyID {
     params {
       is_ideal: true,
-      key_len: kem_rand_len,
+      key_len: kem_encaps_coins_len,
     }
   }
 
-  /*
-   * instance output = SymKey {
-   *   params {
-   *     ...
-   *   }
-   * }
-   */
+  
+  instance output = KemSymKeys {
+    params {
+        is_ideal: is_ideal,
+
+        shk_len: kem_shk_len,
+        pk_len: kem_pk_len,
+        ct_len: kem_ct_len,
+    }
+  }
+  
 
   compose {
     adversary: {
       Set: asym_keys,
-      /* Get: output */
+      Get: output,
     },
     kem: {
       Get: asym_keys,
       GetRand: kem_rand,
-      /* Set: output */
+      Set: output,
     }
   }
 }
