@@ -1,4 +1,4 @@
-proof NoonKemProof {
+proof NoopKemProof {
   const kem_sk_len: Integer;
   const kem_pk_len: Integer;
   const kem_ct_len: Integer;
