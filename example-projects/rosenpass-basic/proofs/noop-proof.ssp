@@ -38,7 +38,7 @@ proof NoonKemProof {
     }
   }
 
-  instance proto_real = MysteryProtocol {
+  instance proto_real = SillyProtocol {
     params {
       is_ideal: false,
 
@@ -53,7 +53,7 @@ proof NoonKemProof {
     }
   }
 
-  instance proto_ideal = MysteryProtocol {
+  instance proto_ideal = SillyProtocol {
     params {
       is_ideal: true,
 
@@ -80,14 +80,14 @@ proof NoonKemProof {
         kem: kem
         asym_keys: asym_keys
         kem_rand: kem_rand
-        output: kem_output
+        output: output
       }
 
       map kem_ideal proto_ideal {
         kem: kem
         asym_keys: asym_keys
         kem_rand: kem_rand
-        output: kem_output
+        output: output
       }
     }
   }

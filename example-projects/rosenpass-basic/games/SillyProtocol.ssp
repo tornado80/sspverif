@@ -1,4 +1,4 @@
-composition KemAssumption {
+composition SillyProtocol {
   const kem_sk_len: Integer;
   const kem_pk_len: Integer;
   const kem_ct_len: Integer;
@@ -6,9 +6,8 @@ composition KemAssumption {
   const kem_encaps_coins_len: Integer;
 
   const is_ideal: Bool;
-
-  const encaps: fn (Bits(kem_encaps_coins_len), Bits(kem_pk_len)) -> (Bits(kem_shk_len), Bits(kem_ct_len));
-  const keygen: fn Bits(kem_sk_len) -> Bits(kem_pk_len);
+  
+  const encaps: fn (Bits(kem_encaps_coins_len), Bits(kem_pk_len)) -> (Bits(kem_shk_len), Bits(kem_ct_len)); const keygen: fn Bits(kem_sk_len) -> Bits(kem_pk_len);
 
   instance kem = KEM {
     params {
@@ -50,18 +49,30 @@ composition KemAssumption {
         ct_len: kem_ct_len,
     }
   }
-  
+
+  instance fwd = Fwd {
+      params {
+        kem_pk_len: kem_pk_len,
+        kem_ct_len: kem_ct_len,
+      }
+  }
 
   compose {
     adversary: {
       Set: asym_keys,
-      Encaps: kem,
       Get: output,
+      Encaps: fwd,
     },
+    fwd: {
+      Encaps: kem,
+    }
     kem: {
       Get: asym_keys,
       GetRand: kem_rand,
       Set: output,
     }
   }
+
+
 }
+
