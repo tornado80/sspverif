@@ -380,13 +380,15 @@ pub fn tex_write_oracle(
 
     writeln!(
         writer.file,
-        "\\procedure{{\\O{{{}}}({})}}{{",
+        "\\procedure{{$\\O{{{}}}({})$}}{{",
         oracle.sig.name,
         oracle
             .sig
             .args
             .iter()
-            .map(|(a, _)| a.clone())
+            .map(|(a, _)| {
+                format!("\\n{{{}}}", a.replace("_", "\\_"))
+            })
             .collect::<Vec<_>>()
             .join(", ")
     )?;
