@@ -439,6 +439,7 @@ fn tex_write_document_header(mut file: &File) -> std::io::Result<()> {
     writeln!(file, "\\usepackage[margin=.25in]{{geometry}}")?;
     writeln!(file, "\\usepackage[sets,operators]{{cryptocode}}")?;
     writeln!(file, "\\usepackage{{tikz}}")?;
+    writeln!(file, "\\usepackage{{hyperref}}")?;
     writeln!(file, "\\newcommand{{\\pcas}}{{~\\highlightkeyword{{as}}}}")?;
     writeln!(
         file,
@@ -908,7 +909,8 @@ pub fn tex_write_proof(
         writeln!(file, "\\begin{{minipage}}{{.33\\textwidth}}")?;
         writeln!(
             file,
-            "\\subsection*{{{} Game}}",
+            "\\subsection*{{\\hyperref[{} Game]{{{} Game}}}}",
+            instance.name(),
             instance.name().replace('_', "\\_")
         )?;
         writeln!(file, "\\input{{{}}}", graphfname)?;
@@ -927,6 +929,12 @@ pub fn tex_write_proof(
             "\\subsection{{{} Game}}",
             instance.name().replace('_', "\\_")
         )?;
+        writeln!(
+            file,
+            "\\label{{{} Game}}",
+            instance.name()
+        )?;
+        
 
         let graphfname = format!(
             "CompositionGraph_{}.tex",
