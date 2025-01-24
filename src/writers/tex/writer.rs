@@ -919,11 +919,11 @@ pub fn tex_write_proof(
                     file,
                     "\\subsection{{Game {} with Assumption Game {} highlighted in red}}",
                     red.left()
-                        .assumption_game_instance_name()
+                        .construction_game_instance_name()
                         .as_str()
                         .replace('_', "\\_"),
                     red.left()
-                        .construction_game_instance_name()
+                        .assumption_game_instance_name()
                         .as_str()
                         .replace('_', "\\_")
                 )?;
@@ -932,7 +932,7 @@ pub fn tex_write_proof(
                     .instances
                     .iter()
                     .find(|instance| {
-                        instance.name() == red.left().assumption_game_instance_name().as_str()
+                        instance.name() == red.left().construction_game_instance_name().as_str()
                     })
                     .unwrap();
                 tex_write_composition_graph(
@@ -960,7 +960,7 @@ pub fn tex_write_proof(
                     .instances
                     .iter()
                     .find(|instance| {
-                        instance.name() == red.right().assumption_game_instance_name().as_str()
+                        instance.name() == red.right().construction_game_instance_name().as_str()
                     })
                     .unwrap();
                 tex_write_composition_graph(
