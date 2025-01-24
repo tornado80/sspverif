@@ -416,7 +416,7 @@ pub fn tex_write_package(
 
     writeln!(
         file,
-        "\\begin{{pcvstack}}\\underline{{\\underline{{\\M{{{}}}}}}}\\\\\\begin{{pchstack}}",
+        "\\begin{{pcvstack}}\\underline{{\\underline{{\\M{{{}}}}}}}\\\\\\begin{{pcvstack}}",
         package.name.replace('_', "\\_")
     )?;
 
@@ -427,16 +427,16 @@ pub fn tex_write_package(
             .strip_prefix(fname.clone().parent().unwrap())
             .unwrap()
             .to_str();
-        writeln!(file, "\\input{{{}}}\\pchspace", oraclefname.unwrap())?;
+        writeln!(file, "\\input{{{}}}\\pcvspace", oraclefname.unwrap())?;
     }
-    writeln!(file, "\\end{{pchstack}}\\end{{pcvstack}}")?;
+    writeln!(file, "\\end{{pcvstack}}\\end{{pcvstack}}")?;
 
     Ok(fname.to_str().unwrap().to_string())
 }
 
 fn tex_write_document_header(mut file: &File) -> std::io::Result<()> {
-    writeln!(file, "\\documentclass[a4paper,landscape]{{article}}")?;
-    writeln!(file, "\\usepackage[margin=1in]{{geometry}}")?;
+    writeln!(file, "\\documentclass[a4paper,a3paper,landscape]{{article}}")?;
+    writeln!(file, "\\usepackage[margin=.25in]{{geometry}}")?;
     writeln!(file, "\\usepackage[sets,operators]{{cryptocode}}")?;
     writeln!(file, "\\usepackage{{tikz}}")?;
     writeln!(file, "\\newcommand{{\\pcas}}{{~\\highlightkeyword{{as}}}}")?;
@@ -857,16 +857,19 @@ pub fn tex_write_composition(
     writeln!(file, "\\input{{{}}}", graphfname.unwrap())?;
     writeln!(file, "\\end{{center}}")?;
 
+    writeln!(file, "\\begin{{pchstack}}")?;
     for pkg in &composition.pkgs {
         let pkgfname = tex_write_package(lossy, composition, pkg, target)?;
         let pkgfname = Path::new(&pkgfname)
             .strip_prefix(fname.clone().parent().unwrap())
             .unwrap()
             .to_str();
-        writeln!(file, "\\begin{{center}}")?;
+        //writeln!(file, "\\begin{{center}}")?;
         writeln!(file, "\\input{{{}}}", pkgfname.unwrap())?;
-        writeln!(file, "\\end{{center}}")?;
+        writeln!(file, "\\pchspace")?;
+        //writeln!(file, "\\end{{center}}")?;
     }
+    writeln!(file, "\\end{{pchstack}}")?;
 
     writeln!(file, "\\end{{document}}")?;
 
@@ -895,6 +898,29 @@ pub fn tex_write_proof(
 
     writeln!(file, "\\section{{Games}}")?;
 
+    let mut fill = 0;
+    for instance in &proof.instances {
+        let graphfname = format!(
+            "CompositionGraph_{}.tex",
+            instance.game_name().replace('_', "\\_")
+        );
+
+        writeln!(file, "\\begin{{minipage}}{{.33\\textwidth}}")?;
+        writeln!(
+            file,
+            "\\subsection*{{{} Game}}",
+            instance.name().replace('_', "\\_")
+        )?;
+        writeln!(file, "\\input{{{}}}", graphfname)?;
+        writeln!(file, "\\end{{minipage}}")?;
+        fill = fill + 1;
+        if fill == 3 {
+            fill = 0;
+            writeln!(file, "\\\\")?;
+        }            
+    }
+    
+    writeln!(file, "\\clearpage")?;    
     for instance in &proof.instances {
         writeln!(
             file,
@@ -910,6 +936,7 @@ pub fn tex_write_proof(
         writeln!(file, "\\input{{{}}}", graphfname)?;
         writeln!(file, "\\end{{center}}")?;
 
+        writeln!(file, "\\begin{{pchstack}}")?;
         for package in &instance.game().pkgs {
             let pkgfname = format!(
                 "Package_{}_in_{}{}.tex",
@@ -917,10 +944,13 @@ pub fn tex_write_proof(
                 instance.game().name.replace('_', "\\_"),
                 if lossy { "_lossy" } else { "" }
             );
-            writeln!(file, "\\begin{{center}}")?;
+            //writeln!(file, "\\begin{{center}}")?;
             writeln!(file, "\\input{{{}}}", pkgfname)?;
-            writeln!(file, "\\end{{center}}")?;
+            //writeln!(file, "\\end{{center}}")?;
+            writeln!(file, "\\pchspace")?;
         }
+        writeln!(file, "\\end{{pchstack}}")?;
+        writeln!(file, "\\clearpage")?;
     }
 
     for game_hop in &proof.game_hops {
