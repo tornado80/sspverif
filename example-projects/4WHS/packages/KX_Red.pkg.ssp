@@ -111,10 +111,11 @@ oracle Send3(ctr: Integer, nr: Bits(n), tau: Bits(n)) -> (Bits(n), Bits(n))
         assert (mess == 1);                  /* session has sent its first message */
         assert (acc  == None);               /* session is still running           */
         kmac  <- prf(U,V,Unwrap(ni),nr);
+        k     <- prf(ltk,U,V,Unwrap(ni),nr,true);
         if not (mac(kmac,nr,2) == tau) {return (zeron,zeron);}
         tau_       <- mac(kmac,Unwrap(ni),3);
         sid        <- (U,V,ni,Some(nr),Some(tau));
-        State[ctr] <- Some((U,u,V,v,ltk,Some(true),k_,ni,Some(nr),Some(kmac),Some(sid),2));
+        State[ctr] <- Some((U,u,V,v,ltk,Some(true),Some(k),ni,Some(nr),Some(kmac),Some(sid),2));
         return (Unwrap(ni),tau_);
     } 
 
