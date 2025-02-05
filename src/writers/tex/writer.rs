@@ -64,6 +64,23 @@ impl<'a> BlockWriter<'a> {
         .to_string()
     }
 
+	fn logic_to_matrix(&self, join: &str, list: &[String]) -> String {
+		assert!(list.len() > 1);
+		let trivial = list.join(join);
+		if trivial.len() < 50 {
+			trivial
+		} else {
+			let mut it = list.iter();
+			let mut lines = vec![ format!("\\phantom{{{}}}{}", join, it.next().unwrap()) ];
+			let mut rest : Vec<_> = it.map(|s| {format!("{}{}", join, s)} ).collect();
+			lines.append(&mut rest);
+			format!(
+				"\\begin{{array}}{{c}}{}\\end{{array}}",
+				lines.join("\\pclb")
+			)
+		}
+	}
+
     fn list_to_matrix(&self, list: &[String]) -> String {
         let mut it = list.iter();
         let mut lines = Vec::new();
@@ -140,20 +157,22 @@ impl<'a> BlockWriter<'a> {
                 .collect::<Vec<_>>()
                 .join(" = "),
             Expression::Or(exprs) => format!(
-                "({})",
-                exprs
-                    .iter()
-                    .map(|expr| self.expression_to_tex(expr))
-                    .collect::<Vec<_>>()
-                    .join(" \\vee ")
+                "\\left({}\\right)",
+				self.logic_to_matrix(
+					" \\vee ",
+					&exprs
+						.iter()
+						.map(|expr| self.expression_to_tex(expr))
+						.collect::<Vec<_>>())
             ),
             Expression::And(exprs) => format!(
-                "({})",
-                exprs
-                    .iter()
-                    .map(|expr| self.expression_to_tex(expr))
-                    .collect::<Vec<_>>()
-                    .join(" \\wedge ")
+                "\\left({}\\right)",
+				self.logic_to_matrix(
+					" \\wedge ",
+					&exprs
+						.iter()
+						.map(|expr| self.expression_to_tex(expr))
+						.collect::<Vec<_>>())
             ),
             Expression::Tuple(exprs) => {
                 format!(
