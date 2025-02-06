@@ -124,21 +124,21 @@ impl<'a> BlockWriter<'a> {
                 if self.lossy {
                     self.expression_to_tex(expr)
                 } else {
-                    format!("\\O{{unwrap}}({})", self.expression_to_tex(expr))
+                    format!("\\O{{unwrap}}\\left({}\\right)", self.expression_to_tex(expr))
                 }
             }
             Expression::Some(expr) => {
                 if self.lossy {
                     self.expression_to_tex(expr)
                 } else {
-                    format!("\\O{{some}}({})", self.expression_to_tex(expr))
+                    format!("\\O{{some}}\\left({}\\right)", self.expression_to_tex(expr))
                 }
             }
             Expression::None(tipe) => {
                 if self.lossy {
                     "\\bot".to_string()
                 } else {
-                    format!("\\O{{none}}({})", self.type_to_tex_short(tipe))
+                    format!("\\O{{none}}\\left({}\\right)", self.type_to_tex_short(tipe))
                 }
             }
             Expression::Add(lhs, rhs) => format!(
