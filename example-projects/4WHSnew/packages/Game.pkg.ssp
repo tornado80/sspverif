@@ -142,8 +142,8 @@ oracle Send2(ctr: Integer, msg: Bits(n)) -> (Bits(n),Bits(n))
         assert (v    == true );              /* session belongs to responder */
         assert (mess == 0    );              /* session has not yet sent its first message */
         assert (acc  == None );              /* session is still running           */
-        return      <- invoke Run2(state,msg);
-        (state,msg_) <- parse return;
+        return         <- invoke Run2(state,msg);
+        (state,msg_)   <- parse return;
         State[ctr]     <-  Some(state);
         return msg_;
     } 
@@ -156,8 +156,8 @@ oracle Send3(ctr: Integer, msg: (Bits(n),Bits(n))) -> (Bits(n), Bits(n))
         assert (u    == false);              /* session belongs to initiator       */
         assert (mess == 1);                  /* session has sent its first message */
         assert (acc  == None);               /* session is still running           */
-        return      <- invoke Run3(state,msg);
-        (state,msg_) <- parse return;
+        return         <- invoke Run3(state,msg);
+        (state,msg_)   <- parse return;
         State[ctr]     <-  Some(state);
         return msg_;
     } 
@@ -173,7 +173,7 @@ oracle Send4(ctr: Integer, msg: (Bits(n),Bits(n))) -> Bits(n)
         return      <- invoke Run4(state,msg);
         (state,msg_) <- parse return;
         State[ctr] <- Some(state);
-        (V,v,U,u,ltk,acc,k,ni_,nr,kmac,sid,mess,tau_) <- parse state;
+        (V,v,U,u,ltk,acc,k,ni_,nr,kmac,sid,mess) <- parse state;
         k_         <- Unwrap(k);
         entry      <- Keys[Unwrap(sid)];
         assert ((entry == None) or
