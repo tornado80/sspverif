@@ -10,8 +10,6 @@ composition KX {
         b: b,
         n: n,
         zeron: zeron,
-        prf: prf,
-        mac: mac,
         }
     }
     instance Prot = Prot {
