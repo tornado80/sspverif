@@ -200,7 +200,7 @@ oracle Send4(ctr: Integer, msg: (Bits(n),Bits(n))) -> Bits(n)
         return      <- invoke Run5(state,msg);
         (state,stop) <- parse return;
         if (stop == false) {return false;}   /* state is not updated, adversary can try again */
-        State[ctr] <- state;
+        State[ctr] <- Some(state);
         (U,u,V,v,ltk,acc,k,ni,nr,kmac,sid,mess)     <- parse state;
         k_      <- Unwrap(k);
         sid_    <- Unwrap(sid);
