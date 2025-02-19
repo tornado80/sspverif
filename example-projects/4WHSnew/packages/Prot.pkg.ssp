@@ -1,4 +1,4 @@
-package KX {
+package Prot {
     params {
         n: Integer,
         zeron: Bits(n),
@@ -9,31 +9,29 @@ package KX {
 	oracle Run1(state: (Integer,Bool,Integer,Bool,Bits(n),Maybe(Bool),
 	                    Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),
 						Maybe((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)))),
-						Integer)
-	            msg:()) -> ((Integer,Bool,Integer,Bool,Bits(n),Maybe(Bool),
-				             Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),
-							 Maybe((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)))),
-							 Integer),
-							(Bits(n))) {
+						Integer)) -> ((Integer,Bool,Integer,Bool,Bits(n),Maybe(Bool),
+				                       Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),
+						               Maybe((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)))),
+						               Integer),
+						              (Bits(n))) {
 	    (U,u,V,v,ltk,acc,k,ni_,nr,kmac,sid,mess) <- parse state;
 		
 		ni <-$ Bits(n);
 		
 		return ((U,u,V,v,ltk,acc,k,Some(ni),nr,kmac,sid,1),
-		        (ni))
+		        (ni));
 	}
 
 	oracle Run2(state: (Integer,Bool,Integer,Bool,Bits(n),Maybe(Bool),
 	                    Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),
 						Maybe((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)))),
-						Integer)
-	            msg:(Bits(n))) -> ((Integer,Bool,Integer,Bool,Bits(n),Maybe(Bool),
+						Integer),
+	            ni:Bits(n)) -> ((Integer,Bool,Integer,Bool,Bits(n),Maybe(Bool),
 				                    Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),
 							        Maybe((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)))),
 							        Integer),
 							       (Bits(n), Bits(n))) {
-	    (U,u,V,v,ltk,acc,k_,ni_,nr_,kmac_,sid,mess) <- parse state;
-		(ni) <- parse msg;
+	    (U,u,V,v,ltk,acc,k_,ni_,nr_,kmac_,sid_,mess) <- parse state;
 
 		nr         <-$ Bits(n);
         kmac       <-  prf(ltk,U,V,ni,nr,false); /* need role agreement here, to be fixed */
@@ -42,13 +40,13 @@ package KX {
         sid        <- (U,V,Some(ni),Some(nr),Some(tau));
 
 		return ((U,u,V,v,ltk,acc,Some(k),Some(ni),Some(nr),Some(kmac),Some(sid),1),
-		        (nr,tau))
+		        (nr,tau));
 	}
 
 	oracle Run3(state: (Integer,Bool,Integer,Bool,Bits(n),Maybe(Bool),
 	                    Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),
 						Maybe((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)))),
-						Integer)
+						Integer),
 	            msg:(Bits(n),Bits(n))) -> ((Integer,Bool,Integer,Bool,Bits(n),Maybe(Bool),
 				                            Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),
 							                Maybe((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)))),
@@ -64,7 +62,7 @@ package KX {
 
         if (mac(kmac,nr,2) == tau) {
 		   return ((U,u,V,v,ltk,Some(true),Some(k),ni,Some(nr),Some(kmac),Some(sid),2),
-		           (ni,tau_));
+		           (Unwrap(ni),tau_));
 		} else {
 		   return ((U,u,V,v,ltk,Some(true),Some(k),ni,Some(nr),Some(kmac),Some(sid),2),
 		           (zeron,zeron));
@@ -74,7 +72,7 @@ package KX {
 	oracle Run4(state: (Integer,Bool,Integer,Bool,Bits(n),Maybe(Bool),
 	                    Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),
 						Maybe((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)))),
-						Integer)
+						Integer),
 	            msg:(Bits(n),Bits(n))) -> ((Integer,Bool,Integer,Bool,Bits(n),Maybe(Bool),
 				                            Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),
 							                Maybe((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)))),
@@ -84,7 +82,7 @@ package KX {
 		(ni,tau) <- parse msg;
 
         if ((mac(Unwrap(kmac),ni,3) == tau) and
-            (ni == Unwrap(ni_)))) {
+            (ni == Unwrap(ni_))) {
 		    acc        <- Some(true);
         	sid        <- (U,V,Some(ni),nr,Some(tau));
 			tau_       <- mac(Unwrap(kmac),zeron,4);
@@ -102,14 +100,13 @@ package KX {
 	oracle Run5(state: (Integer,Bool,Integer,Bool,Bits(n),Maybe(Bool),
 	                    Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),
 						Maybe((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)))),
-						Integer)
-	            msg:(Bits(n))) -> ((Integer,Bool,Integer,Bool,Bits(n),Maybe(Bool),
+						Integer),
+	            tau:Bits(n)) -> ((Integer,Bool,Integer,Bool,Bits(n),Maybe(Bool),
 				                    Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),
 				                    Maybe((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)))),
 				                    Integer),
 				                   (Bool)) {
 	    (U,u,V,v,ltk,acc,k,ni,nr,kmac,sid,mess) <- parse state;
-		(tau) <- parse msg;
 
         if (mac(Unwrap(kmac),zeron,4) == tau) {
 			
