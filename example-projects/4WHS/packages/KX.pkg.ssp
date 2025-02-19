@@ -151,7 +151,7 @@ oracle Send4(ctr: Integer, ni: Bits(n), tau:Bits(n)) -> Bits(n)
        return tau_;  
     } 
 
-        oracle Send5(ctr: Integer, tau: Bits(n)) -> Bool
+oracle Send5(ctr: Integer, tau: Bits(n)) -> Bool
     {
         assert not (State[ctr] == None);    /* session has been initialized */
         (U,u,V,v,ltk,acc,k,ni,nr,kmac,sid,mess)     <- parse Unwrap(State[ctr]);
