@@ -10,8 +10,9 @@ package Game {
           H:     Table(Integer, Bool),          /* administrative kid, honesty */
           ctr_:  Integer,                       /* administrative sid  */
           kid_:  Integer,                       /* administrative kid  */
-          Keys:  Table((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n))),(Bits(n),Maybe(Bool))), /* session key table  */
-          Test:  Table((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n))),Bits(n)), /* random key table  */
+		  /* session key table, reveal -> (.,false) ; test -> (.,true) */
+          Keys:  Table((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n))),
+		               (Bits(n),Bool)), 
           State: Table(Integer,
                   /*    administrative sid  */
                 (
@@ -167,26 +168,17 @@ oracle Send4(ctr: Integer, msg: (Bits(n),Bits(n))) -> Bits(n)
         assert not (State[ctr] == None);     /* session has been initialized */
         state                                          <- Unwrap(State[ctr]);
         (V,v,U,u,ltk,acc,k,ni_,nr,kmac,sid_,mess)      <- parse state;
+		
         assert (v    == true);                /* session belongs to responder       */
         assert (mess == 1);                   /* session has sent its first message */
         assert (acc  == None);                /* session is still running           */
+
         return       <- invoke Run4(state,msg);
         (state,msg_) <- parse return;
         State[ctr]   <- Some(state);
+
         (V,v,U,u,ltk,acc,k,ni_,nr,kmac,sid,mess) <- parse state;
-        entry        <- Keys[Unwrap(sid)];
-        assert ((entry == None) or
-                (Unwrap(entry) == (Unwrap(k),Some(true )  ))   or
-                (Unwrap(entry) == (Unwrap(k),Some(false)  ))   or
-                (Unwrap(entry) == (Unwrap(k),None  as Bool))
-               );
-        if (entry == None)
-            {
-        Keys[Unwrap(sid)]  <- Some((Unwrap(k),None as Bool));
-        tmp         <-$ Bits(n);
-        Test[Unwrap(sid)]  <-  Some(tmp);
-            }
-       return msg_;  
+        return msg_;  
     } 
 
         oracle Send5(ctr: Integer, msg: Bits(n)) -> Bool
@@ -194,50 +186,52 @@ oracle Send4(ctr: Integer, msg: (Bits(n),Bits(n))) -> Bits(n)
         assert not (State[ctr] == None);    /* session has been initialized */
         state                                       <- Unwrap(State[ctr]);
         (U,u,V,v,ltk,acc,k,ni,nr,kmac,sid,mess)     <- parse state;
+		
         assert (u    == false);              /* session belongs to initiator       */
         assert (mess == 2);                  /* session has sent its 2nd message   */
         assert (acc  == None);               /* session is still running           */
+		
         return      <- invoke Run5(state,msg);
         (state,stop) <- parse return;
         if (stop == false) {return false;}   /* state is not updated, adversary can try again */
         State[ctr] <- Some(state);
         (U,u,V,v,ltk,acc,k,ni,nr,kmac,sid,mess)     <- parse state;
-        k_      <- Unwrap(k);
-        sid_    <- Unwrap(sid);
-        entry   <- Keys[sid_];
-        assert ((entry == None) or 
-                (Unwrap(entry) == (k_,Some(true )  ))   or
-                (Unwrap(entry) == (k_,Some(false)  ))   or
-                (Unwrap(entry) == (k_,None as Bool ))
-               );
-        if (entry == None)
-            {
-        Keys[sid_]  <-  Some((k_,None as Bool));
-        tmp         <-$ Bits(n);
-        Test[sid_]  <-  Some(tmp);
-            }
+
         return stop;
     } 
 
 oracle Reveal(ctr: Integer) -> Bits(n)
     {
     (U,u,V,v,ltk,acc,k,ni,nr,kmac,sid,mess) <- parse Unwrap(State[ctr]);
+
+	/* Session accepted */
     assert (acc == Some(true));
-    assert (Unwrap(Keys[Unwrap(sid)]) 
-        == (Unwrap(k), None as Bool) ); /* only allowed to test/reveal sid once */
-    Keys[Unwrap(sid)] <- Some((Unwrap(k),Some(false)));    /* mark key as revealed */
+
+	/* only allowed to test/reveal sid once */
+    assert (Keys[Unwrap(sid)] == None);
+
+	/* mark key as revealed */
+    Keys[Unwrap(sid)] <- Some((Unwrap(k),false));    
     return Unwrap(k);
     }
 
 oracle Test(ctr: Integer) -> Bits(n)
     {
     (U,u,V,v,ltk,acc,k,ni,nr,kmac,sid,mess) <- parse Unwrap(State[ctr]);
+	
+	/* Session accepted */
     assert (acc == Some(true));
-    assert (Unwrap(Keys[Unwrap(sid)]) 
-        == (Unwrap(k), None as Bool) ); /* only allowed to test/reveal sid once */
-    Keys[Unwrap(sid)] <- Some((Unwrap(k),Some(true)));    /* mark key as tested */
+
+	/* only allowed to test/reveal sid once */
+    assert (Keys[Unwrap(sid)] == None);
+
+	/* mark key as tested */
+    Keys[Unwrap(sid)] <- Some((Unwrap(k),true));
+	
     k_ <- Unwrap(k);
-    if b {k_ <- Unwrap(Test[Unwrap(sid)]);}
+    if b {
+	    k_ <-$ Bits(n);
+	}
     return k_;
     }
 
