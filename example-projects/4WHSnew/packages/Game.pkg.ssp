@@ -170,11 +170,11 @@ oracle Send4(ctr: Integer, msg: (Bits(n),Bits(n))) -> Bits(n)
         assert (v    == true);                /* session belongs to responder       */
         assert (mess == 1);                   /* session has sent its first message */
         assert (acc  == None);                /* session is still running           */
-        return      <- invoke Run4(state,msg);
+        return       <- invoke Run4(state,msg);
         (state,msg_) <- parse return;
-        State[ctr] <- Some(state);
+        State[ctr]   <- Some(state);
         (V,v,U,u,ltk,acc,k,ni_,nr,kmac,sid,mess) <- parse state;
-        entry      <- Keys[Unwrap(sid)];
+        entry        <- Keys[Unwrap(sid)];
         assert ((entry == None) or
                 (Unwrap(entry) == (Unwrap(k),Some(true )  ))   or
                 (Unwrap(entry) == (Unwrap(k),Some(false)  ))   or
@@ -212,8 +212,8 @@ oracle Send4(ctr: Integer, msg: (Bits(n),Bits(n))) -> Bits(n)
                );
         if (entry == None)
             {
-        Keys[sid_]  <- Some((k_,None as Bool));
-        tmp        <-$ Bits(n);
+        Keys[sid_]  <-  Some((k_,None as Bool));
+        tmp         <-$ Bits(n);
         Test[sid_]  <-  Some(tmp);
             }
         return stop;
