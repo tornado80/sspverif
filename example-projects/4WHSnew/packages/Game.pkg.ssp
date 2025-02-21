@@ -13,6 +13,9 @@ package Game {
 		  /* session key table, reveal -> (.,false) ; test -> (.,true) */
           RevTested:  Table((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n))),
 		               Bool), 
+          /* Authentication */
+          First:  Table((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n))), Integer),
+          Second: Table((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n))), Integer),
           State: Table(Integer,
                   /*    administrative sid  */
                 (
@@ -159,6 +162,18 @@ oracle Send3(ctr: Integer, msg: (Bits(n),Bits(n))) -> (Bits(n), Bits(n))
         assert (acc  == None);               /* session is still running           */
         return         <- invoke Run3(state,msg);
         (state,msg_)   <- parse return;
+
+		/* Delete for no authentication */
+		(_U,_u,_V,_v,_ltk,_acc,_k,_ni,_nr,_kmac,sid,_mess) <- parse state;
+		if (First[Unwrap(sid)] == None) {
+		    First[Unwrap(sid)] <- Some(ctr);
+		} else {
+		  if (Second[Unwrap(sid)] == None) {
+		      Second[Unwrap(sid)] <- Some(ctr);
+		  }
+		}
+		/* Until Here */
+
         State[ctr]     <-  Some(state);
         return msg_;
     } 
@@ -177,7 +192,17 @@ oracle Send4(ctr: Integer, msg: (Bits(n),Bits(n))) -> Bits(n)
         (state,msg_) <- parse return;
         State[ctr]   <- Some(state);
 
-        (V,v,U,u,ltk,acc,k,ni_,nr,kmac,sid,mess) <- parse state;
+		/* Delete for no authentication */
+		(_U,_u,_V,_v,_ltk,_acc,_k,_ni,_nr,_kmac,sid,_mess) <- parse state;
+		if (First[Unwrap(sid)] == None) {
+		    First[Unwrap(sid)] <- Some(ctr);
+		} else {
+		  if (Second[Unwrap(sid)] == None) {
+		      Second[Unwrap(sid)] <- Some(ctr);
+		  }
+		}
+		/* Until Here */
+
         return msg_;  
     } 
 
@@ -235,21 +260,6 @@ oracle Test(ctr: Integer) -> Bits(n)
     return k_;
     }
 
-oracle AtMost(ctr1: Integer, ctr2: Integer, ctr3: Integer) -> Bool {
-    (_U,_u,_V,_v,_ltk,acc1,_k,_ni,_nr,_kmac,sid1,_mess) <- parse Unwrap(State[ctr1]);
-    (_U,_u,_V,_v,_ltk,acc2,_k,_ni,_nr,_kmac,sid2,_mess) <- parse Unwrap(State[ctr2]);
-    (_U,_u,_V,_v,_ltk,acc3,_k,_ni,_nr,_kmac,sid3,_mess) <- parse Unwrap(State[ctr3]);
-
-	if ((b == false) and (ctr1 != ctr2) and (ctr1 != ctr3) and (ctr2 != ctr3)) {
-        if (acc1 == acc2 == acc3 == Some(true)) {
-	        if (sid1 == sid2 == sid3) {
-	       	    return true;
-	        }
-	    }
-	}
-	return false;
-	}
-
 oracle SameKey(ctr1: Integer, ctr2: Integer) -> Bool {
     (_U,_u,_V,_v,_ltk,acc1,k1,_ni,_nr,_kmac,sid1,_mess) <- parse Unwrap(State[ctr1]);
     (_U,_u,_V,_v,_ltk,acc2,k2,_ni,_nr,_kmac,sid2,_mess) <- parse Unwrap(State[ctr2]);
@@ -266,5 +276,32 @@ oracle SameKey(ctr1: Integer, ctr2: Integer) -> Bool {
 
 	return false;
 	}
+
+oracle AtMost(ctr1: Integer, ctr2: Integer, ctr3: Integer) -> Bool {
+    (_U,_u,_V,_v,_ltk,acc1,_k,_ni,_nr,_kmac,sid1,_mess) <- parse Unwrap(State[ctr1]);
+    (_U,_u,_V,_v,_ltk,acc2,_k,_ni,_nr,_kmac,sid2,_mess) <- parse Unwrap(State[ctr2]);
+    (_U,_u,_V,_v,_ltk,acc3,_k,_ni,_nr,_kmac,sid3,_mess) <- parse Unwrap(State[ctr3]);
+
+	if ((b == false) and (ctr1 != ctr2) and (ctr1 != ctr3) and (ctr2 != ctr3)) {
+        if (acc1 == acc2 == acc3 == Some(true)) {
+	        if (sid1 == sid2 == sid3) {
+	       	    return true;
+	        }
+	    }
+	}
+	return false;
+	}
+
+oracle AtLeast(sid: (Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)))) -> Bool {
+
+   if ((b == false) and (First[sid] != None as Integer)
+                    and (Second[sid] == None)){
+      (_U,_u,_V,_v,_ltk,acc1,_k,_ni,_nr,_kmac,_sid,_mess) <- parse Unwrap(State[Unwrap(First[sid])]);
+	  if (acc1 == Some(true)) {
+          return true;
+	  }
+   }
+   return false;
+   }
 
     }

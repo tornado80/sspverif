@@ -32,9 +32,10 @@ composition KX {
             Send5:      Game,
             Reveal:     Game,
             Test:       Game,
-			AtMost:		Game,
 			SameKey:	Game,
-        },
+ 			AtMost:		Game,
+ 			AtLeast:	Game,
+       },
 
         Game: {
             Run1:      Prot,
