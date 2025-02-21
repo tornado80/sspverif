@@ -23,6 +23,8 @@ composition KX {
 
     compose {
         adversary: {
+            NewKey:     Game,
+            NewSession: Game,
             Send1:      Game,
             Send2:      Game,
             Send3:      Game,
@@ -30,8 +32,8 @@ composition KX {
             Send5:      Game,
             Reveal:     Game,
             Test:       Game,
-            NewSession: Game,
-            NewKey:     Game,
+			AtMost:		Game,
+			SameKey:	Game,
         },
 
         Game: {
