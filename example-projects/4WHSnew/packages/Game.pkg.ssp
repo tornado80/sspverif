@@ -11,8 +11,8 @@ package Game {
           ctr_:  Integer,                       /* administrative sid  */
           kid_:  Integer,                       /* administrative kid  */
 		  /* session key table, reveal -> (.,false) ; test -> (.,true) */
-          Keys:  Table((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n))),
-		               (Bits(n),Bool)), 
+          RevTested:  Table((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n))),
+		               Bool), 
           State: Table(Integer,
                   /*    administrative sid  */
                 (
@@ -211,7 +211,7 @@ oracle Reveal(ctr: Integer) -> Bits(n)
     assert (Keys[Unwrap(sid)] == None);
 
 	/* mark key as revealed */
-    Keys[Unwrap(sid)] <- Some((Unwrap(k),false));    
+    RevTested[Unwrap(sid)] <- Some(false);    
     return Unwrap(k);
     }
 
@@ -223,10 +223,10 @@ oracle Test(ctr: Integer) -> Bits(n)
     assert (acc == Some(true));
 
 	/* only allowed to test/reveal sid once */
-    assert (Keys[Unwrap(sid)] == None);
+    assert (RevTested[Unwrap(sid)] == None);
 
 	/* mark key as tested */
-    Keys[Unwrap(sid)] <- Some((Unwrap(k),true));
+    RevTested[Unwrap(sid)] <- Some(true);
 	
     k_ <- Unwrap(k);
     if b {
