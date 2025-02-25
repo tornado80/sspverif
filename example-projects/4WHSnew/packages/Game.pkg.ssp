@@ -240,6 +240,7 @@ oracle Test(ctr: Integer) -> Bits(n)
 	
 	/* Session accepted */
     assert (acc == Some(true));
+    assert Unwrap(Fresh[ctr]);
 
 	/* only allowed to test/reveal sid once */
     assert (RevTested[Unwrap(sid)] == None);
