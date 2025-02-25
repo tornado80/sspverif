@@ -4,6 +4,7 @@ composition H1 {
         const prf: fn Bits(n), Integer, Integer, Bits(n), Bits(n), Bool ->  Bits(n);
         const mac: fn Bits(n), Bits(n), Integer -> Bits(n);
         const b: Bool;
+        const bnonce: Bool;
     
     instance Game = Game {
         params {
@@ -23,7 +24,7 @@ composition H1 {
 	instance Nonces = Nonces {
 		params {
         	n: n,
-			b: false,
+			b: bnonce,
 		}
 	}
 

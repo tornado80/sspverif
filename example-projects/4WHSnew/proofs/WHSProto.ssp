@@ -46,6 +46,28 @@ proof WHSProto {
         }
     }
 
+    instance H1_0 = H1 {
+        params {
+            b       : b ,
+			bnonce  : false,
+            n       : n    ,
+            zeron   : zeron,
+  	        prf     : prf  ,
+            mac     : mac  ,
+        }
+    }
+    instance H1_1 = H1 {
+        params {
+            b       : b ,
+			bnonce  : true,
+            n       : n    ,
+            zeron   : zeron,
+  	        prf     : prf  ,
+            mac     : mac  ,
+        }
+    }
+
+
     assumptions {
         prf:    PRFreal    ~ PRFideal
         nonces: Noncesreal ~ Noncesideal
@@ -54,16 +76,16 @@ proof WHSProto {
     gamehops 
     {
 
-        reduction H1_Red_0 H1_Red_1  
+        reduction H1_0 H1_1  
         {
             assumption nonces
 
-            map PRFreal H1_Red_0  {
-                PRF    : PRF
+            map Noncesreal H1_0  {
+                nonces    : Nonces
             }
 
-            map PRFideal H1_Red_1 {
-                PRF    : PRF
+            map Noncesideal H1_1 {
+                nonces    : Nonces
             }
         }
 
