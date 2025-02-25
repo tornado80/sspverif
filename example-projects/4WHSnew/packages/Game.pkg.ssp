@@ -220,8 +220,6 @@ oracle Send5(ctr: Integer, msg: Bits(n)) -> Bool
         (state,stop) <- parse return;
         if (stop == false) {return false;}   /* state is not updated, adversary can try again */
         State[ctr] <- Some(state);
-        (U,u,V,v,ltk,acc,k,ni,nr,kmac,sid,mess)     <- parse state;
-
         return stop;
     } 
 
