@@ -1,0 +1,71 @@
+proof WHSProto {
+    const b: Bool;
+    const n: Integer;
+    const m: Integer;
+    const zeron: Bits(n);
+    const prf: fn Bits(n), Integer, Integer, Bits(n), Bits(n), Bool ->  Bits(n);
+    const mac: fn Bits(n), Bits(n), Integer -> Bits(n);
+  
+    instance Noncesideal = Nonces {
+        params {
+            b  : true,
+            n  : n   ,
+        }
+    }
+
+    instance Noncesreal = Nonces {
+        params {
+            b  : false,
+            n  : n    ,
+        }
+    }
+
+    instance PRFideal = PRF {
+        params {
+            b  : true,
+            n  : n   ,
+  	        prf: prf ,
+        }
+    }
+
+    instance PRFreal = PRF {
+        params {
+            b  : false,
+            n  : n    ,
+  	        prf: prf  ,
+        }
+    }
+
+    instance KX = KX {
+        params {
+            b       : b ,
+            n       : n    ,
+            zeron   : zeron,
+  	        prf     : prf  ,
+            mac     : mac  ,
+        }
+    }
+
+    assumptions {
+        prf:    PRFreal    ~ PRFideal
+        nonces: Noncesreal ~ Noncesideal
+    }
+
+    gamehops 
+    {
+
+        reduction H1_Red_0 H1_Red_1  
+        {
+            assumption nonces
+
+            map PRFreal H1_Red_0  {
+                PRF    : PRF
+            }
+
+            map PRFideal H1_Red_1 {
+                PRF    : PRF
+            }
+        }
+
+    }
+}
