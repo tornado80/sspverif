@@ -121,9 +121,8 @@ oracle NewSession(U: Integer, u: Bool, V: Integer, v: Bool, kid: Integer) -> Int
         assert not (LTK[kid] == None);  /* key exists */
         ctr_        <- (ctr_ + 1) ; 
         ltk         <- Unwrap(LTK[kid]);
-		fresh       <- Unwrap(H[kid]);
         State[ctr_] <- Some((U,u,V,v,ltk,None,None,None,None,None,None,0));
-		Fresh[ctr_] <- Some(fresh);
+		Fresh[ctr_] <- H[kid];
         return ctr_;
     }
 
