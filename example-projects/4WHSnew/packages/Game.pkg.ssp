@@ -12,7 +12,8 @@ package Game {
           kid_:  Integer,                       /* administrative kid  */
 		  /* session key table, reveal -> (.,false) ; test -> (.,true) */
           RevTested:  Table((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n))),
-		               Bool), 
+		               Bool),
+		  Fresh: Table(Integer, Bool),
           /* Authentication */
           First:  Table((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n))), Integer),
           Second: Table((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n))), Integer),
@@ -120,7 +121,9 @@ oracle NewSession(U: Integer, u: Bool, V: Integer, v: Bool, kid: Integer) -> Int
         assert not (LTK[kid] == None);  /* key exists */
         ctr_        <- (ctr_ + 1) ; 
         ltk         <- Unwrap(LTK[kid]);
+		fresh       <- Unwrap(H[kid]);
         State[ctr_] <- Some((U,u,V,v,ltk,None,None,None,None,None,None,0));
+		Fresh[ctr_] <- Some(fresh);
         return ctr_;
     }
 
