@@ -15,6 +15,7 @@ package Prot {
 						               Integer),
 						              (Bits(n))) {
 	    (U,u,V,v,ltk,acc,k,ni_,nr,kmac,sid,mess) <- parse state;
+        assert (mess == 0);
 		
 		ni <-$ Bits(n);
 		
@@ -32,6 +33,7 @@ package Prot {
 							        Integer),
 							       (Bits(n), Bits(n))) {
 	    (U,u,V,v,ltk,acc,k_,ni_,nr_,kmac_,sid_,mess) <- parse state;
+        assert (mess == 0);
 
 		nr         <-$ Bits(n);
         kmac       <-  prf(ltk,U,V,ni,nr,false); /* need role agreement here, to be fixed */
@@ -53,6 +55,7 @@ package Prot {
 							                Integer),
 							               (Bits(n), Bits(n))) {
 	    (U,u,V,v,ltk,acc,k_,ni,nr_,kmac_,sid_,mess) <- parse state;
+        assert (mess == 1);
 		(nr,tau) <- parse msg;
 
 		kmac       <- prf(ltk,U,V,Unwrap(ni),nr,false);
@@ -78,6 +81,7 @@ package Prot {
 							                Integer),
 							               (Bits(n))) {
 	    (V,v,U,u,ltk,acc,k,ni_,nr,kmac,sid_,mess) <- parse state;
+		assert (mess == 1);
 		(ni,tau) <- parse msg;
 
         if ((mac(Unwrap(kmac),ni,3) == tau) and
@@ -106,6 +110,7 @@ package Prot {
 				                    Integer),
 				                   (Bool)) {
 	    (U,u,V,v,ltk,acc,k,ni,nr,kmac,sid,mess) <- parse state;
+        assert (mess == 2);
 
         if (mac(Unwrap(kmac),zeron,4) == tau) {
 		   return ((U,u,V,v,ltk,Some(true),k,ni,nr,kmac,sid,3),
