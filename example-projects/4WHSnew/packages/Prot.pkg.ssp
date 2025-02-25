@@ -64,8 +64,7 @@ package Prot {
 		   return ((U,u,V,v,ltk,Some(true),Some(k),ni,Some(nr),Some(kmac),Some(sid),2),
 		           (Unwrap(ni),tau_));
 		} else {
-		   return ((U,u,V,v,ltk,Some(true),Some(k),ni,Some(nr),Some(kmac),Some(sid),2),
-		           (zeron,zeron));
+		   return (state, (zeron,zeron));
 		}
 	}
 
@@ -109,12 +108,11 @@ package Prot {
 	    (U,u,V,v,ltk,acc,k,ni,nr,kmac,sid,mess) <- parse state;
 
         if (mac(Unwrap(kmac),zeron,4) == tau) {
-			
 		   return ((U,u,V,v,ltk,Some(true),k,ni,nr,kmac,sid,3),
 		           (true));
 		} else {
-		    return ((U,u,V,v,ltk,Some(true),k,ni,nr,kmac,sid,3),
-		            (false));
+		    /* for false, the state is not updated so doesn't matter what we write as first argument */
+		    return (state, (false));
 		}
 	}
 
