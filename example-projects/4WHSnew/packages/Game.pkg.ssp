@@ -130,7 +130,6 @@ oracle Send1(ctr: Integer) -> Bits(n)
         state <- Unwrap(State[ctr]);
         (U,u,V,v,ltk,acc,k,ni,nr,kmac,sid,mess) <- parse state;
         assert (u == false);                 /* session belongs to initiator */
-        assert (mess == 0);                  /* session has not yet sent its first message */
         assert (acc  == None );              /* session is still running           */
         return      <- invoke Run1(state);
         (state,msg) <- parse return;
@@ -144,7 +143,6 @@ oracle Send2(ctr: Integer, msg: Bits(n)) -> (Bits(n),Bits(n))
         state   <- Unwrap(State[ctr]);
         (V,v,U,u,ltk,acc,k,ni_,nr,kmac,sid,mess) <- parse state;
         assert (v    == true );              /* session belongs to responder */
-        assert (mess == 0    );              /* session has not yet sent its first message */
         assert (acc  == None );              /* session is still running           */
         return         <- invoke Run2(state,msg);
         (state,msg_)   <- parse return;
@@ -158,7 +156,6 @@ oracle Send3(ctr: Integer, msg: (Bits(n),Bits(n))) -> (Bits(n), Bits(n))
         state                                           <- Unwrap(State[ctr]);
         (U,u,V,v,ltk,acc,k_,ni_,nr_,kmac_,sid_,mess)    <- parse state;
         assert (u    == false);              /* session belongs to initiator       */
-        assert (mess == 1);                  /* session has sent its first message */
         assert (acc  == None);               /* session is still running           */
         return         <- invoke Run3(state,msg);
         (state,msg_)   <- parse return;
@@ -185,7 +182,6 @@ oracle Send4(ctr: Integer, msg: (Bits(n),Bits(n))) -> Bits(n)
         (V,v,U,u,ltk,acc,k,ni_,nr,kmac,sid_,mess)      <- parse state;
 		
         assert (v    == true);                /* session belongs to responder       */
-        assert (mess == 1);                   /* session has sent its first message */
         assert (acc  == None);                /* session is still running           */
 
         return       <- invoke Run4(state,msg);
@@ -213,12 +209,10 @@ oracle Send5(ctr: Integer, msg: Bits(n)) -> Bool
         (U,u,V,v,ltk,acc,k,ni,nr,kmac,sid,mess)     <- parse state;
 		
         assert (u    == false);              /* session belongs to initiator       */
-        assert (mess == 2);                  /* session has sent its 2nd message   */
         assert (acc  == None);               /* session is still running           */
 		
         return      <- invoke Run5(state,msg);
         (state,stop) <- parse return;
-        if (stop == false) {return false;}   /* state is not updated, adversary can try again */
         State[ctr] <- Some(state);
         return stop;
     } 
