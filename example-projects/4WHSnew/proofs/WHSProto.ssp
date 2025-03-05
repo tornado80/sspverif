@@ -20,6 +20,24 @@ proof WHSProto {
         }
     }
 
+    instance CRideal = CR {
+        params {
+              n:n,
+			  b:true,
+			  mac:mac,
+			  prf:prf,
+        }
+    }
+
+    instance CRreal = CR {
+        params {
+              n: n,
+			  b: false,
+			  mac: mac,
+			  prf: prf,
+        }
+    }
+
     instance PRFideal = PRF {
         params {
             b  : true,
@@ -67,10 +85,32 @@ proof WHSProto {
         }
     }
 
+    instance H2_0 = H2 {
+        params {
+            b       : b ,
+			bcr     : false,
+            n       : n    ,
+            zeron   : zeron,
+  	        prf     : prf  ,
+            mac     : mac  ,
+        }
+    }
+    instance H2_1 = H2 {
+        params {
+            b       : b ,
+			bcr     : true,
+            n       : n    ,
+            zeron   : zeron,
+  	        prf     : prf  ,
+            mac     : mac  ,
+        }
+    }
+
 
     assumptions {
-        prf:    PRFreal    ~ PRFideal
-        nonces: Noncesreal ~ Noncesideal
+        prf:     PRFreal    ~ PRFideal
+        nonces:  Noncesreal ~ Noncesideal
+        collres: CRreal ~ CRideal
     }
 
     gamehops 
@@ -88,6 +128,20 @@ proof WHSProto {
                 nonces    : Nonces
             }
         }
+
+        reduction H2_0 H2_1  
+        {
+            assumption collres
+
+            map CRreal H2_0  {
+                cr: CR
+            }
+
+            map CRideal H2_1 {
+                cr: CR
+            }
+        }
+
 
     }
 }
