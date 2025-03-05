@@ -17,17 +17,15 @@ composition H2 {
         params {
         n: n,
         zeron: zeron,
-        prf: prf,
-        mac: mac,
         }
     }
 	instance Nonces = Nonces {
 		params {
         	n: n,
-			b: 1,
+			b: true,
 		}
 	}
-    instance cr = CR {
+    instance CR = CR {
         params {
         n: n,
         b: bcr,
