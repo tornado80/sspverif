@@ -1,0 +1,27 @@
+package CR {
+    params {
+        n: Integer,
+        prf: fn Bits(n), Integer, Integer, Bits(n), Bits(n), Bool ->  Bits(n),
+        mac: fn Bits(n), Bits(n), Integer -> Bits(n),
+        b: Bool
+    }
+    
+    state {
+          PRFinverse:   Table(Bits(n),(Integer,Integer,Integer,Bits(n),Bits(n),Bool)),
+          MACinverse:   Table(Bits(n),(Bits(n), Bits(n), Integer)),
+    }
+
+    oracle MAC(k: Bits(n), nonce: Bits(n), i: Integer) -> Bits(n) {
+        y <- mac(k,nonce,i);
+        assert {(MACinverse[y] = None) or (MACinverse[y]=Some(y)) or (not b)}
+        PRFinverse[y] <- Some(y);
+        return y;
+    }
+
+    oracle PRF(k: Bits(n), a: Integer, aa: Integer, c: Bits(n), d: Bits(n), e: Bool) -> Bits(n) {
+        y <- prf(k,a,aa,c,d,e);
+        assert {(PRFinverse[y] = None) or (PRFinverse[y]=Some(y)) or (not b)}
+        PRFinverse[y] <- Some(y);
+        return y;
+    }
+}
