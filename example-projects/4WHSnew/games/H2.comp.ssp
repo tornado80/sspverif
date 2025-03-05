@@ -1,0 +1,69 @@
+composition H2 {
+        const n: Integer;
+        const zeron: Bits(n);
+        const prf: fn Bits(n), Integer, Integer, Bits(n), Bits(n), Bool ->  Bits(n);
+        const mac: fn Bits(n), Bits(n), Integer -> Bits(n);
+        const b: Bool;
+        const bcr: Bool;
+    
+    instance Game = Game {
+        params {
+        b: b,
+        n: n,
+        zeron: zeron,
+        }
+    }
+    instance Prot = ReductionCR {
+        params {
+        n: n,
+        zeron: zeron,
+        prf: prf,
+        mac: mac,
+        }
+    }
+	instance Nonces = Nonces {
+		params {
+        	n: n,
+			b: 1,
+		}
+	}
+    instance cr = CR {
+        params {
+        n: n,
+        b: bcr,
+        prf: prf,
+        mac: mac,
+        }
+    }
+
+    compose {
+        adversary: {
+            NewKey:     Game,
+            NewSession: Game,
+            Send1:      Game,
+            Send2:      Game,
+            Send3:      Game,
+            Send4:      Game,
+            Send5:      Game,
+            Reveal:     Game,
+            Test:       Game,
+			SameKey:	Game,
+ 			AtMost:		Game,
+ 			AtLeast:	Game,
+       },
+
+        Game: {
+            Run1:      Prot,
+            Run2:      Prot,
+            Run3:      Prot,
+            Run4:      Prot,
+            Run5:      Prot,
+        },
+
+		Prot: {
+			  Sample:	Nonces,
+			  MAC:      CR,
+			  PRF:      CR,
+		}
+    }
+}
