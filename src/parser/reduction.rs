@@ -163,20 +163,19 @@ fn compare_reduction(
         PackageInstanceDiff::Same => {}
     }
 
-    // these are the same in both games, because the package name is the same
+    // Compare that the _outgoing_ edges of the two package instances match.
+    // These are the same in both games, because the package name is the same
     for (sig, _) in &left_pkg_inst.pkg.imports {
-        dbg!(sig);
-        dbg!(&game_left.edges);
-
         let left_edge = game_left
             .edges
             .iter()
-            .find(|edge| edge.from() == inst_offs_left && edge.sig() == sig)
+            .find(|edge| edge.from() == inst_offs_left && edge.sig().name == sig.name)
             .unwrap();
+
         let right_edge = game_right
             .edges
             .iter()
-            .find(|edge| edge.from() == inst_offs_right && edge.sig() == sig)
+            .find(|edge| edge.from() == inst_offs_right && edge.sig().name == sig.name)
             .unwrap();
 
         compare_reduction(
@@ -317,7 +316,7 @@ fn handle_reduction_body<'a>(
             .game()
             .exports
             .iter()
-            .find(|export| export.sig() == left_export.sig())
+            .find(|right_export| left_export.sig().name == right_export.sig().name)
             .unwrap();
 
         compare_reduction(
@@ -705,18 +704,6 @@ fn handle_mapspec_assumption<'a>(
                 .enumerate()
                 .map(|(i, pkg_inst)| (i, pkg_inst.name(), pkg_inst.pkg_name()))
                 .collect();
-
-            dbg!(&construction_game_inst_name);
-            dbg!(&construction_game_inst.game_name());
-            dbg!(&assumption_game_inst_name);
-            dbg!(&assumption_game_inst.game_name());
-            dbg!(constr_src);
-            dbg!(constr_dst);
-            dbg!(constr_sig);
-            dbg!(dst_pkginst_mapping);
-            dbg!(src_is_in_reduction_part);
-            dbg!(assump_pkgs);
-            dbg!(constr_pkgs);
         }
 
         // ignore edges that start in mapped packages, because we are only interested in cross-cut
@@ -729,19 +716,23 @@ fn handle_mapspec_assumption<'a>(
             let constr_dst_pkg_inst = &construction_game_inst.game().pkgs[*constr_dst];
             let assump_dst_pkg_inst = &assumption_game_inst.game().pkgs[*assump_dst];
 
-            dbg!(&constr_dst_pkg_inst.pkg.name);
-            dbg!(&assump_dst_pkg_inst.pkg.name);
+            // this lookup is by comparing the oracle name, not the whole signature
+            let assump_dst_export =
+                assumption_game_inst.game().exports.iter().find(|export| {
+                    export.to() == *assump_dst && export.sig().name == constr_sig.name
+                });
 
-            let assump_dst_export = assumption_game_inst
-                .game()
-                .exports
-                .iter()
-                .find(|export| export.to() == *assump_dst && export.sig() == constr_sig);
-
-            dbg!(assump_dst_export);
+            // These show the problem: one is a GameConstIdentifier and the other is a
+            // PackageConstIdentifier. Both should be ProofIdentifiers.
+            //
+            // Okay, now at least both are game const identifiers. I still need to make them proof
+            //  indentifers
+            let constr_sig_owned =
+                construction_game_inst.instantiate_oracle_signature(constr_sig.clone());
+            let constr_sig = &constr_sig_owned;
 
             // if it's cross-cut, it needs to be exported, else error out
-            if assump_dst_export.is_none() {
+            let Some(assump_dst_export) = assump_dst_export else {
                 let assumption_dst_name = &assumption_game_inst.game().pkgs[*assump_dst].name;
                 let (assumption_ast, construction_ast) = mappings
                     .iter()
@@ -769,7 +760,16 @@ fn handle_mapspec_assumption<'a>(
                     oracle_name,
                 }
                 .into());
-            }
+            };
+
+            // rewrite the destination oracle signature as welll and compare to check that they
+            // match
+            let assump_sig_fixed =
+                assumption_game_inst.instantiate_oracle_signature(assump_dst_export.sig().clone());
+            let constr_sig_fixed =
+                construction_game_inst.instantiate_oracle_signature(constr_sig.clone());
+
+            debug_assert_eq!(constr_sig_fixed, assump_sig_fixed);
 
             // check that the destination packages in construction and assumption are equivalent
 
@@ -801,42 +801,25 @@ fn handle_mapspec_assumption<'a>(
 
         // edge exists in construction => edge exists in assumption
         for construction_edge in construction_game_assumptionpart_edges {
-            dbg!(construction_edge);
-            dbg!(
-                &construction_game_inst.game().pkgs[*constr_src_pkg_inst_offs]
-                    .pkg
-                    .name
-            );
-            dbg!(
-                &assumption_game_inst.game().pkgs[*assump_src_pkg_inst_offs]
-                    .pkg
-                    .name
-            );
             let (_, assumption_game_to) = pkg_offset_mapping
                 .iter()
                 .find(|(constr, _)| *constr == construction_edge.to())
                 .unwrap();
 
-            dbg!(
-                &construction_game_inst.game().pkgs[construction_edge.to()]
-                    .pkg
-                    .name
-            );
-
-            dbg!(
-                &assumption_game_inst.game().pkgs[*assumption_game_to]
-                    .pkg
-                    .name
-            );
             let edge_exists_in_assumption =
                 assumption_game_inst
                     .game()
                     .edges
                     .iter()
                     .any(|assumption_game_edge| {
+                        let constr_sig_fixed = construction_game_inst
+                            .instantiate_oracle_signature(construction_edge.sig().clone());
+                        let assump_sig_fixed = assumption_game_inst
+                            .instantiate_oracle_signature(assumption_game_edge.sig().clone());
+
                         assumption_game_edge.from() == *assump_src_pkg_inst_offs
                             && assumption_game_edge.to() == *assumption_game_to
-                            && construction_edge.sig() == assumption_game_edge.sig()
+                            && constr_sig_fixed == assump_sig_fixed
                     });
 
             if !edge_exists_in_assumption {

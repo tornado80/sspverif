@@ -26,14 +26,11 @@ use crate::{
     },
     proof::{Claim, GameInstance, Proof},
     types::Type,
-    util::{
-        resolver::{Resolver, SliceResolver},
-        scope::{Declaration, Error as ScopeError, Scope},
-    },
+    util::scope::{Declaration, Error as ScopeError, Scope},
 };
 
 use itertools::Itertools;
-use miette::{Diagnostic, NamedSource, SourceSpan};
+use miette::{Diagnostic, NamedSource};
 use pest::{
     iterators::{Pair, Pairs},
     Span,
@@ -41,13 +38,13 @@ use pest::{
 use thiserror::Error;
 
 use super::{
-    common,
+    common::{self, HandleTypeError},
     error::{
         AssumptionExportsNotSufficientError, AssumptionMappingMissesPackageInstanceError,
         AssumptionMappingParameterMismatchError,
         AssumptionMappingRightGameInstanceIsFromAssumption, DuplicateGameParameterDefinitionError,
         InvalidGameInstanceInReductionError, MissingGameParameterDefinitionError,
-        NoSuchGameParameterError, NoSuchTypeError, ReductionInconsistentAssumptionBoundaryError,
+        NoSuchGameParameterError, ReductionInconsistentAssumptionBoundaryError,
         ReductionPackageInstanceParameterMismatchError, UndefinedAssumptionError,
         UndefinedGameError, UndefinedGameInstanceError, UndefinedPackageInstanceError,
     },
@@ -187,7 +184,7 @@ pub enum ParseProofError {
 
     #[diagnostic(transparent)]
     #[error(transparent)]
-    NoSuchType(#[from] NoSuchTypeError),
+    HandleType(#[from] HandleTypeError),
 
     #[diagnostic(transparent)]
     #[error(transparent)]
@@ -362,9 +359,10 @@ fn handle_instance_assign_list(
                             game_name: game.name.to_string(),
                             name,
                             tipe: value.get_type(),
+                            assigned_value: Some(Box::new(value.clone())),
                             inst_info: None,
-                            game_inst_name: None,
-                            proof_name: None,
+                            game_inst_name: Some(game_inst_name.to_string()),
+                            proof_name: Some(ctx.proof_name.to_string()),
                         },
                         value,
                     )
