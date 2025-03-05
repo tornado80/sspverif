@@ -7,7 +7,7 @@ package CR {
     }
     
     state {
-          PRFinverse:   Table(Bits(n),(Integer,Integer,Integer,Bits(n),Bits(n),Bool)),
+          PRFinverse:   Table(Bits(n),(Bits(n),Integer,Integer,Bits(n),Bits(n),Bool)),
           MACinverse:   Table(Bits(n),(Bits(n), Bits(n), Integer)),
     }
 
