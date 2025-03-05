@@ -1,0 +1,134 @@
+package ReductionCR {
+    params {
+        n: Integer,
+        zeron: Bits(n),
+    }
+
+    import oracles {
+        Sample() -> Bits(n),
+        PRF(ltk: Bits(n), U: Integer, V: Integer, ni: Bits(n), nr: Bits(n), p_kmac: Bool) ->  Bits(n),
+        MAC(kmac: Bits(n), nr: Bits(n), sep: Integer) -> Bits(n),
+	}
+
+	oracle Run1(state: (Integer,Bool,Integer,Bool,Bits(n),Maybe(Bool),
+	                    Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),
+						Maybe((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)))),
+						Integer)) -> ((Integer,Bool,Integer,Bool,Bits(n),Maybe(Bool),
+				                       Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),
+						               Maybe((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)))),
+						               Integer),
+						              (Bits(n))) {
+	    (U,u,V,v,ltk,acc,k,ni_,nr,kmac,sid,mess) <- parse state;
+        assert (mess == 0);
+		
+		ni <- invoke Sample();
+		
+		return ((U,u,V,v,ltk,acc,k,Some(ni),nr,kmac,sid,1),
+		        (ni));
+	}
+
+	oracle Run2(state: (Integer,Bool,Integer,Bool,Bits(n),Maybe(Bool),
+	                    Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),
+						Maybe((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)))),
+						Integer),
+	            ni:Bits(n)) -> ((Integer,Bool,Integer,Bool,Bits(n),Maybe(Bool),
+				                    Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),
+							        Maybe((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)))),
+							        Integer),
+							       (Bits(n), Bits(n))) {
+	    (U,u,V,v,ltk,acc,k_,ni_,nr_,kmac_,sid_,mess) <- parse state;
+        assert (mess == 0);
+
+		nr         <- invoke Sample();
+        kmac       <-  invoke PRF(ltk,U,V,ni,nr,false); /* need role agreement here, to be fixed */
+        k          <-  invoke PRF(ltk,U,V,ni,nr,true); /* need role agreement here, to be fixed */
+        tau        <-  invoke MAC(kmac,nr,2);
+        sid        <- (U,V,Some(ni),Some(nr),Some(tau));
+
+		return ((U,u,V,v,ltk,acc,Some(k),Some(ni),Some(nr),Some(kmac),Some(sid),1),
+		        (nr,tau));
+	}
+
+	oracle Run3(state: (Integer,Bool,Integer,Bool,Bits(n),Maybe(Bool),
+	                    Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),
+						Maybe((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)))),
+						Integer),
+	            msg:(Bits(n),Bits(n))) -> ((Integer,Bool,Integer,Bool,Bits(n),Maybe(Bool),
+				                            Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),
+							                Maybe((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)))),
+							                Integer),
+							               (Bits(n), Bits(n))) {
+	    (U,u,V,v,ltk,acc,k_,ni,nr_,kmac_,sid_,mess) <- parse state;
+        assert (mess == 1);
+		(nr,tau) <- parse msg;
+
+		kmac       <- invoke PRF(ltk,U,V,Unwrap(ni),nr,false);
+        k          <- invoke PRF(ltk,U,V,Unwrap(ni),nr,true);
+        tau_       <- invoke MAC(kmac,Unwrap(ni),3);
+        sid        <- (U,V,ni,Some(nr),Some(tau));
+
+		mac <- invoke MAC(kmac,nr,2);
+
+        if (mac == tau) {
+		   return ((U,u,V,v,ltk,Some(true),Some(k),ni,Some(nr),Some(kmac),Some(sid),2),
+		           (Unwrap(ni),tau_));
+		} else {
+		   return (state, (zeron,zeron));
+		}
+	}
+
+	oracle Run4(state: (Integer,Bool,Integer,Bool,Bits(n),Maybe(Bool),
+	                    Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),
+						Maybe((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)))),
+						Integer),
+	            msg:(Bits(n),Bits(n))) -> ((Integer,Bool,Integer,Bool,Bits(n),Maybe(Bool),
+				                            Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),
+							                Maybe((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)))),
+							                Integer),
+							               (Bits(n))) {
+	    (V,v,U,u,ltk,acc,k,ni_,nr,kmac,sid_,mess) <- parse state;
+		assert (mess == 1);
+		(ni,tau) <- parse msg;
+
+		mac <- invoke MAC(Unwrap(kmac),ni,3);
+
+        if ((mac == tau) and
+            (ni == Unwrap(ni_))) {
+		    acc        <- Some(true);
+        	sid        <- (U,V,Some(ni),nr,Some(tau));
+			tau_       <- invoke MAC(Unwrap(kmac),zeron,4);
+			
+		   return ((V,v,U,u,ltk,acc,k,ni_,nr,kmac,Some(sid),2),
+		           (tau_));
+		} else {
+		    acc <- Some(false);
+		    return ((V,v,U,u,ltk,acc,k,ni_,nr,kmac,sid_,mess),
+		            (zeron));
+		}
+	}
+
+
+	oracle Run5(state: (Integer,Bool,Integer,Bool,Bits(n),Maybe(Bool),
+	                    Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),
+						Maybe((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)))),
+						Integer),
+	            tau:Bits(n)) -> ((Integer,Bool,Integer,Bool,Bits(n),Maybe(Bool),
+				                    Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),
+				                    Maybe((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)))),
+				                    Integer),
+				                   (Bool)) {
+	    (U,u,V,v,ltk,acc,k,ni,nr,kmac,sid,mess) <- parse state;
+        assert (mess == 2);
+
+		mac <- invoke MAC(Unwrap(kmac),zeron,4);
+
+        if (mac == tau) {
+		   return ((U,u,V,v,ltk,Some(true),k,ni,nr,kmac,sid,3),
+		           (true));
+		} else {
+		    /* for false, the state is not updated so doesn't matter what we write as first argument */
+		    return (state, (false));
+		}
+	}
+
+}
