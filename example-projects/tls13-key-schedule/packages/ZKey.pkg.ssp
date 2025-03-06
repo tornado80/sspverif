@@ -1,0 +1,29 @@
+package ZKey {
+    /*
+    types {
+        Handle: Bits(*),
+        AlgId: Integer
+    }
+    */
+
+    params {
+        handle_alg: fn Bits(*) -> Integer, /* returns the algorithm identifier of the given handle */
+        tag: fn Integer, Bits(*) -> Bits(*), /* tags the given key with the given algorithm identifier */
+        name: fn Bits(*) -> Integer, /* returns the name of given handle */
+        zeros: fn Integer -> Bits(*), /* returns an all zeros bitstring of the given length */
+        len_alg: fn Integer -> Integer /* returns the length of keys of the given algorithm identifier */
+    }
+
+    oracle GET(h: Bits(*)) -> (Bits(*), Bool) {
+        if (name(h) == 2) { /* 2 represents name of 0salt handles */
+            ks <- zeros(1);
+            k <- tag(handle_alg(h), ks);
+            return (k, false);
+        }
+        if (name(h) == 1) { /* 1 represents name of 0ikm handles */
+            ks <- zeros(len_alg(handle_alg(h)));
+            k <- tag(handle_alg(h), ks);
+            return (k, false);
+        }
+    }
+}

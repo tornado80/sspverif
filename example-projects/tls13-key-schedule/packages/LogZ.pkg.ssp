@@ -1,0 +1,25 @@
+package LogZ {
+    /*
+    types {
+        Handle: Bits(*)
+    }
+    */
+
+    state {
+        Log: Table(Bits(*), (Bits(*), Bool, Bits(*)))
+    }
+
+    oracle UNQ(h: Bits(*), hon: Bool, k: Bits(*)) -> Bits(*) {
+        Log[h] <- Some((h, hon, k));
+        return h;
+    }
+    
+    oracle Q(h: Bits(*)) -> Maybe(Bits(*)) {
+        if (Log[h] == None) {
+            return None;
+        }
+        (hp, hon, k) <- parse Unwrap(Log[h]);
+        return Some(hp);
+    }
+}
+

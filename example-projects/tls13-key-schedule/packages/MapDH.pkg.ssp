@@ -1,0 +1,27 @@
+package MapDH {
+    params {
+        mk_dh_handle: fn Bits(*), Bits(*) -> Bits(*) /* constructs a dh handle with sorted DH shares X and Y */
+    }
+
+    import oracles {
+        DHEXP(X: Bits(*), Y: Bits(*)) -> Bits(*),
+        DHGEN(group: Integer) -> Bits(*),
+        GETMAP(h: Bits(*)) -> Maybe(Bits(*)),
+        SETMAP(h: Bits(*), h1: Bits(*)),
+    }
+
+    oracle DHGEN(group: Integer) -> Bits(*) {
+        g <- invoke DHGEN(group);
+        return g;
+    }
+
+    oracle DHEXP(X: Bits(*), Y: Bits(*)) -> Bits(*) {'
+        h <- mk_dh_handle(X, Y);
+        hp <- invoke DHEXP(X, Y);
+        hm <- invoke GETMAP(h);
+        if (hm == None) {
+            _ <- invoke SETMAP(h, hp);
+        }
+        return h;
+    }
+}

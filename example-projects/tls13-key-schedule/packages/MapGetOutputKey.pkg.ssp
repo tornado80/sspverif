@@ -1,0 +1,18 @@
+package MapGetOutputKey {
+    params {
+        n: Integer,
+        l: Integer
+    }
+
+    import oracles {
+        GETMAP(h: Bits(*)) -> Bits(*),
+        GET(h: Bits(*)) -> Bits(*),
+    }
+
+    oracle GET(h: Bits(*)) -> Bits(*) {
+        m <- invoke GETMAP(h);
+        assert (m != None);
+        k <- invoke GET(m);
+        return k;
+    }
+}

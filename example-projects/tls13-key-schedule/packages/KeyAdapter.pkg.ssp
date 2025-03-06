@@ -1,0 +1,21 @@
+package KeyAdapter {
+    import oracles {
+        SET(h: Bits(*), hon: Bool, k: Bits(*)) -> Bits(*),
+        GET(h: Bits(*)) -> (Bits(*), Bool),
+    }
+
+    oracle SETPSK(h: Bits(*), hon: Bool, k: Bits(*)) -> Bits(*) {
+        h <- invoke SET(h, hon, k);
+        return h;
+    }
+
+    oracle GET1(h: Bits(*)) -> (Bits(*), Bool) {
+        t <- invoke GET(h);
+        return t;
+    }
+
+    oracle GET2(h: Bits(*)) -> (Bits(*), Bool) {
+        t <- invoke GET(h);
+        return t;
+    }
+}
