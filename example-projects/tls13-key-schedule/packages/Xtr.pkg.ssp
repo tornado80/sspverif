@@ -1,0 +1,42 @@
+package Xtr {
+    params {
+        b: Bool,
+        l: Integer, /* level */
+        n: Integer, /* name of the key, see README */
+        /* constructs xtr handle given a key name and parent handles */
+        mk_xtr_handle: fn Integer, Bits(*), Bits(*) -> Bits(*), 
+        handle_alg: fn Bits(*) -> Integer, /* returns the algorithm identifier of the given handle */
+        len_key: fn Bits(*) -> Integer, /* returns the length of the given key */
+        tag: fn Integer, Bits(*) -> Bits(*), /* tags the given key with the given algorithm identifier */
+        untag: fn Bits(*) -> Bits(*), /* untags the given key and returns a raw key */
+        key_alg: fn Bits(*) -> Integer, /* returns the algorithm identifier of the given key */
+    }
+
+    import oracles {
+        GET1(h: Bits(*)) -> (Bits(*), Bool),
+        GET2(h: Bits(*)) -> (Bits(*), Bool),
+        xtr(k1: Bits(*), k2: Bits(*)) -> Bits(*),
+        SET(h: Bits(*), hon: Bool, ks: Bits(*)) -> Bits(*),
+    }
+
+    oracle XTR(h1: Bits(*), h2: Bits(*)) -> Bits(*) {
+        if ((handle_alg(h1) != 0) and (handle_alg(h2) != 0)) {
+            assert (handle_alg(h1) == handle_alg(h2));
+        }
+        h <- mk_xtr_handle(n, h1, h2);
+        t1 <- invoke GET1(h1);
+        (k1, hon1) <- parse t1;
+        t2 <- invoke GET2(h2);
+        (k2, hon2) <- parse t2;
+        k <- invoke xtr(k1, k2);
+        hon <- (hon1 or hon2);
+        if (b and hon2) {
+            /* let's have different tables for each algorithm length */
+            /* what are the consequences of subtyping? */
+            ks <-$ Bits(*); /* Bits(len_key(k)) */
+            k <- tag(key_alg(k), ks);
+        }
+        h <- invoke SET(h, hon, k);
+        return h;
+    }
+}

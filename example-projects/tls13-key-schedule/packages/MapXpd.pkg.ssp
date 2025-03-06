@@ -1,0 +1,25 @@
+package MapXpd {
+    params {
+        n: Integer, /* name of the key, see README */
+        l: Integer, /* level */
+        /* constructs an xpd handle given the key name, label, parent handle, and args */
+        mk_xpd_handle: fn Integer, Integer, Bits(*), Bits(*) -> Bits(*)
+    }
+    
+    import oracles {
+        LABEL(n: Integer, r: Bool) -> Integer,
+        XPD(h: Bits(*), r: Bool, args: Bits(*)) -> Bits(*),
+        GETMAP(h: Bits(*)) -> Maybe(Bits(*)),
+        SETMAP(h: Bits(*), h1: Bits(*)),
+    }
+
+    oracle XPD(h1: Bits(*), r: Bool, args: Bits(*)) -> Bits(*) {
+        m1 <- invoke GETMAP(h1);
+        assert (m1 != None);
+        label <- invoke LABEL(n, r);
+        h <- mk_xpd_handle(n, label, h1, args);
+        hp <- invoke XPD(m1, r, args);
+        _ <- invoke SETMAP(h, hp);
+        return h;
+    }
+}

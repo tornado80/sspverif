@@ -1,0 +1,51 @@
+package NKey {
+    /*
+    types {
+        Handle: Bits(*),
+        AlgId: Integer
+    }
+    */
+
+    params {
+        handle_alg: fn Bits(*) -> Integer, /* returns the algorithm identifier of the given handle */
+        tag: fn Integer, Bits(*) -> Bits(*), /* tags the given key with the given algorithm identifier */
+        name: fn Bits(*) -> Integer, /* returns the name of given handle */
+        zeros: fn Integer -> Bits(*), /* returns an all zeros bitstring of the given length */
+        len_alg: fn Integer -> Integer /* returns the length of keys of the given algorithm identifier */
+    }
+
+    state {
+        K: Table(Bits(*), (Bits(*), Bool)) /* maps Handle to the mapped handle and its honesty bit */
+    }
+
+    import oracles {
+        UNQ(h: Bits(*), hon: Bool, k: Bits(*)) -> Bits(*),
+        Q(h: Bits(*)) -> Maybe(Bits(*)),
+    }
+
+    oracle SET(h: Bits(*), hon: Bool, k: Bits(*)) -> Bits(*) {
+        assert (name(h) == 1); /* 1 represents name of DH handles */
+        q_h <- invoke Q(h);
+        if (q_h != None as Bits(*)) {
+            return Unwrap(q_h);
+        }
+        unq_h <- invoke UNQ(h, hon, k);
+        if (h != unq_h ) {
+            return unq_h;
+        }
+        K[h] <- Some((k, hon));
+        return h;
+    }
+
+    oracle GET(h: Bits(*)) -> (Bits(*), Bool) {
+        /* initialization of noDH keys */
+        if ((name(h) == 0) and (K[h] == None)) { /* 0 represents name of noDH handles */
+            K[h] <- Some((zeros(len_alg(handle_alg(h))), false));
+        }
+        /* GET oracle code */
+        assert (K[h] != None as (Bits(*), Bool));
+        (ks, hon) <- parse Unwrap(K[h]);
+        k <- tag(handle_alg(h), ks);
+        return (k, hon);
+    }
+}

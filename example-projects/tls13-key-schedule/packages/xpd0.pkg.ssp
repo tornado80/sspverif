@@ -1,0 +1,22 @@
+package xpd0 {
+    params {
+        tag: fn Integer, Bits(*) -> Bits(*), /* tags the given key with the given algorithm identifier */
+        untag: fn Bits(*) -> Bits(*), /* untags the given key and returns a raw key */
+        key_alg: fn Bits(*) -> Integer, /* returns the algorithm identifier of the given key */
+        hmac: fn Integer, Bits(*), Bits(*) -> Bits(*), /* given an algortihm identifier and two keys, returns hmac applied to the keys */
+        len_alg: fn Integer -> Integer, /* returns the length of keys of the given algorithm identifier */
+        mk_xpd_alg_transcript: fn Integer, Bits(*), Bits(*) -> Bits(*) /* given algorithm identifier, label and digest returns (len(alg),"tls13 "||label,d)||0x01 */
+    }
+
+    oracle xpd(k1: Bits(*), label: Integer, d: Bits(*)) -> Bits(*) {
+        alg <- key_alg(k1);
+        k1 <- untag(k1);
+        /* inlining of xpd-alg */
+        if (label == 0) {
+            return hmac(alg, k1, d);
+        }
+        t <- mk_xpd_alg_transcript(len_alg(alg), label, d);
+        k <- hmac(alg, k1, t);
+        return tag(alg, k);
+    }
+}

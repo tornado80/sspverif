@@ -1,0 +1,15 @@
+package Map {
+    state {
+        /* Since handles have unique name and level, 
+        we don't need them for addressing the table */
+        M: Table(Bits(*), Bits(*))
+    }
+
+    oracle GETMAP(h: Bits(*)) -> Maybe(Bits(*)) {
+        return M[h];
+    }
+
+    oracle SETMAP(h: Bits(*), h1: Bits(*)) {
+        M[h] <- Some(h1);
+    }
+}
