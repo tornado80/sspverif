@@ -1,0 +1,16 @@
+package hash0 {
+    params {
+        tag_digest: fn Integer, Bits(*) -> Bits(*), /* tags the given digest with the given algorithm identifier */
+        untag_transcript: fn Bits(*) -> Bits(*), /* untags the given transcript and returns a raw transcript */
+        transcript_alg: fn Bits(*) -> Integer, /* returns the algorithm identifier of the given transcript */
+        hash: fn Integer, Bits(*) -> Bits(*) /* given a hash algorithm identifier, applies the algorithm to the transcript and returns the digest */
+    }
+
+    oracle hash(t: Bits(*)) -> Bits(*) {
+        ts <- untag_transcript(t);
+        alg <- transcript_alg(t);
+        ds <- hash(alg, ts);
+        d <- tag_digest(alg, ds);
+        return d;
+    }
+}

@@ -1,0 +1,135 @@
+package Log {
+    /*
+    types {
+        Handle: Bits(*)
+    }
+    */
+
+    params {
+        n: Integer, /* name of the key, see README */
+        pattern: Integer, /* pattern see README (shortly; Z: 0, A: 1, D: 2, F: 3) */
+        mapping: Integer, /* mapping see README (shortly; 0: 0, 1: 1, inf: 2) */
+        level: fn Bits(*) -> Integer /* returns the level of the given handle */
+    }
+
+    /*
+    level(mk_dh_handle(X, Y)) = 0
+    level(mk_xtr_handle(n, h1, h2)) = 1 + level(h1)
+    */
+
+    /* We need to show why choosing the first handle with the same key as in inverse of the key is okay */
+    /* Review and illustrate the Log^Zinf recognizing collision and Map changes the mapping with an example attack scenario*/
+    state {
+        Log: Table(Bits(*), (Bits(*), Bool, Bits(*))), /* maps handle to (mapped handle, honesty bit, key) */
+        Seen: Table(Bits(*), Bool), /* indicates whether the key was assigned before */
+        LogInverseDishonest: Table(Bits(*), Bits(*)), /* maps key to first dishonest handle */
+        LogInverseDishonestLevelZero: Table(Bits(*), Bits(*)), /* maps key to first dishonest handle in level zero */
+        LogInverseDishonestLevelNonZero: Table(Bits(*), Bits(*)), /* maps key to first dishonest handle in nonzero level */
+        J: Table(Bits(*), Bool) /* indicates whether the key was mapped before */
+    }
+
+    /* 
+    Explain why the encoding is sound and corresponds to the existential quantifier. 
+    Also the assumptions we have on the oracle calls. 
+    Duplciates are captured by Q for example! 
+    Limitations of the tool and how we deal with not havign loop or set/list to capture , 
+    and in other packages too (subtypes and bits(*))
+    explanation of encoding of handles using their expected bahviour 
+    
+    Log^P,map:
+
+    Log^Z = Log^Z,0
+    Log^Z,inf
+    Log^D,1
+    Log^A = Log^A,0
+    Log^A,1
+    */
+
+    oracle UNQ(h: Bits(*), hon: Bool, k: Bits(*)) -> Bits(*) {
+        /* mapping */
+        if (mapping == 2) { /* infinity */
+            if not hon {
+                if (LogInverseDishonest[k] != None as Bits(*)) {
+                    hp <- Unwrap(LogInverseDishonest[k]);
+                    Log[h] <- Some((hp, hon, k));
+                    J[k] <- Some(true);
+                    return hp;
+                }
+            }
+        }
+
+        if (mapping == 1) { /* map = 1 */
+            if not hon {
+                if not Unwrap(J[k]) {
+                    r <- level(h);
+                    if (r == 0) {
+                        if (LogInverseDishonestLevelNonZero[k] != None as Bits(*)) {
+                            hp <- Unwrap(LogInverseDishonestLevelNonZero[k]);
+                            Log[h] <- Some((hp, hon, k));
+                            J[k] <- Some(true);
+                            return hp;
+                        }
+                    } else {
+                        if (LogInverseDishonestLevelZero[k] != None as Bits(*)) {
+                            hp <- Unwrap(LogInverseDishonestLevelZero[k]);
+                            Log[h] <- Some((hp, hon, k));
+                            J[k] <- Some(true);
+                            return hp;
+                        }
+                    }
+                }
+            }
+        }
+
+        /* pattern */
+        if (pattern == 1)  { /* A */
+            if not hon {
+                if (LogInverseDishonestLevelZero[k] != None as Bits(*)) {
+                    assert false;
+                }
+            }
+        }
+
+        if (pattern == 2)  { /* D */
+            if not hon {
+                if (LogInverseDishonest[k] != None as Bits(*)) {
+                    assert false;
+                }
+            }
+        }
+
+        if (pattern == 3)  { /* F */
+            if Unwrap(Seen[k]) { /* we are assuming UNQ is not called on the same inputs, Q will catch it */
+                assert false;
+            }
+        }
+
+        /* if the intention is to abort 
+            when hon = 0 and hon' = 0 ? 
+        alternatively
+            hon = 0 or hon' = 0
+            */
+
+        Log[h] <- Some((h, hon, k));
+        Seen[k] <- Some(true);
+        if not hon {
+            LogInverseDishonest[k] <- Some(h);
+            r <- level(h);
+            if (r == 0) {
+                LogInverseDishonestLevelZero[k] <- Some(h);
+            } else {
+                LogInverseDishonestLevelNonZero[k] <- Some(h);
+            }
+        }
+        return h;
+    }
+    
+    oracle Q(h: Bits(*)) -> Maybe(Bits(*)) {
+        if (Log[h] == None) {
+            return None;
+        }
+        (hp, hon, k) <- parse Unwrap(Log[h]);
+        return Some(hp);
+    }
+}
+
