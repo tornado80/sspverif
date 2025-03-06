@@ -1,0 +1,10 @@
+package Xpd_Name_Level {
+    import oracles {
+        XPD(h1: Bits(*), r: Bool, args: Bits(*)) -> Bits(*),
+    }
+
+    oracle XPD_Name_Level(h1: Bits(*), r: Bool, args: Bits(*)) -> Bits(*) {
+        k <- invoke XPD(h1, r, args);
+        return k;
+    }
+}

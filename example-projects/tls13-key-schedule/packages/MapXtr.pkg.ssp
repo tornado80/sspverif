@@ -1,0 +1,25 @@
+package MapXtr {
+    params {
+        n: Integer, /* name of the key, see README */
+        l: Integer, /* level */
+        /* constructs xtr handle given a key name and parent handles */
+        mk_xtr_handle: fn Integer, Bits(*), Bits(*) -> Bits(*), 
+    }
+    
+    import oracles {
+        XTR(h1: Bits(*), h2: Bits(*)) -> Bits(*),
+        GETMAP(h: Bits(*)) -> Maybe(Bits(*)),
+        SETMAP(h: Bits(*), h1: Bits(*)),
+    }
+
+    oracle XTR(h1: Bits(*), h2: Bits(*)) -> Bits(*) {
+        m1 <- invoke GETMAP(h1);
+        m2 <- invoke GETMAP(h2);
+        assert (m1 != None);
+        assert (m2 != None);
+        h <- mk_xtr_handle(n, h1, h2);
+        hp <- invoke XTR(m1, m2);
+        _ <- invoke SETMAP(h, hp);
+        return h;
+    }
+}
