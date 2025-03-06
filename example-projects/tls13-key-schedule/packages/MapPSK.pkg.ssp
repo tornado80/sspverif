@@ -1,0 +1,12 @@
+package MapPSK {
+    import oracles {
+        SETMAP(h: Bits(*), h1: Bits(*)),
+        SET(h: Bits(*), hon: Bool, k: Bits(*)) -> Bits(*),
+    }
+
+    oracle SET(h: Bits(*), hon: Bool, k: Bits(*)) -> Bits(*) {
+        h1 <- invoke SET(h, hon, k);
+        _ <- invoke SETMAP(h, h1);
+        return h;
+    }
+}
