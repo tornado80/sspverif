@@ -15,7 +15,7 @@ package MapXpd {
 
     oracle XPD(h1: Bits(*), r: Bool, args: Bits(*)) -> Bits(*) {
         m1 <- invoke GETMAP(h1);
-        assert (m1 != None);
+        assert (m1 != None as Bits(*));
         label <- invoke LABEL(n, r);
         h <- mk_xpd_handle(n, label, h1, args);
         hp <- invoke XPD(m1, r, args);

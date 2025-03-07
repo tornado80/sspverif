@@ -1,4 +1,8 @@
 package Map {
+    params {
+        type: fn Bits(*) -> Integer /* returns the type of the given handle */
+    }
+
     state {
         /* Since handles have unique name and level, 
         we don't need them for addressing the table */
@@ -6,6 +10,10 @@ package Map {
     }
 
     oracle GETMAP(h: Bits(*)) -> Maybe(Bits(*)) {
+        /* initialization of noDH and noPSK keys */
+        if ((type(h) == 0) or (type(h) == 3)) {
+            return Some(h);
+        }
         return M[h];
     }
 

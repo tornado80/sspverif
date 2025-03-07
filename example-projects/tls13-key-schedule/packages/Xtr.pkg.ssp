@@ -13,6 +13,7 @@ package Xtr {
     }
 
     import oracles {
+        SAMPLE(n: Integer) -> Bits(*),
         GET1(h: Bits(*)) -> (Bits(*), Bool),
         GET2(h: Bits(*)) -> (Bits(*), Bool),
         xtr(k1: Bits(*), k2: Bits(*)) -> Bits(*),
@@ -31,9 +32,7 @@ package Xtr {
         k <- invoke xtr(k1, k2);
         hon <- (hon1 or hon2);
         if (b and hon2) {
-            /* let's have different tables for each algorithm length */
-            /* what are the consequences of subtyping? */
-            ks <-$ Bits(*); /* Bits(len_key(k)) */
+            ks <- invoke SAMPLE(len_key(k));
             k <- tag(key_alg(k), ks);
         }
         h <- invoke SET(h, hon, k);
