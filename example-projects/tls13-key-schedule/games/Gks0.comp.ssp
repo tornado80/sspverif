@@ -10,6 +10,7 @@ composition Gks0 {
     const handle_alg: fn Bits(*) -> Integer;
     const tag: fn Integer, Bits(*) -> Bits(*);
     const name: fn Bits(*) -> Integer;
+    const type: fn Bits(*) -> Integer;
     const zeros: fn Integer -> Bits(*);
     const len_alg: fn Integer -> Integer;
 
@@ -52,7 +53,7 @@ composition Gks0 {
         params {
             handle_alg: handle_alg,
             tag: tag,
-            name: name,
+            type: type,
             zeros: zeros,
             len_alg: len_alg
         }

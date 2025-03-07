@@ -27,17 +27,17 @@ package MapXpdOutputKeyRemap {
             (n == 15)) /* eam */
         { /* output keys */
             m1 <- invoke GETMAP(h1);
-            assert (m1 != None);
+            assert (m1 != None as Bits(*));
             label <- invoke LABEL(n, r);
             h <- mk_xpd_handle(n, label, h1, args);
 
             t <- invoke GET(m1);
             (k1, hon) <- parse t;
             d <- invoke HASH(args);
-            k <- invoke xpd(k, label, d);
+            k <- invoke xpd(k1, label, d);
             _ <- invoke SET(h, hon, k); /* should return h */
 
-            _ <- invoke SETMAP(h, h);
+            discard <- invoke SETMAP(h, h);
             return h;
         }
     }
