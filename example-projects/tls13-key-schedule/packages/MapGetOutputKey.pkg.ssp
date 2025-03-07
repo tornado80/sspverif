@@ -5,13 +5,13 @@ package MapGetOutputKey {
     }
 
     import oracles {
-        GETMAP(h: Bits(*)) -> Bits(*),
+        GETMAP(h: Bits(*)) -> Maybe(Bits(*)),
         GET(h: Bits(*)) -> Bits(*),
     }
 
     oracle GET(h: Bits(*)) -> Bits(*) {
         m <- invoke GETMAP(h);
-        assert (m != None);
+        assert (m != None as Bits(*));
         k <- invoke GET(m);
         return k;
     }
