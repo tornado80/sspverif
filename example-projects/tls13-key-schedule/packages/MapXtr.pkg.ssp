@@ -15,8 +15,8 @@ package MapXtr {
     oracle XTR(h1: Bits(*), h2: Bits(*)) -> Bits(*) {
         m1 <- invoke GETMAP(h1);
         m2 <- invoke GETMAP(h2);
-        assert (m1 != None);
-        assert (m2 != None);
+        assert (m1 != None as Bits(*));
+        assert (m2 != None as Bits(*));
         h <- mk_xtr_handle(n, h1, h2);
         hp <- invoke XTR(m1, m2);
         _ <- invoke SETMAP(h, hp);

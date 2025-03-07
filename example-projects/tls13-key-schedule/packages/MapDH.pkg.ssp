@@ -15,7 +15,7 @@ package MapDH {
         return g;
     }
 
-    oracle DHEXP(X: Bits(*), Y: Bits(*)) -> Bits(*) {'
+    oracle DHEXP(X: Bits(*), Y: Bits(*)) -> Bits(*) {
         h <- mk_dh_handle(X, Y);
         hp <- invoke DHEXP(X, Y);
         hm <- invoke GETMAP(h);
