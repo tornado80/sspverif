@@ -125,10 +125,10 @@
 )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;
-; Invariant --- note that the invariant needs to be game-global and not per oracle, 
-;               so that induction over the oracle calls remains meaningful.
-;
+;                                                                                                      ;
+; Invariant --- note that the invariant needs to be game-global and not per oracle,                    ;
+;               so that induction over the oracle calls remains meaningful.                            ;
+;                                                                                                      ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define-fun invariant
