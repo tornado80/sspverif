@@ -1063,10 +1063,10 @@ pub fn handle_code(
                     }
 
                     let expected_type = match opt_idx.clone() {
-                        None => oracle_sig.tipe.clone(),
+                        None => target_oracle_sig.tipe.clone(),
                         Some(idx) => Type::Table(
                             Box::new(idx.get_type()),
-                            Box::new(oracle_sig.tipe.clone())
+                            Box::new(target_oracle_sig.tipe.clone())
                         ),
                     };
 
