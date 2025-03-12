@@ -621,3 +621,19 @@ impl InvalidGameInstanceInReductionError {
         }
     }
 }
+
+#[derive(miette::Diagnostic, Debug, thiserror::Error)]
+#[error("Wrong number of argument when invoking {oracle_name}, oracle has {expected_num} arguments, but invocation has {got_num}")]
+pub struct WrongArgumentCountInInvocationError {
+    #[source_code]
+    pub source_code: miette::NamedSource<String>,
+
+    #[label("this invocation has the wrong number of arguments")]
+    pub span: miette::SourceSpan,
+
+    pub oracle_name: String,
+
+    pub expected_num: usize,
+
+    pub got_num: usize,
+}

@@ -2,7 +2,7 @@ use super::{
     common::*,
     error::{
         IdentifierAlreadyDeclaredError, NoSuchTypeError, TypeMismatchError,
-        UndefinedIdentifierError, UntypedNoneTypeInferenceError,
+        UndefinedIdentifierError, UntypedNoneTypeInferenceError, WrongArgumentCountInInvocationError,
     },
     ParseContext, Rule,
 };
@@ -25,9 +25,7 @@ use crate::{
     types::Type,
     util::scope::{Declaration, OracleContext, Scope},
     writers::smt::{
-        declare::declare_const,
-        exprs::{SmtAnd, SmtAssert, SmtEq2, SmtExpr, SmtIte, SmtLt, SmtLte, SmtNot},
-        sorts::Sort,
+        exprs::{SmtAnd, SmtEq2, SmtExpr, SmtIte, SmtLt, SmtLte, SmtNot},
     },
 };
 
@@ -148,6 +146,10 @@ pub enum ParsePackageError {
     #[error(transparent)]
     #[diagnostic(transparent)]
     ForLoopIdentifersDontMatch(#[from] ForLoopIdentifersDontMatchError),
+
+    #[error(transparent)]
+    #[diagnostic(transparent)]
+    WrongArgumentCountInInvocation(#[from]WrongArgumentCountInInvocationError)
 }
 
 #[derive(Error, Debug)]
@@ -981,6 +983,7 @@ pub fn handle_code(
                     let mut inner = stmt.into_inner();
                     let target_ident_name_ast = inner.next().unwrap();
                     let maybe_index = inner.next().unwrap();
+
                     // TODO: this should be used in type checking somehow
                     let (opt_idx, oracle_inv) = if maybe_index.as_rule() == Rule::table_index {
                         let mut inner_index = maybe_index.into_inner();
@@ -993,34 +996,17 @@ pub fn handle_code(
 
                     assert!(matches!(oracle_inv.as_rule(), Rule::oracle_call));
 
+                    let invoc_span = oracle_inv.as_span();
+
                     let mut inner = oracle_inv.into_inner();
                     let oracle_name_ast = inner.next().unwrap();
                     let oracle_name_span = oracle_name_ast.as_span();
                     let oracle_name = oracle_name_ast.as_str();
 
+                    println!("found invocation of oracle {oracle_name}");
+
                     let mut args = vec![];
                     let mut dst_inst_index = None;
-
-                    for ast in inner {
-                        match ast.as_rule() {
-                            Rule::oracle_call_index => {
-                                let index_expr_ast = ast.into_inner().next().unwrap();
-                                dst_inst_index =
-                                    Some(handle_expression(&ctx.parse_ctx(), index_expr_ast, Some(&Type::Integer))?);
-                            }
-                            Rule::fn_call_arglist => {
-                                // TODO: figure out the types of the arguments and provide them to
-                                // the parser
-                                let arglist: Result<Vec<_>, _> = ast
-                                    .into_inner()
-                                    .map(|expr| handle_expression(&ctx.parse_ctx(), expr, None))
-                                    .collect();
-                                let arglist = arglist?;
-                                args.extend(arglist.into_iter())
-                            }
-                            _ => unreachable!(),
-                        }
-                    }
 
                     let oracle_decl = ctx.scope
                         .lookup(oracle_name)
@@ -1032,27 +1018,57 @@ pub fn handle_code(
                             }
                             )?;
 
-                    let expected_type = match (oracle_decl, opt_idx.clone()) {
-                        (Declaration::Oracle(_context, oracle_sig), None) => Ok(oracle_sig.tipe),
-                        (Declaration::Oracle(_context, oracle_sig), Some(idx)) => Ok(Type::Table(
-                            Box::new(idx.get_type()),
-                            Box::new(oracle_sig.tipe)
-                        )),
-                        (Declaration::Identifier(_ident), _) => {
+                    let Declaration::Oracle(target_oracle_ctx, target_oracle_sig) = oracle_decl else {
                             // XXX: we could also give notice that there exists an identifier of
                             // that name; but saying "there is no oracle of that name" isn't wrong
                             // either
                             // actually -- why do we put oracles in the scope again??
-                            Err(
-                            NoSuchOracleError{
+                        return Err( NoSuchOracleError{
                                 source_code: ctx.named_source(),
                                 at: (oracle_name_span.start()..oracle_name_span.end()).into(),
                                 oracle_name: oracle_name.to_string(),
-                            }
+                            }.into());
+                    };
 
-                            )
+                    for ast in inner {
+                        match ast.as_rule() {
+                            Rule::oracle_call_index => {
+                                let index_expr_ast = ast.into_inner().next().unwrap();
+                                dst_inst_index =
+                                    Some(handle_expression(&ctx.parse_ctx(), index_expr_ast, Some(&Type::Integer))?);
+                            }
+                            Rule::fn_call_arglist => {
+                                let args_iter = ast.into_inner();
+                                let (arg_count, _) = args_iter.size_hint();
+                                if arg_count != target_oracle_sig.args.len() {
+                                    println!("oracle signature in error: {oracle_sig:?}");
+                                    return Err(WrongArgumentCountInInvocationError{
+                                        source_code: ctx.named_source(),
+                                        span: (invoc_span.start()..invoc_span.end()).into(),
+                                        oracle_name: oracle_name.to_string(),
+                                        expected_num: target_oracle_sig.args.len(),
+                                        got_num: arg_count,
+                                    }.into());
+                                }
+
+                                let arglist: Result<Vec<_>, _> = args_iter
+                                    .zip(target_oracle_sig.args.iter())
+                                    .map(|(expr, (_, ty))| handle_expression(&ctx.parse_ctx(), expr, Some(ty)))
+                                    .collect();
+                                let arglist = arglist?;
+                                args.extend(arglist.into_iter())
+                            }
+                            _ => unreachable!(),
                         }
-                    }?;
+                    }
+
+                    let expected_type = match opt_idx.clone() {
+                        None => oracle_sig.tipe.clone(),
+                        Some(idx) => Type::Table(
+                            Box::new(idx.get_type()),
+                            Box::new(oracle_sig.tipe.clone())
+                        ),
+                    };
 
                     let target_ident = handle_identifier_in_code_lhs(
                         ctx,

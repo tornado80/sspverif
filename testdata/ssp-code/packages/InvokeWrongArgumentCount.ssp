@@ -1,0 +1,17 @@
+package InvokeWrongArgumentCount {
+  params {
+    n: Integer,
+  }
+
+  import oracles {
+    Process(m: Integer, k: Bits(n)) -> Bool,
+  }
+
+  oracle Initialize(m: Integer) {
+    k <-$ Bits(n);
+    ok <- invoke Process(m);
+    if not ok {
+      abort;
+    }
+  }
+}

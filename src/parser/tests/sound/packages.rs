@@ -1,7 +1,10 @@
 use crate::{
     parser::{
         common::HandleTypeError,
-        error::{NoSuchTypeError, TypeMismatchError, UndefinedIdentifierError},
+        error::{
+            NoSuchTypeError, TypeMismatchError, UndefinedIdentifierError,
+            WrongArgumentCountInInvocationError,
+        },
         package::{ParseExpressionError, ParsePackageError},
         tests::{packages, slice_source_span},
     },
@@ -214,4 +217,44 @@ fn loop_end_non_integer_fails() {
                     ..
                 }
             )) if matches!(&**countspec, CountSpec::Identifier(ident) if ident.ident_ref() == "n")));
+}
+
+#[test]
+fn invoke_wrong_argument_types() {
+    let err = packages::parse_file_fails("InvokeWrongArgumentTypes.ssp");
+
+    assert!(
+        matches!(
+            &err,
+            ParsePackageError::ParseExpression(ParseExpressionError::TypeMismatch(
+                TypeMismatchError {
+                    expected: Type::Integer,
+                    got: Type::Bits(_),
+                    ..
+                }
+            ))
+        ),
+        "{:?}",
+        miette::Report::new(err)
+    );
+}
+
+#[test]
+fn invoke_wrong_argument_count() {
+    let err = packages::parse_file_fails("InvokeWrongArgumentCount.ssp");
+
+    assert!(
+        matches!(
+            &err,
+            ParsePackageError::WrongArgumentCountInInvocation(
+                WrongArgumentCountInInvocationError {
+                    expected_num: 2,
+                    got_num: 1,
+                    ..
+                }
+            )
+        ),
+        "{:?}",
+        miette::Report::new(err)
+    );
 }
