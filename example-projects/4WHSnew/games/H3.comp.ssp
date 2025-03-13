@@ -52,7 +52,7 @@ composition H3 {
 			  PRF:      CR,
        },
 
-        Game: {
+        Game_nochecks: {
             Run1:      Prot,
             Run2:      Prot,
             Run3:      Prot,

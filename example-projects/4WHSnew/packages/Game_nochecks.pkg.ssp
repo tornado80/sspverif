@@ -73,7 +73,7 @@ package Game_nochecks {
          Run3(state: (Integer,Bool,Integer,Bool,Bits(n),Maybe(Bool),
                         Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),
                         Maybe((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)))),
-                        Integer), nr: Bits(n), tau: Bits(n)) 
+                        Integer), msg: (Bits(n), Bits(n))) 
          -> ((Integer,Bool,Integer,Bool,Bits(n),Maybe(Bool),
                         Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),
                         Maybe((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)))),
@@ -82,7 +82,7 @@ package Game_nochecks {
          Run4(state: (Integer,Bool,Integer,Bool,Bits(n),Maybe(Bool),
                         Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),
                         Maybe((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)))),
-                        Integer), ni: Bits(n), tau: Bits(n)) 
+                        Integer), msg: (Bits(n), Bits(n))) 
          -> ((Integer,Bool,Integer,Bool,Bits(n),Maybe(Bool),
                         Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),
                         Maybe((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)))),
