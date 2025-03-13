@@ -1,0 +1,10 @@
+package GetOutputKey_cet_0 {
+    import oracles {
+        GET(h: Bits(*)) -> Bits(*),
+    }
+
+    oracle GET_cet_0(h: Bits(*)) -> Bits(*) {
+        k <- invoke GET(h);
+        return k;
+    }
+}

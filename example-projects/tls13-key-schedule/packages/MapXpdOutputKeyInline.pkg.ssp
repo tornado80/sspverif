@@ -1,7 +1,6 @@
-package MapXpdOutputKeyInlined {
+package MapXpdOutputKeyInline {
     params {
         n: Integer, /* name of the key, see README */
-        l: Integer, /* level */
         /* constructs an xpd handle given the key name, label, parent handle, and args */
         mk_xpd_handle: fn Integer, Integer, Bits(*), Bits(*) -> Bits(*)
     }

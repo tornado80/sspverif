@@ -10,7 +10,6 @@ package Xpd {
         LABEL(n: Integer, r: Bool) -> Integer,
         GET(h: Bits(*)) -> (Bits(*), Bool), /* gets the parent key */
         SET(h: Bits(*), hon: Bool, k: Bits(*)) -> Bits(*),
-        SETPSK(h: Bits(*), hon: Bool, k: Bits(*)) -> Bits(*), /* sets PSK in the next level */
         xpd(k: Bits(*), label: Integer, d: Bits(*)) -> Bits(*),
         HASH(t: Bits(*)) -> Bits(*),
     }
@@ -22,7 +21,7 @@ package Xpd {
         (k1, hon) <- parse t;
         if (n == 0) { /* n = psk */
             k <- invoke xpd(k1, label, args);
-            h <- invoke SETPSK(h, hon, k);
+            h <- invoke SET(h, hon, k);
         } else {
             d <- invoke HASH(args);
             k <- invoke xpd(k1, label, d);

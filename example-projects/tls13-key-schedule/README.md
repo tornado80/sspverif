@@ -29,6 +29,9 @@
 | cat | 13 |
 | sat | 14 |
 | eam | 15 |
+| dh  | 16 |
+| 0ikm | 17 |
+| 0salt | 18 |
 
 # NKey package names
 | Name | Integer ID |

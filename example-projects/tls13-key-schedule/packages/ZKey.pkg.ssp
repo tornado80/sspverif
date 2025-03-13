@@ -15,12 +15,12 @@ package ZKey {
     }
 
     oracle GET(h: Bits(*)) -> (Bits(*), Bool) {
-        if (type(h) == 2) { /* 2 represents type of 0salt handles */
+        if (type(h) == 6) { /* 6 represents type of 0salt handles */
             ks <- zeros(1);
             k <- tag(handle_alg(h), ks);
             return (k, false);
         }
-        if (type(h) == 1) { /* 1 represents type of 0ikm handles */
+        if (type(h) == 7) { /* 7 represents type of 0ikm handles */
             ks <- zeros(len_alg(handle_alg(h)));
             k <- tag(handle_alg(h), ks);
             return (k, false);
