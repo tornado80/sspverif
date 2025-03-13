@@ -33,7 +33,7 @@ package DH {
         assert is_supported(group);
         g <- gen(group);
         n <- ord(group);
-        xb <-$ Bits(*); /* how to properly sample from Z_ord(grp)? */
+        xb <-$ Bits(*); /* how to properly sample from Z_ord(grp)? we are assuming order of group is a power of 2 */
         x <- bits_to_integer(xb);
         X <- exp(g, x);
         E[X] <- Some(x);

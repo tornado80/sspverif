@@ -24,7 +24,7 @@ package NKey {
     }
 
     oracle SET(h: Bits(*), hon: Bool, k: Bits(*)) -> Bits(*) {
-        assert (type(h) == 1); /* 1 represents type of DH handles */
+        /* assert (type(h) == 1); 1 represents type of DH handles */
         q_h <- invoke Q(h);
         if (q_h != None as Bits(*)) {
             return Unwrap(q_h);
