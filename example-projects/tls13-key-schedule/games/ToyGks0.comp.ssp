@@ -1,0 +1,82 @@
+composition ToyGks0 {
+    const is_supported: fn Integer -> Bool;
+    const ord: fn Integer -> Integer;
+    const gen: fn Integer -> Bits(*);
+    const exp: fn Bits(*), Integer -> Bits(*);
+    const grp: fn Bits(*) -> Integer;
+    const mk_dh_handle: fn Bits(*), Bits(*) -> Bits(*);
+    const encode_group_member: fn Bits(*) -> Bits(*);
+    const bits_to_integer: fn Bits(*) -> Integer;
+    const handle_alg: fn Bits(*) -> Integer;
+    const tag: fn Integer, Bits(*) -> Bits(*);
+    const name: fn Bits(*) -> Integer;
+    const type: fn Bits(*) -> Integer;
+    const zeros: fn Integer -> Bits(*);
+    const len_alg: fn Integer -> Integer;
+    const level: fn Bits(*) -> Integer;
+
+    instance dh_pkg = DH {
+        params {
+            is_supported: is_supported,
+            ord: ord,
+            gen: gen,
+            exp: exp,
+            grp: grp,
+            mk_dh_handle: mk_dh_handle,
+            encode_group_member: encode_group_member,
+            bits_to_integer: bits_to_integer
+        }
+        /*
+        types {
+            Group: Integer,
+            GroupMember: Bits(*),
+            Handle: Bits(*)
+        }
+        */
+    }
+
+    instance logz_pkg = Log {
+        /*
+        types {
+            Handle: Bits(*)
+        }
+        */
+        params {
+            level: level,
+            mapping: 0,
+            pattern: 0
+        }
+    }
+
+    instance nkey_pkg = NKey {
+        /*
+        types {
+            Handle: Bits(*),
+            AlgId: Integer
+        }
+        */
+
+        params {
+            handle_alg: handle_alg,
+            tag: tag,
+            type: type,
+            zeros: zeros,
+            len_alg: len_alg
+        }
+    }
+
+    compose {
+        adversary: {
+            DHGEN: dh_pkg,
+            DHEXP: dh_pkg,
+            GET: nkey_pkg
+        },
+        dh_pkg: {
+            SET: nkey_pkg
+        },
+        nkey_pkg: {
+            UNQ: logz_pkg,
+            Q: logz_pkg
+        }
+    }
+}

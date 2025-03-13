@@ -1,9 +1,4 @@
 package MapGetOutputKey {
-    params {
-        n: Integer,
-        l: Integer
-    }
-
     import oracles {
         GETMAP(h: Bits(*)) -> Maybe(Bits(*)),
         GET(h: Bits(*)) -> Bits(*),
