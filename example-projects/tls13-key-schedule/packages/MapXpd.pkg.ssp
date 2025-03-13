@@ -17,7 +17,7 @@ package MapXpd {
         assert (m1 != None as Bits(*));
         label <- invoke LABEL(n, r);
         h <- mk_xpd_handle(n, label, h1, args);
-        hp <- invoke XPD(m1, r, args);
+        hp <- invoke XPD(Unwrap(m1), r, args);
         _ <- invoke SETMAP(h, hp);
         return h;
     }

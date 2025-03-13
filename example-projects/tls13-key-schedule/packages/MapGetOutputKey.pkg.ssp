@@ -7,7 +7,7 @@ package MapGetOutputKey {
     oracle GET(h: Bits(*)) -> Bits(*) {
         m <- invoke GETMAP(h);
         assert (m != None as Bits(*));
-        k <- invoke GET(m);
+        k <- invoke GET(Unwrap(m));
         return k;
     }
 }

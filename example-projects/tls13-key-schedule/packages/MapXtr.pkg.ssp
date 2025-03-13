@@ -18,7 +18,7 @@ package MapXtr {
         assert (m1 != None as Bits(*));
         assert (m2 != None as Bits(*));
         h <- mk_xtr_handle(n, h1, h2);
-        hp <- invoke XTR(m1, m2);
+        hp <- invoke XTR(Unwrap(m1), Unwrap(m2));
         _ <- invoke SETMAP(h, hp);
         return h;
     }
