@@ -1,0 +1,15 @@
+package MapAdapter {
+    import oracles {
+        GETMAP(h: Bits(*)) -> Maybe(Bits(*)),
+    }
+
+    oracle GETMAP1(h: Bits(*)) -> Maybe(Bits(*)) {
+        t <- invoke GETMAP(h);
+        return t;
+    }
+
+    oracle GETMAP2(h: Bits(*)) -> Maybe(Bits(*)) {
+        t <- invoke GETMAP(h);
+        return t;
+    }
+}

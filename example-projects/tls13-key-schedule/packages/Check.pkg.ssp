@@ -19,7 +19,7 @@ package Check {
     }
 
     oracle XPD(h: Bits(*), r: Bool, args: Bits(*)) -> Bits(*) {
-        if (n == 7) {
+        if (n == 7) { /* n = bind */
             if r {
                 assert (level(h) != 0);
             } else {

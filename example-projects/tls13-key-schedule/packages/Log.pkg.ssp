@@ -6,7 +6,6 @@ package Log {
     */
 
     params {
-        n: Integer, /* name of the key, see README */
         pattern: Integer, /* pattern see README (shortly; Z: 0, A: 1, D: 2, F: 3) */
         mapping: Integer, /* mapping see README (shortly; 0: 0, 1: 1, inf: 2) */
         level: fn Bits(*) -> Integer /* returns the level of the given handle */
@@ -99,7 +98,7 @@ package Log {
         }
 
         if (pattern == 3)  { /* F */
-            if Unwrap(Seen[k]) { /* we are assuming UNQ is not called on the same inputs, Q will catch it */
+            if (Seen[k] != None as Bool) { /* we are assuming UNQ is not called on the same inputs, Q will catch it */
                 assert false;
             }
         }
