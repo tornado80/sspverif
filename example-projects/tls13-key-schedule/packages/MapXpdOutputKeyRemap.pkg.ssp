@@ -30,7 +30,7 @@ package MapXpdOutputKeyRemap {
             label <- invoke LABEL(n, r);
             h <- mk_xpd_handle(n, label, h1, args);
 
-            t <- invoke GET(m1);
+            t <- invoke GET(Unwrap(m1));
             (k1, hon) <- parse t;
             d <- invoke HASH(args);
             k <- invoke xpd(k1, label, d);

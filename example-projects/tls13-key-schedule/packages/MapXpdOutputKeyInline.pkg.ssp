@@ -32,7 +32,7 @@ package MapXpdOutputKeyInline {
 
             /* inlining hp <- XPD(m1, r, args); */
             hp <- mk_xpd_handle(n, label, m1, args);
-            t <- invoke GET(m1);
+            t <- invoke GET(Unwrap(m1));
             (k1, hon) <- parse t;
             d <- invoke HASH(args);
             k <- invoke xpd(k1, label, d);
