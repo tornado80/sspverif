@@ -1,0 +1,10 @@
+package GetOutputKey_eem_3 {
+    import oracles {
+        GET(h: Bits(*)) -> Bits(*),
+    }
+
+    oracle GET_eem_3(h: Bits(*)) -> Bits(*) {
+        k <- invoke GET(h);
+        return k;
+    }
+}
