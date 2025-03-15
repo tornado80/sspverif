@@ -1,0 +1,193 @@
+proof Proof {
+	const bits_to_integer: fn Bits(*) -> Integer;
+	const cast256: fn Bits(256) -> Bits(*);
+	const cast384: fn Bits(384) -> Bits(*);
+	const cast512: fn Bits(512) -> Bits(*);
+	const encode_group_member: fn Bits(*) -> Bits(*);
+	const exp: fn Bits(*), Integer -> Bits(*);
+	const extract_binder_from_args: fn Bits(*) -> Bits(*);
+	const extract_dh_handle: fn Bits(*) -> Bits(*);
+	const extract_dh_shares_from_args: fn Bits(*) -> (Bits(*), Bits(*));
+	const gen: fn Integer -> Bits(*);
+	const grp: fn Bits(*) -> Integer;
+	const handle_alg: fn Bits(*) -> Integer;
+	const hash: fn Integer, Bits(*) -> Bits(*);
+	const hmac: fn Integer, Bits(*), Bits(*) -> Bits(*);
+	const is_supported: fn Integer -> Bool;
+	const key_alg: fn Bits(*) -> Integer;
+	const len_alg: fn Integer -> Integer;
+	const len_key: fn Bits(*) -> Integer;
+	const level: fn Bits(*) -> Integer;
+	const mk_binder_handle: fn Bits(*), Bool, Bits(*) -> Bits(*);
+	const mk_dh_handle: fn Bits(*), Bits(*) -> Bits(*);
+	const mk_xpd_alg_transcript: fn Integer, Bits(*), Bits(*) -> Bits(*);
+	const mk_xpd_handle: fn Integer, Integer, Bits(*), Bits(*) -> Bits(*);
+	const mk_xtr_handle: fn Integer, Bits(*), Bits(*) -> Bits(*);
+	const name: fn Bits(*) -> Integer;
+	const ord: fn Integer -> Integer;
+	const tag: fn Integer, Bits(*) -> Bits(*);
+	const tag_digest: fn Integer, Bits(*) -> Bits(*);
+	const transcript_alg: fn Bits(*) -> Integer;
+	const type: fn Bits(*) -> Integer;
+	const untag: fn Bits(*) -> Bits(*);
+	const untag_digest: fn Bits(*) -> Bits(*);
+	const untag_transcript: fn Bits(*) -> Bits(*);
+	const zeros: fn Integer -> Bits(*);
+
+	instance game_Gks0 = Gks0 {
+		params {
+			bits_to_integer: bits_to_integer,
+			cast256: cast256,
+			cast384: cast384,
+			cast512: cast512,
+			encode_group_member: encode_group_member,
+			exp: exp,
+			extract_binder_from_args: extract_binder_from_args,
+			extract_dh_handle: extract_dh_handle,
+			extract_dh_shares_from_args: extract_dh_shares_from_args,
+			gen: gen,
+			grp: grp,
+			handle_alg: handle_alg,
+			hash: hash,
+			hmac: hmac,
+			is_supported: is_supported,
+			key_alg: key_alg,
+			len_alg: len_alg,
+			len_key: len_key,
+			level: level,
+			mk_binder_handle: mk_binder_handle,
+			mk_dh_handle: mk_dh_handle,
+			mk_xpd_alg_transcript: mk_xpd_alg_transcript,
+			mk_xpd_handle: mk_xpd_handle,
+			mk_xtr_handle: mk_xtr_handle,
+			name: name,
+			ord: ord,
+			tag: tag,
+			tag_digest: tag_digest,
+			transcript_alg: transcript_alg,
+			type: type,
+			untag: untag,
+			untag_digest: untag_digest,
+			untag_transcript: untag_transcript,
+			zeros: zeros,
+		}
+	}
+
+	instance game_Gks0Map = Gks0Map {
+		params {
+			bits_to_integer: bits_to_integer,
+			cast256: cast256,
+			cast384: cast384,
+			cast512: cast512,
+			encode_group_member: encode_group_member,
+			exp: exp,
+			extract_binder_from_args: extract_binder_from_args,
+			extract_dh_handle: extract_dh_handle,
+			extract_dh_shares_from_args: extract_dh_shares_from_args,
+			gen: gen,
+			grp: grp,
+			handle_alg: handle_alg,
+			hash: hash,
+			hmac: hmac,
+			is_supported: is_supported,
+			key_alg: key_alg,
+			len_alg: len_alg,
+			len_key: len_key,
+			level: level,
+			mk_binder_handle: mk_binder_handle,
+			mk_dh_handle: mk_dh_handle,
+			mk_xpd_alg_transcript: mk_xpd_alg_transcript,
+			mk_xpd_handle: mk_xpd_handle,
+			mk_xtr_handle: mk_xtr_handle,
+			name: name,
+			ord: ord,
+			tag: tag,
+			tag_digest: tag_digest,
+			transcript_alg: transcript_alg,
+			type: type,
+			untag: untag,
+			untag_digest: untag_digest,
+			untag_transcript: untag_transcript,
+			zeros: zeros,
+		}
+	}
+
+	instance game_GksMapXpd = GksMapXpd {
+		params {
+			bits_to_integer: bits_to_integer,
+			cast256: cast256,
+			cast384: cast384,
+			cast512: cast512,
+			encode_group_member: encode_group_member,
+			exp: exp,
+			extract_binder_from_args: extract_binder_from_args,
+			extract_dh_handle: extract_dh_handle,
+			extract_dh_shares_from_args: extract_dh_shares_from_args,
+			gen: gen,
+			grp: grp,
+			handle_alg: handle_alg,
+			hash: hash,
+			hmac: hmac,
+			is_supported: is_supported,
+			key_alg: key_alg,
+			len_alg: len_alg,
+			len_key: len_key,
+			level: level,
+			mk_binder_handle: mk_binder_handle,
+			mk_dh_handle: mk_dh_handle,
+			mk_xpd_alg_transcript: mk_xpd_alg_transcript,
+			mk_xpd_handle: mk_xpd_handle,
+			mk_xtr_handle: mk_xtr_handle,
+			name: name,
+			ord: ord,
+			tag: tag,
+			tag_digest: tag_digest,
+			transcript_alg: transcript_alg,
+			type: type,
+			untag: untag,
+			untag_digest: untag_digest,
+			untag_transcript: untag_transcript,
+			zeros: zeros,
+		}
+	}
+
+	instance game_Gks1 = Gks1 {
+		params {
+			bits_to_integer: bits_to_integer,
+			cast256: cast256,
+			cast384: cast384,
+			cast512: cast512,
+			encode_group_member: encode_group_member,
+			exp: exp,
+			extract_binder_from_args: extract_binder_from_args,
+			extract_dh_handle: extract_dh_handle,
+			extract_dh_shares_from_args: extract_dh_shares_from_args,
+			gen: gen,
+			grp: grp,
+			handle_alg: handle_alg,
+			hash: hash,
+			hmac: hmac,
+			is_supported: is_supported,
+			key_alg: key_alg,
+			len_alg: len_alg,
+			len_key: len_key,
+			level: level,
+			mk_binder_handle: mk_binder_handle,
+			mk_dh_handle: mk_dh_handle,
+			mk_xpd_alg_transcript: mk_xpd_alg_transcript,
+			mk_xpd_handle: mk_xpd_handle,
+			mk_xtr_handle: mk_xtr_handle,
+			name: name,
+			ord: ord,
+			tag: tag,
+			tag_digest: tag_digest,
+			transcript_alg: transcript_alg,
+			type: type,
+			untag: untag,
+			untag_digest: untag_digest,
+			untag_transcript: untag_transcript,
+			zeros: zeros,
+		}
+	}
+
+}

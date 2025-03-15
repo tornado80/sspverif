@@ -1,10 +1,14 @@
 import sys
 import itertools
 import os
+import operator
 import lark
 
-PACKAGES_DIR = os.path.join(os.path.dirname(__file__), "packages")
-GAMES_DIR = os.path.join(os.path.dirname(__file__), "games")
+CURRENT_DIR = os.path.dirname(__file__)
+PACKAGES_DIR = os.path.join(CURRENT_DIR, "packages")
+GAMES_DIR = os.path.join(CURRENT_DIR, "games")
+PROOF_DIR = os.path.join(CURRENT_DIR, "proofs")
+PROOF_FILE_PATH = os.path.join(PROOF_DIR, "proof.ssp")
 
 RESUMPTION_LEVELS = int(sys.argv[1])
 LEVELS_COUNT = RESUMPTION_LEVELS + 1
@@ -328,7 +332,6 @@ def get_adversary_compositions(game):
             return compositions
 
 class ParameterExtractor(lark.visitors.Visitor_Recursive):
-    lark.Tree
     def __init__(self):
         self.parameters = {}
 
@@ -336,25 +339,32 @@ class ParameterExtractor(lark.visitors.Visitor_Recursive):
         identifier, tipe = decl.children
         self.parameters[identifier.value] = (tipe.meta.start_pos, tipe.meta.end_pos)
 
-def get_package_type(package):
-    if isinstance(package, str):
-        return package
-    elif isinstance(package, tuple):
-        return package[0]
+def get_instance_type(instance):
+    if isinstance(instance, str):
+        return instance
+    elif isinstance(instance, tuple):
+        return instance[0]
     else:
-        raise NotImplementedError(f"unknown package type {package}")
+        raise NotImplementedError(f"unknown package type {instance}")
 
-def get_package_name(package):
-    if isinstance(package, str):
-        return package
-    elif isinstance(package, tuple):
-        match package:
+def get_instance_name(instance):
+    if isinstance(instance, str):
+        return instance
+    elif isinstance(instance, tuple):
+        match instance:
             case (("GetOutputKey_Name_Level" | "Xpd_Name_Level" | "Xtr_Name_Level"), _, _, _):
-                return package[1]
+                return instance[1]
             case _:
-                return package[0]
+                return instance[0]
     else:
-        raise NotImplementedError(f"unknown package type {package}")
+        raise NotImplementedError(f"unknown package type {instance}")
+
+def instance_to_sorting_key(instance):
+    if isinstance(instance, str):
+        return (instance,)
+    if isinstance(instance, tuple):
+        return instance
+    raise NotImplementedError(f"Unknown instance type {instance}")
 
 print("Building SSP parser")
 parser = lark.Lark.open("ssp.lark", rel_to=__file__, propagate_positions=True)
@@ -362,160 +372,164 @@ packages_parameters = {}
 for entry in os.listdir(PACKAGES_DIR):
     if entry.endswith(".pkg.ssp"):
         print("Extracting parameters from package", entry)
-        package_name = entry.removesuffix(".pkg.ssp")
+        instance_name = entry.removesuffix(".pkg.ssp")
         with open(os.path.join(PACKAGES_DIR, entry)) as f:
             content = f.read()
         tree = parser.parse(content)
         extractor = ParameterExtractor()
         extractor.visit_topdown(tree)
         package_parameters = {}
-        packages_parameters[package_name] = package_parameters
+        packages_parameters[instance_name] = package_parameters
         for parameter, (start_pos, end_pos) in extractor.parameters.items():
             package_parameters[parameter] = content[start_pos:end_pos]
 
+game_abstract_functions_signatures = {}
+all_abstract_functions_signatures = {}
 for game in GAMES:
-    print(f"Generating packages for {game}:")
-    parameters = {}
-    compositions = {}
-    packages = set()
-    abstract_functions = {}
-    package_names = {"adversary":"adversary"}
+    print(f"Generating package instances for {game}:")
+    instances_parameters = {}
+    instances_compositions = {}
+    instances = set()
+    abstract_functions_signatures = {}
+    instances_names = {"adversary": "adversary"}
     stack = ["adversary"]
     while len(stack) > 0:
-        package = stack.pop(0)
-        if package in packages:
+        instance = stack.pop(0)
+        if instance in instances:
             continue
-        elif package != "adversary":
-            packages.add(package)
-        parameters[package] = {}
-        match package:
+        elif instance != "adversary":
+            instances.add(instance)
+        instances_parameters[instance] = {}
+        match instance:
             case "adversary":
-                compositions[package] = get_adversary_compositions(game)
+                instances_compositions[instance] = get_adversary_compositions(game)
             case "DH":
-                compositions[package] = {
+                instances_compositions[instance] = {
                     "SET": "NKey"
                 }
             case "Hash":
-                parameters[package] = get_hash_package_parameters(game)
-                compositions[package] = {
+                instances_parameters[instance] = get_hash_package_parameters(game)
+                instances_compositions[instance] = {
                     "hash": "hash0"
                 }
             case "NKey":
-                compositions[package] = {
+                instances_compositions[instance] = {
                     "UNQ": ("Log", "dh"),
                     "Q": ("Log", "dh")
                 }
             case "MapDH":
-                compositions[package] = {
+                instances_compositions[instance] = {
                     "DHGEN": "DH",
                     "DHEXP": "DH",
                     "GETMAP": ("Map", "dh"),
                     "SETMAP": ("Map", "dh")
                 }
             case "MapPSK":
-                compositions[package] = {
+                instances_compositions[instance] = {
                     "SETMAP": ("Map", "psk"),
                     "SET": ("Key", "psk", 0)
                 }
             case ("MapGetOutputKey", key, level):
-                compositions[package] = {
+                instances_compositions[instance] = {
                     "GET": ("Key", key, level),
                     "GETMAP": ("Map", key, level)
                 }
             case ("MapXtr", key, level):
-                parameters[package] = {"n": KEYS.index(key)}
-                compositions[package] = get_map_xtr_package_compositions(key, level)
+                instances_parameters[instance] = {"n": KEYS.index(key)}
+                instances_compositions[instance] = get_map_xtr_package_compositions(key, level)
             case ("MapXpd", key, level):
-                parameters[package] = {"n": KEYS.index(key)}
-                compositions[package] = get_map_xpd_package_compositions(key, level)
+                instances_parameters[instance] = {"n": KEYS.index(key)}
+                instances_compositions[instance] = get_map_xpd_package_compositions(key, level)
             case ("MapXpdOutputKeyInline", key, level):
-                parameters[package] = {"n": KEYS.index(key)}
-                compositions[package] = get_map_xpd_output_key_inline_package_compositions(key, level)
+                instances_parameters[instance] = {"n": KEYS.index(key)}
+                instances_compositions[instance] = get_map_xpd_output_key_inline_package_compositions(key, level)
             case ("MapXpdOutputKeyRemap", key, level):
-                parameters[package] = {"n": KEYS.index(key)}
-                compositions[package] = get_map_xpd_output_key_remap_package_compositions(key, level)
+                instances_parameters[instance] = {"n": KEYS.index(key)}
+                instances_compositions[instance] = get_map_xpd_output_key_remap_package_compositions(key, level)
             case ("KeyAdapter", key, level):
                 match key:
                     case "0ikm" | "0salt":
-                        compositions[package] = {
+                        instances_compositions[instance] = {
                             "GET": "ZKey"
                         }
                     case "dh":
-                        compositions[package] = {
+                        instances_compositions[instance] = {
                             "GET": "NKey"
                         }
                     case _:
-                        compositions[package] = {
+                        instances_compositions[instance] = {
                             "GET": ("Key", key, level)
                         }
             case ("MapAdapter", key, level):
-                compositions[package] = {
+                instances_compositions[instance] = {
                     "GETMAP": ("Map", key, level)
                 }
             case ("Xpd", key, level):
-                parameters[package] = get_xpd_package_parameters(key, level)
-                compositions[package] = get_xpd_package_compositions(key, level)
+                instances_parameters[instance] = get_xpd_package_parameters(key, level)
+                instances_compositions[instance] = get_xpd_package_compositions(key, level)
             case ("Xtr", key, level):
-                parameters[package] = get_xtr_package_parameters(game, key, level)
-                compositions[package] = get_xtr_package_compositions(key, level)
+                instances_parameters[instance] = get_xtr_package_parameters(game, key, level)
+                instances_compositions[instance] = get_xtr_package_compositions(key, level)
             case ("Key", key, level):
-                parameters[package] = get_key_package_parameters(game, key, level)
-                compositions[package] = get_key_package_compositions(key)
+                instances_parameters[instance] = get_key_package_parameters(game, key, level)
+                instances_compositions[instance] = get_key_package_compositions(key)
             case ("Log", key):
-                parameters[package] = get_log_package_parameters(game, key)
-                compositions[package] = {}
+                instances_parameters[instance] = get_log_package_parameters(game, key)
+                instances_compositions[instance] = {}
             case ("GetOutputKey_Name_Level", _, key, level):
-                compositions[package] = get_get_output_key_package_compositions(game, key, level)
+                instances_compositions[instance] = get_get_output_key_package_compositions(game, key, level)
             case ("Xpd_Name_Level", _, key, level):
-                compositions[package] = {
+                instances_compositions[instance] = {
                     "XPD": ("Check", key, level)
                 }
             case ("Xtr_Name_Level", _, key, level):
-                compositions[package] = get_xtr_name_level_package_compositions(game, key, level)
+                instances_compositions[instance] = get_xtr_name_level_package_compositions(game, key, level)
             case ("Check", key, level):
-                parameters[package] = {
+                instances_parameters[instance] = {
                     "n": KEYS.index(key),
                     "l": level
                 }
-                compositions[package] = get_check_package_compositions(game, key, level)
+                instances_compositions[instance] = get_check_package_compositions(game, key, level)
             case ("Map", _) | ("Map", _, _) | "ZKey" | "xtr0" | "xpd0" | "hash0" | "Labels" | "Sample":
                 continue
             case p:
                 raise NotImplementedError(f"Can not handle package {p}")
-        for p in set(compositions[package].values()):
+        for p in set(instances_compositions[instance].values()):
             stack.append(p)
     print("Constructed call graph")
 
     # extract abstract functions
     print("Extracting parameters")
-    for package in packages:
-        package_type = get_package_type(package)
+    for instance in instances:
+        package_type = get_instance_type(instance)
         match package_type:
             case "GetOutputKey_Name_Level" | "Xpd_Name_Level" | "Xtr_Name_Level":
                 continue
             case _:
-                package_parameters = parameters[package]
+                package_parameters = instances_parameters[instance]
                 for parameter, value in packages_parameters[package_type].items():
                     if parameter not in package_parameters:
                         package_parameters[parameter] = parameter
-                        abstract_functions[parameter] = value
+                        abstract_functions_signatures[parameter] = value
+                        all_abstract_functions_signatures[parameter] = value
+    game_abstract_functions_signatures[game] = abstract_functions_signatures.keys()
     print("Extracted parameters")
 
     # give concrete names to instances
-    for package in packages:
-        package_name = ["pkg"]
-        if isinstance(package, tuple):
-            match package:
+    for instance in instances:
+        instance_name = ["pkg"]
+        if isinstance(instance, tuple):
+            match instance:
                 case (("GetOutputKey_Name_Level" | "Xpd_Name_Level" | "Xtr_Name_Level"), _, _, _):
-                    package_name.append(package[0])
-                    package_name.append(package[1])
+                    instance_name.append(instance[0])
+                    instance_name.append(instance[1])
                 case _:
-                    package_name.extend(map(str, list(package)))
-        elif isinstance(package, str):
-            package_name.append(package)
+                    instance_name.extend(map(str, list(instance)))
+        elif isinstance(instance, str):
+            instance_name.append(instance)
         else:
-            raise NotImplementedError(f"Can not handle name {package}")
-        package_names[package] = "_".join(package_name)
+            raise NotImplementedError(f"Can not handle name {instance}")
+        instances_names[instance] = "_".join(instance_name)
 
     # generate Xpd_Name_Level, Xtr_Name_Level, GetOutputKey_Name_Level packages
     for (key, level) in itertools.product(OUTPUT_KEYS, range(LEVELS_COUNT)):
@@ -532,29 +546,54 @@ for game in GAMES:
 
     # generate game files
     lines = [f"composition {game} {{\n"]
-    for name, signature in abstract_functions.items():
+    for name, signature in sorted(abstract_functions_signatures.items()):
         lines.append(f"\tconst {name}: {signature};\n")
     lines.append("\n")
-    for package in packages:
-        package_type = get_package_name(package)
-        lines.append(f"\tinstance {package_names[package]} = {package_type} {{\n")
-        if len(parameters[package]) > 0:
+    for instance in sorted(instances, key=instance_to_sorting_key):
+        package_type = get_instance_name(instance)
+        lines.append(f"\tinstance {instances_names[instance]} = {package_type} {{\n")
+        if len(instances_parameters[instance]) > 0:
             lines.append("\t\tparams {\n")
-            for parameter, value in parameters[package].items():
+            for parameter, value in sorted(instances_parameters[instance].items()):
                 lines.append(f"\t\t\t{parameter}: {value},\n")
             lines.append("\t\t}\n")
         lines.append("\t}\n")
         lines.append("\n")
     lines.append("\tcompose {\n")
-    for package, dependencies in compositions.items():
+    for instance, dependencies in sorted(
+            instances_compositions.items(),
+            key=lambda p: instance_to_sorting_key(p[0])):
         if len(dependencies) == 0:
             continue
-        lines.append(f"\t\t{package_names[package]}: {{\n")
-        for imported_oracle, imported_instance in dependencies.items():
-            lines.append(f"\t\t\t{imported_oracle}: {package_names[imported_instance]},\n")
+        lines.append(f"\t\t{instances_names[instance]}: {{\n")
+        for imported_oracle, imported_instance in sorted(dependencies.items(), key=operator.itemgetter(0)):
+            lines.append(f"\t\t\t{imported_oracle}: {instances_names[imported_instance]},\n")
         lines.append(f"\t\t}},\n")
     lines.append("\t}\n")
     lines.append("}\n")
 
     with open(os.path.join(GAMES_DIR, f"{game}.comp.ssp"), "w") as f:
         f.writelines(lines)
+
+# generate proof file
+proof_lines = ["proof Proof {\n"]
+for name, signature in sorted(all_abstract_functions_signatures.items()):
+    proof_lines.append(f"\tconst {name}: {signature};\n")
+proof_lines.append("\n")
+for game in GAMES:
+    proof_lines.append(f"\tinstance game_{game} = {game} {{\n")
+    proof_lines.append("\t\tparams {\n")
+    for name in sorted(game_abstract_functions_signatures[game]):
+        proof_lines.append(f"\t\t\t{name}: {name},\n")
+    proof_lines.append("\t\t}\n")
+    proof_lines.append("\t}\n")
+    proof_lines.append("\n")
+proof_lines.append("}\n")
+
+if not os.path.exists(PROOF_FILE_PATH):
+    with open(PROOF_FILE_PATH, "w") as f:
+        f.writelines(proof_lines)
+else:
+    os.makedirs(os.path.join(PROOF_DIR, "autogenerated"), exist_ok=True)
+    with open(os.path.join(PROOF_DIR, "autogenerated", "proof.ssp"), "w") as f:
+        f.writelines(proof_lines)

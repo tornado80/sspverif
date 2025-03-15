@@ -1,0 +1,10 @@
+package Xtr_as_3 {
+    import oracles {
+        XTR(h1: Bits(*), h2: Bits(*)) -> Bits(*),
+    }
+
+    oracle XTR_as_3(h1: Bits(*), h2: Bits(*)) -> Bits(*) {
+        k <- invoke XTR(h1, h2);
+        return k;
+    }
+}

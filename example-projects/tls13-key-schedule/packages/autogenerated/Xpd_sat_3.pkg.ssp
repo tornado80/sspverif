@@ -1,0 +1,10 @@
+package Xpd_sat_3 {
+    import oracles {
+        XPD(h1: Bits(*), r: Bool, args: Bits(*)) -> Bits(*),
+    }
+
+    oracle XPD_sat_3(h1: Bits(*), r: Bool, args: Bits(*)) -> Bits(*) {
+        k <- invoke XPD(h1, r, args);
+        return k;
+    }
+}
