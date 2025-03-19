@@ -1,4 +1,4 @@
-composition H5 {
+composition H6 {
         const n: Integer;
         const zeron: Bits(n);
         const prf: fn Bits(n), Integer, Integer, Bits(n), Bits(n), Bool ->  Bits(n);
