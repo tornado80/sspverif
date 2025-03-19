@@ -40,5 +40,6 @@ package Labels {
         if (n == 8) { /* n = binder, label = | EMPTY | 0 | */
             return 0;
         }
+        return 0;
     }
 }
