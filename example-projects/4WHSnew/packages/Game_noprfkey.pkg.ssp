@@ -54,6 +54,7 @@ package Game_noprfkey {
 
     import oracles {
 	     Exists(h: Integer),
+		 Eval(h: Integer, a: Integer, aa: Integer, c: Bits(n), d: Bits(n), e: Bool) -> Bits(n),
          Run1(state: (Integer,Bool,Integer,Bool,Integer,Maybe(Bool),
                         Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),
                         Maybe((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)))),
@@ -116,7 +117,7 @@ oracle Send1(ctr: Integer) -> Bits(n)
     {
         assert not (State[ctr] == None);     /* session has been initialized */
         state <- Unwrap(State[ctr]);
-        (U,u,V,v,ltk,acc,k,ni,nr,kmac,sid,mess) <- parse state;
+        (U,u,V,v,kid,acc,k,ni,nr,kmac,sid,mess) <- parse state;
         assert (u == false);                 /* session belongs to initiator */
         assert (acc  == None );              /* session is still running           */
         return      <- invoke Run1(state);
@@ -129,7 +130,7 @@ oracle Send2(ctr: Integer, msg: Bits(n)) -> (Bits(n),Bits(n))
     {
         assert not (State[ctr] == None);     /* session has been initialized */
         state   <- Unwrap(State[ctr]);
-        (V,v,U,u,ltk,acc,k,ni_,nr,kmac,sid,mess) <- parse state;
+        (V,v,U,u,kid,acc,k,ni_,nr,kmac,sid,mess) <- parse state;
         assert (v    == true );              /* session belongs to responder */
         assert (acc  == None );              /* session is still running           */
         return         <- invoke Run2(state,msg);
@@ -142,14 +143,14 @@ oracle Send3(ctr: Integer, msg: (Bits(n),Bits(n))) -> (Bits(n), Bits(n))
     {
         assert not (State[ctr] == None);    /* session has been initialized */
         state                                           <- Unwrap(State[ctr]);
-        (U,u,V,v,ltk,acc,k_,ni_,nr_,kmac_,sid_,mess)    <- parse state;
+        (U,u,V,v,kid,acc,k_,ni_,nr_,kmac_,sid_,mess)    <- parse state;
         assert (u    == false);              /* session belongs to initiator       */
         assert (acc  == None);               /* session is still running           */
         return         <- invoke Run3(state,msg);
         (state,msg_)   <- parse return;
 
 		/* Delete for no authentication */
-		(_U,_u,_V,_v,_ltk,_acc,_k,_ni,_nr,_kmac,sid,_mess) <- parse state;
+		(_U,_u,_V,_v,_kid,_acc,_k,_ni,_nr,_kmac,sid,_mess) <- parse state;
 		if (First[Unwrap(sid)] == None) {
 		    First[Unwrap(sid)] <- Some(ctr);
 		} else {
@@ -167,7 +168,7 @@ oracle Send4(ctr: Integer, msg: (Bits(n),Bits(n))) -> Bits(n)
     {
         assert not (State[ctr] == None);     /* session has been initialized */
         state                                          <- Unwrap(State[ctr]);
-        (V,v,U,u,ltk,acc,k,ni_,nr,kmac,sid_,mess)      <- parse state;
+        (V,v,U,u,kid,acc,k,ni_,nr,kmac,sid_,mess)      <- parse state;
 		
         assert (v    == true);                /* session belongs to responder       */
         assert (acc  == None);                /* session is still running           */
@@ -177,7 +178,7 @@ oracle Send4(ctr: Integer, msg: (Bits(n),Bits(n))) -> Bits(n)
         State[ctr]   <- Some(state);
 
 		/* Delete for no authentication */
-		(_U,_u,_V,_v,_ltk,_acc,_k,_ni,_nr,_kmac,sid,_mess) <- parse state;
+		(_U,_u,_V,_v,_kid,_acc,_k,_ni,_nr,_kmac,sid,_mess) <- parse state;
 		if (First[Unwrap(sid)] == None) {
 		    First[Unwrap(sid)] <- Some(ctr);
 		} else {
@@ -194,7 +195,7 @@ oracle Send5(ctr: Integer, msg: Bits(n)) -> Bool
     {
         assert not (State[ctr] == None);    /* session has been initialized */
         state                                       <- Unwrap(State[ctr]);
-        (U,u,V,v,ltk,acc,k,ni,nr,kmac,sid,mess)     <- parse state;
+        (U,u,V,v,kid,acc,k,ni,nr,kmac,sid,mess)     <- parse state;
 		
         assert (u    == false);              /* session belongs to initiator       */
         assert (acc  == None);               /* session is still running           */
@@ -207,7 +208,7 @@ oracle Send5(ctr: Integer, msg: Bits(n)) -> Bool
 
 oracle Reveal(ctr: Integer) -> Bits(n)
     {
-    (U,u,V,v,ltk,acc,_k,ni,nr,kmac,sid,mess) <- parse Unwrap(State[ctr]);
+    (U,u,V,v,kid,acc,_k,ni,nr,kmac,sid,mess) <- parse Unwrap(State[ctr]);
 
 	/* Session accepted */
     assert (acc == Some(true));
@@ -218,13 +219,13 @@ oracle Reveal(ctr: Integer) -> Bits(n)
 	/* mark key as revealed */
     RevTested[Unwrap(sid)] <- Some(false);    
 
-    k <- prf(ltk,U,V,Unwrap(ni),Unwrap(nr) ,true);
+    k <- invoke Eval(kid,U,V,Unwrap(ni),Unwrap(nr) ,true);
     return k;
     }
 
 oracle Test(ctr: Integer) -> Bits(n)
     {
-    (U,u,V,v,ltk,acc,_k,ni,nr,kmac,sid,mess) <- parse Unwrap(State[ctr]);
+    (U,u,V,v,kid,acc,_k,ni,nr,kmac,sid,mess) <- parse Unwrap(State[ctr]);
 	
 	/* Session accepted */
     assert (acc == Some(true));
@@ -236,7 +237,7 @@ oracle Test(ctr: Integer) -> Bits(n)
 	/* mark key as tested */
     RevTested[Unwrap(sid)] <- Some(true);
 	
-    k <- prf(ltk,U,V,Unwrap(ni),Unwrap(nr),true);
+    k <- invoke Eval(kid,U,V,Unwrap(ni),Unwrap(nr),true);
     if b {
 	    k <-$ Bits(n);
 	}
@@ -244,16 +245,16 @@ oracle Test(ctr: Integer) -> Bits(n)
     }
 
 oracle SameKey(ctr1: Integer, ctr2: Integer) -> Bool {
-    (_U,_u,_V,_v,_ltk,acc1,k1,_ni,_nr,_kmac,sid1,_mess) <- parse Unwrap(State[ctr1]);
-    (_U,_u,_V,_v,_ltk,acc2,k2,_ni,_nr,_kmac,sid2,_mess) <- parse Unwrap(State[ctr2]);
+    (_U,_u,_V,_v,_kid,acc1,k1,_ni,_nr,_kmac,sid1,_mess) <- parse Unwrap(State[ctr1]);
+    (_U,_u,_V,_v,_kid,acc2,k2,_ni,_nr,_kmac,sid2,_mess) <- parse Unwrap(State[ctr2]);
 
 	return false;
 	}
 
 oracle AtMost(ctr1: Integer, ctr2: Integer, ctr3: Integer) -> Bool {
-    (_U,_u,_V,_v,_ltk,acc1,_k,_ni,_nr,_kmac,sid1,_mess) <- parse Unwrap(State[ctr1]);
-    (_U,_u,_V,_v,_ltk,acc2,_k,_ni,_nr,_kmac,sid2,_mess) <- parse Unwrap(State[ctr2]);
-    (_U,_u,_V,_v,_ltk,acc3,_k,_ni,_nr,_kmac,sid3,_mess) <- parse Unwrap(State[ctr3]);
+    (_U,_u,_V,_v,_kid,acc1,_k,_ni,_nr,_kmac,sid1,_mess) <- parse Unwrap(State[ctr1]);
+    (_U,_u,_V,_v,_kid,acc2,_k,_ni,_nr,_kmac,sid2,_mess) <- parse Unwrap(State[ctr2]);
+    (_U,_u,_V,_v,_kid,acc3,_k,_ni,_nr,_kmac,sid3,_mess) <- parse Unwrap(State[ctr3]);
 
 	return false;
 	}
@@ -262,7 +263,7 @@ oracle AtLeast(sid: (Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)
 
    if ((b == false) and (First[sid] != None as Integer)
                     and (Second[sid] == None)){
-      (_U,_u,_V,_v,_ltk,acc1,_k,_ni,_nr,_kmac,_sid,_mess) <- parse Unwrap(State[Unwrap(First[sid])]);
+      (_U,_u,_V,_v,_kid,acc1,_k,_ni,_nr,_kmac,_sid,_mess) <- parse Unwrap(State[Unwrap(First[sid])]);
 	  if (acc1 == Some(true)) {
           return true;
 	  }
