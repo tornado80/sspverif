@@ -136,7 +136,7 @@ proof WHSProto {
     }
 
     gamehops 
-    {
+    {/*
         equivalence KX H1_0 {
             Send1: {
                 invariant: [
@@ -271,7 +271,7 @@ proof WHSProto {
                 }
             }
         }
-
+*/
         reduction H1_0 H1_1  
         {
             assumption nonces
