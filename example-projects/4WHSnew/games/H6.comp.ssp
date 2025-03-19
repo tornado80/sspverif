@@ -1,0 +1,69 @@
+composition H5 {
+        const n: Integer;
+        const zeron: Bits(n);
+        const prf: fn Bits(n), Integer, Integer, Bits(n), Bits(n), Bool ->  Bits(n);
+        const mac: fn Bits(n), Bits(n), Integer -> Bits(n);
+        const b: Bool;
+        const bprf: Bool;
+    
+    instance Game_noprfkey = Game_noprfkey {
+        params {
+        b: b,
+        n: n,
+        zeron: zeron,
+        prf: prf,
+        mac: mac,
+        }
+    }
+    instance Prot = ProtNoKeyOnlyKid {
+        params {
+        n: n,
+        zeron: zeron,
+        prf: prf,
+        mac: mac,
+        }
+    }
+	instance PRF = PRF {
+	    params {
+            b: bprf,
+		    prf: prf,
+		    n: n,
+		}
+    }
+	instance Nonces = Nonces {
+		params {
+        	n: n,
+			b: true,
+		}
+	}
+
+    compose {
+        adversary: {
+            NewKey:     PRF,
+            NewSession: Game_noprfkey,
+            Send1:      Game_noprfkey,
+            Send2:      Game_noprfkey,
+            Send3:      Game_noprfkey,
+            Send4:      Game_noprfkey,
+            Send5:      Game_noprfkey,
+            Reveal:     Game_noprfkey,
+            Test:       Game_noprfkey,
+			SameKey:	Game_noprfkey,
+ 			AtMost:		Game_noprfkey,
+ 			AtLeast:	Game_noprfkey,
+       },
+
+        Game_noprfkey: {
+            Run1:      Prot,
+            Run2:      Prot,
+            Run3:      Prot,
+            Run4:      Prot,
+            Run5:      Prot,
+			Exists:    PRF,
+        },
+
+		Prot: {
+			  Sample:	Nonces,
+		}
+    }
+}
