@@ -65,6 +65,7 @@ composition H5 {
 
 		Prot: {
 			  Sample:	Nonces,
+  			  Eval:     PRF,
 		}
     }
 }
