@@ -25,5 +25,7 @@ package ZKey {
             k <- tag(handle_alg(h), ks);
             return (k, false);
         }
+        k <-$ Bits(*);
+        return (k, false);
     }
 }

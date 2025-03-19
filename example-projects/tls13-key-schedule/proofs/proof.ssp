@@ -189,5 +189,19 @@ proof Proof {
 			zeros: zeros,
 		}
 	}
+	gamehops {
+		equivalence game_Gks0 game_Gks0Map {
+			DHEXP: {
+				invariant: [
+					./proofs/invariant.smt2
+				]
 
+				lemmas {
+					equal-aborts: []
+					invariant: [no-abort]
+					same-output: [no-abort]
+				}
+			}
+		}
+	}
 }
