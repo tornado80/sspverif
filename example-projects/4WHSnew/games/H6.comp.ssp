@@ -60,6 +60,7 @@ composition H5 {
             Run4:      Prot,
             Run5:      Prot,
 			Exists:    PRF,
+			Eval:      PRF,
         },
 
 		Prot: {
