@@ -1,0 +1,45 @@
+package Xtr {
+    params {
+        /* constructs xtr handle given a key name and parent handles */
+        mk_xtr_handle: fn Integer, Bits(*), Bits(*) -> Bits(*), 
+        handle_alg: fn Bits(*) -> Integer, /* returns the algorithm identifier of the given handle */
+        len_key: fn Bits(*) -> Integer, /* returns the length of the given key */
+        tag: fn Integer, Bits(*) -> Bits(*), /* tags the given key with the given algorithm identifier */
+        untag: fn Bits(*) -> Bits(*), /* untags the given key and returns a raw key */
+        key_alg: fn Bits(*) -> Integer, /* returns the algorithm identifier of the given key */
+    }
+
+    import oracles {
+        GET_XTR_PACKAGE_IDEALIZATION_PARAMETER(n: Integer, l: Integer) -> Bool,
+        IS_XTR_KEY(n: Integer) -> Bool,
+        PARENTS(n: Integer) -> (Maybe(Integer), Maybe(Integer)),
+        SAMPLE(n: Integer) -> Bits(*),
+        GET(n: Integer, l: Integer, h: Bits(*)) -> (Bits(*), Bool),
+        xtr(k1: Bits(*), k2: Bits(*)) -> Bits(*),
+        SET(n: Integer, l: Integer, h: Bits(*), hon: Bool, ks: Bits(*)) -> Bits(*),
+    }
+
+    oracle XTR(n: Integer, l: Integer, h1: Bits(*), h2: Bits(*)) -> Bits(*) {
+        is_xtr_key <- invoke IS_XTR_KEY(n);
+        assert is_xtr_key;
+        parents <- invoke PARENTS(n);
+        (parent1, parent2) <- parse parents;
+        if ((handle_alg(h1) != 0) and (handle_alg(h2) != 0)) {
+            assert (handle_alg(h1) == handle_alg(h2));
+        }
+        h <- mk_xtr_handle(n, h1, h2);
+        t1 <- invoke GET(Unwrap(parent1), l, h1);
+        (k1, hon1) <- parse t1;
+        t2 <- invoke GET(Unwrap(parent2), l, h2);
+        (k2, hon2) <- parse t2;
+        k <- invoke xtr(k1, k2);
+        hon <- (hon1 or hon2);
+        b <- invoke GET_XTR_PACKAGE_IDEALIZATION_PARAMETER(n, l);
+        if (b and hon2) {
+            ks <- invoke SAMPLE(len_key(k));
+            k <- tag(key_alg(k), ks);
+        }
+        h <- invoke SET(n, l, h, hon, k);
+        return h;
+    }
+}

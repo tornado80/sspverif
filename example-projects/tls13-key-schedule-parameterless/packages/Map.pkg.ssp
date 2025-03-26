@@ -1,0 +1,109 @@
+package Map {
+    params {
+        level: fn Bits(*) -> Integer, /* returns the level of the given handle */
+        /* constructs a dh handle with sorted DH shares X and Y */
+        mk_dh_handle: fn Bits(*), Bits(*) -> Bits(*),
+        /* constructs an xpd handle given the key name, label, parent handle, and args */
+        mk_xpd_handle: fn Integer, Integer, Bits(*), Bits(*) -> Bits(*),
+        /* constructs xtr handle given a key name and parent handles */
+        mk_xtr_handle: fn Integer, Bits(*), Bits(*) -> Bits(*), 
+    }
+
+    import oracles {
+        SET(n: Integer, l: Integer, h: Bits(*), hon: Bool, ks: Bits(*)) -> Bits(*),
+        GET(n: Integer, l: Integer, h: Bits(*)) -> (Bits(*), Bool),
+        GET_PSK_NAME() -> Integer,
+        GET_DH_NAME() -> Integer,
+        DHGEN(group: Integer) -> Bits(*),
+        DHEXP(X: Bits(*), Y: Bits(*)) -> Bits(*),
+        XPD(n: Integer, l: Integer, h1: Bits(*), r: Bool, args: Bits(*)) -> Bits(*),
+        XTR(n: Integer, l: Integer, h1: Bits(*), h2: Bits(*)) -> Bits(*),
+        LABEL(n: Integer, r: Bool) -> Integer,
+        PARENTS(n: Integer) -> (Maybe(Integer), Maybe(Integer)),
+        IS_XTR_KEY(n: Integer) -> Bool,
+        IS_XPD_KEY(n: Integer) -> Bool,
+        IS_OUTPUT_KEY(n: Integer) -> Bool,
+        IS_PSK(n: Integer) -> Bool,
+        LEVEL(h: Bits(*)) -> Maybe(Integer),
+        GETMAP(n: Integer, l: Integer, h: Bits(*)) -> Maybe(Bits(*)),
+        SETMAP(n: Integer, l: Integer, ext_h: Bits(*), int_h: Bits(*)),
+    }
+
+    oracle DHGEN(group: Integer) -> Bits(*) {
+        X <- invoke DHGEN(group);
+        return X;
+    }
+
+    oracle DHEXP(X: Bits(*), Y: Bits(*)) -> Bits(*) {
+        h <- mk_dh_handle(X, Y);
+        int_h <- invoke DHEXP(X, Y);
+        dh <- invoke GET_DH_NAME();
+        mapped_h <- invoke GETMAP(dh, 0, h);
+        if (mapped_h == None) { /* Why do we need this if-condition because DHEXP returns the same output upon the same input */
+            _ <- invoke SETMAP(dh, 0, h, int_h);
+        }
+        return h;
+    }
+
+    oracle GET(n: Integer, l: Integer, h: Bits(*)) -> (Bits(*), Bool) {
+        is_output_key <- invoke IS_OUTPUT_KEY(n);
+        if not is_output_key {
+            assert false;
+        }
+        int_h <- invoke GETMAP(n, l, h);
+        assert (int_h != None as Bits(*));
+        m <- Unwrap(int_h);
+        k_hon <- invoke GET(n, level(m), m);
+        return k_hon;
+    }
+
+    oracle SET(h: Bits(*), hon: Bool, k: Bits(*)) -> Bits(*) {
+        psk <- invoke GET_PSK_NAME();
+        int_h <- invoke SET(psk, 0, h, hon, k);
+        _ <- invoke SETMAP(psk, 0, h, int_h);
+        return h;
+    }
+
+    oracle XPD(n: Integer, l: Integer, h1: Bits(*), r: Bool, args: Bits(*)) -> Bits(*) {
+        is_xpd_key <- invoke IS_XPD_KEY(n);
+        assert is_xpd_key;
+        parents <- invoke PARENTS(n);
+        (parent, _none) <- parse parents;
+        parent_int_h <- invoke GETMAP(Unwrap(parent), l, h1);
+        assert (parent_int_h != None as Bits(*));
+        m <- Unwrap(parent_int_h);
+        label <- invoke LABEL(n, r);
+        l1 <- level(m);
+        ext_h <- mk_xpd_handle(n, label, h1, args);
+        int_h <- invoke XPD(n, l1, m, r, args);
+        is_psk <- invoke IS_PSK(n);
+        if is_psk {
+            l <- (l + 1);
+        }
+        _ <- invoke SETMAP(n, l, ext_h, int_h);
+        return ext_h;
+    }
+    
+    oracle XTR(n: Integer, l: Integer, h1: Bits(*), h2: Bits(*)) -> Bits(*) {
+        is_xtr_key <- invoke IS_XTR_KEY(n);
+        assert is_xtr_key;
+        parents <- invoke PARENTS(n);
+        (parent1, parent2) <- parse parents;
+        mapped_h1 <- invoke GETMAP(Unwrap(parent1), l, h1);
+        mapped_h2 <- invoke GETMAP(Unwrap(parent2), l, h2);
+        assert (mapped_h1 != None as Bits(*));
+        assert (mapped_h2 != None as Bits(*));
+        m1 <- Unwrap(mapped_h1);
+        m2 <- Unwrap(mapped_h2);
+        l1 <- invoke LEVEL(m1);
+        if (l1 == None) {
+            lp <- level(m2);
+        } else {
+            lp <- level(m1);
+        }
+        ext_h <- mk_xtr_handle(n, h1, h2);
+        int_h <- invoke XTR(n, lp, m1, m2);
+        _ <- invoke SETMAP(n, l, ext_h, int_h);
+        return ext_h;
+    }
+}

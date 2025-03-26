@@ -39,5 +39,6 @@ package MapXpdOutputKeyRemap {
             discard <- invoke SETMAP(h, h);
             return h;
         }
+        return h1; /* return an arbitrary bitstring as all oracles should be total "functions" */
     }
 }

@@ -1,0 +1,38 @@
+package MapTable {
+    state {
+        M: Table((Integer, Integer, Bits(*)), Bits(*))
+    }
+
+    import oracles {
+        IS_noPSK_HANDLE(h: Bits(*)) -> Bool,
+        IS_noDH_HANDLE(h: Bits(*)) -> Bool,
+        IS_0salt_HANDLE(h: Bits(*)) -> Bool,
+        IS_0ikm_HANDLE(h: Bits(*)) -> Bool,
+        GET_DH_NAME() -> Integer,
+    }
+
+    oracle GETMAP(n: Integer, l: Integer, h: Bits(*)) -> Maybe(Bits(*)) {
+        is_noPSK <- invoke IS_noPSK_HANDLE(h);
+        is_noDH <- invoke IS_noDH_HANDLE(h);
+        is_0salt <- invoke IS_0salt_HANDLE(h);
+        is_0ikm <- invoke IS_0ikm_HANDLE(h);
+        if (is_noPSK or is_noDH or is_0salt or is_0ikm) {
+            /* noPSK, noDH, 0salt and 0ikm handles are fixed points of mapping, i.e. M[h] = h */
+            return Some(h);
+        }
+        dh <- invoke GET_DH_NAME();
+        if (n == dh) {
+            return M[(n, 0, h)];
+        }
+        return M[(n, l, h)];
+    }
+
+    oracle SETMAP(n: Integer, l: Integer, ext_h: Bits(*), int_h: Bits(*)) {
+        dh <- invoke GET_DH_NAME();
+        if (n == dh) {
+            M[(n, 0, ext_h)] <- Some(int_h);
+        } else {
+            M[(n, l, ext_h)] <- Some(int_h);
+        }
+    }
+} 

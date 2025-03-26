@@ -1,0 +1,15 @@
+package OutputKeyGetter {
+    import oracles {
+        GET(n: Integer, l: Integer, h: Bits(*)) -> (Bits(*), Bool),
+        IS_OUTPUT_KEY(n: Integer) -> Bool,
+    }
+
+    oracle GET(n: Integer, l: Integer, h: Bits(*)) -> (Bits(*), Bool) {
+        is_output_key <- invoke IS_OUTPUT_KEY(n);
+        if not is_output_key {
+            assert false;
+        }
+        t <- invoke GET(n, l, h);
+        return t;
+    }
+}

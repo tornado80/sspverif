@@ -1,4 +1,4 @@
-package GlobalCheck {
+package Check {
     params {
         level: fn Bits(*) -> Integer, /* returns the level of the given handle */
         extract_binder_from_args: fn Bits(*) -> Bits(*), /* extracts binder key from the given transcript */
