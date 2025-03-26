@@ -1,0 +1,27 @@
+package Parameters {
+    params {
+        game: Integer
+    }
+
+    oracle GET_HASH_PACKAGE_IDEALIZATION_PARAMETER() -> Bool {
+        if ((game == 0) or (game == 1)) {
+            return false;
+        }
+        if ((game == 2) or (game == 3)) {
+            return true;
+        }
+        return false;
+    }
+
+    oracle GET_KEY_PACKAGE_IDEALIZATION_PARAMETER(n: Integer, l: Integer) -> Bool {
+        return true;
+    }
+
+    oracle GET_XTR_PACKAGE_IDEALIZATION_PARAMETER(n: Integer, l: Integer) -> Bool {
+        return true;
+    }
+
+    oracle GET_LOG_PACKAGE_PARAMETERS(n: Integer) -> (Integer, Integer) {
+        return (1, 2);
+    }
+}

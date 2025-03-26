@@ -1,0 +1,31 @@
+package Hash {
+    params {
+        untag_digest: fn Bits(*) -> Bits(*) /* untags the given digest and returns a raw digest */
+    }
+
+    state {
+        H: Table(Bits(*), Bits(*)), /* maps transcript to its digest */
+        D: Table(Bits(*), Bool) /* indicates digest is computed once */
+    }
+
+    import oracles {
+        GET_HASH_PACKAGE_IDEALIZATION_PARAMETER() -> Bool,
+        hash(t: Bits(*)) -> Bits(*),
+    } 
+
+    oracle HASH(t: Bits(*)) -> Bits(*) {
+        /* assert alg(t) is supported */
+        if (H[t] != None as Bool) {
+            return Unwrap(H[t]);
+        }
+        agile_d <- invoke hash(t);
+        d <- untag_digest(agile_d);
+        b <- invoke GET_HASH_PACKAGE_IDEALIZATION_PARAMETER();
+        if (b and (Unwrap(D[d]) == true)) {
+            assert false;
+        }
+        H[t] <- Some(d);
+        D[d] <- Some(true);
+        return d;
+    }
+}

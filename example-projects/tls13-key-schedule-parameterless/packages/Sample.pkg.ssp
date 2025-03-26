@@ -1,0 +1,24 @@
+package Sample {
+    params {
+        cast256: fn Bits(256) -> Bits(*),
+        cast384: fn Bits(384) -> Bits(*),
+        cast512: fn Bits(512) -> Bits(*),
+    }
+
+    oracle SAMPLE(n: Integer) -> Bits(*) {
+        if (n == 256) {
+            k256 <-$ Bits(256);
+            return cast256(k256);
+        }
+        if (n == 384) {
+            k384 <-$ Bits(384);
+            return cast384(k384);
+        }
+        if (n == 512) {
+            k512 <-$ Bits(512);
+            return cast512(k512);
+        }
+        k <-$ Bits(*);
+        return k;
+    }
+}

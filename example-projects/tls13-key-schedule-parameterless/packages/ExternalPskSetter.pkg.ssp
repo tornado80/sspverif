@@ -1,0 +1,12 @@
+package ExternalPskSetter {
+    import oracles {
+        SET(n: Integer, l: Integer, h: Bits(*), hon: Bool, k: Bits(*)) -> Bits(*),
+        GET_PSK_NAME() -> Integer,
+    }
+
+    oracle SET(h: Bits(*), hon: Bool, k: Bits(*)) -> Bits(*) {
+        psk <- invoke GET_PSK_NAME();
+        t <- invoke SET(psk, 0, h, hon, k);
+        return t;
+    }
+}

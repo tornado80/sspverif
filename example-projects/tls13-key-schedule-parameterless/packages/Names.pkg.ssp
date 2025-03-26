@@ -1,0 +1,33 @@
+package Names {
+    oracle IS_OUTPUT_KEY(n: Integer) -> Bool {
+        return false;
+    }
+
+    oracle IS_DH_KEY(n: Integer) -> Bool {
+        return true;
+    }
+
+    oracle IS_PSK(n: Integer) -> Bool {
+        return true;
+    }
+
+    oracle IS_XPD_KEY(n: Integer) -> Bool {
+        return true;
+    }
+
+    oracle IS_XTR_KEY(n: Integer) -> Bool {
+        return true;
+    }
+
+    oracle GET_DH_NAME() -> Integer {
+        return 2;
+    }
+
+    oracle GET_PSK_NAME() -> Integer {
+        return 1;
+    }
+
+    oracle PARENTS(n: Integer) -> (Maybe(Integer), Maybe(Integer)) {
+        return (Some(1), Some(2));
+    }
+}

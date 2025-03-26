@@ -2207,480 +2207,6 @@ composition Gks0Map {
 		}
 	}
 
-	instance pkg_Map_0ikm_0 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_0ikm_1 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_0ikm_2 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_0ikm_3 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_0salt_0 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_0salt_1 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_0salt_2 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_0salt_3 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_as_0 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_as_1 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_as_2 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_as_3 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_bind_0 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_bind_1 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_bind_2 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_bind_3 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_binder_0 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_binder_1 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_binder_2 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_binder_3 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_cat_0 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_cat_1 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_cat_2 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_cat_3 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_cet_0 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_cet_1 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_cet_2 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_cet_3 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_cht_0 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_cht_1 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_cht_2 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_cht_3 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_dh = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_dh_0 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_dh_1 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_dh_2 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_dh_3 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_eam_0 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_eam_1 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_eam_2 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_eam_3 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_eem_0 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_eem_1 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_eem_2 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_eem_3 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_es_0 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_es_1 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_es_2 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_es_3 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_esalt_0 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_esalt_1 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_esalt_2 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_esalt_3 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_hs_0 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_hs_1 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_hs_2 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_hs_3 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_hsalt_0 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_hsalt_1 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_hsalt_2 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_hsalt_3 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_psk = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_psk_0 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_psk_1 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_psk_2 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_psk_3 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_psk_4 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_rm_0 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_rm_1 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_rm_2 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_rm_3 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_sat_0 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_sat_1 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_sat_2 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_sat_3 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_sht_0 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_sht_1 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_sht_2 = Map {
-		params {
-			type: type,
-		}
-	}
-
-	instance pkg_Map_sht_3 = Map {
-		params {
-			type: type,
-		}
-	}
-
 	instance pkg_MapAdapter_0ikm_0 = MapAdapter {
 	}
 
@@ -2856,6 +2382,480 @@ composition Gks0Map {
 	}
 
 	instance pkg_MapPSK = MapPSK {
+	}
+
+	instance pkg_MapTable_0ikm_0 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_0ikm_1 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_0ikm_2 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_0ikm_3 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_0salt_0 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_0salt_1 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_0salt_2 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_0salt_3 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_as_0 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_as_1 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_as_2 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_as_3 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_bind_0 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_bind_1 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_bind_2 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_bind_3 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_binder_0 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_binder_1 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_binder_2 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_binder_3 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_cat_0 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_cat_1 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_cat_2 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_cat_3 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_cet_0 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_cet_1 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_cet_2 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_cet_3 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_cht_0 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_cht_1 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_cht_2 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_cht_3 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_dh = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_dh_0 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_dh_1 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_dh_2 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_dh_3 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_eam_0 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_eam_1 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_eam_2 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_eam_3 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_eem_0 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_eem_1 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_eem_2 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_eem_3 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_es_0 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_es_1 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_es_2 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_es_3 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_esalt_0 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_esalt_1 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_esalt_2 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_esalt_3 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_hs_0 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_hs_1 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_hs_2 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_hs_3 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_hsalt_0 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_hsalt_1 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_hsalt_2 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_hsalt_3 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_psk = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_psk_0 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_psk_1 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_psk_2 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_psk_3 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_psk_4 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_rm_0 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_rm_1 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_rm_2 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_rm_3 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_sat_0 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_sat_1 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_sat_2 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_sat_3 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_sht_0 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_sht_1 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_sht_2 = MapTable {
+		params {
+			type: type,
+		}
+	}
+
+	instance pkg_MapTable_sht_3 = MapTable {
+		params {
+			type: type,
+		}
 	}
 
 	instance pkg_MapXpd_bind_0 = MapXpd {
@@ -4848,597 +4848,597 @@ composition Gks0Map {
 			GET: pkg_Key_psk_3,
 		},
 		pkg_MapAdapter_0ikm_0: {
-			GETMAP: pkg_Map_0ikm_0,
+			GETMAP: pkg_MapTable_0ikm_0,
 		},
 		pkg_MapAdapter_0ikm_1: {
-			GETMAP: pkg_Map_0ikm_1,
+			GETMAP: pkg_MapTable_0ikm_1,
 		},
 		pkg_MapAdapter_0ikm_2: {
-			GETMAP: pkg_Map_0ikm_2,
+			GETMAP: pkg_MapTable_0ikm_2,
 		},
 		pkg_MapAdapter_0ikm_3: {
-			GETMAP: pkg_Map_0ikm_3,
+			GETMAP: pkg_MapTable_0ikm_3,
 		},
 		pkg_MapAdapter_0salt_0: {
-			GETMAP: pkg_Map_0salt_0,
+			GETMAP: pkg_MapTable_0salt_0,
 		},
 		pkg_MapAdapter_0salt_1: {
-			GETMAP: pkg_Map_0salt_1,
+			GETMAP: pkg_MapTable_0salt_1,
 		},
 		pkg_MapAdapter_0salt_2: {
-			GETMAP: pkg_Map_0salt_2,
+			GETMAP: pkg_MapTable_0salt_2,
 		},
 		pkg_MapAdapter_0salt_3: {
-			GETMAP: pkg_Map_0salt_3,
+			GETMAP: pkg_MapTable_0salt_3,
 		},
 		pkg_MapAdapter_dh_0: {
-			GETMAP: pkg_Map_dh_0,
+			GETMAP: pkg_MapTable_dh_0,
 		},
 		pkg_MapAdapter_dh_1: {
-			GETMAP: pkg_Map_dh_1,
+			GETMAP: pkg_MapTable_dh_1,
 		},
 		pkg_MapAdapter_dh_2: {
-			GETMAP: pkg_Map_dh_2,
+			GETMAP: pkg_MapTable_dh_2,
 		},
 		pkg_MapAdapter_dh_3: {
-			GETMAP: pkg_Map_dh_3,
+			GETMAP: pkg_MapTable_dh_3,
 		},
 		pkg_MapAdapter_esalt_0: {
-			GETMAP: pkg_Map_esalt_0,
+			GETMAP: pkg_MapTable_esalt_0,
 		},
 		pkg_MapAdapter_esalt_1: {
-			GETMAP: pkg_Map_esalt_1,
+			GETMAP: pkg_MapTable_esalt_1,
 		},
 		pkg_MapAdapter_esalt_2: {
-			GETMAP: pkg_Map_esalt_2,
+			GETMAP: pkg_MapTable_esalt_2,
 		},
 		pkg_MapAdapter_esalt_3: {
-			GETMAP: pkg_Map_esalt_3,
+			GETMAP: pkg_MapTable_esalt_3,
 		},
 		pkg_MapAdapter_hsalt_0: {
-			GETMAP: pkg_Map_hsalt_0,
+			GETMAP: pkg_MapTable_hsalt_0,
 		},
 		pkg_MapAdapter_hsalt_1: {
-			GETMAP: pkg_Map_hsalt_1,
+			GETMAP: pkg_MapTable_hsalt_1,
 		},
 		pkg_MapAdapter_hsalt_2: {
-			GETMAP: pkg_Map_hsalt_2,
+			GETMAP: pkg_MapTable_hsalt_2,
 		},
 		pkg_MapAdapter_hsalt_3: {
-			GETMAP: pkg_Map_hsalt_3,
+			GETMAP: pkg_MapTable_hsalt_3,
 		},
 		pkg_MapAdapter_psk_0: {
-			GETMAP: pkg_Map_psk_0,
+			GETMAP: pkg_MapTable_psk_0,
 		},
 		pkg_MapAdapter_psk_1: {
-			GETMAP: pkg_Map_psk_1,
+			GETMAP: pkg_MapTable_psk_1,
 		},
 		pkg_MapAdapter_psk_2: {
-			GETMAP: pkg_Map_psk_2,
+			GETMAP: pkg_MapTable_psk_2,
 		},
 		pkg_MapAdapter_psk_3: {
-			GETMAP: pkg_Map_psk_3,
+			GETMAP: pkg_MapTable_psk_3,
 		},
 		pkg_MapDH: {
 			DHEXP: pkg_DH,
 			DHGEN: pkg_DH,
-			GETMAP: pkg_Map_dh,
-			SETMAP: pkg_Map_dh,
+			GETMAP: pkg_MapTable_dh,
+			SETMAP: pkg_MapTable_dh,
 		},
 		pkg_MapGetOutputKey_binder_0: {
 			GET: pkg_Key_binder_0,
-			GETMAP: pkg_Map_binder_0,
+			GETMAP: pkg_MapTable_binder_0,
 		},
 		pkg_MapGetOutputKey_binder_1: {
 			GET: pkg_Key_binder_1,
-			GETMAP: pkg_Map_binder_1,
+			GETMAP: pkg_MapTable_binder_1,
 		},
 		pkg_MapGetOutputKey_binder_2: {
 			GET: pkg_Key_binder_2,
-			GETMAP: pkg_Map_binder_2,
+			GETMAP: pkg_MapTable_binder_2,
 		},
 		pkg_MapGetOutputKey_binder_3: {
 			GET: pkg_Key_binder_3,
-			GETMAP: pkg_Map_binder_3,
+			GETMAP: pkg_MapTable_binder_3,
 		},
 		pkg_MapGetOutputKey_cat_0: {
 			GET: pkg_Key_cat_0,
-			GETMAP: pkg_Map_cat_0,
+			GETMAP: pkg_MapTable_cat_0,
 		},
 		pkg_MapGetOutputKey_cat_1: {
 			GET: pkg_Key_cat_1,
-			GETMAP: pkg_Map_cat_1,
+			GETMAP: pkg_MapTable_cat_1,
 		},
 		pkg_MapGetOutputKey_cat_2: {
 			GET: pkg_Key_cat_2,
-			GETMAP: pkg_Map_cat_2,
+			GETMAP: pkg_MapTable_cat_2,
 		},
 		pkg_MapGetOutputKey_cat_3: {
 			GET: pkg_Key_cat_3,
-			GETMAP: pkg_Map_cat_3,
+			GETMAP: pkg_MapTable_cat_3,
 		},
 		pkg_MapGetOutputKey_cet_0: {
 			GET: pkg_Key_cet_0,
-			GETMAP: pkg_Map_cet_0,
+			GETMAP: pkg_MapTable_cet_0,
 		},
 		pkg_MapGetOutputKey_cet_1: {
 			GET: pkg_Key_cet_1,
-			GETMAP: pkg_Map_cet_1,
+			GETMAP: pkg_MapTable_cet_1,
 		},
 		pkg_MapGetOutputKey_cet_2: {
 			GET: pkg_Key_cet_2,
-			GETMAP: pkg_Map_cet_2,
+			GETMAP: pkg_MapTable_cet_2,
 		},
 		pkg_MapGetOutputKey_cet_3: {
 			GET: pkg_Key_cet_3,
-			GETMAP: pkg_Map_cet_3,
+			GETMAP: pkg_MapTable_cet_3,
 		},
 		pkg_MapGetOutputKey_cht_0: {
 			GET: pkg_Key_cht_0,
-			GETMAP: pkg_Map_cht_0,
+			GETMAP: pkg_MapTable_cht_0,
 		},
 		pkg_MapGetOutputKey_cht_1: {
 			GET: pkg_Key_cht_1,
-			GETMAP: pkg_Map_cht_1,
+			GETMAP: pkg_MapTable_cht_1,
 		},
 		pkg_MapGetOutputKey_cht_2: {
 			GET: pkg_Key_cht_2,
-			GETMAP: pkg_Map_cht_2,
+			GETMAP: pkg_MapTable_cht_2,
 		},
 		pkg_MapGetOutputKey_cht_3: {
 			GET: pkg_Key_cht_3,
-			GETMAP: pkg_Map_cht_3,
+			GETMAP: pkg_MapTable_cht_3,
 		},
 		pkg_MapGetOutputKey_eam_0: {
 			GET: pkg_Key_eam_0,
-			GETMAP: pkg_Map_eam_0,
+			GETMAP: pkg_MapTable_eam_0,
 		},
 		pkg_MapGetOutputKey_eam_1: {
 			GET: pkg_Key_eam_1,
-			GETMAP: pkg_Map_eam_1,
+			GETMAP: pkg_MapTable_eam_1,
 		},
 		pkg_MapGetOutputKey_eam_2: {
 			GET: pkg_Key_eam_2,
-			GETMAP: pkg_Map_eam_2,
+			GETMAP: pkg_MapTable_eam_2,
 		},
 		pkg_MapGetOutputKey_eam_3: {
 			GET: pkg_Key_eam_3,
-			GETMAP: pkg_Map_eam_3,
+			GETMAP: pkg_MapTable_eam_3,
 		},
 		pkg_MapGetOutputKey_eem_0: {
 			GET: pkg_Key_eem_0,
-			GETMAP: pkg_Map_eem_0,
+			GETMAP: pkg_MapTable_eem_0,
 		},
 		pkg_MapGetOutputKey_eem_1: {
 			GET: pkg_Key_eem_1,
-			GETMAP: pkg_Map_eem_1,
+			GETMAP: pkg_MapTable_eem_1,
 		},
 		pkg_MapGetOutputKey_eem_2: {
 			GET: pkg_Key_eem_2,
-			GETMAP: pkg_Map_eem_2,
+			GETMAP: pkg_MapTable_eem_2,
 		},
 		pkg_MapGetOutputKey_eem_3: {
 			GET: pkg_Key_eem_3,
-			GETMAP: pkg_Map_eem_3,
+			GETMAP: pkg_MapTable_eem_3,
 		},
 		pkg_MapGetOutputKey_sat_0: {
 			GET: pkg_Key_sat_0,
-			GETMAP: pkg_Map_sat_0,
+			GETMAP: pkg_MapTable_sat_0,
 		},
 		pkg_MapGetOutputKey_sat_1: {
 			GET: pkg_Key_sat_1,
-			GETMAP: pkg_Map_sat_1,
+			GETMAP: pkg_MapTable_sat_1,
 		},
 		pkg_MapGetOutputKey_sat_2: {
 			GET: pkg_Key_sat_2,
-			GETMAP: pkg_Map_sat_2,
+			GETMAP: pkg_MapTable_sat_2,
 		},
 		pkg_MapGetOutputKey_sat_3: {
 			GET: pkg_Key_sat_3,
-			GETMAP: pkg_Map_sat_3,
+			GETMAP: pkg_MapTable_sat_3,
 		},
 		pkg_MapGetOutputKey_sht_0: {
 			GET: pkg_Key_sht_0,
-			GETMAP: pkg_Map_sht_0,
+			GETMAP: pkg_MapTable_sht_0,
 		},
 		pkg_MapGetOutputKey_sht_1: {
 			GET: pkg_Key_sht_1,
-			GETMAP: pkg_Map_sht_1,
+			GETMAP: pkg_MapTable_sht_1,
 		},
 		pkg_MapGetOutputKey_sht_2: {
 			GET: pkg_Key_sht_2,
-			GETMAP: pkg_Map_sht_2,
+			GETMAP: pkg_MapTable_sht_2,
 		},
 		pkg_MapGetOutputKey_sht_3: {
 			GET: pkg_Key_sht_3,
-			GETMAP: pkg_Map_sht_3,
+			GETMAP: pkg_MapTable_sht_3,
 		},
 		pkg_MapPSK: {
 			SET: pkg_Key_psk_0,
-			SETMAP: pkg_Map_psk,
+			SETMAP: pkg_MapTable_psk,
 		},
 		pkg_MapXpd_bind_0: {
-			GETMAP: pkg_Map_es_0,
+			GETMAP: pkg_MapTable_es_0,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_bind_0,
+			SETMAP: pkg_MapTable_bind_0,
 			XPD: pkg_Xpd_bind_0,
 		},
 		pkg_MapXpd_bind_1: {
-			GETMAP: pkg_Map_es_1,
+			GETMAP: pkg_MapTable_es_1,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_bind_1,
+			SETMAP: pkg_MapTable_bind_1,
 			XPD: pkg_Xpd_bind_1,
 		},
 		pkg_MapXpd_bind_2: {
-			GETMAP: pkg_Map_es_2,
+			GETMAP: pkg_MapTable_es_2,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_bind_2,
+			SETMAP: pkg_MapTable_bind_2,
 			XPD: pkg_Xpd_bind_2,
 		},
 		pkg_MapXpd_bind_3: {
-			GETMAP: pkg_Map_es_3,
+			GETMAP: pkg_MapTable_es_3,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_bind_3,
+			SETMAP: pkg_MapTable_bind_3,
 			XPD: pkg_Xpd_bind_3,
 		},
 		pkg_MapXpd_binder_0: {
-			GETMAP: pkg_Map_bind_0,
+			GETMAP: pkg_MapTable_bind_0,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_binder_0,
+			SETMAP: pkg_MapTable_binder_0,
 			XPD: pkg_Xpd_binder_0,
 		},
 		pkg_MapXpd_binder_1: {
-			GETMAP: pkg_Map_bind_1,
+			GETMAP: pkg_MapTable_bind_1,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_binder_1,
+			SETMAP: pkg_MapTable_binder_1,
 			XPD: pkg_Xpd_binder_1,
 		},
 		pkg_MapXpd_binder_2: {
-			GETMAP: pkg_Map_bind_2,
+			GETMAP: pkg_MapTable_bind_2,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_binder_2,
+			SETMAP: pkg_MapTable_binder_2,
 			XPD: pkg_Xpd_binder_2,
 		},
 		pkg_MapXpd_binder_3: {
-			GETMAP: pkg_Map_bind_3,
+			GETMAP: pkg_MapTable_bind_3,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_binder_3,
+			SETMAP: pkg_MapTable_binder_3,
 			XPD: pkg_Xpd_binder_3,
 		},
 		pkg_MapXpd_cat_0: {
-			GETMAP: pkg_Map_as_0,
+			GETMAP: pkg_MapTable_as_0,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_cat_0,
+			SETMAP: pkg_MapTable_cat_0,
 			XPD: pkg_Xpd_cat_0,
 		},
 		pkg_MapXpd_cat_1: {
-			GETMAP: pkg_Map_as_1,
+			GETMAP: pkg_MapTable_as_1,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_cat_1,
+			SETMAP: pkg_MapTable_cat_1,
 			XPD: pkg_Xpd_cat_1,
 		},
 		pkg_MapXpd_cat_2: {
-			GETMAP: pkg_Map_as_2,
+			GETMAP: pkg_MapTable_as_2,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_cat_2,
+			SETMAP: pkg_MapTable_cat_2,
 			XPD: pkg_Xpd_cat_2,
 		},
 		pkg_MapXpd_cat_3: {
-			GETMAP: pkg_Map_as_3,
+			GETMAP: pkg_MapTable_as_3,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_cat_3,
+			SETMAP: pkg_MapTable_cat_3,
 			XPD: pkg_Xpd_cat_3,
 		},
 		pkg_MapXpd_cet_0: {
-			GETMAP: pkg_Map_es_0,
+			GETMAP: pkg_MapTable_es_0,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_cet_0,
+			SETMAP: pkg_MapTable_cet_0,
 			XPD: pkg_Xpd_cet_0,
 		},
 		pkg_MapXpd_cet_1: {
-			GETMAP: pkg_Map_es_1,
+			GETMAP: pkg_MapTable_es_1,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_cet_1,
+			SETMAP: pkg_MapTable_cet_1,
 			XPD: pkg_Xpd_cet_1,
 		},
 		pkg_MapXpd_cet_2: {
-			GETMAP: pkg_Map_es_2,
+			GETMAP: pkg_MapTable_es_2,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_cet_2,
+			SETMAP: pkg_MapTable_cet_2,
 			XPD: pkg_Xpd_cet_2,
 		},
 		pkg_MapXpd_cet_3: {
-			GETMAP: pkg_Map_es_3,
+			GETMAP: pkg_MapTable_es_3,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_cet_3,
+			SETMAP: pkg_MapTable_cet_3,
 			XPD: pkg_Xpd_cet_3,
 		},
 		pkg_MapXpd_cht_0: {
-			GETMAP: pkg_Map_hs_0,
+			GETMAP: pkg_MapTable_hs_0,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_cht_0,
+			SETMAP: pkg_MapTable_cht_0,
 			XPD: pkg_Xpd_cht_0,
 		},
 		pkg_MapXpd_cht_1: {
-			GETMAP: pkg_Map_hs_1,
+			GETMAP: pkg_MapTable_hs_1,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_cht_1,
+			SETMAP: pkg_MapTable_cht_1,
 			XPD: pkg_Xpd_cht_1,
 		},
 		pkg_MapXpd_cht_2: {
-			GETMAP: pkg_Map_hs_2,
+			GETMAP: pkg_MapTable_hs_2,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_cht_2,
+			SETMAP: pkg_MapTable_cht_2,
 			XPD: pkg_Xpd_cht_2,
 		},
 		pkg_MapXpd_cht_3: {
-			GETMAP: pkg_Map_hs_3,
+			GETMAP: pkg_MapTable_hs_3,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_cht_3,
+			SETMAP: pkg_MapTable_cht_3,
 			XPD: pkg_Xpd_cht_3,
 		},
 		pkg_MapXpd_eam_0: {
-			GETMAP: pkg_Map_as_0,
+			GETMAP: pkg_MapTable_as_0,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_eam_0,
+			SETMAP: pkg_MapTable_eam_0,
 			XPD: pkg_Xpd_eam_0,
 		},
 		pkg_MapXpd_eam_1: {
-			GETMAP: pkg_Map_as_1,
+			GETMAP: pkg_MapTable_as_1,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_eam_1,
+			SETMAP: pkg_MapTable_eam_1,
 			XPD: pkg_Xpd_eam_1,
 		},
 		pkg_MapXpd_eam_2: {
-			GETMAP: pkg_Map_as_2,
+			GETMAP: pkg_MapTable_as_2,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_eam_2,
+			SETMAP: pkg_MapTable_eam_2,
 			XPD: pkg_Xpd_eam_2,
 		},
 		pkg_MapXpd_eam_3: {
-			GETMAP: pkg_Map_as_3,
+			GETMAP: pkg_MapTable_as_3,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_eam_3,
+			SETMAP: pkg_MapTable_eam_3,
 			XPD: pkg_Xpd_eam_3,
 		},
 		pkg_MapXpd_eem_0: {
-			GETMAP: pkg_Map_es_0,
+			GETMAP: pkg_MapTable_es_0,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_eem_0,
+			SETMAP: pkg_MapTable_eem_0,
 			XPD: pkg_Xpd_eem_0,
 		},
 		pkg_MapXpd_eem_1: {
-			GETMAP: pkg_Map_es_1,
+			GETMAP: pkg_MapTable_es_1,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_eem_1,
+			SETMAP: pkg_MapTable_eem_1,
 			XPD: pkg_Xpd_eem_1,
 		},
 		pkg_MapXpd_eem_2: {
-			GETMAP: pkg_Map_es_2,
+			GETMAP: pkg_MapTable_es_2,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_eem_2,
+			SETMAP: pkg_MapTable_eem_2,
 			XPD: pkg_Xpd_eem_2,
 		},
 		pkg_MapXpd_eem_3: {
-			GETMAP: pkg_Map_es_3,
+			GETMAP: pkg_MapTable_es_3,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_eem_3,
+			SETMAP: pkg_MapTable_eem_3,
 			XPD: pkg_Xpd_eem_3,
 		},
 		pkg_MapXpd_esalt_0: {
-			GETMAP: pkg_Map_es_0,
+			GETMAP: pkg_MapTable_es_0,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_esalt_0,
+			SETMAP: pkg_MapTable_esalt_0,
 			XPD: pkg_Xpd_esalt_0,
 		},
 		pkg_MapXpd_esalt_1: {
-			GETMAP: pkg_Map_es_1,
+			GETMAP: pkg_MapTable_es_1,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_esalt_1,
+			SETMAP: pkg_MapTable_esalt_1,
 			XPD: pkg_Xpd_esalt_1,
 		},
 		pkg_MapXpd_esalt_2: {
-			GETMAP: pkg_Map_es_2,
+			GETMAP: pkg_MapTable_es_2,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_esalt_2,
+			SETMAP: pkg_MapTable_esalt_2,
 			XPD: pkg_Xpd_esalt_2,
 		},
 		pkg_MapXpd_esalt_3: {
-			GETMAP: pkg_Map_es_3,
+			GETMAP: pkg_MapTable_es_3,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_esalt_3,
+			SETMAP: pkg_MapTable_esalt_3,
 			XPD: pkg_Xpd_esalt_3,
 		},
 		pkg_MapXpd_hsalt_0: {
-			GETMAP: pkg_Map_hs_0,
+			GETMAP: pkg_MapTable_hs_0,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_hsalt_0,
+			SETMAP: pkg_MapTable_hsalt_0,
 			XPD: pkg_Xpd_hsalt_0,
 		},
 		pkg_MapXpd_hsalt_1: {
-			GETMAP: pkg_Map_hs_1,
+			GETMAP: pkg_MapTable_hs_1,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_hsalt_1,
+			SETMAP: pkg_MapTable_hsalt_1,
 			XPD: pkg_Xpd_hsalt_1,
 		},
 		pkg_MapXpd_hsalt_2: {
-			GETMAP: pkg_Map_hs_2,
+			GETMAP: pkg_MapTable_hs_2,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_hsalt_2,
+			SETMAP: pkg_MapTable_hsalt_2,
 			XPD: pkg_Xpd_hsalt_2,
 		},
 		pkg_MapXpd_hsalt_3: {
-			GETMAP: pkg_Map_hs_3,
+			GETMAP: pkg_MapTable_hs_3,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_hsalt_3,
+			SETMAP: pkg_MapTable_hsalt_3,
 			XPD: pkg_Xpd_hsalt_3,
 		},
 		pkg_MapXpd_psk_0: {
-			GETMAP: pkg_Map_rm_0,
+			GETMAP: pkg_MapTable_rm_0,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_psk_1,
+			SETMAP: pkg_MapTable_psk_1,
 			XPD: pkg_Xpd_psk_0,
 		},
 		pkg_MapXpd_psk_1: {
-			GETMAP: pkg_Map_rm_1,
+			GETMAP: pkg_MapTable_rm_1,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_psk_2,
+			SETMAP: pkg_MapTable_psk_2,
 			XPD: pkg_Xpd_psk_1,
 		},
 		pkg_MapXpd_psk_2: {
-			GETMAP: pkg_Map_rm_2,
+			GETMAP: pkg_MapTable_rm_2,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_psk_3,
+			SETMAP: pkg_MapTable_psk_3,
 			XPD: pkg_Xpd_psk_2,
 		},
 		pkg_MapXpd_psk_3: {
-			GETMAP: pkg_Map_rm_3,
+			GETMAP: pkg_MapTable_rm_3,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_psk_4,
+			SETMAP: pkg_MapTable_psk_4,
 			XPD: pkg_Xpd_psk_3,
 		},
 		pkg_MapXpd_rm_0: {
-			GETMAP: pkg_Map_as_0,
+			GETMAP: pkg_MapTable_as_0,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_rm_0,
+			SETMAP: pkg_MapTable_rm_0,
 			XPD: pkg_Xpd_rm_0,
 		},
 		pkg_MapXpd_rm_1: {
-			GETMAP: pkg_Map_as_1,
+			GETMAP: pkg_MapTable_as_1,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_rm_1,
+			SETMAP: pkg_MapTable_rm_1,
 			XPD: pkg_Xpd_rm_1,
 		},
 		pkg_MapXpd_rm_2: {
-			GETMAP: pkg_Map_as_2,
+			GETMAP: pkg_MapTable_as_2,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_rm_2,
+			SETMAP: pkg_MapTable_rm_2,
 			XPD: pkg_Xpd_rm_2,
 		},
 		pkg_MapXpd_rm_3: {
-			GETMAP: pkg_Map_as_3,
+			GETMAP: pkg_MapTable_as_3,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_rm_3,
+			SETMAP: pkg_MapTable_rm_3,
 			XPD: pkg_Xpd_rm_3,
 		},
 		pkg_MapXpd_sat_0: {
-			GETMAP: pkg_Map_as_0,
+			GETMAP: pkg_MapTable_as_0,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_sat_0,
+			SETMAP: pkg_MapTable_sat_0,
 			XPD: pkg_Xpd_sat_0,
 		},
 		pkg_MapXpd_sat_1: {
-			GETMAP: pkg_Map_as_1,
+			GETMAP: pkg_MapTable_as_1,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_sat_1,
+			SETMAP: pkg_MapTable_sat_1,
 			XPD: pkg_Xpd_sat_1,
 		},
 		pkg_MapXpd_sat_2: {
-			GETMAP: pkg_Map_as_2,
+			GETMAP: pkg_MapTable_as_2,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_sat_2,
+			SETMAP: pkg_MapTable_sat_2,
 			XPD: pkg_Xpd_sat_2,
 		},
 		pkg_MapXpd_sat_3: {
-			GETMAP: pkg_Map_as_3,
+			GETMAP: pkg_MapTable_as_3,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_sat_3,
+			SETMAP: pkg_MapTable_sat_3,
 			XPD: pkg_Xpd_sat_3,
 		},
 		pkg_MapXpd_sht_0: {
-			GETMAP: pkg_Map_hs_0,
+			GETMAP: pkg_MapTable_hs_0,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_sht_0,
+			SETMAP: pkg_MapTable_sht_0,
 			XPD: pkg_Xpd_sht_0,
 		},
 		pkg_MapXpd_sht_1: {
-			GETMAP: pkg_Map_hs_1,
+			GETMAP: pkg_MapTable_hs_1,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_sht_1,
+			SETMAP: pkg_MapTable_sht_1,
 			XPD: pkg_Xpd_sht_1,
 		},
 		pkg_MapXpd_sht_2: {
-			GETMAP: pkg_Map_hs_2,
+			GETMAP: pkg_MapTable_hs_2,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_sht_2,
+			SETMAP: pkg_MapTable_sht_2,
 			XPD: pkg_Xpd_sht_2,
 		},
 		pkg_MapXpd_sht_3: {
-			GETMAP: pkg_Map_hs_3,
+			GETMAP: pkg_MapTable_hs_3,
 			LABEL: pkg_Labels,
-			SETMAP: pkg_Map_sht_3,
+			SETMAP: pkg_MapTable_sht_3,
 			XPD: pkg_Xpd_sht_3,
 		},
 		pkg_MapXtr_as_0: {
 			GETMAP1: pkg_MapAdapter_hsalt_0,
 			GETMAP2: pkg_MapAdapter_0ikm_0,
-			SETMAP: pkg_Map_as_0,
+			SETMAP: pkg_MapTable_as_0,
 			XTR: pkg_Xtr_as_0,
 		},
 		pkg_MapXtr_as_1: {
 			GETMAP1: pkg_MapAdapter_hsalt_1,
 			GETMAP2: pkg_MapAdapter_0ikm_1,
-			SETMAP: pkg_Map_as_1,
+			SETMAP: pkg_MapTable_as_1,
 			XTR: pkg_Xtr_as_1,
 		},
 		pkg_MapXtr_as_2: {
 			GETMAP1: pkg_MapAdapter_hsalt_2,
 			GETMAP2: pkg_MapAdapter_0ikm_2,
-			SETMAP: pkg_Map_as_2,
+			SETMAP: pkg_MapTable_as_2,
 			XTR: pkg_Xtr_as_2,
 		},
 		pkg_MapXtr_as_3: {
 			GETMAP1: pkg_MapAdapter_hsalt_3,
 			GETMAP2: pkg_MapAdapter_0ikm_3,
-			SETMAP: pkg_Map_as_3,
+			SETMAP: pkg_MapTable_as_3,
 			XTR: pkg_Xtr_as_3,
 		},
 		pkg_MapXtr_es_0: {
 			GETMAP1: pkg_MapAdapter_0salt_0,
 			GETMAP2: pkg_MapAdapter_psk_0,
-			SETMAP: pkg_Map_es_0,
+			SETMAP: pkg_MapTable_es_0,
 			XTR: pkg_Xtr_es_0,
 		},
 		pkg_MapXtr_es_1: {
 			GETMAP1: pkg_MapAdapter_0salt_1,
 			GETMAP2: pkg_MapAdapter_psk_1,
-			SETMAP: pkg_Map_es_1,
+			SETMAP: pkg_MapTable_es_1,
 			XTR: pkg_Xtr_es_1,
 		},
 		pkg_MapXtr_es_2: {
 			GETMAP1: pkg_MapAdapter_0salt_2,
 			GETMAP2: pkg_MapAdapter_psk_2,
-			SETMAP: pkg_Map_es_2,
+			SETMAP: pkg_MapTable_es_2,
 			XTR: pkg_Xtr_es_2,
 		},
 		pkg_MapXtr_es_3: {
 			GETMAP1: pkg_MapAdapter_0salt_3,
 			GETMAP2: pkg_MapAdapter_psk_3,
-			SETMAP: pkg_Map_es_3,
+			SETMAP: pkg_MapTable_es_3,
 			XTR: pkg_Xtr_es_3,
 		},
 		pkg_MapXtr_hs_0: {
 			GETMAP1: pkg_MapAdapter_esalt_0,
 			GETMAP2: pkg_MapAdapter_dh_0,
-			SETMAP: pkg_Map_hs_0,
+			SETMAP: pkg_MapTable_hs_0,
 			XTR: pkg_Xtr_hs_0,
 		},
 		pkg_MapXtr_hs_1: {
 			GETMAP1: pkg_MapAdapter_esalt_1,
 			GETMAP2: pkg_MapAdapter_dh_1,
-			SETMAP: pkg_Map_hs_1,
+			SETMAP: pkg_MapTable_hs_1,
 			XTR: pkg_Xtr_hs_1,
 		},
 		pkg_MapXtr_hs_2: {
 			GETMAP1: pkg_MapAdapter_esalt_2,
 			GETMAP2: pkg_MapAdapter_dh_2,
-			SETMAP: pkg_Map_hs_2,
+			SETMAP: pkg_MapTable_hs_2,
 			XTR: pkg_Xtr_hs_2,
 		},
 		pkg_MapXtr_hs_3: {
 			GETMAP1: pkg_MapAdapter_esalt_3,
 			GETMAP2: pkg_MapAdapter_dh_3,
-			SETMAP: pkg_Map_hs_3,
+			SETMAP: pkg_MapTable_hs_3,
 			XTR: pkg_Xtr_hs_3,
 		},
 		pkg_NKey: {

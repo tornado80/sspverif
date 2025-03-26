@@ -1,0 +1,45 @@
+package Labels {
+    oracle LABEL(n: Integer, r: Bool) -> Integer {
+        if (n == 7) { /* n = bind */
+            if r { /* | res binder | 2 | */
+                return 2;
+            } else { /* | ext binder | 1 | */
+                return 1;
+            }
+        }
+        if (n == 9) { /* n = eem, label = | e exp master | 4 | */
+            return 4;
+        }
+        if (n == 10) { /* n = cet, label = | c e traffic | 3 | */
+            return 3;
+        }
+        if (n == 12) { /* | c hs traffic | 6 | */
+            return 6;
+        }
+        if (n == 11) { /* | s hs traffic | 7 | */
+            return 7;
+        }
+        if (n == 13) { /* | c ap traffic | 8 | */
+            return 8;
+        }
+        if (n == 14) { /* | s ap traffic | 9 | */
+            return 9;
+        }
+        if (n == 15) { /* n = eam, label = | exp master | 10 | */
+            return 10;
+        }
+        if (n == 4) { /* n = rm, label = | res master | 11 | */
+            return 11;
+        }
+        if (n == 0) { /* n = psk, label = | resumption | 12 | */
+            return 12;
+        }
+        if ((n == 5) or (n == 6)) { /* n = esalt, hsalt, label = | derived | 5 | */
+            return 8;
+        }
+        if (n == 8) { /* n = binder, label = | EMPTY | 0 | */
+            return 0;
+        }
+        return 0;
+    }
+}
