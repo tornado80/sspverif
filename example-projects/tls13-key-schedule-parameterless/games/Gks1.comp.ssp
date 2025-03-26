@@ -1,0 +1,273 @@
+composition Gks1 {
+    const bits_to_integer: fn Bits(*) -> Integer;
+    const cast256: fn Bits(256) -> Bits(*);
+    const cast384: fn Bits(384) -> Bits(*);
+    const cast512: fn Bits(512) -> Bits(*);
+    const encode_group_member: fn Bits(*) -> Bits(*);
+    const exp: fn Bits(*), Integer -> Bits(*);
+    const extract_binder_from_args: fn Bits(*) -> Bits(*);
+    const extract_dh_handle: fn Bits(*) -> Bits(*);
+    const extract_dh_shares_from_args: fn Bits(*) -> (Bits(*), Bits(*));
+    const gen: fn Integer -> Bits(*);
+    const grp: fn Bits(*) -> Integer;
+    const handle_alg: fn Bits(*) -> Integer;
+    const hash: fn Integer, Bits(*) -> Bits(*);
+    const hmac: fn Integer, Bits(*), Bits(*) -> Bits(*);
+    const is_supported: fn Integer -> Bool;
+    const key_alg: fn Bits(*) -> Integer;
+    const len_alg: fn Integer -> Integer;
+    const len_key: fn Bits(*) -> Integer;
+    const level: fn Bits(*) -> Integer;
+    const mk_binder_handle: fn Bits(*), Bool, Bits(*) -> Bits(*);
+    const mk_dh_handle: fn Bits(*), Bits(*) -> Bits(*);
+    const mk_xpd_alg_transcript: fn Integer, Bits(*), Bits(*) -> Bits(*);
+    const mk_xpd_handle: fn Integer, Integer, Bits(*), Bits(*) -> Bits(*);
+    const mk_xtr_handle: fn Integer, Bits(*), Bits(*) -> Bits(*);
+    const name: fn Bits(*) -> Integer;
+    const ord: fn Integer -> Integer;
+    const tag: fn Integer, Bits(*) -> Bits(*);
+    const tag_digest: fn Integer, Bits(*) -> Bits(*);
+    const transcript_alg: fn Bits(*) -> Integer;
+    const type: fn Bits(*) -> Integer;
+    const untag: fn Bits(*) -> Bits(*);
+    const untag_digest: fn Bits(*) -> Bits(*);
+    const untag_transcript: fn Bits(*) -> Bits(*);
+    const zeros: fn Integer -> Bits(*);
+
+    instance pkg_Check = Check {
+        params {
+            extract_binder_from_args: extract_binder_from_args,
+            extract_dh_handle: extract_dh_handle,
+            extract_dh_shares_from_args: extract_dh_shares_from_args,
+            level: level,
+            mk_binder_handle: mk_binder_handle,
+            mk_dh_handle: mk_dh_handle,
+        }
+    }
+
+    instance pkg_DH = DH {
+        params {
+            bits_to_integer: bits_to_integer,
+            encode_group_member: encode_group_member,
+            exp: exp,
+            gen: gen,
+            grp: grp,
+            is_supported: is_supported,
+            mk_dh_handle: mk_dh_handle,
+            ord: ord,
+        }
+    }
+
+    instance pkg_Handles = Handles {
+        params {
+            level: level,
+        }
+    }
+
+    instance pkg_Hash = Hash {
+        params {
+            untag_digest: untag_digest,
+        }
+    }
+
+    instance pkg_Key = Key {
+        params {
+            handle_alg: handle_alg,
+            key_alg: key_alg,
+            len_alg: len_alg,
+            len_key: len_key,
+            level: level,
+            name: name,
+            tag: tag,
+            type: type,
+            untag: untag,
+            zeros: zeros,
+        }
+    }
+
+    instance pkg_Labels = Labels {
+    }
+
+    instance pkg_Log = Log {
+        params {
+            level: level,
+        }
+    }
+
+    instance pkg_Map = Map {
+        params {
+            level: level,
+            mk_dh_handle: mk_dh_handle,
+            mk_xpd_handle: mk_xpd_handle,
+            mk_xtr_handle: mk_xtr_handle,
+        }
+    }
+
+    instance pkg_MapTable = MapTable {
+    }
+
+    instance pkg_MapXpdRemap = MapXpdRemap {
+        params {
+            level: level,
+            mk_dh_handle: mk_dh_handle,
+            mk_xpd_handle: mk_xpd_handle,
+        }
+    }
+
+    instance pkg_Names = Names {
+    }
+
+    instance pkg_Parameters = Parameters {
+        params {
+            game: 3,
+        }
+    }
+
+    instance pkg_Sample = Sample {
+        params {
+            cast256: cast256,
+            cast384: cast384,
+            cast512: cast512,
+        }
+    }
+
+    instance pkg_Xpd = Xpd {
+        params {
+            mk_xpd_handle: mk_xpd_handle,
+        }
+    }
+
+    instance pkg_Xtr = Xtr {
+        params {
+            handle_alg: handle_alg,
+            key_alg: key_alg,
+            len_key: len_key,
+            mk_xtr_handle: mk_xtr_handle,
+            tag: tag,
+            untag: untag,
+        }
+    }
+
+    instance pkg_hash0 = hash0 {
+        params {
+            hash: hash,
+            tag_digest: tag_digest,
+            transcript_alg: transcript_alg,
+            untag_transcript: untag_transcript,
+        }
+    }
+
+    instance pkg_xpd0 = xpd0 {
+        params {
+            hmac: hmac,
+            key_alg: key_alg,
+            len_alg: len_alg,
+            mk_xpd_alg_transcript: mk_xpd_alg_transcript,
+            tag: tag,
+            untag: untag,
+        }
+    }
+
+    instance pkg_xtr0 = xtr0 {
+        params {
+            hmac: hmac,
+            key_alg: key_alg,
+            tag: tag,
+            untag: untag,
+        }
+    }
+
+    compose {
+        pkg_Check: {
+            GET: pkg_Map,
+            XPD: pkg_MapXpdRemap,
+        },
+        pkg_DH: {
+            GET_DH_NAME: pkg_Names,
+            SET: pkg_Key,
+        },
+        pkg_Hash: {
+            GET_HASH_PACKAGE_IDEALIZATION_PARAMETER: pkg_Parameters,
+            hash: pkg_hash0,
+        },
+        pkg_Key: {
+            GET_KEY_PACKAGE_IDEALIZATION_PARAMETER: pkg_Parameters,
+            IS_0ikm_HANDLE: pkg_Handles,
+            IS_0salt_HANDLE: pkg_Handles,
+            IS_DH_KEY: pkg_Names,
+            IS_PSK: pkg_Names,
+            IS_noDH_HANDLE: pkg_Handles,
+            IS_noPSK_HANDLE: pkg_Handles,
+            Q: pkg_Log,
+            SAMPLE: pkg_Sample,
+            UNQ: pkg_Log,
+        },
+        pkg_Log: {
+            GET_LOG_PACKAGE_PARAMETERS: pkg_Parameters,
+        },
+        pkg_Map: {
+            DHEXP: pkg_DH,
+            DHGEN: pkg_DH,
+            GET: pkg_Key,
+            GETMAP: pkg_MapTable,
+            GET_DH_NAME: pkg_Names,
+            GET_PSK_NAME: pkg_Names,
+            IS_OUTPUT_KEY: pkg_Names,
+            IS_PSK: pkg_Names,
+            IS_XPD_KEY: pkg_Names,
+            IS_XTR_KEY: pkg_Names,
+            LABEL: pkg_Labels,
+            LEVEL: pkg_Handles,
+            PARENTS: pkg_Names,
+            SET: pkg_Key,
+            SETMAP: pkg_MapTable,
+            XPD: pkg_Xpd,
+            XTR: pkg_Xtr,
+        },
+        pkg_MapTable: {
+            GET_DH_NAME: pkg_Names,
+            IS_0ikm_HANDLE: pkg_Handles,
+            IS_0salt_HANDLE: pkg_Handles,
+            IS_noDH_HANDLE: pkg_Handles,
+            IS_noPSK_HANDLE: pkg_Handles,
+        },
+        pkg_MapXpdRemap: {
+            GET: pkg_Key,
+            GETMAP: pkg_MapTable,
+            HASH: pkg_Hash,
+            IS_OUTPUT_KEY: pkg_Names,
+            LABEL: pkg_Labels,
+            PARENTS: pkg_Names,
+            SET: pkg_Key,
+            SETMAP: pkg_MapTable,
+            XPD: pkg_Map,
+            xpd: pkg_xpd0,
+        },
+        pkg_Xpd: {
+            GET: pkg_Key,
+            HASH: pkg_Hash,
+            IS_XPD_KEY: pkg_Names,
+            LABEL: pkg_Labels,
+            PARENTS: pkg_Names,
+            SET: pkg_Key,
+            xpd: pkg_xpd0,
+        },
+        pkg_Xtr: {
+            GET: pkg_Key,
+            GET_XTR_PACKAGE_IDEALIZATION_PARAMETER: pkg_Parameters,
+            IS_XTR_KEY: pkg_Names,
+            PARENTS: pkg_Names,
+            SAMPLE: pkg_Sample,
+            SET: pkg_Key,
+            xtr: pkg_xtr0,
+        },
+        adversary: {
+            DHEXP: pkg_Map,
+            DHGEN: pkg_Map,
+            GET: pkg_Map,
+            SET: pkg_Map,
+            XPD: pkg_Check,
+            XTR: pkg_Map,
+        },
+    }
+}

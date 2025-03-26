@@ -1,0 +1,36 @@
+package Xpd {
+    params {
+        /* constructs an xpd handle given the key name, label, parent handle, and args */
+        mk_xpd_handle: fn Integer, Integer, Bits(*), Bits(*) -> Bits(*)
+    }
+
+    import oracles {
+        IS_XPD_KEY(n: Integer) -> Bool,
+        PARENTS(n: Integer) -> (Maybe(Integer), Maybe(Integer)),
+        LABEL(n: Integer, r: Bool) -> Integer,
+        GET(n: Integer, l: Integer, h: Bits(*)) -> (Bits(*), Bool), /* gets the parent key */
+        SET(n: Integer, l: Integer, h: Bits(*), hon: Bool, k: Bits(*)) -> Bits(*),
+        xpd(k: Bits(*), label: Integer, d: Bits(*)) -> Bits(*),
+        HASH(t: Bits(*)) -> Bits(*),
+    }
+
+    oracle XPD(n: Integer, l: Integer, h1: Bits(*), r: Bool, args: Bits(*)) -> Bits(*) {
+        is_xpd_key <- invoke IS_XPD_KEY(n);
+        assert is_xpd_key;
+        label <- invoke LABEL(n, r);
+        h <- mk_xpd_handle(n, label, h1, args);
+        parents <- invoke PARENTS(n);
+        (parent, _) <- parse parents;
+        t <- invoke GET(Unwrap(parent), l, h1);
+        (k1, hon) <- parse t;
+        if (n == 0) { /* n = psk */
+            l <- (l + 1);
+            k <- invoke xpd(k1, label, args);
+        } else {
+            d <- invoke HASH(args);
+            k <- invoke xpd(k1, label, d);
+        }
+        h <- invoke SET(n, l, h, hon, k);
+        return h;
+    }
+}

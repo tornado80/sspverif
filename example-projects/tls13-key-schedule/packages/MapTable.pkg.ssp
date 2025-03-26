@@ -1,4 +1,4 @@
-package Map {
+package MapTable {
     params {
         type: fn Bits(*) -> Integer /* returns the type of the given handle */
     }

@@ -1,0 +1,47 @@
+package MapXpd {
+    params {
+        level: fn Bits(*) -> Integer, /* returns the level of the given handle */
+        /* constructs a dh handle with sorted DH shares X and Y */
+        mk_dh_handle: fn Bits(*), Bits(*) -> Bits(*),
+        /* constructs an xpd handle given the key name, label, parent handle, and args */
+        mk_xpd_handle: fn Integer, Integer, Bits(*), Bits(*) -> Bits(*),
+    }
+
+    import oracles {
+        IS_OUTPUT_KEY(n: Integer) -> Bool,
+        LABEL(n: Integer, r: Bool) -> Integer,
+        PARENTS(n: Integer) -> (Maybe(Integer), Maybe(Integer)),
+        SET(n: Integer, l: Integer, h: Bits(*), hon: Bool, ks: Bits(*)) -> Bits(*),
+        GET(n: Integer, l: Integer, h: Bits(*)) -> (Bits(*), Bool),
+        XPD(n: Integer, l: Integer, h1: Bits(*), r: Bool, args: Bits(*)) -> Bits(*),
+        GETMAP(n: Integer, l: Integer, h: Bits(*)) -> Maybe(Bits(*)),
+        SETMAP(n: Integer, l: Integer, ext_h: Bits(*), int_h: Bits(*)),
+        HASH(t: Bits(*)) -> Bits(*),
+        xpd(k: Bits(*), label: Integer, d: Bits(*)) -> Bits(*),
+    }
+
+    oracle XPD(n: Integer, l: Integer, h1: Bits(*), r: Bool, args: Bits(*)) -> Bits(*) {
+        is_output_key <- invoke IS_OUTPUT_KEY(n);
+        if is_output_key {
+            parents <- invoke PARENTS(n);
+            (parent, _none) <- parse parents;
+            parent_int_h <- invoke GETMAP(Unwrap(parent), l, h1);
+            assert (parent_int_h != None as Bits(*));
+            m <- Unwrap(parent_int_h);
+            label <- invoke LABEL(n, r);
+            l1 <- level(m);
+            ext_h <- mk_xpd_handle(n, label, h1, args);
+            int_h <- mk_xpd_handle(n, label, m, args);
+            k_hon <- invoke GET(Unwrap(parent), l1, m);
+            (k1, hon) <- parse k_hon;
+            d <- invoke HASH(args);
+            k <- invoke xpd(k1, label, d);
+            _h <- invoke SET(n, l, int_h, hon, k);
+            _ <- invoke SETMAP(n, l, ext_h, int_h);
+            return ext_h;
+        } else {
+            ext_h <- invoke XPD(n, l, h1, r, args);
+            return ext_h;
+        }
+    }
+}

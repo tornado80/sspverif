@@ -1,0 +1,46 @@
+IDENTIFIER: /[a-zA-Z_][a-zA-Z0-9_]*/
+NUM: /[0-9]+/
+
+start: package
+
+package: "package" IDENTIFIER "{" package_spec_list "}"
+package_spec_list: package_spec*
+package_spec: types | params | state | import_oracles | oracle_def
+
+dyck: (/[^}{]+/)? ("{" dyck "}" (/[^}{]+/)?)*
+
+types: "types" "{" dyck "}"
+state: "state" "{" dyck "}"
+import_oracles: "import" "oracles" "{" dyck "}"
+oracle_def: "oracle" oracle_sig "{" dyck "}"
+oracle_sig: IDENTIFIER "(" oracle_maybe_arglist ")" ("->" tipe)?
+oracle_maybe_arglist: oracle_arglist?
+oracle_arglist: oracle_arg_spec ("," oracle_arg_spec)*
+oracle_arg_spec: IDENTIFIER ":" tipe
+
+params: "params" "{" decl_list? "}"
+decl_list: decl_spec ("," decl_spec)* ","?
+decl_spec: IDENTIFIER ":" tipe
+
+?tipe: type_integer | type_bool | type_string | type_bits | type_maybe | type_fn | type_tuple | type_table | type_list | type_empty | type_userdefined
+
+type_integer: "Integer"
+type_bool: "Bool"
+type_string: "String"
+type_bits: "Bits(" countspec ")"
+type_maybe: "Maybe(" tipe ")"
+type_fn: "fn" fn_arglist "->" tipe
+fn_arglist: fn_arg_spec ("," fn_arg_spec)*
+fn_arg_spec: tipe
+type_tuple: "(" tipe ("," tipe)* ")"
+type_empty: "()"
+type_list: "List(" tipe ")"
+type_table: "Table(" tipe "," tipe ")"
+type_userdefined: IDENTIFIER
+
+countspec: IDENTIFIER | NUM | "*"
+
+%import common.WS
+%import common.C_COMMENT
+%ignore WS
+%ignore C_COMMENT

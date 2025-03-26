@@ -1,0 +1,20 @@
+package xtr0 {
+    params {
+        tag: fn Integer, Bits(*) -> Bits(*), /* tags the given key with the given algorithm identifier */
+        untag: fn Bits(*) -> Bits(*), /* untags the given key and returns a raw key */
+        key_alg: fn Bits(*) -> Integer, /* returns the algorithm identifier of the given key */
+        hmac: fn Integer, Bits(*), Bits(*) -> Bits(*) /* given an algortihm identifier and two keys, returns hmac applied to the keys */
+    }
+
+    oracle xtr(k1: Bits(*), k2: Bits(*)) -> Bits(*) {
+        if (key_alg(k1) == 0) {
+            alg <- key_alg(k2);
+            k2 <- untag(k2);
+        } else {
+            alg <- key_alg(k1);
+            k1 <- untag(k1);
+        }
+        k <- hmac(alg, k1, k2);
+        return tag(alg, k);
+    }
+}

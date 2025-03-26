@@ -1,16 +1,32 @@
-import sys
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+#   "lark==1.2.2"
+# ]
+# ///
+
+# Example usage: pipx run tls13-ks-game-gen.py . 3
+
 import itertools
 import os
 import operator
 import lark
+import argparse
 
-CURRENT_DIR = os.path.dirname(__file__)
-PACKAGES_DIR = os.path.join(CURRENT_DIR, "packages")
-GAMES_DIR = os.path.join(CURRENT_DIR, "games")
-PROOF_DIR = os.path.join(CURRENT_DIR, "proofs")
+arg_parser = argparse.ArgumentParser(
+                    prog='TLS 1.3 Key Schedule Security Package/Game/Proof Generator',
+                    description='Generates packages, games, and proof files')
+arg_parser.add_argument("project_dir", help="Location of the project directory containing ssp.toml")
+arg_parser.add_argument("resumption_levels", type=int, help="Numebr of resumption levels to generate packages and games")
+args = arg_parser.parse_args()
+
+PROJECT_DIR = args.project_dir
+PACKAGES_DIR = os.path.join(PROJECT_DIR, "packages")
+GAMES_DIR = os.path.join(PROJECT_DIR, "games")
+PROOF_DIR = os.path.join(PROJECT_DIR, "proofs")
 PROOF_FILE_PATH = os.path.join(PROOF_DIR, "proof.ssp")
 
-RESUMPTION_LEVELS = int(sys.argv[1])
+RESUMPTION_LEVELS = args.resumption_levels
 LEVELS_COUNT = RESUMPTION_LEVELS + 1
 
 GAMES = ["Gks0", "Gks0Map", "GksMapXpd", "Gks1"]
@@ -201,7 +217,7 @@ def get_map_xtr_package_compositions(key_name, level):
         "XTR": ("Xtr", key, level),
         "GETMAP1": ("MapAdapter", parent1, level),
         "GETMAP2": ("MapAdapter", parent2, level),
-        "SETMAP": ("Map", key, level)
+        "SETMAP": ("MapTable", key, level)
     }
 
 def get_xpd_package_parameters(key_name, level):
@@ -222,8 +238,8 @@ def get_xpd_package_compositions(key_name, level):
 def get_map_xpd_package_compositions(key_name, level):
     return {
         "XPD": ("Xpd", key_name, level),
-        "GETMAP": ("Map", PARENT[key_name], level),
-        "SETMAP": ("Map", key_name, level + 1 if key_name == "psk" else level),
+        "GETMAP": ("MapTable", PARENT[key_name], level),
+        "SETMAP": ("MapTable", key_name, level + 1 if key_name == "psk" else level),
         "LABEL": "Labels"
     }
 
@@ -234,8 +250,8 @@ def get_map_xpd_output_key_inline_package_compositions(key_name, level):
         "SET": ("Key", key_name, level),
         "xpd": "xpd0",
         "HASH": "Hash",
-        "GETMAP": ("Map", PARENT[key], level),
-        "SETMAP": ("Map", key, level)
+        "GETMAP": ("MapTable", PARENT[key], level),
+        "SETMAP": ("MapTable", key, level)
     }
 
 def get_map_xpd_output_key_remap_package_compositions(key_name, level):
@@ -245,8 +261,8 @@ def get_map_xpd_output_key_remap_package_compositions(key_name, level):
         "SET": ("Key", key_name, level),
         "xpd": "xpd0",
         "HASH": "Hash",
-        "GETMAP": ("Map", PARENT[key], level),
-        "SETMAP": ("Map", key, level)
+        "GETMAP": ("MapTable", PARENT[key], level),
+        "SETMAP": ("MapTable", key, level)
     }
 
 def get_get_output_key_package_compositions(game, key_name, level):
@@ -421,18 +437,18 @@ for game in GAMES:
                 instances_compositions[instance] = {
                     "DHGEN": "DH",
                     "DHEXP": "DH",
-                    "GETMAP": ("Map", "dh"),
-                    "SETMAP": ("Map", "dh")
+                    "GETMAP": ("MapTable", "dh"),
+                    "SETMAP": ("MapTable", "dh")
                 }
             case "MapPSK":
                 instances_compositions[instance] = {
-                    "SETMAP": ("Map", "psk"),
+                    "SETMAP": ("MapTable", "psk"),
                     "SET": ("Key", "psk", 0)
                 }
             case ("MapGetOutputKey", key, level):
                 instances_compositions[instance] = {
                     "GET": ("Key", key, level),
-                    "GETMAP": ("Map", key, level)
+                    "GETMAP": ("MapTable", key, level)
                 }
             case ("MapXtr", key, level):
                 instances_parameters[instance] = {"n": KEYS.index(key)}
@@ -462,7 +478,7 @@ for game in GAMES:
                         }
             case ("MapAdapter", key, level):
                 instances_compositions[instance] = {
-                    "GETMAP": ("Map", key, level)
+                    "GETMAP": ("MapTable", key, level)
                 }
             case ("Xpd", key, level):
                 instances_parameters[instance] = get_xpd_package_parameters(key, level)
@@ -490,7 +506,7 @@ for game in GAMES:
                     "l": level
                 }
                 instances_compositions[instance] = get_check_package_compositions(game, key, level)
-            case ("Map", _) | ("Map", _, _) | "ZKey" | "xtr0" | "xpd0" | "hash0" | "Labels" | "Sample":
+            case ("MapTable", _) | ("MapTable", _, _) | "ZKey" | "xtr0" | "xpd0" | "hash0" | "Labels" | "Sample":
                 continue
             case p:
                 raise NotImplementedError(f"Can not handle package {p}")

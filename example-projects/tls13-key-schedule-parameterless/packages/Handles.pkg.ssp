@@ -1,0 +1,29 @@
+package Handles {
+    params {
+        level: fn Bits(*) -> Integer, /* returns the level of the given handle */
+    }
+
+    oracle IS_noPSK_HANDLE(h: Bits(*)) -> Bool {
+        return false;
+    }
+
+    oracle IS_DH_HANDLE(h: Bits(*)) -> Bool {
+        return false;
+    }
+
+    oracle IS_noDH_HANDLE(h: Bits(*)) -> Bool {
+        return false;
+    }
+
+    oracle IS_0salt_HANDLE(h: Bits(*)) -> Bool {
+        return false;
+    }
+
+    oracle IS_0ikm_HANDLE(h: Bits(*)) -> Bool {
+        return false;
+    }
+
+    oracle LEVEL(h: Bits(*)) -> Maybe(Integer) {
+        return None;
+    }
+}

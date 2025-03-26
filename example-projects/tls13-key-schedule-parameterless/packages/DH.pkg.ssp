@@ -1,0 +1,58 @@
+package DH {
+    /*
+    types {
+        Group: Integer,
+        GroupMember: Bits(*),
+        Handle: Bits(*)
+    }
+    */
+
+    params {
+        is_supported: fn Integer -> Bool, /* returns whether the given group is a supported group */
+        ord: fn Integer -> Integer, /* returns the order of the given group */
+        gen: fn Integer -> Bits(*), /* returns the generator of the gvien group */
+        /* Remember properties of exp: 
+            1. if needed: exp(exp(g, x), y) = exp(exp(g, y), x)
+            2. if needed: the group of output should be the group of input */
+        exp: fn Bits(*), Integer -> Bits(*),
+        grp: fn Bits(*) -> Integer, /* returns the group description of the given group member */
+        mk_dh_handle: fn Bits(*), Bits(*) -> Bits(*), /* constructs a dh handle with sorted DH shares X and Y */
+        encode_group_member: fn Bits(*) -> Bits(*), /* encodes the given group member injectively to a bitstring */
+        bits_to_integer: fn Bits(*) -> Integer /* temporary workaround for sampling from a set of integers */
+    }
+
+    state {
+        E: Table(Bits(*), Integer) /* maps g^x to x */
+    }
+
+    import oracles {
+        SET(n: Integer, l: Integer, h: Bits(*), hon: Bool, ks: Bits(*)) -> Bits(*),
+        GET_DH_NAME() -> Integer,
+    }
+
+    oracle DHGEN(group: Integer) -> Bits(*) {
+        assert is_supported(group);
+        g <- gen(group);
+        n <- ord(group);
+        xb <-$ Bits(*); /* how to properly sample from Z_ord(grp)? we are assuming order of group is a power of 2 */
+        x <- bits_to_integer(xb);
+        X <- exp(g, x);
+        E[X] <- Some(x);
+        return X;
+    }
+
+    oracle DHEXP(X: Bits(*), Y: Bits(*)) -> Bits(*) {
+        assert (grp(X) == grp(Y));
+        h <- mk_dh_handle(X, Y);
+        hon_X <- not (E[X] == None);
+        hon_Y <- not (E[Y] == None);
+        assert (hon_X == true);
+        x <- E[X];
+        k <- exp(Y, x);
+        hon <- (hon_X and hon_Y);
+        dh <- invoke GET_DH_NAME();
+        h <- invoke SET(dh, 0, h, hon, encode_group_member(k));
+        return h;
+    }
+}
+
