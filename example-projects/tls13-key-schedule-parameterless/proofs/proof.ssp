@@ -111,7 +111,7 @@ proof Proof {
             zeros: zeros,
         }
     }
-
+    /*
     instance game_GksMapXpd = GksMapXpd {
         params {
             bits_to_integer: bits_to_integer,
@@ -189,6 +189,7 @@ proof Proof {
             zeros: zeros,
         }
     }
+    */
 
     gamehops {
         equivalence game_Gks0 game_Gks0Map {

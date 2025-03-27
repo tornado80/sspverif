@@ -11,8 +11,10 @@ impl super::Transformation for Transformation<'_> {
 
     fn transform(&self) -> Result<(Composition, ()), Infallible> {
         let insts = self.0.pkgs.iter().map(|inst| {
+            println!("treeify instance: {}", inst.name);
             let mut newinst = inst.clone();
             newinst.pkg.oracles.iter_mut().for_each(|oracle| {
+                println!("treeify oracle: {} with {} statements", oracle.sig.name, oracle.code.0.len());
                 oracle.code = treeify(&oracle.code);
             });
             newinst
@@ -36,6 +38,7 @@ fn treeify(cb: &CodeBlock) -> CodeBlock {
     for stmt in &cb.0 {
         match stmt {
             Statement::IfThenElse(_) => {
+                //println!("treeify if statement");
                 if ite_stmt.is_none() {
                     ite_stmt = Some(stmt.clone());
                 } else {
@@ -43,6 +46,7 @@ fn treeify(cb: &CodeBlock) -> CodeBlock {
                 }
             }
             Statement::For(ident, from, to, code, file_pos) => {
+                //println!("treeify for statement");
                 let new_elem = Statement::For(
                     ident.clone(),
                     from.clone(),
@@ -58,6 +62,7 @@ fn treeify(cb: &CodeBlock) -> CodeBlock {
                 }
             }
             _ => {
+                //println!("treeify other statement");
                 if ite_stmt.is_none() {
                     before.push(stmt.clone());
                 } else {
