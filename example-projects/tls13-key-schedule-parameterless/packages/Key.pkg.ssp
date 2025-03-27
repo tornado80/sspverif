@@ -8,7 +8,6 @@ package Key {
         tag: fn Integer, Bits(*) -> Bits(*), /* tags the given key with the given algorithm identifier */
         untag: fn Bits(*) -> Bits(*), /* untags the given key and returns a raw key */
         name: fn Bits(*) -> Integer, /* returns the name of the given handle */
-        type: fn Bits(*) -> Integer, /* returns the type of the given handle */
         level: fn Bits(*) -> Integer, /* returns the level of the given handle */
         zeros: fn Integer -> Bits(*), /* returns an all zeros bitstring of the given length */
         len_alg: fn Integer -> Integer, /* returns the length of keys of the given algorithm identifier */

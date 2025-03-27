@@ -7,11 +7,12 @@
 
 # Example usage: pipx run tls13-ks-game-gen.py .
 
-import itertools
 import os
 import operator
 import lark
 import argparse
+import pydot
+import networkx as nx
 
 arg_parser = argparse.ArgumentParser(
                     prog='TLS 1.3 Key Schedule Security Game/Proof Generator',
@@ -81,6 +82,16 @@ CHECK_PACKAGE_COMPOSITIONS = {
     }
 }
 
+def get_check_package_compositions(game):
+    check_package_compositions = {
+        "IS_BIND_KEY": "Names",
+        "IS_EARLY_SEPARATION_POINT": "Names",
+        "IS_POST_DH_SEPARATION_POINT": "Names",
+        "GET_BINDER_KEY": "Names"
+    }
+    check_package_compositions.update(CHECK_PACKAGE_COMPOSITIONS[game])
+    return check_package_compositions
+
 class ParameterExtractor(lark.visitors.Visitor_Recursive):
     def __init__(self):
         self.parameters = {}
@@ -110,6 +121,8 @@ game_abstract_functions_signatures = {}
 all_abstract_functions_signatures = {}
 for game in GAMES:
     print(f"Generating package instances for {game}:")
+    graph = pydot.Dot(game)
+    nxgraph = nx.DiGraph()
     instances_parameters = {}
     instances_compositions = {}
     instances = set()
@@ -149,6 +162,13 @@ for game in GAMES:
                 instances_parameters[instance] = {
                     "game": GAMES.index(game)
                 }
+                instances_compositions[instance] = {
+                    "IS_HANDSHAKE_SECRET": "Names",
+                    "IS_INTERNAL_KEY": "Names",
+                    "IS_DH_KEY": "Names",
+                    "IS_PSK": "Names",
+                    "IS_OUTPUT_KEY": "Names"
+                }
             case "ExternalPskSetter":
                 instances_compositions[instance] = {
                     "SET": "Key",
@@ -170,7 +190,7 @@ for game in GAMES:
                     "SET": "Key"
                 }
             case "Check":
-                instances_compositions[instance] = CHECK_PACKAGE_COMPOSITIONS[game]
+                instances_compositions[instance] = get_check_package_compositions(game)
             case "Xpd":
                 instances_compositions[instance] = {
                     "IS_XPD_KEY": "Names",
@@ -242,16 +262,33 @@ for game in GAMES:
                 }
             case "Log":
                 instances_compositions[instance] = {
-                    "GET_LOG_PACKAGE_PARAMETERS": "Parameters"
+                    "GET_LOG_PACKAGE_PARAMETERS": "Parameters",
+                    "IS_INFINITY_MAPPING": "Parameters",
+                    "IS_1_MAPPING": "Parameters",
+                    "IS_A_PATTERN": "Parameters",
+                    "IS_D_PATTERN": "Parameters",
+                    "IS_F_PATTERN": "Parameters",
                 }
             case "Handles" | "xtr0" | "xpd0" | "hash0" | "Labels" | "Sample" | "Names":
                 continue
             case p:
                 raise NotImplementedError(f"Can not handle package {p}")
-        for p in set(instances_compositions[instance].values()):
-            stack.append(p)
+        node = pydot.Node(instance, label=instance, shape="rectangle")
+        if not nxgraph.has_node(instance):
+            nxgraph.add_node(instance)
+        graph.add_node(node)
+        for oracle, package in set(instances_compositions[instance].items()):
+            graph.add_edge(pydot.Edge(instance, package, label=oracle))
+            if not nxgraph.has_node(package):
+                nxgraph.add_node(package)
+            nxgraph.add_edge(instance, package)
+            stack.append(package)
+    is_planar, certificate = nx.check_planarity(nxgraph, counterexample=True)
+    print("Is graph planar?", is_planar)
+    #nx.drawing.nx_pydot.to_pydot(certificate).write_svg(os.path.join(GAMES_DIR, f"{game}_planarity_counterexample.svg"))
+    nx.drawing.nx_pydot.to_pydot(nxgraph).write_svg(os.path.join(GAMES_DIR, f"{game}.svg"))
     print("Constructed call graph")
-
+    
     # extract abstract functions
     for instance in instances:
         package_parameters = instances_parameters[instance]

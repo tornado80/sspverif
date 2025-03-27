@@ -64,6 +64,7 @@ composition Gks0 {
     instance pkg_Handles = Handles {
         params {
             level: level,
+            type: type,
         }
     }
 
@@ -82,7 +83,6 @@ composition Gks0 {
             level: level,
             name: name,
             tag: tag,
-            type: type,
             untag: untag,
             zeros: zeros,
         }
@@ -166,6 +166,10 @@ composition Gks0 {
     compose {
         pkg_Check: {
             GET: pkg_Key,
+            GET_BINDER_KEY: pkg_Names,
+            IS_BIND_KEY: pkg_Names,
+            IS_EARLY_SEPARATION_POINT: pkg_Names,
+            IS_POST_DH_SEPARATION_POINT: pkg_Names,
             XPD: pkg_Xpd,
         },
         pkg_DH: {
@@ -194,10 +198,22 @@ composition Gks0 {
         },
         pkg_Log: {
             GET_LOG_PACKAGE_PARAMETERS: pkg_Parameters,
+            IS_1_MAPPING: pkg_Parameters,
+            IS_A_PATTERN: pkg_Parameters,
+            IS_D_PATTERN: pkg_Parameters,
+            IS_F_PATTERN: pkg_Parameters,
+            IS_INFINITY_MAPPING: pkg_Parameters,
         },
         pkg_OutputKeyGetter: {
             GET: pkg_Key,
             IS_OUTPUT_KEY: pkg_Names,
+        },
+        pkg_Parameters: {
+            IS_DH_KEY: pkg_Names,
+            IS_HANDSHAKE_SECRET: pkg_Names,
+            IS_INTERNAL_KEY: pkg_Names,
+            IS_OUTPUT_KEY: pkg_Names,
+            IS_PSK: pkg_Names,
         },
         pkg_Xpd: {
             GET: pkg_Key,

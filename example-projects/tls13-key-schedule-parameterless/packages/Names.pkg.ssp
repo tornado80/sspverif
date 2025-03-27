@@ -1,33 +1,203 @@
 package Names {
+    /*
+    # Key package names
+    | Name | Integer ID |
+    | --- | --- |
+    | psk | 0 |
+    | hs | 1 |
+    | es | 2 |
+    | as | 3 |
+    | rm | 4 |
+    | esalt | 5 |
+    | hsalt | 6 |
+    | bind | 7 |
+    | binder | 8 |
+    | eem | 9 |
+    | cet | 10 |
+    | sht | 11 |
+    | cht | 12 |
+    | cat | 13 |
+    | sat | 14 |
+    | eam | 15 |
+    | dh  | 16 |
+    | 0ikm | 17 |
+    | 0salt | 18 |
+
+    SEPARATION_POINTS = [
+        "bind", # based on resumption bit
+        "cet", "eem", # early, i.e. based on binder tag/key
+        "cht", "sht", "cat", "sat", "eam", "rm" # other, i.e. based on both DH and binder tag/key
+    ]
+
+    PARENT = {
+        "psk": "rm",
+        "rm": "as",
+        "cat": "as",
+        "sat": "as",
+        "eam": "as",
+        "as": ("hsalt", "0ikm"),
+        "cht": "hs",
+        "sht": "hs",
+        "hsalt": "hs",
+        "hs": ("esalt", "dh"),
+        "binder": "bind",
+        "cet": "es",
+        "eem": "es",
+        "bind": "es",
+        "esalt": "es",
+        "es": ("0salt", "psk")
+    }
+
+    KEYS = ["psk", "hs", "es", "as", "rm", "esalt", "hsalt", "bind", "binder", "eem", "cet", "sht", "cht", "cat", "sat", "eam", "dh", "0ikm", "0salt"]
+    XTR_KEYS = ["es", "as", "hs"]
+    XPD_KEYS = ["bind", "binder", "cet", "eem", "esalt", "cht", "sht", "hsalt", "cat", "sat", "eam", "rm", "psk"]
+    INTERNAL_KEYS = ["esalt", "hsalt", "bind", "es", "as", "hs", "rm"]
+    OUTPUT_KEYS = ["binder", "cet", "eem", "cht", "sht", "cat", "sat", "eam"]
+    */
+
     oracle IS_OUTPUT_KEY(n: Integer) -> Bool {
+        if ((n == 8) or (n == 9) or (n == 10) or (n == 11) or (n == 11) or (n == 12) or (n == 13) or (n == 14) or (n == 15)) {
+            return true;
+        }
+        return false;
+    }
+
+    oracle IS_INTERNAL_KEY(n: Integer) -> Bool {
+        if ((n == 1) or (n == 2) or (n == 3) or (n == 4) or (n == 5) or (n == 6) or (n == 7)) {
+            return true;
+        }
+        return false;
+    }
+
+    oracle IS_XPD_KEY(n: Integer) -> Bool {
+        if ((n == 0) or (n == 4) or (n == 5) or (n == 6) or (n == 7) or (n == 8) or (n == 9) or (n == 10) or (n == 11) or (n == 11) or (n == 12) or (n == 13) or (n == 14) or (n == 15)) {
+            return true;
+        }
+        return false;
+    }
+
+    oracle IS_XTR_KEY(n: Integer) -> Bool {
+        if ((n == 1) or (n == 2) or (n == 3)) {
+            return true;
+        }
         return false;
     }
 
     oracle IS_DH_KEY(n: Integer) -> Bool {
-        return true;
+        if (n == 16) {
+            return true;
+        }
+        return false;
     }
 
     oracle IS_PSK(n: Integer) -> Bool {
-        return true;
+        if (n == 0) {
+            return true;
+        }
+        return false;
     }
 
-    oracle IS_XPD_KEY(n: Integer) -> Bool {
-        return true;
+    oracle IS_HANDSHAKE_SECRET(n: Integer) -> Bool {
+        if (n == 1) {
+            return true;
+        }
+        return false;
     }
 
-    oracle IS_XTR_KEY(n: Integer) -> Bool {
-        return true;
+    oracle IS_BIND_KEY(n: Integer) -> Bool {
+        if (n == 7) {
+            return true;
+        }
+        return false;
+    }
+
+    oracle IS_EARLY_SEPARATION_POINT(n: Integer) -> Bool {
+        if ((n == 9) or (n == 10)) { /* early separation points: cet and eem */
+            return true;
+        }
+        return false;
+    }
+
+    oracle IS_POST_DH_SEPARATION_POINT(n: Integer) -> Bool {
+        if ((n == 11) or (n == 12) or (n == 13) or (n == 14) or (n == 5) or (n == 4)) { /* other separation points: cht, sht, cat, sat, eam, rm */
+            return true;
+        }
+        return false;
     }
 
     oracle GET_DH_NAME() -> Integer {
-        return 2;
+        return 16;
     }
 
     oracle GET_PSK_NAME() -> Integer {
-        return 1;
+        return 0;
+    }
+
+    oracle GET_BINDER_KEY() -> Integer {
+        return 8;
     }
 
     oracle PARENTS(n: Integer) -> (Maybe(Integer), Maybe(Integer)) {
-        return (Some(1), Some(2));
+        if (n == 0) { /* psk : rm */
+            return (Some(4), None);
+        }
+        if (n == 1) { /* hs : (hsalt, dh) */
+            return (Some(6), Some(16));
+        }
+        if (n == 2) { /* es : (0salt, psk) */
+            return (Some(18), Some(0));
+        }
+        if (n == 3) { /* es : (0salt, psk) */
+            return (Some(18), Some(0));
+        }
+        if (n == 4) { /* rm : as */
+            return (Some(3), None);
+        }
+        if (n == 5) { /* esalt : es */
+            return (Some(2), None);
+        }
+        if (n == 6) { /* hsalt : hs */
+            return (Some(1), None);
+        }
+        if (n == 7) { /* bind : es */
+            return (Some(2), None);
+        }
+        if (n == 8) { /* binder : bind */
+            return (Some(7), None);
+        }
+        if (n == 9) { /* eem : es */
+            return (Some(2), None);
+        }
+        if (n == 10) { /* cet : es */
+            return (Some(2), None);
+        }
+        if (n == 11) { /* sht : hs */
+            return (Some(1), None);
+        }
+        if (n == 12) { /* cht : hs */
+            return (Some(1), None);
+        }
+        if (n == 13) { /* cat : as */
+            return (Some(3), None);
+        }
+        if (n == 14) { /* sat : as */
+            return (Some(3), None);
+        }
+        if (n == 15) { /* eam : as */
+            return (Some(3), None);
+        }
+        if (n == 16) { /* dh */
+            return (None, None);
+        }
+        if (n == 17) { /* 0ikm */
+            return (None, None);
+        }
+        if (n == 18) { /* 0salt */
+            return (None, None);
+        }
+        assert false;
+        return (None, None);
     }
+
+
 }
