@@ -1,4 +1,6 @@
+use std::collections::{HashMap, HashSet};
 use std::convert::Infallible;
+use std::io::{self, Write};
 
 use crate::expressions::Expression;
 use crate::identifier::Identifier;
@@ -20,9 +22,13 @@ impl super::Transformation for Transformation<'_> {
             .pkgs
             .iter()
             .map(|inst| {
+                println!("transforming instance: {}", inst.name);
+                //io::stdout().flush().unwrap();
                 let mut newinst = inst.clone();
                 for (i, oracle) in newinst.pkg.oracles.clone().iter().enumerate() {
-                    newinst.pkg.oracles[i].code = tableinitialize(&oracle.code, vec![])?;
+                    println!("transforming oracle: {} with {} statements", oracle.sig.name, oracle.code.0.len());
+                    //io::stdout().flush().unwrap();
+                    newinst.pkg.oracles[i].code = tableinitialize(&oracle.code, HashSet::new())?;
                 }
                 Ok(newinst)
             })
@@ -39,12 +45,13 @@ impl super::Transformation for Transformation<'_> {
 
 pub fn tableinitialize(
     cb: &CodeBlock,
-    mut new_initialized: Vec<String>,
+    mut new_initialized: HashSet<String>,
 ) -> Result<CodeBlock, Error> {
     let mut newcode = Vec::new();
     for stmt in cb.0.clone() {
         match stmt {
             Statement::IfThenElse(ite) => {
+                //println!("tableinitialize if statement");
                 newcode.push(Statement::IfThenElse(IfThenElse {
                     then_block: tableinitialize(&ite.then_block, new_initialized.clone())?,
                     else_block: tableinitialize(&ite.else_block, new_initialized.clone())?,
@@ -58,6 +65,7 @@ pub fn tableinitialize(
                 ref expr,
                 ref file_pos,
             ) => {
+                println!("tableinitialize: Assign {}", id);
                 let indextype = idxexpr.get_type();
                 let Type::Maybe(valuetype) = expr.get_type() else {
                     unreachable!("all expressions are expected to be typed at this point, and the value needs to be a maybe type! ({:?})", file_pos);
@@ -70,7 +78,7 @@ pub fn tableinitialize(
                 debug_assert_eq!(*ty, tabletype);
 
                 if !new_initialized.contains(id) {
-                    new_initialized.push(id.clone());
+                    new_initialized.insert(id.clone());
                     newcode.push(Statement::Assign(
                         Identifier::Generated(id.clone(), tabletype.clone()),
                         None,
@@ -87,13 +95,14 @@ pub fn tableinitialize(
                 ref tipe,
                 ref file_pos,
             ) => {
+                println!("tableinitialize: Sample {}", id);
                 let indextype = idxexpr.get_type();
                 let tabletype = Type::Table(Box::new(indextype.clone()), Box::new(tipe.clone()));
 
                 debug_assert_eq!(*ty, tabletype);
 
                 if !new_initialized.contains(id) {
-                    new_initialized.push(id.clone());
+                    new_initialized.insert(id.clone());
                     newcode.push(Statement::Assign(
                         Identifier::Generated(id.clone(), tabletype.clone()),
                         None,
@@ -110,6 +119,7 @@ pub fn tableinitialize(
                 ref file_pos,
                 ..
             }) => {
+                println!("tableinitialize: Invoke ORacle {}", id);
                 let indextype = idxexpr.get_type();
                 let valuetype = match opt_ret_tipe {
                     Some(t) => t.to_owned(),
@@ -119,7 +129,7 @@ pub fn tableinitialize(
                     Type::Table(Box::new(indextype.clone()), Box::new(valuetype.clone()));
 
                 if !new_initialized.contains(id) {
-                    new_initialized.push(id.clone());
+                    new_initialized.insert(id.clone());
                     newcode.push(Statement::Assign(
                         Identifier::Generated(id.clone(), tabletype.clone()),
                         None,
@@ -130,6 +140,7 @@ pub fn tableinitialize(
                 newcode.push(stmt);
             }
             _ => {
+                //println!("tableinitialize other statement");
                 newcode.push(stmt);
             }
         }

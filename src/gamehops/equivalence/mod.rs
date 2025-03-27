@@ -248,11 +248,12 @@ impl<'a> EquivalenceContext<'a> {
             .proof
             .find_game_instance(self.equivalence.left_name())
             .unwrap();
+        println!("found left game");
         let right = self
             .proof
             .find_game_instance(self.equivalence.right_name())
             .unwrap();
-
+        println!("found right game");
         let mut left_writer = CompositionSmtWriter::new(left, self.sample_info_left());
         let mut right_writer = CompositionSmtWriter::new(right, self.sample_info_right());
 

@@ -16,7 +16,7 @@ use super::EquivalenceContext;
 
 pub fn verify(eq: &Equivalence, proof: &Proof, mut prover: Communicator) -> Result<()> {
     let (proof, auxs) = EquivalenceTransform.transform_proof(proof).unwrap();
-
+    println!("verify: transformed proof");
     let eqctx = EquivalenceContext {
         equivalence: eq,
         proof: &proof,
