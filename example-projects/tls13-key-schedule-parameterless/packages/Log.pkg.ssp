@@ -29,6 +29,11 @@ package Log {
 
     import oracles {
         GET_LOG_PACKAGE_PARAMETERS(n: Integer) -> (Integer, Integer),
+        IS_INFINITY_MAPPING(mapping: Integer) -> Bool,
+        IS_1_MAPPING(mapping: Integer) -> Bool,
+        IS_A_PATTERN(pattern: Integer) -> Bool,
+        IS_D_PATTERN(pattern: Integer) -> Bool,
+        IS_F_PATTERN(pattern: Integer) -> Bool,
     }
 
     /* 
@@ -53,7 +58,8 @@ package Log {
         (pattern, mapping) <- parse parameters;
 
         /* mapping */
-        if (mapping == 2) { /* infinity */
+        is_infinity <- invoke IS_INFINITY_MAPPING(mapping);
+        if is_infinity {
             if not hon {
                 if (LogInverseDishonest[(n, k)] != None as Bits(*)) {
                     hp <- Unwrap(LogInverseDishonest[(n, k)]);
@@ -64,7 +70,8 @@ package Log {
             }
         }
 
-        if (mapping == 1) { /* map = 1 */
+        is_1_mapping <- invoke IS_1_MAPPING(mapping);
+        if is_1_mapping {
             if not hon {
                 if not Unwrap(J[(n, k)]) {
                     r <- level(h);
@@ -88,7 +95,8 @@ package Log {
         }
 
         /* pattern */
-        if (pattern == 1)  { /* A */
+        is_A_pattern <- invoke IS_A_PATTERN(pattern);
+        if is_A_pattern {
             if not hon {
                 if (LogInverseDishonestLevelZero[(n, k)] != None as Bits(*)) {
                     assert false;
@@ -96,7 +104,8 @@ package Log {
             }
         }
 
-        if (pattern == 2)  { /* D */
+        is_D_pattern <- invoke IS_D_PATTERN(pattern);
+        if is_D_pattern {
             if not hon {
                 if (LogInverseDishonest[(n, k)] != None as Bits(*)) {
                     assert false;
@@ -104,7 +113,8 @@ package Log {
             }
         }
 
-        if (pattern == 3)  { /* F */
+        is_F_pattern <- invoke IS_F_PATTERN(pattern);
+        if is_F_pattern {
             if (Seen[(n, k)] != None as Bool) { /* we are assuming UNQ is not called on the same inputs, Q will catch it */
                 assert false;
             }
