@@ -14,31 +14,39 @@ package Check {
     import oracles {
         XPD(n: Integer, l: Integer, h: Bits(*), r: Bool, args: Bits(*)) -> Bits(*),
         GET(n: Integer, l: Integer, h: Bits(*)) -> (Bits(*), Bool), /* binder key */
+        IS_BIND_KEY(n: Integer) -> Bool,
+        IS_EARLY_SEPARATION_POINT(n: Integer) -> Bool,
+        IS_POST_DH_SEPARATION_POINT(n: Integer) -> Bool,
+        GET_BINDER_KEY() -> Integer,
     }
 
     oracle XPD(n: Integer, l: Integer, h: Bits(*), r: Bool, args: Bits(*)) -> Bits(*) {
-        if (n == 7) { /* n = bind */
+        is_bind_key <- invoke IS_BIND_KEY(n);
+        if is_bind_key {
             if r {
                 assert (level(h) != 0);
             } else {
                 assert (level(h) == 0);
             }
         }
-        if ((n == 9) or (n == 10)) { /* early separation points: cet and eem */
+        binder_name <- invoke GET_BINDER_KEY();
+        is_early_separation_point <- invoke IS_EARLY_SEPARATION_POINT(n);
+        if is_early_separation_point { /* early separation points: cet and eem */
             binder <- extract_binder_from_args(args);
             h_binder <- mk_binder_handle(h, r, args); /* needs r to compute h_bind with res/ext */
-            t <- invoke GET(8, l, h_binder);
+            t <- invoke GET(binder_name, l, h_binder);
             (k, hon) <- parse t;
             assert (binder == k);
         }
-        if ((n == 11) or (n == 12) or (n == 13) or (n == 14) or (n == 5) or (n == 4)) { /* other separation points: cht, sht, cat, sat, eam, rm */
+        is_post_dh_separation_point <- invoke IS_POST_DH_SEPARATION_POINT(n);
+        if is_post_dh_separation_point { /* other separation points: cht, sht, cat, sat, eam, rm */
             shares <- extract_dh_shares_from_args(args);
             (X, Y) <- parse shares;
             h_dh <- extract_dh_handle(h);
             assert (h_dh == mk_dh_handle(X, Y));
             binder <- extract_binder_from_args(args);
             h_binder <- mk_binder_handle(h, r, args); /* needs r to compute h_bind with res/ext */
-            t <- invoke GET(8, l, h_binder);
+            t <- invoke GET(binder_name, l, h_binder);
             (k, hon) <- parse t;
             assert (binder == k);
         }
