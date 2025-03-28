@@ -15,7 +15,7 @@ package Hash {
 
     oracle HASH(t: Bits(*)) -> Bits(*) {
         /* assert alg(t) is supported */
-        if (H[t] != None as Bool) {
+        if (H[t] != None as Bits(*)) {
             return Unwrap(H[t]);
         }
         agile_d <- invoke hash(t);

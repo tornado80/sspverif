@@ -18,13 +18,15 @@ proof Proof {
     const len_alg: fn Integer -> Integer;
     const len_key: fn Bits(*) -> Integer;
     const level: fn Bits(*) -> Integer;
+    const log_package_parameters: fn Integer, Bool, Bool, Bool, Bool -> (Integer, Integer);
     const mk_binder_handle: fn Bits(*), Bool, Bits(*) -> Bits(*);
     const mk_dh_handle: fn Bits(*), Bits(*) -> Bits(*);
-    const mk_xpd_alg_transcript: fn Integer, Bits(*), Bits(*) -> Bits(*);
+    const mk_xpd_alg_transcript: fn Integer, Integer, Bits(*) -> Bits(*);
     const mk_xpd_handle: fn Integer, Integer, Bits(*), Bits(*) -> Bits(*);
     const mk_xtr_handle: fn Integer, Bits(*), Bits(*) -> Bits(*);
     const name: fn Bits(*) -> Integer;
     const ord: fn Integer -> Integer;
+    const parents: fn Integer -> (Maybe(Integer), Maybe(Integer));
     const tag: fn Integer, Bits(*) -> Bits(*);
     const tag_digest: fn Integer, Bits(*) -> Bits(*);
     const transcript_alg: fn Bits(*) -> Integer;
@@ -55,6 +57,7 @@ proof Proof {
             len_alg: len_alg,
             len_key: len_key,
             level: level,
+            log_package_parameters: log_package_parameters,
             mk_binder_handle: mk_binder_handle,
             mk_dh_handle: mk_dh_handle,
             mk_xpd_alg_transcript: mk_xpd_alg_transcript,
@@ -62,6 +65,7 @@ proof Proof {
             mk_xtr_handle: mk_xtr_handle,
             name: name,
             ord: ord,
+            parents: parents,
             tag: tag,
             tag_digest: tag_digest,
             transcript_alg: transcript_alg,
@@ -94,6 +98,7 @@ proof Proof {
             len_alg: len_alg,
             len_key: len_key,
             level: level,
+            log_package_parameters: log_package_parameters,
             mk_binder_handle: mk_binder_handle,
             mk_dh_handle: mk_dh_handle,
             mk_xpd_alg_transcript: mk_xpd_alg_transcript,
@@ -101,6 +106,7 @@ proof Proof {
             mk_xtr_handle: mk_xtr_handle,
             name: name,
             ord: ord,
+            parents: parents,
             tag: tag,
             tag_digest: tag_digest,
             transcript_alg: transcript_alg,
@@ -111,7 +117,7 @@ proof Proof {
             zeros: zeros,
         }
     }
-    /*
+
     instance game_GksMapXpd = GksMapXpd {
         params {
             bits_to_integer: bits_to_integer,
@@ -133,6 +139,7 @@ proof Proof {
             len_alg: len_alg,
             len_key: len_key,
             level: level,
+            log_package_parameters: log_package_parameters,
             mk_binder_handle: mk_binder_handle,
             mk_dh_handle: mk_dh_handle,
             mk_xpd_alg_transcript: mk_xpd_alg_transcript,
@@ -140,6 +147,7 @@ proof Proof {
             mk_xtr_handle: mk_xtr_handle,
             name: name,
             ord: ord,
+            parents: parents,
             tag: tag,
             tag_digest: tag_digest,
             transcript_alg: transcript_alg,
@@ -172,6 +180,7 @@ proof Proof {
             len_alg: len_alg,
             len_key: len_key,
             level: level,
+            log_package_parameters: log_package_parameters,
             mk_binder_handle: mk_binder_handle,
             mk_dh_handle: mk_dh_handle,
             mk_xpd_alg_transcript: mk_xpd_alg_transcript,
@@ -179,6 +188,7 @@ proof Proof {
             mk_xtr_handle: mk_xtr_handle,
             name: name,
             ord: ord,
+            parents: parents,
             tag: tag,
             tag_digest: tag_digest,
             transcript_alg: transcript_alg,
@@ -189,7 +199,6 @@ proof Proof {
             zeros: zeros,
         }
     }
-    */
 
     gamehops {
         equivalence game_Gks0 game_Gks0Map {
@@ -206,5 +215,4 @@ proof Proof {
             }
         }
     }
-
 }

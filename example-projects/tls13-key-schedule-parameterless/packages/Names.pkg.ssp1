@@ -142,7 +142,65 @@ package Names {
     }
 
     oracle PARENTS(n: Integer) -> (Maybe(Integer), Maybe(Integer)) {
-        return parents(n);
+        if (n == 0) { /* psk : rm */
+            return (Some(4), None);
+        }
+        if (n == 1) { /* hs : (hsalt, dh) */
+            return (Some(6), Some(16));
+        }
+        if (n == 2) { /* es : (0salt, psk) */
+            return (Some(18), Some(0));
+        }
+        if (n == 3) { /* es : (0salt, psk) */
+            return (Some(18), Some(0));
+        }
+        if (n == 4) { /* rm : as */
+            return (Some(3), None);
+        }
+        if (n == 5) { /* esalt : es */
+            return (Some(2), None);
+        }
+        if (n == 6) { /* hsalt : hs */
+            return (Some(1), None);
+        }
+        if (n == 7) { /* bind : es */
+            return (Some(2), None);
+        }
+        if (n == 8) { /* binder : bind */
+            return (Some(7), None);
+        }
+        if (n == 9) { /* eem : es */
+            return (Some(2), None);
+        }
+        if (n == 10) { /* cet : es */
+            return (Some(2), None);
+        }
+        if (n == 11) { /* sht : hs */
+            return (Some(1), None);
+        }
+        if (n == 12) { /* cht : hs */
+            return (Some(1), None);
+        }
+        if (n == 13) { /* cat : as */
+            return (Some(3), None);
+        }
+        if (n == 14) { /* sat : as */
+            return (Some(3), None);
+        }
+        if (n == 15) { /* eam : as */
+            return (Some(3), None);
+        }
+        if (n == 16) { /* dh */
+            return (None, None);
+        }
+        if (n == 17) { /* 0ikm */
+            return (None, None);
+        }
+        if (n == 18) { /* 0salt */
+            return (None, None);
+        }
+        assert false;
+        return (None, None);
     }
 
 
