@@ -106,7 +106,78 @@ package Parameters {
         is_psk <- invoke IS_PSK(n);
         is_internal <- invoke IS_INTERNAL_KEY(n);
         is_output <- invoke IS_OUTPUT_KEY(n);
-        (mapping, pattern) <- parse log_package_parameters(game, is_dh, is_psk, is_internal, is_output);
+        if (game == 0) { /* Gks0 */
+            if is_dh {
+                mapping <- 0;
+                pattern <- 0; /* Z */
+            }
+            if is_psk {
+                mapping <- 0;
+                pattern <- 1; /* A */
+            }
+            if is_internal {
+                mapping <- 0;
+                pattern <- 0; /* Z */
+            }
+            if is_output {
+                mapping <- 0;
+                pattern <- 0; /* Z */
+            }
+        }
+        if (game == 1) { /* Gks0Map */
+            if is_dh {
+                mapping <- 2; /* inf */
+                pattern <- 0; /* Z */
+            }
+            if is_psk {
+                mapping <- 1; /* 1 */
+                pattern <- 1; /* A */
+            }
+            if is_internal {
+                mapping <- 0;
+                pattern <- 0; /* Z */
+            }
+            if is_output {
+                mapping <- 0;
+                pattern <- 0; /* Z */
+            }
+        }
+        if (game == 2) { /* GksMapXpd */
+            if is_dh {
+                mapping <- 2; /* inf */
+                pattern <- 0; /* Z */
+            }
+            if is_psk {
+                mapping <- 1; /* 1 */
+                pattern <- 2; /* D */
+            }
+            if is_internal {
+                mapping <- 0;
+                pattern <- 2; /* D */
+            }
+            if is_output {
+                mapping <- 0;
+                pattern <- 3; /* F */
+            }
+        }
+        if (game == 3) { /* Gks1 */
+            if is_dh {
+                mapping <- 2; /* inf */
+                pattern <- 0; /* Z */
+            }
+            if is_psk {
+                mapping <- 1; /* 1 */
+                pattern <- 2; /* D */
+            }
+            if is_internal {
+                mapping <- 0;
+                pattern <- 2; /* D */
+            }
+            if is_output {
+                mapping <- 0;
+                pattern <- 3; /* F */
+            }
+        }
         return (pattern, mapping);
     }
 }

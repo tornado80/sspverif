@@ -1,7 +1,14 @@
 IDENTIFIER: /[a-zA-Z_][a-zA-Z0-9_]*/
 NUM: /[0-9]+/
 
-start: package
+start: package | proof
+
+proof: "proof" IDENTIFIER "{" proof_spec_list "}"
+proof_spec_list: const_decl* instance_decl* assumptions? game_hops
+const_decl: "const" IDENTIFIER ":" tipe ";"
+instance_decl: "instance" IDENTIFIER "=" IDENTIFIER "{" dyck "}"
+assumptions: "assumptions" "{" dyck "}"
+game_hops: "gamehops" "{" dyck "}"
 
 package: "package" IDENTIFIER "{" package_spec_list "}"
 package_spec_list: package_spec*

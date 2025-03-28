@@ -5,7 +5,7 @@ package xpd0 {
         key_alg: fn Bits(*) -> Integer, /* returns the algorithm identifier of the given key */
         hmac: fn Integer, Bits(*), Bits(*) -> Bits(*), /* given an algortihm identifier and two keys, returns hmac applied to the keys */
         len_alg: fn Integer -> Integer, /* returns the length of keys of the given algorithm identifier */
-        mk_xpd_alg_transcript: fn Integer, Bits(*), Bits(*) -> Bits(*) /* given algorithm identifier, label and digest returns (len(alg),"tls13 "||label,d)||0x01 */
+        mk_xpd_alg_transcript: fn Integer, Integer, Bits(*) -> Bits(*) /* given algorithm identifier, label and digest returns (len(alg),"tls13 "||label,d)||0x01 */
     }
 
     oracle xpd(k1: Bits(*), label: Integer, d: Bits(*)) -> Bits(*) {
