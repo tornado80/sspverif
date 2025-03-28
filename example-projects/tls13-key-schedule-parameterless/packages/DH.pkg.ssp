@@ -47,7 +47,7 @@ package DH {
         hon_X <- not (E[X] == None);
         hon_Y <- not (E[Y] == None);
         assert (hon_X == true);
-        x <- E[X];
+        x <- Unwrap(E[X]);
         k <- exp(Y, x);
         hon <- (hon_X and hon_Y);
         dh <- invoke GET_DH_NAME();

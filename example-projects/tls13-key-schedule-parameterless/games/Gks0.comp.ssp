@@ -18,13 +18,15 @@ composition Gks0 {
     const len_alg: fn Integer -> Integer;
     const len_key: fn Bits(*) -> Integer;
     const level: fn Bits(*) -> Integer;
+    const log_package_parameters: fn Integer, Bool, Bool, Bool, Bool -> (Integer, Integer);
     const mk_binder_handle: fn Bits(*), Bool, Bits(*) -> Bits(*);
     const mk_dh_handle: fn Bits(*), Bits(*) -> Bits(*);
-    const mk_xpd_alg_transcript: fn Integer, Bits(*), Bits(*) -> Bits(*);
+    const mk_xpd_alg_transcript: fn Integer, Integer, Bits(*) -> Bits(*);
     const mk_xpd_handle: fn Integer, Integer, Bits(*), Bits(*) -> Bits(*);
     const mk_xtr_handle: fn Integer, Bits(*), Bits(*) -> Bits(*);
     const name: fn Bits(*) -> Integer;
     const ord: fn Integer -> Integer;
+    const parents: fn Integer -> (Maybe(Integer), Maybe(Integer));
     const tag: fn Integer, Bits(*) -> Bits(*);
     const tag_digest: fn Integer, Bits(*) -> Bits(*);
     const transcript_alg: fn Bits(*) -> Integer;
@@ -34,37 +36,69 @@ composition Gks0 {
     const untag_transcript: fn Bits(*) -> Bits(*);
     const zeros: fn Integer -> Bits(*);
 
-    instance pkg_Check = Check {
+    instance pkg_Names = Names {
         params {
-            extract_binder_from_args: extract_binder_from_args,
-            extract_dh_handle: extract_dh_handle,
-            extract_dh_shares_from_args: extract_dh_shares_from_args,
-            level: level,
-            mk_binder_handle: mk_binder_handle,
-            mk_dh_handle: mk_dh_handle,
+            parents: parents,
         }
     }
 
-    instance pkg_DH = DH {
+    instance pkg_Sample = Sample {
         params {
-            bits_to_integer: bits_to_integer,
-            encode_group_member: encode_group_member,
-            exp: exp,
-            gen: gen,
-            grp: grp,
-            is_supported: is_supported,
-            mk_dh_handle: mk_dh_handle,
-            ord: ord,
+            cast256: cast256,
+            cast384: cast384,
+            cast512: cast512,
         }
     }
 
-    instance pkg_ExternalPskSetter = ExternalPskSetter {
+    instance pkg_xtr0 = xtr0 {
+        params {
+            hmac: hmac,
+            key_alg: key_alg,
+            tag: tag,
+            untag: untag,
+        }
     }
 
     instance pkg_Handles = Handles {
         params {
             level: level,
             type: type,
+        }
+    }
+
+    instance pkg_Labels = Labels {
+    }
+
+    instance pkg_xpd0 = xpd0 {
+        params {
+            hmac: hmac,
+            key_alg: key_alg,
+            len_alg: len_alg,
+            mk_xpd_alg_transcript: mk_xpd_alg_transcript,
+            tag: tag,
+            untag: untag,
+        }
+    }
+
+    instance pkg_hash0 = hash0 {
+        params {
+            hash: hash,
+            tag_digest: tag_digest,
+            transcript_alg: transcript_alg,
+            untag_transcript: untag_transcript,
+        }
+    }
+
+    instance pkg_Parameters = Parameters {
+        params {
+            game: 0,
+            log_package_parameters: log_package_parameters,
+        }
+    }
+
+    instance pkg_Log = Log {
+        params {
+            level: level,
         }
     }
 
@@ -88,38 +122,22 @@ composition Gks0 {
         }
     }
 
-    instance pkg_Labels = Labels {
-    }
-
-    instance pkg_Log = Log {
-        params {
-            level: level,
-        }
-    }
-
-    instance pkg_Names = Names {
-    }
-
     instance pkg_OutputKeyGetter = OutputKeyGetter {
     }
 
-    instance pkg_Parameters = Parameters {
-        params {
-            game: 0,
-        }
+    instance pkg_ExternalPskSetter = ExternalPskSetter {
     }
 
-    instance pkg_Sample = Sample {
+    instance pkg_DH = DH {
         params {
-            cast256: cast256,
-            cast384: cast384,
-            cast512: cast512,
-        }
-    }
-
-    instance pkg_Xpd = Xpd {
-        params {
-            mk_xpd_handle: mk_xpd_handle,
+            bits_to_integer: bits_to_integer,
+            encode_group_member: encode_group_member,
+            exp: exp,
+            gen: gen,
+            grp: grp,
+            is_supported: is_supported,
+            mk_dh_handle: mk_dh_handle,
+            ord: ord,
         }
     }
 
@@ -134,51 +152,38 @@ composition Gks0 {
         }
     }
 
-    instance pkg_hash0 = hash0 {
+    instance pkg_Xpd = Xpd {
         params {
-            hash: hash,
-            tag_digest: tag_digest,
-            transcript_alg: transcript_alg,
-            untag_transcript: untag_transcript,
+            mk_xpd_handle: mk_xpd_handle,
         }
     }
 
-    instance pkg_xpd0 = xpd0 {
+    instance pkg_Check = Check {
         params {
-            hmac: hmac,
-            key_alg: key_alg,
-            len_alg: len_alg,
-            mk_xpd_alg_transcript: mk_xpd_alg_transcript,
-            tag: tag,
-            untag: untag,
-        }
-    }
-
-    instance pkg_xtr0 = xtr0 {
-        params {
-            hmac: hmac,
-            key_alg: key_alg,
-            tag: tag,
-            untag: untag,
+            extract_binder_from_args: extract_binder_from_args,
+            extract_dh_handle: extract_dh_handle,
+            extract_dh_shares_from_args: extract_dh_shares_from_args,
+            level: level,
+            mk_binder_handle: mk_binder_handle,
+            mk_dh_handle: mk_dh_handle,
         }
     }
 
     compose {
-        pkg_Check: {
-            GET: pkg_Key,
-            GET_BINDER_KEY: pkg_Names,
-            IS_BIND_KEY: pkg_Names,
-            IS_EARLY_SEPARATION_POINT: pkg_Names,
-            IS_POST_DH_SEPARATION_POINT: pkg_Names,
-            XPD: pkg_Xpd,
+        pkg_Parameters: {
+            IS_DH_KEY: pkg_Names,
+            IS_HANDSHAKE_SECRET: pkg_Names,
+            IS_INTERNAL_KEY: pkg_Names,
+            IS_OUTPUT_KEY: pkg_Names,
+            IS_PSK: pkg_Names,
         },
-        pkg_DH: {
-            GET_DH_NAME: pkg_Names,
-            SET: pkg_Key,
-        },
-        pkg_ExternalPskSetter: {
-            GET_PSK_NAME: pkg_Names,
-            SET: pkg_Key,
+        pkg_Log: {
+            GET_LOG_PACKAGE_PARAMETERS: pkg_Parameters,
+            IS_1_MAPPING: pkg_Parameters,
+            IS_A_PATTERN: pkg_Parameters,
+            IS_D_PATTERN: pkg_Parameters,
+            IS_F_PATTERN: pkg_Parameters,
+            IS_INFINITY_MAPPING: pkg_Parameters,
         },
         pkg_Hash: {
             GET_HASH_PACKAGE_IDEALIZATION_PARAMETER: pkg_Parameters,
@@ -196,24 +201,26 @@ composition Gks0 {
             SAMPLE: pkg_Sample,
             UNQ: pkg_Log,
         },
-        pkg_Log: {
-            GET_LOG_PACKAGE_PARAMETERS: pkg_Parameters,
-            IS_1_MAPPING: pkg_Parameters,
-            IS_A_PATTERN: pkg_Parameters,
-            IS_D_PATTERN: pkg_Parameters,
-            IS_F_PATTERN: pkg_Parameters,
-            IS_INFINITY_MAPPING: pkg_Parameters,
-        },
         pkg_OutputKeyGetter: {
             GET: pkg_Key,
             IS_OUTPUT_KEY: pkg_Names,
         },
-        pkg_Parameters: {
-            IS_DH_KEY: pkg_Names,
-            IS_HANDSHAKE_SECRET: pkg_Names,
-            IS_INTERNAL_KEY: pkg_Names,
-            IS_OUTPUT_KEY: pkg_Names,
-            IS_PSK: pkg_Names,
+        pkg_ExternalPskSetter: {
+            GET_PSK_NAME: pkg_Names,
+            SET: pkg_Key,
+        },
+        pkg_DH: {
+            GET_DH_NAME: pkg_Names,
+            SET: pkg_Key,
+        },
+        pkg_Xtr: {
+            GET: pkg_Key,
+            GET_XTR_PACKAGE_IDEALIZATION_PARAMETER: pkg_Parameters,
+            IS_XTR_KEY: pkg_Names,
+            PARENTS: pkg_Names,
+            SAMPLE: pkg_Sample,
+            SET: pkg_Key,
+            xtr: pkg_xtr0,
         },
         pkg_Xpd: {
             GET: pkg_Key,
@@ -224,14 +231,13 @@ composition Gks0 {
             SET: pkg_Key,
             xpd: pkg_xpd0,
         },
-        pkg_Xtr: {
+        pkg_Check: {
             GET: pkg_Key,
-            GET_XTR_PACKAGE_IDEALIZATION_PARAMETER: pkg_Parameters,
-            IS_XTR_KEY: pkg_Names,
-            PARENTS: pkg_Names,
-            SAMPLE: pkg_Sample,
-            SET: pkg_Key,
-            xtr: pkg_xtr0,
+            GET_BINDER_KEY: pkg_Names,
+            IS_BIND_KEY: pkg_Names,
+            IS_EARLY_SEPARATION_POINT: pkg_Names,
+            IS_POST_DH_SEPARATION_POINT: pkg_Names,
+            XPD: pkg_Xpd,
         },
         adversary: {
             DHEXP: pkg_DH,
