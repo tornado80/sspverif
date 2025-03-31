@@ -619,6 +619,15 @@ fn tex_solve_composition_graph(
     };
 
     let mut min_width = 50;
+
+	// Check if it is at all solvable
+	let mut comm = Communicator::new(backend.unwrap()).unwrap();
+    write_model(&mut comm);
+
+    if comm.check_sat().unwrap() != ProverResponse::Sat {
+		return None
+    }
+
     for width in 2..50 {
         let mut comm = Communicator::new(backend.unwrap()).unwrap();
 
