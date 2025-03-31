@@ -644,9 +644,13 @@ fn tex_solve_composition_graph(
         }
     }
 
+	if model == "" {
+		None
+	} else {
     let model = SmtModel::from_string(&model);
-    println!("{}\n{:#?}", composition.name, model);
-    Some(model)
+		println!("{}\n{:#?}", composition.name, model);
+		Some(model)
+	}
 }
 
 fn tex_write_composition_graph(
