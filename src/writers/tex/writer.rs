@@ -624,39 +624,66 @@ fn tex_solve_composition_graph(
 	let mut comm = Communicator::new(backend.unwrap()).unwrap();
     write_model(&mut comm);
 
+	let mut max_width = 0;
+	let mut min_width = 0;
     if comm.check_sat().unwrap() != ProverResponse::Sat {
 		return None
-    }
+    } else {
+        model = comm.get_model().unwrap();
+		let model = SmtModel::from_string(&model);
+		if let SmtModelEntry::IntEntry{ name, value } = model.get_value("width").unwrap() {
+			max_width = value;
+		}
+	}
 
-    for width in 2..50 {
+	let mut max_height = 0;
+	let mut min_height = 0;
+	let mut opt_width = 0;
+	while true {
         let mut comm = Communicator::new(backend.unwrap()).unwrap();
 
+		let width = (max_width-min_width) / 2;
         write_model(&mut comm);
         writeln!(comm, "(assert (< width {width}))").unwrap();
 
         if comm.check_sat().unwrap() == ProverResponse::Sat {
+            max_width = width;
+			model = comm.get_model().unwrap();
+			let model = SmtModel::from_string(&model);
+			if let SmtModelEntry::IntEntry{ name, value } = model.get_value("height").unwrap() {
+				max_height = value;
+			}
+        } else {
             min_width = width;
-            break;
-        }
+		}
+		if min_width + 1 == max_width {
+			opt_width = max_width;
+			break
+		}
     }
 
-    for height in 2..50 {
+    while true {
         let mut comm = Communicator::new(backend.unwrap()).unwrap();
 
+		let height = (max_height-min_height) / 2;
         write_model(&mut comm);
         writeln!(comm, "(assert (< height {height}))").unwrap();
-        writeln!(comm, "(assert (< width {min_width}))").unwrap();
+        writeln!(comm, "(assert (< width {opt_width}))").unwrap();
 
         if comm.check_sat().unwrap() == ProverResponse::Sat {
-            model = comm.get_model().unwrap();
-            break;
-        }
+            max_height = height;
+        } else {
+            min_height = height;
+		}
+		if min_height + 1 == max_height {
+			break
+		}
     }
 
 	if model == "" {
 		None
 	} else {
-    let model = SmtModel::from_string(&model);
+		let model = SmtModel::from_string(&model);
 		println!("{}\n{:#?}", composition.name, model);
 		Some(model)
 	}
