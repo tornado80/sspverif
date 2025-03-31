@@ -202,7 +202,7 @@ impl<'a> BlockWriter<'a> {
             Expression::FnCall(name, args) => {
                 format!(
                     "\\O{{{}}}({})",
-                    name.ident(),
+                    self.ident_to_tex(name),
                     args.iter()
                         .map(|expr| self.expression_to_tex(expr))
                         .collect::<Vec<_>>()
@@ -352,7 +352,7 @@ impl<'a> BlockWriter<'a> {
                 writeln!(self.file,
                          "{}{} \\stackrel{{\\mathsf{{\\tiny{{invoke}}}}}}{{\\gets}} \\O{{{}}}({}) \\pccomment{{Pkg: {}}} \\\\",
                          genindentation(indentation),
-                         self.ident_to_tex(ident), name,
+                         self.ident_to_tex(ident), name.replace("_", "\\_"),
                          args.iter().map(|expr| self.expression_to_tex(expr)).collect::<Vec<_>>().join(", "),
                          target_inst_name.replace('_',"\\_")
                 )?;
@@ -371,7 +371,7 @@ impl<'a> BlockWriter<'a> {
                          genindentation(indentation),
                          self.ident_to_tex(ident),
                          self.expression_to_tex(idxexpr),
-                         name,
+                         name.replace("_", "\\_"),
                          args.iter().map(|expr| self.expression_to_tex(expr)).collect::<Vec<_>>().join(", "),
                          target_inst_name.replace('_',"\\_")
                 )?;
