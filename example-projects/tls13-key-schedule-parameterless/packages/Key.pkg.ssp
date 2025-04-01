@@ -50,7 +50,7 @@ package Key {
             }
         }
         unq_h <- invoke UNQ(n, h, hon, k);
-        if (h != unq_h ) {
+        if (h != unq_h) {
             return unq_h;
         }
         is_dh_key <- invoke IS_DH_KEY(n);

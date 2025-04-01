@@ -330,7 +330,7 @@ for game in GAMES:
     for name, signature in sorted(abstract_functions_signatures.items()):
         lines.append(f"    const {name}: {signature};\n")
     lines.append("\n")
-    for instance in nx.topological_sort(dependency_graph):
+    for instance in nx.lexicographical_topological_sort(dependency_graph):
         if instance == "adversary":
             continue
         lines.append(f"    instance {instances_names[instance]} = {instance} {{\n")
@@ -342,7 +342,7 @@ for game in GAMES:
         lines.append("    }\n")
         lines.append("\n")
     lines.append("    compose {\n")
-    for instance in nx.topological_sort(dependency_graph):
+    for instance in nx.lexicographical_topological_sort(dependency_graph):
         dependencies = instances_compositions[instance]
         if len(dependencies) == 0:
             continue
