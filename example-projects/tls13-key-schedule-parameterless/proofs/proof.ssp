@@ -211,6 +211,7 @@ proof Proof {
                 invariant: [
                     ./proofs/abstract-functions.smt2
                     ./proofs/invariant.smt2
+                    ./proofs/randomness-mapping.smt2
                     ./proofs/DHGEN.smt2
                 ]
 
@@ -224,6 +225,7 @@ proof Proof {
                 invariant: [
                     ./proofs/abstract-functions.smt2
                     ./proofs/invariant.smt2
+                    ./proofs/randomness-mapping.smt2
                     ./proofs/DHEXP.smt2
                 ]
 
@@ -231,6 +233,20 @@ proof Proof {
                     invariant: [no-abort]
                     lemma-Gks0-output: [no-abort]
                     lemma-Gks0Map-output: [no-abort]
+                    same-output: [no-abort]
+                    equal-aborts: []
+                }
+            }
+            SET: {
+                invariant: [
+                    ./proofs/abstract-functions.smt2
+                    ./proofs/invariant.smt2
+                    ./proofs/randomness-mapping.smt2
+                    ./proofs/SET.smt2
+                ]
+
+                lemmas {
+                    invariant: [no-abort]
                     same-output: [no-abort]
                     equal-aborts: []
                 }
