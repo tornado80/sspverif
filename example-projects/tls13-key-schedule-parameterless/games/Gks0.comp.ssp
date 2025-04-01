@@ -244,8 +244,8 @@ composition Gks0 {
         adversary: {
             DHEXP: pkg_DH,
             DHGEN: pkg_DH,
-            GET: pkg_OutputKeyGetter,
             SET: pkg_ExternalPskSetter,
+            GET: pkg_OutputKeyGetter,
             XPD: pkg_Check,
             XTR: pkg_Xtr,
         },

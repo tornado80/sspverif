@@ -8,10 +8,12 @@
     (sample-ctr-Gks0Map Int)
   ) 
   Bool
-  (and
-    (= sample-ctr-Gks0 sample-ctr-old-Gks0)
-    (= sample-ctr-Gks0Map sample-ctr-old-Gks0Map)
-    (= sample-id-Gks0 3)
-    (= sample-id-Gks0Map 3)
-  )
+    (randomness-mapping 
+        sample-ctr-old-Gks0 
+        sample-ctr-old-Gks0Map
+        sample-id-Gks0
+        sample-id-Gks0Map
+        sample-ctr-Gks0
+        sample-ctr-Gks0Map
+    )
 )
