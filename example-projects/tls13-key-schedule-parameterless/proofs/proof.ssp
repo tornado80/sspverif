@@ -3,6 +3,7 @@ proof Proof {
     const cast256: fn Bits(256) -> Bits(*);
     const cast384: fn Bits(384) -> Bits(*);
     const cast512: fn Bits(512) -> Bits(*);
+    const default: fn Integer -> Bits(*);
     const encode_group_member: fn Bits(*) -> Bits(*);
     const exp: fn Bits(*), Integer -> Bits(*);
     const extract_binder_from_args: fn Bits(*) -> Bits(*);
@@ -42,6 +43,7 @@ proof Proof {
             cast256: cast256,
             cast384: cast384,
             cast512: cast512,
+            default: default,
             encode_group_member: encode_group_member,
             exp: exp,
             extract_binder_from_args: extract_binder_from_args,
@@ -83,6 +85,7 @@ proof Proof {
             cast256: cast256,
             cast384: cast384,
             cast512: cast512,
+            default: default,
             encode_group_member: encode_group_member,
             exp: exp,
             extract_binder_from_args: extract_binder_from_args,
@@ -124,6 +127,7 @@ proof Proof {
             cast256: cast256,
             cast384: cast384,
             cast512: cast512,
+            default: default,
             encode_group_member: encode_group_member,
             exp: exp,
             extract_binder_from_args: extract_binder_from_args,
@@ -165,6 +169,7 @@ proof Proof {
             cast256: cast256,
             cast384: cast384,
             cast512: cast512,
+            default: default,
             encode_group_member: encode_group_member,
             exp: exp,
             extract_binder_from_args: extract_binder_from_args,
@@ -202,15 +207,28 @@ proof Proof {
 
     gamehops {
         equivalence game_Gks0 game_Gks0Map {
-            DHEXP: {
+            DHGEN: {
                 invariant: [
-                    ./proofs/invariant.smt2
+                    ./proofs/DHGEN.smt2
                 ]
 
                 lemmas {
                     equal-aborts: []
                     invariant: [no-abort]
                     same-output: [no-abort]
+                }
+            }
+            DHEXP: {
+                invariant: [
+                    ./proofs/DHEXP.smt2
+                ]
+
+                lemmas {
+                    invariant: [no-abort]
+                    lemma-Gks0-output: [no-abort]
+                    lemma-Gks0Map-output: [no-abort]
+                    same-output: [no-abort]
+                    equal-aborts: []
                 }
             }
         }

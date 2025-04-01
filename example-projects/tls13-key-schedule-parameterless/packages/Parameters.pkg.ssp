@@ -26,6 +26,7 @@ package Parameters {
             return true;
         }
         assert false;
+        /* This should never happen and we put it here to make "function" total */
         return false;
     }
 
@@ -48,6 +49,7 @@ package Parameters {
             return true;
         }
         assert false;
+        /* This should never happen and we put it here to make "function" total */
         return false;
     }
 
@@ -63,6 +65,7 @@ package Parameters {
             return false;
         }
         assert false;
+        /* This should never happen and we put it here to make "function" total */
         return false;
     }
 
@@ -106,7 +109,7 @@ package Parameters {
         is_psk <- invoke IS_PSK(n);
         is_internal <- invoke IS_INTERNAL_KEY(n);
         is_output <- invoke IS_OUTPUT_KEY(n);
-        (mapping, pattern) <- parse log_package_parameters(game, is_dh, is_psk, is_internal, is_output);
+        (pattern, mapping) <- parse log_package_parameters(game, is_dh, is_psk, is_internal, is_output);
         return (pattern, mapping);
     }
 }

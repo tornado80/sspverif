@@ -3,6 +3,7 @@ package Sample {
         cast256: fn Bits(256) -> Bits(*),
         cast384: fn Bits(384) -> Bits(*),
         cast512: fn Bits(512) -> Bits(*),
+        default: fn Integer -> Bits(*),
     }
 
     oracle SAMPLE(n: Integer) -> Bits(*) {
@@ -18,7 +19,8 @@ package Sample {
             k512 <-$ Bits(512);
             return cast512(k512);
         }
-        k <-$ Bits(*);
-        return k;
+        assert false;
+        /* This should never happen and we put it here to make "function" total */
+        return default(0);
     }
 }
