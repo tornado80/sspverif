@@ -209,17 +209,21 @@ proof Proof {
         equivalence game_Gks0 game_Gks0Map {
             DHGEN: {
                 invariant: [
+                    ./proofs/abstract-functions.smt2
+                    ./proofs/invariant.smt2
                     ./proofs/DHGEN.smt2
                 ]
 
                 lemmas {
-                    equal-aborts: []
                     invariant: [no-abort]
                     same-output: [no-abort]
+                    equal-aborts: []
                 }
             }
             DHEXP: {
                 invariant: [
+                    ./proofs/abstract-functions.smt2
+                    ./proofs/invariant.smt2
                     ./proofs/DHEXP.smt2
                 ]
 
