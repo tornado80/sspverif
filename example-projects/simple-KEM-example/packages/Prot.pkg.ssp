@@ -1,0 +1,72 @@
+package Prot {
+    params {
+         n: Integer,                                    /* bit length of everything, same for all for simplicity */
+    isideal: Bool,                                      /* real-ideal-bit */
+      kgen: fn Bits(n)           ->   Bits(n),          /* takes sk, returns pk  */
+    encaps: fn (Bits(n),Bits(n)) ->  (Bits(n),Bits(n)), /* (pk,rand) -> (ctxt,k) */
+    decaps: fn (Bits(n),Bits(n)) ->   Bits(n),          /* (sk,ctxt) -> k        */
+    }
+    
+    state {
+          SENTCTXT:     Table(Integer, Bits(n)),    /* administrative kid -> ctxt   */
+          SENTKEY:      Table(Integer, Bits(n)),    /* administrative kid -> k      */
+          RECEIVEDCTXT: Table(Integer, Bits(n)),    /* administrative kid -> k      */
+          RECEIVEDKEY:  Table(Integer, Bits(n)),    /* administrative kid -> k      */
+          TESTED:       Table(Integer,Bool),        /* has the key been tested      */
+          ctr:          Integer,                    /* administrative ctr           */
+          sk:           Maybe(Bits(n)),             /* long-term sk                 */
+          pk:           Bits(n),                    /* long-term pk                 */
+    }
+
+oracle GetPK() -> Bits(n)                           /* returns pk                    */
+    {
+      if (sk == None)                               /* sample sk if it has not been sampled yet */ 
+      {  
+        sk_ <-$Bits(n);
+        sk  <- Some(sk_);
+        pk  <- kgen(sk_);
+      }
+      return pk;
+    }
+
+oracle Run() -> Bits(n)                            /* samples rand, stores sent and received key, and returns ctxt */
+    {
+      if (sk == None)                              /* sample sk if it has not been sampled yet */ 
+      {
+        sk_ <-$Bits(n);
+        sk  <- Some(sk_);
+        pk  <- kgen(sk_);
+      }
+
+      /* run sender */
+      rand <-$ Bits(n);                            /* sample randomness  */
+      (ctxt,ksent)   <- parse encaps(pk,rand);           /* encapsulate key    */
+      SENTCTXT[ctr]  <- Some(ctxt);                /* store ctxt for no good reason  */
+      SENTKEY[ctr]   <- Some(ksent);               /* store sent key      */
+
+      /* run receiver */
+      kreceived         <- decaps(sk,ctxt);        /* decapsulate ctxt   */
+      RECEIVEDCTXT[ctr] <- Some(ctxt);                   /* store ctxt for no good reason  */
+      RECEIVEDKEY[ctr]  <- Some(kreceived);              /* store received key  */
+
+      ctr <- (ctr + 1);                            /* increase counter    */
+      return ctxt;                                 /* returns transcript  */
+    }
+
+    oracle TestSender(id: Integer) -> Bits(n)  {   /* allows to get sent key or random key   */
+        assert (SENTCTXT[id] != None as Bits(n));  /* only allow testing for counter values which have been used */
+        assert (TESTED[id]   !=  Some(true));      /* disallow testing of same counter twice */
+        TESTED[id] <- Some(true);                  /* mark id as tested                      */
+        k <- Unwrap(SENTKEY[id]);                  /* retrieve sent key k                    */
+        if isideal { k <-$ Bits(n); }              /* in ideal game, replace k by random     */
+        return k;                                  /* return key                             */
+   }
+    oracle TestReceiver(id: Integer) -> Bits(n) {  /* allows to get received key or random key   */
+        assert (SENTCTXT[id] != None as Bits(n));  /* only allow testing for counter values which have been used */
+        assert  (TESTED[id]  != Some(true));       /* disallow testing of same counter twice     */
+        TESTED[id] <- Some(true);                  /* mark id as tested                          */
+        k <- Unwrap(SENTKEY[id]);                  /* retrieve sent key k                        */
+        if isideal { k <-$ Bits(n); }              /* in ideal game, replace k by random         */
+        return k;                                  /* return key                                 */
+   }
+}

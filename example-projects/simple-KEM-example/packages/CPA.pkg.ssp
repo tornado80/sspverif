@@ -1,0 +1,54 @@
+package CPA {
+    params {
+         n: Integer,                                    /* bit length of everything, same for all for simplicity */
+    isideal: Bool,                                      /* real-ideal-bit */
+      kgen: fn Bits(n)           ->   Bits(n),          /* takes sk, returns pk  */
+    encaps: fn (Bits(n),Bits(n)) ->  (Bits(n),Bits(n)), /* (pk,rand) -> (ctxt,k) */
+    decaps: fn (Bits(n),Bits(n)) ->   Bits(n),          /* (sk,ctxt) -> k        */
+    }
+    
+    state {
+          sk:          Maybe(Bits(n)),             /* long-term sk             */
+          pk:          Bits(n),                    /* long-term pk             */
+          CTXT:        Table(Integer,Bits(n)),     /* sent ciphertexts         */
+          KEY:         Table(Integer,Bits(n)),     /* keys                     */
+          TESTED:      Table(Integer,Bool),        /* has the key been tested  */
+          ctr:         Integer                     /* counter                  */
+          }
+
+oracle GetPK() -> Bits(n)                         /* returns pk                    */
+    {
+      if (sk == None)                              /* sample sk if it has not been sampled yet */ 
+      {
+        sk_ <-$Bits(n);
+        sk  <- Some(sk_);
+        pk  <- kgen(sk_);
+      }
+      return pk;
+    }
+
+oracle ENC() -> Bits(n)                            /* samples rand and returns ctxt */
+    {
+      if (sk == None)                              /* sample sk if it has not been sampled yet */ 
+      {
+        sk_ <-$Bits(n);
+        sk  <- Some(sk_);
+        pk  <- kgen(sk_);
+      }
+      rand <-$ Bits(n);                            /* sample randomness              */
+      (ctxt,k)  <- parse encaps(pk,rand);          /* encapsulate key                */
+      CTXT[ctr] <- Some(ctxt);                     /* store ctxt for no good reason  */
+      KEY[ctr]  <- Some(k);                        /* store key                      */
+      ctr <- (ctr + 1);                            /* increase counter               */
+      return ctxt;
+    }
+
+    oracle Test(id: Integer) -> Bits(n)  {         /* allows to get key or random key        */
+        assert (CTXT[id]   !=  None as Bits(n));              /* only allow testing for counter values which have been used */
+        assert (TESTED[id] !=  Some(true));        /* disallow testing of same counter twice */
+        TESTED[id] <- Some(true);                  /* mark id as tested                      */
+        k <- Unwrap(KEY[ctr]);                     /* retrieve key                           */
+        if isideal { k <-$ Bits(n); }              /* in ideal game, replace k by random     */
+        return k;                                  /* return key                             */
+   }
+}
