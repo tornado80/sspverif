@@ -1,13 +1,11 @@
 composition CPA {
-    const       n: Integer;                                   /* bit length of everything, same for all for simplicity */
-    const isideal: Bool;                                      /* real-ideal-bit */
-    const    kgen: fn  Bits(n)          ->  Bits(n);          /* takes sk, returns pk  */
-    const  encaps: fn (Bits(n),Bits(n)) -> (Bits(n),Bits(n)); /* (pk,rand) -> (ctxt,k) */
-    const  decaps: fn (Bits(n),Bits(n)) ->  Bits(n);          /* (sk,ctxt) -> k        */
+    const isideal: Bool;                                              /* real-ideal-bit */
+    const    kgen: fn  Bits(256)            ->  Bits(256);            /* takes sk, returns pk  */
+    const  encaps: fn (Bits(256),Bits(256)) -> (Bits(256),Bits(256)); /* (pk,rand) -> (ctxt,k) */
+    const  decaps: fn (Bits(256),Bits(256)) ->  Bits(256);            /* (sk,ctxt) -> k        */
 
     instance CPA = CPA {
         params {
-                n:   n,
           isideal:   isideal,
              kgen:   kgen,
            encaps:   encaps,

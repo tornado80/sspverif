@@ -1,12 +1,10 @@
 proof KEM_Proof {
-    const       n: Integer;                                   /* bit length of everything, same for all for simplicity */
-    const    kgen: fn Bits(n)           ->  Bits(n);          /* takes sk, returns pk  */
-    const  encaps: fn (Bits(n),Bits(n)) -> (Bits(n),Bits(n)); /* (pk,rand) -> (ctxt,k) */
-    const  decaps: fn (Bits(n),Bits(n)) ->  Bits(n);          /* (sk,ctxt) -> k        */
+    const    kgen: fn Bits(256)             ->  Bits(256);            /* takes sk, returns pk  */
+    const  encaps: fn (Bits(256),Bits(256)) -> (Bits(256),Bits(256)); /* (pk,rand) -> (ctxt,k) */
+    const  decaps: fn (Bits(256),Bits(256)) ->  Bits(256);            /* (sk,ctxt) -> k        */
 
     instance CPA_real = CPA {
         params {
-            n  : n,
         isideal: false,
            kgen: kgen,
          encaps: encaps,
@@ -16,7 +14,6 @@ proof KEM_Proof {
 
     instance CPA_ideal = CPA {
         params {
-            n  : n,
         isideal: true,
            kgen: kgen,
          encaps: encaps,
@@ -26,7 +23,6 @@ proof KEM_Proof {
 
     instance Prot_real = CPA {
         params {
-            n  : n,
         isideal: false,
            kgen: kgen,
          encaps: encaps,
@@ -36,7 +32,6 @@ proof KEM_Proof {
 
     instance Prot_ideal = CPA {
         params {
-            n  : n,
         isideal: true,
            kgen: kgen,
          encaps: encaps,
