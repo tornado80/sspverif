@@ -5,7 +5,7 @@ proof WHSProto {
     const zeron: Bits(n);
     const prf: fn Bits(n), Integer, Integer, Bits(n), Bits(n), Bool ->  Bits(n);
     const mac: fn Bits(n), Bits(n), Integer -> Bits(n);
-  
+
     instance Noncesideal = Nonces {
         params {
             b  : true,
@@ -152,13 +152,13 @@ proof WHSProto {
 
 
     assumptions {
-        prf:     PRFreal    ~ PRFideal
-        nonces:  Noncesreal ~ Noncesideal
+        prf:     PRFreal    ~ PRFideal    /* with advantage time^5/2^(sqrt(n)) */
+        nonces:  Noncesreal ~ Noncesideal /* with advantage time^2/2^n */
         collres: CRreal ~ CRideal
     }
 
     gamehops 
-    {/*
+    {
         equivalence KX H1_0 {
             Send1: {
                 invariant: [
@@ -293,7 +293,6 @@ proof WHSProto {
                 }
             }
         }
-*/
         reduction H1_0 H1_1  
         {
             assumption nonces
