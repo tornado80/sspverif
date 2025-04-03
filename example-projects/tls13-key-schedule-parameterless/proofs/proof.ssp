@@ -211,7 +211,6 @@ proof Proof {
                 invariant: [
                     ./proofs/abstract-functions.smt2
                     ./proofs/invariant.smt2
-                    ./proofs/randomness-mapping.smt2
                     ./proofs/DHGEN.smt2
                 ]
 
@@ -247,8 +246,11 @@ proof Proof {
 
                 lemmas {
                     invariant: [no-abort]
+                    lemma-Gks0-output: [no-abort]
+                    lemma-Gks0Map-output: [no-abort]
                     same-output: [no-abort]
-                    equal-aborts: []
+                    lemma-Q-does-not-abort: []
+                    equal-aborts: [lemma-Q-does-not-abort]
                 }
             }
         }
