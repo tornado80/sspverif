@@ -11,10 +11,10 @@ impl super::Transformation for Transformation<'_> {
 
     fn transform(&self) -> Result<(Composition, ()), Infallible> {
         let insts = self.0.pkgs.iter().map(|inst| {
-            println!("treeify instance: {}", inst.name);
+            //println!("treeify instance: {}", inst.name);
             let mut newinst = inst.clone();
             newinst.pkg.oracles.iter_mut().for_each(|oracle| {
-                println!("treeify oracle: {} with {} statements", oracle.sig.name, oracle.code.0.len());
+                //println!("treeify oracle: {} with {} statements", oracle.sig.name, oracle.code.0.len());
                 oracle.code = treeify(&oracle.code);
             });
             newinst

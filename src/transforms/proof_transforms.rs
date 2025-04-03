@@ -51,34 +51,34 @@ fn transform_game_inst(
     Infallible,
 > {
     let comp = game_inst.game();
-    println!("transform_game_inst: {}", comp.name);
+    //println!("transform_game_inst: {}", comp.name);
     //let (comp, _) = resolvetypes::Transformation(comp)
     //    .transform()
     //    .expect("resolving user-defined types failed");
     let (comp, types) = type_extract::Transformation(comp)
         .transform()
         .expect("type extraction transformation failed unexpectedly");
-    println!("transform_game_inst: extracted types");
+    //println!("transform_game_inst: extracted types");
     let (comp, samplinginfo) = samplify::Transformation(&comp)
         .transform()
         .expect("samplify transformation failed unexpectedly");
-    println!("transform_game_inst: samplify");
+    //println!("transform_game_inst: samplify");
     let (comp, _) = unwrapify::Transformation(&comp)
         .transform()
         .expect("unwrapify transformation failed unexpectedly");
-    println!("transform_game_inst: unwrapify");
+    //println!("transform_game_inst: unwrapify");
     let (comp, _) = resolveoracles::Transformation(&comp)
         .transform()
         .expect("resolveoracles transformation failed unexpectedly");
-    println!("transform_game_inst: resolveoracles");
+    //println!("transform_game_inst: resolveoracles");
     let (comp, _) = returnify::TransformNg
         .transform_game(&comp)
         .expect("returnify transformation failed unexpectedly");
-    println!("transform_game_inst: returnify");
+    //println!("transform_game_inst: returnify");
     let (comp, _) = treeify::Transformation(&comp)
         .transform()
         .expect("treeify transformation failed unexpectedly");
-    println!("transform_game_inst: treeify");
+    //println!("transform_game_inst: treeify");
     // let (comp, splits) = split_partial::SplitPartial
     //     .transform_game(&comp)
     //     .expect("split_partial transform failed unexpectedly");
@@ -88,7 +88,7 @@ fn transform_game_inst(
     let (comp, _) = tableinitialize::Transformation(&comp)
         .transform()
         .expect("tableinitialize transformation failed unexpectedly");
-    println!("transform_game_inst: tableinitialize");
+    //println!("transform_game_inst: tableinitialize");
 
     Ok((
         game_inst.with_other_game(comp),

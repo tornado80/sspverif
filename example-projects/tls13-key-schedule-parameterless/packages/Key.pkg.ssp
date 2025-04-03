@@ -39,6 +39,7 @@ package Key {
         k <- untag(ks);
         len_h <- len_alg(handle_alg(h));
         assert (len_h == len_key(k));
+
         q_h <- invoke Q(n, h);
         if (q_h != None as Bits(*)) {
             return Unwrap(q_h);
@@ -49,10 +50,13 @@ package Key {
                 k <- invoke SAMPLE(len_h);
             }
         }
+        
+        /*
         unq_h <- invoke UNQ(n, h, hon, k);
         if (h != unq_h) {
             return unq_h;
         }
+        */
         is_dh_key <- invoke IS_DH_KEY(n);
         if is_dh_key {
             K_dh[h] <- Some((k, hon));

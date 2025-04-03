@@ -22,11 +22,11 @@ impl super::Transformation for Transformation<'_> {
             .pkgs
             .iter()
             .map(|inst| {
-                println!("transforming instance: {}", inst.name);
+                //println!("transforming instance: {}", inst.name);
                 //io::stdout().flush().unwrap();
                 let mut newinst = inst.clone();
                 for (i, oracle) in newinst.pkg.oracles.clone().iter().enumerate() {
-                    println!("transforming oracle: {} with {} statements", oracle.sig.name, oracle.code.0.len());
+                    //println!("transforming oracle: {} with {} statements", oracle.sig.name, oracle.code.0.len());
                     //io::stdout().flush().unwrap();
                     newinst.pkg.oracles[i].code = tableinitialize(&oracle.code, HashSet::new())?;
                 }

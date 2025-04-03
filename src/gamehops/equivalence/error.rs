@@ -69,7 +69,7 @@ impl std::fmt::Display for Error {
                 model,
             } => {
                 match model {
-                    Ok(model) => write!(f, "error proving claim {claim_name}. status: {response}. model: {model}"),
+                    Ok(model) => write!(f, "error proving claim {claim_name}. status: {response}."),
                     Err(model_err) => write!(f, "error proving claim {claim_name}. status: {response}. \
                                              Also, encountered the following error when trying to get the model: {model_err}"),
                 }

@@ -1234,7 +1234,7 @@ impl<'a> EquivalenceContext<'a> {
             .find_game_instance(self.equivalence().left_name())
             .unwrap();
 
-        println!("oracle sequence: {:?}", game_inst.game().exports);
+        // println!("oracle sequence: {:?}", game_inst.game().exports);
 
         game_inst
             .game()
