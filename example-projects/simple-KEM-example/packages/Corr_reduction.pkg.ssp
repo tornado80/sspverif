@@ -21,7 +21,7 @@ package Corr_reduction {
 	}
 
 
-oracle GetPK() -> Bits(256)                           /* returns pk                   */
+oracle GetPK() -> Bits(256)                          /* returns pk                   */
     {
       pk <- invoke GetPK();
       return pk;

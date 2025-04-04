@@ -24,7 +24,7 @@ oracle GetPK() -> Bits(256)                          /* returns pk              
 
 oracle ENC_and_DEC() -> (Bits(256),Bits(256),Bits(256))  /* samples rand and returns ctxt */
     {
-      if (sk == None)                                /* sample sk if it has not been sampled yet */ 
+      if (sk == None)                               /* sample sk if it has not been sampled yet */ 
       {
         sk_ <-$Bits(256);
         sk  <- Some(sk_);
