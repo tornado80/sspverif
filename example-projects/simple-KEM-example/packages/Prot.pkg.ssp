@@ -17,7 +17,7 @@ package Prot {
           pk:           Bits(256),                    /* long-term pk                 */
     }
 
-oracle GetPK() -> Bits(256)                           /* returns pk                    */
+oracle GetPK() -> Bits(256)                           /* returns pk                   */
     {
       if (sk == None)                                 /* sample sk if it has not been sampled yet */ 
       {  
