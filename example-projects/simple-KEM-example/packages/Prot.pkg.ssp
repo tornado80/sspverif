@@ -56,16 +56,22 @@ oracle Run() -> Bits(256)                            /* samples rand, stores sen
         assert (SENTCTXT[id] != None as Bits(256));  /* only allow testing for counter values which have been used */
         assert (TESTED[id]   != Some(true));         /* disallow testing of same counter twice */
         TESTED[id] <- Some(true);                    /* mark id as tested                      */
+
         k <- Unwrap(SENTKEY[id]);                    /* retrieve sent key k                    */
+
         if isideal { k <-$ Bits(256); }              /* in ideal game, replace k by random     */
+
         return k;                                    /* return key                             */
    }
-    oracle TestReceiver(id: Integer) -> Bits(256) {  /* allows to get received key or random key   */
-        assert (SENTCTXT[id] != None as Bits(256));  /* only allow testing for counter values which have been used */
-        assert (TESTED[id]   != Some(true));         /* disallow testing of same counter twice     */
-        TESTED[id] <- Some(true);                    /* mark id as tested                          */
-        k <- Unwrap(SENTKEY[id]);                    /* retrieve sent key k                        */
-        if isideal { k <-$ Bits(256); }              /* in ideal game, replace k by random         */
-        return k;                                    /* return key                                 */
+    oracle TestReceiver(id: Integer) -> Bits(256) {      /* allows to get received key or random key   */
+        assert (RECEIVEDCTXT[id] != None as Bits(256));  /* only allow testing for counter values which have been used */
+        assert (TESTED[id]   != Some(true));             /* disallow testing of same counter twice     */
+        TESTED[id] <- Some(true);                        /* mark id as tested                          */
+
+        k <- Unwrap(RECEIVEDKEY[id]);                    /* retrieve sent key k                        */
+
+        if isideal { k <-$ Bits(256); }                  /* in ideal game, replace k by random         */
+        
+        return k;                                        /* return key                                 */
    }
 }
