@@ -10,6 +10,7 @@ composition GksMapXpd {
     const extract_dh_handle: fn Bits(*) -> Bits(*);
     const extract_dh_shares_from_args: fn Bits(*) -> (Bits(*), Bits(*));
     const gen: fn Integer -> Bits(*);
+    const get_psk_name: fn () -> Integer;
     const grp: fn Bits(*) -> Integer;
     const handle_alg: fn Bits(*) -> Integer;
     const hash: fn Integer, Bits(*) -> Bits(*);
@@ -49,6 +50,7 @@ composition GksMapXpd {
 
     instance pkg_Names = Names {
         params {
+            get_psk_name: get_psk_name,
             parents: parents,
         }
     }
@@ -82,7 +84,6 @@ composition GksMapXpd {
         params {
             handle_alg: handle_alg,
             key_alg: key_alg,
-            len_alg: len_alg,
             len_key: len_key,
             level: level,
             name: name,
@@ -202,17 +203,21 @@ composition GksMapXpd {
         },
         pkg_Log: {
             GET_LOG_PACKAGE_PARAMETERS: pkg_Parameters,
+            GET_PSK_NAME: pkg_Names,
             IS_1_MAPPING: pkg_Parameters,
             IS_A_PATTERN: pkg_Parameters,
             IS_D_PATTERN: pkg_Parameters,
             IS_F_PATTERN: pkg_Parameters,
             IS_INFINITY_MAPPING: pkg_Parameters,
+            IS_PSK: pkg_Names,
         },
         pkg_Key: {
+            GET_HASH_ALGORITHM_LENGTH: pkg_Sample,
             GET_KEY_PACKAGE_IDEALIZATION_PARAMETER: pkg_Parameters,
             IS_0ikm_HANDLE: pkg_Handles,
             IS_0salt_HANDLE: pkg_Handles,
             IS_DH_KEY: pkg_Names,
+            IS_HASH_ALGORITHM_SUPPORTED: pkg_Sample,
             IS_PSK: pkg_Names,
             IS_noDH_HANDLE: pkg_Handles,
             IS_noPSK_HANDLE: pkg_Handles,

@@ -168,7 +168,9 @@ for game in GAMES:
                     "IS_0salt_HANDLE": "Handles",
                     "IS_0ikm_HANDLE": "Handles",
                     "IS_noPSK_HANDLE": "Handles",
-                    "IS_noDH_HANDLE": "Handles"
+                    "IS_noDH_HANDLE": "Handles",
+                    "GET_HASH_ALGORITHM_LENGTH": "Sample",
+                    "IS_HASH_ALGORITHM_SUPPORTED": "Sample"
                 }
             case "Parameters":
                 instances_parameters[instance] = {
@@ -280,6 +282,8 @@ for game in GAMES:
                     "IS_A_PATTERN": "Parameters",
                     "IS_D_PATTERN": "Parameters",
                     "IS_F_PATTERN": "Parameters",
+                    "IS_PSK": "Names",
+                    "GET_PSK_NAME": "Names"
                 }
             case "Handles" | "xtr0" | "xpd0" | "hash0" | "Labels" | "Sample" | "Names":
                 continue

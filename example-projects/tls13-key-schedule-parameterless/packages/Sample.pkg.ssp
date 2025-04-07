@@ -6,6 +6,22 @@ package Sample {
         default: fn Integer -> Bits(*),
     }
 
+    oracle IS_HASH_ALGORITHM_SUPPORTED(alg: Integer) -> Bool {
+        if ((alg == 256) or (alg == 384) or (alg == 512)) {
+            return true;
+        }
+        return false;
+    }
+
+    /* returns the length of keys of the given algorithm identifier */
+    oracle GET_HASH_ALGORITHM_LENGTH(alg: Integer) -> Integer {
+        if ((alg == 256) or (alg == 384) or (alg == 512)) {
+            return alg;
+        }
+        assert false;
+        return 0;
+    }
+
     oracle SAMPLE(n: Integer) -> Bits(*) {
         if (n == 256) {
             k256 <-$ Bits(256);

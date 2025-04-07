@@ -52,40 +52,6 @@
     )
 )
 
-(define-fun <relation-lemma-Gks0-returns-Gks0Map-aborts-game_Gks0-game_Gks0Map-SET>
-    (
-        (old-state-Gks0 <GameState_Gks0_<$$>>)
-        (old-state-Gks0Map <GameState_Gks0Map_<$$>>)
-        (return-SET-Gks0 <OracleReturn-Gks0-<$$>-ExternalPskSetter-<$$>-SET>)
-        (return-SET-Gks0Map <OracleReturn-Gks0Map-<$$>-Map-<$$>-SET>)
-        (h Bits_*)
-        (hon Bool)
-        (k Bits_*)
-    )
-    Bool
-    (and
-        (not ((_ is mk-abort) (<oracle-return-Gks0-<$$>-ExternalPskSetter-<$$>-SET-return-value-or-abort> return-SET-Gks0)))
-        ((_ is mk-abort) (<oracle-return-Gks0Map-<$$>-Map-<$$>-SET-return-value-or-abort> return-SET-Gks0Map))
-    )
-)
-
-(define-fun <relation-lemma-Gks0-aborts-Gks0Map-returns-game_Gks0-game_Gks0Map-SET>
-    (
-        (old-state-Gks0 <GameState_Gks0_<$$>>)
-        (old-state-Gks0Map <GameState_Gks0Map_<$$>>)
-        (return-SET-Gks0 <OracleReturn-Gks0-<$$>-ExternalPskSetter-<$$>-SET>)
-        (return-SET-Gks0Map <OracleReturn-Gks0Map-<$$>-Map-<$$>-SET>)
-        (h Bits_*)
-        (hon Bool)
-        (k Bits_*)
-    )
-    Bool
-    (and
-        (not ((_ is mk-abort) (<oracle-return-Gks0Map-<$$>-Map-<$$>-SET-return-value-or-abort> return-SET-Gks0Map)))
-        ((_ is mk-abort) (<oracle-return-Gks0-<$$>-ExternalPskSetter-<$$>-SET-return-value-or-abort> return-SET-Gks0))
-    )
-)
-
 (define-fun <relation-lemma-Q-does-not-abort-game_Gks0-game_Gks0Map-SET>
     (
         (old-state-Gks0 <GameState_Gks0_<$$>>)
@@ -117,7 +83,7 @@
     )
 )
 
-(define-fun <relation-lemma-GET_KEY_PACKAGE_IDEALIZATION_PARAMETER-does-not-abort-game_Gks0-game_Gks0Map-SET>
+(define-fun <relation-lemma-if-left-aborts-right-also-aborts-game_Gks0-game_Gks0Map-SET> 
     (
         (old-state-Gks0 <GameState_Gks0_<$$>>)
         (old-state-Gks0Map <GameState_Gks0Map_<$$>>)
@@ -128,22 +94,15 @@
         (k Bits_*)
     )
     Bool
-    (forall 
-        (
-            (state-Gks0 <GameState_Gks0_<$$>>)
-            (state-Gks0Map <GameState_Gks0Map_<$$>>)
-            (consts-Gks0 <GameConsts_Gks0>)
-            (consts-Gks0Map <GameConsts_Gks0Map>)
-            (n Int)
-            (h Bits_*)
+    (=>
+        (=
+            (as mk-abort (ReturnValue Bits_*))
+            (<oracle-return-Gks0-<$$>-ExternalPskSetter-<$$>-SET-return-value-or-abort> return-SET-Gks0)
         )
-        (and
-            (not (= (as mk-abort (ReturnValue (Maybe Bits_*))) (<oracle-return-Gks0-<$$>-Log-<$$>-Q-return-value-or-abort> 
-                (<oracle-Gks0-<$$>-Log-<$$>-Q> state-Gks0 consts-Gks0 n h)
-            )))
-            (not (= (as mk-abort (ReturnValue (Maybe Bits_*))) (<oracle-return-Gks0Map-<$$>-Log-<$$>-Q-return-value-or-abort> 
-                (<oracle-Gks0Map-<$$>-Log-<$$>-Q> state-Gks0Map consts-Gks0Map n h)
-            )))
+        (=
+            (as mk-abort (ReturnValue Bits_*))
+            (<oracle-return-Gks0Map-<$$>-Map-<$$>-SET-return-value-or-abort> return-SET-Gks0Map)
         )
     )
+
 )
