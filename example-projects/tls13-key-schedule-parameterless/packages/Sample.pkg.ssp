@@ -19,6 +19,7 @@ package Sample {
             return alg;
         }
         assert false;
+        /* This should never happen and we put it here to make "function" total */
         return 0;
     }
 
