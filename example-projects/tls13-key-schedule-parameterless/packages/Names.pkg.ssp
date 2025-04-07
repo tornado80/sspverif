@@ -57,6 +57,7 @@ package Names {
 
     params {
         parents: fn Integer -> (Maybe(Integer), Maybe(Integer)),
+        get_psk_name: fn () -> Integer,
     }
 
     oracle IS_OUTPUT_KEY(n: Integer) -> Bool {

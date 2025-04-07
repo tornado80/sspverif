@@ -22,9 +22,9 @@ package Log {
         Log: Table((Integer, Bits(*)), (Bits(*), Bool, Bits(*))), /* maps (name, handle) to (mapped handle, honesty bit, key) */
         Seen: Table((Integer, Bits(*)), Bool), /* indicates whether the (name, key) was assigned before */
         LogInverseDishonest: Table((Integer, Bits(*)), Bits(*)), /* maps (name, key) to first dishonest handle */
-        LogInverseDishonestLevelZero: Table((Integer, Bits(*)), Bits(*)), /* maps (name, key) to first dishonest handle in level zero */
-        LogInverseDishonestLevelNonZero: Table((Integer, Bits(*)), Bits(*)), /* maps (name, key) to first dishonest handle in nonzero level */
-        J: Table((Integer, Bits(*)), Bool) /* indicates whether the (name, key) was mapped before */
+        LogInverseDishonestLevelZero: Table(Bits(*), Bits(*)), /* maps psk key to first dishonest handle in level zero */
+        LogInverseDishonestLevelNonZero: Table(Bits(*), Bits(*)), /* maps psk key to first dishonest handle in nonzero level */
+        J: Table(Bits(*), Bool) /* indicates whether the key was mapped before */
     }
 
     import oracles {
@@ -34,6 +34,8 @@ package Log {
         IS_A_PATTERN(pattern: Integer) -> Bool,
         IS_D_PATTERN(pattern: Integer) -> Bool,
         IS_F_PATTERN(pattern: Integer) -> Bool,
+        IS_PSK(n: Integer) -> Bool,
+        GET_PSK_NAME() -> Integer,
     }
 
     /* 
@@ -56,6 +58,7 @@ package Log {
     oracle UNQ(n: Integer, h: Bits(*), hon: Bool, k: Bits(*)) -> Bits(*) {
         parameters <- invoke GET_LOG_PACKAGE_PARAMETERS(n);
         (pattern, mapping) <- parse parameters;
+        psk_name <- invoke GET_PSK_NAME();
 
         /* mapping */
         is_infinity <- invoke IS_INFINITY_MAPPING(mapping);
@@ -64,7 +67,6 @@ package Log {
                 if (LogInverseDishonest[(n, k)] != None as Bits(*)) {
                     hp <- Unwrap(LogInverseDishonest[(n, k)]);
                     Log[(n, h)] <- Some((hp, hon, k));
-                    J[(n, k)] <- Some(true);
                     return hp;
                 }
             }
@@ -73,20 +75,24 @@ package Log {
         is_1_mapping <- invoke IS_1_MAPPING(mapping);
         if is_1_mapping {
             if not hon {
-                if not Unwrap(J[(n, k)]) {
+                if (J[k] != Some(true)) {
                     r <- level(h);
                     if (r == 0) {
-                        if (LogInverseDishonestLevelNonZero[(n, k)] != None as Bits(*)) {
-                            hp <- Unwrap(LogInverseDishonestLevelNonZero[(n, k)]);
+                        if (LogInverseDishonestLevelNonZero[k] != None as Bits(*)) {
+                            hp <- Unwrap(LogInverseDishonestLevelNonZero[k]);
+                            LogInverseDishonestLevelZero[k] <- Some(h);
+                            LogInverseDishonest[(psk_name, k)] <- Some(h);
                             Log[(n, h)] <- Some((hp, hon, k));
-                            J[(n, k)] <- Some(true);
+                            J[k] <- Some(true);
                             return hp;
                         }
                     } else {
-                        if (LogInverseDishonestLevelZero[(n, k)] != None as Bits(*)) {
-                            hp <- Unwrap(LogInverseDishonestLevelZero[(n, k)]);
+                        if (LogInverseDishonestLevelZero[k] != None as Bits(*)) {
+                            hp <- Unwrap(LogInverseDishonestLevelZero[k]);
+                            LogInverseDishonestLevelNonZero[k] <- Some(h);
+                            LogInverseDishonest[(psk_name, k)] <- Some(h);
                             Log[(n, h)] <- Some((hp, hon, k));
-                            J[(n, k)] <- Some(true);
+                            J[k] <- Some(true);
                             return hp;
                         }
                     }
@@ -97,8 +103,9 @@ package Log {
         /* pattern */
         is_A_pattern <- invoke IS_A_PATTERN(pattern);
         if is_A_pattern {
-            if not hon {
-                if (LogInverseDishonestLevelZero[(n, k)] != None as Bits(*)) {
+            r <- level(h);
+            if ((r == 0) and not hon) {
+                if (LogInverseDishonestLevelZero[k] != None as Bits(*)) {
                     assert false;
                 }
             }
@@ -130,11 +137,14 @@ package Log {
         Seen[(n, k)] <- Some(true);
         if not hon {
             LogInverseDishonest[(n, k)] <- Some(h);
-            r <- level(h);
-            if (r == 0) {
-                LogInverseDishonestLevelZero[(n, k)] <- Some(h);
-            } else {
-                LogInverseDishonestLevelNonZero[(n, k)] <- Some(h);
+            is_psk <- invoke IS_PSK(n);
+            if is_psk {
+                r <- level(h);
+                if (r == 0) {
+                    LogInverseDishonestLevelZero[k] <- Some(h);
+                } else {
+                    LogInverseDishonestLevelNonZero[k] <- Some(h);
+                }
             }
         }
         return h;

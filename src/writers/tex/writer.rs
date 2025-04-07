@@ -468,7 +468,7 @@ pub fn tex_write_package(
 fn tex_write_document_header(mut file: &File) -> std::io::Result<()> {
     writeln!(
         file,
-        "\\documentclass[a0paper]{{article}}"
+        "\\documentclass[a0paper,landscape]{{article}}"
     )?;
     writeln!(file, "\\usepackage[margin=.25in]{{geometry}}")?;
     writeln!(file, "\\usepackage[sets,operators]{{cryptocode}}")?;

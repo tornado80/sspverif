@@ -10,6 +10,7 @@ proof Proof {
     const extract_dh_handle: fn Bits(*) -> Bits(*);
     const extract_dh_shares_from_args: fn Bits(*) -> (Bits(*), Bits(*));
     const gen: fn Integer -> Bits(*);
+    const get_psk_name: fn () -> Integer;
     const grp: fn Bits(*) -> Integer;
     const handle_alg: fn Bits(*) -> Integer;
     const hash: fn Integer, Bits(*) -> Bits(*);
@@ -50,6 +51,7 @@ proof Proof {
             extract_dh_handle: extract_dh_handle,
             extract_dh_shares_from_args: extract_dh_shares_from_args,
             gen: gen,
+            get_psk_name: get_psk_name,
             grp: grp,
             handle_alg: handle_alg,
             hash: hash,
@@ -92,6 +94,7 @@ proof Proof {
             extract_dh_handle: extract_dh_handle,
             extract_dh_shares_from_args: extract_dh_shares_from_args,
             gen: gen,
+            get_psk_name: get_psk_name,
             grp: grp,
             handle_alg: handle_alg,
             hash: hash,
@@ -134,6 +137,7 @@ proof Proof {
             extract_dh_handle: extract_dh_handle,
             extract_dh_shares_from_args: extract_dh_shares_from_args,
             gen: gen,
+            get_psk_name: get_psk_name,
             grp: grp,
             handle_alg: handle_alg,
             hash: hash,
@@ -176,6 +180,7 @@ proof Proof {
             extract_dh_handle: extract_dh_handle,
             extract_dh_shares_from_args: extract_dh_shares_from_args,
             gen: gen,
+            get_psk_name: get_psk_name,
             grp: grp,
             handle_alg: handle_alg,
             hash: hash,
@@ -250,7 +255,8 @@ proof Proof {
                     lemma-Gks0Map-output: [no-abort]
                     same-output: [no-abort]
                     lemma-Q-does-not-abort: []
-                    equal-aborts: [lemma-Q-does-not-abort]
+                    equal-aborts: [lemma-if-left-aborts-right-also-aborts]
+                    lemma-if-left-aborts-right-also-aborts: []
                 }
             }
         }
