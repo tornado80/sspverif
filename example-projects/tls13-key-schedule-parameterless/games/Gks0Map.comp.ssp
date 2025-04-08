@@ -275,8 +275,8 @@ composition Gks0Map {
             DHGEN: pkg_Map,
             GET: pkg_Map,
             SET: pkg_Map,
-            XPD: pkg_Check,
             XTR: pkg_Map,
+            XPD: pkg_Check,
         },
     }
 }

@@ -251,8 +251,8 @@ composition Gks0 {
             DHGEN: pkg_DH,
             SET: pkg_ExternalPskSetter,
             GET: pkg_OutputKeyGetter,
-            XPD: pkg_Check,
             XTR: pkg_Xtr,
+            XPD: pkg_Check,
         },
     }
 }

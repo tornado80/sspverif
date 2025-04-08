@@ -25,3 +25,11 @@
         (mk-tuple2 1 1) ; pattern = 1 (A) and mapping = 1
     )
 )
+
+; (forall ((X Bits_*) (Y Bits_*)) (= (type (mk_dh_handle X Y)) 1)) gives unknown
+(assert
+    (= 
+        (<<func-proof-type>> (<<func-proof-mk_dh_handle>> <arg-DHEXP-X> <arg-DHEXP-Y>))
+        1
+    )
+)

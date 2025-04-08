@@ -110,7 +110,7 @@
             )
             (= E_left E_right)
         )
-        ; Invariant (2v) : Log_gks0[(n, h)] = some(h, hon, k) or none
+        ; Invariant (2a) (v) : Log_left[(n, h)] = some(h, hon, k) or none
         (let
             (
                 (Log (<pkg-state-Log-<$$>-Log> (<game-Gks0-<$$>-pkgstate-pkg_Log> state-Gks0)))
@@ -247,11 +247,12 @@
                 )
             )
         )
-        ; Invariant (5) : Log_left[(psk, h)] = None iff Log_right[(psk, h)] = None
+        ; Invariant (5) : consistent logs for input keys (dh and evel zero psk's)
         (let
             (
                 (Log_left (<pkg-state-Log-<$$>-Log> (<game-Gks0-<$$>-pkgstate-pkg_Log> state-Gks0)))
                 (Log_right (<pkg-state-Log-<$$>-Log> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))
+                (M_right (<pkg-state-MapTable-<$$>-M> (<game-Gks0Map-<$$>-pkgstate-pkg_MapTable> state-Gks0Map)))
             )
             (forall
                 (
@@ -267,14 +268,31 @@
                         (
                             (left_entry (select Log_left (mk-tuple2 n h)))
                             (right_entry (select Log_right (mk-tuple2 n h)))
+                            (map_entry (select M_right (mk-tuple3 n 0 h)))
                         )
-                        (=
-                            ((_ is mk-none) left_entry)
-                            ((_ is mk-none) right_entry)
+                        (and 
+                            (=
+                                ((_ is mk-none) left_entry)
+                                ((_ is mk-none) right_entry)
+                                ((_ is mk-none) map_entry)
+                            )
+                            (=>
+                                (not ((_ is mk-none) left_entry))
+                                (and
+                                    (= (el3-2 (maybe-get left_entry)) (el3-2 (maybe-get right_entry))) ; hon
+                                    (= (el3-3 (maybe-get left_entry)) (el3-3 (maybe-get right_entry))) ; k
+                                    (= (el3-1 (maybe-get right_entry)) (maybe-get map_entry)) ; mapped handle
+                                    (= (el3-1 (maybe-get left_entry)) h) ; same handle
+                                )
+                            )
                         )
                     )
                 )
             )
         )
+        ; Invariant (6)
+        ; K_left[(n, l , h)] = K_right[(n, level(M_right[(n, l, h)]), M_right[(n, l, h)])]
+        ; K_dh_left[h] = K_dh_right[M_right[(dh, 0, h)]]
+
     )
 )

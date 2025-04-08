@@ -250,13 +250,29 @@ proof Proof {
                 ]
 
                 lemmas {
-                    invariant: [no-abort]
+                    invariant: [no-abort, lemma-rand-is-eq]
                     lemma-Gks0-output: [no-abort]
                     lemma-Gks0Map-output: [no-abort]
                     same-output: [no-abort]
                     lemma-Q-does-not-abort: []
-                    equal-aborts: [lemma-if-left-aborts-right-also-aborts]
+                    equal-aborts: []
                     lemma-if-left-aborts-right-also-aborts: []
+                    lemma-randomness-mapping: []
+                    /* lemma-rand-is-eq: [lemma-randomness-mapping] */
+                }
+            }
+            GET: {
+                invariant: [
+                    ./proofs/abstract-functions.smt2
+                    ./proofs/invariant.smt2
+                    ./proofs/randomness-mapping.smt2
+                    ./proofs/GET.smt2
+                ]
+
+                lemmas {
+                    invariant: [no-abort]
+                    /* same-output: [no-abort]
+                    equal-aborts: [] */
                 }
             }
         }
