@@ -104,15 +104,17 @@ impl Unwrapifier {
                 }
                 Statement::Assign(ref id, ref opt_idx, ref expr, file_pos) => {
                     // TODO: special case for direct unwraps
+					let mut same_opt_idx = false;
 
                     let opt_idx = opt_idx.clone().map(|idx| {
                         let (newexpr, unwraps) = self.replace_unwrap(&idx);
+						same_opt_idx =  unwraps.is_empty();
                         newcode.extend(create_unwrap_stmts(unwraps, file_pos));
                         newexpr
                     });
 
                     let (newexpr, unwraps) = self.replace_unwrap(expr);
-                    if unwraps.is_empty() {
+                    if same_opt_idx && unwraps.is_empty() {
                         newcode.push(stmt);
                     } else {
                         newcode.extend(create_unwrap_stmts(unwraps, file_pos));
