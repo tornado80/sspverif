@@ -642,7 +642,7 @@ fn tex_solve_composition_graph(
 	while true {
         let mut comm = Communicator::new(backend.unwrap()).unwrap();
 
-		let width = (max_width-min_width) / 2;
+		let width = min_width + (max_width-min_width) / 2;
         write_model(&mut comm);
         writeln!(comm, "(assert (< width {width}))").unwrap();
 
@@ -662,24 +662,26 @@ fn tex_solve_composition_graph(
 		}
     }
 
-    while true {
-        let mut comm = Communicator::new(backend.unwrap()).unwrap();
+	if min_height != max_height {
+		while true {
+			let mut comm = Communicator::new(backend.unwrap()).unwrap();
 
-		let height = (max_height-min_height) / 2;
-        write_model(&mut comm);
-        writeln!(comm, "(assert (< height {height}))").unwrap();
-        writeln!(comm, "(assert (< width {opt_width}))").unwrap();
+			let height = min_height + (max_height-min_height) / 2;
+			write_model(&mut comm);
+			writeln!(comm, "(assert (< height {height}))").unwrap();
+			writeln!(comm, "(assert (< width {opt_width}))").unwrap();
 
-        if comm.check_sat().unwrap() == ProverResponse::Sat {
-            max_height = height;
-        } else {
-            min_height = height;
+			if comm.check_sat().unwrap() == ProverResponse::Sat {
+				max_height = height;
+			} else {
+				min_height = height;
+			}
+			if min_height + 1 == max_height {
+				break
+			}
 		}
-		if min_height + 1 == max_height {
-			break
-		}
-    }
-
+	}
+		
 	if model == "" {
 		None
 	} else {
