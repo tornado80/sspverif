@@ -113,8 +113,8 @@
   (and
     (= scr-1 base-ctr-1)
     (= scr-0 base-ctr-0)
-    (= id-0     0)   ; This is the 0th sampling in H1_1 and samples the random key in NewKey.
-    (= id-1     0)   ; This is the 0th sampling in H2_0 and samples the random key in NewKey.
+    (= id-0     2)   ; This is the 0th sampling in H1_1 and samples the random key in NewKey.
+    (= id-1     1)   ; This is the 0th sampling in H2_0 and samples the random key in NewKey.
   ))
 
 (define-fun randomness-mapping-NewSession
