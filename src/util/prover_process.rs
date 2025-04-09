@@ -206,7 +206,7 @@ impl Communicator {
 
     #[cfg(not(target_os = "windows"))]
     pub fn check_sat(&mut self) -> Result<ProverResponse> {
-        writeln!(self, "(check-sat)")?;
+        writeln!(self, "\n(check-sat)")?;
 
         let pred =
             |_: usize, data: &str| -> (usize, Option<result::Result<ProverResponse, Error>>) {
@@ -231,7 +231,7 @@ impl Communicator {
 
     #[cfg(target_os = "windows")]
     pub fn check_sat(&mut self) -> Result<ProverResponse> {
-        writeln!(self, "(check-sat)")?;
+        writeln!(self, "\n(check-sat)")?;
 
         let pred =
             |_: usize, data: &str| -> (usize, Option<result::Result<ProverResponse, Error>>) {
