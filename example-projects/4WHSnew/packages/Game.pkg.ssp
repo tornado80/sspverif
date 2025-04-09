@@ -60,7 +60,7 @@ package Game {
                         Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
                         Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
                         Integer),
-            Bits(256)), 
+            (Bits(256))), 
          Run2(state: (Integer,Bool,Integer,Bool,Bits(256),Maybe(Bool),
                         Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
                         Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
@@ -87,7 +87,7 @@ package Game {
                         Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
                         Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
                         Integer),
-            Bits(256)), 
+            (Bits(256))), 
          Run5(state: (Integer,Bool,Integer,Bool,Bits(256),Maybe(Bool),
                         Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
                         Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
@@ -96,7 +96,7 @@ package Game {
                         Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
                         Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
                         Integer),
-            Bool),
+            (Bool)),
     }
 
 
@@ -126,7 +126,7 @@ oracle NewSession(U: Integer, u: Bool, V: Integer, v: Bool, kid: Integer) -> Int
         return ctr_;
     }
 
-oracle Send1(ctr: Integer) -> Bits(256)
+oracle Send1(ctr: Integer) -> (Bits(256))
     {
         assert not (State[ctr] == None);     /* session has been initialized */
         state <- Unwrap(State[ctr]);
@@ -177,7 +177,7 @@ oracle Send3(ctr: Integer, msg: (Bits(256),Bits(256))) -> (Bits(256), Bits(256))
         return msg_;
     } 
 
-oracle Send4(ctr: Integer, msg: (Bits(256),Bits(256))) -> Bits(256)
+oracle Send4(ctr: Integer, msg: (Bits(256),Bits(256))) -> (Bits(256))
     {
         assert not (State[ctr] == None);     /* session has been initialized */
         state                                          <- Unwrap(State[ctr]);
@@ -204,7 +204,7 @@ oracle Send4(ctr: Integer, msg: (Bits(256),Bits(256))) -> Bits(256)
         return msg_;  
     } 
 
-oracle Send5(ctr: Integer, msg: Bits(256)) -> Bool
+oracle Send5(ctr: Integer, msg: Bits(256)) -> (Bool)
     {
         assert not (State[ctr] == None);    /* session has been initialized */
         state                                       <- Unwrap(State[ctr]);
