@@ -1,4 +1,4 @@
-composition Prot {
+composition H1 {
     const isideal: Bool;                                              /* real-ideal-bit */
     const    kgen: fn Bits(256)             ->  Bits(256);            /* takes sk, returns pk  */
     const  encaps: fn (Bits(256),Bits(256)) -> (Bits(256),Bits(256)); /* (pk,rand) -> (ctxt,k) */

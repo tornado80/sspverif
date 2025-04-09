@@ -29,7 +29,6 @@ oracle GetPK() -> Bits(256)                          /* returns pk              
 
 oracle Run() -> Bits(256)                            /* samples rand, stores sent and received key, and returns ctxt */
     {
-      pk  <- invoke GetPK();
       ret <- invoke ENC_and_DEC();
       (ctxt,ksent,kreceived) <- parse ret;
 
