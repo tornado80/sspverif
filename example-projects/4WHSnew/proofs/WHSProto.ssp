@@ -162,7 +162,7 @@ proof WHSProto {
         equivalence KX H1_0 {
             Send1: {
                 invariant: [
-                    ./proofs/invariant-KX-Red-H1.smt2
+                    ./proofs/invariant-KX-H1_0.smt2
                 ]
 
                 lemmas {
@@ -173,7 +173,7 @@ proof WHSProto {
             }
              Send2: {
                 invariant: [
-                    ./proofs/invariant-KX-Red-H1.smt2
+                    ./proofs/invariant-KX-H1_0.smt2
                 ]
 
                 lemmas {
@@ -184,7 +184,7 @@ proof WHSProto {
             }
              Send3: {
                 invariant: [
-                    ./proofs/invariant-KX-Red-H1.smt2
+                    ./proofs/invariant-KX-H1_0.smt2
                 ]
 
                 lemmas {
@@ -195,7 +195,7 @@ proof WHSProto {
             }
             Send4: {
                 invariant: [
-                    ./proofs/invariant-KX-Red-H1.smt2
+                    ./proofs/invariant-KX-H1_0.smt2
                 ]
 
                 lemmas {
@@ -206,7 +206,7 @@ proof WHSProto {
             }
             Send5: {
                 invariant: [
-                    ./proofs/invariant-KX-Red-H1.smt2
+                    ./proofs/invariant-KX-H1_0.smt2
                 ]
 
                 lemmas {
@@ -217,7 +217,7 @@ proof WHSProto {
             }
             NewKey: {
                 invariant: [
-                    ./proofs/invariant-KX-Red-H1.smt2
+                    ./proofs/invariant-KX-H1_0.smt2
                 ]
 
                 lemmas {
@@ -228,7 +228,7 @@ proof WHSProto {
             }
             NewSession: {
                 invariant: [
-                    ./proofs/invariant-KX-Red-H1.smt2
+                    ./proofs/invariant-KX-H1_0.smt2
                 ]
 
                 lemmas {
@@ -239,7 +239,7 @@ proof WHSProto {
             }
             Test: {
                 invariant: [
-                    ./proofs/invariant-KX-Red-H1.smt2
+                    ./proofs/invariant-KX-H1_0.smt2
                 ]
 
                 lemmas {
@@ -250,7 +250,7 @@ proof WHSProto {
             }
             Reveal: {
                 invariant: [
-                    ./proofs/invariant-KX-Red-H1.smt2
+                    ./proofs/invariant-KX-H1_0.smt2
                 ]
 
                 lemmas {
@@ -261,7 +261,7 @@ proof WHSProto {
             }
             SameKey: {
                 invariant: [
-                    ./proofs/invariant-KX-Red-H1.smt2
+                    ./proofs/invariant-KX-H1_0.smt2
                 ]
 
                 lemmas {
@@ -272,7 +272,7 @@ proof WHSProto {
             }
             AtLeast: {
                 invariant: [
-                    ./proofs/invariant-KX-Red-H1.smt2
+                    ./proofs/invariant-KX-H1_0.smt2
                 ]
 
                 lemmas {
@@ -283,7 +283,7 @@ proof WHSProto {
             }
             AtMost: {
                 invariant: [
-                    ./proofs/invariant-KX-Red-H1.smt2
+                    ./proofs/invariant-KX-H1_0.smt2
                 ]
 
                 lemmas {
