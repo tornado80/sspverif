@@ -51,3 +51,18 @@
 
     ; ctr are equal
     (= ctr-0 ctr-1)))
+
+
+(define-fun <relation-lemma-rand-is-eq-medium_composition-small_composition-UsefulOracle>
+  (
+    (left-old-state <GameState_MediumComposition_<$<!n!>$>>)
+    (right-old-state <GameState_SmallComposition_<$<!n!>$>>)
+    (return-left <OracleReturn-MediumComposition-<$<!n!>$>-Fwd-<$<!n!>$>-UsefulOracle>)
+    (return-right <OracleReturn-SmallComposition-<$<!n!>$>-Rand-<$<!n!>$>-UsefulOracle>)
+  )
+  Bool
+  (and
+    (rand-is-eq 0 0 (get-rand-ctr-medium_composition 0) (get-rand-ctr-small_composition 0))
+    (rand-is-eq 1 1 (get-rand-ctr-medium_composition 1) (get-rand-ctr-small_composition 1))
+  )
+)
