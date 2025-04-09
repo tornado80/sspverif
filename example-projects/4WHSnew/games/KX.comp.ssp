@@ -5,19 +5,19 @@ composition KX {
         const mac: fn Bits(256), Bits(256), Integer -> Bits(256);
         const b: Bool;
     
-    instance Game = Game {
-        params {
-        b: b,
-        n: n,
-        zeron: zeron,
-        }
-    }
     instance Prot = Prot {
         params {
         n: n,
         zeron: zeron,
         prf: prf,
         mac: mac,
+        }
+    }
+    instance Game = Game {
+        params {
+        b: b,
+        n: n,
+        zeron: zeron,
         }
     }
 
