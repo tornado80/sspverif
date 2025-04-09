@@ -49,6 +49,7 @@
     (scr-1 Int))     ; This is the counter which gets incremented each time a sampling is done with the same sample id.
   Bool
                      ; There is no randomness used in this oracle.
+					 false
 )
 
 (define-fun Send4
@@ -60,6 +61,7 @@
     (scr-1 Int))     ; This is the counter which gets incremented each time a sampling is done with the same sample id.
   Bool
                      ; There is no randomness used in this oracle.
+					 false
 )
 
 (define-fun Send5
@@ -71,6 +73,7 @@
     (scr-1 Int))     ; This is the counter which gets incremented each time a sampling is done with the same sample id.
   Bool
                      ; There is no randomness used in this oracle.
+					 false
 )
 
 (define-fun Reveal
@@ -82,6 +85,7 @@
     (scr-1 Int))     ; This is the counter which gets incremented each time a sampling is done with the same sample id.
   Bool
                      ; There is no randomness used in this oracle.
+					 false
 )
 
 (define-fun Test
@@ -122,6 +126,7 @@
     (scr-1 Int))     ; This is the counter which gets incremented each time a sampling is done with the same sample id.
   Bool
                      ; There is no randomness used in this oracle.
+					 false
 )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
