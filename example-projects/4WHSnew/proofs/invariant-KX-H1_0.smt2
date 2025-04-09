@@ -10,7 +10,7 @@
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define-fun Send1
+(define-fun randomness-mapping-Send1
   ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
     (base-ctr-1 Int) ; This is the counter in the beginning of the oracle call on the left.
     (id-0  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
@@ -25,7 +25,7 @@
     (= id-1      2)  ; Sampling of ni in Nonces
     ))
 
-(define-fun Send2
+(define-fun randomness-mapping-Send2
   ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
     (base-ctr-1 Int) ; This is the counter in the beginning of the oracle call on the left.
     (id-0  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
@@ -40,7 +40,7 @@
     (= id-1      2)  ; Sampling of nr in Nonces
   ))
 
-(define-fun Send3
+(define-fun randomness-mapping-Send3
   ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
     (base-ctr-1 Int) ; This is the counter in the beginning of the oracle call on the left.
     (id-0  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
@@ -52,7 +52,7 @@
 					 false
 )
 
-(define-fun Send4
+(define-fun randomness-mapping-Send4
   ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
     (base-ctr-1 Int) ; This is the counter in the beginning of the oracle call on the left.
     (id-0  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
@@ -64,7 +64,7 @@
 					 false
 )
 
-(define-fun Send5
+(define-fun randomness-mapping-Send5
   ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
     (base-ctr-1 Int) ; This is the counter in the beginning of the oracle call on the left.
     (id-0  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
@@ -76,7 +76,7 @@
 					 false
 )
 
-(define-fun Reveal
+(define-fun randomness-mapping-Reveal
   ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
     (base-ctr-1 Int) ; This is the counter in the beginning of the oracle call on the left.
     (id-0  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
@@ -88,7 +88,7 @@
 					 false
 )
 
-(define-fun Test
+(define-fun randomness-mapping-Test
   ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
     (base-ctr-1 Int) ; This is the counter in the beginning of the oracle call on the left.
     (id-0  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
@@ -102,7 +102,7 @@
     (= id-1     1)   ; This is the 1st sampling in H2_0 and samples the random key in Test.
 ))
 
-(define-fun NewKey
+(define-fun randomness-mapping-NewKey
   ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
     (base-ctr-1 Int) ; This is the counter in the beginning of the oracle call on the left.
     (id-0  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
@@ -117,7 +117,7 @@
     (= id-1     0)   ; This is the 0th sampling in H2_0 and samples the random key in NewKey.
   ))
 
-(define-fun NewSession
+(define-fun randomness-mapping-NewSession
   ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
     (base-ctr-1 Int) ; This is the counter in the beginning of the oracle call on the left.
     (id-0  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
