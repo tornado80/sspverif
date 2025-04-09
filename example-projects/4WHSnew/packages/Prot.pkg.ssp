@@ -1,41 +1,41 @@
 package Prot {
     params {
         n: Integer,
-        zeron: Bits(n),
-        prf: fn Bits(n), Integer, Integer, Bits(n), Bits(n), Bool ->  Bits(n),
-        mac: fn Bits(n), Bits(n), Integer -> Bits(n),
+        zeron: Bits(256),
+        prf: fn Bits(256), Integer, Integer, Bits(256), Bits(256), Bool ->  Bits(256),
+        mac: fn Bits(256), Bits(256), Integer -> Bits(256),
     }
 
-	oracle Run1(state: (Integer,Bool,Integer,Bool,Bits(n),Maybe(Bool),
-	                    Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),
-						Maybe((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)))),
-						Integer)) -> ((Integer,Bool,Integer,Bool,Bits(n),Maybe(Bool),
-				                       Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),
-						               Maybe((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)))),
+	oracle Run1(state: (Integer,Bool,Integer,Bool,Bits(256),Maybe(Bool),
+	                    Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
+						Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
+						Integer)) -> ((Integer,Bool,Integer,Bool,Bits(256),Maybe(Bool),
+				                       Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
+						               Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
 						               Integer),
-						              (Bits(n))) {
+						              (Bits(256))) {
 	    (U,u,V,v,ltk,acc,k,ni_,nr,kmac,sid,mess) <- parse state;
         assert (mess == 0);
 		
-		ni <-$ Bits(n);
+		ni <-$ Bits(256);
 		
 		return ((U,u,V,v,ltk,acc,k,Some(ni),nr,kmac,sid,1),
 		        (ni));
 	}
 
-	oracle Run2(state: (Integer,Bool,Integer,Bool,Bits(n),Maybe(Bool),
-	                    Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),
-						Maybe((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)))),
+	oracle Run2(state: (Integer,Bool,Integer,Bool,Bits(256),Maybe(Bool),
+	                    Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
+						Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
 						Integer),
-	            ni:Bits(n)) -> ((Integer,Bool,Integer,Bool,Bits(n),Maybe(Bool),
-				                    Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),
-							        Maybe((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)))),
+	            ni:Bits(256)) -> ((Integer,Bool,Integer,Bool,Bits(256),Maybe(Bool),
+				                    Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
+							        Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
 							        Integer),
-							       (Bits(n), Bits(n))) {
+							       (Bits(256), Bits(256))) {
 	    (U,u,V,v,ltk,acc,k_,ni_,nr_,kmac_,sid_,mess) <- parse state;
         assert (mess == 0);
 
-		nr         <-$ Bits(n);
+		nr         <-$ Bits(256);
         kmac       <-  prf(ltk,U,V,ni,nr,false); /* need role agreement here, to be fixed */
         k          <-  prf(ltk,U,V,ni,nr,true); /* need role agreement here, to be fixed */
         tau        <-  mac(kmac,nr,2);
@@ -45,15 +45,15 @@ package Prot {
 		        (nr,tau));
 	}
 
-	oracle Run3(state: (Integer,Bool,Integer,Bool,Bits(n),Maybe(Bool),
-	                    Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),
-						Maybe((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)))),
+	oracle Run3(state: (Integer,Bool,Integer,Bool,Bits(256),Maybe(Bool),
+	                    Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
+						Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
 						Integer),
-	            msg:(Bits(n),Bits(n))) -> ((Integer,Bool,Integer,Bool,Bits(n),Maybe(Bool),
-				                            Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),
-							                Maybe((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)))),
+	            msg:(Bits(256),Bits(256))) -> ((Integer,Bool,Integer,Bool,Bits(256),Maybe(Bool),
+				                            Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
+							                Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
 							                Integer),
-							               (Bits(n), Bits(n))) {
+							               (Bits(256), Bits(256))) {
 	    (U,u,V,v,ltk,acc,k_,ni,nr_,kmac_,sid_,mess) <- parse state;
         assert (mess == 1);
 		(nr,tau) <- parse msg;
@@ -71,15 +71,15 @@ package Prot {
 		}
 	}
 
-	oracle Run4(state: (Integer,Bool,Integer,Bool,Bits(n),Maybe(Bool),
-	                    Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),
-						Maybe((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)))),
+	oracle Run4(state: (Integer,Bool,Integer,Bool,Bits(256),Maybe(Bool),
+	                    Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
+						Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
 						Integer),
-	            msg:(Bits(n),Bits(n))) -> ((Integer,Bool,Integer,Bool,Bits(n),Maybe(Bool),
-				                            Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),
-							                Maybe((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)))),
+	            msg:(Bits(256),Bits(256))) -> ((Integer,Bool,Integer,Bool,Bits(256),Maybe(Bool),
+				                            Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
+							                Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
 							                Integer),
-							               (Bits(n))) {
+							               (Bits(256))) {
 	    (V,v,U,u,ltk,acc,k,ni_,nr,kmac,sid_,mess) <- parse state;
 		assert (mess == 1);
 		(ni,tau) <- parse msg;
@@ -100,13 +100,13 @@ package Prot {
 	}
 
 
-	oracle Run5(state: (Integer,Bool,Integer,Bool,Bits(n),Maybe(Bool),
-	                    Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),
-						Maybe((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)))),
+	oracle Run5(state: (Integer,Bool,Integer,Bool,Bits(256),Maybe(Bool),
+	                    Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
+						Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
 						Integer),
-	            tau:Bits(n)) -> ((Integer,Bool,Integer,Bool,Bits(n),Maybe(Bool),
-				                    Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)),
-				                    Maybe((Integer,Integer,Maybe(Bits(n)),Maybe(Bits(n)),Maybe(Bits(n)))),
+	            tau:Bits(256)) -> ((Integer,Bool,Integer,Bool,Bits(256),Maybe(Bool),
+				                    Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
+				                    Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
 				                    Integer),
 				                   (Bool)) {
 	    (U,u,V,v,ltk,acc,k,ni,nr,kmac,sid,mess) <- parse state;
