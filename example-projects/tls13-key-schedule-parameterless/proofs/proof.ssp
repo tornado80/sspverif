@@ -215,11 +215,12 @@ proof Proof {
             DHGEN: {
                 invariant: [
                     ./proofs/abstract-functions.smt2
-                    ./proofs/invariant.smt2
-                    ./proofs/DHGEN.smt2
+                    ./proofs/invariants.smt2
+                    ./proofs/oracles/DHGEN.smt2
                 ]
 
                 lemmas {
+                    all-invariants-after: [no-abort, all-invariants-before]
                     invariant: [no-abort]
                     same-output: [no-abort]
                     equal-aborts: []
@@ -228,12 +229,13 @@ proof Proof {
             DHEXP: {
                 invariant: [
                     ./proofs/abstract-functions.smt2
-                    ./proofs/invariant.smt2
                     ./proofs/randomness-mapping.smt2
-                    ./proofs/DHEXP.smt2
+                    ./proofs/invariants.smt2
+                    ./proofs/oracles/DHEXP.smt2
                 ]
 
                 lemmas {
+                    all-invariants-after: [no-abort, all-invariants-before]
                     invariant: [no-abort]
                     lemma-Gks0-output: [no-abort]
                     lemma-Gks0Map-output: [no-abort]
@@ -244,12 +246,13 @@ proof Proof {
             SET: {
                 invariant: [
                     ./proofs/abstract-functions.smt2
-                    ./proofs/invariant.smt2
                     ./proofs/randomness-mapping.smt2
-                    ./proofs/SET.smt2
+                    ./proofs/invariants.smt2
+                    ./proofs/oracles/SET.smt2
                 ]
 
                 lemmas {
+                    /* all-invariants-after: [no-abort, all-invariants-before, lemma-rand-is-eq] */
                     invariant: [no-abort, lemma-rand-is-eq]
                     lemma-Gks0-output: [no-abort]
                     lemma-Gks0Map-output: [no-abort]
@@ -258,21 +261,52 @@ proof Proof {
                     equal-aborts: []
                     lemma-if-left-aborts-right-also-aborts: []
                     lemma-randomness-mapping: []
-                    /* lemma-rand-is-eq: [lemma-randomness-mapping] */
+                    /* lemma-rand-is-eq: [lemma-randomness-mapping] trivial but we can't prove it because of smt solver */
                 }
             }
             GET: {
                 invariant: [
                     ./proofs/abstract-functions.smt2
-                    ./proofs/invariant.smt2
                     ./proofs/randomness-mapping.smt2
-                    ./proofs/GET.smt2
+                    ./proofs/invariants.smt2
+                    ./proofs/oracles/GET.smt2
                 ]
 
                 lemmas {
-                    invariant: [no-abort]
-                    /* same-output: [no-abort]
+                    all-invariants-after: [no-abort, all-invariants-before]
+                    /* invariant: [no-abort]
+                    same-output: [no-abort]
                     equal-aborts: [] */
+                }
+            }
+            XTR: {
+                invariant: [
+                    ./proofs/abstract-functions.smt2
+                    ./proofs/randomness-mapping.smt2
+                    ./proofs/invariants.smt2
+                    ./proofs/oracles/XTR.smt2
+                ]
+
+                lemmas {
+                    /* all-invariants-after: [no-abort, all-invariants-before] */
+                    same-output: [no-abort]
+                    equal-aborts: []
+                    invariant: [no-abort]
+                }
+            }
+            XPD: {
+                invariant: [
+                    ./proofs/abstract-functions.smt2
+                    ./proofs/randomness-mapping.smt2
+                    ./proofs/invariants.smt2
+                    ./proofs/oracles/XTR.smt2
+                ]
+
+                lemmas {
+                    /* all-invariants-after: [no-abort, all-invariants-before] */
+                    same-output: [no-abort]
+                    equal-aborts: []
+                    invariant: [no-abort]
                 }
             }
         }
