@@ -697,6 +697,7 @@ impl<'a> EquivalenceContext<'a> {
                     oracle_name: oracle_name.to_string(),
                 });
             }
+            println!("checked satisfiability of invariants")
         }
 
         Ok(())

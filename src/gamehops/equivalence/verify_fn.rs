@@ -45,6 +45,7 @@ pub fn verify(eq: &Equivalence, proof: &Proof, mut prover: Communicator) -> Resu
             .equivalence
             .proof_tree_by_oracle_name(&oracle_sig.name)
         {
+            println!("verify: claim:{claim:?}");
             write!(prover, "(push 1)").unwrap();
             eqctx.emit_claim_assert(&mut prover, &oracle_sig.name, &claim)?;
             match prover.check_sat()? {
