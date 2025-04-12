@@ -1,7 +1,9 @@
 # /// script
 # requires-python = ">=3.13"
 # dependencies = [
-#   "lark==1.2.2"
+#   "lark==1.2.2",
+#   "networkx==3.4.2",
+#   "pydot==3.0.4"
 # ]
 # ///
 
@@ -169,8 +171,8 @@ for game in GAMES:
                     "IS_0ikm_HANDLE": "Handles",
                     "IS_noPSK_HANDLE": "Handles",
                     "IS_noDH_HANDLE": "Handles",
-                    "GET_HASH_ALGORITHM_LENGTH": "Sample",
-                    "IS_HASH_ALGORITHM_SUPPORTED": "Sample"
+                    "GET_HASH_ALGORITHM_LENGTH": "Helpers",
+                    "IS_HASH_ALGORITHM_SUPPORTED": "Helpers"
                 }
             case "Parameters":
                 instances_parameters[instance] = {
@@ -208,6 +210,7 @@ for game in GAMES:
             case "Xpd":
                 instances_compositions[instance] = {
                     "IS_XPD_KEY": "Names",
+                    "IS_PSK": "Names",
                     "PARENTS": "Names",
                     "LABEL": "Labels",
                     "GET": "Key",
@@ -231,7 +234,6 @@ for game in GAMES:
                     "IS_XPD_KEY": "Names",
                     "IS_OUTPUT_KEY": "Names",
                     "IS_PSK": "Names",
-                    "LEVEL": "Handles",
                     "GETMAP": "MapTable",
                     "SETMAP": "MapTable"
                 }
@@ -241,7 +243,7 @@ for game in GAMES:
                     "IS_noDH_HANDLE": "Handles",
                     "IS_0salt_HANDLE": "Handles",
                     "IS_0ikm_HANDLE": "Handles",
-                    "GET_DH_NAME": "Names"
+                    "IS_DH_KEY": "Names"
                 }
             case "MapXpd":
                 instances_compositions[instance] = {
@@ -285,7 +287,11 @@ for game in GAMES:
                     "IS_PSK": "Names",
                     "GET_PSK_NAME": "Names"
                 }
-            case "Handles" | "xtr0" | "xpd0" | "hash0" | "Labels" | "Sample" | "Names":
+            case "xpd0":
+                instances_compositions[instance] = {
+                    "GET_HASH_ALGORITHM_LENGTH": "Helpers"
+                }
+            case "Handles" | "xtr0" | "xpd0" | "hash0" | "Labels" | "Sample" | "Names" | "Helpers":
                 continue
             case p:
                 raise NotImplementedError(f"Can not handle package {p}")

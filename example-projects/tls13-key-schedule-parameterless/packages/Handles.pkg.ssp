@@ -14,19 +14,11 @@ package Handles {
     */
 
     params {
-        level: fn Bits(*) -> Integer, /* returns the level of the given handle */
         type: fn Bits(*) -> Integer, /* returns the type of the given handle */
     }
 
     oracle IS_noPSK_HANDLE(h: Bits(*)) -> Bool {
         if (type(h) == 3) {
-            return true;
-        }
-        return false;
-    }
-
-    oracle IS_DH_HANDLE(h: Bits(*)) -> Bool {
-        if (type(h) == 1) {
             return true;
         }
         return false;
@@ -51,12 +43,5 @@ package Handles {
             return true;
         }
         return false;
-    }
-
-    oracle LEVEL(h: Bits(*)) -> Maybe(Integer) {
-        if ((type(h) == 1) or (type(h) == 6) or (type(h) == 7)) {
-            return None;
-        }
-        return Some(level(h));
     }
 }

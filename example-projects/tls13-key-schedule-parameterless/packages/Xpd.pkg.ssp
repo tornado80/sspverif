@@ -6,6 +6,7 @@ package Xpd {
 
     import oracles {
         IS_XPD_KEY(n: Integer) -> Bool,
+        IS_PSK(n: Integer) -> Bool,
         PARENTS(n: Integer) -> (Maybe(Integer), Maybe(Integer)),
         LABEL(n: Integer, r: Bool) -> Integer,
         GET(n: Integer, l: Integer, h: Bits(*)) -> (Bits(*), Bool), /* gets the parent key */
@@ -23,7 +24,8 @@ package Xpd {
         (parent, _) <- parse parents;
         t <- invoke GET(Unwrap(parent), l, h1);
         (k1, hon) <- parse t;
-        if (n == 0) { /* n = psk */
+        is_psk <- invoke IS_PSK(n);
+        if is_psk {
             l <- (l + 1);
             k <- invoke xpd(k1, label, args);
         } else {

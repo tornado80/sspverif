@@ -8,7 +8,7 @@ package Log {
     params {
         /* pattern: Integer, /* pattern see README (shortly; Z: 0, A: 1, D: 2, F: 3) */
         /* mapping: Integer, /* mapping see README (shortly; 0: 0, 1: 1, inf: 2) */
-        level: fn Bits(*) -> Integer /* returns the level of the given handle */
+        level: fn Bits(*) -> Maybe(Integer) /* returns the level of the given handle */
     }
 
     /*
@@ -76,7 +76,7 @@ package Log {
         if is_1_mapping {
             if not hon {
                 if (J[k] != Some(true)) {
-                    r <- level(h);
+                    r <- Unwrap(level(h));
                     if (r == 0) {
                         if (LogInverseDishonestLevelNonZero[k] != None as Bits(*)) {
                             hp <- Unwrap(LogInverseDishonestLevelNonZero[k]);
@@ -103,7 +103,7 @@ package Log {
         /* pattern */
         is_A_pattern <- invoke IS_A_PATTERN(pattern);
         if is_A_pattern {
-            r <- level(h);
+            r <- Unwrap(level(h));
             if ((r == 0) and not hon) {
                 if (LogInverseDishonestLevelZero[k] != None as Bits(*)) {
                     assert false;
@@ -139,7 +139,7 @@ package Log {
             LogInverseDishonest[(n, k)] <- Some(h);
             is_psk <- invoke IS_PSK(n);
             if is_psk {
-                r <- level(h);
+                r <- Unwrap(level(h));
                 if (r == 0) {
                     LogInverseDishonestLevelZero[k] <- Some(h);
                 } else {

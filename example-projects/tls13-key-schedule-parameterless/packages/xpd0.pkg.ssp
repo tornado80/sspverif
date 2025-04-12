@@ -4,8 +4,11 @@ package xpd0 {
         untag: fn Bits(*) -> Bits(*), /* untags the given key and returns a raw key */
         key_alg: fn Bits(*) -> Integer, /* returns the algorithm identifier of the given key */
         hmac: fn Integer, Bits(*), Bits(*) -> Bits(*), /* given an algortihm identifier and two keys, returns hmac applied to the keys */
-        len_alg: fn Integer -> Integer, /* returns the length of keys of the given algorithm identifier */
         mk_xpd_alg_transcript: fn Integer, Integer, Bits(*) -> Bits(*) /* given algorithm identifier, label and digest returns (len(alg),"tls13 "||label,d)||0x01 */
+    }
+
+    import oracles {
+        GET_HASH_ALGORITHM_LENGTH(alg: Integer) -> Integer,
     }
 
     oracle xpd(k1: Bits(*), label: Integer, d: Bits(*)) -> Bits(*) {
@@ -15,7 +18,8 @@ package xpd0 {
         if (label == 0) {
             return hmac(alg, k1, d);
         }
-        t <- mk_xpd_alg_transcript(len_alg(alg), label, d);
+        len_alg <- invoke GET_HASH_ALGORITHM_LENGTH(alg);
+        t <- mk_xpd_alg_transcript(len_alg, label, d);
         k <- hmac(alg, k1, t);
         return tag(alg, k);
     }
