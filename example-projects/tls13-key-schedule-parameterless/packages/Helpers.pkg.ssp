@@ -1,0 +1,18 @@
+package Helpers {
+    oracle IS_HASH_ALGORITHM_SUPPORTED(alg: Integer) -> Bool {
+        if ((alg == 256) or (alg == 384) or (alg == 512)) {
+            return true;
+        }
+        return false;
+    }
+
+    /* returns the length of keys of the given algorithm identifier */
+    oracle GET_HASH_ALGORITHM_LENGTH(alg: Integer) -> Integer {
+        if ((alg == 256) or (alg == 384) or (alg == 512)) {
+            return alg;
+        }
+        assert false;
+        /* This should never happen and we put it here to make "function" total */
+        return 0;
+    }
+}

@@ -57,89 +57,107 @@ package Names {
 
     params {
         parents: fn Integer -> (Maybe(Integer), Maybe(Integer)),
-        get_psk_name: fn () -> Integer,
+        get_psk: fn Integer -> Integer,
+        get_hs: fn Integer -> Integer,
+        get_es: fn Integer -> Integer,
+        get_as: fn Integer -> Integer,
+        get_rm: fn Integer -> Integer,
+        get_esalt: fn Integer -> Integer,
+        get_hsalt: fn Integer -> Integer,
+        get_bind: fn Integer -> Integer,
+        get_binder: fn Integer -> Integer,
+        get_eem: fn Integer -> Integer,
+        get_cet: fn Integer -> Integer,
+        get_sht: fn Integer -> Integer,
+        get_cht: fn Integer -> Integer,
+        get_cat: fn Integer -> Integer,
+        get_sat: fn Integer -> Integer,
+        get_eam: fn Integer -> Integer,
+        get_dh: fn Integer -> Integer,
+        get_0ikm: fn Integer -> Integer,
+        get_0salt: fn Integer -> Integer,
     }
 
     oracle IS_OUTPUT_KEY(n: Integer) -> Bool {
-        if ((n == 8) or (n == 9) or (n == 10) or (n == 11) or (n == 11) or (n == 12) or (n == 13) or (n == 14) or (n == 15)) {
+        if ((n == get_eem(0)) or (n == get_cet(0)) or (n == get_sht(0)) or (n == get_cht(0)) or (n == get_cat(0)) or (n == get_sat(0)) or (n == get_eam(0)) or (n == get_binder(0))) {
             return true;
         }
         return false;
     }
 
     oracle IS_INTERNAL_KEY(n: Integer) -> Bool {
-        if ((n == 1) or (n == 2) or (n == 3) or (n == 4) or (n == 5) or (n == 6) or (n == 7)) {
+        if ((n == get_as(0)) or (n == get_hs(0)) or (n == get_es(0)) or (n == get_rm(0)) or (n == get_bind(0)) or (n == get_esalt(0)) or (n == get_hsalt(0))) {
             return true;
         }
         return false;
     }
 
     oracle IS_XPD_KEY(n: Integer) -> Bool {
-        if ((n == 0) or (n == 4) or (n == 5) or (n == 6) or (n == 7) or (n == 8) or (n == 9) or (n == 10) or (n == 11) or (n == 11) or (n == 12) or (n == 13) or (n == 14) or (n == 15)) {
+        if ((n == get_psk(0)) or (n == get_rm(0)) or (n == get_bind(0)) or (n == get_esalt(0)) or (n == get_hsalt(0)) or (n == get_eem(0)) or (n == get_cet(0)) or (n == get_sht(0)) or (n == get_cht(0)) or (n == get_cat(0)) or (n == get_sat(0)) or (n == get_eam(0)) or (n == get_binder(0))) {
             return true;
         }
         return false;
     }
 
     oracle IS_XTR_KEY(n: Integer) -> Bool {
-        if ((n == 1) or (n == 2) or (n == 3)) {
+        if ((n == get_hs(0)) or (n == get_es(0)) or (n == get_as(0))) {
             return true;
         }
         return false;
     }
 
     oracle IS_DH_KEY(n: Integer) -> Bool {
-        if (n == 16) {
+        if (n == get_dh(0)) {
             return true;
         }
         return false;
     }
 
     oracle IS_PSK(n: Integer) -> Bool {
-        if (n == 0) {
+        if (n == get_psk(0)) {
             return true;
         }
         return false;
     }
 
     oracle IS_HANDSHAKE_SECRET(n: Integer) -> Bool {
-        if (n == 1) {
+        if (n == get_hs(0)) {
             return true;
         }
         return false;
     }
 
     oracle IS_BIND_KEY(n: Integer) -> Bool {
-        if (n == 7) {
+        if (n == get_bind(0)) {
             return true;
         }
         return false;
     }
 
     oracle IS_EARLY_SEPARATION_POINT(n: Integer) -> Bool {
-        if ((n == 9) or (n == 10)) { /* early separation points: cet and eem */
+        if ((n == get_cet(0)) or (n == get_eem(0))) { /* early separation points: cet and eem */
             return true;
         }
         return false;
     }
 
     oracle IS_POST_DH_SEPARATION_POINT(n: Integer) -> Bool {
-        if ((n == 11) or (n == 12) or (n == 13) or (n == 14) or (n == 5) or (n == 4)) { /* other separation points: cht, sht, cat, sat, eam, rm */
+        if ((n == get_cht(0)) or (n == get_sht(0)) or (n == get_cat(0)) or (n == get_sat(0)) or (n == get_eam(0)) or (n == get_rm(0))) { /* other separation points: cht, sht, cat, sat, eam, rm */
             return true;
         }
         return false;
     }
 
     oracle GET_DH_NAME() -> Integer {
-        return 16;
+        return get_dh(0);
     }
 
     oracle GET_PSK_NAME() -> Integer {
-        return 0;
+        return get_psk(0);
     }
 
     oracle GET_BINDER_KEY() -> Integer {
-        return 8;
+        return get_binder(0);
     }
 
     oracle PARENTS(n: Integer) -> (Maybe(Integer), Maybe(Integer)) {

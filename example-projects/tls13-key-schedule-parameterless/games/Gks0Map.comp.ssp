@@ -10,16 +10,33 @@ composition Gks0Map {
     const extract_dh_handle: fn Bits(*) -> Bits(*);
     const extract_dh_shares_from_args: fn Bits(*) -> (Bits(*), Bits(*));
     const gen: fn Integer -> Bits(*);
-    const get_psk_name: fn () -> Integer;
+    const get_0ikm: fn Integer -> Integer;
+    const get_0salt: fn Integer -> Integer;
+    const get_as: fn Integer -> Integer;
+    const get_bind: fn Integer -> Integer;
+    const get_binder: fn Integer -> Integer;
+    const get_cat: fn Integer -> Integer;
+    const get_cet: fn Integer -> Integer;
+    const get_cht: fn Integer -> Integer;
+    const get_dh: fn Integer -> Integer;
+    const get_eam: fn Integer -> Integer;
+    const get_eem: fn Integer -> Integer;
+    const get_es: fn Integer -> Integer;
+    const get_esalt: fn Integer -> Integer;
+    const get_hs: fn Integer -> Integer;
+    const get_hsalt: fn Integer -> Integer;
+    const get_psk: fn Integer -> Integer;
+    const get_rm: fn Integer -> Integer;
+    const get_sat: fn Integer -> Integer;
+    const get_sht: fn Integer -> Integer;
     const grp: fn Bits(*) -> Integer;
     const handle_alg: fn Bits(*) -> Integer;
     const hash: fn Integer, Bits(*) -> Bits(*);
     const hmac: fn Integer, Bits(*), Bits(*) -> Bits(*);
     const is_supported: fn Integer -> Bool;
     const key_alg: fn Bits(*) -> Integer;
-    const len_alg: fn Integer -> Integer;
     const len_key: fn Bits(*) -> Integer;
-    const level: fn Bits(*) -> Integer;
+    const level: fn Bits(*) -> Maybe(Integer);
     const log_package_parameters: fn Integer, Bool, Bool, Bool, Bool -> (Integer, Integer);
     const mk_binder_handle: fn Bits(*), Bool, Bits(*) -> Bits(*);
     const mk_dh_handle: fn Bits(*), Bits(*) -> Bits(*);
@@ -40,9 +57,11 @@ composition Gks0Map {
 
     instance pkg_Handles = Handles {
         params {
-            level: level,
             type: type,
         }
+    }
+
+    instance pkg_Helpers = Helpers {
     }
 
     instance pkg_Labels = Labels {
@@ -50,7 +69,25 @@ composition Gks0Map {
 
     instance pkg_Names = Names {
         params {
-            get_psk_name: get_psk_name,
+            get_0ikm: get_0ikm,
+            get_0salt: get_0salt,
+            get_as: get_as,
+            get_bind: get_bind,
+            get_binder: get_binder,
+            get_cat: get_cat,
+            get_cet: get_cet,
+            get_cht: get_cht,
+            get_dh: get_dh,
+            get_eam: get_eam,
+            get_eem: get_eem,
+            get_es: get_es,
+            get_esalt: get_esalt,
+            get_hs: get_hs,
+            get_hsalt: get_hsalt,
+            get_psk: get_psk,
+            get_rm: get_rm,
+            get_sat: get_sat,
+            get_sht: get_sht,
             parents: parents,
         }
     }
@@ -125,7 +162,6 @@ composition Gks0Map {
         params {
             hmac: hmac,
             key_alg: key_alg,
-            len_alg: len_alg,
             mk_xpd_alg_transcript: mk_xpd_alg_transcript,
             tag: tag,
             untag: untag,
@@ -180,9 +216,9 @@ composition Gks0Map {
 
     compose {
         pkg_MapTable: {
-            GET_DH_NAME: pkg_Names,
             IS_0ikm_HANDLE: pkg_Handles,
             IS_0salt_HANDLE: pkg_Handles,
+            IS_DH_KEY: pkg_Names,
             IS_noDH_HANDLE: pkg_Handles,
             IS_noPSK_HANDLE: pkg_Handles,
         },
@@ -204,12 +240,12 @@ composition Gks0Map {
             IS_PSK: pkg_Names,
         },
         pkg_Key: {
-            GET_HASH_ALGORITHM_LENGTH: pkg_Sample,
+            GET_HASH_ALGORITHM_LENGTH: pkg_Helpers,
             GET_KEY_PACKAGE_IDEALIZATION_PARAMETER: pkg_Parameters,
             IS_0ikm_HANDLE: pkg_Handles,
             IS_0salt_HANDLE: pkg_Handles,
             IS_DH_KEY: pkg_Names,
-            IS_HASH_ALGORITHM_SUPPORTED: pkg_Sample,
+            IS_HASH_ALGORITHM_SUPPORTED: pkg_Helpers,
             IS_PSK: pkg_Names,
             IS_noDH_HANDLE: pkg_Handles,
             IS_noPSK_HANDLE: pkg_Handles,
@@ -225,9 +261,13 @@ composition Gks0Map {
             GET_HASH_PACKAGE_IDEALIZATION_PARAMETER: pkg_Parameters,
             hash: pkg_hash0,
         },
+        pkg_xpd0: {
+            GET_HASH_ALGORITHM_LENGTH: pkg_Helpers,
+        },
         pkg_Xpd: {
             GET: pkg_Key,
             HASH: pkg_Hash,
+            IS_PSK: pkg_Names,
             IS_XPD_KEY: pkg_Names,
             LABEL: pkg_Labels,
             PARENTS: pkg_Names,
@@ -255,7 +295,6 @@ composition Gks0Map {
             IS_XPD_KEY: pkg_Names,
             IS_XTR_KEY: pkg_Names,
             LABEL: pkg_Labels,
-            LEVEL: pkg_Handles,
             PARENTS: pkg_Names,
             SET: pkg_Key,
             SETMAP: pkg_MapTable,
@@ -275,8 +314,8 @@ composition Gks0Map {
             DHGEN: pkg_Map,
             GET: pkg_Map,
             SET: pkg_Map,
-            XTR: pkg_Map,
             XPD: pkg_Check,
+            XTR: pkg_Map,
         },
     }
 }

@@ -1,6 +1,6 @@
 package MapXpd {
     params {
-        level: fn Bits(*) -> Integer, /* returns the level of the given handle */
+        level: fn Bits(*) -> Maybe(Integer), /* returns the level of the given handle */
         /* constructs a dh handle with sorted DH shares X and Y */
         mk_dh_handle: fn Bits(*), Bits(*) -> Bits(*),
         /* constructs an xpd handle given the key name, label, parent handle, and args */
@@ -29,7 +29,7 @@ package MapXpd {
             assert (parent_int_h != None as Bits(*));
             m <- Unwrap(parent_int_h);
             label <- invoke LABEL(n, r);
-            l1 <- level(m);
+            l1 <- Unwrap(level(m));
             ext_h <- mk_xpd_handle(n, label, h1, args);
             int_h <- mk_xpd_handle(n, label, m, args);
             k_hon <- invoke GET(Unwrap(parent), l1, m);

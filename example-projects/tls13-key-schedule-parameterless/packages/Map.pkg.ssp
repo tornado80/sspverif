@@ -1,6 +1,6 @@
 package Map {
     params {
-        level: fn Bits(*) -> Integer, /* returns the level of the given handle */
+        level: fn Bits(*) -> Maybe(Integer), /* returns the level of the given handle */
         /* constructs a dh handle with sorted DH shares X and Y */
         mk_dh_handle: fn Bits(*), Bits(*) -> Bits(*),
         /* constructs an xpd handle given the key name, label, parent handle, and args */
@@ -24,7 +24,6 @@ package Map {
         IS_XPD_KEY(n: Integer) -> Bool,
         IS_OUTPUT_KEY(n: Integer) -> Bool,
         IS_PSK(n: Integer) -> Bool,
-        LEVEL(h: Bits(*)) -> Maybe(Integer),
         GETMAP(n: Integer, l: Integer, h: Bits(*)) -> Maybe(Bits(*)),
         SETMAP(n: Integer, l: Integer, ext_h: Bits(*), int_h: Bits(*)),
     }
@@ -53,7 +52,7 @@ package Map {
         int_h <- invoke GETMAP(n, l, h);
         assert (int_h != None as Bits(*));
         m <- Unwrap(int_h);
-        k_hon <- invoke GET(n, level(m), m);
+        k_hon <- invoke GET(n, Unwrap(level(m)), m);
         return k_hon;
     }
 
@@ -69,11 +68,12 @@ package Map {
         assert is_xpd_key;
         parents <- invoke PARENTS(n);
         (parent, _none) <- parse parents;
+        assert (parent != None as Integer);
         parent_int_h <- invoke GETMAP(Unwrap(parent), l, h1);
         assert (parent_int_h != None as Bits(*));
         m <- Unwrap(parent_int_h);
         label <- invoke LABEL(n, r);
-        l1 <- level(m);
+        l1 <- Unwrap(level(m));
         ext_h <- mk_xpd_handle(n, label, h1, args);
         int_h <- invoke XPD(n, l1, m, r, args);
         is_psk <- invoke IS_PSK(n);
@@ -89,20 +89,21 @@ package Map {
         assert is_xtr_key;
         parents <- invoke PARENTS(n);
         (parent1, parent2) <- parse parents;
+        assert (parent1 != None as Integer);
+        assert (parent2 != None as Integer);
         mapped_h1 <- invoke GETMAP(Unwrap(parent1), l, h1);
         mapped_h2 <- invoke GETMAP(Unwrap(parent2), l, h2);
         assert (mapped_h1 != None as Bits(*));
         assert (mapped_h2 != None as Bits(*));
         m1 <- Unwrap(mapped_h1);
         m2 <- Unwrap(mapped_h2);
-        l1 <- invoke LEVEL(m1);
-        if (l1 == None) {
-            lp <- level(m2);
+        if (level(m1) != None as Integer) {
+            m12_level <- Unwrap(level(m1));
         } else {
-            lp <- level(m1);
+            m12_level <- Unwrap(level(m2));
         }
         ext_h <- mk_xtr_handle(n, h1, h2);
-        int_h <- invoke XTR(n, lp, m1, m2);
+        int_h <- invoke XTR(n, m12_level, m1, m2);
         _ <- invoke SETMAP(n, l, ext_h, int_h);
         return ext_h;
     }
