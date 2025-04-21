@@ -18,18 +18,50 @@
     )
 )
 
+(define-fun <relation-lemma-Gks0-output-game_Gks0-game_Gks0Map-XPD>
+    (
+        (old-state-Gks0 <GameState_Gks0_<$$>>)
+        (old-state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (return-XPD-Gks0 <OracleReturn-Gks0-<$$>-Check-<$$>-XPD>)
+        (return-XPD-Gks0Map <OracleReturn-Gks0Map-<$$>-Check-<$$>-XPD>)
+        (n Int)
+        (l Int)
+        (h Bits_*)
+        (r Bool)
+        (args Bits_*)
+    )
+    Bool
+    (= 
+        (return-value (<oracle-return-Gks0-<$$>-Check-<$$>-XPD-return-value-or-abort> return-XPD-Gks0))
+        (<<func-proof-mk_xpd_handle>> n (<<func-proof-label1>> n r) h args)
+    )
+)
+
+(define-fun <relation-lemma-Gks0Map-output-game_Gks0-game_Gks0Map-XPD>
+    (
+        (old-state-Gks0 <GameState_Gks0_<$$>>)
+        (old-state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (return-XPD-Gks0 <OracleReturn-Gks0-<$$>-Check-<$$>-XPD>)
+        (return-XPD-Gks0Map <OracleReturn-Gks0Map-<$$>-Check-<$$>-XPD>)
+        (n Int)
+        (l Int)
+        (h Bits_*)
+        (r Bool)
+        (args Bits_*)
+    )
+    Bool
+    (= 
+        (return-value (<oracle-return-Gks0Map-<$$>-Check-<$$>-XPD-return-value-or-abort> return-XPD-Gks0Map))
+        (<<func-proof-mk_xpd_handle>> n (<<func-proof-label1>> n r) h args)
+    )
+)
+
 (define-fun invariant 
     (
         (state-Gks0 <GameState_Gks0_<$$>>)
         (state-Gks0Map <GameState_Gks0Map_<$$>>)
     )
     Bool
-    (and
-        (invariant-1 state-Gks0 state-Gks0Map)
-        (invariant-2a-v state-Gks0 state-Gks0Map)
-        (invariant-log-inverse state-Gks0 state-Gks0Map)
-        (invariant-consistent-log-inverse state-Gks0 state-Gks0Map)
-        (invariant-2e state-Gks0 state-Gks0Map)
-        (invariant-5 state-Gks0 state-Gks0Map)
-    )
+    (invariant-2a-v state-Gks0 state-Gks0Map)
+    ;(all-invariants state-Gks0 state-Gks0Map)
 )

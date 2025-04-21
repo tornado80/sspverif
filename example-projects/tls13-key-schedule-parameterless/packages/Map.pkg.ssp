@@ -7,6 +7,7 @@ package Map {
         mk_xpd_handle: fn Integer, Integer, Bits(*), Bits(*) -> Bits(*),
         /* constructs xtr handle given a key name and parent handles */
         mk_xtr_handle: fn Integer, Bits(*), Bits(*) -> Bits(*), 
+        label1: fn Integer, Bool -> Integer
     }
 
     import oracles {
@@ -72,7 +73,7 @@ package Map {
         parent_int_h <- invoke GETMAP(Unwrap(parent), l, h1);
         assert (parent_int_h != None as Bits(*));
         m <- Unwrap(parent_int_h);
-        label <- invoke LABEL(n, r);
+        label <- label1(n, r);
         l1 <- Unwrap(level(m));
         ext_h <- mk_xpd_handle(n, label, h1, args);
         int_h <- invoke XPD(n, l1, m, r, args);

@@ -6,9 +6,6 @@ proof Proof {
     const default: fn Integer -> Bits(*);
     const encode_group_member: fn Bits(*) -> Bits(*);
     const exp: fn Bits(*), Integer -> Bits(*);
-    const extract_binder_from_args: fn Bits(*) -> Bits(*);
-    const extract_dh_handle: fn Bits(*) -> Bits(*);
-    const extract_dh_shares_from_args: fn Bits(*) -> (Bits(*), Bits(*));
     const gen: fn Integer -> Bits(*);
     const get_0ikm: fn Integer -> Integer;
     const get_0salt: fn Integer -> Integer;
@@ -32,13 +29,15 @@ proof Proof {
     const grp: fn Bits(*) -> Integer;
     const handle_alg: fn Bits(*) -> Integer;
     const hash: fn Integer, Bits(*) -> Bits(*);
+    const hash1: fn Bits(*) -> Bits(*);
     const hmac: fn Integer, Bits(*), Bits(*) -> Bits(*);
     const is_supported: fn Integer -> Bool;
     const key_alg: fn Bits(*) -> Integer;
+    const label1: fn Integer, Bool -> Integer;
+    const len_alg: fn Integer -> Integer;
     const len_key: fn Bits(*) -> Integer;
     const level: fn Bits(*) -> Maybe(Integer);
     const log_package_parameters: fn Integer, Bool, Bool, Bool, Bool -> (Integer, Integer);
-    const mk_binder_handle: fn Bits(*), Bool, Bits(*) -> Bits(*);
     const mk_dh_handle: fn Bits(*), Bits(*) -> Bits(*);
     const mk_xpd_alg_transcript: fn Integer, Integer, Bits(*) -> Bits(*);
     const mk_xpd_handle: fn Integer, Integer, Bits(*), Bits(*) -> Bits(*);
@@ -53,6 +52,8 @@ proof Proof {
     const untag: fn Bits(*) -> Bits(*);
     const untag_digest: fn Bits(*) -> Bits(*);
     const untag_transcript: fn Bits(*) -> Bits(*);
+    const xpd1: fn Bits(*), Integer, Bits(*) -> Bits(*);
+    const xtr1: fn Bits(*), Bits(*) -> Bits(*);
     const zeros: fn Integer -> Bits(*);
 
     instance game_Gks0 = Gks0 {
@@ -64,9 +65,6 @@ proof Proof {
             default: default,
             encode_group_member: encode_group_member,
             exp: exp,
-            extract_binder_from_args: extract_binder_from_args,
-            extract_dh_handle: extract_dh_handle,
-            extract_dh_shares_from_args: extract_dh_shares_from_args,
             gen: gen,
             get_0ikm: get_0ikm,
             get_0salt: get_0salt,
@@ -89,28 +87,25 @@ proof Proof {
             get_sht: get_sht,
             grp: grp,
             handle_alg: handle_alg,
-            hash: hash,
-            hmac: hmac,
+            hash1: hash1,
             is_supported: is_supported,
             key_alg: key_alg,
+            label1: label1,
+            len_alg: len_alg,
             len_key: len_key,
             level: level,
             log_package_parameters: log_package_parameters,
-            mk_binder_handle: mk_binder_handle,
             mk_dh_handle: mk_dh_handle,
-            mk_xpd_alg_transcript: mk_xpd_alg_transcript,
             mk_xpd_handle: mk_xpd_handle,
             mk_xtr_handle: mk_xtr_handle,
             name: name,
             ord: ord,
             parents: parents,
             tag: tag,
-            tag_digest: tag_digest,
-            transcript_alg: transcript_alg,
             type: type,
             untag: untag,
-            untag_digest: untag_digest,
-            untag_transcript: untag_transcript,
+            xpd1: xpd1,
+            xtr1: xtr1,
             zeros: zeros,
         }
     }
@@ -124,9 +119,6 @@ proof Proof {
             default: default,
             encode_group_member: encode_group_member,
             exp: exp,
-            extract_binder_from_args: extract_binder_from_args,
-            extract_dh_handle: extract_dh_handle,
-            extract_dh_shares_from_args: extract_dh_shares_from_args,
             gen: gen,
             get_0ikm: get_0ikm,
             get_0salt: get_0salt,
@@ -149,28 +141,25 @@ proof Proof {
             get_sht: get_sht,
             grp: grp,
             handle_alg: handle_alg,
-            hash: hash,
-            hmac: hmac,
+            hash1: hash1,
             is_supported: is_supported,
             key_alg: key_alg,
+            label1: label1,
+            len_alg: len_alg,
             len_key: len_key,
             level: level,
             log_package_parameters: log_package_parameters,
-            mk_binder_handle: mk_binder_handle,
             mk_dh_handle: mk_dh_handle,
-            mk_xpd_alg_transcript: mk_xpd_alg_transcript,
             mk_xpd_handle: mk_xpd_handle,
             mk_xtr_handle: mk_xtr_handle,
             name: name,
             ord: ord,
             parents: parents,
             tag: tag,
-            tag_digest: tag_digest,
-            transcript_alg: transcript_alg,
             type: type,
             untag: untag,
-            untag_digest: untag_digest,
-            untag_transcript: untag_transcript,
+            xpd1: xpd1,
+            xtr1: xtr1,
             zeros: zeros,
         }
     }
@@ -184,9 +173,6 @@ proof Proof {
             default: default,
             encode_group_member: encode_group_member,
             exp: exp,
-            extract_binder_from_args: extract_binder_from_args,
-            extract_dh_handle: extract_dh_handle,
-            extract_dh_shares_from_args: extract_dh_shares_from_args,
             gen: gen,
             get_0ikm: get_0ikm,
             get_0salt: get_0salt,
@@ -210,13 +196,15 @@ proof Proof {
             grp: grp,
             handle_alg: handle_alg,
             hash: hash,
+            hash1: hash1,
             hmac: hmac,
             is_supported: is_supported,
             key_alg: key_alg,
+            label1: label1,
+            len_alg: len_alg,
             len_key: len_key,
             level: level,
             log_package_parameters: log_package_parameters,
-            mk_binder_handle: mk_binder_handle,
             mk_dh_handle: mk_dh_handle,
             mk_xpd_alg_transcript: mk_xpd_alg_transcript,
             mk_xpd_handle: mk_xpd_handle,
@@ -231,6 +219,8 @@ proof Proof {
             untag: untag,
             untag_digest: untag_digest,
             untag_transcript: untag_transcript,
+            xpd1: xpd1,
+            xtr1: xtr1,
             zeros: zeros,
         }
     }
@@ -244,9 +234,6 @@ proof Proof {
             default: default,
             encode_group_member: encode_group_member,
             exp: exp,
-            extract_binder_from_args: extract_binder_from_args,
-            extract_dh_handle: extract_dh_handle,
-            extract_dh_shares_from_args: extract_dh_shares_from_args,
             gen: gen,
             get_0ikm: get_0ikm,
             get_0salt: get_0salt,
@@ -270,13 +257,15 @@ proof Proof {
             grp: grp,
             handle_alg: handle_alg,
             hash: hash,
+            hash1: hash1,
             hmac: hmac,
             is_supported: is_supported,
             key_alg: key_alg,
+            label1: label1,
+            len_alg: len_alg,
             len_key: len_key,
             level: level,
             log_package_parameters: log_package_parameters,
-            mk_binder_handle: mk_binder_handle,
             mk_dh_handle: mk_dh_handle,
             mk_xpd_alg_transcript: mk_xpd_alg_transcript,
             mk_xpd_handle: mk_xpd_handle,
@@ -291,6 +280,8 @@ proof Proof {
             untag: untag,
             untag_digest: untag_digest,
             untag_transcript: untag_transcript,
+            xpd1: xpd1,
+            xtr1: xtr1,
             zeros: zeros,
         }
     }
@@ -337,7 +328,7 @@ proof Proof {
                 ]
 
                 lemmas {
-                    /* all-invariants-after: [no-abort, all-invariants-before, lemma-rand-is-eq] */
+                    all-invariants-after: [no-abort, all-invariants-before, lemma-rand-is-eq]
                     invariant: [no-abort, lemma-rand-is-eq]
                     lemma-Gks0-output: [no-abort]
                     lemma-Gks0Map-output: [no-abort]
@@ -374,7 +365,9 @@ proof Proof {
 
                 lemmas {
                     /* all-invariants-after: [no-abort, all-invariants-before] */
-                    same-output: [no-abort]
+                    same-output: [no-abort, lemma-Gks0-output, lemma-Gks0Map-output]
+                    lemma-Gks0Map-output: [no-abort]
+                    lemma-Gks0-output: [no-abort]
                     /* equal-aborts: []
                     invariant: [no-abort] */
                 }
@@ -389,7 +382,9 @@ proof Proof {
 
                 lemmas {
                     /* all-invariants-after: [no-abort, all-invariants-before] */
-                    same-output: [no-abort]
+                    same-output: [no-abort, lemma-Gks0-output, lemma-Gks0Map-output]
+                    lemma-Gks0Map-output: [no-abort]
+                    lemma-Gks0-output: [no-abort]
                     /* equal-aborts: []
                     invariant: [no-abort] */
                 }

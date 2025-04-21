@@ -18,15 +18,53 @@
     )
 )
 
+(define-fun <relation-lemma-Gks0-output-game_Gks0-game_Gks0Map-XTR>
+    (
+        (old-state-Gks0 <GameState_Gks0_<$$>>)
+        (old-state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (return-XTR-Gks0 <OracleReturn-Gks0-<$$>-Xtr-<$$>-XTR>)
+        (return-XTR-Gks0Map <OracleReturn-Gks0Map-<$$>-Map-<$$>-XTR>)
+        (n Int)
+        (l Int)
+        (h1 Bits_*)
+        (h2 Bits_*)
+    )
+    Bool
+    (= 
+        (return-value (<oracle-return-Gks0-<$$>-Xtr-<$$>-XTR-return-value-or-abort> return-XTR-Gks0))
+        (<<func-proof-mk_xtr_handle>> n h1 h2)
+    )
+)
+
+(define-fun <relation-lemma-Gks0Map-output-game_Gks0-game_Gks0Map-XTR>
+    (
+        (old-state-Gks0 <GameState_Gks0_<$$>>)
+        (old-state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (return-XTR-Gks0 <OracleReturn-Gks0-<$$>-Xtr-<$$>-XTR>)
+        (return-XTR-Gks0Map <OracleReturn-Gks0Map-<$$>-Map-<$$>-XTR>)
+        (n Int)
+        (l Int)
+        (h1 Bits_*)
+        (h2 Bits_*)
+    )
+    Bool
+    (= 
+        (return-value (<oracle-return-Gks0Map-<$$>-Map-<$$>-XTR-return-value-or-abort> return-XTR-Gks0Map))
+        (<<func-proof-mk_xtr_handle>> n h1 h2)
+    )
+)
+
 (define-fun invariant 
     (
         (state-Gks0 <GameState_Gks0_<$$>>)
         (state-Gks0Map <GameState_Gks0Map_<$$>>)
     )
     Bool
+    ;(all-invariants state-Gks0 state-Gks0Map)
     (and
         (invariant-1 state-Gks0 state-Gks0Map) ; can be proved
         (invariant-2a-v state-Gks0 state-Gks0Map) ; can be proved
+        (invariant-2a-vi state-Gks0 state-Gks0Map) ; can be proved
         ;(invariant-log-inverse state-Gks0 state-Gks0Map) ; didn't terminate
         ;(invariant-consistent-log-inverse state-Gks0 state-Gks0Map) ; didn't terminate
         (invariant-2e state-Gks0 state-Gks0Map) ; can be proved
