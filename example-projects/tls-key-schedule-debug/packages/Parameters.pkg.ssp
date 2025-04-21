@@ -1,0 +1,118 @@
+package Parameters {
+    params {
+        /*
+            0: Gks0,
+            1: Gks0Map,
+            2: GksMapXpd,
+            3: Gks1
+        */
+        game: Integer,
+        log_package_parameters: fn Integer, Bool, Bool, Bool, Bool -> (Integer, Integer),
+    }
+
+    import oracles {
+        IS_OUTPUT_KEY(n: Integer) -> Bool,
+        IS_INTERNAL_KEY(n: Integer) -> Bool,
+        IS_DH_KEY(n: Integer) -> Bool,
+        IS_PSK(n: Integer) -> Bool,
+        IS_HANDSHAKE_SECRET(n: Integer) -> Bool,
+    }
+
+    oracle GET_HASH_PACKAGE_IDEALIZATION_PARAMETER() -> Bool {
+        if ((game == 0) or (game == 1)) { /* before idealization */
+            return false;
+        }
+        if ((game == 2) or (game == 3)) { /* after idealization */
+            return true;
+        }
+        assert false;
+        /* This should never happen and we put it here to make "function" total */
+        return false;
+    }
+
+    oracle GET_KEY_PACKAGE_IDEALIZATION_PARAMETER(n: Integer, l: Integer) -> Bool {
+        is_dh <- invoke IS_DH_KEY(n);
+        is_psk <- invoke IS_PSK(n);
+        if is_dh {
+            return false;
+        }
+        if ((game == 0) or (game == 1)) { /* before idealization */
+            if is_psk {
+                if (l == 0) {
+                    return true;
+                }
+                return false;
+            }
+            return false;
+        }
+        if ((game == 2) or (game == 3)) { /* after idealization */
+            return true;
+        }
+        assert false;
+        /* This should never happen and we put it here to make "function" total */
+        return false;
+    }
+
+    oracle GET_XTR_PACKAGE_IDEALIZATION_PARAMETER(n: Integer, l: Integer) -> Bool {
+        if ((game == 0) or (game == 1)) { /* before idealization */
+            return false;
+        }
+        if ((game == 2) or (game == 3)) { /* after idealization */
+            is_hs <- invoke IS_HANDSHAKE_SECRET(n);
+            if is_hs {
+                return true;
+            }
+            return false;
+        }
+        assert false;
+        /* This should never happen and we put it here to make "function" total */
+        return false;
+    }
+
+    oracle IS_INFINITY_MAPPING(mapping: Integer) -> Bool {
+        if (mapping == 2) {
+            return true;
+        }
+        return false;
+    }
+
+    oracle IS_1_MAPPING(mapping: Integer) -> Bool {
+        if (mapping == 1) {
+            return true;
+        }
+        return false;
+    }
+
+    oracle IS_A_PATTERN(pattern: Integer) -> Bool {
+        if (pattern == 1) {
+            return true;
+        }
+        return false;
+    }
+
+    oracle IS_D_PATTERN(pattern: Integer) -> Bool {
+        if (pattern == 2) {
+            return true;
+        }
+        return false;
+    }
+
+    oracle IS_F_PATTERN(pattern: Integer) -> Bool {
+        if (pattern == 3) {
+            return true;
+        }
+        return false;
+    }
+
+    oracle GET_LOG_PACKAGE_PARAMETERS(n: Integer) -> (Integer, Integer) {
+        is_dh <- invoke IS_DH_KEY(n);
+        is_psk <- invoke IS_PSK(n);
+        is_internal <- invoke IS_INTERNAL_KEY(n);
+        is_output <- invoke IS_OUTPUT_KEY(n);
+        if (not is_dh and not is_psk and not is_internal and not is_output) {
+            abort;
+        }
+        (pattern, mapping) <- parse log_package_parameters(game, is_dh, is_psk, is_internal, is_output);
+        return (pattern, mapping);
+    }
+}

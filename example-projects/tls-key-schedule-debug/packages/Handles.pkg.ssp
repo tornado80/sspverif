@@ -1,0 +1,47 @@
+package Handles {
+    /*
+    # Handle types
+    | Handle | Integer ID |
+    | --- | --- |
+    | noDH | 0 |
+    | DH | 1 |
+    | PSK | 2 |
+    | noPSK | 3 |
+    | XTR | 4 |
+    | XPD | 5 |
+    | 0salt | 6 |
+    | 0ikm | 7 |
+    */
+
+    params {
+        type: fn Bits(*) -> Integer, /* returns the type of the given handle */
+    }
+
+    oracle IS_noPSK_HANDLE(h: Bits(*)) -> Bool {
+        if (type(h) == 3) {
+            return true;
+        }
+        return false;
+    }
+
+    oracle IS_noDH_HANDLE(h: Bits(*)) -> Bool {
+        if (type(h) == 0) {
+            return true;
+        }
+        return false;
+    }
+
+    oracle IS_0salt_HANDLE(h: Bits(*)) -> Bool {
+        if (type(h) == 6) {
+            return true;
+        }
+        return false;
+    }
+
+    oracle IS_0ikm_HANDLE(h: Bits(*)) -> Bool {
+        if (type(h) == 7) {
+            return true;
+        }
+        return false;
+    }
+}
