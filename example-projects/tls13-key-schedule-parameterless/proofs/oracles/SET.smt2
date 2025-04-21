@@ -180,10 +180,9 @@
         (state-Gks0Map <GameState_Gks0Map_<$$>>)
     )
     Bool
-    (all-invariants state-Gks0 state-Gks0Map)
-    ;(and
-    ;    (invariant-consistent-log-inverse state-Gks0 state-Gks0Map)
-    ;    (invariant-2e state-Gks0 state-Gks0Map)
-    ;    (invariant-5 state-Gks0 state-Gks0Map)
-    ;)
+    (and
+        (invariant-consistent-log-inverse state-Gks0 state-Gks0Map)
+        (invariant-2e state-Gks0 state-Gks0Map)
+        (invariant-5 state-Gks0 state-Gks0Map)
+    )
 )

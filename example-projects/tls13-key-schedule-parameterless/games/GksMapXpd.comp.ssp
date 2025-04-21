@@ -6,9 +6,6 @@ composition GksMapXpd {
     const default: fn Integer -> Bits(*);
     const encode_group_member: fn Bits(*) -> Bits(*);
     const exp: fn Bits(*), Integer -> Bits(*);
-    const extract_binder_from_args: fn Bits(*) -> Bits(*);
-    const extract_dh_handle: fn Bits(*) -> Bits(*);
-    const extract_dh_shares_from_args: fn Bits(*) -> (Bits(*), Bits(*));
     const gen: fn Integer -> Bits(*);
     const get_0ikm: fn Integer -> Integer;
     const get_0salt: fn Integer -> Integer;
@@ -32,13 +29,15 @@ composition GksMapXpd {
     const grp: fn Bits(*) -> Integer;
     const handle_alg: fn Bits(*) -> Integer;
     const hash: fn Integer, Bits(*) -> Bits(*);
+    const hash1: fn Bits(*) -> Bits(*);
     const hmac: fn Integer, Bits(*), Bits(*) -> Bits(*);
     const is_supported: fn Integer -> Bool;
     const key_alg: fn Bits(*) -> Integer;
+    const label1: fn Integer, Bool -> Integer;
+    const len_alg: fn Integer -> Integer;
     const len_key: fn Bits(*) -> Integer;
     const level: fn Bits(*) -> Maybe(Integer);
     const log_package_parameters: fn Integer, Bool, Bool, Bool, Bool -> (Integer, Integer);
-    const mk_binder_handle: fn Bits(*), Bool, Bits(*) -> Bits(*);
     const mk_dh_handle: fn Bits(*), Bits(*) -> Bits(*);
     const mk_xpd_alg_transcript: fn Integer, Integer, Bits(*) -> Bits(*);
     const mk_xpd_handle: fn Integer, Integer, Bits(*), Bits(*) -> Bits(*);
@@ -53,6 +52,8 @@ composition GksMapXpd {
     const untag: fn Bits(*) -> Bits(*);
     const untag_digest: fn Bits(*) -> Bits(*);
     const untag_transcript: fn Bits(*) -> Bits(*);
+    const xpd1: fn Bits(*), Integer, Bits(*) -> Bits(*);
+    const xtr1: fn Bits(*), Bits(*) -> Bits(*);
     const zeros: fn Integer -> Bits(*);
 
     instance pkg_Handles = Handles {
@@ -62,6 +63,9 @@ composition GksMapXpd {
     }
 
     instance pkg_Helpers = Helpers {
+        params {
+            len_alg: len_alg,
+        }
     }
 
     instance pkg_Labels = Labels {
@@ -143,6 +147,37 @@ composition GksMapXpd {
         }
     }
 
+    instance pkg_Xpd = Xpd {
+        params {
+            hash1: hash1,
+            label1: label1,
+            mk_xpd_handle: mk_xpd_handle,
+            xpd1: xpd1,
+        }
+    }
+
+    instance pkg_Xtr = Xtr {
+        params {
+            handle_alg: handle_alg,
+            key_alg: key_alg,
+            len_key: len_key,
+            mk_xtr_handle: mk_xtr_handle,
+            tag: tag,
+            untag: untag,
+            xtr1: xtr1,
+        }
+    }
+
+    instance pkg_Map = Map {
+        params {
+            label1: label1,
+            level: level,
+            mk_dh_handle: mk_dh_handle,
+            mk_xpd_handle: mk_xpd_handle,
+            mk_xtr_handle: mk_xtr_handle,
+        }
+    }
+
     instance pkg_hash0 = hash0 {
         params {
             hash: hash,
@@ -168,41 +203,6 @@ composition GksMapXpd {
         }
     }
 
-    instance pkg_Xpd = Xpd {
-        params {
-            mk_xpd_handle: mk_xpd_handle,
-        }
-    }
-
-    instance pkg_xtr0 = xtr0 {
-        params {
-            hmac: hmac,
-            key_alg: key_alg,
-            tag: tag,
-            untag: untag,
-        }
-    }
-
-    instance pkg_Xtr = Xtr {
-        params {
-            handle_alg: handle_alg,
-            key_alg: key_alg,
-            len_key: len_key,
-            mk_xtr_handle: mk_xtr_handle,
-            tag: tag,
-            untag: untag,
-        }
-    }
-
-    instance pkg_Map = Map {
-        params {
-            level: level,
-            mk_dh_handle: mk_dh_handle,
-            mk_xpd_handle: mk_xpd_handle,
-            mk_xtr_handle: mk_xtr_handle,
-        }
-    }
-
     instance pkg_MapXpd = MapXpd {
         params {
             level: level,
@@ -212,14 +212,6 @@ composition GksMapXpd {
     }
 
     instance pkg_Check = Check {
-        params {
-            extract_binder_from_args: extract_binder_from_args,
-            extract_dh_handle: extract_dh_handle,
-            extract_dh_shares_from_args: extract_dh_shares_from_args,
-            level: level,
-            mk_binder_handle: mk_binder_handle,
-            mk_dh_handle: mk_dh_handle,
-        }
     }
 
     compose {
@@ -265,22 +257,13 @@ composition GksMapXpd {
             GET_DH_NAME: pkg_Names,
             SET: pkg_Key,
         },
-        pkg_Hash: {
-            GET_HASH_PACKAGE_IDEALIZATION_PARAMETER: pkg_Parameters,
-            hash: pkg_hash0,
-        },
-        pkg_xpd0: {
-            GET_HASH_ALGORITHM_LENGTH: pkg_Helpers,
-        },
         pkg_Xpd: {
             GET: pkg_Key,
-            HASH: pkg_Hash,
             IS_PSK: pkg_Names,
             IS_XPD_KEY: pkg_Names,
             LABEL: pkg_Labels,
             PARENTS: pkg_Names,
             SET: pkg_Key,
-            xpd: pkg_xpd0,
         },
         pkg_Xtr: {
             GET: pkg_Key,
@@ -289,7 +272,6 @@ composition GksMapXpd {
             PARENTS: pkg_Names,
             SAMPLE: pkg_Sample,
             SET: pkg_Key,
-            xtr: pkg_xtr0,
         },
         pkg_Map: {
             DHEXP: pkg_DH,
@@ -308,6 +290,13 @@ composition GksMapXpd {
             SETMAP: pkg_MapTable,
             XPD: pkg_Xpd,
             XTR: pkg_Xtr,
+        },
+        pkg_Hash: {
+            GET_HASH_PACKAGE_IDEALIZATION_PARAMETER: pkg_Parameters,
+            hash: pkg_hash0,
+        },
+        pkg_xpd0: {
+            GET_HASH_ALGORITHM_LENGTH: pkg_Helpers,
         },
         pkg_MapXpd: {
             GET: pkg_Key,

@@ -7,7 +7,7 @@
 # ]
 # ///
 
-# Example usage: pipx run tls13-ks-game-gen.py .
+# Example usage: pipx run tls13-ks-game-gen.py . .
 
 import os
 import operator
@@ -20,12 +20,14 @@ arg_parser = argparse.ArgumentParser(
                     prog='TLS 1.3 Key Schedule Security Game/Proof Generator',
                     description='Generates games and proof files')
 arg_parser.add_argument("project_dir", help="Location of the project directory containing ssp.toml")
+arg_parser.add_argument("output_dir", help="Location of the output directory containing ssp.toml")
 args = arg_parser.parse_args()
 
 PROJECT_DIR = args.project_dir
+OUTPUT_DIR = args.output_dir
 PACKAGES_DIR = os.path.join(PROJECT_DIR, "packages")
-GAMES_DIR = os.path.join(PROJECT_DIR, "games")
-PROOF_DIR = os.path.join(PROJECT_DIR, "proofs")
+GAMES_DIR = os.path.join(OUTPUT_DIR, "games")
+PROOF_DIR = os.path.join(OUTPUT_DIR, "proofs")
 PROOF_FILE_PATH = os.path.join(PROOF_DIR, "proof.ssp")
 
 GAMES = ["Gks0", "Gks0Map", "GksMapXpd", "Gks1"]
@@ -202,7 +204,7 @@ for game in GAMES:
                     "PARENTS": "Names",
                     "SAMPLE": "Sample",
                     "GET": "Key",
-                    "xtr": "xtr0",
+                    #"xtr": "xtr0",
                     "SET": "Key"
                 }
             case "Check":
@@ -215,8 +217,8 @@ for game in GAMES:
                     "LABEL": "Labels",
                     "GET": "Key",
                     "SET": "Key",
-                    "xpd": "xpd0",
-                    "HASH": "Hash"
+                    #"xpd": "xpd0",
+                    #"HASH": "Hash"
                 }
             case "Map":
                 instances_compositions[instance] = {

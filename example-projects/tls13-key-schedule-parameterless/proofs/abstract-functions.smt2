@@ -70,6 +70,24 @@
     )
 )
 
+(assert
+    (and
+        (= 
+            (<<func-proof-len_alg>> 256)
+            256
+        )
+        (= 
+            (<<func-proof-len_alg>> 384)
+            384
+        )
+        (= 
+            (<<func-proof-len_alg>> 512)
+            512
+        )
+    )
+
+)
+
 ; (forall ((X Bits_*) (Y Bits_*)) (= (type (mk_dh_handle X Y)) 1)) gives unknown
 (assert
     (= 

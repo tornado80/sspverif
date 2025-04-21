@@ -4,7 +4,7 @@
         (state-Gks0Map <GameState_Gks0Map_<$$>>)
     )
     Bool
-    ; Invariant (1) : E_left = E_right
+    ; Invariant (1) : exponent table consistency : E_left = E_right
     (let
         (
             (E_left  (<pkg-state-DH-<$$>-E> (<game-Gks0-<$$>-pkgstate-pkg_DH> state-Gks0)))
@@ -13,33 +13,433 @@
         (= E_left E_right)
     )
 )
+(define-fun none-aware-level
+    (
+        (h Bits_*)
+    )
+    Int
+    (let 
+        (
+            (level (<<func-proof-level>> h))
+        )
+        (ite 
+            ((_ is mk-none) level)
+            0
+            (maybe-get level)
+        )
+    )
+)
+(define-fun invariant-2a-i
+    (
+        (n Int)
+        (l Int)
+        (h Bits_*)
+        (Log (Array (Tuple2 Int Bits_*) (Maybe (Tuple3 Bits_* Bool Bits_*))))
+        (K (Array (Tuple3 Int Int Bits_*) (Maybe (Tuple2 Bits_* Bool))))
+    )
+    Bool
+    ; Invariant (2a) (i) : Log[(n, h)] = none => K[(n, l, h)] = none
+    (=>
+        ((_ is mk-none) (select Log (mk-tuple2 n h)))
+        ((_ is mk-none) (select K (mk-tuple3 n l h)))
+    )
+)
+(define-fun invariant-2a-ii
+    (
+        (n Int)
+        (l Int)
+        (h Bits_*)
+        (Log (Array (Tuple2 Int Bits_*) (Maybe (Tuple3 Bits_* Bool Bits_*))))
+        (K (Array (Tuple3 Int Int Bits_*) (Maybe (Tuple2 Bits_* Bool))))
+    )
+    Bool
+    ; Invariant (2a) (ii) : Log[(n, h)] = (h', _, _) and h != h' => K[(n, l, h)] = none
+    (=>
+        (not (= h (el3-1 (maybe-get (select Log (mk-tuple2 n h))))))
+        ((_ is mk-none) (select K (mk-tuple3 n l h)))
+    )
+)
+(define-fun invariant-2a-iii
+    (
+        (n Int)
+        (l Int)
+        (h Bits_*)
+        (Log (Array (Tuple2 Int Bits_*) (Maybe (Tuple3 Bits_* Bool Bits_*))))
+        (K (Array (Tuple3 Int Int Bits_*) (Maybe (Tuple2 Bits_* Bool))))
+    )
+    Bool
+    ; Invariant (2a) (iii) : Log[(n, h)] = (h', hon, k) and h != h' => Log[(n, h')] = (h', hon, k) and hon = false
+    (let
+        (
+            (log_entry (maybe-get (select Log (mk-tuple2 n h))))
+        )
+        (let
+            (
+                (mapped_h (el3-1 log_entry))
+                (hon (el3-2 log_entry))
+                (k (el3-3 log_entry))
+            )
+            (=>
+                (not (= h mapped_h))
+                (let
+                    (
+                        (mapped_log_entry (maybe-get (select Log (mk-tuple2 n mapped_h))))
+                    )
+                    (and
+                        (= (el3-3 log_entry) (el3-3 mapped_log_entry)) ; k
+                        (= false (el3-2 log_entry) (el3-2 mapped_log_entry)) ; hon
+                    )
+                )
+            )
+        )
+    )
+)
+(define-fun invariant-2a-iv
+    (
+        (n Int)
+        (l Int)
+        (h Bits_*)
+        (Log (Array (Tuple2 Int Bits_*) (Maybe (Tuple3 Bits_* Bool Bits_*))))
+        (K (Array (Tuple3 Int Int Bits_*) (Maybe (Tuple2 Bits_* Bool))))
+    )
+    Bool
+    ; Invariant (2a) (iv) : Log[(n, h)] = (h, hon, k) iff K[(n, l, h)] = (k, hon) != none
+    (let 
+        (
+            (log_entry (select Log (mk-tuple2 n h)))
+            (key_entry (select K (mk-tuple3 n l h)))
+        )
+        (and 
+            ; =>
+            (=>
+                (and 
+                    (not ((_ is mk-none) log_entry))
+                    (= (el3-1 (maybe-get log_entry)) h)
+                )
+                (and
+                    (not ((_ is mk-none) key_entry))
+                    (= (el2-1 (maybe-get key_entry)) (el3-3 (maybe-get log_entry))) ; k
+                    (= (el2-2 (maybe-get key_entry)) (el3-2 (maybe-get log_entry))) ; hon
+                )
+            )
+            ; <=
+            (=>
+                (not ((_ is mk-none) key_entry))
+                (and
+                    (not ((_ is mk-none) log_entry))
+                    (= (el2-1 (maybe-get key_entry)) (el3-3 (maybe-get log_entry))) ; k
+                    (= (el2-2 (maybe-get key_entry)) (el3-2 (maybe-get log_entry))) ; hon
+                    (= (el3-1 (maybe-get log_entry)) h) ; h
+                )
+            )
+        )
+    )
+)
+(define-fun invariant-2a-vii
+    (
+        (n Int)
+        (m Int)
+        (l Int)
+        (h Bits_*)
+        (Log (Array (Tuple2 Int Bits_*) (Maybe (Tuple3 Bits_* Bool Bits_*))))
+        (K (Array (Tuple3 Int Int Bits_*) (Maybe (Tuple2 Bits_* Bool))))
+    )
+    Bool
+    ; Invariant (2a) (vii) : Log[(n', h)] != none => name(h) = n'
+    (=>
+        (not ((_ is mk-none) (select Log (mk-tuple2 m h))))
+        (= m (<<func-proof-name>> h))
+    )
+)
+(define-fun invariant-2a-viii
+    (
+        (n Int)
+        (l Int)
+        (h Bits_*)
+        (Log (Array (Tuple2 Int Bits_*) (Maybe (Tuple3 Bits_* Bool Bits_*))))
+        (K (Array (Tuple3 Int Int Bits_*) (Maybe (Tuple2 Bits_* Bool))))
+    )
+    Bool
+    ; Invariant (2a) (viii) : Log[(n, h)] = (h', _, k) => len(k) = len(h) = len(h') and alg(h) = alg(h')
+    (let
+        (
+            (log_entry (select Log (mk-tuple2 n h)))
+        )
+        (=>
+            (not ((_ is mk-none) log_entry))
+            (let 
+                (
+                    (k (el3-3 (maybe-get log_entry)))
+                    (mapped_h (el3-1 (maybe-get log_entry)))
+                )
+                (and
+                    (= (<<func-proof-handle_alg>> h) (<<func-proof-handle_alg>> mapped_h))
+                    (= (<<func-proof-len_key>> k) (<<func-proof-len_alg>> (<<func-proof-handle_alg>> h)) (<<func-proof-len_alg>> (<<func-proof-handle_alg>> mapped_h)))
+                )
+            )
+        )
+    )
+)
+(define-fun invariant-2a-ix
+    (
+        (n Int)
+        (h Bits_*)
+        (K (Array (Tuple3 Int Int Bits_*) (Maybe (Tuple2 Bits_* Bool))))
+    )
+    Bool
+    ; Invariant (2a) (ix) : n := name(h) in {0ikm, 0salt, dh} and K[(name(h), 0, h)] != none => level(h) = none
+    (=>
+        (and
+            (or (= n KEY_dh) (= n KEY_0ikm) (= n KEY_0salt))
+            (not ((_ is mk-none) (select K (mk-tuple3 n 0 h))))
+        )
+        ((_ is mk-none) (<<func-proof-level>> h))
+    )
+)
+(define-fun invariant-2a-x
+    (
+        (n Int)
+        (h Bits_*)
+        (K (Array (Tuple3 Int Int Bits_*) (Maybe (Tuple2 Bits_* Bool))))
+    )
+    Bool
+    ; Invariant (2a) (x) : forall l: name(h) not in {0ikm, 0salt, dh} and K[(name(h), l, h)] != none => level(h) = l
+    (forall 
+        (
+            (l Int)
+        )
+        (=>
+            (and
+                (not (or (= n KEY_dh) (= n KEY_0ikm) (= n KEY_0salt)))
+                (not ((_ is mk-none) (select K (mk-tuple3 n l h))))
+            )
+            (= (maybe-get (<<func-proof-level>> h)) l)
+        )
+    )
+)
+(define-fun invariant-2a-i-ii-iii-iv-vii-viii-ix-x-one-table
+    (
+        (Log (Array (Tuple2 Int Bits_*) (Maybe (Tuple3 Bits_* Bool Bits_*))))
+        (K (Array (Tuple3 Int Int Bits_*) (Maybe (Tuple2 Bits_* Bool))))
+    )
+    Bool
+    (forall
+        (
+            (h Bits_*)
+            (m Int)
+        )
+        (let
+            (
+                (n (<<func-proof-name>> h))
+            )
+            (let 
+                (
+                    (l (none-aware-level h))
+                )
+                (and
+                    (invariant-2a-i n l h Log K)
+                    (invariant-2a-ii n l h Log K)
+                    ;(invariant-2a-iii n l h Log K) ; needs more log inverse and Log[LogInverse[k]] = (LogInverse[k], ...)
+                    ;(invariant-2a-iv n l h Log K)
+                    (invariant-2a-vii n m l h Log K)
+                    ;(invariant-2a-viii n l h Log K)
+                    ;(invariant-2a-ix n h K)
+                    ;(invariant-2a-x n h K)
+                )
+            )
+        )
+    )
+)
+(define-fun invariant-2a-i-ii-iii-iv-vii-viii-ix-x
+    (
+        (state-Gks0 <GameState_Gks0_<$$>>)
+        (state-Gks0Map <GameState_Gks0Map_<$$>>)
+    )
+    Bool
+    (let 
+        (
+            (Log_left (<pkg-state-Log-<$$>-Log> (<game-Gks0-<$$>-pkgstate-pkg_Log> state-Gks0)))
+            (Log_right (<pkg-state-Log-<$$>-Log> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))
+            (K_left (<pkg-state-Key-<$$>-K> (<game-Gks0-<$$>-pkgstate-pkg_Key> state-Gks0)))
+            (K_right (<pkg-state-Key-<$$>-K> (<game-Gks0Map-<$$>-pkgstate-pkg_Key> state-Gks0Map)))
+        )
+        (and
+            (invariant-2a-i-ii-iii-iv-vii-viii-ix-x-one-table Log_left K_left)
+            (invariant-2a-i-ii-iii-iv-vii-viii-ix-x-one-table Log_right K_right)
+        )
+    )
+)
 (define-fun invariant-2a-v
     (
         (state-Gks0 <GameState_Gks0_<$$>>)
         (state-Gks0Map <GameState_Gks0Map_<$$>>)
     )
     Bool
+    ; n = name(h)
     ; Invariant (2a) (v) : Log_left[(n, h)] = some(h, hon, k) or none
     (let
         (
-            (Log (<pkg-state-Log-<$$>-Log> (<game-Gks0-<$$>-pkgstate-pkg_Log> state-Gks0)))
+            (Log_left (<pkg-state-Log-<$$>-Log> (<game-Gks0-<$$>-pkgstate-pkg_Log> state-Gks0)))
         )
         (forall
             (
                 (h Bits_*)
-                (n Int)
             )
-            (let 
+            (let
                 (
-                    (log_entry (select Log (mk-tuple2 n h)))
+                    (n (<<func-proof-name>> h))
                 )
-                (=>
-                    (not ((_ is mk-none) log_entry))
-                    (= (el3-1 (maybe-get log_entry)) h)
+                (let 
+                    (
+                        (log_entry (select Log_left (mk-tuple2 n h)))
+                    )
+                    (=>
+                        (not ((_ is mk-none) log_entry))
+                        (= (el3-1 (maybe-get log_entry)) h)
+                    )
                 )
             )
         )
     )
+)
+(define-fun invariant-2a-vi
+    (
+        (state-Gks0 <GameState_Gks0_<$$>>)
+        (state-Gks0Map <GameState_Gks0Map_<$$>>)
+    )
+    Bool
+    ; Invariant (2a) (vi) : Log_right[h] != none and name(h) not in {psk, dh} => Log_right[h] = (h, _, _)
+    (let
+        (
+            (Log_right (<pkg-state-Log-<$$>-Log> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))
+            (K_right (<pkg-state-Key-<$$>-K> (<game-Gks0Map-<$$>-pkgstate-pkg_Key> state-Gks0Map)))
+        )
+        (forall 
+            (
+                (h Bits_*)
+            )
+            (let
+                (
+                    (n (<<func-proof-name>> h))
+                )
+                (=>
+                    (and
+                        (not
+                            ((_ is mk-none) (select Log_right (mk-tuple2 n h)))
+                        )
+                        (not
+                            (or (= n KEY_psk) (= n KEY_dh))
+                        )
+                    )
+                    (= (el3-1 (maybe-get (select Log_right (mk-tuple2 n h)))) h)
+                )
+            )
+        )
+    )
+)
+(define-fun invariant-2a
+    (
+        (state-Gks0 <GameState_Gks0_<$$>>)
+        (state-Gks0Map <GameState_Gks0Map_<$$>>)
+    )
+    Bool
+    (and
+        ;(invariant-2a-i-ii-iii-iv-vii-viii-ix-x state-Gks0 state-Gks0Map)
+        (invariant-2a-v state-Gks0 state-Gks0Map)
+        (invariant-2a-vi state-Gks0 state-Gks0Map)
+    )
+)
+(define-fun invariant-2b
+    (
+        (state-Gks0 <GameState_Gks0_<$$>>)
+        (state-Gks0Map <GameState_Gks0Map_<$$>>)
+    )
+    Bool
+    ; M_right[h] = h' => Log_right[h'] = (h', _, _)
+    (let 
+        (
+            (Log_right (<pkg-state-Log-<$$>-Log> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))
+            (M_right (<pkg-state-MapTable-<$$>-M> (<game-Gks0Map-<$$>-pkgstate-pkg_MapTable> state-Gks0Map)))
+        )
+        (forall 
+            (
+                (h Bits_*)
+            )
+            (let
+                (
+                    (n (<<func-proof-name>> h))
+                    (l (none-aware-level h))
+                )
+                (let 
+                    (
+                        (mapped_h (select M_right (mk-tuple3 n l h)))
+                    )
+                    (=>
+                        (not ((_ is mk-none) mapped_h))
+                        (let
+                            (
+                                (log_entry (select Log_right (mk-tuple2 n (maybe-get mapped_h))))
+                            )
+                            (and 
+                                (not ((_ is mk-none) log_entry))
+                                (= (maybe-get mapped_h) (el3-1 (maybe-get log_entry)))
+                            )
+                        )
+                    )
+                )
+            )
+        )
+    )
+)
+(define-fun invariant-2c
+    (
+        (state-Gks0 <GameState_Gks0_<$$>>)
+        (state-Gks0Map <GameState_Gks0Map_<$$>>)
+    )
+    Bool
+    ; M_right[h] = h' iff Log_left[h] = (h, _, _)
+    (let 
+        (
+            (Log_left (<pkg-state-Log-<$$>-Log> (<game-Gks0-<$$>-pkgstate-pkg_Log> state-Gks0)))
+            (M_right (<pkg-state-MapTable-<$$>-M> (<game-Gks0Map-<$$>-pkgstate-pkg_MapTable> state-Gks0Map)))
+        )
+        (forall 
+            (
+                (h Bits_*)
+            )
+            (let
+                (
+                    (n (<<func-proof-name>> h))
+                    (l (none-aware-level h))
+                )
+                (let 
+                    (
+                        (mapped_h (select M_right (mk-tuple3 n l h)))
+                    )
+                    (=
+                        (not ((_ is mk-none) mapped_h))
+                        (let
+                            (
+                                (log_entry (select Log_left (mk-tuple2 n h)))
+                            )
+                            (and 
+                                (not ((_ is mk-none) log_entry))
+                                (= h (el3-1 (maybe-get log_entry)))
+                            )
+                        )
+                    )
+                )
+            )
+        )
+    )
+)
+(define-fun invariant-2d
+    (
+        (state-Gks0 <GameState_Gks0_<$$>>)
+        (state-Gks0Map <GameState_Gks0Map_<$$>>)
+    )
+    Bool
+    true
 )
 (define-fun invariant-2e
     (
@@ -82,13 +482,105 @@
         )
     )
 )
+(define-fun invariant-2
+    (
+        (state-Gks0 <GameState_Gks0_<$$>>)
+        (state-Gks0Map <GameState_Gks0Map_<$$>>)
+    )
+    Bool
+    (and
+        (invariant-2a state-Gks0 state-Gks0Map)
+        ;(invariant-2b state-Gks0 state-Gks0Map)
+        ;(invariant-2c state-Gks0 state-Gks0Map)
+        ;(invariant-2d state-Gks0 state-Gks0Map)
+        (invariant-2e state-Gks0 state-Gks0Map)
+    )
+)
+(define-fun invariant-3
+    (
+        (state-Gks0 <GameState_Gks0_<$$>>)
+        (state-Gks0Map <GameState_Gks0Map_<$$>>)
+    )
+    Bool
+    ; Invariant (3) : mapping keeps name and algs
+    (let 
+        (
+            (M_right (<pkg-state-MapTable-<$$>-M> (<game-Gks0Map-<$$>-pkgstate-pkg_MapTable> state-Gks0Map)))
+        )
+        (forall
+            (
+                (h Bits_*)
+            )
+            (let
+                (
+                    (n (<<func-proof-name>> h))
+                    (l (none-aware-level h))
+                )
+                (let 
+                    (
+                        (m (select M_right (mk-tuple3 n l h)))
+                    )
+                    (=>
+                        (not ((_ is mk-none) m))
+                        (and
+                            (= (<<func-proof-name>> h) (<<func-proof-name>> (maybe-get m)))
+                            (= (<<func-proof-handle_alg>> h) (<<func-proof-handle_alg>> (maybe-get m)))
+                        )
+                    )
+                )
+            )
+        )
+    )
+)
+(define-fun invariant-4
+    (
+        (state-Gks0 <GameState_Gks0_<$$>>)
+        (state-Gks0Map <GameState_Gks0Map_<$$>>)
+    )
+    Bool
+    ; Invariant (4) : children derive their value from their parent(s)
+    true
+)
+(define-fun invariant-5-input-key
+    (
+        (n Int)
+        (h Bits_*)
+        (Log_left (Array (Tuple2 Int Bits_*) (Maybe (Tuple3 Bits_* Bool Bits_*))))
+        (Log_right (Array (Tuple2 Int Bits_*) (Maybe (Tuple3 Bits_* Bool Bits_*))))
+        (M_right (Array (Tuple3 Int Int Bits_*) (Maybe Bits_*)))
+    )
+    Bool
+    (let 
+        (
+            (left_entry (select Log_left (mk-tuple2 n h)))
+            (right_entry (select Log_right (mk-tuple2 n h)))
+            (map_entry (select M_right (mk-tuple3 n 0 h)))
+        )
+        (and 
+            (=
+                ((_ is mk-none) left_entry)
+                ((_ is mk-none) right_entry)
+                ((_ is mk-none) map_entry)
+            )
+            (=>
+                (not ((_ is mk-none) left_entry))
+                (and
+                    (= (el3-2 (maybe-get left_entry)) (el3-2 (maybe-get right_entry))) ; hon
+                    (= (el3-3 (maybe-get left_entry)) (el3-3 (maybe-get right_entry))) ; k
+                    (= (el3-1 (maybe-get right_entry)) (maybe-get map_entry)) ; mapped handle
+                    (= (el3-1 (maybe-get left_entry)) h) ; same handle
+                )
+            )
+        )
+    )
+)
 (define-fun invariant-5
     (
         (state-Gks0 <GameState_Gks0_<$$>>)
         (state-Gks0Map <GameState_Gks0Map_<$$>>)
     )
     Bool
-    ; Invariant (5) : consistent logs for input keys (dh and evel zero psk's)
+    ; Invariant (5) : consistent logs for input keys (dh and level zero psk's)
     (let
         (
             (Log_left (<pkg-state-Log-<$$>-Log> (<game-Gks0-<$$>-pkgstate-pkg_Log> state-Gks0)))
@@ -98,33 +590,50 @@
         (forall
             (
                 (h Bits_*)
-                (n Int)
             )
-            (=>
-                (or
-                    (and (= n KEY_psk) (= (<<func-proof-level>> h) (mk-some 0))); level zero psk
-                    (= n KEY_dh) ; dh
+            (and
+                (invariant-5-input-key KEY_dh h Log_left Log_right M_right); dh
+                (=> 
+                    (= (<<func-proof-level>> h) (mk-some 0))
+                    (invariant-5-input-key KEY_psk h Log_left Log_right M_right); level zero psk
                 )
-                (let 
+            )
+        )
+    )
+)
+(define-fun invariant-6
+    (
+        (state-Gks0 <GameState_Gks0_<$$>>)
+        (state-Gks0Map <GameState_Gks0Map_<$$>>)
+    )
+    Bool
+    ; Invariant (6) : identical keys and honesty
+    ; K_left[(n, l, h)] = K_right[(n, level(M_right[(n, l, h)]), M_right[(n, l, h)])]
+    (let 
+        (
+            (M_right (<pkg-state-MapTable-<$$>-M> (<game-Gks0Map-<$$>-pkgstate-pkg_MapTable> state-Gks0Map)))
+            (K_left (<pkg-state-Key-<$$>-K> (<game-Gks0-<$$>-pkgstate-pkg_Key> state-Gks0)))
+            (K_right (<pkg-state-Key-<$$>-K> (<game-Gks0Map-<$$>-pkgstate-pkg_Key> state-Gks0Map)))
+        )
+        (forall 
+            (
+                (h Bits_*)
+            )
+            (let 
+                (
+                    (n (<<func-proof-name>> h))
+                )
+                (let
                     (
-                        (left_entry (select Log_left (mk-tuple2 n h)))
-                        (right_entry (select Log_right (mk-tuple2 n h)))
-                        (map_entry (select M_right (mk-tuple3 n 0 h)))
+                        (l (none-aware-level h))
                     )
-                    (and 
-                        (=
-                            ((_ is mk-none) left_entry)
-                            ((_ is mk-none) right_entry)
-                            ((_ is mk-none) map_entry)
+                    (let 
+                        (
+                            (m (maybe-get (select M_right (mk-tuple3 n l h))))
                         )
-                        (=>
-                            (not ((_ is mk-none) left_entry))
-                            (and
-                                (= (el3-2 (maybe-get left_entry)) (el3-2 (maybe-get right_entry))) ; hon
-                                (= (el3-3 (maybe-get left_entry)) (el3-3 (maybe-get right_entry))) ; k
-                                (= (el3-1 (maybe-get right_entry)) (maybe-get map_entry)) ; mapped handle
-                                (= (el3-1 (maybe-get left_entry)) h) ; same handle
-                            )
+                        (=
+                            (select K_left (mk-tuple3 n l h))
+                            (select K_right (mk-tuple3 n (none-aware-level m) m))
                         )
                     )
                 )
@@ -329,16 +838,13 @@
     Bool
     (and 
         (invariant-1 state-Gks0 state-Gks0Map)
-        (invariant-2a-v state-Gks0 state-Gks0Map)
+        (invariant-2 state-Gks0 state-Gks0Map)
+        ;(invariant-3 state-Gks0 state-Gks0Map)
+        ;(invariant-4 state-Gks0 state-Gks0Map)
+        (invariant-5 state-Gks0 state-Gks0Map)
+        ;(invariant-6 state-Gks0 state-Gks0Map)
         (invariant-log-inverse state-Gks0 state-Gks0Map)
         (invariant-consistent-log-inverse state-Gks0 state-Gks0Map)
-        (invariant-2e state-Gks0 state-Gks0Map)
-        (invariant-5 state-Gks0 state-Gks0Map)
-
-        ; Invariant (6)
-        ; K_left[(n, l , h)] = K_right[(n, level(M_right[(n, l, h)]), M_right[(n, l, h)])]
-        ; K_dh_left[h] = K_dh_right[M_right[(dh, 0, h)]]
-
     )
 )
 

@@ -7,6 +7,7 @@ package Xtr {
         tag: fn Integer, Bits(*) -> Bits(*), /* tags the given key with the given algorithm identifier */
         untag: fn Bits(*) -> Bits(*), /* untags the given key and returns a raw key */
         key_alg: fn Bits(*) -> Integer, /* returns the algorithm identifier of the given key */
+        xtr1: fn Bits(*), Bits(*) -> Bits(*)
     }
 
     import oracles {
@@ -15,7 +16,7 @@ package Xtr {
         PARENTS(n: Integer) -> (Maybe(Integer), Maybe(Integer)),
         SAMPLE(n: Integer) -> Bits(*),
         GET(n: Integer, l: Integer, h: Bits(*)) -> (Bits(*), Bool),
-        xtr(k1: Bits(*), k2: Bits(*)) -> Bits(*),
+        /* xtr(k1: Bits(*), k2: Bits(*)) -> Bits(*), */
         SET(n: Integer, l: Integer, h: Bits(*), hon: Bool, ks: Bits(*)) -> Bits(*),
     }
 
@@ -32,7 +33,7 @@ package Xtr {
         (k1, hon1) <- parse t1;
         t2 <- invoke GET(Unwrap(parent2), l, h2);
         (k2, hon2) <- parse t2;
-        k <- invoke xtr(k1, k2);
+        k <- xtr1(k1, k2);
         hon <- (hon1 or hon2);
         b <- invoke GET_XTR_PACKAGE_IDEALIZATION_PARAMETER(n, l);
         if (b and hon2) {
