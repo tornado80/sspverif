@@ -14,7 +14,6 @@ package Key {
     }
 
     state {
-        K_dh: Table(Bits(*), (Bits(*), Bool)),
         K: Table((Integer, Integer, Bits(*)), (Bits(*), Bool)) /* maps (name, level, handle) to (key, honesty bit) */
     }
 
@@ -52,6 +51,7 @@ package Key {
                 }
             }
         } else {
+            assert (level(h) == None);
             k <- ks;
         }
         q_h <- invoke Q(n, h);
@@ -63,7 +63,7 @@ package Key {
             return unq_h;
         }
         if is_dh_key {
-            K_dh[h] <- Some((k, hon));
+            K[(n, 0, h)] <- Some((k, hon));
         } else {
             K[(n, l, h)] <- Some((k, hon));
         }
@@ -76,12 +76,12 @@ package Key {
         is_dh_key <- invoke IS_DH_KEY(n);
         if is_dh_key {
             is_noDH_handle <- invoke IS_noDH_HANDLE(h);
-            if (is_noDH_handle and (K_dh[h] == None)) {
+            if (is_noDH_handle and (K[(n, 0, h)] == None)) {
                 /* initialization of noDH keys */
-                K_dh[h] <- Some((zeros(len_h), false));
+                K[(n, 0, h)] <- Some((zeros(len_h), false));
             }
-            assert (K_dh[h] != None as (Bits(*), Bool));
-            (ks, hon) <- parse Unwrap(K_dh[h]);
+            assert (K[(n, 0, h)] != None as (Bits(*), Bool));
+            (ks, hon) <- parse Unwrap(K[(n, 0, h)]);
             k <- tag(h_alg, ks);
             return (k, hon);
         }
