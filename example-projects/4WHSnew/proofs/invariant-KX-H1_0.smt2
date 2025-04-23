@@ -102,6 +102,41 @@
     (= id-1     2)   ; This is the 1st sampling in H2_0 and samples the random key in Test.
 ))
 
+(define-fun randomness-mapping-SameKey
+  ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
+    (base-ctr-1 Int) ; This is the counter in the beginning of the oracle call on the left.
+    (id-0  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+    (id-1  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+    (scr-0 Int)      ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+    (scr-1 Int))     ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+  Bool
+                     ; There is no randomness used in this oracle.
+					 false
+)
+(define-fun randomness-mapping-AtMost
+  ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
+    (base-ctr-1 Int) ; This is the counter in the beginning of the oracle call on the left.
+    (id-0  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+    (id-1  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+    (scr-0 Int)      ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+    (scr-1 Int))     ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+  Bool
+                     ; There is no randomness used in this oracle.
+					 false
+)
+(define-fun randomness-mapping-AtLeast
+  ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
+    (base-ctr-1 Int) ; This is the counter in the beginning of the oracle call on the left.
+    (id-0  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+    (id-1  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+    (scr-0 Int)      ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+    (scr-1 Int))     ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+  Bool
+                     ; There is no randomness used in this oracle.
+					 false
+)
+
+
 (define-fun randomness-mapping-NewKey
   ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
     (base-ctr-1 Int) ; This is the counter in the beginning of the oracle call on the left.
