@@ -2,7 +2,10 @@ use crate::{
     gamehops::equivalence::EquivalenceContext,
     writers::smt::{
         exprs::SmtExpr,
-        patterns::{relation::Relation, relations::equal_aborts, GameStatePattern},
+        patterns::{
+            proof_consts::ProofConstsPattern, relation::Relation, relations::equal_aborts,
+            GameStatePattern,
+        },
     },
 };
 
@@ -79,5 +82,11 @@ impl<'a> EquivalenceContext<'a> {
     pub(crate) fn relation_definition_same_output(&self, oracle_name: &str) -> impl Into<SmtExpr> {
         self.relation_pattern("same-output", oracle_name)
             .build_same_output()
+    }
+
+    pub(crate) fn datastructure_proof_consts_pattern(self) -> ProofConstsPattern<'a> {
+        let proof_name = &self.proof().name;
+
+        ProofConstsPattern { proof_name }
     }
 }

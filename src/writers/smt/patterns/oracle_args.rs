@@ -6,10 +6,12 @@ use crate::writers::smt::sorts::Sort;
 
 mod game_consts;
 mod game_state;
+mod proof_consts;
 mod value_arg;
 
 pub use game_consts::*;
 pub use game_state::*;
+pub use proof_consts::*;
 
 #[derive(Debug, Clone)]
 pub enum OldNewVariant {
@@ -36,6 +38,19 @@ pub trait OracleArgPattern {
     fn declare(&self, game_inst_name: &str, variant: &Self::Variant) -> SmtExpr {
         declare::declare_const(self.global_const_name(game_inst_name, variant), self.sort())
     }
+
+    fn define(
+        &self,
+        game_inst_name: &str,
+        variant: &Self::Variant,
+        term: impl Into<SmtExpr>,
+    ) -> impl Into<SmtExpr> {
+        declare::define_const(
+            self.global_const_name(game_inst_name, variant),
+            self.sort(),
+            term,
+        )
+    }
 }
 
 pub trait OldNewOracleArgPattern: OracleArgPattern<Variant = OldNewVariant> {
@@ -56,6 +71,7 @@ pub trait OldNewOracleArgPattern: OracleArgPattern<Variant = OldNewVariant> {
     }
 }
 
+/// OracleArgPattern where variant is unit
 pub trait UnitOracleArgPattern: OracleArgPattern<Variant = ()> {
     fn unit_global_const_name(&self, game_inst_name: &str) -> String {
         <Self as OracleArgPattern>::global_const_name(self, game_inst_name, &())
@@ -63,6 +79,10 @@ pub trait UnitOracleArgPattern: OracleArgPattern<Variant = ()> {
 
     fn unit_declare(&self, game_inst_name: &str) -> SmtExpr {
         <Self as OracleArgPattern>::declare(self, game_inst_name, &())
+    }
+
+    fn unit_define(&self, game_inst_name: &str, term: impl Into<SmtExpr>) -> impl Into<SmtExpr> {
+        <Self as OracleArgPattern>::define(self, game_inst_name, &(), term)
     }
 }
 
