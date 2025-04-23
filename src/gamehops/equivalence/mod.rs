@@ -1479,10 +1479,19 @@ impl<'a> EquivalenceContext<'a> {
     pub(crate) fn smt_proof_game_const_mapping_definitions(
         self,
     ) -> impl Iterator<Item = SmtExpr> + 'a {
-        self.proof().instances().iter().flat_map(move |game_inst| {
-            define_game_const_mapping_fun(self.proof(), game_inst.game(), game_inst.name())
-                .map(SmtExpr::from)
-        })
+        Some(self)
+            .into_iter()
+            .flat_map(move |ectx| {
+                vec![
+                    ectx.left_game_inst_ctx().game_inst(),
+                    ectx.right_game_inst_ctx().game_inst(),
+                ]
+                .into_iter()
+            })
+            .flat_map(move |game_inst| {
+                define_game_const_mapping_fun(self.proof(), game_inst.game(), game_inst.name())
+                    .map(SmtExpr::from)
+            })
     }
 
     /// Returns an iterator over the functions that map the constant values of a game to that of a
