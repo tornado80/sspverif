@@ -141,10 +141,12 @@
     (state-kxred  <GameState_H2_<$<!n!><!b!><!false!><!zeron!>$>>))
   Bool
 ; getting package-state out of game-state and demanding equality, they should be exactly the same in this case.
-(=
-(<game-H1-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Game>     state-kx)    ;some params are still missing.
-(<game-H2-<$<!n!><!b!><!false!><!zeron!>$>-pkgstate-Game> state-kxred) ;some params are still missing.
-)
+(and (= (<game-H1-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Game>     state-kx)    ;some params are still missing.
+        (<game-H2-<$<!n!><!b!><!false!><!zeron!>$>-pkgstate-Game> state-kxred)) ;some params are still missing.
+     (= (<pkg-state-Nonces-<$<!bnonce!><!n!>$>-Nonces>
+	        (<game-H1-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces>     state-kx))
+	    (<pkg-state-Nonces-<$<!true!><!n!>$>-Nonces>
+		    (<game-H2-<$<!n!><!b!><!false!><!zeron!>$>-pkgstate-Nonces> state-kxred))))
 
 ;  (let
 ;    ; getting ctr out of state
