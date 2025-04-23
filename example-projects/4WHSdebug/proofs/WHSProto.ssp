@@ -1,17 +1,13 @@
 proof WHSProto {
-    const n: Integer;
-
     instance Composedreal = Composed {
         params {
             b  : false,
-            n  : n    ,
         }
     }
 
     instance Simplereal = Simple {
         params {
             b  : false,
-            n  : n    ,
         }
     }
 

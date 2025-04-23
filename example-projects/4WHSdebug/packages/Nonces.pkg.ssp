@@ -1,6 +1,5 @@
 package Nonces {
     params {
-        n: Integer,
         b: Bool,
     }
     
