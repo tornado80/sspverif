@@ -1,0 +1,11 @@
+package Sample {
+    params {
+        n: Integer,
+        b: Bool,
+    }
+    
+    oracle Sample() -> Bits(256) {
+        ni         <-$ Bits(256);
+        return ni;
+    }
+}

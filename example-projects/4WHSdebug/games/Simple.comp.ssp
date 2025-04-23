@@ -1,0 +1,17 @@
+composition Simple {
+        const n: Integer;
+        const b: Bool;
+    
+    instance Sample = Sample {
+        params {
+        n: n,
+        b: b,
+        }
+    }
+
+    compose {
+        adversary: {
+            Sample: Sample,
+        },
+    }
+}

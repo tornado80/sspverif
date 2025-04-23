@@ -1,0 +1,35 @@
+proof WHSProto {
+    const n: Integer;
+
+    instance Composedreal = Composed {
+        params {
+            b  : false,
+            n  : n    ,
+        }
+    }
+
+    instance Simplereal = Simple {
+        params {
+            b  : false,
+            n  : n    ,
+        }
+    }
+
+    gamehops 
+    {
+        equivalence Composedreal Simplereal {
+            Sample: {
+                invariant: [
+                    ./proofs/invariant.smt2
+                ]
+
+                lemmas {
+                    equal-aborts: []
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+                }
+            }
+       }
+
+    }
+}

@@ -1,0 +1,27 @@
+composition Composed {
+        const n: Integer;
+        const b: Bool;
+    
+    instance Nonces = Nonces {
+        params {
+        n: n,
+        b: b,
+        }
+    }
+
+    instance Fwd = Fwd {
+        params {
+        n: n,
+        b: b,
+        }
+    }
+
+    compose {
+        adversary: {
+            Sample: Fwd,
+        },
+        Fwd: {
+            Sample: Nonces,
+        },
+    }
+}
