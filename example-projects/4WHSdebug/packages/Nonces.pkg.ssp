@@ -4,15 +4,10 @@ package Nonces {
         b: Bool,
     }
     
-    state {
-          Nonces:   Table(Bits(256),Bool),       /* store nonces */
-    }
-
     oracle Sample() -> Bits(256) {
         ni         <-$ Bits(256);
         if b
-        {assert (Nonces[ni] == None);
-        Nonces[ni] <- Some(true);}
+        {assert false;}
         return ni;
     }
 }
