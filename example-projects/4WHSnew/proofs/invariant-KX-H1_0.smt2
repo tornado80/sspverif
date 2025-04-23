@@ -98,8 +98,8 @@
   Bool
   (and
     (= scr-1 base-ctr-1)
-    (= id-0     1)   ; This is the 1st sampling in H1_1 and samples the random key in Test.
-    (= id-1     1)   ; This is the 1st sampling in H2_0 and samples the random key in Test.
+    (= id-0     3)   ; This is the 1st sampling in H1_1 and samples the random key in Test.
+    (= id-1     2)   ; This is the 1st sampling in H2_0 and samples the random key in Test.
 ))
 
 (define-fun randomness-mapping-NewKey
