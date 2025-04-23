@@ -138,12 +138,12 @@
 
 (define-fun invariant
   ( (state-kx     <GameState_KX_<$<!n!><!b!><!zeron!>$>>)
-    (state-kxred  <GameState_H1_<$<!n!><!b!><!false!><!zeron!>$>>))
+    (state-kxred  <GameState_H1_0_<$<!n!><!b!><!zeron!>$>>))
   Bool
 ; getting package-state out of game-state and demanding equality, they should be exactly the same in this case.
 (=
 (<game-KX-<$<!n!><!b!><!zeron!>$>-pkgstate-Game>     state-kx)    ;some params are still missing.
-(<game-H1-<$<!n!><!b!><!false!><!zeron!>$>-pkgstate-Game> state-kxred) ;some params are still missing.
+(<game-H1_0-<$<!n!><!b!><!zeron!>$>-pkgstate-Game> state-kxred) ;some params are still missing.
 )
 
 ;  (let
