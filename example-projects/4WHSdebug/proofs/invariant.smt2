@@ -33,8 +33,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define-fun invariant
-  ( (state-comp     <GameState_Composedreal_<$<!n!><!false!>$>>)
-    (state-simp     <GameState_Simplereal_<$<!n!><!false!>$>>))
+  ( (state-comp     <GameState_Composed_<$<!n!><!false!>$>>)
+    (state-simp     <GameState_Simple_<$<!n!><!false!>$>>))
   Bool
 ; getting package-state out of game-state and demanding equality, they should be exactly the same in this case.
 true
