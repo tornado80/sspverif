@@ -1,11 +1,14 @@
 use crate::{
     package::Composition,
+    proof::Proof,
     types::Type,
     writers::smt::{
         exprs::{SmtExpr, SmtLet},
         patterns::{DatastructurePattern, DatastructureSpec},
     },
 };
+
+use super::proof_consts::ProofConstsPattern;
 
 #[derive(Debug, Clone)]
 pub struct GameConstsPattern<'a> {
@@ -94,6 +97,33 @@ pub fn bind_game_consts<Inner: Into<SmtExpr>>(
                 (
                     selector.name.to_string(),
                     pattern.access_unchecked(selector, game_consts.clone()),
+                )
+            })
+            .collect(),
+        body: inner,
+    }
+}
+
+pub fn bind_proof_consts<Inner: Into<SmtExpr>>(
+    proof: &Proof,
+    proof_consts: &SmtExpr,
+    inner: Inner,
+) -> SmtLet<Inner> {
+    let proof_name = proof.name.as_str();
+
+    let pattern = ProofConstsPattern { proof_name };
+    let spec = pattern.datastructure_spec(proof);
+
+    // unpack the only (constructor, selector_list) pair
+    let (_, selectors) = &spec.0[0];
+
+    SmtLet {
+        bindings: selectors
+            .iter()
+            .map(|selector| {
+                (
+                    selector.name.to_string(),
+                    pattern.access_unchecked(selector, proof_consts.clone()),
                 )
             })
             .collect(),

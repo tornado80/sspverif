@@ -4,8 +4,9 @@ use crate::{
     writers::smt::{
         exprs::SmtExpr,
         patterns::{
-            const_mapping::define_fun, declare_datatype, game_consts::GameConstsSelector,
-            pkg_consts::PackageConstsSelector, pkg_state::PackageStateSelector,
+            const_mapping::define_pkg_const_mapping_fun, declare_datatype,
+            game_consts::GameConstsSelector, pkg_consts::PackageConstsSelector,
+            pkg_state::PackageStateSelector,
         },
         sorts::Sort,
     },
@@ -69,7 +70,7 @@ fn test_const_datatypes_eq_small_small() {
         assert_eq!(ty, &const_ty);
     }
 
-    let mapping = define_fun(game, pkg, pkg_inst_name).unwrap();
+    let mapping = define_pkg_const_mapping_fun(game, pkg, pkg_inst_name).unwrap();
     let args = &mapping.args;
 
     // takes a single argument as described here
@@ -140,7 +141,7 @@ fn test_const_datatypes_remap_consts() {
         assert_eq!(ty, &const_ty);
     }
 
-    let mapping = define_fun(&game, pkg, pkg_inst_name).unwrap();
+    let mapping = define_pkg_const_mapping_fun(&game, pkg, pkg_inst_name).unwrap();
     let args = &mapping.args;
 
     // takes a single argument as described here
