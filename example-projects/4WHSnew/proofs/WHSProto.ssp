@@ -64,11 +64,10 @@ proof WHSProto {
         }
     }
 
-/*    instance H1_0 = H1 {*/
-      instance H1_0 = H1_0 {
+    instance H1_0 = H1 {
         params {
             b       : b ,
-			/* bnonce  : false, */
+			bnonce  : false,
             n       : n    ,
             zeron   : zeron,
   	        prf     : prf  ,
@@ -157,6 +156,7 @@ proof WHSProto {
         nonces:  Noncesreal ~ Noncesideal /* with advantage time^2/2^n */
         collres: CRreal ~ CRideal
     }
+
     gamehops 
     {
         equivalence KX H1_0 {
