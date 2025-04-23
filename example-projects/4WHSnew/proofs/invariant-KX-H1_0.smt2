@@ -36,8 +36,8 @@
   (and
     (= scr-1 base-ctr-1)
     (= scr-0 base-ctr-0)
-    (= id-0      2)  ; Sampling of nr in Nonces
-    (= id-1      2)  ; Sampling of nr in Nonces
+    (= id-0      1)  ; Sampling of nr in Nonces
+    (= id-1      0)  ; Sampling of nr in Nonces
   ))
 
 (define-fun randomness-mapping-Send3
