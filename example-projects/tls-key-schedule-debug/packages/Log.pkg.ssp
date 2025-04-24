@@ -19,6 +19,7 @@ package Log {
     /* We need to show why choosing the first handle with the same key as in inverse of the key is okay */
     /* Review and illustrate the Log^Zinf recognizing collision and Map changes the mapping with an example attack scenario*/
     state {
+        ReturnPoint: Integer,
         Log: Table((Integer, Bits(*)), (Bits(*), Bool, Bits(*))), /* maps (name, handle) to (mapped handle, honesty bit, key) */
         Seen: Table((Integer, Bits(*)), Bool), /* indicates whether the (name, key) was assigned before */
         LogInverseDishonest: Table((Integer, Bits(*)), Bits(*)), /* maps (name, key) to first dishonest handle */
@@ -147,6 +148,7 @@ package Log {
                 }
             }
         }
+        ReturnPoint <- 10;
         return h;
     }
     

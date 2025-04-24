@@ -74,32 +74,37 @@
 (define-fun invariant-2a-iii
     (
         (n Int)
-        (l Int)
         (h Bits_*)
         (Log (Array (Tuple2 Int Bits_*) (Maybe (Tuple3 Bits_* Bool Bits_*))))
-        (K (Array (Tuple3 Int Int Bits_*) (Maybe (Tuple2 Bits_* Bool))))
     )
     Bool
     ; Invariant (2a) (iii) : Log[(n, h)] = (h', hon, k) and h != h' => Log[(n, h')] = (h', hon, k) and hon = false
-    (let
-        (
-            (log_entry (maybe-get (select Log (mk-tuple2 n h))))
-        )
+    (=> 
+        (not ((_ is mk-none) (select Log (mk-tuple2 n h))))
         (let
             (
-                (mapped_h (el3-1 log_entry))
-                (hon (el3-2 log_entry))
-                (k (el3-3 log_entry))
+                (log_entry (maybe-get (select Log (mk-tuple2 n h))))
             )
-            (=>
-                (not (= h mapped_h))
-                (let
-                    (
-                        (mapped_log_entry (maybe-get (select Log (mk-tuple2 n mapped_h))))
-                    )
+            (let
+                (
+                    (mapped_h (el3-1 log_entry))
+                    (hon (el3-2 log_entry))
+                    (k (el3-3 log_entry))
+                )
+                (=>
+                    (not (= h mapped_h))
                     (and
-                        (= (el3-3 log_entry) (el3-3 mapped_log_entry)) ; k
-                        (= false (el3-2 log_entry) (el3-2 mapped_log_entry)) ; hon
+                        (not ((_ is mk-none) (select Log (mk-tuple2 n mapped_h))))
+                        (let
+                            (
+                                (mapped_log_entry (maybe-get (select Log (mk-tuple2 n mapped_h))))
+                            )
+                            (and
+                                (= mapped_h (el3-1 mapped_log_entry)) ; h
+                                (= (el3-3 log_entry) (el3-3 mapped_log_entry)) ; k
+                                (= false (el3-2 log_entry) (el3-2 mapped_log_entry)) ; hon
+                            )
+                        )
                     )
                 )
             )
@@ -115,7 +120,7 @@
         (K (Array (Tuple3 Int Int Bits_*) (Maybe (Tuple2 Bits_* Bool))))
     )
     Bool
-    ; Invariant (2a) (iv) : Log[(n, h)] = (h, hon, k) iff K[(n, l, h)] = (k, hon) != none
+    ; Invariant (2a) (iv) : Log[(n, h)] = (h, hon, k) <=> K[(n, l, h)] = (k, hon) != none
     (let 
         (
             (log_entry (select Log (mk-tuple2 n h)))
@@ -251,7 +256,7 @@
                 (and
                     (invariant-2a-i n l h Log K)
                     (invariant-2a-ii n l h Log K)
-                    ;(invariant-2a-iii n l h Log K) ; needs more log inverse and Log[LogInverse[k]] = (LogInverse[k], ...)
+                    ;(invariant-2a-iii n h Log) ; needs more log inverse and Log[LogInverse[k]] = (LogInverse[k], ...)
                     ;(invariant-2a-iv n l h Log K)
                     (invariant-2a-vii n m l h Log K)
                     ;(invariant-2a-viii n l h Log K)
@@ -356,7 +361,7 @@
     )
     Bool
     (and
-        (invariant-2a-i-ii-iii-iv-vii-viii-ix-x state-Gks0 state-Gks0Map)
+        ;(invariant-2a-i-ii-iii-iv-vii-viii-ix-x state-Gks0 state-Gks0Map)
         (invariant-2a-v state-Gks0 state-Gks0Map)
         (invariant-2a-vi state-Gks0 state-Gks0Map)
     )
@@ -420,9 +425,9 @@
     )
     Bool
     ; Invariant (5) for inverse maps on input keys
-    ; LogInverseDishonestLevelZero_left[k] = None iff LogInverseDishonestLevelZero_right[k] = None
-    ; LogInverseDishonestLevelNonZero_left[k] = None iff LogInverseDishonestLevelNonZero_right[k] = None
-    ; LogInverseDishonest_left[(psk, k)] = None iff LogInverseDishonest_right[(psk, k)] = None
+    ; LogInverseDishonestLevelZero_left[k] = None <=> LogInverseDishonestLevelZero_right[k] = None
+    ; LogInverseDishonestLevelNonZero_left[k] = None <=> LogInverseDishonestLevelNonZero_right[k] = None
+    ; LogInverseDishonest_left[(psk, k)] = None <=> LogInverseDishonest_right[(psk, k)] = None
     (let
         (
             (LogInverseDishonest_left (<pkg-state-Log-<$$>-LogInverseDishonest> (<game-Gks0-<$$>-pkgstate-pkg_Log> state-Gks0)))
@@ -470,6 +475,7 @@
         (k Bits_*)
     )
     Bool
+    ; h != none => Log[(psk, h)] != none and Log[(psk, h)] = (_, false, k) and level(h) = 0
     (=>
         (not ((_ is mk-none) h))
         (and
@@ -504,6 +510,7 @@
         (k Bits_*)
     )
     Bool
+    ; h != none => Log[(psk, h)] != none and Log[(psk, h)] = (_, false, k) and level(h) != 0
     (=>
         (not ((_ is mk-none) h))
         (let
@@ -536,6 +543,7 @@
         (k Bits_*)
     )
     Bool
+    ; h != none => Log[(n, h)] != none and Log[(psk, h)] = (h, false, k)
     (=>
         (not ((_ is mk-none) h))
         (let
@@ -544,6 +552,10 @@
             )
             (and
                 (not ((_ is mk-none) entry))
+                (=
+                    (el3-1 (maybe-get entry))
+                    (maybe-get h)
+                )
                 (=
                     (el3-2 (maybe-get entry))
                     false
@@ -563,9 +575,9 @@
     )
     Bool
     ; Inverse maps
-    ; Log[psk, LogInverseDishonestLevelZero[k]] = (_, 0, k) and level(LogInverseDishonestLevelZero[k]) = 0
-    ; Log[psk, LogInverseDishonestLevelNonZero[k]] = (_, 0, k) and level(LogInverseDishonestLevelZero[k]) != 0
-    ; Log[psk, LogInverseDishonest[(psk, k)]] = (_, 0, k)
+    ; Log[psk, LogInverseDishonestLevelZero[k]] = (_, false, k) and level(LogInverseDishonestLevelZero[k]) = 0
+    ; Log[psk, LogInverseDishonestLevelNonZero[k]] = (_, false, k) and level(LogInverseDishonestLevelZero[k]) != 0
+    ; Log[psk, LogInverseDishonest[(psk, k)]] = (_, false, k)
     (let
         (
             (Log_left (<pkg-state-Log-<$$>-Log> (<game-Gks0-<$$>-pkgstate-pkg_Log> state-Gks0)))
@@ -608,18 +620,198 @@
         (state-Gks0Map <GameState_Gks0Map_<$$>>)
     )
     Bool
-    (and
+    true
+    ;(and
         ;(invariant-2 state-Gks0 state-Gks0Map)
-        (invariant-log-inverse state-Gks0 state-Gks0Map)
+        ;(invariant-log-inverse state-Gks0 state-Gks0Map)
         ;(invariant-consistent-log-inverse state-Gks0 state-Gks0Map)
+    ;)
+)
+(define-fun assert-invariant-2a-iii
+    (
+        (state-Gks0 <GameState_Gks0_<$$>>)
+        (state-Gks0Map <GameState_Gks0Map_<$$>>)
+    )
+    Bool
+    (let 
+        (
+            (Log_left (<pkg-state-Log-<$$>-Log> (<game-Gks0-<$$>-pkgstate-pkg_Log> state-Gks0)))
+            (Log_right (<pkg-state-Log-<$$>-Log> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))
+        )
+        (forall
+            (
+                (h Bits_*)
+            )
+            (let
+                (
+                    (n (<<func-proof-name>> h))
+                )
+                (and
+                    (invariant-2a-iii n h Log_left)
+                    (invariant-2a-iii n h Log_right)
+                )
+            )
+        )
     )
 )
-
+(define-fun updated-invariant-log-inverse
+    (
+        (state-Gks0 <GameState_Gks0_<$$>>)
+        (state-Gks0Map <GameState_Gks0Map_<$$>>)
+    )
+    Bool
+    (let
+        (
+            (Log_right (<pkg-state-Log-<$$>-Log> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))
+            (LogInverseDishonest_right (<pkg-state-Log-<$$>-LogInverseDishonest> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))
+            (LogInverseDishonestLevelNonZero_right (<pkg-state-Log-<$$>-LogInverseDishonestLevelNonZero> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))
+            (LogInverseDishonestLevelZero_right (<pkg-state-Log-<$$>-LogInverseDishonestLevelZero> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))            
+        )
+        (forall
+            (
+                (k Bits_*)
+            )
+            (let 
+                (
+                    (log_inverse_right_dh (select LogInverseDishonest_right (mk-tuple2 KEY_dh k)))
+                    (log_inverse_right_psk (select LogInverseDishonest_right (mk-tuple2 KEY_psk k)))
+                )
+                (and
+                    ;Log[dh, LogInverseDishonest[(dh, k)]] = (LogInverseDishonest[(dh, k)], false, k)
+                    (log_inverse_invariant Log_right log_inverse_right_dh KEY_dh k)
+                    ;Log[psk, LogInverseDishonest[(psk, k)]] = (LogInverseDishonest[(psk, k)], false, k)
+                    (log_inverse_invariant Log_right log_inverse_right_psk KEY_psk k)
+                    ;LogInverseDishonestLevelZero[k] = None and LogInverseDishonestLevelNonZero[k] != None => LogInverseDishonestLevelNonZero[k] = LogInverseDishonest[(psk, k)]
+                    (=>
+                        (and
+                            ((_ is mk-none) (select LogInverseDishonestLevelZero_right k))
+                            (not ((_ is mk-none) (select LogInverseDishonestLevelNonZero_right k)))
+                        )
+                        (= (select LogInverseDishonestLevelNonZero_right k) log_inverse_right_psk)
+                    )
+                    ;LogInverseDishonestLevelZero[k] != None and LogInverseDishonestLevelNonZero[k] = None => LogInverseDishonestLevelZero[k] = LogInverseDishonest[(psk, k)]
+                    (=>
+                        (and
+                            ((_ is mk-none) (select LogInverseDishonestLevelNonZero_right k))
+                            (not ((_ is mk-none) (select LogInverseDishonestLevelZero_right k)))
+                        )
+                        (= (select LogInverseDishonestLevelZero_right k) log_inverse_right_psk)
+                    )
+                )
+            )
+        )
+    )
+)
 ; check invariants hold in the beginning
 ; (push 1)
 ; (assert (all-invariants <<game-state-game_Gks0-old>> <<game-state-game_Gks0Map-old>>))
 ; (check-sat)
 ; (pop 1)
 
-; Proving a lemma that SET returns the same handle for keys other thank psk and dh
-; in case of psk and dh, it return LogInverseDishonest[(n, k)] or h
+; Prove UNQ returns the same handle for keys other than psk and dh 
+; in case of psk and dh, it returns LogInverseDishonest[(n, k)] or h or aborts
+; Note that whenever we call UNQ, we know that Log[h] = None
+
+; Prove a lemma that SET returns the same handle for keys other than psk and dh (proved)
+; in case of psk and dh, it returns LogInverseDishonest[(n, k)] or h
+; Why do we need to prove what SET returns?
+
+; Rename log inverse tables to FirstDishonest[LevelZero/LevelNonZero]HandleWithKey[k]
+;   Is it really first handle?
+;       To answer, we should analyze when it is possible to rewrite LogInverseDishonest[LevelZero/LevelNonZero]
+;          We write to LogInverseDishonest only in the end
+;              If we reach the end, it means no mapping has happened and not abort has triggered.
+;              Namely no A, D, F aborts and no mappings.
+;          We write to LogInverseDishonestLevel[Zero/NonZero] both in the end and 1 mapping
+;       When we have Z pattern,
+;           If the mapping is 0, NO, all tables can be rewritten.
+;           If the mapping is infinity, YES, it is indeed the first handle.
+;       When we have D pattern,
+;           If the mapping is 0,
+;               no collision of dishonest keys are allowed so YES tables are not rewritten.
+;           If the mapping is 1 [only for psk]
+;               only the first collision of dishonest level zero and non zero level keys are allowed
+;               but YES tables are not rewritten.
+;       When we have A pattern, no dishonest level zero keys can collide
+;           If the mapping is 0
+;               a non zero level handle can collide with a level zero handle or another non zero level handle
+;               therefore NO, all tables can be rewritten.
+;           If the mapping is 1 [only for psk]
+;               a non zero level handle can collide with a level zero handle or another non zero level handle
+;               only the first collision is mapped and tables are not rewritten then (neither LogInverseDohonest nor the the Level ones because J[k] = None implies one of them is None)
+;               therefore NO, all tables can be rewritten.
+;       When we have F pattern, no keys (honest or dishonest) can collide so YES.
+
+; Prove log inverse invariants for Key.SET calls
+; Prove log inverse consistency for Key.SET calls
+; Prove J invariants:
+;   J = None or some(True)
+;   J[k] = None => LogInverseDishonestLevelZero[k] = None or LogInverseDishonestLevelNonZero[k] = None
+
+; Prove invariant 2a (i-ii-iii-iv) is preserved during Key.SET call
+;   2a (i) : Log[(n, h)] = None => K[(n, l, h)] = None
+;       Proof by contradication: Imagine Log[h] = None but K[h] is not. When K[h] is set, UNQ has returned h which means Log[h] = (h, ...).
+;   2a (ii) : Log[h] = (h', ...) and h != h' => K[h] = None
+;       Proof by contradication: Imagine Log[h] = (h', ...) and h != h' but K[h] is not. When K[h] is set, UNQ has returned h which means Log[h] = (h, ...).
+;   2a (iii) : Log[h] = (h', hon, k) and h != h' => Log[h'] = (h', hon, k)
+;       Log[h] is set either in a mapping or in the end of UNQ. Only in a mapping we have h != h'.
+;       We should know as a lemma that what h maps to also maps to itself.
+;       To prove this:
+;           When Log[h] <- (h', hon, k) is set in Log package, we should argue Log[h'] = (h', hon, k)
+;           Remark: There is small technicality here. We have a trouble proving this on the left side although we prove in 2a (v) that Log_left[h] = (h, ...)
+;               However, the invariant holds for the new handle to be set and Log tables (old and new) 
+;               can be proved to be either the same (returning from Q) or with just the additional entry after UNQ
+;               Proving the invariant holds for already existing untouched entries, though, fails if Log_old and Log_new differs in the additional entry after UNQ
+;               because if Log[hx] = (h', ...) where hx != h' and hx != h (h being the query to SET(h, hon, k))
+;               We don't know h' != h which can map to None in Log_old and to (h, hon, k) in Log_new if no mapping occurs or (LogInverseDishonest[(dh, k)], false, k) if infitiy mapping occurs or (LogInverseDishonest[(psk, k)], false, k) if 1 mapping occurs
+;               Therefore, we should prove h does not appear on the right hand of Log's if Log[h] = None (i.e. Log package has not seen this handle before)
+;               We don't need to prove it separately because if h' = h, we know from the assumption that Log[h'] = (h' ,....) but Log[h] = None (as UNQ call happens after Q call)
+;           1. dh mapping:
+;               We map h to (LogInverseDishonest[(dh, k)], hon, k) where hon = false
+;               We need the following as a lemma:
+;                   Log[dh, LogInverseDishonest[(dh, k)]] = (LogInverseDishonest[(dh, k)], false, k)
+;           2. psk 1 mapping:
+;               We map h to LogInverseDishonestLevelZero[k] or LogInverseDishonestLevelNonZero[k]
+;               which at their positions are equal to LogInverseDishonest[(psk, k)]
+;               because due to J invariant one of them is none and due to the following, the other one is LogInverseDishonest[(psk, k)]
+;                   LogInverseDishonestLevelZero[k] != None and LogInverseDishonestLevelNonZero[k] = None => LogInverseDishonestLevelZero[k] = LogInverseDishonest[(psk, k)]
+;                   LogInverseDishonestLevelZero[k] = None and LogInverseDishonestLevelNonZero[k] != None => LogInverseDishonestLevelNonZero[k] = LogInverseDishonest[(psk, k)]
+;               Finally due to the following we are done.
+;                   Log[psk, LogInverseDishonest[(psk, k)]] = (LogInverseDishonest[(psk, k)], false, k)
+;               Nevertheless we have the following:
+;                   LogInverseDishonestLevelZero[k] != None => level(LogInverseDishonestLevelZero[k]) = 0
+;                   LogInverseDishonestLevelNonZero[k] != None => level(LogInverseDishonestLevelNonZero[k]) != 0
+;                   Log[psk, LogInverseDishonestLevelZero[k]] = (LogInverseDishonest[(psk, k)], false, k)
+;                   Log[psk, LogInverseDishonestLevelNonZero[k]] = (LogInverseDishonest[(psk, k)], false, k)
+;           3. in the end:
+;               We set Log[h] = (h, ...) so we are done
+;       (In general whatever UNQ returns maps to itself)
+;   2a (iv) : Log[h] = (h, hon, k) <=> K[h] = (hon, k)
+;       <= is concluded from 2a (i) and 2a (ii). We just need to argue keys and honesty values are the same.
+;       => no mapping has occured when Log[h] = (h, ...). Therefore UNQ returns h and K[h] is set as mentioned.
+; Prove invariant 2a (vii, viii, ix, x) is preserved during Key.SET call
+; Prove invariant 2a is preserved during XTR, XPD, SET_0psk, DHEXP
+;   We can use invariant 2a preservence after Key.SET calls. Log and Key tables are only modified there.
+; Prove invariant 2b : [needs mapping] [one-sided -> viper]
+;   M_right[h] = h' => Log_right[h'] = (h', ...) 
+;   Proof: Since M is set with output of SET, we need to prove if h <- SET(...) then Log[h] = (h, ...)
+;   Paper proves this by analyzing returning points of h' <- SET(h, ...).
+;       returning Q output h': 
+;           we know Log[h] = (h', ...) from Q code. 
+;           If h = h', we are done. Otherwise, use 2a (iii) and conclude Log[h'] = (h', ...)
+;       returning UNQ output h' when h' != h: 
+;           we know a mapping has occured. (This should be itself a lemma, namely if UNQ returns something different then game is right and n = dh or n = psk)
+;           Therefore Log[h] = (h', ...) (We can state a lemma for the output of UNQ)
+;           use 2a (iii) to conclude Log[h'] = (h', ...)
+;       returning h in the end: (i.e. initially Log[h] = None and UNQ returned h and no mapping occured)
+;           UNQ sets Log[h] = (h, ...) so we are done
+;   we can prove it as an individual lemma
+; Prove invariant 2e is preserved during Key.SET call :
+; Prove invariant 2e is preserved during XTR, XPD, SET_0psk, DHEXP :
+; Prove invariant 4 is preserved during Key.SET call :
+; Prove invariant 4 is preserved during XTR, XPD, SET_0psk, DHEXP :
+; Prove invariant 3 : [needs mapping] [one-sided -> viper]
+; Prove invariant 2d : [needs mapping] [one-sided -> viper]
+; Prove invariant 2c : [needs mapping] [two-sided] M_right[h] = h' <=> Log_left[h] = (h, ...)
+;   i.e. if h is defined in the left, it is mapped in the right.
+; Prove invariant 6: [needs mapping] [two-sided]

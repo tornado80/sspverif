@@ -14,6 +14,7 @@ package Key {
     }
 
     state {
+        checkpoint: Integer,
         K: Table((Integer, Integer, Bits(*)), (Bits(*), Bool)) /* maps (name, level, handle) to (key, honesty bit) */
     }
 
@@ -54,10 +55,12 @@ package Key {
             assert (level(h) == None);
             k <- ks;
         }
+        checkpoint <- 1;
         q_h <- invoke Q(n, h);
         if (q_h != None as Bits(*)) {
             return Unwrap(q_h);
         }
+        checkpoint <- 2;
         unq_h <- invoke UNQ(n, h, hon, k);
         if (h != unq_h) {
             return unq_h;

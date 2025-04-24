@@ -121,12 +121,33 @@ proof Proof {
                 invariant: [
                     ./proofs/abstract-functions.smt2
                     ./proofs/invariants.smt2
+                    ./proofs/SET.smt2
                 ]
 
                 lemmas {
-                    invariant: [no-abort]
+                    /* lemma-SET-output-for-dh: [no-abort, ] */
+                    assert-other-invariants: [no-abort, assume-other-invariants]
+                    assert-invariant-2a-iii: [no-abort, assume-invariant-2a-iii, assume-other-invariants]
+                    assert-invariants-2a-i-and-2a-ii: [no-abort, assume-invariants-2a-i-and-2a-ii]
+                    assert-invariants-2a-v-and-2a-vi: [no-abort, assume-invariants-2a-v-and-2a-vi]
+                    lemma-SET-returns-same-handle-for-non-dh-and-psk: [no-abort, assume-invariants-2a-v-and-2a-vi]
+                    
+                    /* invariant: [no-abort] */
                 }
             }
+            /*
+            UNQ: {
+                invariant: [
+                    ./proofs/abstract-functions.smt2
+                    ./proofs/invariants.smt2
+                    ./proofs/UNQ.smt2
+                ]
+                lemmas {
+                    assert-other-invariants: [no-abort, assume-other-invariants]
+                    assert-invariant-2a-iii: [no-abort, assume-invariant-2a-iii, assume-other-invariants]
+                }
+            }
+            */
         }
     }
 }
