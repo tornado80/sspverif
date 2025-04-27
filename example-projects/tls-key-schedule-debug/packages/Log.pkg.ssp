@@ -20,6 +20,7 @@ package Log {
     /* Review and illustrate the Log^Zinf recognizing collision and Map changes the mapping with an example attack scenario*/
     state {
         ReturnPoint: Integer,
+        LogSetCheckpoint: Integer,
         Log: Table((Integer, Bits(*)), (Bits(*), Bool, Bits(*))), /* maps (name, handle) to (mapped handle, honesty bit, key) */
         Seen: Table((Integer, Bits(*)), Bool), /* indicates whether the (name, key) was assigned before */
         LogInverseDishonest: Table((Integer, Bits(*)), Bits(*)), /* maps (name, key) to first dishonest handle */
@@ -67,6 +68,7 @@ package Log {
             if not hon {
                 if (LogInverseDishonest[(n, k)] != None as Bits(*)) {
                     hp <- Unwrap(LogInverseDishonest[(n, k)]);
+                    LogSetCheckpoint <- 1;
                     Log[(n, h)] <- Some((hp, hon, k));
                     return hp;
                 }
@@ -83,6 +85,7 @@ package Log {
                             hp <- Unwrap(LogInverseDishonestLevelNonZero[k]);
                             LogInverseDishonestLevelZero[k] <- Some(h);
                             /* LogInverseDishonest[(psk_name, k)] <- Some(h); */
+                            LogSetCheckpoint <- 2;
                             Log[(n, h)] <- Some((hp, hon, k));
                             J[k] <- Some(true);
                             return hp;
@@ -92,6 +95,7 @@ package Log {
                             hp <- Unwrap(LogInverseDishonestLevelZero[k]);
                             LogInverseDishonestLevelNonZero[k] <- Some(h);
                             /* LogInverseDishonest[(psk_name, k)] <- Some(h); */
+                            LogSetCheckpoint <- 3;
                             Log[(n, h)] <- Some((hp, hon, k));
                             J[k] <- Some(true);
                             return hp;
@@ -133,7 +137,7 @@ package Log {
         alternatively
             hon = 0 or hon' = 0
             */
-
+        LogSetCheckpoint <- 4;
         Log[(n, h)] <- Some((h, hon, k));
         Seen[(n, k)] <- Some(true);
         if not hon {

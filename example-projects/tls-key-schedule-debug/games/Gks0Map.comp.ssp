@@ -141,7 +141,6 @@ composition Gks0Map {
         },
         adversary: {
             SET: pkg_Key,
-            UNQ: pkg_Log
         },
     }
 }
