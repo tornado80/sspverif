@@ -1,0 +1,116 @@
+package Key {
+    params {
+        /* b: Bool, */
+        /* n: Integer, /* name of the key, see README */
+        /* l: Integer, /* level */
+        handle_alg: fn Bits(*) -> Integer, /* returns the algorithm identifier of the given handle */
+        key_alg: fn Bits(*) -> Integer, /* returns the algorithm identifier of the given key */
+        tag: fn Integer, Bits(*) -> Bits(*), /* tags the given key with the given algorithm identifier */
+        untag: fn Bits(*) -> Bits(*), /* untags the given key and returns a raw key */
+        name: fn Bits(*) -> Integer, /* returns the name of the given handle */
+        level: fn Bits(*) -> Maybe(Integer), /* returns the level of the given handle */
+        zeros: fn Integer -> Bits(*), /* returns an all zeros bitstring of the given length */
+        len_key: fn Bits(*) -> Integer /* returns the length of the given key */
+    }
+
+    state {
+        checkpoint: Integer,
+        len_handle: Integer,
+        raw_key: Bits(*),
+        K: Table((Integer, Integer, Bits(*)), (Bits(*), Bool)) /* maps (name, level, handle) to (key, honesty bit) */
+    }
+
+    import oracles {
+        GET_KEY_PACKAGE_IDEALIZATION_PARAMETER(n: Integer, l: Integer) -> Bool,
+        SAMPLE(n: Integer) -> Bits(*),
+        UNQ(n: Integer, h: Bits(*), hon: Bool, k: Bits(*)) -> Bits(*),
+        Q(n: Integer, h: Bits(*)) -> Maybe(Bits(*)),
+        IS_DH_KEY(n: Integer) -> Bool,
+        IS_PSK(n: Integer) -> Bool,
+        IS_0salt_HANDLE(h: Bits(*)) -> Bool,
+        IS_0ikm_HANDLE(h: Bits(*)) -> Bool,
+        IS_noPSK_HANDLE(h: Bits(*)) -> Bool,
+        IS_noDH_HANDLE(h: Bits(*)) -> Bool,
+        IS_HASH_ALGORITHM_SUPPORTED(alg: Integer) -> Bool,
+        GET_HASH_ALGORITHM_LENGTH(alg: Integer) -> Integer,
+    }
+
+    oracle SET(n: Integer, l: Integer, h: Bits(*), hon: Bool, ks: Bits(*)) -> Bits(*) {
+        assert (name(h) == n);
+        is_dh_key <- invoke IS_DH_KEY(n);
+        if not is_dh_key {
+            assert (Unwrap(level(h)) == l);
+            h_alg <- handle_alg(h);
+            is_hash_alg_supported <- invoke IS_HASH_ALGORITHM_SUPPORTED(h_alg);
+            assert is_hash_alg_supported;
+            assert (key_alg(ks) == h_alg);
+            k <- untag(ks);
+            len_h <- invoke GET_HASH_ALGORITHM_LENGTH(h_alg);
+            len_handle <- len_h;
+            raw_key <- k;
+            assert (len_h == len_key(k));
+            b <- invoke GET_KEY_PACKAGE_IDEALIZATION_PARAMETER(n, l);
+            if b {
+                if hon {
+                    k <- invoke SAMPLE(len_h);
+                }
+            }
+        } else {
+            assert (level(h) == None);
+            k <- ks;
+        }
+        checkpoint <- 1;
+        q_h <- invoke Q(n, h);
+        if (q_h != None as Bits(*)) {
+            return Unwrap(q_h);
+        }
+        checkpoint <- 2;
+        unq_h <- invoke UNQ(n, h, hon, k);
+        if (h != unq_h) {
+            return unq_h;
+        }
+        checkpoint <- 3;
+        if is_dh_key {
+            K[(n, 0, h)] <- Some((k, hon));
+        } else {
+            K[(n, l, h)] <- Some((k, hon));
+        }
+        return h;
+    }
+
+    oracle GET(n: Integer, l: Integer, h: Bits(*)) -> (Bits(*), Bool) {
+        h_alg <- handle_alg(h);
+        len_h <- invoke GET_HASH_ALGORITHM_LENGTH(h_alg);
+        is_dh_key <- invoke IS_DH_KEY(n);
+        if is_dh_key {
+            is_noDH_handle <- invoke IS_noDH_HANDLE(h);
+            if is_noDH_handle {
+                return (tag(h_alg, zeros(len_h)), false);
+            }
+            assert (K[(n, 0, h)] != None as (Bits(*), Bool));
+            (ks, hon) <- parse Unwrap(K[(n, 0, h)]);
+            k <- tag(h_alg, ks);
+            return (k, hon);
+        }
+        is_0salt_handle <- invoke IS_0salt_HANDLE(h);
+        if is_0salt_handle {
+            ks <- zeros(1);
+            k <- tag(h_alg, ks);
+            return (k, false);
+        }
+        is_0ikm_handle <- invoke IS_0ikm_HANDLE(h);
+        if is_0ikm_handle {
+            ks <- zeros(len_h);
+            k <- tag(h_alg, ks);
+            return (k, false);
+        }
+        is_noPSK_handle <- invoke IS_noPSK_HANDLE(h);
+        if is_noPSK_handle {
+            return (tag(h_alg, zeros(len_h)), false);
+        }
+        assert (K[(n, l, h)] != None as (Bits(*), Bool));
+        (ks, hon) <- parse Unwrap(K[(n, l, h)]);
+        k <- tag(h_alg, ks);
+        return (k, hon);
+    }
+}

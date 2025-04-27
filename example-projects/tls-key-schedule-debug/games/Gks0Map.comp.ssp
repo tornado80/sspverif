@@ -1,0 +1,146 @@
+composition Gks0Map {
+    const cast256: fn Bits(256) -> Bits(*);
+    const cast384: fn Bits(384) -> Bits(*);
+    const cast512: fn Bits(512) -> Bits(*);
+    const default: fn Integer -> Bits(*);
+    const get_0ikm: fn Integer -> Integer;
+    const get_0salt: fn Integer -> Integer;
+    const get_as: fn Integer -> Integer;
+    const get_bind: fn Integer -> Integer;
+    const get_binder: fn Integer -> Integer;
+    const get_cat: fn Integer -> Integer;
+    const get_cet: fn Integer -> Integer;
+    const get_cht: fn Integer -> Integer;
+    const get_dh: fn Integer -> Integer;
+    const get_eam: fn Integer -> Integer;
+    const get_eem: fn Integer -> Integer;
+    const get_es: fn Integer -> Integer;
+    const get_esalt: fn Integer -> Integer;
+    const get_hs: fn Integer -> Integer;
+    const get_hsalt: fn Integer -> Integer;
+    const get_psk: fn Integer -> Integer;
+    const get_rm: fn Integer -> Integer;
+    const get_sat: fn Integer -> Integer;
+    const get_sht: fn Integer -> Integer;
+    const handle_alg: fn Bits(*) -> Integer;
+    const key_alg: fn Bits(*) -> Integer;
+    const len_alg: fn Integer -> Integer;
+    const len_key: fn Bits(*) -> Integer;
+    const level: fn Bits(*) -> Maybe(Integer);
+    const log_package_parameters: fn Integer, Bool, Bool, Bool, Bool -> (Integer, Integer);
+    const name: fn Bits(*) -> Integer;
+    const parents: fn Integer -> (Maybe(Integer), Maybe(Integer));
+    const tag: fn Integer, Bits(*) -> Bits(*);
+    const type: fn Bits(*) -> Integer;
+    const untag: fn Bits(*) -> Bits(*);
+    const zeros: fn Integer -> Bits(*);
+
+    instance pkg_Handles = Handles {
+        params {
+            type: type,
+        }
+    }
+
+    instance pkg_Helpers = Helpers {
+        params {
+            len_alg: len_alg,
+        }
+    }
+
+    instance pkg_Names = Names {
+        params {
+            get_0ikm: get_0ikm,
+            get_0salt: get_0salt,
+            get_as: get_as,
+            get_bind: get_bind,
+            get_binder: get_binder,
+            get_cat: get_cat,
+            get_cet: get_cet,
+            get_cht: get_cht,
+            get_dh: get_dh,
+            get_eam: get_eam,
+            get_eem: get_eem,
+            get_es: get_es,
+            get_esalt: get_esalt,
+            get_hs: get_hs,
+            get_hsalt: get_hsalt,
+            get_psk: get_psk,
+            get_rm: get_rm,
+            get_sat: get_sat,
+            get_sht: get_sht,
+            parents: parents,
+        }
+    }
+
+    instance pkg_Parameters = Parameters {
+        params {
+            game: 1,
+            log_package_parameters: log_package_parameters,
+        }
+    }
+
+    instance pkg_Log = Log {
+        params {
+            level: level,
+        }
+    }
+
+    instance pkg_Sample = Sample {
+        params {
+            cast256: cast256,
+            cast384: cast384,
+            cast512: cast512,
+            default: default,
+        }
+    }
+
+    instance pkg_Key = Key {
+        params {
+            handle_alg: handle_alg,
+            key_alg: key_alg,
+            len_key: len_key,
+            level: level,
+            name: name,
+            tag: tag,
+            untag: untag,
+            zeros: zeros,
+        }
+    }
+
+    compose {
+        pkg_Parameters: {
+            IS_DH_KEY: pkg_Names,
+            IS_HANDSHAKE_SECRET: pkg_Names,
+            IS_INTERNAL_KEY: pkg_Names,
+            IS_OUTPUT_KEY: pkg_Names,
+            IS_PSK: pkg_Names,
+        },
+        pkg_Log: {
+            GET_LOG_PACKAGE_PARAMETERS: pkg_Parameters,
+            GET_PSK_NAME: pkg_Names,
+            IS_1_MAPPING: pkg_Parameters,
+            IS_A_PATTERN: pkg_Parameters,
+            IS_D_PATTERN: pkg_Parameters,
+            IS_F_PATTERN: pkg_Parameters,
+            IS_INFINITY_MAPPING: pkg_Parameters,
+            IS_PSK: pkg_Names,
+        },
+        pkg_Key: {
+            GET_HASH_ALGORITHM_LENGTH: pkg_Helpers,
+            GET_KEY_PACKAGE_IDEALIZATION_PARAMETER: pkg_Parameters,
+            IS_0ikm_HANDLE: pkg_Handles,
+            IS_0salt_HANDLE: pkg_Handles,
+            IS_DH_KEY: pkg_Names,
+            IS_HASH_ALGORITHM_SUPPORTED: pkg_Helpers,
+            IS_PSK: pkg_Names,
+            IS_noDH_HANDLE: pkg_Handles,
+            IS_noPSK_HANDLE: pkg_Handles,
+            Q: pkg_Log,
+            SAMPLE: pkg_Sample,
+            UNQ: pkg_Log,
+        },
+        adversary: {
+            SET: pkg_Key,
+        },
+    }
+}
