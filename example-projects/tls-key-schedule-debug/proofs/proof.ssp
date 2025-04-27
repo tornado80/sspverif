@@ -126,6 +126,14 @@ proof Proof {
 
                 lemmas {
                     /* lemma-SET-output-for-dh: [no-abort, ] */
+                    
+                    assert-invariant-2a-ix-and-2a-x: [no-abort, assume-invariant-2a-ix-and-2a-x]
+                    assert-invariant-2e: [no-abort, assume-invariant-2e]
+                    assert-invariant-log-inverse-name: [no-abort, assume-invariant-log-inverse-name]
+                    assert-invariant-log-preserves-name: [no-abort, assume-invariant-log-preserves-name, assume-invariant-log-inverse-name]
+                    assert-invariant-2a-viii: [no-abort, assume-invariant-2a-viii, lemma-SAMPLE-output-length, assert-invariant-2a-iii, assert-invariant-log-preserves-name, lemma-injectivity-of-len_alg]
+                    assert-invariant-2a-vii: [no-abort, assume-invariant-2a-vii]
+                    assert-invariant-2a-iv: [no-abort, assume-invariant-2a-iv]
                     assert-other-invariants: [no-abort, assume-other-invariants]
                     assert-invariant-2a-iii: [no-abort, assume-invariant-2a-iii, assume-other-invariants]
                     assert-invariants-2a-i-and-2a-ii: [no-abort, assume-invariants-2a-i-and-2a-ii]

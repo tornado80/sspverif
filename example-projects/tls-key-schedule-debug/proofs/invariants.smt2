@@ -154,12 +154,9 @@
 )
 (define-fun invariant-2a-vii
     (
-        (n Int)
         (m Int)
-        (l Int)
         (h Bits_*)
         (Log (Array (Tuple2 Int Bits_*) (Maybe (Tuple3 Bits_* Bool Bits_*))))
-        (K (Array (Tuple3 Int Int Bits_*) (Maybe (Tuple2 Bits_* Bool))))
     )
     Bool
     ; Invariant (2a) (vii) : Log[(n', h)] != none => name(h) = n'
@@ -171,19 +168,17 @@
 (define-fun invariant-2a-viii
     (
         (n Int)
-        (l Int)
         (h Bits_*)
         (Log (Array (Tuple2 Int Bits_*) (Maybe (Tuple3 Bits_* Bool Bits_*))))
-        (K (Array (Tuple3 Int Int Bits_*) (Maybe (Tuple2 Bits_* Bool))))
     )
     Bool
-    ; Invariant (2a) (viii) : Log[(n, h)] = (h', _, k) => len(k) = len(h) = len(h') and alg(h) = alg(h')
+    ; Invariant (2a) (viii) : Log[(n, h)] = (h', _, k) and n != dh => len(k) = len(h) = len(h') and alg(h) = alg(h')
     (let
         (
             (log_entry (select Log (mk-tuple2 n h)))
         )
         (=>
-            (not ((_ is mk-none) log_entry))
+            (and (not ((_ is mk-none) log_entry)) (not (= n KEY_dh)))
             (let 
                 (
                     (k (el3-3 (maybe-get log_entry)))
@@ -256,10 +251,10 @@
                 (and
                     (invariant-2a-i n l h Log K)
                     (invariant-2a-ii n l h Log K)
-                    ;(invariant-2a-iii n h Log) ; needs more log inverse and Log[LogInverse[k]] = (LogInverse[k], ...)
+                    ;(invariant-2a-iii n h Log)
                     ;(invariant-2a-iv n l h Log K)
-                    (invariant-2a-vii n m l h Log K)
-                    ;(invariant-2a-viii n l h Log K)
+                    (invariant-2a-vii m h Log)
+                    ;(invariant-2a-viii n h Log)
                     ;(invariant-2a-ix n h K)
                     ;(invariant-2a-x n h K)
                 )
@@ -627,6 +622,130 @@
         ;(invariant-consistent-log-inverse state-Gks0 state-Gks0Map)
     ;)
 )
+(define-fun invariant-log-preserves-name-one-table
+    (
+        (n Int)
+        (h Bits_*)
+        (Log (Array (Tuple2 Int Bits_*) (Maybe (Tuple3 Bits_* Bool Bits_*))))
+    )
+    Bool
+    ; Invariant log preserves name : Log[(n, h)] = (h', _, _) => name(h) = name(h')
+    (let
+        (
+            (log_entry (select Log (mk-tuple2 n h)))
+        )
+        (=>
+            (and (not ((_ is mk-none) log_entry)))
+            (let 
+                (
+                    (mapped_h (el3-1 (maybe-get log_entry)))
+                )
+                (= (<<func-proof-name>> h) (<<func-proof-name>> mapped_h))
+            )
+        )
+    )
+)
+(define-fun invariant-log-preserves-name
+    (
+        (state-Gks0 <GameState_Gks0_<$$>>)
+        (state-Gks0Map <GameState_Gks0Map_<$$>>)
+    )
+    Bool
+    (let 
+        (
+            (Log_left (<pkg-state-Log-<$$>-Log> (<game-Gks0-<$$>-pkgstate-pkg_Log> state-Gks0)))
+            (Log_right (<pkg-state-Log-<$$>-Log> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))
+        )
+        (forall
+            (
+                (h Bits_*)
+            )
+            (let
+                (
+                    (n (<<func-proof-name>> h))
+                )
+                (and
+                    (invariant-log-preserves-name-one-table n h Log_left)
+                    (invariant-log-preserves-name-one-table n h Log_right)
+                )
+            )
+        )
+    )
+)
+(define-fun invariant-log-inverse-name
+    (
+        (state-Gks0 <GameState_Gks0_<$$>>)
+        (state-Gks0Map <GameState_Gks0Map_<$$>>)
+    )
+    Bool
+    (let
+        (
+            (LogInverseDishonest_right (<pkg-state-Log-<$$>-LogInverseDishonest> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))
+            (LogInverseDishonestLevelNonZero_right (<pkg-state-Log-<$$>-LogInverseDishonestLevelNonZero> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))
+            (LogInverseDishonestLevelZero_right (<pkg-state-Log-<$$>-LogInverseDishonestLevelZero> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))            
+        )
+        (forall
+            (
+                (k Bits_*)
+            )
+            (let 
+                (
+                    (log_inverse_right_dh (select LogInverseDishonest_right (mk-tuple2 KEY_dh k)))
+                    (log_inverse_right_psk (select LogInverseDishonest_right (mk-tuple2 KEY_psk k)))
+                    (log_inverse_right_non_zero (select LogInverseDishonestLevelNonZero_right k))
+                    (log_inverse_right_zero (select LogInverseDishonestLevelZero_right k))
+                )
+                (and
+                    (=>
+                        (not ((_ is mk-none) log_inverse_right_dh))
+                        (= KEY_dh (<<func-proof-name>> (maybe-get log_inverse_right_dh)))
+                    )
+                    (=>
+                        (not ((_ is mk-none) log_inverse_right_psk))
+                        (= KEY_psk (<<func-proof-name>> (maybe-get log_inverse_right_psk)))
+                    )
+                    (=>
+                        (not ((_ is mk-none) log_inverse_right_non_zero))
+                        (= KEY_psk (<<func-proof-name>> (maybe-get log_inverse_right_non_zero)))
+                    )
+                    (=>
+                        (not ((_ is mk-none) log_inverse_right_zero))
+                        (= KEY_psk (<<func-proof-name>> (maybe-get log_inverse_right_zero)))
+                    )
+                )
+            )
+        )
+    )
+)
+(define-fun assert-invariant-2a-ix-and-2a-x 
+    (
+        (state-Gks0 <GameState_Gks0_<$$>>)
+        (state-Gks0Map <GameState_Gks0Map_<$$>>)
+    )
+    Bool
+    (let 
+        (
+            (K_left (<pkg-state-Key-<$$>-K> (<game-Gks0-<$$>-pkgstate-pkg_Key> state-Gks0)))
+            (K_right (<pkg-state-Key-<$$>-K> (<game-Gks0Map-<$$>-pkgstate-pkg_Key> state-Gks0Map)))
+        )
+        (forall
+            (
+                (h Bits_*)
+            )
+            (let
+                (
+                    (n (<<func-proof-name>> h))
+                )
+                (and
+                    (invariant-2a-ix n h K_left)
+                    (invariant-2a-x n h K_left)
+                    (invariant-2a-ix n h K_right)
+                    (invariant-2a-x n h K_right)
+                )
+            )
+        )
+    )
+)
 (define-fun assert-invariant-2a-iii
     (
         (state-Gks0 <GameState_Gks0_<$$>>)
@@ -649,6 +768,86 @@
                 (and
                     (invariant-2a-iii n h Log_left)
                     (invariant-2a-iii n h Log_right)
+                )
+            )
+        )
+    )
+)
+(define-fun assert-invariant-2a-iv
+    (
+        (state-Gks0 <GameState_Gks0_<$$>>)
+        (state-Gks0Map <GameState_Gks0Map_<$$>>)
+    )
+    Bool
+    (let 
+        (
+            (Log_left (<pkg-state-Log-<$$>-Log> (<game-Gks0-<$$>-pkgstate-pkg_Log> state-Gks0)))
+            (Log_right (<pkg-state-Log-<$$>-Log> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))
+            (K_left (<pkg-state-Key-<$$>-K> (<game-Gks0-<$$>-pkgstate-pkg_Key> state-Gks0)))
+            (K_right (<pkg-state-Key-<$$>-K> (<game-Gks0Map-<$$>-pkgstate-pkg_Key> state-Gks0Map)))
+        )
+        (forall
+            (
+                (h Bits_*)
+            )
+            (let
+                (
+                    (n (<<func-proof-name>> h))
+                    (l (none-aware-level h))
+                )
+                (and
+                    (invariant-2a-iv n l h Log_left K_left)
+                    (invariant-2a-iv n l h Log_right K_right)
+                )
+            )
+        )
+    )
+)
+(define-fun assert-invariant-2a-vii
+    (
+        (state-Gks0 <GameState_Gks0_<$$>>)
+        (state-Gks0Map <GameState_Gks0Map_<$$>>)
+    )
+    Bool
+    (let 
+        (
+            (Log_left (<pkg-state-Log-<$$>-Log> (<game-Gks0-<$$>-pkgstate-pkg_Log> state-Gks0)))
+            (Log_right (<pkg-state-Log-<$$>-Log> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))
+        )
+        (forall
+            (
+                (m Int)
+                (h Bits_*)
+            )
+            (and
+                (invariant-2a-vii m h Log_left)
+                (invariant-2a-vii m h Log_right)
+            )
+        )
+    )
+)
+(define-fun assert-invariant-2a-viii
+    (
+        (state-Gks0 <GameState_Gks0_<$$>>)
+        (state-Gks0Map <GameState_Gks0Map_<$$>>)
+    )
+    Bool
+    (let 
+        (
+            (Log_left (<pkg-state-Log-<$$>-Log> (<game-Gks0-<$$>-pkgstate-pkg_Log> state-Gks0)))
+            (Log_right (<pkg-state-Log-<$$>-Log> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))
+        )
+        (forall
+            (
+                (h Bits_*)
+            )
+            (let
+                (
+                    (n (<<func-proof-name>> h))
+                )
+                (and
+                    (invariant-2a-viii n h Log_left)
+                    (invariant-2a-viii n h Log_right)
                 )
             )
         )
@@ -778,7 +977,7 @@
 ;                   LogInverseDishonestLevelZero[k] = None and LogInverseDishonestLevelNonZero[k] != None => LogInverseDishonestLevelNonZero[k] = LogInverseDishonest[(psk, k)]
 ;               Finally due to the following we are done.
 ;                   Log[psk, LogInverseDishonest[(psk, k)]] = (LogInverseDishonest[(psk, k)], false, k)
-;               Nevertheless we have the following:
+;               Nevertheless we have the following: (not proved)
 ;                   LogInverseDishonestLevelZero[k] != None => level(LogInverseDishonestLevelZero[k]) = 0
 ;                   LogInverseDishonestLevelNonZero[k] != None => level(LogInverseDishonestLevelNonZero[k]) != 0
 ;                   Log[psk, LogInverseDishonestLevelZero[k]] = (LogInverseDishonest[(psk, k)], false, k)
@@ -787,11 +986,19 @@
 ;               We set Log[h] = (h, ...) so we are done
 ;       (In general whatever UNQ returns maps to itself)
 ;   2a (iv) : Log[h] = (h, hon, k) <=> K[h] = (hon, k)
-;       <= is concluded from 2a (i) and 2a (ii). We just need to argue keys and honesty values are the same.
-;       => no mapping has occured when Log[h] = (h, ...). Therefore UNQ returns h and K[h] is set as mentioned.
+;       <= 
+;           When K is set, UNQ has returned the same handle. 
+;           UNQ returns the same handle when it does not do any mapping and it returns in the end. 
+;           Keys and honesty bits are also othe same because the values are passed to UNQ.
+;       => 
+;           no mapping has occured when Log[h] = (h, ...). Therefore UNQ returns h and K[h] is set as mentioned.
 ; Prove invariant 2a (vii, viii, ix, x) is preserved during Key.SET call
+;   2a (viii): We need the preservation of name in logs
+;               which in turn needs preservation of name in log inverse
+;               The reason is viii states a property for n != dh and we need to make sure name(mapped_h) != dh but name(mapped_h) = name(h)
+;               another approach is to prove len(k) = len(h) for inverse tables LogInverseDihonestLevelZero[k] = h
 ; Prove invariant 2a is preserved during XTR, XPD, SET_0psk, DHEXP
-;   We can use invariant 2a preservence after Key.SET calls. Log and Key tables are only modified there.
+;   We can use invariant 2a preservence after Key.SET calls as a lemma. Log and Key tables are only modified there.
 ; Prove invariant 2b : [needs mapping] [one-sided -> viper]
 ;   M_right[h] = h' => Log_right[h'] = (h', ...) 
 ;   Proof: Since M is set with output of SET, we need to prove if h <- SET(...) then Log[h] = (h, ...)
@@ -806,12 +1013,12 @@
 ;       returning h in the end: (i.e. initially Log[h] = None and UNQ returned h and no mapping occured)
 ;           UNQ sets Log[h] = (h, ...) so we are done
 ;   we can prove it as an individual lemma
-; Prove invariant 2e is preserved during Key.SET call :
-; Prove invariant 2e is preserved during XTR, XPD, SET_0psk, DHEXP :
-; Prove invariant 4 is preserved during Key.SET call :
-; Prove invariant 4 is preserved during XTR, XPD, SET_0psk, DHEXP :
-; Prove invariant 3 : [needs mapping] [one-sided -> viper]
-; Prove invariant 2d : [needs mapping] [one-sided -> viper]
 ; Prove invariant 2c : [needs mapping] [two-sided] M_right[h] = h' <=> Log_left[h] = (h, ...)
 ;   i.e. if h is defined in the left, it is mapped in the right.
+; Prove invariant 2d : [needs mapping] [one-sided -> viper candidate]
+; Prove invariant 2e is preserved during Key.SET call :
+; Prove invariant 2e is preserved during XTR, XPD, SET_0psk, DHEXP :
+; Prove invariant 3 : [needs mapping] [one-sided -> viper candidate]
+; Prove invariant 4 is preserved during Key.SET call :
+; Prove invariant 4 is preserved during XTR, XPD, SET_0psk, DHEXP :
 ; Prove invariant 6: [needs mapping] [two-sided]

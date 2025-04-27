@@ -354,3 +354,391 @@
         )
     )
 )
+(define-fun <relation-assume-invariant-2a-iv-game_Gks0-game_Gks0Map-SET> 
+    (
+        (old-state-Gks0 <GameState_Gks0_<$$>>)
+        (old-state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (return-SET-Gks0 <OracleReturn-Gks0-<$$>-Key-<$$>-SET>)
+        (return-SET-Gks0Map <OracleReturn-Gks0Map-<$$>-Key-<$$>-SET>)
+        (n Int)
+        (l Int)
+        (h Bits_*)
+        (hon Bool)
+        (k Bits_*)
+    )
+    Bool
+    (and
+        (assert-invariant-2a-iv old-state-Gks0 old-state-Gks0Map)
+    )
+)
+(define-fun <relation-assert-invariant-2a-iv-game_Gks0-game_Gks0Map-SET> 
+    (
+        (old-state-Gks0 <GameState_Gks0_<$$>>)
+        (old-state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (return-SET-Gks0 <OracleReturn-Gks0-<$$>-Key-<$$>-SET>)
+        (return-SET-Gks0Map <OracleReturn-Gks0Map-<$$>-Key-<$$>-SET>)
+        (n Int)
+        (l Int)
+        (h Bits_*)
+        (hon Bool)
+        (k Bits_*)
+    )
+    Bool
+    (let 
+        (
+            (new-state-Gks0 (<oracle-return-Gks0-<$$>-Key-<$$>-SET-game-state> return-SET-Gks0))
+            (new-state-Gks0Map (<oracle-return-Gks0Map-<$$>-Key-<$$>-SET-game-state> return-SET-Gks0Map))
+        )
+        (and
+            (assert-invariant-2a-iv new-state-Gks0 new-state-Gks0Map)
+        )
+    )
+)
+(define-fun <relation-assume-invariant-2a-vii-game_Gks0-game_Gks0Map-SET> 
+    (
+        (old-state-Gks0 <GameState_Gks0_<$$>>)
+        (old-state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (return-SET-Gks0 <OracleReturn-Gks0-<$$>-Key-<$$>-SET>)
+        (return-SET-Gks0Map <OracleReturn-Gks0Map-<$$>-Key-<$$>-SET>)
+        (n Int)
+        (l Int)
+        (h Bits_*)
+        (hon Bool)
+        (k Bits_*)
+    )
+    Bool
+    (and
+        (assert-invariant-2a-vii old-state-Gks0 old-state-Gks0Map)
+    )
+)
+(define-fun <relation-assert-invariant-2a-vii-game_Gks0-game_Gks0Map-SET> 
+    (
+        (old-state-Gks0 <GameState_Gks0_<$$>>)
+        (old-state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (return-SET-Gks0 <OracleReturn-Gks0-<$$>-Key-<$$>-SET>)
+        (return-SET-Gks0Map <OracleReturn-Gks0Map-<$$>-Key-<$$>-SET>)
+        (n Int)
+        (l Int)
+        (h Bits_*)
+        (hon Bool)
+        (k Bits_*)
+    )
+    Bool
+    (let 
+        (
+            (new-state-Gks0 (<oracle-return-Gks0-<$$>-Key-<$$>-SET-game-state> return-SET-Gks0))
+            (new-state-Gks0Map (<oracle-return-Gks0Map-<$$>-Key-<$$>-SET-game-state> return-SET-Gks0Map))
+        )
+        (and
+            (assert-invariant-2a-vii new-state-Gks0 new-state-Gks0Map)
+        )
+    )
+)
+(define-fun <relation-lemma-SAMPLE-output-length-game_Gks0-game_Gks0Map-SET> 
+    (
+        (old-state-Gks0 <GameState_Gks0_<$$>>)
+        (old-state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (return-SET-Gks0 <OracleReturn-Gks0-<$$>-Key-<$$>-SET>)
+        (return-SET-Gks0Map <OracleReturn-Gks0Map-<$$>-Key-<$$>-SET>)
+        (n Int)
+        (l Int)
+        (h Bits_*)
+        (hon Bool)
+        (k Bits_*)
+    )
+    Bool
+    (let 
+        (
+            (new-state-Gks0 (<oracle-return-Gks0-<$$>-Key-<$$>-SET-game-state> return-SET-Gks0))
+            (new-state-Gks0Map (<oracle-return-Gks0Map-<$$>-Key-<$$>-SET-game-state> return-SET-Gks0Map))
+        )
+        (let
+            (
+                (input_left (<pkg-state-Sample-<$$>-input> (<game-Gks0-<$$>-pkgstate-pkg_Sample> new-state-Gks0)))
+                (input_right (<pkg-state-Sample-<$$>-input> (<game-Gks0-<$$>-pkgstate-pkg_Sample> new-state-Gks0)))
+                (output_left (<pkg-state-Sample-<$$>-output> (<game-Gks0Map-<$$>-pkgstate-pkg_Sample> new-state-Gks0Map)))
+                (output_right (<pkg-state-Sample-<$$>-output> (<game-Gks0Map-<$$>-pkgstate-pkg_Sample> new-state-Gks0Map)))
+                
+                (k256_left (<pkg-state-Sample-<$$>-k256> (<game-Gks0-<$$>-pkgstate-pkg_Sample> new-state-Gks0)))
+                (k384_left (<pkg-state-Sample-<$$>-k384> (<game-Gks0-<$$>-pkgstate-pkg_Sample> new-state-Gks0)))
+                (k512_left (<pkg-state-Sample-<$$>-k512> (<game-Gks0-<$$>-pkgstate-pkg_Sample> new-state-Gks0)))
+                (k256_right (<pkg-state-Sample-<$$>-k256> (<game-Gks0Map-<$$>-pkgstate-pkg_Sample> new-state-Gks0Map)))
+                (k384_right (<pkg-state-Sample-<$$>-k384> (<game-Gks0Map-<$$>-pkgstate-pkg_Sample> new-state-Gks0Map)))
+                (k512_right (<pkg-state-Sample-<$$>-k512> (<game-Gks0Map-<$$>-pkgstate-pkg_Sample> new-state-Gks0Map)))
+            )
+            (and
+                (= (<<func-proof-len_key>> output_left) input_left)
+                (= (<<func-proof-len_key>> output_right) input_right)
+                (= (<<func-proof-len_key>> (<<func-proof-cast256>> k256_left)) 256)
+                (= (<<func-proof-len_key>> (<<func-proof-cast384>> k384_left)) 384)
+                (= (<<func-proof-len_key>> (<<func-proof-cast512>> k512_left)) 512)
+                (= (<<func-proof-len_key>> (<<func-proof-cast256>> k256_right)) 256)
+                (= (<<func-proof-len_key>> (<<func-proof-cast384>> k384_right)) 384)
+                (= (<<func-proof-len_key>> (<<func-proof-cast512>> k512_right)) 512)
+            )
+        )
+    )
+)
+(define-fun <relation-assume-invariant-2a-viii-game_Gks0-game_Gks0Map-SET> 
+    (
+        (old-state-Gks0 <GameState_Gks0_<$$>>)
+        (old-state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (return-SET-Gks0 <OracleReturn-Gks0-<$$>-Key-<$$>-SET>)
+        (return-SET-Gks0Map <OracleReturn-Gks0Map-<$$>-Key-<$$>-SET>)
+        (n Int)
+        (l Int)
+        (h Bits_*)
+        (hon Bool)
+        (k Bits_*)
+    )
+    Bool
+    (and
+        (assert-invariant-2a-viii old-state-Gks0 old-state-Gks0Map)
+        ;(assert-invariant-2a-iii old-state-Gks0 old-state-Gks0Map)
+    )
+)
+(define-fun <relation-assert-invariant-2a-viii-game_Gks0-game_Gks0Map-SET> 
+    (
+        (old-state-Gks0 <GameState_Gks0_<$$>>)
+        (old-state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (return-SET-Gks0 <OracleReturn-Gks0-<$$>-Key-<$$>-SET>)
+        (return-SET-Gks0Map <OracleReturn-Gks0Map-<$$>-Key-<$$>-SET>)
+        (n Int)
+        (l Int)
+        (h Bits_*)
+        (hon Bool)
+        (k Bits_*)
+    )
+    Bool
+    (let 
+        (
+            (new-state-Gks0 (<oracle-return-Gks0-<$$>-Key-<$$>-SET-game-state> return-SET-Gks0))
+            (new-state-Gks0Map (<oracle-return-Gks0Map-<$$>-Key-<$$>-SET-game-state> return-SET-Gks0Map))
+        )
+        (let 
+            (
+                (Log_left (<pkg-state-Log-<$$>-Log> (<game-Gks0-<$$>-pkgstate-pkg_Log> new-state-Gks0)))
+                (checkpoint_left (<pkg-state-Key-<$$>-checkpoint> (<game-Gks0-<$$>-pkgstate-pkg_Key> new-state-Gks0)))
+                (len_handle_left (<pkg-state-Key-<$$>-len_handle> (<game-Gks0-<$$>-pkgstate-pkg_Key> new-state-Gks0)))
+                (input_left (<pkg-state-Sample-<$$>-input> (<game-Gks0-<$$>-pkgstate-pkg_Sample> new-state-Gks0)))
+                (input_right (<pkg-state-Sample-<$$>-input> (<game-Gks0-<$$>-pkgstate-pkg_Sample> new-state-Gks0)))
+                (raw_key_left (<pkg-state-Key-<$$>-raw_key> (<game-Gks0-<$$>-pkgstate-pkg_Key> new-state-Gks0)))
+                (Log_right (<pkg-state-Log-<$$>-Log> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> new-state-Gks0Map)))
+                (Log_right_old (<pkg-state-Log-<$$>-Log> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> old-state-Gks0Map)))
+                (len_handle_right (<pkg-state-Key-<$$>-len_handle> (<game-Gks0Map-<$$>-pkgstate-pkg_Key> new-state-Gks0Map)))
+                (checkpoint_right (<pkg-state-Key-<$$>-checkpoint> (<game-Gks0Map-<$$>-pkgstate-pkg_Key> new-state-Gks0Map)))
+            )
+            (and
+                (let
+                    (
+                        (log_entry (select Log_right (mk-tuple2 n h)))
+                    )
+                    (=>
+                        (and (not ((_ is mk-none) log_entry)) (not (= n KEY_dh)))
+                        (let 
+                            (
+                                (ks (el3-3 (maybe-get log_entry)))
+                                (mapped_h (el3-1 (maybe-get log_entry)))
+                            )
+                            (and
+                                (=>
+                                    (= h mapped_h)
+                                    (invariant-2a-viii n h Log_right)
+                                )
+                                (=>
+                                    (not (= h mapped_h))
+                                    (and 
+                                        (invariant-2a-viii n h Log_right)
+                                        (= ks (el3-3 (maybe-get (select Log_right_old (mk-tuple2 n mapped_h)))))
+                                        (invariant-2a-iii n h Log_right_old)
+                                        (= n (<<func-proof-name>> mapped_h))
+                                        (invariant-2a-viii (<<func-proof-name>> mapped_h) mapped_h Log_right_old)
+                                        (=>
+                                            (= n (<<func-proof-name>> mapped_h))
+                                            (= (<<func-proof-len_key>> ks) (<<func-proof-len_alg>> (<<func-proof-handle_alg>> mapped_h)))
+                                        )
+                                    )
+                                )
+                                (= (<<func-proof-len_key>> ks) len_handle_right)
+                                (= len_handle_right (<<func-proof-len_alg>> (<<func-proof-handle_alg>> h)))
+                                (= (<<func-proof-handle_alg>> h) (<<func-proof-handle_alg>> mapped_h))
+                                (= (<<func-proof-len_key>> ks) (<<func-proof-len_alg>> (<<func-proof-handle_alg>> h)) (<<func-proof-len_alg>> (<<func-proof-handle_alg>> mapped_h)))
+                            )
+                        )
+                    )
+                )
+                (invariant-2a-viii n h Log_left)
+                (invariant-2a-viii n h Log_right)
+                (assert-invariant-2a-viii new-state-Gks0 new-state-Gks0Map)
+            )
+        )
+    )
+)
+(define-fun <relation-assume-invariant-log-preserves-name-game_Gks0-game_Gks0Map-SET> 
+    (
+        (old-state-Gks0 <GameState_Gks0_<$$>>)
+        (old-state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (return-SET-Gks0 <OracleReturn-Gks0-<$$>-Key-<$$>-SET>)
+        (return-SET-Gks0Map <OracleReturn-Gks0Map-<$$>-Key-<$$>-SET>)
+        (n Int)
+        (l Int)
+        (h Bits_*)
+        (hon Bool)
+        (k Bits_*)
+    )
+    Bool
+    (invariant-log-preserves-name old-state-Gks0 old-state-Gks0Map)
+)
+(define-fun <relation-assert-invariant-log-preserves-name-game_Gks0-game_Gks0Map-SET> 
+    (
+        (old-state-Gks0 <GameState_Gks0_<$$>>)
+        (old-state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (return-SET-Gks0 <OracleReturn-Gks0-<$$>-Key-<$$>-SET>)
+        (return-SET-Gks0Map <OracleReturn-Gks0Map-<$$>-Key-<$$>-SET>)
+        (n Int)
+        (l Int)
+        (h Bits_*)
+        (hon Bool)
+        (k Bits_*)
+    )
+    Bool
+    (let 
+        (
+            (new-state-Gks0 (<oracle-return-Gks0-<$$>-Key-<$$>-SET-game-state> return-SET-Gks0))
+            (new-state-Gks0Map (<oracle-return-Gks0Map-<$$>-Key-<$$>-SET-game-state> return-SET-Gks0Map))
+        )
+        (invariant-log-preserves-name new-state-Gks0 new-state-Gks0Map)
+    )
+)
+(define-fun <relation-lemma-injectivity-of-len_alg-game_Gks0-game_Gks0Map-SET>
+    (
+        (old-state-Gks0 <GameState_Gks0_<$$>>)
+        (old-state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (return-SET-Gks0 <OracleReturn-Gks0-<$$>-Key-<$$>-SET>)
+        (return-SET-Gks0Map <OracleReturn-Gks0Map-<$$>-Key-<$$>-SET>)
+        (n Int)
+        (l Int)
+        (h Bits_*)
+        (hon Bool)
+        (k Bits_*)
+    )
+    Bool
+    (forall
+        (
+            (alg1 Int)
+            (alg2 Int)
+        )
+        (=>
+            (= (<<func-proof-len_alg>> alg1) (<<func-proof-len_alg>> alg2))
+            (= alg1 alg2)
+        )
+    )
+)
+(define-fun <relation-assume-invariant-log-inverse-name-game_Gks0-game_Gks0Map-SET> 
+    (
+        (old-state-Gks0 <GameState_Gks0_<$$>>)
+        (old-state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (return-SET-Gks0 <OracleReturn-Gks0-<$$>-Key-<$$>-SET>)
+        (return-SET-Gks0Map <OracleReturn-Gks0Map-<$$>-Key-<$$>-SET>)
+        (n Int)
+        (l Int)
+        (h Bits_*)
+        (hon Bool)
+        (k Bits_*)
+    )
+    Bool
+    (invariant-log-inverse-name old-state-Gks0 old-state-Gks0Map)
+)
+(define-fun <relation-assert-invariant-log-inverse-name-game_Gks0-game_Gks0Map-SET> 
+    (
+        (old-state-Gks0 <GameState_Gks0_<$$>>)
+        (old-state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (return-SET-Gks0 <OracleReturn-Gks0-<$$>-Key-<$$>-SET>)
+        (return-SET-Gks0Map <OracleReturn-Gks0Map-<$$>-Key-<$$>-SET>)
+        (n Int)
+        (l Int)
+        (h Bits_*)
+        (hon Bool)
+        (k Bits_*)
+    )
+    Bool
+    (let 
+        (
+            (new-state-Gks0 (<oracle-return-Gks0-<$$>-Key-<$$>-SET-game-state> return-SET-Gks0))
+            (new-state-Gks0Map (<oracle-return-Gks0Map-<$$>-Key-<$$>-SET-game-state> return-SET-Gks0Map))
+        )
+        (invariant-log-inverse-name new-state-Gks0 new-state-Gks0Map)
+    )
+)
+(define-fun <relation-assume-invariant-2e-game_Gks0-game_Gks0Map-SET> 
+    (
+        (old-state-Gks0 <GameState_Gks0_<$$>>)
+        (old-state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (return-SET-Gks0 <OracleReturn-Gks0-<$$>-Key-<$$>-SET>)
+        (return-SET-Gks0Map <OracleReturn-Gks0Map-<$$>-Key-<$$>-SET>)
+        (n Int)
+        (l Int)
+        (h Bits_*)
+        (hon Bool)
+        (k Bits_*)
+    )
+    Bool
+    (invariant-2e old-state-Gks0 old-state-Gks0Map)
+)
+(define-fun <relation-assert-invariant-2e-game_Gks0-game_Gks0Map-SET> 
+    (
+        (old-state-Gks0 <GameState_Gks0_<$$>>)
+        (old-state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (return-SET-Gks0 <OracleReturn-Gks0-<$$>-Key-<$$>-SET>)
+        (return-SET-Gks0Map <OracleReturn-Gks0Map-<$$>-Key-<$$>-SET>)
+        (n Int)
+        (l Int)
+        (h Bits_*)
+        (hon Bool)
+        (k Bits_*)
+    )
+    Bool
+    (let 
+        (
+            (new-state-Gks0 (<oracle-return-Gks0-<$$>-Key-<$$>-SET-game-state> return-SET-Gks0))
+            (new-state-Gks0Map (<oracle-return-Gks0Map-<$$>-Key-<$$>-SET-game-state> return-SET-Gks0Map))
+        )
+        (invariant-2e new-state-Gks0 new-state-Gks0Map)
+    )
+)
+(define-fun <relation-assume-invariant-2a-ix-and-2a-x-game_Gks0-game_Gks0Map-SET> 
+    (
+        (old-state-Gks0 <GameState_Gks0_<$$>>)
+        (old-state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (return-SET-Gks0 <OracleReturn-Gks0-<$$>-Key-<$$>-SET>)
+        (return-SET-Gks0Map <OracleReturn-Gks0Map-<$$>-Key-<$$>-SET>)
+        (n Int)
+        (l Int)
+        (h Bits_*)
+        (hon Bool)
+        (k Bits_*)
+    )
+    Bool
+    (assert-invariant-2a-ix-and-2a-x old-state-Gks0 old-state-Gks0Map)
+)
+(define-fun <relation-assert-invariant-2a-ix-and-2a-x-game_Gks0-game_Gks0Map-SET> 
+    (
+        (old-state-Gks0 <GameState_Gks0_<$$>>)
+        (old-state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (return-SET-Gks0 <OracleReturn-Gks0-<$$>-Key-<$$>-SET>)
+        (return-SET-Gks0Map <OracleReturn-Gks0Map-<$$>-Key-<$$>-SET>)
+        (n Int)
+        (l Int)
+        (h Bits_*)
+        (hon Bool)
+        (k Bits_*)
+    )
+    Bool
+    (let 
+        (
+            (new-state-Gks0 (<oracle-return-Gks0-<$$>-Key-<$$>-SET-game-state> return-SET-Gks0))
+            (new-state-Gks0Map (<oracle-return-Gks0Map-<$$>-Key-<$$>-SET-game-state> return-SET-Gks0Map))
+        )
+        (assert-invariant-2a-ix-and-2a-x new-state-Gks0 new-state-Gks0Map)
+    )
+)
