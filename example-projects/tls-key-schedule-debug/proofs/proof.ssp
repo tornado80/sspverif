@@ -126,7 +126,9 @@ proof Proof {
 
                 lemmas {
                     /* lemma-SET-output-for-dh: [no-abort, ] */
-                    
+                    lemma-randomness-mapping: []
+                    assert-invariant-consistent-log-for-dh-and-psk: [no-abort, assume-invariant-consistent-log-for-dh-and-psk, assume-invariant-2a-v, lemma-rand-is-eq]
+                    assert-invariant-consistent-log-inverse-level-zero-psk: [no-abort, assume-invariant-consistent-log-inverse-level-zero-psk, assume-invariant-consistent-log-for-dh-and-psk]
                     assert-invariant-2a-ix-and-2a-x: [no-abort, assume-invariant-2a-ix-and-2a-x]
                     assert-invariant-2e: [no-abort, assume-invariant-2e]
                     assert-invariant-log-inverse-name: [no-abort, assume-invariant-log-inverse-name]
