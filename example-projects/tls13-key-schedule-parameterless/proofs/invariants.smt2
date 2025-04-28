@@ -678,14 +678,14 @@
                         ((_ is mk-none) dishonest_level_zero_psk_left)
                         ((_ is mk-none) dishonest_level_zero_psk_right)
                     )
-                    (=
-                        ((_ is mk-none) dishonest_level_non_zero_psk_left)
-                        ((_ is mk-none) dishonest_level_non_zero_psk_right)
-                    )
-                    (=
-                        ((_ is mk-none) dishonest_psk_left)
-                        ((_ is mk-none) dishonest_psk_right)
-                    )
+                    ;(=
+                    ;    ((_ is mk-none) dishonest_level_non_zero_psk_left)
+                    ;    ((_ is mk-none) dishonest_level_non_zero_psk_right)
+                    ;)
+                    ;(=
+                    ;    ((_ is mk-none) dishonest_psk_left)
+                    ;    ((_ is mk-none) dishonest_psk_right)
+                    ;)
                 )
             )
         )
