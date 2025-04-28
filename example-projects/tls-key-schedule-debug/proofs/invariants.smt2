@@ -21,7 +21,26 @@
         (sample-ctr-Gks0Map Int)
     )
     Bool
-    false
+    (or
+        (and
+            (= sample-ctr-Gks0 sample-ctr-old-Gks0)
+            (= sample-ctr-Gks0Map sample-ctr-old-Gks0Map)
+            (= sample-id-Gks0 2)
+            (= sample-id-Gks0Map 2)
+        )
+        (and
+            (= sample-ctr-Gks0 sample-ctr-old-Gks0)
+            (= sample-ctr-Gks0Map sample-ctr-old-Gks0Map)
+            (= sample-id-Gks0 1)
+            (= sample-id-Gks0Map 1)
+        )
+        (and
+            (= sample-ctr-Gks0 sample-ctr-old-Gks0)
+            (= sample-ctr-Gks0Map sample-ctr-old-Gks0Map)
+            (= sample-id-Gks0 0)
+            (= sample-id-Gks0Map 0)
+        )
+    )
 )
 
 
@@ -413,22 +432,65 @@
         ;(invariant-2e state-Gks0 state-Gks0Map)
     )
 )
-(define-fun invariant-consistent-log-inverse
+(define-fun invariant-consistent-log-for-dh-and-psk
     (
         (state-Gks0 <GameState_Gks0_<$$>>)
         (state-Gks0Map <GameState_Gks0Map_<$$>>)
     )
     Bool
-    ; Invariant (5) for inverse maps on input keys
-    ; LogInverseDishonestLevelZero_left[k] = None <=> LogInverseDishonestLevelZero_right[k] = None
-    ; LogInverseDishonestLevelNonZero_left[k] = None <=> LogInverseDishonestLevelNonZero_right[k] = None
-    ; LogInverseDishonest_left[(psk, k)] = None <=> LogInverseDishonest_right[(psk, k)] = None
     (let
         (
-            (LogInverseDishonest_left (<pkg-state-Log-<$$>-LogInverseDishonest> (<game-Gks0-<$$>-pkgstate-pkg_Log> state-Gks0)))
-            (LogInverseDishonest_right (<pkg-state-Log-<$$>-LogInverseDishonest> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))
-            (LogInverseDishonestLevelNonZero_left (<pkg-state-Log-<$$>-LogInverseDishonestLevelNonZero> (<game-Gks0-<$$>-pkgstate-pkg_Log> state-Gks0)))
-            (LogInverseDishonestLevelNonZero_right (<pkg-state-Log-<$$>-LogInverseDishonestLevelNonZero> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))
+            (Log_left (<pkg-state-Log-<$$>-Log> (<game-Gks0-<$$>-pkgstate-pkg_Log> state-Gks0)))
+            (Log_right (<pkg-state-Log-<$$>-Log> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))
+        )
+        (forall
+            (
+                (h Bits_*)
+            )
+            (let
+                (
+                    (n (<<func-proof-name>> h))
+                )
+                (=>
+                    (or
+                        (and (= n KEY_psk) (= (<<func-proof-level>> h) (mk-some 0))); level zero psk
+                        (= n KEY_dh) ; dh
+                    )
+                    (let 
+                        (
+                            (left_entry (select Log_left (mk-tuple2 n h)))
+                            (right_entry (select Log_right (mk-tuple2 n h)))
+                        )
+                        (and
+                            (=
+                                ((_ is mk-none) left_entry)
+                                ((_ is mk-none) right_entry)
+                            )
+                            (=>
+                                (not ((_ is mk-none) left_entry))
+                                (and
+                                    (= (el3-2 (maybe-get left_entry)) (el3-2 (maybe-get right_entry))) ; hon
+                                    (= (el3-3 (maybe-get left_entry)) (el3-3 (maybe-get right_entry))) ; k
+                                    (= (el3-1 (maybe-get left_entry)) h) ; same handle
+                                )
+                            )
+                        )
+
+                    )
+                )
+            )
+        )
+    )
+)
+(define-fun invariant-consistent-log-inverse-level-zero-psk
+    (
+        (state-Gks0 <GameState_Gks0_<$$>>)
+        (state-Gks0Map <GameState_Gks0Map_<$$>>)
+    )
+    Bool
+    ; LogInverseDishonestLevelZero_left[k] = None <=> LogInverseDishonestLevelZero_right[k] = None
+    (let
+        (
             (LogInverseDishonestLevelZero_left (<pkg-state-Log-<$$>-LogInverseDishonestLevelZero> (<game-Gks0-<$$>-pkgstate-pkg_Log> state-Gks0)))
             (LogInverseDishonestLevelZero_right (<pkg-state-Log-<$$>-LogInverseDishonestLevelZero> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))
         )
@@ -440,23 +502,11 @@
                 (
                     (dishonest_level_zero_psk_left (select LogInverseDishonestLevelZero_left k))
                     (dishonest_level_zero_psk_right (select LogInverseDishonestLevelZero_right k))
-                    (dishonest_level_non_zero_psk_left (select LogInverseDishonestLevelNonZero_left k))
-                    (dishonest_level_non_zero_psk_right (select LogInverseDishonestLevelNonZero_right k))
-                    (dishonest_psk_left (select LogInverseDishonest_left (mk-tuple2 KEY_psk k)))
-                    (dishonest_psk_right (select LogInverseDishonest_right (mk-tuple2 KEY_psk k)))
                 )
                 (and
                     (=
                         ((_ is mk-none) dishonest_level_zero_psk_left)
                         ((_ is mk-none) dishonest_level_zero_psk_right)
-                    )
-                    (=
-                        ((_ is mk-none) dishonest_level_non_zero_psk_left)
-                        ((_ is mk-none) dishonest_level_non_zero_psk_right)
-                    )
-                    (=
-                        ((_ is mk-none) dishonest_psk_left)
-                        ((_ is mk-none) dishonest_psk_right)
                     )
                 )
             )
