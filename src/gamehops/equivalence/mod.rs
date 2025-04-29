@@ -2,9 +2,17 @@ use std::collections::{BTreeSet, HashMap, HashSet};
 use std::fmt::Write;
 use std::iter::FromIterator;
 
+use crate::expressions::Expression;
+use crate::identifier::game_ident::GameIdentifier;
+use crate::identifier::pkg_ident::PackageIdentifier;
+use crate::identifier::proof_ident::ProofIdentifier;
+use crate::identifier::Identifier;
 use crate::writers::smt::contexts::GameInstanceContext;
 use crate::writers::smt::declare::declare_const;
-use crate::writers::smt::patterns::functions::const_mapping::define_fun;
+use crate::writers::smt::patterns::const_mapping::{
+    define_game_const_mapping_fun, GameConstMappingFunction,
+};
+use crate::writers::smt::patterns::functions::const_mapping::define_pkg_const_mapping_fun;
 use crate::writers::smt::patterns::oracle_args::{
     OldNewOracleArgPattern as _, UnitOracleArgPattern as _,
 };
@@ -151,19 +159,39 @@ impl<'a> EquivalenceContext<'a> {
     fn emit_base_declarations(&self, comm: &mut Communicator) -> Result<()> {
         let mut base_declarations: Vec<SmtExpr> = vec![("set-logic", "ALL").into()];
 
-        println!("types {:?}", self.types());
-
         for tipe in self.types() {
             if let Type::Bits(id) = &tipe {
-                let smt_expr: SmtExpr = match &**id {
-                    crate::types::CountSpec::Literal(num) => format!("{num}").into(),
-                    crate::types::CountSpec::Any => "*".into(),
-                    crate::types::CountSpec::Identifier(ident) => {
-						ident.ident().into()
-                        //ident.resolve_value().unwrap().into()
-                    }
+                let bits_sort_suffix = match &**id {
+                    crate::types::CountSpec::Literal(num) => format!("{num}"),
+                    crate::types::CountSpec::Any => "*".to_string(),
+                    crate::types::CountSpec::Identifier(ident) => match ident {
+                        Identifier::ProofIdentifier(ident) => ident.ident(),
+                        Identifier::GameIdentifier(GameIdentifier::Const(game_const_ident)) => {
+                            match game_const_ident.assigned_value.as_ref().map(Box::as_ref) {
+                                Some(Expression::Identifier(ident@Identifier::ProofIdentifier(ProofIdentifier::Const(_)))) => ident.ident(),
+                                Some(Expression::Identifier(_)) => unreachable!("other identifiers can't occur here"),
+                                Some(other) => todo!("ADD ERR MSG: no complex expressions allowed for now, found {other:?}"),
+                                None => {println!("skipping identifier {id:?} since it is not fully resolved"); ident.ident()}
+                            }
+                        } ,
+                        Identifier::PackageIdentifier(PackageIdentifier::Const(pkg_const_ident)) => match pkg_const_ident.game_assignment.as_ref().unwrap_or_else(|| panic!("the assigned value for this identifier should have been resolved at this point:\n  {pkg_const_ident:#?}")).as_ref() {
+                            Expression::Identifier(Identifier::GameIdentifier(GameIdentifier::Const(game_const_ident))) => {
+                                match game_const_ident.assigned_value.as_ref().map(Box::as_ref) {
+                                    Some(Expression::Identifier(ident@Identifier::ProofIdentifier(ProofIdentifier::Const(_))) )=> ident.ident(),
+                                    Some(Expression::Identifier(_) )=> unreachable!("other identifiers can't occur here"),
+                                    Some(other) => todo!("ADD ERR MSG: no complex expressions allowed for now, found {other:?}"),
+                                    None => {println!("skipping identifier {id:?} since it is not fully resolved"); ident.ident()}
+                                }
+                            },
+                            Expression::Identifier(_) => unreachable!("other identifiers can't occur here"),
+                            other => todo!("ADD ERR MSG: no complex expressions allowed for now, found {other:?}"),
+                        }
+                        Identifier::PackageIdentifier(_) => unreachable!("non-const package identifiers can't occur here"),
+                        Identifier::GameIdentifier(_) => unreachable!("non-const game identifiers can't occur here"),
+                        Identifier::Generated(_, _) => unreachable!("generated identifiers can't occur here"),
+                    },
                 };
-                base_declarations.extend(hacks::BitsDeclaration(smt_expr.to_string()).into_iter());
+                base_declarations.extend(hacks::BitsDeclaration(bits_sort_suffix).into_iter());
             }
         }
 
@@ -232,9 +260,11 @@ impl<'a> EquivalenceContext<'a> {
         out.extend(self.smt_package_const_definitions());
         out.extend(self.smt_package_state_definitions());
 
+        out.extend(self.smt_proof_const_definition());
         out.extend(self.smt_game_const_definitions());
         out.extend(self.smt_game_state_definitions());
 
+        out.extend(self.smt_proof_game_const_mapping_definitions());
         out.extend(self.smt_game_pkg_const_mapping_definitions());
 
         out.extend(self.smt_package_return_definitions());
@@ -441,8 +471,54 @@ impl<'a> EquivalenceContext<'a> {
             game_name: right_game_name,
         };
 
-        out.push(game_consts_left.unit_declare(left_game_inst_name));
-        out.push(game_consts_right.unit_declare(right_game_inst_name));
+        let proof_consts = patterns::oracle_args::ProofConstsPattern {
+            proof_name: &self.proof().name,
+        };
+
+        // the interface requires us to pass in a game instance name, but for the proof constants
+        // that gets ignored. We use a name here that would for sure cause trouble if it were
+        // included.
+        let hack_this_should_be_ignored = "this is being ignored anyway, but let's make sure it fails if it gets included )))))))))))))";
+
+        out.push(proof_consts.unit_declare(hack_this_should_be_ignored));
+
+        let proof_game_const_mapping_left = GameConstMappingFunction {
+            proof_name: &self.proof().name,
+            game_name: &left_game_name,
+            game_inst_name: left_game_inst_name,
+        };
+
+        let proof_game_const_mapping_right = GameConstMappingFunction {
+            proof_name: &self.proof().name,
+            game_name: &right_game_name,
+            game_inst_name: right_game_inst_name,
+        };
+
+        let proof_game_const_mapping_call_left =
+            proof_game_const_mapping_left.call(&[proof_consts
+                .unit_global_const_name(hack_this_should_be_ignored)
+                .into()]);
+        let proof_game_const_mapping_call_right =
+            proof_game_const_mapping_right.call(&[proof_consts
+                .unit_global_const_name(hack_this_should_be_ignored)
+                .into()]);
+
+        out.push(
+            game_consts_left
+                .unit_define(
+                    left_game_inst_name,
+                    proof_game_const_mapping_call_left.unwrap(),
+                )
+                .into(),
+        );
+        out.push(
+            game_consts_right
+                .unit_define(
+                    right_game_inst_name,
+                    proof_game_const_mapping_call_right.unwrap(),
+                )
+                .into(),
+        );
 
         ////// split stuff
 
@@ -1369,6 +1445,14 @@ impl<'a> EquivalenceContext<'a> {
             })
     }
 
+    /// Returns an iterator cntaining the proof const datatype.
+    pub(crate) fn smt_proof_const_definition(self) -> impl Iterator<Item = SmtExpr> + 'a {
+        let pattern = self.datastructure_proof_consts_pattern();
+        let spec = pattern.datastructure_spec(self.proof());
+
+        Some(declare_datatype(&pattern, &spec)).into_iter()
+    }
+
     /// Returns an iterator of all the game const datatypes that need to be defined for this
     /// equivalence proof. It makes sure to skip duplicate definitions, which may occur if a
     /// package is used more than once.
@@ -1392,6 +1476,26 @@ impl<'a> EquivalenceContext<'a> {
             })
     }
 
+    /// Returns an iterator over the functions that map the constant values of the proof to that of a
+    /// game instance. Ranges over all game instances.
+    pub(crate) fn smt_proof_game_const_mapping_definitions(
+        self,
+    ) -> impl Iterator<Item = SmtExpr> + 'a {
+        Some(self)
+            .into_iter()
+            .flat_map(move |ectx| {
+                vec![
+                    ectx.left_game_inst_ctx().game_inst(),
+                    ectx.right_game_inst_ctx().game_inst(),
+                ]
+                .into_iter()
+            })
+            .flat_map(move |game_inst| {
+                define_game_const_mapping_fun(self.proof(), game_inst.game(), game_inst.name())
+                    .map(SmtExpr::from)
+            })
+    }
+
     /// Returns an iterator over the functions that map the constant values of a game to that of a
     /// package instance. Ranges over all package instances in all games.
     pub(crate) fn smt_game_pkg_const_mapping_definitions(
@@ -1410,7 +1514,8 @@ impl<'a> EquivalenceContext<'a> {
                     .ordered_pkgs()
                     .into_iter()
                     .flat_map(move |pkg_inst| {
-                        define_fun(gctx.game(), &pkg_inst.pkg, &pkg_inst.name).map(SmtExpr::from)
+                        define_pkg_const_mapping_fun(gctx.game(), &pkg_inst.pkg, &pkg_inst.name)
+                            .map(SmtExpr::from)
                     })
             })
     }

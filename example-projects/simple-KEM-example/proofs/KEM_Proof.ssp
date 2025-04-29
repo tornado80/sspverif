@@ -1,0 +1,62 @@
+proof KEM_Proof {
+    const    kgen: fn Bits(256)             ->  Bits(256);            /* takes sk, returns pk  */
+    const  encaps: fn (Bits(256),Bits(256)) -> (Bits(256),Bits(256)); /* (pk,rand) -> (ctxt,k) */
+    const  decaps: fn (Bits(256),Bits(256)) ->  Bits(256);            /* (sk,ctxt) -> k        */
+
+    instance CPA_real = CPA {
+        params {
+        isideal: false,
+           kgen: kgen,
+         encaps: encaps,
+         decaps: decaps,
+        }
+    }
+
+    instance CPA_ideal = CPA {
+        params {
+        isideal: true,
+           kgen: kgen,
+         encaps: encaps,
+         decaps: decaps,
+        }
+    }
+
+    instance Prot_real = CPA {
+        params {
+        isideal: false,
+           kgen: kgen,
+         encaps: encaps,
+         decaps: decaps,
+        }
+    }
+
+    instance Prot_ideal = CPA {
+        params {
+        isideal: true,
+           kgen: kgen,
+         encaps: encaps,
+         decaps: decaps,
+        }
+    }
+
+    assumptions {
+        CPA:     CPA_real    ~ CPA_ideal 
+    }
+
+    gamehops 
+    {
+        equivalence Prot H1_0 {
+            Send1: {
+                invariant: [
+                    ./proofs/invariant-KX-Red-H1.smt2
+                ]
+
+                lemmas {
+                    equal-aborts: []
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+                }
+            }
+        }
+    }
+}

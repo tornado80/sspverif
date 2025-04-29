@@ -159,18 +159,18 @@ impl PackageInstance {
 }
 
 pub(crate) mod instantiate {
+    use super::*;
     use crate::{
         identifier::{
             game_ident::{GameConstIdentifier, GameIdentInstanciationInfo, GameIdentifier},
             pkg_ident::{
                 PackageLocalIdentifier, PackageOracleArgIdentifier, PackageStateIdentifier,
             },
-            proof_ident::ProofIdentInstanciationInfo,
+            proof_ident::{ProofIdentInstanciationInfo, ProofIdentifier},
         },
-        statement::{CodeBlock, IfThenElse, InvokeOracleStatement},
+        parser::error::UndefinedIdentifierError,
+        statement::*,
     };
-
-    use super::*;
 
     #[derive(Debug, Clone, Copy)]
     pub(crate) enum InstantiationSource<'a> {
@@ -234,13 +234,147 @@ pub(crate) mod instantiate {
             }
         }
 
+        pub(crate) fn rewrite_count_spec(&self, count_spec: CountSpec) -> CountSpec {
+            match (self.src, count_spec) {
+                (
+                    InstantiationSource::Package { const_assignments },
+                    CountSpec::Identifier(Identifier::PackageIdentifier(PackageIdentifier::Const(
+                        mut pkg_const_ident,
+                    ))),
+                ) => {
+                    let (_, assigned_expr) = const_assignments
+                        .iter()
+                        .find(|(ident, expr)| ident.name == pkg_const_ident.name)
+                        .expect("TODO todo: this should be a propoer error");
+
+                    pkg_const_ident.set_pkg_inst_info(
+                        self.inst_name.to_string(),
+                        self.parent_name.to_string(),
+                    );
+                    pkg_const_ident.game_assignment = Some(Box::new(assigned_expr.clone()));
+
+                    CountSpec::Identifier(Identifier::PackageIdentifier(PackageIdentifier::Const(
+                        pkg_const_ident,
+                    )))
+                }
+                (
+                    InstantiationSource::Game { const_assignments },
+                    CountSpec::Identifier(Identifier::GameIdentifier(GameIdentifier::Const(
+                        mut game_const_ident,
+                    ))),
+                ) => {
+                    let (_, assigned_expr) = const_assignments
+                        .iter()
+                        .find(|(ident, expr)| ident.name == game_const_ident.name)
+                        .expect("TODO todo: this should be a propoer error");
+
+                    game_const_ident.set_game_inst_info(
+                        self.inst_name.to_string(),
+                        self.parent_name.to_string(),
+                    );
+                    game_const_ident.assigned_value = Some(Box::new(assigned_expr.clone()));
+
+                    CountSpec::Identifier(Identifier::GameIdentifier(GameIdentifier::Const(
+                        game_const_ident,
+                    )))
+                }
+                (
+                    InstantiationSource::Game { const_assignments },
+                    CountSpec::Identifier(Identifier::PackageIdentifier(PackageIdentifier::Const(
+                        mut pkg_const_ident,
+                    ))),
+                ) => {
+                    let (_, assigned_expr) = const_assignments
+                        .iter()
+                        .find(|(ident, expr)| ident.name == pkg_const_ident.name)
+                        .expect("TODO todo: this should be a propoer error");
+
+                    pkg_const_ident.set_game_inst_info(
+                        self.inst_name.to_string(),
+                        self.parent_name.to_string(),
+                    );
+                    pkg_const_ident.game_assignment = Some(Box::new(assigned_expr.clone()));
+
+                    CountSpec::Identifier(Identifier::PackageIdentifier(PackageIdentifier::Const(
+                        pkg_const_ident,
+                    )))
+                }
+                (_, other @ (CountSpec::Any | CountSpec::Literal(_))) => other,
+
+                // not entirely sure about this one:
+                (_, other) => other,
+            }
+        }
+
+        /// Returns rewrite rules for three cases:
+        /// - Rewrites user-defined types to what they are assigned (which is currently not really supported)
+        /// - Rewrite Bits(some_ident) such that some_ident has the instantiation information set, both
+        ///   - for package instantiation
+        ///   - for game instatiantion
+        pub(crate) fn base_rewrite_rules(&self) -> Vec<(Type, Type)> {
+            let mut type_rewrite_rules = self
+                .type_assignments
+                .iter()
+                .map(|(name, tipe)| (Type::UserDefined(name.to_string()), tipe.clone()))
+                .collect_vec();
+
+            match self.src {
+                InstantiationSource::Package { const_assignments } => {
+                    type_rewrite_rules.extend(const_assignments.iter().map(|(ident, expr)| {
+                        (
+                            Type::Bits(Box::new(CountSpec::Identifier(
+                                Identifier::PackageIdentifier(PackageIdentifier::Const(
+                                    ident.clone(),
+                                )),
+                            ))),
+                            Type::Bits(Box::new(CountSpec::Identifier(
+                                Identifier::PackageIdentifier(PackageIdentifier::Const({
+                                    let mut fixed_ident: PackageConstIdentifier = ident.clone();
+
+                                    fixed_ident.set_pkg_inst_info(
+                                        self.inst_name.to_string(),
+                                        self.parent_name.to_string(),
+                                    );
+                                    fixed_ident.game_assignment = Some(Box::new(expr.clone()));
+
+                                    fixed_ident
+                                })),
+                            ))),
+                        )
+                    }));
+                }
+
+                InstantiationSource::Game { const_assignments } => {
+                    type_rewrite_rules.extend(const_assignments.iter().map(|(ident, expr)| {
+                        (
+                            Type::Bits(Box::new(CountSpec::Identifier(
+                                Identifier::GameIdentifier(GameIdentifier::Const(ident.clone())),
+                            ))),
+                            Type::Bits(Box::new(CountSpec::Identifier(
+                                Identifier::GameIdentifier(GameIdentifier::Const({
+                                    let mut fixed_ident: GameConstIdentifier = ident.clone();
+
+                                    fixed_ident.set_game_inst_info(
+                                        self.inst_name.to_string(),
+                                        self.parent_name.to_string(),
+                                    );
+
+                                    fixed_ident.assigned_value = Some(Box::new(expr.clone()));
+
+                                    fixed_ident
+                                })),
+                            ))),
+                        )
+                    }));
+                }
+            }
+
+            type_rewrite_rules
+        }
+
         pub(crate) fn rewrite_oracle_sig(&self, oracle_sig: OracleSig) -> OracleSig {
             {
-                let type_rewrite_rules: Vec<_> = self
-                    .type_assignments
-                    .iter()
-                    .map(|(name, tipe)| (Type::UserDefined(name.to_string()), tipe.clone()))
-                    .collect();
+                let type_rewrite_rules = self.base_rewrite_rules();
 
                 OracleSig {
                     name: oracle_sig.name,
@@ -327,11 +461,7 @@ pub(crate) mod instantiate {
         // }
 
         pub(crate) fn rewrite_statement(&self, stmt: Statement) -> Statement {
-            let type_rewrite_rules: Vec<_> = self
-                .type_assignments
-                .iter()
-                .map(|(name, tipe)| (Type::UserDefined(name.to_string()), tipe.clone()))
-                .collect();
+            let type_rewrite_rules = self.base_rewrite_rules();
 
             match stmt {
                 Statement::Abort(_) => stmt.clone(),
@@ -501,11 +631,7 @@ pub(crate) mod instantiate {
         }
 
         pub(crate) fn rewrite_identifier(&self, ident: Identifier) -> Identifier {
-            let type_rewrite_rules: Vec<_> = self
-                .type_assignments
-                .iter()
-                .map(|(name, tipe)| (Type::UserDefined(name.to_string()), tipe.clone()))
-                .collect();
+            let type_rewrite_rules = self.base_rewrite_rules();
 
             // extend the identifier with the instance and parent names
             let ident = match (self.src, ident) {
@@ -542,8 +668,6 @@ pub(crate) mod instantiate {
                 | (InstantiationSource::Game { .. }, ident @ Identifier::ProofIdentifier(_)) => {
                     unreachable!(
                         "found\n    {ident:?}\n  when instantiating with context\n    {self:?}",
-                        ident = ident,
-                        self = self
                     )
                 }
                 (InstantiationSource::Package { .. }, ident @ Identifier::Generated(_, _))

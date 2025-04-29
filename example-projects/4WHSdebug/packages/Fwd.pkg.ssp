@@ -1,0 +1,13 @@
+package Fwd {
+    params {
+        b: Bool,
+    }
+    
+    import oracles { Sample() -> Bits(256),}
+
+
+    oracle Sample() -> Bits(256) {
+        ni <- invoke Sample();
+        return ni;
+    }
+}

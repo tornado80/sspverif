@@ -1,24 +1,11 @@
 composition H2 {
         const n: Integer;
-        const zeron: Bits(n);
-        const prf: fn Bits(n), Integer, Integer, Bits(n), Bits(n), Bool ->  Bits(n);
-        const mac: fn Bits(n), Bits(n), Integer -> Bits(n);
+        const zeron: Bits(256);
+        const prf: fn Bits(256), Integer, Integer, Bits(256), Bits(256), Bool ->  Bits(256);
+        const mac: fn Bits(256), Bits(256), Integer -> Bits(256);
         const b: Bool;
         const bcr: Bool;
     
-    instance Game = Game {
-        params {
-        b: b,
-        n: n,
-        zeron: zeron,
-        }
-    }
-    instance Prot = ReductionCR {
-        params {
-        n: n,
-        zeron: zeron,
-        }
-    }
 	instance Nonces = Nonces {
 		params {
         	n: n,
@@ -31,6 +18,19 @@ composition H2 {
         b: bcr,
         prf: prf,
         mac: mac,
+        }
+    }
+    instance Prot = ReductionCR {
+        params {
+        n: n,
+        zeron: zeron,
+        }
+    }
+    instance Game = Game {
+        params {
+        b: b,
+        n: n,
+        zeron: zeron,
         }
     }
 

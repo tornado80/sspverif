@@ -43,3 +43,11 @@ pub fn declare_datatype(
 pub fn declare_const<N: Into<SmtExpr>>(const_name: N, sort: Sort) -> SmtExpr {
     ("declare-const", const_name, sort).into()
 }
+
+pub fn define_const(
+    const_name: impl Into<SmtExpr>,
+    sort: impl Into<SmtExpr>,
+    term: impl Into<SmtExpr>,
+) -> impl Into<SmtExpr> {
+    ("define-fun", const_name, SmtExpr::List(vec![]), sort, term)
+}

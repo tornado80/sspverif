@@ -2,10 +2,10 @@ proof WHSProto {
     const b: Bool;
     const n: Integer;
     const m: Integer;
-    const zeron: Bits(n);
-    const prf: fn Bits(n), Integer, Integer, Bits(n), Bits(n), Bool ->  Bits(n);
-    const mac: fn Bits(n), Bits(n), Integer -> Bits(n);
-  
+    const zeron: Bits(256);
+    const prf: fn Bits(256), Integer, Integer, Bits(256), Bits(256), Bool ->  Bits(256);
+    const mac: fn Bits(256), Bits(256), Integer -> Bits(256);
+
     instance Noncesideal = Nonces {
         params {
             b  : true,
@@ -152,17 +152,17 @@ proof WHSProto {
 
 
     assumptions {
-        prf:     PRFreal    ~ PRFideal
-        nonces:  Noncesreal ~ Noncesideal
+        prf:     PRFreal    ~ PRFideal    /* with advantage time^5/2^(sqrt(n)) */
+        nonces:  Noncesreal ~ Noncesideal /* with advantage time^2/2^n */
         collres: CRreal ~ CRideal
     }
 
     gamehops 
-    {/*
+    {
         equivalence KX H1_0 {
             Send1: {
                 invariant: [
-                    ./proofs/invariant-KX-Red-H1.smt2
+                    ./proofs/invariant-KX-H1_0.smt2
                 ]
 
                 lemmas {
@@ -173,7 +173,7 @@ proof WHSProto {
             }
              Send2: {
                 invariant: [
-                    ./proofs/invariant-KX-Red-H1.smt2
+                    ./proofs/invariant-KX-H1_0.smt2
                 ]
 
                 lemmas {
@@ -184,7 +184,7 @@ proof WHSProto {
             }
              Send3: {
                 invariant: [
-                    ./proofs/invariant-KX-Red-H1.smt2
+                    ./proofs/invariant-KX-H1_0.smt2
                 ]
 
                 lemmas {
@@ -195,7 +195,7 @@ proof WHSProto {
             }
             Send4: {
                 invariant: [
-                    ./proofs/invariant-KX-Red-H1.smt2
+                    ./proofs/invariant-KX-H1_0.smt2
                 ]
 
                 lemmas {
@@ -206,7 +206,7 @@ proof WHSProto {
             }
             Send5: {
                 invariant: [
-                    ./proofs/invariant-KX-Red-H1.smt2
+                    ./proofs/invariant-KX-H1_0.smt2
                 ]
 
                 lemmas {
@@ -217,7 +217,7 @@ proof WHSProto {
             }
             NewKey: {
                 invariant: [
-                    ./proofs/invariant-KX-Red-H1.smt2
+                    ./proofs/invariant-KX-H1_0.smt2
                 ]
 
                 lemmas {
@@ -228,7 +228,7 @@ proof WHSProto {
             }
             NewSession: {
                 invariant: [
-                    ./proofs/invariant-KX-Red-H1.smt2
+                    ./proofs/invariant-KX-H1_0.smt2
                 ]
 
                 lemmas {
@@ -239,7 +239,7 @@ proof WHSProto {
             }
             Test: {
                 invariant: [
-                    ./proofs/invariant-KX-Red-H1.smt2
+                    ./proofs/invariant-KX-H1_0.smt2
                 ]
 
                 lemmas {
@@ -250,7 +250,7 @@ proof WHSProto {
             }
             Reveal: {
                 invariant: [
-                    ./proofs/invariant-KX-Red-H1.smt2
+                    ./proofs/invariant-KX-H1_0.smt2
                 ]
 
                 lemmas {
@@ -261,7 +261,7 @@ proof WHSProto {
             }
             SameKey: {
                 invariant: [
-                    ./proofs/invariant-KX-Red-H1.smt2
+                    ./proofs/invariant-KX-H1_0.smt2
                 ]
 
                 lemmas {
@@ -272,7 +272,7 @@ proof WHSProto {
             }
             AtLeast: {
                 invariant: [
-                    ./proofs/invariant-KX-Red-H1.smt2
+                    ./proofs/invariant-KX-H1_0.smt2
                 ]
 
                 lemmas {
@@ -283,7 +283,7 @@ proof WHSProto {
             }
             AtMost: {
                 invariant: [
-                    ./proofs/invariant-KX-Red-H1.smt2
+                    ./proofs/invariant-KX-H1_0.smt2
                 ]
 
                 lemmas {
@@ -293,7 +293,6 @@ proof WHSProto {
                 }
             }
         }
-*/
         reduction H1_0 H1_1  
         {
             assumption nonces
@@ -306,7 +305,140 @@ proof WHSProto {
                 nonces    : Nonces
             }
         }
+        equivalence H1_1 H2_0 {
+            Send1: {
+                invariant: [
+                    ./proofs/invariant-H1_1-H2_0.smt2
+                ]
 
+                lemmas {
+                    equal-aborts: []
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+                }
+            }
+             Send2: {
+                invariant: [
+                    ./proofs/invariant-H1_1-H2_0.smt2
+                ]
+
+                lemmas {
+                    equal-aborts: []
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+                }
+            }
+             Send3: {
+                invariant: [
+                    ./proofs/invariant-H1_1-H2_0.smt2
+                ]
+
+                lemmas {
+                    equal-aborts: []
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+                }
+            }
+            Send4: {
+                invariant: [
+                    ./proofs/invariant-H1_1-H2_0.smt2
+                ]
+
+                lemmas {
+                    equal-aborts: []
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+                }
+            }
+            Send5: {
+                invariant: [
+                    ./proofs/invariant-H1_1-H2_0.smt2
+                ]
+
+                lemmas {
+                    equal-aborts: []
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+                }
+            }
+            NewKey: {
+                invariant: [
+                    ./proofs/invariant-H1_1-H2_0.smt2
+                ]
+
+                lemmas {
+                    equal-aborts: []
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+                }
+            }
+            NewSession: {
+                invariant: [
+                    ./proofs/invariant-H1_1-H2_0.smt2
+                ]
+
+                lemmas {
+                    equal-aborts: []
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+                }
+            }
+            Test: {
+                invariant: [
+                    ./proofs/invariant-H1_1-H2_0.smt2
+                ]
+
+                lemmas {
+                    equal-aborts: []
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+                }
+            }
+            Reveal: {
+                invariant: [
+                    ./proofs/invariant-H1_1-H2_0.smt2
+                ]
+
+                lemmas {
+                    equal-aborts: []
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+                }
+            }
+            SameKey: {
+                invariant: [
+                    ./proofs/invariant-H1_1-H2_0.smt2
+                ]
+
+                lemmas {
+                    equal-aborts: []
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+                }
+            }
+            AtLeast: {
+                invariant: [
+                    ./proofs/invariant-H1_1-H2_0.smt2
+                ]
+
+                lemmas {
+                    equal-aborts: []
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+                }
+            }
+            AtMost: {
+                invariant: [
+                    ./proofs/invariant-H1_1-H2_0.smt2
+                ]
+
+                lemmas {
+                    equal-aborts: []
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+                }
+            }
+        }
         reduction H2_0 H2_1  
         {
             assumption collres
