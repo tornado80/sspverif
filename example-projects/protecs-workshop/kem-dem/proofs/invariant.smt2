@@ -157,7 +157,7 @@
                 )
                 (=
                     output
-                    (<<func-proof-dem_dec>> (<<func-proof-kem_decaps>> sk encacsk) ctxt)
+                    (<<func-proof-dem_dec>> (<<func-proof-kem_decaps>> sk encapsk) ctxt)
                 )
             )
         )
