@@ -159,6 +159,8 @@ impl<'a> EquivalenceContext<'a> {
     fn emit_base_declarations(&self, comm: &mut Communicator) -> Result<()> {
         let mut base_declarations: Vec<SmtExpr> = vec![("set-logic", "ALL").into()];
 
+        let mut bits_sort_suffixes = HashSet::new();
+
         for tipe in self.types() {
             if let Type::Bits(id) = &tipe {
                 let bits_sort_suffix = match &**id {
@@ -191,7 +193,12 @@ impl<'a> EquivalenceContext<'a> {
                         Identifier::Generated(_, _) => unreachable!("generated identifiers can't occur here"),
                     },
                 };
-                base_declarations.extend(hacks::BitsDeclaration(bits_sort_suffix).into_iter());
+
+                // ensure we don't write more than once. Earlier we also dedupe, but we dedupe
+                // identifiers, which contain more info than just the name.
+                if bits_sort_suffixes.insert(bits_sort_suffix.clone()) {
+                    base_declarations.extend(hacks::BitsDeclaration(bits_sort_suffix).into_iter());
+                }
             }
         }
 
