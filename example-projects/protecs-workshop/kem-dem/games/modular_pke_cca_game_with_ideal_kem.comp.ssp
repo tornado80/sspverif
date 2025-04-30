@@ -3,8 +3,6 @@ composition ModularPkeCcaGameWithIdealKEM {
 
     const len: fn Bits(*) -> Integer;
     const zeros: fn Integer -> Bits(*);
-    const concatenate: fn Bits(400), Bits(*) -> Bits(*);
-    const deconcatenate: fn Bits(*) -> (Bits(400), Bits(*));
     const kem_gen: fn Bits(2000) -> (Bits(100), Bits(1000));
     const kem_encaps: fn Bits(100) -> (Bits(256), Bits(400));
     const kem_decaps: fn Bits(1000), Bits(400) -> Bits(256);
@@ -41,10 +39,6 @@ composition ModularPkeCcaGameWithIdealKEM {
     }
 
     instance pkg_MOD_CCA = MOD_CCA {
-        params {
-            concatenate: concatenate,
-            deconcatenate: deconcatenate
-        }
     }
 
     compose {
