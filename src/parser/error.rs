@@ -91,7 +91,7 @@ pub struct OracleAlreadyImportedError {
 }
 
 #[derive(Error, Diagnostic, Debug)]
-#[error("type mismatch: got {got:?}, expected {expected:?}")]
+#[error("type mismatch: got {got}, expected {expected}")]
 #[diagnostic(code(ssbee::code::type_mismatch))]
 pub struct TypeMismatchError {
     #[label("this expression has the wrong type")]
