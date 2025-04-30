@@ -85,10 +85,18 @@
             (= ((_ is mk-none) left_c) ((_ is mk-none) right_c) ((_ is mk-none) right_kem_ek) ((_ is mk-none) right_mod_cca_ek) ((_ is mk-none) right_dem_c) ((_ is mk-none) right_key_k)) ; left_challenge_ciphertext = None iff right_challenge_ciphertext = None iff right_encapsulation_challenge = None iff right_dem_challenge = None iff right_key_k = None
             (= left_sk right_sk)
             (= right_mod_cca_ek right_kem_ek)
+            (=>
+                (not ((_ is mk-none) right_key_k))
+                (= (maybe-get right_key_k) (el2-1 (<<func-proof-kem_encaps>> (maybe-get right_pk_kem))))
+            )
             ;(=>
             ;    (not ((_ is mk-none) right_key_k))
-            ;    (= (maybe-get right_key_k) (<<func-proof-kem_decaps>> (maybe-get right_sk) (maybe-get right_kem_ek)))
+            ;    (= 
+            ;        (el2-1 (<<func-proof-kem_encaps>> (maybe-get right_pk_kem)))
+            ;        (<<func-proof-kem_decaps>> (maybe-get right_sk) (maybe-get right_kem_ek))
+            ;    )
             ;)
+
         )
     )
 )
@@ -134,11 +142,23 @@
             (k (maybe-get (<pkg-state-Key-<$$>-k> (<game-ModularPkeCcaGame-<$<!false!><!b!>$>-pkgstate-pkg_Key> old-state-right))))
             (output (return-value (<oracle-return-ModularPkeCcaGame-<$<!false!><!b!>$>-MOD_CCA-<$$>-PKDEC-return-value-or-abort> return-right)))
         )
-        (=>
-            (not (= ek enacpsk))
-            (=
-                output
-                (<<func-proof-dem_dec>> (<<func-proof-kem_decaps>> sk enacpsk) ctxt)
+        (and
+            (=>
+                (not (= ek enacpsk))
+                (=
+                    output
+                    (<<func-proof-dem_dec>> (<<func-proof-kem_decaps>> sk enacpsk) ctxt)
+                )
+            )
+            (=>
+                (and 
+                    (= ek enacpsk)
+                    (= k (<<func-proof-kem_decaps>> sk ek))
+                )
+                (=
+                    output
+                    (<<func-proof-dem_dec>> (<<func-proof-kem_decaps>> sk enacpsk) ctxt)
+                )
             )
         )
     )
