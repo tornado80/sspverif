@@ -11,8 +11,10 @@ package Nonces {
     oracle Sample() -> Bits(256) {
         ni         <-$ Bits(256);
         if b
-        {assert (Nonces[ni] == None);
-        Nonces[ni] <- Some(true);}
+        {
+			assert (Nonces[ni] == None);
+        	Nonces[ni] <- Some(true);
+		}
         return ni;
     }
 }
