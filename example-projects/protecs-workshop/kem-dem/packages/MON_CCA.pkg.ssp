@@ -1,4 +1,4 @@
-package PKE_CCA {
+package MON_CCA {
     params {
         b: Bool,
         len: fn Bits(*) -> Integer,
