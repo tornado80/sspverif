@@ -32,7 +32,7 @@ composition MonolithicPkeCcaGame {
         }
     }
 
-    instance pkg_PKE_CCA = PKE_CCA {
+    instance pkg_MON_CCA = MON_CCA {
         params {
             b: b,
             len: len,
@@ -48,15 +48,15 @@ composition MonolithicPkeCcaGame {
             DEM_ENC: pkg_DemScheme,
             DEM_DEC: pkg_DemScheme
         }
-        pkg_PKE_CCA: {
+        pkg_MON_CCA: {
             GEN: pkg_PkeScheme,
             ENC: pkg_PkeScheme,
             DEC: pkg_PkeScheme
         }
         adversary: {
-            PKGEN: pkg_PKE_CCA,
-            PKENC: pkg_PKE_CCA,
-            PKDEC: pkg_PKE_CCA
+            PKGEN: pkg_MON_CCA,
+            PKENC: pkg_MON_CCA,
+            PKDEC: pkg_MON_CCA
         }
     }
 

@@ -508,8 +508,10 @@ proof Proof {
                 ]
 
                 lemmas {
-                    invariant: [no-abort]
-                    same-output: [no-abort]
+                    invariant: [no-abort, lemma-kem-correctness]
+                    lemma-left-output: [no-abort]
+                    lemma-right-output: [no-abort, lemma-kem-correctness]
+                    same-output: [no-abort, lemma-kem-correctness]
                     equal-aborts: []
                 }
             }
