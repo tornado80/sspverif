@@ -46,7 +46,7 @@ impl<'a> BlockWriter<'a> {
 
     fn countspec_to_tex(&self, count_spec: &CountSpec) -> String {
         match count_spec {
-            CountSpec::Identifier(identifier) => identifier.ident(),
+            CountSpec::Identifier(identifier) => self.ident_to_tex(identifier),
             CountSpec::Literal(num) => format!("{num}"),
             CountSpec::Any => "*".to_string(),
         }
@@ -414,7 +414,7 @@ pub fn tex_write_oracle(
     writeln!(
         writer.file,
         "\\procedure{{$\\O{{{}}}({})$}}{{",
-        oracle.sig.name,
+        oracle.sig.name.replace("_", "\\_"),
         oracle
             .sig
             .args
