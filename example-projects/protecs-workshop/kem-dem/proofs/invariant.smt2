@@ -107,14 +107,14 @@
         (old-state-right <GameState_ModularPkeCcaGame_<$<!false!><!b!>$>>)
         (return-left <OracleReturn-MonolithicPkeCcaGame-<$<!b!>$>-MON_CCA-<$<!b!>$>-PKDEC>)
         (return-right <OracleReturn-ModularPkeCcaGame-<$<!false!><!b!>$>-MOD_CCA-<$$>-PKDEC>)
-        (ek_ctxt Bits_*)
+        (ek_ctxt  el21 (Bits(400),Bits(*))) ;Chris: types need to be fixed here. I did not know how to write the tuple type.
     )
     Bool
     (let
         (
             (sk (maybe-get (<pkg-state-MON_CCA-<$<!b!>$>-sk> (<game-MonolithicPkeCcaGame-<$<!b!>$>-pkgstate-pkg_MON_CCA> old-state-left))))
-            (ek (el2-1 (<<func-proof-deconcatenate>> ek_ctxt)))
-            (ctxt (el2-2 (<<func-proof-deconcatenate>> ek_ctxt)))
+            (ek    ek_ctxt)
+            (ctxt  ek_ctxt)
             (output (return-value (<oracle-return-MonolithicPkeCcaGame-<$<!b!>$>-MON_CCA-<$<!b!>$>-PKDEC-return-value-or-abort> return-left)))
         )
         (= 
@@ -130,15 +130,15 @@
         (old-state-right <GameState_ModularPkeCcaGame_<$<!false!><!b!>$>>)
         (return-left <OracleReturn-MonolithicPkeCcaGame-<$<!b!>$>-MON_CCA-<$<!b!>$>-PKDEC>)
         (return-right <OracleReturn-ModularPkeCcaGame-<$<!false!><!b!>$>-MOD_CCA-<$$>-PKDEC>)
-        (ek_ctxt Bits_*)
+        (ek_ctxt el21 (Bits(400),Bits(*))) ;Chris: types need to be fixed here. I did not know how to write the tuple type.
     )
     Bool
     (let
         (
             (sk (maybe-get (<pkg-state-MON_CCA-<$<!b!>$>-sk> (<game-MonolithicPkeCcaGame-<$<!b!>$>-pkgstate-pkg_MON_CCA> old-state-left))))
             (ek (maybe-get (<pkg-state-KEM-<$<!kem_idealization!>$>-ek> (<game-ModularPkeCcaGame-<$<!false!><!b!>$>-pkgstate-pkg_KEM> old-state-right))))
-            (enacpsk (el2-1 (<<func-proof-deconcatenate>> ek_ctxt)))
-            (ctxt (el2-2 (<<func-proof-deconcatenate>> ek_ctxt)))
+            (encapsk ek_ctxt)
+            (ctxt    ek_ctxt)
             (k (maybe-get (<pkg-state-Key-<$$>-k> (<game-ModularPkeCcaGame-<$<!false!><!b!>$>-pkgstate-pkg_Key> old-state-right))))
             (output (return-value (<oracle-return-ModularPkeCcaGame-<$<!false!><!b!>$>-MOD_CCA-<$$>-PKDEC-return-value-or-abort> return-right)))
         )
@@ -147,17 +147,17 @@
                 (not (= ek enacpsk))
                 (=
                     output
-                    (<<func-proof-dem_dec>> (<<func-proof-kem_decaps>> sk enacpsk) ctxt)
+                    (<<func-proof-dem_dec>> (<<func-proof-kem_decaps>> sk encapsk) ctxt)
                 )
             )
             (=>
                 (and 
-                    (= ek enacpsk)
+                    (= ek encapsk)
                     (= k (<<func-proof-kem_decaps>> sk ek))
                 )
                 (=
                     output
-                    (<<func-proof-dem_dec>> (<<func-proof-kem_decaps>> sk enacpsk) ctxt)
+                    (<<func-proof-dem_dec>> (<<func-proof-kem_decaps>> sk encacsk) ctxt)
                 )
             )
         )
