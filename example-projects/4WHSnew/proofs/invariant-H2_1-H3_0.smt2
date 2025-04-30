@@ -172,16 +172,30 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define-fun invariant
-  ( (state-kx     <GameState_H1_<$<!n!><!b!><!true!><!zeron!>$>>)
-    (state-kxred  <GameState_H2_<$<!n!><!b!><!false!><!zeron!>$>>))
+  ( (state-kx     <GameState_H2_<$<!n!><!b!><!true!><!zeron!>$>>)
+    (state-kxred  <GameState_H3_<$<!n!><!b!><!false!><!zeron!>$>>))
   Bool
 ; getting package-state out of game-state and demanding equality, they should be exactly the same in this case.
-(and (= (<game-H1-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Game>     state-kx)    ;some params are still missing.
-        (<game-H2-<$<!n!><!b!><!false!><!zeron!>$>-pkgstate-Game> state-kxred)) ;some params are still missing.
-     (= (<pkg-state-Nonces-<$<!bnonce!><!n!>$>-Nonces>
-	        (<game-H1-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces>     state-kx))
-	    (<pkg-state-Nonces-<$<!true!><!n!>$>-Nonces>
-		    (<game-H2-<$<!n!><!b!><!false!><!zeron!>$>-pkgstate-Nonces> state-kxred))))
+(let ((gamestate-H2 (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Game>     state-kx))
+      (gamestate-H3 (<game-H3-<$<!n!><!b!><!false!><!zeron!>$>-pkgstate-Game_nochecks> state-kxred)))
+  (and (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-LTK> gamestate-H2)
+          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-LTK> gamestate-H3))
+	   (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-H> gamestate-H2)
+          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-H> gamestate-H3))
+	   (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-ctr_> gamestate-H2)
+          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-ctr_> gamestate-H3))
+	   (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-kid_> gamestate-H2)
+          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-kid_> gamestate-H3))
+	   (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-RevTested> gamestate-H2)
+          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-RevTested> gamestate-H3))
+	   (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-First> gamestate-H2)
+          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-First> gamestate-H3))
+	   (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-Second> gamestate-H2)
+          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-Second> gamestate-H3))
+	   (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-State> gamestate-H2)
+          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-State> gamestate-H3))
+
+))
 
 ;  (let
 ;    ; getting ctr out of state
