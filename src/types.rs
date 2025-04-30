@@ -104,3 +104,47 @@ impl CountSpec {
         }
     }
 }
+
+impl std::fmt::Display for CountSpec {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CountSpec::Identifier(identifier) => write!(f, "{}", identifier.ident_ref()),
+            CountSpec::Literal(n) => write!(f, "{n}"),
+            CountSpec::Any => write!(f, "*"),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::identifier::{
+        pkg_ident::{PackageConstIdentifier, PackageIdentifier},
+        Identifier,
+    };
+
+    use super::{CountSpec, Type};
+
+    #[test]
+    fn display_countspec() {
+        assert_eq!("*", format!("{}", CountSpec::Any));
+        assert_eq!("42", format!("{}", CountSpec::Literal(42)));
+        assert_eq!(
+            "n",
+            format!(
+                "{}",
+                CountSpec::Identifier(Identifier::PackageIdentifier(PackageIdentifier::Const(
+                    PackageConstIdentifier {
+                        pkg_name: "SomePackage".to_string(),
+                        name: "n".to_string(),
+                        pkg_inst_name: None,
+                        tipe: Type::Integer,
+                        game_assignment: None,
+                        game_inst_name: None,
+                        game_name: None,
+                        proof_name: None,
+                    }
+                )))
+            )
+        );
+    }
+}
