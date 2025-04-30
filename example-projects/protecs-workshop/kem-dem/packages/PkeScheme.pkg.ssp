@@ -1,8 +1,4 @@
 package PkeScheme {
-    params {
-        concatenate: fn Bits(400), Bits(*) -> Bits(*),
-        deconcatenate: fn Bits(*) -> (Bits(400), Bits(*))
-    }
 
     import oracles {
         KEM_GEN() -> (Bits(100), Bits(1000)),
@@ -17,15 +13,15 @@ package PkeScheme {
         return pk_sk;
     }
 
-    oracle ENC(pk: Bits(100), m: Bits(*)) -> Bits(*) {
+    oracle ENC(pk: Bits(100), m: Bits(*)) -> (Bits(400),Bits(*)) {
         k_ek <- invoke KEM_ENCAPS(pk);
         (k, ek) <- parse k_ek;
         c <- invoke DEM_ENC(k, m);
-        return concatenate(ek, c);
+        return (ek, c);
     }
 
-    oracle DEC(sk: Bits(1000), c: Bits(*)) -> Bits(*) {
-        (ek, ctxt) <- parse deconcatenate(c);
+    oracle DEC(sk: Bits(1000), c: (Bits(400),Bits(*))) -> Bits(*) {
+        (ek, ctxt) <- parse c;
         k <- invoke KEM_DECAPS(sk, ek);
         m <- invoke DEM_DEC(k, ctxt);
         return m;

@@ -2,8 +2,6 @@ composition MonolithicPkeCcaGame {
     const b: Bool;
     const len: fn Bits(*) -> Integer;
     const zeros: fn Integer -> Bits(*);
-    const concatenate: fn Bits(400), Bits(*) -> Bits(*);
-    const deconcatenate: fn Bits(*) -> (Bits(400), Bits(*));
     const kem_gen: fn Bits(2000) -> (Bits(100), Bits(1000));
     const kem_encaps: fn Bits(100) -> (Bits(256), Bits(400));
     const kem_decaps: fn Bits(1000), Bits(400) -> Bits(256);
@@ -26,10 +24,6 @@ composition MonolithicPkeCcaGame {
     }
 
     instance pkg_PkeScheme = PkeScheme {
-        params {
-            concatenate: concatenate,
-            deconcatenate: deconcatenate
-        }
     }
 
     instance pkg_MON_CCA = MON_CCA {
