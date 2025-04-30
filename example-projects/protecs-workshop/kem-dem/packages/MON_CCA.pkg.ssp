@@ -8,7 +8,7 @@ package MON_CCA {
     import oracles {
         GEN() -> (Bits(100), Bits(1000)),
         ENC(pk: Bits(100), m: Bits(*)) -> (Bits(400),Bits(*)) /* ciphertext type */,
-        DEC(sk: Bits(1000), c: Bits(*) /* ciphertext length */) -> Bits(*),
+        DEC(sk: Bits(1000), c: (Bits(400),Bits(*)) /* ciphertext type */) -> Bits(*),
     }
 
     state {
@@ -38,7 +38,7 @@ package MON_CCA {
         return c1;
     }
 
-    oracle PKDEC(ek_ctxt: Bits(*)) -> Bits(*) {
+    oracle PKDEC(ek_ctxt: (Bits(400),Bits(*))) -> Bits(*) {
         assert (sk != None as Bits(1000));
         assert (Unwrap(c) != ek_ctxt);
         m <- invoke DEC(Unwrap(sk), ek_ctxt);
