@@ -8,6 +8,7 @@ proof Proof {
     const encapsulation_length: 400;
     const gen_randomness_length: 2000;
     const enc_randomness_length: 500; should depend on message length
+    const encaps_randomness_length: 3000;
     */
 
     const len: fn Bits(*) -> Integer;
@@ -506,11 +507,11 @@ proof Proof {
                 ]
 
                 lemmas {
-                    invariant: [no-abort, lemma-kem-correctness]
+                    invariant: [no-abort, lemma-deconcatenate-concatenate]
                     lemma-left-output: [no-abort]
-                    lemma-right-output: [no-abort, lemma-kem-correctness]
+                    lemma-right-output: [no-abort]
                     same-output: [no-abort, lemma-kem-correctness]
-                    equal-aborts: []
+                    equal-aborts: [lemma-deconcatenate-inequality, lemma-deconcatenate-concatenate]
                 }
             }
         }
