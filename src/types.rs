@@ -87,6 +87,19 @@ impl Type {
     }
 }
 
+impl std::fmt::Display for Type {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut ty_str_bytes = Vec::with_capacity(256);
+
+        crate::writers::pseudocode::writer::Writer::new(&mut ty_str_bytes)
+            .write_type(self)
+            .map_err(|_| std::fmt::Error)?;
+
+        let ty_str = String::from_utf8(ty_str_bytes).map_err(|_| std::fmt::Error)?;
+        write!(f, "{ty_str}")
+    }
+}
+
 /// Describes the length of Bits types
 #[derive(Debug, Clone, Eq, PartialEq, Hash, PartialOrd, Ord)]
 pub enum CountSpec {
