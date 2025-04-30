@@ -110,7 +110,7 @@ proof WHSProto {
     instance H3_0 = H3 {
         params {
             b       : b ,
-			bcr     : false,
+			bcr     : true,
             n       : n    ,
             zeron   : zeron,
   	        prf     : prf  ,
@@ -120,7 +120,7 @@ proof WHSProto {
     instance H3_1 = H3 {
         params {
             b       : b ,
-			bcr     : true,
+			bcr     : false,
             n       : n    ,
             zeron   : zeron,
   	        prf     : prf  ,
@@ -542,11 +542,11 @@ proof WHSProto {
         {
             assumption collres
 
-            map CRreal H3_0  {
+            map CRideal H3_0  {
                 cr: CR
             }
 
-            map CRideal H3_1 {
+            map CRreal H3_1 {
                 cr: CR
             }
         }
