@@ -509,7 +509,7 @@ proof Proof {
                 lemmas {
                     invariant: [no-abort, lemma-deconcatenate-concatenate]
                     lemma-left-output: [no-abort]
-                    lemma-right-output: [no-abort]
+                    lemma-right-output: [no-abort, lemma-kem-correctness]
                     same-output: [no-abort, lemma-kem-correctness]
                     equal-aborts: [lemma-deconcatenate-inequality, lemma-deconcatenate-concatenate]
                 }

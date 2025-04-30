@@ -152,7 +152,7 @@
             (=>
                 (and 
                     (= ek enacpsk)
-                    (= k (<<func-proof-kem_decaps>> sk ek))
+                    ;(= k (<<func-proof-kem_decaps>> sk ek))
                 )
                 (=
                     output
