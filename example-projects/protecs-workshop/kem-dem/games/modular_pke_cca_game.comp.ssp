@@ -1,5 +1,5 @@
 composition ModularPkeCcaGame {
-    const kem_idealization: Bool;
+    const key_idealization: Bool;
     const dem_idealization: Bool;
 
     const len: fn Bits(*) -> Integer;
@@ -14,7 +14,7 @@ composition ModularPkeCcaGame {
 
     instance pkg_Key = Key {
         params {
-            b: kem_idealization,
+            b: key_idealization,
         }
     }
 

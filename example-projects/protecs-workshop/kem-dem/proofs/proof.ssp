@@ -38,7 +38,7 @@ proof Proof {
 
     instance modular_pke_cca_game_with_real_kem = ModularPkeCcaGame {
         params {
-            kem_idealization: false,
+            key_idealization: false,
             dem_idealization: b,
             len: len,
             zeros: zeros,
@@ -84,7 +84,7 @@ proof Proof {
 
     instance modular_pke_cca_game_with_real_kem_and_real_dem = ModularPkeCcaGame {
         params {
-            kem_idealization: false,
+            key_idealization: false,
             dem_idealization: false,
             len: len,
             zeros: zeros,
@@ -100,7 +100,7 @@ proof Proof {
 
     instance modular_pke_cca_game_with_ideal_kem_and_real_dem = ModularPkeCcaGame {
         params {
-            kem_idealization: true,
+            key_idealization: true,
             dem_idealization: false,
             len: len,
             zeros: zeros,
@@ -116,7 +116,7 @@ proof Proof {
 
     instance modular_pke_cca_game_with_real_kem_and_ideal_dem = ModularPkeCcaGame {
         params {
-            kem_idealization: false,
+            key_idealization: false,
             dem_idealization: true,
             len: len,
             zeros: zeros,
@@ -132,7 +132,7 @@ proof Proof {
 
     instance modular_pke_cca_game_with_ideal_kem_and_ideal_dem = ModularPkeCcaGame {
         params {
-            kem_idealization: true,
+            key_idealization: true,
             dem_idealization: true,
             len: len,
             zeros: zeros,
@@ -191,7 +191,7 @@ proof Proof {
 
     gamehops {
         /* 
-        We want to prove PKE-CCA security of the KEM-DEM construction described in the packages 
+        We want to prove PKE-CCA security of the KEM-DEM construction described in the packages and
         reduce to KEM-CCA and DEM-CCA security of underlying KEM and DEM schemes.
         Therefore, we want to bound distinguishing advantage of an arbitrary adversary between real and ideal monolithic PKE-CCA games.
         We do 5 game hops to reach monolithic_pke_cca_game_ideal from monolithic_pke_cca_game_real.
@@ -239,9 +239,11 @@ proof Proof {
                 ]
 
                 lemmas {
-                    invariant: [no-abort]
-                    same-output: [no-abort]
-                    equal-aborts: []
+                    invariant: [no-abort, lemma-deconcatenate-concatenate]
+                    lemma-left-output: [no-abort]
+                    lemma-right-output: [no-abort, lemma-kem-correctness]
+                    same-output: [no-abort, lemma-kem-correctness]
+                    equal-aborts: [lemma-deconcatenate-inequality, lemma-deconcatenate-concatenate]
                 }
             }
         }
@@ -343,7 +345,7 @@ proof Proof {
 
         /* 
         Instead of previous equivalence goals, we can concisely prove the following equivalence in one go.
-        Note that both games are initialized using the same idealization bit "b" (i.e. left_b = right_dem_initialization).
+        Note that both games are initialized using the same idealization bit "b" (i.e. left_b = right_dem_idealization).
         */
         equivalence monolithic_pke_cca_game modular_pke_cca_game_with_real_kem {
             PKGEN: {
