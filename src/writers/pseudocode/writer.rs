@@ -48,7 +48,7 @@ impl<W: Write> Writer<W> {
             Type::Empty => self.write_string("()"),
             Type::Bits(n) => {
                 self.write_string("Bits(")?;
-                self.write_string("&*n")?;
+                self.write_string(&format!("{n}"))?;
                 self.write_string(")")
             }
             Type::Maybe(t) => {

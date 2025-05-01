@@ -87,6 +87,19 @@ impl Type {
     }
 }
 
+impl std::fmt::Display for Type {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut ty_str_bytes = Vec::with_capacity(256);
+
+        crate::writers::pseudocode::writer::Writer::new(&mut ty_str_bytes)
+            .write_type(self)
+            .map_err(|_| std::fmt::Error)?;
+
+        let ty_str = String::from_utf8(ty_str_bytes).map_err(|_| std::fmt::Error)?;
+        write!(f, "{ty_str}")
+    }
+}
+
 /// Describes the length of Bits types
 #[derive(Debug, Clone, Eq, PartialEq, Hash, PartialOrd, Ord)]
 pub enum CountSpec {
@@ -102,5 +115,49 @@ impl CountSpec {
         } else {
             self == other
         }
+    }
+}
+
+impl std::fmt::Display for CountSpec {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CountSpec::Identifier(identifier) => write!(f, "{}", identifier.ident_ref()),
+            CountSpec::Literal(n) => write!(f, "{n}"),
+            CountSpec::Any => write!(f, "*"),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::identifier::{
+        pkg_ident::{PackageConstIdentifier, PackageIdentifier},
+        Identifier,
+    };
+
+    use super::{CountSpec, Type};
+
+    #[test]
+    fn display_countspec() {
+        assert_eq!("*", format!("{}", CountSpec::Any));
+        assert_eq!("42", format!("{}", CountSpec::Literal(42)));
+        assert_eq!(
+            "n",
+            format!(
+                "{}",
+                CountSpec::Identifier(Identifier::PackageIdentifier(PackageIdentifier::Const(
+                    PackageConstIdentifier {
+                        pkg_name: "SomePackage".to_string(),
+                        name: "n".to_string(),
+                        pkg_inst_name: None,
+                        tipe: Type::Integer,
+                        game_assignment: None,
+                        game_inst_name: None,
+                        game_name: None,
+                        proof_name: None,
+                    }
+                )))
+            )
+        );
     }
 }

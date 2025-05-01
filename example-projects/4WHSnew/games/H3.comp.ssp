@@ -6,19 +6,6 @@ composition H3 {
         const b: Bool;
         const bcr: Bool;
     
-    instance Game_nochecks = Game_nochecks {
-        params {
-        b: b,
-        n: n,
-        zeron: zeron,
-        }
-    }
-    instance Prot = ReductionCR {
-        params {
-        n: n,
-        zeron: zeron,
-        }
-    }
 	instance Nonces = Nonces {
 		params {
         	n: n,
@@ -31,6 +18,19 @@ composition H3 {
         b: bcr,
         prf: prf,
         mac: mac,
+        }
+    }
+    instance Prot = ReductionCR {
+        params {
+        n: n,
+        zeron: zeron,
+        }
+    }
+    instance Game_nochecks = Game_nochecks {
+        params {
+        b: b,
+        n: n,
+        zeron: zeron,
         }
     }
 
