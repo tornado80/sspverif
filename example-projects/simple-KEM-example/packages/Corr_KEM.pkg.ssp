@@ -22,7 +22,7 @@ oracle GetPK() -> Bits(256)                          /* returns pk              
       return pk;
     }
 
-oracle ENC_and_DEC() -> (Bits(256),Bits(256),Bits(256))  /* samples rand and returns ctxt */
+oracle ENC_and_DEC() -> (Bits(256),Bits(256),Bits(256))  /* samples rand and returns ctxt and both keys */
     {
       if (sk == None)                               /* sample sk if it has not been sampled yet */ 
       {

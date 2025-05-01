@@ -40,12 +40,12 @@ oracle Run() -> Bits(256)                            /* samples rand, stores sen
       /* run sender */
       rand <-$ Bits(256);                          /* sample randomness  */
       (ctxt,ksent)   <- parse encaps(pk,rand);     /* encapsulate key    */
-      SENTCTXT[ctr]  <- Some(ctxt);                /* store ctxt for no good reason  */
-      SENTKEY[ctr]   <- Some(ksent);               /* store sent key      */
+      SENTCTXT[ctr]  <- Some(ctxt);                /* store ctxt         */
+      SENTKEY[ctr]   <- Some(ksent);               /* store sent key     */
 
       /* run receiver */
-      kreceived         <- decaps(sk,ctxt);        /* decapsulate ctxt   */
-      RECEIVEDCTXT[ctr] <- Some(ctxt);             /* store ctxt for no good reason  */
+      kreceived         <- decaps(sk,ctxt);        /* decapsulate ctxt    */
+      RECEIVEDCTXT[ctr] <- Some(ctxt);             /* store ctxt          */
       RECEIVEDKEY[ctr]  <- Some(kreceived);        /* store received key  */
 
       ctr <- (ctr + 1);                            /* increase counter    */
