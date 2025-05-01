@@ -39,7 +39,9 @@ oracle Run() -> Bits(256)                            /* samples rand, stores sen
 
       /* run sender */
       rand <-$ Bits(256);                          /* sample randomness  */
-      (ctxt,ksent)   <- parse encaps(pk,rand);     /* encapsulate key    */
+      temp           <- encaps(pk,rand);           /* encapsulate key    */
+      (ctxt,ksent)   <- parse temp;                /* encapsulate key    */
+
       SENTCTXT[ctr]  <- Some(ctxt);                /* store ctxt         */
       SENTKEY[ctr]   <- Some(ksent);               /* store sent key     */
 
