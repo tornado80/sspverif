@@ -1,8 +1,4 @@
 package KEM {
-    params {
-        b: Bool,
-    }
-
     state {
         pk: Maybe(Bits(100)),
         sk: Maybe(Bits(1000)),
@@ -10,7 +6,6 @@ package KEM {
     }
 
     import oracles {
-        GEN(),
         SET(k: Bits(256)),
         KEM_GEN() -> (Bits(100), Bits(1000)),
         KEM_ENCAPS(pk: Bits(100)) -> (Bits(256), Bits(400)),
@@ -32,11 +27,7 @@ package KEM {
         k_ek <- invoke KEM_ENCAPS(Unwrap(pk));
         (k, ek1) <- parse k_ek;
         ek <- Some(ek1);
-        if b {
-            _ <- invoke GEN();
-        } else {
-            _ <- invoke SET(k);
-        }
+        _ <- invoke SET(k);
         return ek1;
     }
 

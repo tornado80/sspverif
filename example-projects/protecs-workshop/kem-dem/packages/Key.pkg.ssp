@@ -1,4 +1,8 @@
 package Key {
+    params {
+        b: Bool
+    }
+
     state {
         k: Maybe(Bits(256))
     }
@@ -11,7 +15,12 @@ package Key {
 
     oracle SET(kp: Bits(256)) {
         assert (k == None);
-        k <- Some(kp);
+        if b {
+            k1 <-$ Bits(256);
+            k <- Some(k1);
+        } else {
+            k <- Some(kp);
+        }
     }
 
     oracle GET() -> Bits(256) {
