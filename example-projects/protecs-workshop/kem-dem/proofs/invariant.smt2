@@ -75,7 +75,7 @@
             (right_kem_ek (<pkg-state-KEM-<$$>-ek> (<game-ModularPkeCcaGame-<$<!false!><!b!>$>-pkgstate-pkg_KEM> state-right)))
             (right_mod_cca_ek (<pkg-state-MOD_CCA-<$$>-ek> (<game-ModularPkeCcaGame-<$<!false!><!b!>$>-pkgstate-pkg_MOD_CCA> state-right)))
             (right_dem_c (<pkg-state-DEM-<$<!dem_idealization!>$>-c> (<game-ModularPkeCcaGame-<$<!false!><!b!>$>-pkgstate-pkg_DEM> state-right)))
-            (right_key_k (<pkg-state-Key-<$<!kem_idealization!>$>-k> (<game-ModularPkeCcaGame-<$<!false!><!b!>$>-pkgstate-pkg_Key> state-right)))
+            (right_key_k (<pkg-state-Key-<$<!key_idealization!>$>-k> (<game-ModularPkeCcaGame-<$<!false!><!b!>$>-pkgstate-pkg_Key> state-right)))
             (right_sk (<pkg-state-KEM-<$$>-sk> (<game-ModularPkeCcaGame-<$<!false!><!b!>$>-pkgstate-pkg_KEM> state-right)))
         )
         (and
@@ -138,7 +138,7 @@
             (ek (maybe-get (<pkg-state-KEM-<$$>-ek> (<game-ModularPkeCcaGame-<$<!false!><!b!>$>-pkgstate-pkg_KEM> old-state-right))))
             (enacpsk (el2-1 (<<func-proof-deconcatenate>> ek_ctxt)))
             (ctxt (el2-2 (<<func-proof-deconcatenate>> ek_ctxt)))
-            (k (maybe-get (<pkg-state-Key-<$<!kem_idealization!>$>-k> (<game-ModularPkeCcaGame-<$<!false!><!b!>$>-pkgstate-pkg_Key> old-state-right))))
+            (k (maybe-get (<pkg-state-Key-<$<!key_idealization!>$>-k> (<game-ModularPkeCcaGame-<$<!false!><!b!>$>-pkgstate-pkg_Key> old-state-right))))
             (output (return-value (<oracle-return-ModularPkeCcaGame-<$<!false!><!b!>$>-MOD_CCA-<$$>-PKDEC-return-value-or-abort> return-right)))
         )
         (and
