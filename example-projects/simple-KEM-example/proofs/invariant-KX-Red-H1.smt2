@@ -1,6 +1,6 @@
 invariant(define-fun invariant
-  ( (state-kx     <GameState_KX_<$<!n!><!b!><!zeron!>$>>)
-    (state-kxred  <GameState_H1_<$<!n!><!b!><!false!><!zeron!>$>>))
+  ( (state-prot     <GameState_todo>>)
+    (state-red      <GameState_todo>>))
   Bool
 ; getting package-state out of game-state and demanding equality, they should be exactly the same in this case.
 (=
