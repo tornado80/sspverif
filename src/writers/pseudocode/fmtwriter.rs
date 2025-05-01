@@ -53,7 +53,7 @@ impl<W: Write> FmtWriter<W> {
             Type::Empty => self.write_string("Empty"),
             Type::Bits(n) => {
                 self.write_string("Bits(")?;
-                self.write_string("&*n")?;
+                self.write_string(&format!("{n}"))?;
                 self.write_string(")")
             }
             Type::Maybe(t) => {
