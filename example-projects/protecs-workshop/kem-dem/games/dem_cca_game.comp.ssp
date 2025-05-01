@@ -14,6 +14,9 @@ composition DemCcaGame {
     }
 
     instance pkg_Key = Key {
+        params {
+            b: true
+        }
     }
 
     instance pkg_DEM = DEM {
@@ -34,6 +37,7 @@ composition DemCcaGame {
             ENC: pkg_DEM,
             DEC: pkg_DEM,
             GEN: pkg_Key,
+            SET: pkg_Key,
             DEM_ENC: pkg_DemScheme,
             DEM_DEC: pkg_DemScheme
         }
