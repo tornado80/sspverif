@@ -36,7 +36,6 @@ composition DemCcaGame {
         adversary: {
             ENC: pkg_DEM,
             DEC: pkg_DEM,
-            GEN: pkg_Key,
             SET: pkg_Key,
             DEM_ENC: pkg_DemScheme,
             DEM_DEC: pkg_DemScheme
