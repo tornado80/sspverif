@@ -13,7 +13,7 @@
             (= sample-ctr-monolithic_pke_cca_game sample-ctr-old-monolithic_pke_cca_game)
             (= sample-ctr-modular_pke_cca_game_with_real_kem sample-ctr-old-modular_pke_cca_game_with_real_kem)
             (= sample-id-monolithic_pke_cca_game 0)
-            (= sample-id-modular_pke_cca_game_with_real_kem 0)
+            (= sample-id-modular_pke_cca_game_with_real_kem 2)
         )
         ; Following causes unknown:
         ;(and
@@ -85,6 +85,7 @@
             (= ((_ is mk-none) left_c) ((_ is mk-none) right_c) ((_ is mk-none) right_kem_ek) ((_ is mk-none) right_mod_cca_ek) ((_ is mk-none) right_dem_c) ((_ is mk-none) right_key_k)) ; left_challenge_ciphertext = None iff right_challenge_ciphertext = None iff right_encapsulation_challenge = None iff right_dem_challenge = None iff right_key_k = None
             (= left_sk right_sk) ; left_sk = right_sk
             (= right_mod_cca_ek right_kem_ek) ; right encapsulated keys
+            (=> ((_ is mk-none) right_pk_kem) ((_ is mk-none) right_c)) ; if PKGEN is not called, PKENC can not be called
             (=>
                 (not ((_ is mk-none) right_c))
                 (= (maybe-get right_c) (<<func-proof-concatenate>> (maybe-get right_mod_cca_ek) (maybe-get right_dem_c)))
