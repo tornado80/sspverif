@@ -13,18 +13,17 @@ composition KemCcaGame {
     }
 
     instance pkg_Key = Key {
+        params {
+            b: b
+        }
     }
 
     instance pkg_KEM = KEM {
-        params {
-            b: b,
-        }
     }
 
     compose {
         pkg_KEM: {
             SET: pkg_Key,
-            GEN: pkg_Key,
             KEM_GEN: pkg_KemScheme,
             KEM_ENCAPS: pkg_KemScheme,
             KEM_DECAPS: pkg_KemScheme

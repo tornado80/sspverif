@@ -1,5 +1,5 @@
 composition ModularPkeCcaGame {
-    const kem_idealization: Bool;
+    const key_idealization: Bool;
     const dem_idealization: Bool;
 
     const len: fn Bits(*) -> Integer;
@@ -11,6 +11,9 @@ composition ModularPkeCcaGame {
     const dem_dec: fn Bits(256), Bits(*) -> Bits(*);
 
     instance pkg_Key = Key {
+        params {
+            b: key_idealization,
+        }
     }
 
     instance pkg_DemScheme = DemScheme {
@@ -37,9 +40,6 @@ composition ModularPkeCcaGame {
     }
 
     instance pkg_KEM = KEM {
-        params {
-            b: kem_idealization,
-        }
     }
 
     instance pkg_MOD_CCA = MOD_CCA {
@@ -50,8 +50,7 @@ composition ModularPkeCcaGame {
             KEM_GEN: pkg_KemScheme,
             KEM_ENCAPS: pkg_KemScheme,
             KEM_DECAPS: pkg_KemScheme,
-            SET: pkg_Key,
-            GEN: pkg_Key
+            SET: pkg_Key
         }
         pkg_DEM: {
             DEM_ENC: pkg_DemScheme,

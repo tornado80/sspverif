@@ -11,6 +11,7 @@ package KemScheme {
     }
 
     oracle KEM_ENCAPS(pk: Bits(100)) -> (Bits(256), Bits(400)) {
+        /* r <-$ Bits(3000); */
         return kem_encaps(pk);
     }
 

@@ -38,7 +38,7 @@ package MOD_CCA {
         assert (Unwrap(c) != ek_ctxt);
         (encapsk, ctxt) <- parse ek_ctxt;
         if (encapsk == Unwrap(ek)) {
-            m <- invoke DEC(ctxt); 
+            m <- invoke DEC(ctxt);
         } else {
             k <- invoke DECAPS(encapsk);
             m <- invoke DEM_DEC(k, ctxt);
