@@ -1,5 +1,5 @@
 invariant(define-fun invariant
-  ( (state-prot     <GameState_todo>>)
+  ( (state-prot     <PackageState_Prot_<$<!isreal!>$>)
     (state-red      <GameState_todo>>))
   Bool
 ; getting package-state out of game-state and demanding equality, they should be exactly the same in this case.
