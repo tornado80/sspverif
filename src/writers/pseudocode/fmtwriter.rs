@@ -79,6 +79,7 @@ impl<W: Write> FmtWriter<W> {
                 self.write_string(")")
             }
             Type::UserDefined(type_name) => self.write_string(type_name),
+            Type::Unknown => self.write_string("Unknown"),
             _ => todo!("{:#?}", t),
         }
     }

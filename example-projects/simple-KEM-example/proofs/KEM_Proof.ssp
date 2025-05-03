@@ -21,7 +21,7 @@ proof KEM_Proof {
         }
     }
 
-    instance Prot_real = CPA {
+    instance Prot_real = Prot {
         params {
         isideal: false,
            kgen: kgen,
@@ -30,7 +30,25 @@ proof KEM_Proof {
         }
     }
 
-    instance Prot_ideal = CPA {
+    instance Prot_ideal = Prot {
+        params {
+        isideal: true,
+           kgen: kgen,
+         encaps: encaps,
+         decaps: decaps,
+        }
+    }
+
+    instance H1_real = H1 {
+        params {
+        isideal: false,
+           kgen: kgen,
+         encaps: encaps,
+         decaps: decaps,
+        }
+    }
+
+    instance H1_ideal = H1 {
         params {
         isideal: true,
            kgen: kgen,
@@ -45,7 +63,7 @@ proof KEM_Proof {
 
     gamehops 
     {
-        equivalence Prot H1_0 {
+        equivalence Prot_real H1_real {
             Send1: {
                 invariant: [
                     ./proofs/invariant-KX-Red-H1.smt2

@@ -73,6 +73,7 @@ impl<W: Write> Writer<W> {
                 self.write_type(t_value)?;
                 self.write_string(")")
             }
+            Type::Unknown => self.write_string("Unknown"),
             _ => todo!("{:?}", t),
         }
     }

@@ -33,11 +33,11 @@ oracle Run() -> Bits(256)                            /* samples rand, stores sen
       (ctxt,ksent,kreceived) <- parse ret;
 
       /* store sender */
-      SENTCTXT[ctr]  <- Some(ctxt);                /* store ctxt for no good reason  */
+      SENTCTXT[ctr]  <- Some(ctxt);                /* store ctxt for      */
       SENTKEY[ctr]   <- Some(ksent);               /* store sent key      */
 
       /* store receiver */
-      RECEIVEDCTXT[ctr] <- Some(ctxt);             /* store ctxt for no good reason  */
+      RECEIVEDCTXT[ctr] <- Some(ctxt);             /* store ctxt for      */
       RECEIVEDKEY[ctr]  <- Some(kreceived);        /* store received key  */
 
       ctr <- (ctr + 1);                            /* increase counter    */
