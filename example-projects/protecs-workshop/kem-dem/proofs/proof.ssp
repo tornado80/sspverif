@@ -14,7 +14,7 @@ proof Proof {
     const len: fn Bits(*) -> Integer;
     const zeros: fn Integer -> Bits(*);
     const kem_gen: fn Bits(2000) -> (Bits(100), Bits(1000));
-    const kem_encaps: fn Bits(100) -> (Bits(256), Bits(400));
+    const kem_encaps: fn Bits(3000), Bits(100) -> (Bits(256), Bits(400));
     const kem_decaps: fn Bits(1000), Bits(400) -> Bits(256);
     const dem_enc: fn Bits(500), Bits(256), Bits(*) -> Bits(*);
     const dem_dec: fn Bits(256), Bits(*) -> Bits(*);
@@ -189,7 +189,7 @@ proof Proof {
         SSBee algorithimically verifies this using the annotated call/dependecy graph of the compostion by matching the types of the mapped packages and their parameters as well as verifying a single reduction package can be used to split the left and right games to those of the assumption.
         */
         /* We first prove real PKE-CCA game is equivalent to the modular version (i.e. modular_pke_cca_game_with_real_kem_and_real_dem) */
-        /*
+        /* 
         equivalence monolithic_pke_cca_real_game modular_pke_cca_game_with_real_kem_and_real_dem {
             PKGEN: {
                 invariant: [
@@ -209,8 +209,8 @@ proof Proof {
                 ]
 
                 lemmas {
-                    invariant: [no-abort]
-                    same-output: [no-abort]
+                    invariant: [no-abort, lemma-rand-is-eq]
+                    same-output: [no-abort, lemma-rand-is-eq]
                     equal-aborts: []
                 }
             }
@@ -221,11 +221,9 @@ proof Proof {
                 ]
 
                 lemmas {
-                    invariant: [no-abort, lemma-deconcatenate-concatenate]
-                    lemma-left-output: [no-abort]
-                    lemma-right-output: [no-abort, lemma-kem-correctness]
+                    invariant: [no-abort]
                     same-output: [no-abort, lemma-kem-correctness]
-                    equal-aborts: [lemma-deconcatenate-inequality, lemma-deconcatenate-concatenate]
+                    equal-aborts: []
                 }
             }
         }
@@ -348,8 +346,8 @@ proof Proof {
                 ]
 
                 lemmas {
-                    invariant: [no-abort]
-                    same-output: [no-abort]
+                    invariant: [no-abort, lemma-rand-is-eq]
+                    same-output: [no-abort, lemma-rand-is-eq]
                     equal-aborts: []
                 }
             }
@@ -361,8 +359,6 @@ proof Proof {
 
                 lemmas {
                     invariant: [no-abort]
-                    lemma-left-output: [no-abort]
-                    lemma-right-output: [no-abort, lemma-kem-correctness]
                     same-output: [no-abort, lemma-kem-correctness]
                     equal-aborts: []
                 }

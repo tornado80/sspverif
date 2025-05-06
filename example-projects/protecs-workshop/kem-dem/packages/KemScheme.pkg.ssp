@@ -1,7 +1,7 @@
 package KemScheme {
     params {
         kem_gen: fn Bits(2000) -> (Bits(100), Bits(1000)),
-        kem_encaps: fn Bits(100) -> (Bits(256), Bits(400)),
+        kem_encaps: fn Bits(3000), Bits(100) -> (Bits(256), Bits(400)),
         kem_decaps: fn Bits(1000), Bits(400) -> Bits(256),
     }
 
@@ -10,9 +10,11 @@ package KemScheme {
         return kem_gen(r);
     }
 
-    oracle KEM_ENCAPS(pk: Bits(100)) -> (Bits(256), Bits(400)) {
-        /* r <-$ Bits(3000); */
-        return kem_encaps(pk);
+    oracle KEM_ENCAPS(pk: Bits(100)) -> (Bits(256), Bits(400), Bits(3000)) {
+        r <-$ Bits(3000);
+        k_ek <- kem_encaps(r, pk);
+        (k, ek) <- parse k_ek;
+        return (k, ek, r);
     }
 
     oracle KEM_DECAPS(sk: Bits(1000), ek: Bits(400)) -> Bits(256) {

@@ -5,7 +5,7 @@ composition ModularPkeCcaGame {
     const len: fn Bits(*) -> Integer;
     const zeros: fn Integer -> Bits(*);
     const kem_gen: fn Bits(2000) -> (Bits(100), Bits(1000));
-    const kem_encaps: fn Bits(100) -> (Bits(256), Bits(400));
+    const kem_encaps: fn Bits(3000), Bits(100) -> (Bits(256), Bits(400));
     const kem_decaps: fn Bits(1000), Bits(400) -> Bits(256);
     const dem_enc: fn Bits(500), Bits(256), Bits(*) -> Bits(*);
     const dem_dec: fn Bits(256), Bits(*) -> Bits(*);
