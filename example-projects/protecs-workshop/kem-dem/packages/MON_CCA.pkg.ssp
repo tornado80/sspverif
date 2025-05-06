@@ -7,14 +7,14 @@ package MON_CCA {
 
     import oracles {
         GEN() -> (Bits(100), Bits(1000)),
-        ENC(pk: Bits(100), m: Bits(*)) -> (Bits(400),Bits(*)) /* ciphertext type */,
+        ENC(pk: Bits(100), m: Bits(*)) -> (Bits(400),Bits(*),Bits(3000)) /* ciphertext type */,
         DEC(sk: Bits(1000), c: (Bits(400),Bits(*)) /* ciphertext type */) -> Bits(*),
     }
 
     state {
         pk: Maybe(Bits(100)),
         sk: Maybe(Bits(1000)),
-        c: Maybe((Bits(400),Bits(*))),
+        c: Maybe((Bits(400),Bits(*)))
     }
 
     oracle PKGEN() -> Bits(100) {
@@ -34,8 +34,9 @@ package MON_CCA {
         } else {
             c1 <- invoke ENC(Unwrap(pk), m);
         }
-        c <- Some(c1);
-        return c1;
+        (ek, c2, r) <- parse c1;
+        c <- Some((ek, c2));
+        return (ek, c2);
     }
 
     oracle PKDEC(ek_ctxt: (Bits(400),Bits(*))) -> Bits(*) {
