@@ -1,19 +1,19 @@
 (define-fun randomness-mapping-PKGEN
     ( 
-        (sample-ctr-old-monolithic_pke_cca_game Int)
-        (sample-ctr-old-modular_pke_cca_game_with_real_kem Int)
-        (sample-id-monolithic_pke_cca_game Int)
-        (sample-id-modular_pke_cca_game_with_real_kem Int)
-        (sample-ctr-monolithic_pke_cca_game Int)
-        (sample-ctr-modular_pke_cca_game_with_real_kem Int)
+        (sample-ctr-old-monolithic_pke_cca_real_game Int)
+        (sample-ctr-old-modular_pke_cca_game_with_real_kem_and_real_dem Int)
+        (sample-id-monolithic_pke_cca_real_game Int)
+        (sample-id-modular_pke_cca_game_with_real_kem_and_real_dem Int)
+        (sample-ctr-monolithic_pke_cca_real_game Int)
+        (sample-ctr-modular_pke_cca_game_with_real_kem_and_real_dem Int)
     )
     Bool
     (or
         (and
-            (= sample-ctr-monolithic_pke_cca_game sample-ctr-old-monolithic_pke_cca_game)
-            (= sample-ctr-modular_pke_cca_game_with_real_kem sample-ctr-old-modular_pke_cca_game_with_real_kem)
-            (= sample-id-monolithic_pke_cca_game 0)
-            (= sample-id-modular_pke_cca_game_with_real_kem 2)
+            (= sample-ctr-monolithic_pke_cca_real_game sample-ctr-old-monolithic_pke_cca_real_game)
+            (= sample-ctr-modular_pke_cca_game_with_real_kem_and_real_dem sample-ctr-old-modular_pke_cca_game_with_real_kem_and_real_dem)
+            (= sample-id-monolithic_pke_cca_real_game 0)
+            (= sample-id-modular_pke_cca_game_with_real_kem_and_real_dem 2)
         )
     )
 )
@@ -42,6 +42,19 @@
             (= sample-id-modular_pke_cca_game_with_real_kem 3)
         )
     )
+)
+
+(define-fun randomness-mapping-PKDEC
+    ( 
+        (sample-ctr-old-monolithic_pke_cca_game Int)
+        (sample-ctr-old-modular_pke_cca_game_with_real_kem Int)
+        (sample-id-monolithic_pke_cca_game Int)
+        (sample-id-modular_pke_cca_game_with_real_kem Int)
+        (sample-ctr-monolithic_pke_cca_game Int)
+        (sample-ctr-modular_pke_cca_game_with_real_kem Int)
+    )
+    Bool
+    false
 )
 
 (define-fun invariant
@@ -88,7 +101,7 @@
     )
 )
 
-(define-fun <relation-lemma-kem-correctness-monolithic_pke_cca_real_game-modular_pke_cca_game_with_real_kem-PKDEC>
+(define-fun <relation-lemma-kem-correctness-monolithic_pke_cca_real_game-modular_pke_cca_game_with_real_kem_and_real_dem-PKDEC>
     (
         (old-state-left <GameState_MonolithicPkeCcaGame_<$<!false!>$>>)
         (old-state-right <GameState_ModularPkeCcaGame_<$<!false!><!false!>$>>)
@@ -120,7 +133,7 @@
     )
 )
 
-(define-fun <relation-lemma-rand-is-eq-monolithic_pke_cca_game-modular_pke_cca_game_with_real_kem-PKENC>
+(define-fun <relation-lemma-rand-is-eq-monolithic_pke_cca_real_game-modular_pke_cca_game_with_real_kem_and_real_dem-PKENC>
     (
         (old-state-left <GameState_MonolithicPkeCcaGame_<$<!false!>$>>)
         (old-state-right <GameState_ModularPkeCcaGame_<$<!false!><!false!>$>>)
