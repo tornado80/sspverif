@@ -101,6 +101,29 @@
     )
 )
 
+; The following axiom gives unknown when checking satisfiability of only invariants
+;(assert
+;    (forall 
+;        (
+;            (gen-r Bits_2000)
+;            (encaps-r Bits_3000)
+;        )
+;        (let 
+;            (
+;                (pk (el2-1 (<<func-proof-kem_gen>> gen-r)))
+;                (sk (el2-2 (<<func-proof-kem_gen>> gen-r)))
+;            )
+;            (let
+;                (
+;                    (k (el2-1 (<<func-proof-kem_encaps>> encaps-r pk)))
+;                    (ek (el2-2 (<<func-proof-kem_encaps>> encaps-r pk)))
+;                )
+;                (= k (<<func-proof-kem_decaps>> sk ek))
+;            )
+;        )
+;    )
+;)
+
 (define-fun <relation-lemma-kem-correctness-monolithic_pke_cca_game-modular_pke_cca_game_with_real_kem-PKDEC>
     (
         (old-state-left <GameState_MonolithicPkeCcaGame_<$<!b!>$>>)
