@@ -231,5 +231,4 @@
                               (or (= acc (mk-some false))
                                   (not (= sid (as mk-none
                                                   (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256)
-                                                                 (Maybe Bits_256)))))))))))))
-))
+                                                                 (Maybe Bits_256)))))))))))))))))
