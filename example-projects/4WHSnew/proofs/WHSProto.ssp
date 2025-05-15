@@ -167,8 +167,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [no-abort]
-                    same-output:  [no-abort]
+                    invariant:    [equal-aborts]
+                    same-output:  [equal-aborts]
                 }
             }
              Send2: {
@@ -178,8 +178,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [no-abort]
-                    same-output:  [no-abort]
+                    invariant:    [equal-aborts]
+                    same-output:  [equal-aborts]
                 }
             }
              Send3: {
@@ -189,8 +189,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [no-abort]
-                    same-output:  [no-abort]
+                    invariant:    [equal-aborts]
+                    same-output:  [equal-aborts]
                 }
             }
             Send4: {
@@ -200,8 +200,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [no-abort]
-                    same-output:  [no-abort]
+                    invariant:    [equal-aborts]
+                    same-output:  [equal-aborts]
                 }
             }
             Send5: {
@@ -211,8 +211,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [no-abort]
-                    same-output:  [no-abort]
+                    invariant:    [equal-aborts]
+                    same-output:  [equal-aborts]
                 }
             }
             NewKey: {
@@ -222,8 +222,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [no-abort]
-                    same-output:  [no-abort]
+                    invariant:    [equal-aborts]
+                    same-output:  [equal-aborts]
                 }
             }
             NewSession: {
@@ -233,8 +233,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [no-abort]
-                    same-output:  [no-abort]
+                    invariant:    [equal-aborts]
+                    same-output:  [equal-aborts]
                 }
             }
             Test: {
@@ -244,8 +244,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [no-abort]
-                    same-output:  [no-abort]
+                    invariant:    [equal-aborts]
+                    same-output:  [equal-aborts]
                 }
             }
             Reveal: {
@@ -255,8 +255,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [no-abort]
-                    same-output:  [no-abort]
+                    invariant:    [equal-aborts]
+                    same-output:  [equal-aborts]
                 }
             }
             SameKey: {
@@ -266,8 +266,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [no-abort]
-                    same-output:  [no-abort]
+                    invariant:    [equal-aborts]
+                    same-output:  [equal-aborts]
                 }
             }
             AtLeast: {
@@ -277,8 +277,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [no-abort]
-                    same-output:  [no-abort]
+                    invariant:    [equal-aborts]
+                    same-output:  [equal-aborts]
                 }
             }
             AtMost: {
@@ -288,8 +288,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [no-abort]
-                    same-output:  [no-abort]
+                    invariant:    [equal-aborts]
+                    same-output:  [equal-aborts]
                 }
             }
         }
@@ -311,8 +311,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [no-abort]
-                    same-output:  [no-abort]
+                    invariant:    [equal-aborts]
+                    same-output:  [equal-aborts]
                 }
             }
              Send2: {
@@ -320,8 +320,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [no-abort]
-                    same-output:  [no-abort]
+                    invariant:    [equal-aborts]
+                    same-output:  [equal-aborts]
                 }
             }
              Send3: {
@@ -329,8 +329,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [no-abort]
-                    same-output:  [no-abort]
+                    invariant:    [equal-aborts]
+                    same-output:  [equal-aborts]
                 }
             }
             Send4: {
@@ -338,8 +338,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [no-abort]
-                    same-output:  [no-abort]
+                    invariant:    [equal-aborts]
+                    same-output:  [equal-aborts]
                 }
             }
             Send5: {
@@ -347,8 +347,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [no-abort]
-                    same-output:  [no-abort]
+                    invariant:    [equal-aborts]
+                    same-output:  [equal-aborts]
                 }
             }
             NewKey: {
@@ -356,8 +356,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [no-abort]
-                    same-output:  [no-abort]
+                    invariant:    [equal-aborts]
+                    same-output:  [equal-aborts]
                 }
             }
             NewSession: {
@@ -365,8 +365,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [no-abort]
-                    same-output:  [no-abort]
+                    invariant:    [equal-aborts]
+                    same-output:  [equal-aborts]
                 }
             }
             Test: {
@@ -374,8 +374,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [no-abort]
-                    same-output:  [no-abort]
+                    invariant:    [equal-aborts]
+                    same-output:  [equal-aborts]
                 }
             }
             Reveal: {
@@ -383,8 +383,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [no-abort]
-                    same-output:  [no-abort]
+                    invariant:    [equal-aborts]
+                    same-output:  [equal-aborts]
                 }
             }
             SameKey: {
@@ -392,8 +392,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [no-abort]
-                    same-output:  [no-abort]
+                    invariant:    [equal-aborts]
+                    same-output:  [equal-aborts]
                 }
             }
             AtLeast: {
@@ -401,8 +401,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [no-abort]
-                    same-output:  [no-abort]
+                    invariant:    [equal-aborts]
+                    same-output:  [equal-aborts]
                 }
             }
             AtMost: {
@@ -410,8 +410,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [no-abort]
-                    same-output:  [no-abort]
+                    invariant:    [equal-aborts]
+                    same-output:  [equal-aborts]
                 }
             }
         }
@@ -428,13 +428,23 @@ proof WHSProto {
             }
         }
         equivalence H2_1 H3_0 {
+            Send4: {
+                invariant: [./proofs/invariant-H2_1-H3_0.smt2]
+
+                lemmas {
+                    equal-aborts: []
+                    invariant:    [equal-aborts]
+                    same-output:  [equal-aborts]
+/*					mess-is-two:  [equal-aborts]*/
+                }
+            }
             Send1: {
                 invariant: [./proofs/invariant-H2_1-H3_0.smt2]
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [no-abort]
-                    same-output:  [no-abort]
+                    invariant:    [equal-aborts]
+                    same-output:  [equal-aborts]
                 }
             }
              Send2: {
@@ -442,8 +452,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [no-abort]
-                    same-output:  [no-abort]
+                    invariant:    [equal-aborts]
+                    same-output:  [equal-aborts]
                 }
             }
              Send3: {
@@ -451,17 +461,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [no-abort]
-                    same-output:  [no-abort]
-                }
-            }
-            Send4: {
-                invariant: [./proofs/invariant-H2_1-H3_0.smt2]
-
-                lemmas {
-                    equal-aborts: []
-                    invariant:    [no-abort]
-                    same-output:  [no-abort]
+                    invariant:    [equal-aborts]
+                    same-output:  [equal-aborts]
                 }
             }
             Send5: {
@@ -469,8 +470,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [no-abort]
-                    same-output:  [no-abort]
+                    invariant:    [equal-aborts]
+                    same-output:  [equal-aborts]
                 }
             }
             NewKey: {
@@ -478,8 +479,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [no-abort]
-                    same-output:  [no-abort]
+                    invariant:    [equal-aborts]
+                    same-output:  [equal-aborts]
                 }
             }
             NewSession: {
@@ -487,8 +488,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [no-abort]
-                    same-output:  [no-abort]
+                    invariant:    [equal-aborts]
+                    same-output:  [equal-aborts]
                 }
             }
             Test: {
@@ -496,8 +497,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [no-abort]
-                    same-output:  [no-abort]
+                    invariant:    [equal-aborts]
+                    same-output:  [equal-aborts]
                 }
             }
             Reveal: {
@@ -505,8 +506,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [no-abort]
-                    same-output:  [no-abort]
+                    invariant:    [equal-aborts]
+                    same-output:  [equal-aborts]
                 }
             }
             SameKey: {
@@ -514,8 +515,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [no-abort]
-                    same-output:  [no-abort]
+                    invariant:    [equal-aborts]
+                    same-output:  [equal-aborts]
                 }
             }
             AtLeast: {
@@ -523,8 +524,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [no-abort]
-                    same-output:  [no-abort]
+                    invariant:    [equal-aborts]
+                    same-output:  [equal-aborts]
                 }
             }
             AtMost: {
@@ -532,8 +533,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [no-abort]
-                    same-output:  [no-abort]
+                    invariant:    [equal-aborts]
+                    same-output:  [equal-aborts]
                 }
             }
         }
