@@ -50,17 +50,3 @@ File extensions (Games are compositions of packages so .comp.ssp)
 Useful commands are : 
 1. cargo run -p ssbee prove -t (t is for SMT transcript) -p (p is for prover backend, currently only cvc5, we need to work on Z3) : main command for running the whoel tool chain to type check, translating to SMT, and callign cvc5 step by step for each lemma and proof goal
 2. cargo run -p ssbee latex : latex export with diagrams for games
-
-# TLS 1.3 Key Schedule Security
-
-Which Lemmata have the potential of formal verification?
-Code equivalence of K -> L and Key -> Log packages (This is a good candidate for the workshop)
-Codependence lemma
-Lemma C.2
-Lemma C.5
-Injectivity Lemma
-Code equivalence in the assumptions (appendix E)
-
-# Example 2: SimplifiedMappingIntroductionLemma (Lemma C.2) from TLS 1.3 Key Schedule Security
-
-# Challenges in TLS and SSBee and Possible Connections to Program Verification
