@@ -94,7 +94,7 @@ package Prot {
 		           (tau_));
 		} else {
 		    acc <- Some(false);
-		    return ((V,v,U,u,ltk,acc,k,ni_,nr,kmac,sid_,mess),
+		    return ((V,v,U,u,ltk,acc,k,ni_,nr,kmac,sid_,2),
 		            (zeron));
 		}
 	}
