@@ -255,15 +255,15 @@
 				   (=> (> mess 0) ; message larger than 0
 				       (and (not (= ni (as mk-none (Maybe Bits_256))))
 							(=> u (and (not (= nr (as mk-none (Maybe Bits_256))))
-							           (= sid (mk-some (mk-tuple5 U V ni nr
+							           (= sid (mk-some (mk-tuple5 V U ni nr
 							                          (mk-some (<<func-mac>> (maybe-get kmac)
 								  					                         (maybe-get nr)
 													                         2)))))
-							           (= k (mk-some (<<func-prf>> ltk U V
+							           (= k (mk-some (<<func-prf>> ltk V U
 								  					               (maybe-get ni)
 													               (maybe-get nr)
 													               true)))
-										(= kmac (mk-some (<<func-prf>> ltk U V
+										(= kmac (mk-some (<<func-prf>> ltk V U
 								  					                   (maybe-get ni)
 													                   (maybe-get nr)
 													                   false)))))))
@@ -272,11 +272,11 @@
 				       (and ; (not (= ni (as mk-none (Maybe Bits_256))))
 							(not (= nr (as mk-none (Maybe Bits_256))))
 							(not (= kmac (as mk-none (Maybe Bits_256))))
-							(=> v (and (= sid (mk-some (mk-tuple5 V U ni nr
+							(=> v (and (= sid (mk-some (mk-tuple5 U V ni nr
 							                                     (mk-some (<<func-mac>> (maybe-get kmac)
 							           	  					                            (maybe-get nr)
 							           						                            2)))))
-					                   (= k (mk-some (<<func-prf>> ltk V U
+					                   (= k (mk-some (<<func-prf>> ltk U V
 							           	  					    (maybe-get ni)
 							           						    (maybe-get nr)
 							           						    true))))))))))))
