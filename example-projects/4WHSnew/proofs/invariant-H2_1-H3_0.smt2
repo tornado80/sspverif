@@ -260,10 +260,10 @@
 				       (and ; (not (= ni (as mk-none (Maybe Bits_256))))
 							(not (= nr (as mk-none (Maybe Bits_256))))
 							(= sid (mk-some (mk-tuple5 U V ni nr
-							                          (mk-some(<<func-prf>> ltk U V
-								  					                        (maybe-get ni)
-													                        (maybe-get nr)
-												                            true)))))
+							                          (mk-some (<<func-mac>> ltk U V
+								  					                         (maybe-get ni)
+													                         (maybe-get nr)
+												                             true)))))
 					        (= k (mk-some (<<func-prf>> ltk U V
 								  					    (maybe-get ni)
 													    (maybe-get nr)
