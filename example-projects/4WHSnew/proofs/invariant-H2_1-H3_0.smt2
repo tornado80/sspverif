@@ -253,14 +253,17 @@
 			        (mess (el12-12 (maybe-get state))))
               (and (not (= u v)) ; receiver (or the other way around)
 				   (=> (> mess 0) ; message larger than 0
-				       (and (=> u (not (= ni (as mk-none (Maybe Bits_256)))))
+				       (and (not (= ni (as mk-none (Maybe Bits_256))))
 							(=> v (not (= nr (as mk-none (Maybe Bits_256)))))))
 				   (=> (and (> mess 1) ; message large than 1
 				            (= acc (mk-some true))) ; accept = true
-				       (and (not (= ni (as mk-none (Maybe Bits_256))))
+				       (and ; (not (= ni (as mk-none (Maybe Bits_256))))
 							(not (= nr (as mk-none (Maybe Bits_256))))
-;							(= sid
-;							   (mk-tuple5 )
+							(= sid (mk-some (mk-tuple5 U V ni nr
+							                          (mk-some(<<func-prf>> ltk U V
+								  					                        (maybe-get ni)
+													                        (maybe-get nr)
+												                            true)))))
 					        (= k (mk-some (<<func-prf>> ltk U V
 								  					    (maybe-get ni)
 													    (maybe-get nr)
