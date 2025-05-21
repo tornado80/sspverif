@@ -24,7 +24,7 @@ package ReductionCR {
 		
 		ni <- invoke Sample();
 		
-		return ((U,u,V,v,ltk,acc,k,Some(ni),nr,kmac,sid,1),
+		return ((U,u,V,v,ltk,None,k,Some(ni),nr,kmac,sid,1),
 		        (ni));
 	}
 
@@ -47,7 +47,7 @@ package ReductionCR {
         tau        <-  invoke MAC(kmac,nr,2);
         sid        <- (U,V,Some(ni),Some(nr),Some(tau));
 
-		return ((U,u,V,v,ltk,acc,Some(k),Some(ni),Some(nr),Some(kmac),Some(sid),1),
+		return ((U,u,V,v,ltk,None,Some(k),Some(ni),Some(nr),Some(kmac),Some(sid),1),
 		        (nr,tau));
 	}
 
@@ -73,7 +73,7 @@ package ReductionCR {
 		mac <- invoke MAC(kmac,nr,2);
 
         if (mac == tau) {
-		   return ((U,u,V,v,ltk,Some(true),Some(k),ni,Some(nr),Some(kmac),Some(sid),2),
+		   return ((U,u,V,v,ltk,None,Some(k),ni,Some(nr),Some(kmac),Some(sid),2),
 		           (Unwrap(ni),tau_));
 		} else {
 		   return (state, (zeron,zeron));
