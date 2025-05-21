@@ -240,12 +240,19 @@
                                                   Int)))))
               (and (not (= (el12-2 (maybe-get (select H2-state ctr))) ; sender
                            (el12-4 (maybe-get (select H2-state ctr))))) ; receiver (or the other way around)
-				   (=> (> (el12-12 (maybe-get (select H2-state ctr))) 2)
-				       (and (not (= (el12-8 (maybe-get (select H2-state ctr)))
+				   (=> (> (el12-12 (maybe-get (select H2-state ctr))) 0) ; message larger than 0
+				       (and (=> (el12-2 (maybe-get (select H2-state ctr))) ; u is true
+					            (not (= (el12-8 (maybe-get (select H2-state ctr))) ; ni not none
+						                (as mk-none (Maybe Bits_256)))))
+							(=> (el12-4 (maybe-get (select H2-state ctr))) ; v is true
+					            (not (= (el12-9 (maybe-get (select H2-state ctr))) ; nr not none
+						                (as mk-none (Maybe Bits_256)))))))
+				   (=> (> (el12-12 (maybe-get (select H2-state ctr))) 1) ; message large than 1
+				       (and (not (= (el12-8 (maybe-get (select H2-state ctr))) ; ni set
 					                (as mk-none (Maybe Bits_256))))
-							(not (= (el12-9 (maybe-get (select H2-state ctr)))
+							(not (= (el12-9 (maybe-get (select H2-state ctr))) ; nr set
 					                (as mk-none (Maybe Bits_256))))
-					        (= (el12-7 (maybe-get (select H2-state ctr)))
+					        (= (el12-7 (maybe-get (select H2-state ctr))) ; key is Some(prf(...)
 					           (mk-some (<<func-prf>> (el12-5 (maybe-get (select H2-state ctr)))
 						                              (el12-1 (maybe-get (select H2-state ctr)))
 						                              (el12-3 (maybe-get (select H2-state ctr)))
