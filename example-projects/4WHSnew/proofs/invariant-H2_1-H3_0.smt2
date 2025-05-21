@@ -256,13 +256,13 @@
 				       (and (not (= ni (as mk-none (Maybe Bits_256))))
 							(=> u (and (not (= nr (as mk-none (Maybe Bits_256))))
 							           (= k (mk-some (<<func-prf>> ltk U V
-								  					    (maybe-get ni)
-													    (maybe-get nr)
-													    false)))
+								  					               (maybe-get ni)
+													               (maybe-get nr)
+													               true)))
 										(= kmac (mk-some (<<func-prf>> ltk U V
-								  					    (maybe-get ni)
-													    (maybe-get nr)
-													    true)))))))
+								  					                   (maybe-get ni)
+													                   (maybe-get nr)
+													                   false)))))))
 				   (=> (and (> mess 1) ; message large than 1
 				            (= acc (mk-some true))) ; accept = true
 				       (and ; (not (= ni (as mk-none (Maybe Bits_256))))
@@ -275,7 +275,7 @@
 					        (= k (mk-some (<<func-prf>> ltk U V
 								  					    (maybe-get ni)
 													    (maybe-get nr)
-													    false))))))))))
+													    true))))))))))
         (forall ((ctr1 Int) (ctr2 Int))
            (=> (and (not (= (select H2-state ctr1)
                             (as mk-none (Maybe (Tuple12 Int Bool Int Bool Bits_256 (Maybe Bool)
