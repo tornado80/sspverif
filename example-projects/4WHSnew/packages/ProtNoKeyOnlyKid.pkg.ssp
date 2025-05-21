@@ -25,7 +25,7 @@ package ProtNoKeyOnlyKid {
 		
 		ni <- invoke Sample();
 		
-		return ((U,u,V,v,kid,acc,k,Some(ni),nr,kmac,sid,1),
+		return ((U,u,V,v,kid,None,k,Some(ni),nr,kmac,sid,1),
 		        (ni));
 	}
 
@@ -47,7 +47,7 @@ package ProtNoKeyOnlyKid {
         tau        <-  mac(kmac,nr,2);
         sid        <- (U,V,Some(ni),Some(nr),Some(tau));
 
-		return ((U,u,V,v,kid,acc,None,Some(ni),Some(nr),Some(kmac),Some(sid),1),
+		return ((U,u,V,v,kid,None,None,Some(ni),Some(nr),Some(kmac),Some(sid),1),
 		        (nr,tau));
 	}
 
@@ -70,7 +70,7 @@ package ProtNoKeyOnlyKid {
         sid        <- (U,V,ni,Some(nr),Some(tau));
 
         if (mac(kmac,nr,2) == tau) {
-		   return ((U,u,V,v,kid,Some(true),None,ni,Some(nr),Some(kmac),Some(sid),2),
+		   return ((U,u,V,v,kid,None,None,ni,Some(nr),Some(kmac),Some(sid),2),
 		           (Unwrap(ni),tau_));
 		} else {
 		   return (state, (zeron,zeron));
