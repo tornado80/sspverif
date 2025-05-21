@@ -33,7 +33,7 @@ package Prot {
 							        Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
 							        Integer),
 							       (Bits(256), Bits(256))) {
-	    (U,u,V,v,ltk,acc,k_,ni_,nr_,kmac_,sid_,mess) <- parse state;
+	    (V,v,U,u,ltk,acc,k_,ni_,nr_,kmac_,sid_,mess) <- parse state;
         assert (acc  == None );              /* session is still running           */
         assert (mess == 0);
 
