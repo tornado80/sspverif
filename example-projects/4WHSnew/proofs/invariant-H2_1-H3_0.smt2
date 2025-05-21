@@ -250,21 +250,20 @@
 			        (kmac (el12-10 (maybe-get (select H2-state ctr))))
 			        (sid  (el12-11 (maybe-get (select H2-state ctr))))
 			        (mess (el12-12 (maybe-get (select H2-state ctr)))))
-              (and (not (= u v) ; receiver (or the other way around)
+              (and (not (= u v)) ; receiver (or the other way around)
 				   (=> (> mess 0) ; message larger than 0
 				       (and (=> u (not (= ni (as mk-none (Maybe Bits_256)))))
-							(=> v (not (= nr (as mk-none (Maybe Bits_256))))))
+							(=> v (not (= nr (as mk-none (Maybe Bits_256)))))))
 				   (=> (and (> mess 1) ; message large than 1
 				            (= acc (mk-some true))) ; accept = true
 				       (and (not (= ni (as mk-none (Maybe Bits_256))))
 							(not (= nr (as mk-none (Maybe Bits_256))))
 ;							(= sid
 ;							   (mk-tuple5 )
-					        (= k
-					           (mk-some (<<func-prf>> ltk U V
-													  (maybe-get ni)
-													  (maybe-get nr)
-													  false)))))))))
+					        (= k (mk-some (<<func-prf>> ltk U V
+								  					    (maybe-get ni)
+													    (maybe-get nr)
+													    false)))))))))
         (forall ((ctr1 Int) (ctr2 Int))
            (=> (and (not (= (select H2-state ctr1)
                             (as mk-none (Maybe (Tuple12 Int Bool Int Bool Bits_256 (Maybe Bool)
