@@ -119,7 +119,6 @@ oracle Send1(ctr: Integer) -> Bits(256)
         state <- Unwrap(State[ctr]);
         (U,u,V,v,kid,acc,k,ni,nr,kmac,sid,mess) <- parse state;
         assert (u == false);                 /* session belongs to initiator */
-        assert (acc  == None );              /* session is still running           */
         return      <- invoke Run1(state);
         (state,msg) <- parse return;
         State[ctr]  <- Some(state);
@@ -132,7 +131,6 @@ oracle Send2(ctr: Integer, msg: Bits(256)) -> (Bits(256),Bits(256))
         state   <- Unwrap(State[ctr]);
         (V,v,U,u,kid,acc,k,ni_,nr,kmac,sid,mess) <- parse state;
         assert (v    == true );              /* session belongs to responder */
-        assert (acc  == None );              /* session is still running           */
         return         <- invoke Run2(state,msg);
         (state,msg_)   <- parse return;
         State[ctr]     <-  Some(state);
@@ -145,7 +143,6 @@ oracle Send3(ctr: Integer, msg: (Bits(256),Bits(256))) -> (Bits(256), Bits(256))
         state                                           <- Unwrap(State[ctr]);
         (U,u,V,v,kid,acc,k_,ni_,nr_,kmac_,sid_,mess)    <- parse state;
         assert (u    == false);              /* session belongs to initiator       */
-        assert (acc  == None);               /* session is still running           */
         return         <- invoke Run3(state,msg);
         (state,msg_)   <- parse return;
 
@@ -171,7 +168,6 @@ oracle Send4(ctr: Integer, msg: (Bits(256),Bits(256))) -> Bits(256)
         (V,v,U,u,kid,acc,k,ni_,nr,kmac,sid_,mess)      <- parse state;
 		
         assert (v    == true);                /* session belongs to responder       */
-        assert (acc  == None);                /* session is still running           */
 
         return       <- invoke Run4(state,msg);
         (state,msg_) <- parse return;
@@ -198,7 +194,6 @@ oracle Send5(ctr: Integer, msg: Bits(256)) -> Bool
         (U,u,V,v,kid,acc,k,ni,nr,kmac,sid,mess)     <- parse state;
 		
         assert (u    == false);              /* session belongs to initiator       */
-        assert (acc  == None);               /* session is still running           */
 		
         return      <- invoke Run5(state,msg);
         (state,stop) <- parse return;
