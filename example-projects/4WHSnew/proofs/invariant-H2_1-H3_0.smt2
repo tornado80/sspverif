@@ -49,7 +49,7 @@
     (scr-1 Int))     ; This is the counter which gets incremented each time a sampling is done with the same sample id.
   Bool
                      ; There is no randomness used in this oracle.
-					 false
+                     false
 )
 
 (define-fun randomness-mapping-Send4
@@ -61,7 +61,7 @@
     (scr-1 Int))     ; This is the counter which gets incremented each time a sampling is done with the same sample id.
   Bool
                      ; There is no randomness used in this oracle.
-					 false
+                     false
 )
 
 (define-fun randomness-mapping-Send5
@@ -73,7 +73,7 @@
     (scr-1 Int))     ; This is the counter which gets incremented each time a sampling is done with the same sample id.
   Bool
                      ; There is no randomness used in this oracle.
-					 false
+                     false
 )
 
 (define-fun randomness-mapping-Reveal
@@ -85,7 +85,7 @@
     (scr-1 Int))     ; This is the counter which gets incremented each time a sampling is done with the same sample id.
   Bool
                      ; There is no randomness used in this oracle.
-					 false
+                     false
 )
 
 (define-fun randomness-mapping-Test
@@ -126,7 +126,7 @@
     (scr-1 Int))     ; This is the counter which gets incremented each time a sampling is done with the same sample id.
   Bool
                      ; There is no randomness used in this oracle.
-					 false
+                     false
 )
 
 (define-fun randomness-mapping-SameKey
@@ -138,7 +138,7 @@
     (scr-1 Int))     ; This is the counter which gets incremented each time a sampling is done with the same sample id.
   Bool
                      ; There is no randomness used in this oracle.
-					 false
+                     false
 )
 (define-fun randomness-mapping-AtMost
   ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
@@ -149,7 +149,7 @@
     (scr-1 Int))     ; This is the counter which gets incremented each time a sampling is done with the same sample id.
   Bool
                      ; There is no randomness used in this oracle.
-					 false
+                     false
 )
 (define-fun randomness-mapping-AtLeast
   ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
@@ -160,7 +160,7 @@
     (scr-1 Int))     ; This is the counter which gets incremented each time a sampling is done with the same sample id.
   Bool
                      ; There is no randomness used in this oracle.
-					 false
+                     false
 )
 
 
@@ -171,64 +171,129 @@
 ;                                                                                                      ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(define-fun <relation-mess-is-two-H2_1-H3_0-Send4>
+   ((H2-old <GameState_H2_<$<!n!><!b!><!true!><!zeron!>$>>)
+    (H3-old <GameState_H3_<$<!n!><!b!><!true!><!zeron!>$>>)
+    (H2-return <OracleReturn-H2-<$<!n!><!b!><!true!><!zeron!>$>-Game-<$<!b!><!n!><!zeron!>$>-Send4>)
+    (H3-return <OracleReturn-H3-<$<!n!><!b!><!true!><!zeron!>$>-Game_nochecks-<$<!b!><!n!><!zeron!>$>-Send4>)
+    (ctr Int)
+    (msg (Tuple2 Bits_256 Bits_256)))
+    Bool
+(let ((gamestate-H2 (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Game>     H2-old))
+      (gamestate-H3 (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Game_nochecks> H3-old))
+      (newstate-H2  (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Game>
+                        (<oracle-return-H2-<$<!n!><!b!><!true!><!zeron!>$>-Game-<$<!b!><!n!><!zeron!>$>-Send4-game-state> H2-return)))
+      (newstate-H3  (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Game_nochecks>
+                        (<oracle-return-H3-<$<!n!><!b!><!true!><!zeron!>$>-Game_nochecks-<$<!b!><!n!><!zeron!>$>-Send4-game-state> H3-return))))
+  (let ((H2-state-old (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-State> gamestate-H2))
+        (H3-state-old (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-State> gamestate-H3))
+        (H2-state-new (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-State> newstate-H2))
+        (H3-state-new (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-State> newstate-H3)))
+    (and (= (select H2-state-new ctr)
+            (select H3-state-new ctr))
+         (=> (not (= (select H2-state-new ctr)
+                  (as mk-none (Maybe (Tuple12 Int Bool Int Bool Bits_256 (Maybe Bool)
+                                              (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
+                                              (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)))
+                                              Int)))))
+             (= (el12-12 (maybe-get (select H2-state-new ctr))) 2))))))
+
+
 (define-fun invariant
   ( (state-kx     <GameState_H2_<$<!n!><!b!><!true!><!zeron!>$>>)
     (state-kxred  <GameState_H3_<$<!n!><!b!><!true!><!zeron!>$>>))
   Bool
-; getting package-state out of game-state and demanding equality, they should be exactly the same in this case.
 (let ((gamestate-H2 (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Game>     state-kx))
       (gamestate-H3 (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Game_nochecks> state-kxred)))
   (let ((H2-state (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-State> gamestate-H2))
-	    (H3-state (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-State> gamestate-H3)))
+        (H3-state (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-State> gamestate-H3)))
     (and (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-LTK> gamestate-H2)
             (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-LTK> gamestate-H3))
-  	   (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-H> gamestate-H2)
+       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-H> gamestate-H2)
             (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-H> gamestate-H3))
-  	   (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-ctr_> gamestate-H2)
+       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-ctr_> gamestate-H2)
             (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-ctr_> gamestate-H3))
-  	   (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-kid_> gamestate-H2)
+       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-kid_> gamestate-H2)
             (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-kid_> gamestate-H3))
-  	   (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-RevTested> gamestate-H2)
+       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-RevTested> gamestate-H2)
             (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-RevTested> gamestate-H3))
-  	   (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-Fresh> gamestate-H2)
+       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-Fresh> gamestate-H2)
             (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-Fresh> gamestate-H3))
-  	   (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-First> gamestate-H2)
+       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-First> gamestate-H2)
             (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-First> gamestate-H3))
-  	   (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-Second> gamestate-H2)
+       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-Second> gamestate-H2)
             (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-Second> gamestate-H3))
-  	   (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-State> gamestate-H2)
+       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-State> gamestate-H2)
             (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-State> gamestate-H3))
   
         (= (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces>     state-kx)
-  	     (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces> state-kxred))
+         (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces> state-kxred))
   
         (= (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR>     state-kx)
-  	     (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR> state-kxred))
-  
-         (forall ((U Int) (u Bool) (V Int) (v Bool) (ltk Bits_256) (acc (Maybe Bool))
-              (k (Maybe Bits_256)) (ni (Maybe Bits_256)) (nr (Maybe Bits_256)) (kmac (Maybe Bits_256))
-              (sid (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256))))
-              (mess Int) (ctr Int))
-          (and
-             (or (= (select H2-state ctr)
-                    (as mk-none (Maybe (Tuple12 Int Bool Int Bool Bits_256 (Maybe Bool)
-                                                (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
-                                                (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)))
-                                                Int))))
-                 (=> (= (select H2-state ctr) (mk-some (mk-tuple12 U u V v ltk acc k ni nr kmac sid mess)))
-                     (and (=> (and (not (= 0 mess)) (not (= 1 mess)))
-                              (or (= acc (mk-some false))
-                                  (not (= sid (as mk-none
-                                                  (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256)
-                                                                 (Maybe Bits_256)))))))))))
-             (or (= (select H3-state ctr)
-                    (as mk-none (Maybe (Tuple12 Int Bool Int Bool Bits_256 (Maybe Bool)
-                                                (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
-                                                (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)))
-                                                Int))))
-                 (=> (= (select H3-state ctr) (mk-some (mk-tuple12 U u V v ltk acc k ni nr kmac sid mess)))
-                     (and (=> (and (not (= 0 mess)) (not (= 1 mess)))
-                              (or (= acc (mk-some false))
-                                  (not (= sid (as mk-none
-                                                  (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256)
-                                                                 (Maybe Bits_256)))))))))))))))))
+         (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR> state-kxred))
+         
+        (forall ((ctr Int))
+          (=> (not (= (select H2-state ctr)
+                      (as mk-none (Maybe (Tuple12 Int Bool Int Bool Bits_256 (Maybe Bool)
+                                                  (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
+                                                  (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)))
+                                                  Int)))))
+              (not (= (el12-2 (maybe-get (select H2-state ctr)))
+                      (el12-4 (maybe-get (select H2-state ctr)))))))
+        (forall ((ctr1 Int) (ctr2 Int))
+           (=> (and (not (= (select H2-state ctr1)
+                            (as mk-none (Maybe (Tuple12 Int Bool Int Bool Bits_256 (Maybe Bool)
+                                                        (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
+                                                        (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)))
+                                                        Int)))))
+                    (not (= (select H2-state ctr2)
+                            (as mk-none (Maybe (Tuple12 Int Bool Int Bool Bits_256 (Maybe Bool)
+                                                        (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
+                                                        (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)))
+                                                        Int))))))
+				(=> (and (= (mk-some true)
+							(el12-6 (maybe-get (select H2-state ctr1))) ; accepted
+							(el12-6 (maybe-get (select H2-state ctr2))))
+						 (= (el12-11 (maybe-get (select H2-state ctr1))) ; sid
+						    (el12-11 (maybe-get (select H2-state ctr2)))))
+					(= (el12-7 (maybe-get (select H2-state ctr1))) ; then key
+					   (el12-7 (maybe-get (select H2-state ctr2)))))))))))
+
+
+
+         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+		 ;; Maybe the desired version
+		 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+         ;; (forall ((ctr Int))
+         ;;  (and
+         ;;     (or (= (select H2-state ctr)
+         ;;            (as mk-none (Maybe (Tuple12 Int Bool Int Bool Bits_256 (Maybe Bool)
+         ;;                                        (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
+         ;;                                        (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)))
+         ;;                                        Int))))
+         ;;      (exists ((U Int) (u Bool) (V Int) (v Bool) (ltk Bits_256) (acc (Maybe Bool))
+         ;;               (k (Maybe Bits_256)) (ni (Maybe Bits_256)) (nr (Maybe Bits_256)) (kmac (Maybe Bits_256))
+         ;;               (sid (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256))))
+         ;;               (mess Int)) 												
+         ;;         (and (= (select H2-state ctr) (mk-some (mk-tuple12 U u V v ltk acc k ni nr kmac sid mess)))
+         ;;             (=> (and (not (= 0 mess)) (not (= 1 mess)))
+         ;;                 (or (= acc (mk-some false))
+         ;;                     (not (= sid (as mk-none
+         ;;                                     (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256)
+         ;;                                                    (Maybe Bits_256)))))))))))
+         ;;     (or (= (select H3-state ctr)
+         ;;            (as mk-none (Maybe (Tuple12 Int Bool Int Bool Bits_256 (Maybe Bool)
+         ;;                                        (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
+         ;;                                        (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)))
+         ;;                                        Int))))
+         ;;      (exists ((U Int) (u Bool) (V Int) (v Bool) (ltk Bits_256) (acc (Maybe Bool))
+         ;;               (k (Maybe Bits_256)) (ni (Maybe Bits_256)) (nr (Maybe Bits_256)) (kmac (Maybe Bits_256))
+         ;;               (sid (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256))))
+         ;;               (mess Int)) 												
+         ;;         (and (= (select H3-state ctr) (mk-some (mk-tuple12 U u V v ltk acc k ni nr kmac sid mess)))
+         ;;             (and (=> (and (not (= 0 mess)) (not (= 1 mess)))
+         ;;                      (or (= acc (mk-some false))
+         ;;                          (not (= sid (as mk-none
+         ;;                                          (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256)
+         ;;                                                         (Maybe Bits_256))))))))))))))))))
+
