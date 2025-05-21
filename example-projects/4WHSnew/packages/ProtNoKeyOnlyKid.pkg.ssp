@@ -20,6 +20,7 @@ package ProtNoKeyOnlyKid {
 						               Integer),
 						              (Bits(256))) {
 	    (U,u,V,v,kid,acc,k,ni_,nr,kmac,sid,mess) <- parse state;
+        assert (acc  == None );              /* session is still running           */
         assert (mess == 0);
 		
 		ni <- invoke Sample();
@@ -38,6 +39,7 @@ package ProtNoKeyOnlyKid {
 							        Integer),
 							       (Bits(256), Bits(256))) {
 	    (U,u,V,v,kid,acc,k_,ni_,nr_,kmac_,sid_,mess) <- parse state;
+        assert (acc  == None );              /* session is still running           */
         assert (mess == 0);
 
 		nr         <- invoke Sample();
@@ -60,6 +62,7 @@ package ProtNoKeyOnlyKid {
 							               (Bits(256), Bits(256))) {
 	    (U,u,V,v,kid,acc,k_,ni,nr_,kmac_,sid_,mess) <- parse state;
         assert (mess == 1);
+        assert (acc  == None );              /* session is still running           */
 		(nr,tau) <- parse msg;
 
 		kmac       <- invoke Eval(kid,U,V,Unwrap(ni),nr,false);
@@ -84,6 +87,7 @@ package ProtNoKeyOnlyKid {
 							                Integer),
 							               (Bits(256))) {
 	    (V,v,U,u,kid,acc,k,ni_,nr,kmac,sid_,mess) <- parse state;
+        assert (acc  == None );              /* session is still running           */
 		assert (mess == 1);
 		(ni,tau) <- parse msg;
 
@@ -113,6 +117,7 @@ package ProtNoKeyOnlyKid {
 				                    Integer),
 				                   (Bool)) {
 	    (U,u,V,v,kid,acc,k,ni,nr,kmac,sid,mess) <- parse state;
+        assert (acc  == None );              /* session is still running           */
         assert (mess == 2);
 
         if (mac(Unwrap(kmac),zeron,4) == tau) {
