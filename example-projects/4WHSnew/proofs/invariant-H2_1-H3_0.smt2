@@ -254,7 +254,7 @@
               (and (not (= u v)) ; receiver (or the other way around)
 				   (=> (> mess 0) ; message larger than 0
 				       (and (not (= ni (as mk-none (Maybe Bits_256))))
-							(=> v (not (= nr (as mk-none (Maybe Bits_256)))))))
+							(=> u (not (= nr (as mk-none (Maybe Bits_256)))))))
 				   (=> (and (> mess 1) ; message large than 1
 				            (= acc (mk-some true))) ; accept = true
 				       (and ; (not (= ni (as mk-none (Maybe Bits_256))))
