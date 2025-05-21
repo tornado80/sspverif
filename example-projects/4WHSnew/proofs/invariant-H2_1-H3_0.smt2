@@ -281,23 +281,27 @@
 							           						    (maybe-get nr)
 							           						    true))))))))))))
         (forall ((ctr1 Int) (ctr2 Int))
-           (=> (and (not (= (select H2-state ctr1)
+		  (let ((state1 (select H2-state ctr1))
+		        (state2 (select H2-state ctr2)))
+           (=> (and (not (= state1
                             (as mk-none (Maybe (Tuple12 Int Bool Int Bool Bits_256 (Maybe Bool)
                                                         (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
                                                         (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)))
                                                         Int)))))
-                    (not (= (select H2-state ctr2)
+                    (not (= state2
                             (as mk-none (Maybe (Tuple12 Int Bool Int Bool Bits_256 (Maybe Bool)
                                                         (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
                                                         (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)))
                                                         Int))))))
-				(=> (and (= (mk-some true)
-							(el12-6 (maybe-get (select H2-state ctr1))) ; accepted
-							(el12-6 (maybe-get (select H2-state ctr2))))
-						 (= (el12-11 (maybe-get (select H2-state ctr1))) ; sid
-						    (el12-11 (maybe-get (select H2-state ctr2)))))
-					(= (el12-7 (maybe-get (select H2-state ctr1))) ; then key
-					   (el12-7 (maybe-get (select H2-state ctr2)))))))))))
+				(let ((acc1 (el12-6  (maybe-get (select H2-state ctr1))))
+				      (acc2 (el12-6  (maybe-get (select H2-state ctr2))))
+				      (key1 (el12-7  (maybe-get (select H2-state ctr1))))
+				      (key2 (el12-7  (maybe-get (select H2-state ctr2))))
+					  (sid1 (el12-11 (maybe-get (select H2-state ctr1))))
+					  (sid2 (el12-11 (maybe-get (select H2-state ctr2)))))
+				(=> (and (= (mk-some true) acc1 acc2)
+						 (= sid1 sid2))
+					(= key1 key2))))))))))
 
 
 
