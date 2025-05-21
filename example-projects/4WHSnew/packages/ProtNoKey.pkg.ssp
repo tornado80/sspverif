@@ -85,7 +85,7 @@ package ProtNoKey {
 							                Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
 							                Integer),
 							               (Bits(256))) {
-	    (V,v,U,u,ltk,acc,k,ni_,nr,kmac,sid_,mess) <- parse state;
+	    (V,v,U,u,ltk,acc,k,ni_,nr,kmac,sid,mess) <- parse state;
         assert (acc  == None );              /* session is still running           */
 		assert (mess == 1);
 		(ni,tau) <- parse msg;
@@ -93,14 +93,13 @@ package ProtNoKey {
         if ((mac(Unwrap(kmac),ni,3) == tau) and
             (ni == Unwrap(ni_))) {
 		    acc        <- Some(true);
-        	sid        <- (U,V,Some(ni),nr,Some(tau));
 			tau_       <- mac(Unwrap(kmac),zeron,4);
 			
-		   return ((V,v,U,u,ltk,acc,k,ni_,nr,kmac,Some(sid),2),
+		   return ((V,v,U,u,ltk,acc,k,ni_,nr,kmac,sid,2),
 		           (tau_));
 		} else {
 		    acc <- Some(false);
-		    return ((V,v,U,u,ltk,acc,k,ni_,nr,kmac,sid_,mess),
+		    return ((V,v,U,u,ltk,acc,k,ni_,nr,kmac,sid,mess),
 		            (zeron));
 		}
 	}
