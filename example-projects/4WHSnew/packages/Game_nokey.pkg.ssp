@@ -163,6 +163,7 @@ oracle Send3(ctr: Integer, msg: (Bits(256),Bits(256))) -> (Bits(256), Bits(256))
 
 		/* Delete for no authentication */
 		(_U,_u,_V,_v,_ltk,_acc,_k,_ni,_nr,_kmac,sid,_mess) <- parse state;
+        if (_mess = 2){
 		if (First[Unwrap(sid)] == None) {
 		    First[Unwrap(sid)] <- Some(ctr);
 		} else {
@@ -170,6 +171,7 @@ oracle Send3(ctr: Integer, msg: (Bits(256),Bits(256))) -> (Bits(256), Bits(256))
 		      Second[Unwrap(sid)] <- Some(ctr);
 		  }
 		}
+        }
 		/* Until Here */
 
         State[ctr]     <-  Some(state);
