@@ -1,5 +1,5 @@
 ; Main idea of this invariant proof
-; If ctr are equal in both games and they use the same randomness, then both games 
+; If ctr are equal in both games and they use the same randomness, then both games
 ;    - produce the same output
 ;    - abort iff the other aborts
 ;    - have same ctr afterwards
@@ -225,13 +225,13 @@
             (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-Second> gamestate-H3))
        (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-State> gamestate-H2)
             (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-State> gamestate-H3))
-  
+
         (= (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces>     state-kx)
          (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces> state-kxred))
-  
+
         (= (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR>     state-kx)
          (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR> state-kxred))
-         
+
         (forall ((ctr Int))
           (let ((state (select H2-state ctr)))
           (=> (not (= state
@@ -318,7 +318,7 @@
          ;;      (exists ((U Int) (u Bool) (V Int) (v Bool) (ltk Bits_256) (acc (Maybe Bool))
          ;;               (k (Maybe Bits_256)) (ni (Maybe Bits_256)) (nr (Maybe Bits_256)) (kmac (Maybe Bits_256))
          ;;               (sid (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256))))
-         ;;               (mess Int))                                               
+         ;;               (mess Int))
          ;;         (and (= (select H2-state ctr) (mk-some (mk-tuple12 U u V v ltk acc k ni nr kmac sid mess)))
          ;;             (=> (and (not (= 0 mess)) (not (= 1 mess)))
          ;;                 (or (= acc (mk-some false))
@@ -333,11 +333,10 @@
          ;;      (exists ((U Int) (u Bool) (V Int) (v Bool) (ltk Bits_256) (acc (Maybe Bool))
          ;;               (k (Maybe Bits_256)) (ni (Maybe Bits_256)) (nr (Maybe Bits_256)) (kmac (Maybe Bits_256))
          ;;               (sid (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256))))
-         ;;               (mess Int))                                               
+         ;;               (mess Int))
          ;;         (and (= (select H3-state ctr) (mk-some (mk-tuple12 U u V v ltk acc k ni nr kmac sid mess)))
          ;;             (and (=> (and (not (= 0 mess)) (not (= 1 mess)))
          ;;                      (or (= acc (mk-some false))
          ;;                          (not (= sid (as mk-none
          ;;                                          (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256)
          ;;                                                         (Maybe Bits_256))))))))))))))))))
-
