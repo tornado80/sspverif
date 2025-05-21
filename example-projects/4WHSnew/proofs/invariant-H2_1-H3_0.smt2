@@ -259,11 +259,11 @@
 				            (= acc (mk-some true))) ; accept = true
 				       (and ; (not (= ni (as mk-none (Maybe Bits_256))))
 							(not (= nr (as mk-none (Maybe Bits_256))))
+							(not (= kmac (as mk-none (Maybe Bits_256))))
 							(= sid (mk-some (mk-tuple5 U V ni nr
-							                          (mk-some (<<func-prf>> ltk U V
+							                          (mk-some (<<func-mac>> (maybe-get kmac)
 								  					                         (maybe-get ni)
-													                         (maybe-get nr)
-												                             true)))))
+													                         3)))))
 					        (= k (mk-some (<<func-prf>> ltk U V
 								  					    (maybe-get ni)
 													    (maybe-get nr)
