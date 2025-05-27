@@ -1,6 +1,6 @@
 composition DemCcaGame {
     const b: Bool;
-
+    const f: fn Table(Integer, Integer) -> Integer;
     const len: fn Bits(*) -> Integer;
     const zeros: fn Integer -> Bits(*);
     const dem_enc: fn Bits(500), Bits(256), Bits(*) -> Bits(*);
@@ -21,6 +21,7 @@ composition DemCcaGame {
 
     instance pkg_DEM = DEM {
         params {
+            f: f,
             b: b,
             len: len,
             zeros: zeros,

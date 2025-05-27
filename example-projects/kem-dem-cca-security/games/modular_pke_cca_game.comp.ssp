@@ -1,7 +1,7 @@
 composition ModularPkeCcaGame {
     const key_idealization: Bool;
     const dem_idealization: Bool;
-
+    const f: fn Table(Integer, Integer) -> Integer;
     const len: fn Bits(*) -> Integer;
     const zeros: fn Integer -> Bits(*);
     const kem_gen: fn Bits(2000) -> (Bits(100), Bits(1000));
@@ -33,6 +33,7 @@ composition ModularPkeCcaGame {
 
     instance pkg_DEM = DEM {
         params {
+            f: f,
             b: dem_idealization,
             len: len,
             zeros: zeros,

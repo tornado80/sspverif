@@ -10,7 +10,7 @@ proof Proof {
     const enc_randomness_length: 500; should depend on message length
     const encaps_randomness_length: 3000;
     */
-
+    const f: fn Table(Integer, Integer) -> Integer;
     const len: fn Bits(*) -> Integer;
     const zeros: fn Integer -> Bits(*);
     const kem_gen: fn Bits(2000) -> (Bits(100), Bits(1000));
@@ -37,6 +37,7 @@ proof Proof {
             key_idealization: false,
             dem_idealization: b,
             len: len,
+            f: f,
             zeros: zeros,
             kem_gen: kem_gen,
             kem_encaps: kem_encaps,
@@ -77,6 +78,7 @@ proof Proof {
             key_idealization: false,
             dem_idealization: false,
             len: len,
+            f: f,
             zeros: zeros,
             kem_gen: kem_gen,
             kem_encaps: kem_encaps,
@@ -91,6 +93,7 @@ proof Proof {
             key_idealization: true,
             dem_idealization: false,
             len: len,
+            f: f,
             zeros: zeros,
             kem_gen: kem_gen,
             kem_encaps: kem_encaps,
@@ -106,6 +109,7 @@ proof Proof {
             dem_idealization: true,
             len: len,
             zeros: zeros,
+            f: f,
             kem_gen: kem_gen,
             kem_encaps: kem_encaps,
             kem_decaps: kem_decaps,
@@ -121,6 +125,7 @@ proof Proof {
             len: len,
             zeros: zeros,
             kem_gen: kem_gen,
+            f: f,
             kem_encaps: kem_encaps,
             kem_decaps: kem_decaps,
             dem_enc: dem_enc,
@@ -132,6 +137,7 @@ proof Proof {
         params {
             b: false,
             len: len,
+            f: f,
             zeros: zeros,
             dem_enc: dem_enc,
             dem_dec: dem_dec,
@@ -142,6 +148,7 @@ proof Proof {
         params {
             b: true,
             len: len,
+            f: f,
             zeros: zeros,
             dem_enc: dem_enc,
             dem_dec: dem_dec,

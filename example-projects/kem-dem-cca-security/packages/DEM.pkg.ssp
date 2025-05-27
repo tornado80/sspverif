@@ -1,11 +1,13 @@
 package DEM {
     params {
+        f: fn Table(Integer, Integer) -> Integer,
         b: Bool,
         len: fn Bits(*) -> Integer,
         zeros: fn Integer -> Bits(*),
     }
 
     state {
+        T: Table(Integer, Integer),
         c: Maybe(Bits(*))
     }
 
@@ -16,6 +18,7 @@ package DEM {
     }
 
     oracle ENC(m: Bits(*)) -> Bits(*) {
+        ggg <- f(T);
         assert (c == None);
         k <- invoke GET();
         if b {
