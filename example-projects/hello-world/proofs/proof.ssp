@@ -43,7 +43,6 @@ proof Proof {
                 }
             }
         }
-        /*
         reduction big_composition medium_composition_more_oracles  
         {
             assumption Assumption
@@ -57,6 +56,5 @@ proof Proof {
                 fwd     : fwd
             }
         }
-        */
     }
 }
