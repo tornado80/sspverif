@@ -412,6 +412,10 @@
         (crstate-H2  (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR>
                        (<oracle-return-H2-<$<!n!><!b!><!true!><!zeron!>$>-Game-<$<!b!><!n!><!zeron!>$>-Send4-game-state> H2-return)))
         (crstate-H3  (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR>
+                       (<oracle-return-H3-<$<!n!><!b!><!true!><!zeron!>$>-Game_nochecks-<$<!b!><!n!><!zeron!>$>-Send4-game-state> H3-return)))
+        (noncesstate-H2  (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces>
+                       (<oracle-return-H2-<$<!n!><!b!><!true!><!zeron!>$>-Game-<$<!b!><!n!><!zeron!>$>-Send4-game-state> H2-return)))
+        (noncesstate-H3  (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces>
                        (<oracle-return-H3-<$<!n!><!b!><!true!><!zeron!>$>-Game_nochecks-<$<!b!><!n!><!zeron!>$>-Send4-game-state> H3-return))))
 ;(define-fun invariant-helper-Send4
 ;    ((state-kx     <GameState_H2_<$<!n!><!b!><!true!><!zeron!>$>>)
@@ -480,11 +484,17 @@
        (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-State> gamestate-H2)
           (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-State> gamestate-H3))
 
-       (= (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces>     state-kx)
-          (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces> state-kxred))
+       (= crstate-H2 crstate-H3)
 
-       (= (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR>     state-kx)
-          (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR> state-kxred))
+;       (= (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR>     state-kx)
+;          (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR> state-kxred))
+
+       (= noncesstate-H2 noncesstate-H3)
+
+;       (= (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces>     state-kx)
+;          (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces> state-kxred))
+
+
 
        (forall ((ctr Int))
                (let ((state (select H2-state ctr)))
