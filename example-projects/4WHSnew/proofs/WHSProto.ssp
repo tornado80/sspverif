@@ -433,9 +433,9 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [equal-aborts]
-                    same-output:  [equal-aborts]
-/*					mess-is-two:  [equal-aborts]*/
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+/*					mess-is-two:  [no-abort]*/
                 }
             }
             Send1: {
@@ -443,8 +443,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [equal-aborts]
-                    same-output:  [equal-aborts]
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
                 }
             }
              Send2: {
@@ -452,8 +452,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [equal-aborts]
-                    same-output:  [equal-aborts]
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
                 }
             }
              Send3: {
@@ -461,8 +461,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [equal-aborts]
-                    same-output:  [equal-aborts]
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
                 }
             }
             Send5: {
@@ -470,8 +470,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [equal-aborts]
-                    same-output:  [equal-aborts]
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
                 }
             }
             NewKey: {
@@ -479,8 +479,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [equal-aborts]
-                    same-output:  [equal-aborts]
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
                 }
             }
             NewSession: {
@@ -488,8 +488,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [equal-aborts]
-                    same-output:  [equal-aborts]
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
                 }
             }
             Test: {
@@ -497,8 +497,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [equal-aborts]
-                    same-output:  [equal-aborts]
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
                 }
             }
             Reveal: {
@@ -506,8 +506,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [equal-aborts]
-                    same-output:  [equal-aborts]
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
                 }
             }
             SameKey: {
@@ -515,8 +515,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [equal-aborts]
-                    same-output:  [equal-aborts]
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
                 }
             }
             AtLeast: {
@@ -524,8 +524,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [equal-aborts]
-                    same-output:  [equal-aborts]
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
                 }
             }
             AtMost: {
@@ -533,8 +533,8 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [equal-aborts]
-                    same-output:  [equal-aborts]
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
                 }
             }
         }
