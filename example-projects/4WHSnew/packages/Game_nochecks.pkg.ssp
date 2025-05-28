@@ -114,7 +114,6 @@ oracle NewKey(ltk: Maybe(Bits(256))) -> Integer {
 
 
 oracle NewSession(U: Integer, u: Bool, V: Integer, kid: Integer) -> Integer {
-        assert not (u == v);            /* Different roles */
         assert not (LTK[kid] == None);  /* key exists */
         ctr_        <- (ctr_ + 1) ; 
         ltk         <- Unwrap(LTK[kid]);
@@ -250,8 +249,8 @@ oracle Test(ctr: Integer) -> Bits(256)
     }
 
 oracle SameKey(ctr1: Integer, ctr2: Integer) -> Bool {
-    (_U,_u,_V,,_ltk,acc1,k1,_ni,_nr,_kmac,sid1,_mess) <- parse Unwrap(State[ctr1]);
-    (_U,_u,_V,,_ltk,acc2,k2,_ni,_nr,_kmac,sid2,_mess) <- parse Unwrap(State[ctr2]);
+    (_U,_u,_V,_ltk,acc1,k1,_ni,_nr,_kmac,sid1,_mess) <- parse Unwrap(State[ctr1]);
+    (_U,_u,_V,_ltk,acc2,k2,_ni,_nr,_kmac,sid2,_mess) <- parse Unwrap(State[ctr2]);
 
 	return false;
 	}
