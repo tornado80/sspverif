@@ -39,7 +39,7 @@ package Prot {
 
 		nr         <-$ Bits(256);
         kmac       <-  prf(ltk,U,V,ni,nr,false); /* need role agreement here, to be fixed */
-        k          <-  prf(ltk,U,V,ni,nr,true); /* need role agreement here, to be fixed */
+        k          <-  prf(ltk,U,V,ni,nr,true);  /* need role agreement here, to be fixed */
         tau        <-  mac(kmac,nr,2);
         sid        <- (U,V,Some(ni),Some(nr),Some(tau));
 
