@@ -433,7 +433,7 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [no-abort,debug]
+                    invariant:    [no-abort]
                     same-output:  [no-abort]
 /*					mess-is-two:  [no-abort]*/
                 }
