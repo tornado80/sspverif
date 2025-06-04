@@ -577,6 +577,11 @@
                                                         (maybe-get ni) 
                                                         (maybe-get nr) 
                                                         false)))))
+						(=> (and (> mess 1) ; message large than 1
+                                 (= acc (mk-some true))) ; accept = true
+							(and ; (not (= ni (as mk-none (Maybe Bits_256))))
+                             (not (= nr (as mk-none (Maybe Bits_256))))
+                             (not (= kmac (as mk-none (Maybe Bits_256))))))
 						;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 						;; Responder
 						(=> u 
@@ -587,16 +592,15 @@
                                                                 (mk-some (<<func-mac>> (maybe-get kmac)
                                                                                        (maybe-get nr)
                                                                                        2))))))))
-                        (=> (and (> mess 1) ; message large than 1
-                                 (= acc (mk-some true))) ; accept = true
-                            (and ; (not (= ni (as mk-none (Maybe Bits_256))))
-                             (not (= nr (as mk-none (Maybe Bits_256))))
-                             (not (= kmac (as mk-none (Maybe Bits_256))))
-                             (=> (not u) ; if initiator
-                                 (and (= sid (mk-some (mk-tuple5 U V ni nr           ; then sid  has the right value.
-                                                                 (mk-some (<<func-mac>> (maybe-get kmac)
-                                                                                        (maybe-get nr)
-                                                                                        2))))))))))))))
+						;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+						;; Initiator
+                        (=> (not u)
+							(=> (and (> mess 1)
+									 (= acc (mk-some true)))
+								(and (= sid (mk-some (mk-tuple5 U V ni nr           ; then sid  has the right value.
+																(mk-some (<<func-mac>> (maybe-get kmac)
+																					   (maybe-get nr)
+																					   2)))))))))))))
 	   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	   ;; Pairwise properties of game states
        (forall ((ctr1 Int) (ctr2 Int))
