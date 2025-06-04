@@ -429,19 +429,8 @@
 ;; Helper Functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define-fun 
 
-                     (let ((U    (el11-1  (maybe-get state)))
-                           (u    (el11-2  (maybe-get state)))
-                           (V    (el11-3  (maybe-get state)))
-                           (ltk  (el11-4  (maybe-get state)))
-                           (acc  (el11-5  (maybe-get state)))
-                           (k    (el11-6  (maybe-get state)))
-                           (ni   (el11-7  (maybe-get state)))
-                           (nr   (el11-8  (maybe-get state)))
-                           (kmac (el11-9  (maybe-get state)))
-                           (sid  (el11-10 (maybe-get state)))
-                           (mess (el11-11 (maybe-get state))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; INVARIANT STARTS HERE
@@ -492,25 +481,25 @@
           (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR> state-kxred))
 	   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	   ;; Local Statement on MAC & PRF collision-freeness
-	   (forall ((k1 Bits_256) (k2 Bits_256))
-			   (let ((entry1 (select h2-prf k1))
-					 (entry2 (select h2-prf k1)))
-				 (=> (and (not (= entry1 (as mk-none (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool)))))
-						  (not (= entry2 (as mk-none (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool))))))
-					 (let ((ltk1  (el6-1 (maybe-get entry1)))
-						   (ltk2  (el6-1 (maybe-get entry2)))
-                           (U1    (el6-2 (maybe-get entry1)))
-						   (U2    (el6-2 (maybe-get entry2)))
-                           (V1    (el6-3 (maybe-get entry1)))
-						   (V2    (el6-3 (maybe-get entry2)))
-                           (ni1   (el6-4 (maybe-get entry1)))
-						   (ni2   (el6-4 (maybe-get entry2)))
-                           (nr1   (el6-5 (maybe-get entry1)))
-						   (nr2   (el6-5 (maybe-get entry2)))
-                           (flag1 (el6-6 (maybe-get entry1)))
-						   (flag2 (el6-6 (maybe-get entry2))))
-					   (=> (not (= k1 k2))
-						   (not (= entry1 entry2)))))))
+	   ;; (forall ((k1 Bits_256) (k2 Bits_256))
+	   ;; 		   (let ((entry1 (select h2-prf k1))
+	   ;; 				 (entry2 (select h2-prf k1)))
+	   ;; 			 (=> (and (not (= entry1 (as mk-none (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool)))))
+	   ;; 					  (not (= entry2 (as mk-none (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool))))))
+	   ;; 				 (let ((ltk1  (el6-1 (maybe-get entry1)))
+	   ;; 					   (ltk2  (el6-1 (maybe-get entry2)))
+       ;;                     (U1    (el6-2 (maybe-get entry1)))
+	   ;; 					   (U2    (el6-2 (maybe-get entry2)))
+       ;;                     (V1    (el6-3 (maybe-get entry1)))
+	   ;; 					   (V2    (el6-3 (maybe-get entry2)))
+       ;;                     (ni1   (el6-4 (maybe-get entry1)))
+	   ;; 					   (ni2   (el6-4 (maybe-get entry2)))
+       ;;                     (nr1   (el6-5 (maybe-get entry1)))
+	   ;; 					   (nr2   (el6-5 (maybe-get entry2)))
+       ;;                     (flag1 (el6-6 (maybe-get entry1)))
+	   ;; 					   (flag2 (el6-6 (maybe-get entry2))))
+	   ;; 				   (=> (not (= k1 k2))
+	   ;; 					   (not (= entry1 entry2)))))))
 	   
        (forall ((k Bits_256))
                (and
@@ -553,10 +542,6 @@
                        (and
 						;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 						;; For any side
-                        (=> (not (= ni (as mk-none (Maybe Bits_256))))
-                            (or u (= (select h2-nonces (maybe-get ni)) (mk-some true))))
-                        (=> (not (= nr (as mk-none (Maybe Bits_256))))
-                            (or (not u) (= (select h2-nonces (maybe-get nr)) (mk-some true))))
 						(=> (not (= k (as mk-none (Maybe Bits_256))))
 							(and (= k (mk-some (<<func-prf>> ltk V U        ; then k    has the right value.
                                                              (maybe-get ni)
@@ -577,14 +562,24 @@
                                                         (maybe-get ni) 
                                                         (maybe-get nr) 
                                                         false)))))
+						(=> (> 2 mess) (= acc (as mk-none (Maybe Bool)))) ; Don't accept before message 2
 						(=> (and (> mess 1) ; message large than 1
                                  (= acc (mk-some true))) ; accept = true
-							(and ; (not (= ni (as mk-none (Maybe Bits_256))))
+							(and
+							 (not (= ni (as mk-none (Maybe Bits_256))))
                              (not (= nr (as mk-none (Maybe Bits_256))))
-                             (not (= kmac (as mk-none (Maybe Bits_256))))))
+                             (not (= kmac (as mk-none (Maybe Bits_256))))
+							 (not (= k (as mk-none (Maybe Bits_256))))
+							 (= sid (mk-some (mk-tuple5 V U ni nr       ; then sid  has the right value.
+                                                        (mk-some (<<func-mac>> (maybe-get kmac)
+                                                                               (maybe-get nr)
+                                                                               2)))))))
 						;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 						;; Responder
-						(=> u 
+						(=> u
+							(=> (not (= nr (as mk-none (Maybe Bits_256))))
+								(= (select h2-nonces (maybe-get nr)) (mk-some true)))
+
 							(=> (> mess 0)
 								(and (not (= ni (as mk-none (Maybe Bits_256)))) ; then ni is not none.
 									 (not (= nr (as mk-none (Maybe Bits_256)))) ; then nr   is not none.
@@ -595,6 +590,9 @@
 						;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 						;; Initiator
                         (=> (not u)
+							(=> (not (= ni (as mk-none (Maybe Bits_256))))
+								(= (select h2-nonces (maybe-get ni)) (mk-some true)))
+
 							(=> (and (> mess 1)
 									 (= acc (mk-some true)))
 								(and (= sid (mk-some (mk-tuple5 U V ni nr           ; then sid  has the right value.
