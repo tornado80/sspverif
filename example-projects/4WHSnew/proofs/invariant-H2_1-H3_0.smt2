@@ -200,7 +200,11 @@
                                    (maybe-get ni)
                                    (maybe-get nr)
                                    false)))))
-   (=> (> 2 mess) (= acc (as mk-none (Maybe Bool)))) ; Don't accept before message 2
+   (=> (< mess 1)
+	   (and (= k (as mk-none (Maybe Bits_256)))
+			(= kmac (as mk-none (Maybe Bits_256)))))
+   (=> (< mess 2)
+	   (= acc (as mk-none (Maybe Bool)))) ; Don't accept before message 2
    (=> (and (> mess 1) ; message large than 1
             (= acc (mk-some true))) ; accept = true
        (and
@@ -230,13 +234,13 @@
            (= (select h2-nonces (maybe-get nr)) (mk-some true)))
 
        (=> (> mess 0)
-           (and (not (= ni (as mk-none (Maybe Bits_256)))) ; then ni is not none.
+           (and (not (= kmac (as mk-none (Maybe Bits_256))))
+				(not (= ni (as mk-none (Maybe Bits_256)))) ; then ni is not none.
                 (not (= nr (as mk-none (Maybe Bits_256)))) ; then nr   is not none.
                 (= sid (mk-some (mk-tuple5 V U ni nr       ; then sid  has the right value.
                                            (mk-some (<<func-mac>> (maybe-get kmac)
                                                                   (maybe-get nr)
-                                                                  2)))))))))
-  )
+                                                                  2))))))))))
 
 (define-fun helper-gamestate-initiator ((h2-prf (Array Bits_256 (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool))))
                                         (h2-nonces (Array Bits_256 (Maybe Bool)))
@@ -344,16 +348,16 @@
                            (kmac (el11-9  (maybe-get state)))
                            (sid  (el11-10 (maybe-get state)))
                            (mess (el11-11 (maybe-get state))))
-                       (and true
-                        ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-							;; For any side
-                                        ;(helper-gamestate-singleside h2-prf h2-nonces U u V ltk acc k ni nr kmac sid mess) ; line sometimes causes mysterious cvc5 bug
+                       (and
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+						;; For any side
+                        (helper-gamestate-singleside h2-prf h2-nonces U u V ltk acc k ni nr kmac sid mess) ; line sometimes causes mysterious cvc5 bug
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                             ;; Responder
-                                        ;(helper-gamestate-responder h2-prf h2-nonces U u V ltk acc k ni nr kmac sid mess) ; line sometimes causes mysterious cvc5 bug
+                                        (helper-gamestate-responder h2-prf h2-nonces U u V ltk acc k ni nr kmac sid mess) ; line sometimes causes mysterious cvc5 bug
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                             ;; Initiator
-                                        ;(helper-gamestate-initiator h2-prf h2-nonces U u V ltk acc k ni nr kmac sid mess) ; line sometimes causes mysterious cvc5 bug
+                                        (helper-gamestate-initiator h2-prf h2-nonces U u V ltk acc k ni nr kmac sid mess) ; line sometimes causes mysterious cvc5 bug
                             )))))
        ))))
 
@@ -512,8 +516,7 @@
                                    (not (= nonce1 (as mk-none (Maybe Bits_256)))))
                               (not (= nonce1 nonce2))))
                         (=> (and (not (= key1 (as mk-none (Maybe Bits_256))))
-                                 (= key1 key2)
-                                 false)
+                                 (= key1 key2))
                             (and (= ni1 ni2) (= nr1 nr2)))
                         (=> (and (= (mk-some true) acc1 acc2)
                                  (= sid1 sid2))
