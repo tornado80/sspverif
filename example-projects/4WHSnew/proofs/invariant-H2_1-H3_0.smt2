@@ -276,38 +276,6 @@
           (H2-state (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-State> gamestate-H2))
           (H3-state (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-State> gamestate-H3)))
       (and
-       (forall ((k Bits_256))
-               (and
-                (let ((entry (select h2-mac k)))
-                  (=> (not (= entry (as mk-none (Maybe (Tuple3 Bits_256 Bits_256 Int)))))
-                      (let ((kmac  (el3-1 (maybe-get entry)))
-                            (nonce (el3-2 (maybe-get entry)))
-                            (label (el3-3 (maybe-get entry))))
-                        (= k (<<func-mac>> kmac nonce label)))))
-                (let ((entry (select h3-mac k)))
-                  (=> (not (= entry (as mk-none (Maybe (Tuple3 Bits_256 Bits_256 Int)))))
-                      (let ((kmac  (el3-1 (maybe-get entry)))
-                            (nonce (el3-2 (maybe-get entry)))
-                            (label (el3-3 (maybe-get entry))))
-                        (= k (<<func-mac>> kmac nonce label)))))
-                (let ((entry (select h2-prf k)))
-                  (=> (not (= entry (as mk-none (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool)))))
-                      (let ((ltk (el6-1 (maybe-get entry)))
-                            (U    (el6-2 (maybe-get entry)))
-                            (V    (el6-3 (maybe-get entry)))
-                            (ni   (el6-4 (maybe-get entry)))
-                            (nr   (el6-5 (maybe-get entry)))
-                            (flag (el6-6 (maybe-get entry))))
-                        (= k (<<func-prf>> ltk U V ni nr flag)))))
-                (let ((entry (select h3-prf k)))
-                  (=> (not (= entry (as mk-none (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool)))))
-                      (let ((ltk (el6-1 (maybe-get entry)))
-                            (U    (el6-2 (maybe-get entry)))
-                            (V    (el6-3 (maybe-get entry)))
-                            (ni   (el6-4 (maybe-get entry)))
-                            (nr   (el6-5 (maybe-get entry)))
-                            (flag (el6-6 (maybe-get entry))))
-                        (= k (<<func-prf>> ltk U V ni nr flag)))))))
 
        (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-LTK> gamestate-H2)
           (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-LTK> gamestate-H3))
@@ -337,93 +305,7 @@
 
 ;       (= (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces>     state-kx)
 ;          (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces> state-kxred))
-
-
-
-       (forall ((ctr Int))
-               (let ((state (select H2-state ctr)))
-                 (=> (not (= state
-                             (as mk-none (Maybe (Tuple11 Int Bool Int Bits_256 (Maybe Bool)
-                                                         (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
-                                                         (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)))
-                                                         Int)))))
-                     (let ((U    (el11-1  (maybe-get state)))
-                           (u    (el11-2  (maybe-get state)))
-                           (V    (el11-3  (maybe-get state)))
-                           (ltk  (el11-4  (maybe-get state)))
-                           (acc  (el11-5  (maybe-get state)))
-                           (k    (el11-6  (maybe-get state)))
-                           (ni   (el11-7  (maybe-get state)))
-                           (nr   (el11-8  (maybe-get state)))
-                           (kmac (el11-9  (maybe-get state)))
-                           (sid  (el11-10 (maybe-get state)))
-                           (mess (el11-11 (maybe-get state))))
-                       (and
-                        (=> (> 2 mess) (= acc (as mk-none (Maybe Bool))))
-                        (=> (> mess 0) ; message larger than 0
-                            (and (not (= ni (as mk-none (Maybe Bits_256))))
-                                 (=> u
-                                     (and (not (= nr (as mk-none (Maybe Bits_256))))
-                                          (= sid (mk-some (mk-tuple5 V U ni nr
-                                                                     (mk-some (<<func-mac>> (maybe-get kmac)
-                                                                                            (maybe-get nr)
-                                                                                            2)))))
-                                          (= k (mk-some (<<func-prf>> ltk V U
-                                                                      (maybe-get ni)
-                                                                      (maybe-get nr)
-                                                                      true)))
-                                          (= (select h2-prf (maybe-get k))
-                                             (mk-some (mk-tuple6 ltk V U (maybe-get ni) (maybe-get nr) true)))
-                                          (= kmac (mk-some (<<func-prf>> ltk V U
-                                                                         (maybe-get ni)
-                                                                         (maybe-get nr)
-                                                                         false)))
-                                          (= (select h2-prf (maybe-get kmac))
-                                             (mk-some (mk-tuple6 ltk V U (maybe-get ni) (maybe-get nr) false)))))))
-                        (=> (and (> mess 1) ; message large than 1
-                                 (= acc (mk-some true))) ; accept = true
-                            (and ; (not (= ni (as mk-none (Maybe Bits_256))))
-                             (not (= nr (as mk-none (Maybe Bits_256))))
-                             (not (= kmac (as mk-none (Maybe Bits_256))))
-                             (=> (not u)
-                                 (and (= sid (mk-some (mk-tuple5 U V ni nr
-                                                                 (mk-some (<<func-mac>> (maybe-get kmac)
-                                                                                        (maybe-get nr)
-                                                                                        2)))))
-                                      (= k (mk-some (<<func-prf>> ltk U V
-                                                                  (maybe-get ni)
-                                                                  (maybe-get nr)
-                                                                  true)))
-                                      (= (select h2-prf (maybe-get k))
-                                         (mk-some (mk-tuple6 ltk U V (maybe-get ni) (maybe-get nr) true)))
-                                      (= kmac (mk-some (<<func-prf>> ltk U V
-                                                                     (maybe-get ni)
-                                                                     (maybe-get nr)
-                                                                     false)))
-                                      (= (select h2-prf (maybe-get kmac))
-                                         (mk-some (mk-tuple6 ltk U V (maybe-get ni) (maybe-get nr) false))))))))))))
-       (forall ((ctr1 Int) (ctr2 Int))
-               (let ((state1 (select H2-state ctr1))
-                     (state2 (select H2-state ctr2)))
-                 (=> (and (not (= state1
-                                  (as mk-none (Maybe (Tuple11 Int Bool Int Bits_256 (Maybe Bool)
-                                                              (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
-                                                              (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)))
-                                                              Int)))))
-                          (not (= state2
-                                  (as mk-none (Maybe (Tuple11 Int Bool Int Bits_256 (Maybe Bool)
-                                                              (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
-                                                              (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)))
-                                                              Int))))))
-                     (let ((acc1 (el11-5  (maybe-get (select H2-state ctr1))))
-                           (acc2 (el11-5  (maybe-get (select H2-state ctr2))))
-                           (key1 (el11-6  (maybe-get (select H2-state ctr1))))
-                           (key2 (el11-6  (maybe-get (select H2-state ctr2))))
-                           (sid1 (el11-10 (maybe-get (select H2-state ctr1))))
-                           (sid2 (el11-10 (maybe-get (select H2-state ctr2)))))
-                       (=> (and (= (mk-some true) acc1 acc2)
-                                (= sid1 sid2))
-                           (= key1 key2))))))))))
+))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Helper Functions
