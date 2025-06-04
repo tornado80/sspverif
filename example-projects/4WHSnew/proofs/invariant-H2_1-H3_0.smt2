@@ -235,6 +235,7 @@
 
        (=> (> mess 0)
            (and (not (= kmac (as mk-none (Maybe Bits_256))))
+				(not (= k (as mk-none (Maybe Bits_256))))
 				(not (= ni (as mk-none (Maybe Bits_256)))) ; then ni is not none.
                 (not (= nr (as mk-none (Maybe Bits_256)))) ; then nr   is not none.
                 (= sid (mk-some (mk-tuple5 V U ni nr       ; then sid  has the right value.
@@ -257,6 +258,9 @@
       (and
        (=> (not (= ni (as mk-none (Maybe Bits_256))))
            (= (select h2-nonces (maybe-get ni)) (mk-some true)))
+
+       (=> (> mess 0)
+		   (not (= ni (as mk-none (Maybe Bits_256)))))
 
        (=> (and (> mess 1)
                 (= acc (mk-some true)))
@@ -388,40 +392,40 @@
       (and
        ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
        ;; Package states are, in general, equal
-       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-LTK> gamestate-H2)
+       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-LTK>          gamestate-H2)
           (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-LTK> gamestate-H3))
-       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-H> gamestate-H2)
+       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-H>          gamestate-H2)
           (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-H> gamestate-H3))
-       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-ctr_> gamestate-H2)
+       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-ctr_>          gamestate-H2)
           (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-ctr_> gamestate-H3))
-       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-kid_> gamestate-H2)
+       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-kid_>          gamestate-H2)
           (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-kid_> gamestate-H3))
-       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-RevTested> gamestate-H2)
+       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-RevTested>          gamestate-H2)
           (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-RevTested> gamestate-H3))
-       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-Fresh> gamestate-H2)
+       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-Fresh>          gamestate-H2)
           (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-Fresh> gamestate-H3))
-       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-First> gamestate-H2)
+       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-First>          gamestate-H2)
           (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-First> gamestate-H3))
-       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-Second> gamestate-H2)
+       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-Second>          gamestate-H2)
           (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-Second> gamestate-H3))
-       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-State> gamestate-H2)
+       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-State>          gamestate-H2)
           (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-State> gamestate-H3))
-       (= (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces>     state-H2)
+       (= (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces> state-H2)
           (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces> state-H3))
-       (= (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR>     state-H2)
+       (= (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR> state-H2)
           (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR> state-H3))
        ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
        ;; Local Statement on MAC & PRF collision-freeness
        (forall ((k1 Bits_256) (k2 Bits_256))
 			   (and
 				(let ((entry1 (select h2-prf k1))
-                      (entry2 (select h2-prf k1)))
+                      (entry2 (select h2-prf k2)))
                   (=> (and (not (= entry1 (as mk-none (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool)))))
                            (not (= entry2 (as mk-none (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool))))))
                       (=> (not (= k1 k2))
                           (not (= entry1 entry2)))))
 				(let ((entry1 (select h2-mac k1))
-                      (entry2 (select h2-mac k1)))
+                      (entry2 (select h2-mac k2)))
                   (=> (and (not (= entry1 (as mk-none (Maybe (Tuple3 Bits_256 Bits_256 Int)))))
                            (not (= entry2 (as mk-none (Maybe (Tuple3 Bits_256 Bits_256 Int))))))
                       (=> (not (= k1 k2))
