@@ -201,10 +201,10 @@
                                    (maybe-get nr)
                                    false)))))
    (=> (< mess 1)
-	   (and (= k (as mk-none (Maybe Bits_256)))
-			(= kmac (as mk-none (Maybe Bits_256)))))
+       (and (= k (as mk-none (Maybe Bits_256)))
+            (= kmac (as mk-none (Maybe Bits_256)))))
    (=> (< mess 2)
-	   (= acc (as mk-none (Maybe Bool)))) ; Don't accept before message 2
+       (= acc (as mk-none (Maybe Bool)))) ; Don't accept before message 2
    (=> (and (> mess 1) ; message large than 1
             (= acc (mk-some true))) ; accept = true
        (and
@@ -235,8 +235,8 @@
 
        (=> (> mess 0)
            (and (not (= kmac (as mk-none (Maybe Bits_256))))
-				(not (= k (as mk-none (Maybe Bits_256))))
-				(not (= ni (as mk-none (Maybe Bits_256)))) ; then ni is not none.
+                (not (= k (as mk-none (Maybe Bits_256))))
+                (not (= ni (as mk-none (Maybe Bits_256)))) ; then ni is not none.
                 (not (= nr (as mk-none (Maybe Bits_256)))) ; then nr   is not none.
                 (= sid (mk-some (mk-tuple5 V U ni nr       ; then sid  has the right value.
                                            (mk-some (<<func-mac>> (maybe-get kmac)
@@ -260,7 +260,7 @@
            (= (select h2-nonces (maybe-get ni)) (mk-some true)))
 
        (=> (> mess 0)
-		   (not (= ni (as mk-none (Maybe Bits_256)))))
+           (not (= ni (as mk-none (Maybe Bits_256)))))
 
        (=> (and (> mess 1)
                 (= acc (mk-some true)))
@@ -417,14 +417,14 @@
        ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
        ;; Local Statement on MAC & PRF collision-freeness
        (forall ((k1 Bits_256) (k2 Bits_256))
-			   (and
-				(let ((entry1 (select h2-prf k1))
+               (and
+                (let ((entry1 (select h2-prf k1))
                       (entry2 (select h2-prf k2)))
                   (=> (and (not (= entry1 (as mk-none (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool)))))
                            (not (= entry2 (as mk-none (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool))))))
                       (=> (not (= k1 k2))
                           (not (= entry1 entry2)))))
-				(let ((entry1 (select h2-mac k1))
+                (let ((entry1 (select h2-mac k1))
                       (entry2 (select h2-mac k2)))
                   (=> (and (not (= entry1 (as mk-none (Maybe (Tuple3 Bits_256 Bits_256 Int)))))
                            (not (= entry2 (as mk-none (Maybe (Tuple3 Bits_256 Bits_256 Int))))))
@@ -522,7 +522,7 @@
                         (=> (and (not (= key1 (as mk-none (Maybe Bits_256))))
                                  (= key1 key2))
                             (and (= ni1 ni2 (mk-some (el6-4 (maybe-get (select h2-prf (maybe-get key1))))))
-								 (= nr1 nr2 (mk-some (el6-5 (maybe-get (select h2-prf (maybe-get key1))))))))
+                                 (= nr1 nr2 (mk-some (el6-5 (maybe-get (select h2-prf (maybe-get key1))))))))
                         (=> (and (= (mk-some true) acc1 acc2)
                                  (= sid1 sid2))
                             (and (= ltk1 ltk2))))))))))))
