@@ -450,6 +450,32 @@
           (H2-state (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-State> gamestate-H2))
           (H3-state (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-State> gamestate-H3)))
       (and
+	   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	   ;; Package states are, in general, equal
+       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-LTK> gamestate-H2)
+          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-LTK> gamestate-H3))
+       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-H> gamestate-H2)
+          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-H> gamestate-H3))
+       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-ctr_> gamestate-H2)
+          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-ctr_> gamestate-H3))
+       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-kid_> gamestate-H2)
+          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-kid_> gamestate-H3))
+       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-RevTested> gamestate-H2)
+          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-RevTested> gamestate-H3))
+       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-Fresh> gamestate-H2)
+          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-Fresh> gamestate-H3))
+       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-First> gamestate-H2)
+          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-First> gamestate-H3))
+       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-Second> gamestate-H2)
+          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-Second> gamestate-H3))
+       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-State> gamestate-H2)
+          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-State> gamestate-H3))
+       (= (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces>     state-kx)
+          (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces> state-kxred))
+       (= (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR>     state-kx)
+          (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR> state-kxred))
+	   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	   ;; Local Statement on Nonces
        (forall ((k Bits_256))
                (and
                 (let ((entry (select h2-mac k)))
@@ -483,31 +509,8 @@
                             (flag (el6-6 (maybe-get entry))))
                         (= k (<<func-prf>> ltk U V ni nr flag)))))))
 
-       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-LTK> gamestate-H2)
-          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-LTK> gamestate-H3))
-       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-H> gamestate-H2)
-          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-H> gamestate-H3))
-       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-ctr_> gamestate-H2)
-          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-ctr_> gamestate-H3))
-       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-kid_> gamestate-H2)
-          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-kid_> gamestate-H3))
-       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-RevTested> gamestate-H2)
-          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-RevTested> gamestate-H3))
-       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-Fresh> gamestate-H2)
-          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-Fresh> gamestate-H3))
-       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-First> gamestate-H2)
-          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-First> gamestate-H3))
-       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-Second> gamestate-H2)
-          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-Second> gamestate-H3))
-       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-State> gamestate-H2)
-          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-State> gamestate-H3))
-
-       (= (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces>     state-kx)
-          (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces> state-kxred))
-
-       (= (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR>     state-kx)
-          (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR> state-kxred))
-
+	   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	   ;; Local statement on single entries in the game state
        (forall ((ctr Int))
                (let ((state (select H2-state ctr)))
                  (=> (not (= state
@@ -574,6 +577,8 @@
                                                                      false)))
                                       (= (select h2-prf (maybe-get kmac))
                                          (mk-some (mk-tuple6 ltk U V (maybe-get ni) (maybe-get nr) false))))))))))))
+	   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	   ;; Pairwise properties of game states
        (forall ((ctr1 Int) (ctr2 Int))
                (let ((state1 (select H2-state ctr1))
                      (state2 (select H2-state ctr2)))
