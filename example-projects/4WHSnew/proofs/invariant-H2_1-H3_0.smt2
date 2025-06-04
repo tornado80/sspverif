@@ -385,21 +385,21 @@
 	   
        (forall ((k Bits_256))
                (and
-                (let ((entry (select h2-mac k)))
-                  (=> (not (= entry (as mk-none (Maybe (Tuple3 Bits_256 Bits_256 Int)))))
+                (let ((entry (select h2-mac k)))                                            ; for all k
+                  (=> (not (= entry (as mk-none (Maybe (Tuple3 Bits_256 Bits_256 Int)))))   ; if entry at k not none
                       (let ((kmac  (el3-1 (maybe-get entry)))
                             (nonce (el3-2 (maybe-get entry)))
                             (label (el3-3 (maybe-get entry))))
-                        (= k (<<func-mac>> kmac nonce label)))))
-                (let ((entry (select h2-prf k)))
-                  (=> (not (= entry (as mk-none (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool)))))
+                        (= k (<<func-mac>> kmac nonce label)))))                            ; then k has been computed correctly from kmac and inputs (and is stored at correct location)
+                (let ((entry (select h2-prf k)))                                            ; for all k
+                  (=> (not (= entry (as mk-none (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool))))) ; if entry at k not none
                       (let ((ltk (el6-1 (maybe-get entry)))
                             (U    (el6-2 (maybe-get entry)))
                             (V    (el6-3 (maybe-get entry)))
                             (ni   (el6-4 (maybe-get entry)))
                             (nr   (el6-5 (maybe-get entry)))
                             (flag (el6-6 (maybe-get entry))))
-                        (= k (<<func-prf>> ltk U V ni nr flag)))))))
+                        (= k (<<func-prf>> ltk U V ni nr flag)))))))                        ; then k has been computed correct from ltk + stuff and is stored at correct location
 
 	   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	   ;; Local statement on single entries in the game state
