@@ -273,8 +273,7 @@
      (H3-old <GameState_H3_<$<!n!><!b!><!true!><!zeron!>$>>)
      (H2-return <OracleReturn-H2-<$<!n!><!b!><!true!><!zeron!>$>-Game-<$<!b!><!n!><!zeron!>$>-Send1>)
      (H3-return <OracleReturn-H3-<$<!n!><!b!><!true!><!zeron!>$>-Game_nochecks-<$<!b!><!n!><!zeron!>$>-Send1>)
-     (ctr Int)
-     (msg (Tuple2 Bits_256 Bits_256)))
+     (ctr Int))
   Bool
   (let (
         (gamestate-H2  (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Game>
