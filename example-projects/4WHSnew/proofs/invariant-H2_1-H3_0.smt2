@@ -348,13 +348,13 @@
                        (and
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                         ;; For any side
-                        (helper-gamestate-singleside h2-prf h2-nonces U u V ltk acc k ni nr kmac sid mess)
+                        (helper-gamestate-singleside h2-prf h2-nonces U u V ltk acc k ni nr kmac sid mess) ; line sometimes causes mysterious cvc5 bug
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                         ;; Responder
-                        (helper-gamestate-responder h2-prf h2-nonces U u V ltk acc k ni nr kmac sid mess)
+                        (helper-gamestate-responder h2-prf h2-nonces U u V ltk acc k ni nr kmac sid mess) ; line sometimes causes mysterious cvc5 bug
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                         ;; Initiator
-                        (helper-gamestate-initiator h2-prf h2-nonces U u V ltk acc k ni nr kmac sid mess)
+                        (helper-gamestate-initiator h2-prf h2-nonces U u V ltk acc k ni nr kmac sid mess) ; line sometimes causes mysterious cvc5 bug 
         )))))
        ))))
 
@@ -409,27 +409,27 @@
           (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR> state-H3))
        ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
        ;; Local Statement on MAC & PRF collision-freeness
-       ;; (forall ((k1 Bits_256) (k2 Bits_256))
-       ;;          (let ((entry1 (select h2-prf k1))
-       ;;                (entry2 (select h2-prf k1)))
-       ;;            (=> (and (not (= entry1 (as mk-none (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool)))))
-       ;;                     (not (= entry2 (as mk-none (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool))))))
-       ;;                (let ((ltk1  (el6-1 (maybe-get entry1)))
-       ;;                      (ltk2  (el6-1 (maybe-get entry2)))
-       ;;                     (U1    (el6-2 (maybe-get entry1)))
-       ;;                      (U2    (el6-2 (maybe-get entry2)))
-       ;;                     (V1    (el6-3 (maybe-get entry1)))
-       ;;                      (V2    (el6-3 (maybe-get entry2)))
-       ;;                     (ni1   (el6-4 (maybe-get entry1)))
-       ;;                      (ni2   (el6-4 (maybe-get entry2)))
-       ;;                     (nr1   (el6-5 (maybe-get entry1)))
-       ;;                      (nr2   (el6-5 (maybe-get entry2)))
-       ;;                     (flag1 (el6-6 (maybe-get entry1)))
-       ;;                      (flag2 (el6-6 (maybe-get entry2))))
-       ;;                  (=> (not (= k1 k2))
-       ;;                      (not (= entry1 entry2)))))))
+        (forall ((k1 Bits_256) (k2 Bits_256))
+                 (let ((entry1 (select h2-prf k1))
+                       (entry2 (select h2-prf k1)))
+                   (=> (and (not (= entry1 (as mk-none (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool)))))
+                            (not (= entry2 (as mk-none (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool))))))
+                       (let ((ltk1  (el6-1 (maybe-get entry1)))
+                             (ltk2  (el6-1 (maybe-get entry2)))
+                            (U1    (el6-2 (maybe-get entry1)))
+                             (U2    (el6-2 (maybe-get entry2)))
+                            (V1    (el6-3 (maybe-get entry1)))
+                             (V2    (el6-3 (maybe-get entry2)))
+                            (ni1   (el6-4 (maybe-get entry1)))
+                             (ni2   (el6-4 (maybe-get entry2)))
+                            (nr1   (el6-5 (maybe-get entry1)))
+                             (nr2   (el6-5 (maybe-get entry2)))
+                            (flag1 (el6-6 (maybe-get entry1)))
+                             (flag2 (el6-6 (maybe-get entry2))))
+                         (=> (not (= k1 k2))
+                             (not (= entry1 entry2)))))))
 
-       (forall ((k Bits_256))
+      (forall ((k Bits_256))
                (and
                 (let ((entry (select h2-mac k)))                                            ; for all k
                   (=> (not (= entry (as mk-none (Maybe (Tuple3 Bits_256 Bits_256 Int)))))   ; if entry at k not none
