@@ -475,7 +475,7 @@
        (= (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR>     state-kx)
           (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR> state-kxred))
 	   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	   ;; Local Statement on Nonces
+	   ;; Local Statement on MAC & PRF collision-freeness
        (forall ((k Bits_256))
                (and
                 (let ((entry (select h2-mac k)))

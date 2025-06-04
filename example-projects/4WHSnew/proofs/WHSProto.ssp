@@ -428,16 +428,6 @@ proof WHSProto {
             }
         }
         equivalence H2_1 H3_0 {
-            Send4: {
-                invariant: [./proofs/invariant-H2_1-H3_0.smt2]
-
-                lemmas {
-                    equal-aborts: []
-                    invariant:    [no-abort]
-                    same-output:  [no-abort]
-/*					mess-is-two:  [no-abort]*/
-                }
-            }
             Send1: {
                 invariant: [./proofs/invariant-H2_1-H3_0.smt2]
 
@@ -463,6 +453,16 @@ proof WHSProto {
                     equal-aborts: []
                     invariant:    [no-abort]
                     same-output:  [no-abort]
+                }
+            }
+            Send4: {
+                invariant: [./proofs/invariant-H2_1-H3_0.smt2]
+
+                lemmas {
+                    equal-aborts: []
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+/*					mess-is-two:  [no-abort]*/
                 }
             }
             Send5: {
