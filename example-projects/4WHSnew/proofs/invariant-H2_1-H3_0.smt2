@@ -163,156 +163,13 @@
   false
   )
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                                        ;                                                                                                      ;
-                                        ; Invariant --- note that the invariant needs to be game-global and not per oracle,                    ;
-                                        ;               so that induction over the oracle calls remains meaningful.                            ;
-                                        ;                                                                                                      ;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(define-fun <relation-mess-is-two-H2_1-H3_0-Send4>
-    ((H2-old <GameState_H2_<$<!n!><!b!><!true!><!zeron!>$>>)
-     (H3-old <GameState_H3_<$<!n!><!b!><!true!><!zeron!>$>>)
-     (H2-return <OracleReturn-H2-<$<!n!><!b!><!true!><!zeron!>$>-Game-<$<!b!><!n!><!zeron!>$>-Send4>)
-     (H3-return <OracleReturn-H3-<$<!n!><!b!><!true!><!zeron!>$>-Game_nochecks-<$<!b!><!n!><!zeron!>$>-Send4>)
-     (ctr Int)
-     (msg (Tuple2 Bits_256 Bits_256)))
-  Bool
-  (let ((gamestate-H2 (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Game>     H2-old))
-        (gamestate-H3 (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Game_nochecks> H3-old))
-        (newstate-H2  (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Game>
-                       (<oracle-return-H2-<$<!n!><!b!><!true!><!zeron!>$>-Game-<$<!b!><!n!><!zeron!>$>-Send4-game-state> H2-return)))
-        (newstate-H3  (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Game_nochecks>
-                       (<oracle-return-H3-<$<!n!><!b!><!true!><!zeron!>$>-Game_nochecks-<$<!b!><!n!><!zeron!>$>-Send4-game-state> H3-return))))
-    (let ((H2-state-old (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-State> gamestate-H2))
-          (H3-state-old (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-State> gamestate-H3))
-          (H2-state-new (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-State> newstate-H2))
-          (H3-state-new (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-State> newstate-H3)))
-      (and (= (select H2-state-new ctr)
-              (select H3-state-new ctr))
-           (=> (not (= (select H2-state-new ctr)
-                       (as mk-none (Maybe (Tuple11 Int Bool Int Bits_256 (Maybe Bool)
-                                                   (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
-                                                   (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)))
-                                                   Int)))))
-               (= (el11-11 (maybe-get (select H2-state-new ctr))) 2))))))
-
-
-                                        ;(= key1 key2))))))))))
-
-
-
-         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Maybe the desired version
-         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; (forall ((ctr Int))
-;;  (and
-;;     (or (= (select H2-state ctr)
-;;            (as mk-none (Maybe (Tuple12 Int Bool Int Bool Bits_256 (Maybe Bool)
-;;                                        (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
-;;                                        (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)))
-;;                                        Int))))
-;;      (exists ((U Int) (u Bool) (V Int) (v Bool) (ltk Bits_256) (acc (Maybe Bool))
-;;               (k (Maybe Bits_256)) (ni (Maybe Bits_256)) (nr (Maybe Bits_256)) (kmac (Maybe Bits_256))
-;;               (sid (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256))))
-;;               (mess Int))
-;;         (and (= (select H2-state ctr) (mk-some (mk-tuple12 U u V v ltk acc k ni nr kmac sid mess)))
-;;             (=> (and (not (= 0 mess)) (not (= 1 mess)))
-;;                 (or (= acc (mk-some false))
-;;                     (not (= sid (as mk-none
-;;                                     (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256)
-;;                                                    (Maybe Bits_256)))))))))))
-;;     (or (= (select H3-state ctr)
-;;            (as mk-none (Maybe (Tuple12 Int Bool Int Bool Bits_256 (Maybe Bool)
-;;                                        (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
-;;                                        (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)))
-;;                                        Int))))
-;;      (exists ((U Int) (u Bool) (V Int) (v Bool) (ltk Bits_256) (acc (Maybe Bool))
-;;               (k (Maybe Bits_256)) (ni (Maybe Bits_256)) (nr (Maybe Bits_256)) (kmac (Maybe Bits_256))
-;;               (sid (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256))))
-;;               (mess Int))
-;;         (and (= (select H3-state ctr) (mk-some (mk-tuple12 U u V v ltk acc k ni nr kmac sid mess)))
-;;             (and (=> (and (not (= 0 mess)) (not (= 1 mess)))
-;;                      (or (= acc (mk-some false))
-;;                          (not (= sid (as mk-none
-;;                                          (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256)
-;;                                                         (Maybe Bits_256))))))))))))))))))
-
-
-(define-fun <relation-debug-H2_1-H3_0-Send4>
-    ((H2-old <GameState_H2_<$<!n!><!b!><!true!><!zeron!>$>>)
-     (H3-old <GameState_H3_<$<!n!><!b!><!true!><!zeron!>$>>)
-     (H2-return <OracleReturn-H2-<$<!n!><!b!><!true!><!zeron!>$>-Game-<$<!b!><!n!><!zeron!>$>-Send4>)
-     (H3-return <OracleReturn-H3-<$<!n!><!b!><!true!><!zeron!>$>-Game_nochecks-<$<!b!><!n!><!zeron!>$>-Send4>)
-     (ctr Int)
-     (msg (Tuple2 Bits_256 Bits_256)))
-  Bool
-  (let (
-        (gamestate-H2  (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Game>
-                        (<oracle-return-H2-<$<!n!><!b!><!true!><!zeron!>$>-Game-<$<!b!><!n!><!zeron!>$>-Send4-game-state> H2-return)))
-        (gamestate-H3  (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Game_nochecks>
-                        (<oracle-return-H3-<$<!n!><!b!><!true!><!zeron!>$>-Game_nochecks-<$<!b!><!n!><!zeron!>$>-Send4-game-state> H3-return)))
-        (crstate-H2  (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR>
-                      (<oracle-return-H2-<$<!n!><!b!><!true!><!zeron!>$>-Game-<$<!b!><!n!><!zeron!>$>-Send4-game-state> H2-return)))
-        (crstate-H3  (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR>
-                      (<oracle-return-H3-<$<!n!><!b!><!true!><!zeron!>$>-Game_nochecks-<$<!b!><!n!><!zeron!>$>-Send4-game-state> H3-return)))
-        (noncesstate-H2  (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces>
-                          (<oracle-return-H2-<$<!n!><!b!><!true!><!zeron!>$>-Game-<$<!b!><!n!><!zeron!>$>-Send4-game-state> H2-return)))
-        (noncesstate-H3  (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces>
-                          (<oracle-return-H3-<$<!n!><!b!><!true!><!zeron!>$>-Game_nochecks-<$<!b!><!n!><!zeron!>$>-Send4-game-state> H3-return))))
-                                        ;(define-fun invariant-helper-Send4
-                                        ;    ((state-kx     <GameState_H2_<$<!n!><!b!><!true!><!zeron!>$>>)
-                                        ;     (state-kxred  <GameState_H3_<$<!n!><!b!><!true!><!zeron!>$>>))
-                                        ;  Bool ; I am using gamestate-H2 and gamestate-H3 here although these point to the new state!
-                                        ;  (let ((gamestate-H2 (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Game>     state-kx))
-                                        ;        (gamestate-H3 (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Game_nochecks> state-kxred))
-                                        ;        (crstate-H2 (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR>     state-kx))
-                                        ;        (crstate-H3 (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR> state-kxred)))
-    (let ((h2-prf (<pkg-state-CR-<$<!bcr!><!n!>$>-PRFinverse> crstate-H2))
-          (h3-prf (<pkg-state-CR-<$<!bcr!><!n!>$>-PRFinverse> crstate-H3))
-          (h2-mac (<pkg-state-CR-<$<!bcr!><!n!>$>-MACinverse> crstate-H2))
-          (h3-mac (<pkg-state-CR-<$<!bcr!><!n!>$>-MACinverse> crstate-H3))
-          (H2-state (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-State> gamestate-H2))
-          (H3-state (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-State> gamestate-H3)))
-      (and
-
-       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-LTK> gamestate-H2)
-          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-LTK> gamestate-H3))
-       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-H> gamestate-H2)
-          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-H> gamestate-H3))
-       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-ctr_> gamestate-H2)
-          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-ctr_> gamestate-H3))
-       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-kid_> gamestate-H2)
-          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-kid_> gamestate-H3))
-       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-RevTested> gamestate-H2)
-          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-RevTested> gamestate-H3))
-       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-Fresh> gamestate-H2)
-          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-Fresh> gamestate-H3))
-       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-First> gamestate-H2)
-          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-First> gamestate-H3))
-       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-Second> gamestate-H2)
-          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-Second> gamestate-H3))
-       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-State> gamestate-H2)
-          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-State> gamestate-H3))
-
-       (= crstate-H2 crstate-H3)
-
-                                        ;       (= (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR>     state-kx)
-                                        ;          (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR> state-kxred))
-
-       (= noncesstate-H2 noncesstate-H3)
-
-                                        ;       (= (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces>     state-kx)
-                                        ;          (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces> state-kxred))
-       ))))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Helper Functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 (define-fun helper-gamestate-singleside ((h2-prf (Array Bits_256 (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool))))
+                                         (h2-nonces (Array Bits_256 (Maybe Bool)))
                                          (U Int) (u Bool) (V Int) (ltk Bits_256)
                                          (acc (Maybe Bool))
                                          (k (Maybe Bits_256))
@@ -355,6 +212,153 @@
                                    (mk-some (<<func-mac>> (maybe-get kmac)
                                                           (maybe-get nr)
                                                           2)))))))))
+
+(define-fun helper-gamestate-responder ((h2-prf (Array Bits_256 (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool))))
+                                        (h2-nonces (Array Bits_256 (Maybe Bool)))
+                                         (U Int) (u Bool) (V Int) (ltk Bits_256)
+                                         (acc (Maybe Bool))
+                                         (k (Maybe Bits_256))
+                                         (ni (Maybe Bits_256))
+                                         (nr (Maybe Bits_256))
+                                         (kmac (Maybe Bits_256))
+                                         (sid (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256))))
+                                         (mess Int))
+  Bool
+                        (=> u
+                            (and
+                             (=> (not (= nr (as mk-none (Maybe Bits_256))))
+                                 (= (select h2-nonces (maybe-get nr)) (mk-some true)))
+
+                             (=> (> mess 0)
+                                 (and (not (= ni (as mk-none (Maybe Bits_256)))) ; then ni is not none.
+                                      (not (= nr (as mk-none (Maybe Bits_256)))) ; then nr   is not none.
+                                      (= sid (mk-some (mk-tuple5 V U ni nr       ; then sid  has the right value.
+                                                                 (mk-some (<<func-mac>> (maybe-get kmac)
+                                                                                        (maybe-get nr)
+                                                                                        2)))))))))
+)
+
+(define-fun helper-gamestate-initiator ((h2-prf (Array Bits_256 (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool))))
+                                        (h2-nonces (Array Bits_256 (Maybe Bool)))
+                                         (U Int) (u Bool) (V Int) (ltk Bits_256)
+                                         (acc (Maybe Bool))
+                                         (k (Maybe Bits_256))
+                                         (ni (Maybe Bits_256))
+                                         (nr (Maybe Bits_256))
+                                         (kmac (Maybe Bits_256))
+                                         (sid (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256))))
+                                         (mess Int))
+  Bool
+(=> (not u)
+                            (and
+                             (=> (not (= ni (as mk-none (Maybe Bits_256))))
+                                 (= (select h2-nonces (maybe-get ni)) (mk-some true)))
+
+                             (=> (and (> mess 1)
+                                      (= acc (mk-some true)))
+                                 (and (= sid (mk-some (mk-tuple5 U V ni nr           ; then sid  has the right value.
+                                                                 (mk-some (<<func-mac>> (maybe-get kmac)
+                                                                                        (maybe-get nr)
+                                                                                        2)))))))))
+)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                                        ;                                                                                                      ;
+                                        ; Debugging relation on new state (actual invariant is further down in file )                          ;
+                                        ;                                                                                                      ;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define-fun <relation-debug-H2_1-H3_0-Send1>
+    ((H2-old <GameState_H2_<$<!n!><!b!><!true!><!zeron!>$>>)
+     (H3-old <GameState_H3_<$<!n!><!b!><!true!><!zeron!>$>>)
+     (H2-return <OracleReturn-H2-<$<!n!><!b!><!true!><!zeron!>$>-Game-<$<!b!><!n!><!zeron!>$>-Send1>)
+     (H3-return <OracleReturn-H3-<$<!n!><!b!><!true!><!zeron!>$>-Game_nochecks-<$<!b!><!n!><!zeron!>$>-Send1>)
+     (ctr Int)
+     (msg (Tuple2 Bits_256 Bits_256)))
+  Bool
+  (let (
+        (gamestate-H2  (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Game>
+                        (<oracle-return-H2-<$<!n!><!b!><!true!><!zeron!>$>-Game-<$<!b!><!n!><!zeron!>$>-Send1-game-state> H2-return)))
+        (gamestate-H3  (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Game_nochecks>
+                        (<oracle-return-H3-<$<!n!><!b!><!true!><!zeron!>$>-Game_nochecks-<$<!b!><!n!><!zeron!>$>-Send1-game-state> H3-return)))
+        (crstate-H2  (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR>
+                      (<oracle-return-H2-<$<!n!><!b!><!true!><!zeron!>$>-Game-<$<!b!><!n!><!zeron!>$>-Send1-game-state> H2-return)))
+        (crstate-H3  (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR>
+                      (<oracle-return-H3-<$<!n!><!b!><!true!><!zeron!>$>-Game_nochecks-<$<!b!><!n!><!zeron!>$>-Send1-game-state> H3-return)))
+        (noncesstate-H2  (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces>
+                          (<oracle-return-H2-<$<!n!><!b!><!true!><!zeron!>$>-Game-<$<!b!><!n!><!zeron!>$>-Send1-game-state> H2-return)))
+        (noncesstate-H3  (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces>
+                          (<oracle-return-H3-<$<!n!><!b!><!true!><!zeron!>$>-Game_nochecks-<$<!b!><!n!><!zeron!>$>-Send1-game-state> H3-return))))
+       ; We are using gamestate-H2 and gamestate-H3 here although these point to the new state!
+    (let ((h2-prf (<pkg-state-CR-<$<!bcr!><!n!>$>-PRFinverse> crstate-H2))
+          (h3-prf (<pkg-state-CR-<$<!bcr!><!n!>$>-PRFinverse> crstate-H3))
+          (h2-mac (<pkg-state-CR-<$<!bcr!><!n!>$>-MACinverse> crstate-H2))
+          (h3-mac (<pkg-state-CR-<$<!bcr!><!n!>$>-MACinverse> crstate-H3))
+          (h2-nonces (<pkg-state-Nonces-<$<!true!><!n!>$>-Nonces> noncesstate-H2))
+          (h3-nonces (<pkg-state-Nonces-<$<!true!><!n!>$>-Nonces> noncesstate-H3))
+          (H2-state (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-State> gamestate-H2))
+          (H3-state (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-State> gamestate-H3)))
+      (and
+
+       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-LTK> gamestate-H2)
+          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-LTK> gamestate-H3))
+       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-H> gamestate-H2)
+          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-H> gamestate-H3))
+       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-ctr_> gamestate-H2)
+          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-ctr_> gamestate-H3))
+       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-kid_> gamestate-H2)
+          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-kid_> gamestate-H3))
+       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-RevTested> gamestate-H2)
+          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-RevTested> gamestate-H3))
+       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-Fresh> gamestate-H2)
+          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-Fresh> gamestate-H3))
+       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-First> gamestate-H2)
+          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-First> gamestate-H3))
+       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-Second> gamestate-H2)
+          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-Second> gamestate-H3))
+       (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-State> gamestate-H2)
+          (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-State> gamestate-H3))
+
+       (= crstate-H2 crstate-H3)
+
+                                        ;       (= (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR>     state-kx)
+                                        ;          (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR> state-kxred))
+
+       (= h2-nonces h3-nonces)
+
+                                        ;       (= (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces>     state-kx)
+                                        ;          (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces> state-kxred))
+              (forall ((ctr Int))
+               (let ((state (select H2-state ctr)))
+                 (=> (not (= state
+                             (as mk-none (Maybe (Tuple11 Int Bool Int Bits_256 (Maybe Bool)
+                                                         (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
+                                                         (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)))
+                                                         Int)))))
+                     (let ((U    (el11-1  (maybe-get state)))
+                           (u    (el11-2  (maybe-get state)))
+                           (V    (el11-3  (maybe-get state)))
+                           (ltk  (el11-4  (maybe-get state)))
+                           (acc  (el11-5  (maybe-get state)))
+                           (k    (el11-6  (maybe-get state)))
+                           (ni   (el11-7  (maybe-get state)))
+                           (nr   (el11-8  (maybe-get state)))
+                           (kmac (el11-9  (maybe-get state)))
+                           (sid  (el11-10 (maybe-get state)))
+                           (mess (el11-11 (maybe-get state))))
+                       (and
+                        ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                        ;; For any side
+                        (helper-gamestate-singleside h2-prf h2-nonces U u V ltk acc k ni nr kmac sid mess)
+                        ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                        ;; Responder
+                        (helper-gamestate-responder h2-prf h2-nonces U u V ltk acc k ni nr kmac sid mess)
+                        ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                        ;; Initiator
+                        (helper-gamestate-initiator h2-prf h2-nonces U u V ltk acc k ni nr kmac sid mess)
+        )))))
+       ))))
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -467,34 +471,14 @@
                        (and
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                         ;; For any side
-                        (helper-gamestate-singleside h2-prf U u V ltk acc k ni nr kmac sid mess)
+                        (helper-gamestate-singleside h2-prf h2-nonces U u V ltk acc k ni nr kmac sid mess)
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                         ;; Responder
-                        (=> u
-                            (and
-                             (=> (not (= nr (as mk-none (Maybe Bits_256))))
-                                 (= (select h2-nonces (maybe-get nr)) (mk-some true)))
-
-                             (=> (> mess 0)
-                                 (and (not (= ni (as mk-none (Maybe Bits_256)))) ; then ni is not none.
-                                      (not (= nr (as mk-none (Maybe Bits_256)))) ; then nr   is not none.
-                                      (= sid (mk-some (mk-tuple5 V U ni nr       ; then sid  has the right value.
-                                                                 (mk-some (<<func-mac>> (maybe-get kmac)
-                                                                                        (maybe-get nr)
-                                                                                        2)))))))))
+                        (helper-gamestate-responder h2-prf h2-nonces U u V ltk acc k ni nr kmac sid mess)
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                         ;; Initiator
-                        (=> (not u)
-                            (and
-                             (=> (not (= ni (as mk-none (Maybe Bits_256))))
-                                 (= (select h2-nonces (maybe-get ni)) (mk-some true)))
-
-                             (=> (and (> mess 1)
-                                      (= acc (mk-some true)))
-                                 (and (= sid (mk-some (mk-tuple5 U V ni nr           ; then sid  has the right value.
-                                                                 (mk-some (<<func-mac>> (maybe-get kmac)
-                                                                                        (maybe-get nr)
-                                                                                        2))))))))))))))
+                        (helper-gamestate-initiator h2-prf h2-nonces U u V ltk acc k ni nr kmac sid mess)
+        )))))
        ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
        ;; Pairwise properties of game states
        (forall ((ctr1 Int) (ctr2 Int))
