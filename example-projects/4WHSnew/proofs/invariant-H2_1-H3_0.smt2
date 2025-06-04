@@ -617,5 +617,5 @@
 								   (not (= nonce1 (as mk-none (Maybe Bits_256)))))
 							  (not (= nonce1 nonce2))))
 						(=> (and (= (mk-some true) acc1 acc2)
-                                 (= sid1 sid2) false)
+                                 (= sid1 sid2))
 							(and (= ltk1 ltk2))))))))))))
