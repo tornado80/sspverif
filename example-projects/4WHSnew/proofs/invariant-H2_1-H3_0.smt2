@@ -199,7 +199,7 @@
                (= (el11-11 (maybe-get (select H2-state-new ctr))) 2))))))
 
 
-                           ;(= key1 key2))))))))))
+                                        ;(= key1 key2))))))))))
 
 
 
@@ -250,25 +250,25 @@
   Bool
   (let (
         (gamestate-H2  (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Game>
-                       (<oracle-return-H2-<$<!n!><!b!><!true!><!zeron!>$>-Game-<$<!b!><!n!><!zeron!>$>-Send4-game-state> H2-return)))
+                        (<oracle-return-H2-<$<!n!><!b!><!true!><!zeron!>$>-Game-<$<!b!><!n!><!zeron!>$>-Send4-game-state> H2-return)))
         (gamestate-H3  (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Game_nochecks>
-                       (<oracle-return-H3-<$<!n!><!b!><!true!><!zeron!>$>-Game_nochecks-<$<!b!><!n!><!zeron!>$>-Send4-game-state> H3-return)))
+                        (<oracle-return-H3-<$<!n!><!b!><!true!><!zeron!>$>-Game_nochecks-<$<!b!><!n!><!zeron!>$>-Send4-game-state> H3-return)))
         (crstate-H2  (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR>
-                       (<oracle-return-H2-<$<!n!><!b!><!true!><!zeron!>$>-Game-<$<!b!><!n!><!zeron!>$>-Send4-game-state> H2-return)))
+                      (<oracle-return-H2-<$<!n!><!b!><!true!><!zeron!>$>-Game-<$<!b!><!n!><!zeron!>$>-Send4-game-state> H2-return)))
         (crstate-H3  (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR>
-                       (<oracle-return-H3-<$<!n!><!b!><!true!><!zeron!>$>-Game_nochecks-<$<!b!><!n!><!zeron!>$>-Send4-game-state> H3-return)))
+                      (<oracle-return-H3-<$<!n!><!b!><!true!><!zeron!>$>-Game_nochecks-<$<!b!><!n!><!zeron!>$>-Send4-game-state> H3-return)))
         (noncesstate-H2  (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces>
-                       (<oracle-return-H2-<$<!n!><!b!><!true!><!zeron!>$>-Game-<$<!b!><!n!><!zeron!>$>-Send4-game-state> H2-return)))
+                          (<oracle-return-H2-<$<!n!><!b!><!true!><!zeron!>$>-Game-<$<!b!><!n!><!zeron!>$>-Send4-game-state> H2-return)))
         (noncesstate-H3  (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces>
-                       (<oracle-return-H3-<$<!n!><!b!><!true!><!zeron!>$>-Game_nochecks-<$<!b!><!n!><!zeron!>$>-Send4-game-state> H3-return))))
-;(define-fun invariant-helper-Send4
-;    ((state-kx     <GameState_H2_<$<!n!><!b!><!true!><!zeron!>$>>)
-;     (state-kxred  <GameState_H3_<$<!n!><!b!><!true!><!zeron!>$>>))
-;  Bool ; I am using gamestate-H2 and gamestate-H3 here although these point to the new state! 
-;  (let ((gamestate-H2 (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Game>     state-kx))
-;        (gamestate-H3 (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Game_nochecks> state-kxred))
-;        (crstate-H2 (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR>     state-kx))
-;        (crstate-H3 (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR> state-kxred)))
+                          (<oracle-return-H3-<$<!n!><!b!><!true!><!zeron!>$>-Game_nochecks-<$<!b!><!n!><!zeron!>$>-Send4-game-state> H3-return))))
+                                        ;(define-fun invariant-helper-Send4
+                                        ;    ((state-kx     <GameState_H2_<$<!n!><!b!><!true!><!zeron!>$>>)
+                                        ;     (state-kxred  <GameState_H3_<$<!n!><!b!><!true!><!zeron!>$>>))
+                                        ;  Bool ; I am using gamestate-H2 and gamestate-H3 here although these point to the new state!
+                                        ;  (let ((gamestate-H2 (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Game>     state-kx))
+                                        ;        (gamestate-H3 (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Game_nochecks> state-kxred))
+                                        ;        (crstate-H2 (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR>     state-kx))
+                                        ;        (crstate-H3 (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR> state-kxred)))
     (let ((h2-prf (<pkg-state-CR-<$<!bcr!><!n!>$>-PRFinverse> crstate-H2))
           (h3-prf (<pkg-state-CR-<$<!bcr!><!n!>$>-PRFinverse> crstate-H3))
           (h2-mac (<pkg-state-CR-<$<!bcr!><!n!>$>-MACinverse> crstate-H2))
@@ -298,20 +298,63 @@
 
        (= crstate-H2 crstate-H3)
 
-;       (= (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR>     state-kx)
-;          (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR> state-kxred))
+                                        ;       (= (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR>     state-kx)
+                                        ;          (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR> state-kxred))
 
        (= noncesstate-H2 noncesstate-H3)
 
-;       (= (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces>     state-kx)
-;          (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces> state-kxred))
-))))
+                                        ;       (= (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces>     state-kx)
+                                        ;          (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces> state-kxred))
+       ))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Helper Functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
+(define-fun helper-gamestate-singleside ((h2-prf (Array Bits_256 (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool))))
+                                         (U Int) (u Bool) (V Int) (ltk Bits_256)
+                                         (acc (Maybe Bool))
+                                         (k (Maybe Bits_256))
+                                         (ni (Maybe Bits_256))
+                                         (nr (Maybe Bits_256))
+                                         (kmac (Maybe Bits_256))
+                                         (sid (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256))))
+                                         (mess Int))
+  Bool
+  (and
+   (=> (not (= k (as mk-none (Maybe Bits_256))))
+       (and (= k (mk-some (<<func-prf>> ltk (ite u V U) (ite u U V)        ; then k    has the right value.
+                                        (maybe-get ni)
+                                        (maybe-get nr)
+                                        true)))
+            (= (select h2-prf (maybe-get k))           ; then PRF value k is also in PRF table (at correct position).
+               (mk-some (mk-tuple6 ltk (ite u V U) (ite u U V)
+                                   (maybe-get ni)
+                                   (maybe-get nr)
+                                   true)))))
+   (=> (not (= kmac (as mk-none (Maybe Bits_256))))
+       (and (= kmac (mk-some (<<func-prf>> ltk (ite u V U) (ite u U V)     ; then kmac has the right value.
+                                           (maybe-get ni)
+                                           (maybe-get nr)
+                                           false)))
+            (= (select h2-prf (maybe-get kmac))        ; then PRF value kmac is also in PRF table (at correct position).
+               (mk-some (mk-tuple6 ltk (ite u V U) (ite u U V)
+                                   (maybe-get ni)
+                                   (maybe-get nr)
+                                   false)))))
+   (=> (> 2 mess) (= acc (as mk-none (Maybe Bool)))) ; Don't accept before message 2
+   (=> (and (> mess 1) ; message large than 1
+            (= acc (mk-some true))) ; accept = true
+       (and
+        (not (= ni (as mk-none (Maybe Bits_256))))
+        (not (= nr (as mk-none (Maybe Bits_256))))
+        (not (= kmac (as mk-none (Maybe Bits_256))))
+        (not (= k (as mk-none (Maybe Bits_256))))
+        (= sid (mk-some (mk-tuple5 (ite u V U) (ite u U V) ni nr       ; then sid  has the right value.
+                                   (mk-some (<<func-mac>> (maybe-get kmac)
+                                                          (maybe-get nr)
+                                                          2)))))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -382,7 +425,7 @@
        ;;                      (flag2 (el6-6 (maybe-get entry2))))
        ;;                  (=> (not (= k1 k2))
        ;;                      (not (= entry1 entry2)))))))
-       
+
        (forall ((k Bits_256))
                (and
                 (let ((entry (select h2-mac k)))                                            ; for all k
@@ -424,45 +467,14 @@
                        (and
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                         ;; For any side
-                        (=> (not (= k (as mk-none (Maybe Bits_256))))
-                            (and (= k (mk-some (<<func-prf>> ltk (ite u V U) (ite u U V)        ; then k    has the right value.
-                                                             (maybe-get ni)
-                                                             (maybe-get nr)
-                                                             true)))
-                                 (= (select h2-prf (maybe-get k))           ; then PRF value k is also in PRF table (at correct position).
-                                    (mk-some (mk-tuple6 ltk (ite u V U) (ite u U V) 
-                                                        (maybe-get ni) 
-                                                        (maybe-get nr) 
-                                                        true)))))
-                        (=> (not (= kmac (as mk-none (Maybe Bits_256))))
-                            (and (= kmac (mk-some (<<func-prf>> ltk (ite u V U) (ite u U V)     ; then kmac has the right value.
-                                                                (maybe-get ni)
-                                                                (maybe-get nr)
-                                                                false)))
-                                 (= (select h2-prf (maybe-get kmac))        ; then PRF value kmac is also in PRF table (at correct position).
-                                    (mk-some (mk-tuple6 ltk (ite u V U) (ite u U V)
-                                                        (maybe-get ni) 
-                                                        (maybe-get nr) 
-                                                        false)))))
-                        (=> (> 2 mess) (= acc (as mk-none (Maybe Bool)))) ; Don't accept before message 2
-                        (=> (and (> mess 1) ; message large than 1
-                                 (= acc (mk-some true))) ; accept = true
-                            (and
-                             (not (= ni (as mk-none (Maybe Bits_256))))
-                             (not (= nr (as mk-none (Maybe Bits_256))))
-                             (not (= kmac (as mk-none (Maybe Bits_256))))
-                             (not (= k (as mk-none (Maybe Bits_256))))
-                             (= sid (mk-some (mk-tuple5 (ite u V U) (ite u U V) ni nr       ; then sid  has the right value.
-                                                        (mk-some (<<func-mac>> (maybe-get kmac)
-                                                                               (maybe-get nr)
-                                                                               2)))))))
+                        (helper-gamestate-singleside h2-prf U u V ltk acc k ni nr kmac sid mess)
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                         ;; Responder
                         (=> u
                             (and
                              (=> (not (= nr (as mk-none (Maybe Bits_256))))
                                  (= (select h2-nonces (maybe-get nr)) (mk-some true)))
-                             
+
                              (=> (> mess 0)
                                  (and (not (= ni (as mk-none (Maybe Bits_256)))) ; then ni is not none.
                                       (not (= nr (as mk-none (Maybe Bits_256)))) ; then nr   is not none.
@@ -470,21 +482,21 @@
                                                                  (mk-some (<<func-mac>> (maybe-get kmac)
                                                                                         (maybe-get nr)
                                                                                         2)))))))))
-						;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-						;; Initiator
+                        ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                        ;; Initiator
                         (=> (not u)
-							(and
-							 (=> (not (= ni (as mk-none (Maybe Bits_256))))
-								 (= (select h2-nonces (maybe-get ni)) (mk-some true)))
+                            (and
+                             (=> (not (= ni (as mk-none (Maybe Bits_256))))
+                                 (= (select h2-nonces (maybe-get ni)) (mk-some true)))
 
-							 (=> (and (> mess 1)
-									  (= acc (mk-some true)))
-								 (and (= sid (mk-some (mk-tuple5 U V ni nr           ; then sid  has the right value.
-																 (mk-some (<<func-mac>> (maybe-get kmac)
-																						(maybe-get nr)
-																						2))))))))))))))
-	   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	   ;; Pairwise properties of game states
+                             (=> (and (> mess 1)
+                                      (= acc (mk-some true)))
+                                 (and (= sid (mk-some (mk-tuple5 U V ni nr           ; then sid  has the right value.
+                                                                 (mk-some (<<func-mac>> (maybe-get kmac)
+                                                                                        (maybe-get nr)
+                                                                                        2))))))))))))))
+       ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+       ;; Pairwise properties of game states
        (forall ((ctr1 Int) (ctr2 Int))
                (let ((state1 (select H2-state ctr1))
                      (state2 (select H2-state ctr2)))
@@ -499,14 +511,14 @@
                                                               (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)))
                                                               Int))))))
                      (let ((U1   (el11-1  (maybe-get (select H2-state ctr1))))
-						   (U2   (el11-1  (maybe-get (select H2-state ctr2))))
-						   (u1   (el11-2  (maybe-get (select H2-state ctr1))))
-						   (u2   (el11-2  (maybe-get (select H2-state ctr2))))
-						   (V1   (el11-3  (maybe-get (select H2-state ctr1))))
-						   (V2   (el11-3  (maybe-get (select H2-state ctr2))))
-						   (ltk1 (el11-4  (maybe-get (select H2-state ctr1))))
-						   (ltk2 (el11-4  (maybe-get (select H2-state ctr2))))
-						   (acc1 (el11-5  (maybe-get (select H2-state ctr1))))
+                           (U2   (el11-1  (maybe-get (select H2-state ctr2))))
+                           (u1   (el11-2  (maybe-get (select H2-state ctr1))))
+                           (u2   (el11-2  (maybe-get (select H2-state ctr2))))
+                           (V1   (el11-3  (maybe-get (select H2-state ctr1))))
+                           (V2   (el11-3  (maybe-get (select H2-state ctr2))))
+                           (ltk1 (el11-4  (maybe-get (select H2-state ctr1))))
+                           (ltk2 (el11-4  (maybe-get (select H2-state ctr2))))
+                           (acc1 (el11-5  (maybe-get (select H2-state ctr1))))
                            (acc2 (el11-5  (maybe-get (select H2-state ctr2))))
                            (key1 (el11-6  (maybe-get (select H2-state ctr1))))
                            (key2 (el11-6  (maybe-get (select H2-state ctr2))))
@@ -517,15 +529,15 @@
                            (sid1 (el11-10 (maybe-get (select H2-state ctr1))))
                            (sid2 (el11-10 (maybe-get (select H2-state ctr2)))))
                        (and
-						(let ((nonce1 (ite u1 nr1 ni1))
-							  (nonce2 (ite u2 nr2 ni2)))
-						  (=> (and (not (= ctr1 ctr2))
-								   (not (= nonce1 (as mk-none (Maybe Bits_256)))))
-							  (not (= nonce1 nonce2))))
-						(=> (and (not (= key1 (as mk-none (Maybe Bits_256))))
-								 (= key1 key2)
-								 false)
-							(and (= ni1 ni2) (= nr1 nr2)))
-						(=> (and (= (mk-some true) acc1 acc2)
+                        (let ((nonce1 (ite u1 nr1 ni1))
+                              (nonce2 (ite u2 nr2 ni2)))
+                          (=> (and (not (= ctr1 ctr2))
+                                   (not (= nonce1 (as mk-none (Maybe Bits_256)))))
+                              (not (= nonce1 nonce2))))
+                        (=> (and (not (= key1 (as mk-none (Maybe Bits_256))))
+                                 (= key1 key2)
+                                 false)
+                            (and (= ni1 ni2) (= nr1 nr2)))
+                        (=> (and (= (mk-some true) acc1 acc2)
                                  (= sid1 sid2))
-							(and (= ltk1 ltk2))))))))))))
+                            (and (= ltk1 ltk2))))))))))))
