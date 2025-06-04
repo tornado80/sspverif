@@ -319,15 +319,15 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define-fun invariant
-    ((state-kx     <GameState_H2_<$<!n!><!b!><!true!><!zeron!>$>>)
-     (state-kxred  <GameState_H3_<$<!n!><!b!><!true!><!zeron!>$>>))
+    ((state-H2 <GameState_H2_<$<!n!><!b!><!true!><!zeron!>$>>)
+     (state-H3 <GameState_H3_<$<!n!><!b!><!true!><!zeron!>$>>))
   Bool
-  (let ((gamestate-H2 (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Game>     state-kx))
-        (gamestate-H3 (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Game_nochecks> state-kxred))
-        (crstate-H2 (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR>     state-kx))
-        (crstate-H3 (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR> state-kxred))
-        (noncestate-H2 (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces> state-kx))
-        (noncestate-H3 (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces> state-kxred)))
+  (let ((gamestate-H2 (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Game>     state-H2))
+        (gamestate-H3 (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Game_nochecks> state-H3))
+        (crstate-H2 (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR>     state-H2))
+        (crstate-H3 (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR> state-H3))
+        (noncestate-H2 (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces> state-H2))
+        (noncestate-H3 (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces> state-H3)))
     (let ((h2-prf (<pkg-state-CR-<$<!bcr!><!n!>$>-PRFinverse> crstate-H2))
           (h3-prf (<pkg-state-CR-<$<!bcr!><!n!>$>-PRFinverse> crstate-H3))
           (h2-mac (<pkg-state-CR-<$<!bcr!><!n!>$>-MACinverse> crstate-H2))
@@ -357,10 +357,10 @@
           (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-Second> gamestate-H3))
        (= (<pkg-state-Game-<$<!b!><!n!><!zeron!>$>-State> gamestate-H2)
           (<pkg-state-Game_nochecks-<$<!b!><!n!><!zeron!>$>-State> gamestate-H3))
-       (= (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces>     state-kx)
-          (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces> state-kxred))
-       (= (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR>     state-kx)
-          (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR> state-kxred))
+       (= (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces>     state-H2)
+          (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces> state-H3))
+       (= (<game-H2-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR>     state-H2)
+          (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR> state-H3))
 	   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	   ;; Local Statement on MAC & PRF collision-freeness
 	   ;; (forall ((k1 Bits_256) (k2 Bits_256))
