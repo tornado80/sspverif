@@ -64,9 +64,42 @@ proof KEM_Proof {
     gamehops 
     {
         equivalence Prot_real H1_real {
-            Send1: {
+            GetPK: {
                 invariant: [
-                    ./proofs/invariant-KX-Red-H1.smt2
+                    ./proofs/invariant-KEM_Proof-Prot_Real-H1_Real.smt2
+                ]
+
+                lemmas {
+                    equal-aborts: []
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+                }
+            }
+            Run: {
+                invariant: [
+                    ./proofs/invariant-KEM_Proof-Prot_Real-H1_Real.smt2
+                ]
+
+                lemmas {
+                    equal-aborts: []
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+                }
+            }
+            TestSender: {
+                invariant: [
+                    ./proofs/invariant-KEM_Proof-Prot_Real-H1_Real.smt2
+                ]
+
+                lemmas {
+                    equal-aborts: []
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+                }
+            }
+            TestReceiver: {
+                invariant: [
+                    ./proofs/invariant-KEM_Proof-Prot_Real-H1_Real.smt2
                 ]
 
                 lemmas {

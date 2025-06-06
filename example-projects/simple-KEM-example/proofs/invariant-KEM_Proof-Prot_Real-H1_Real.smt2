@@ -1,4 +1,4 @@
-invariant(define-fun invariant
+(define-fun invariant
   ( (state-prot     <PackageState_Prot_<$<!isreal!>$>)
     (state-red      <GameState_todo>>))
   Bool
