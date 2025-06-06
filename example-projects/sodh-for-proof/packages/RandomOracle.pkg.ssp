@@ -1,0 +1,22 @@
+package RandomOracle {
+    params {
+        len: fn Bits(*) -> Integer,
+        consume: fn Bits(512), Integer -> Bits(*)
+    }
+
+    state {
+        T: Table((Bits(*), Bits(*)), Bits(*)) 
+        /* maps group element, salt to hash value */
+    }
+
+    oracle H(Z: Bits(*), salt: Bits(*)) -> Bits(*) {
+        if (T[(Z, salt)] != None) {
+            return Unwrap(T[(Z, salt)]);
+        }
+        len_salt <- len(salt);
+        assert ((len_salt == 256) or (len_salt == 384) or (len_salt == 512));
+        r <-$ Bits(512);
+        T[(Z, salt)] <- Some(consume(r, len_salt));
+        return Unwrap(T[(Z, salt)]);
+    }
+}

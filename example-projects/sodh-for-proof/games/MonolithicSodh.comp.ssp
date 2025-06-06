@@ -1,0 +1,26 @@
+composition MonolithicSodh {
+    const b: Bool;
+    const len: fn Bits(*) -> Integer;
+    const consume: fn Bits(512), Integer -> Bits(*);
+    
+    instance pkg_Sodh = Sodh {
+        params {
+            b: b
+        }
+    }
+
+    instance pkg_RandomOracle = RandomOracle {
+        params {
+            len: len,
+            consume: consume
+        }
+    }
+
+    compose {
+        adversary: {
+            DHGEN: pkg_Sodh,
+            XTR: pkg_Sodh,
+            H: pkg_RandomOracle
+        }
+    }
+}

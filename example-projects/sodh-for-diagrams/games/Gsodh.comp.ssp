@@ -1,0 +1,17 @@
+composition Gsodh {
+    instance core = SodhCore {
+
+    }
+    instance ro = RO {
+
+    }
+    compose {
+        adversary: {
+            DHGEN: core,
+            XTR: core
+        }
+        core: {
+            H: ro
+        }
+    }
+}

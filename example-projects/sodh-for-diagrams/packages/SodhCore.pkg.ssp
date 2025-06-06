@@ -1,0 +1,11 @@
+package SodhCore {
+    import oracles {
+        H(),
+    }
+    oracle DHGEN() {
+        b <- 1;
+    }
+    oracle XTR() {
+        b <- 1;
+    }
+}

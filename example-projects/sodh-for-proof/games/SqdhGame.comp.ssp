@@ -1,0 +1,25 @@
+composition SqdhGame {
+    const b: Bool;
+    const grp: Integer;
+    const gen: fn Integer -> Bits(*);
+    const ord: fn Bits(*) -> Integer;
+    const sample_finite_field: fn Bits(*), Integer -> Integer;
+    const exp: fn Bits(*), Integer -> Bits(*);
+
+    instance pkg_Sqdh = Sqdh {
+        b: b,
+        grp: grp,
+        gen: gen,
+        ord: ord,
+        sample_finite_field: sample_finite_field,
+        exp: exp
+    }
+
+    compose {
+        adversary: {
+            SAMPLE: ,
+            CHECK: ,
+            DDH: 
+        }
+    }
+}

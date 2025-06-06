@@ -1,0 +1,39 @@
+package Sqdh {
+    params {
+        b: Bool,
+        grp: Integer,
+        gen: fn Integer -> Bits(*),
+        ord: fn Bits(*) -> Integer,
+        sample_finite_field: fn Bits(*), Integer -> Integer,
+        exp: fn Bits(*), Integer -> Bits(*)
+    }
+
+    state {
+        x: Maybe(Integer)
+    }
+
+    oracle SAMPLE() -> Bits(*) {
+        assert (x == None);
+        g <- gen(grp);
+        q <- ord(g);
+        r <-$ Bits(*);
+        x <- sample_finite_field(r, q);
+        return exp(g, x);
+    }
+
+    oracle CHECK(Z: Bits(*)) -> Bool {
+        assert (x != None);
+        if (not b and (Z == exp(g, x * x))) {
+            return true;
+        }
+        return false;
+    }
+
+    oracle DDH(S: Bits(*), T: Bits(*)) -> {
+        assert (x != None);
+        if (exp(S, x) == T) {
+            return true;
+        }
+        return false;
+    }
+}

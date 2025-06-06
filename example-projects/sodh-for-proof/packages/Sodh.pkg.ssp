@@ -1,0 +1,49 @@
+package Sodh {
+    params {
+        b: Bool,
+        grp: Bits(*),
+        gen: fn Bits(*) -> Bits(*),
+        ord: fn Bits(*) -> Integer,
+        sample_finite_field: fn Bits(*), Integer -> Integer,
+        exp: fn Bits(*), Integer -> Bits(*),
+    }
+
+    state {
+        E: Table(Bits(*), Integer),
+        S: Table((Bits(*), Bits(*)), Bits(*)),
+        /* maps handle, salt to hash value */
+    }
+
+    import oracles {
+        H(Z: Bits(*), salt: Bits(*)) -> Bits(*),
+    }
+
+    oracle DHGEN() -> Bits(*) {
+        g <- gen(grp);
+        q <- ord(g);
+        r <-$ Bits(*);
+        x <- sample_finite_field(r, q);
+        X <- exp(g, x);
+        E[X] <- Some(x);
+        return X;
+    }
+
+    oracle XTR(X: Bits(*), Y: Bits(*), salt: Bits(*)) -> Bits(*) {
+        x <- invoke DHGET(X);
+        assert (x != None);
+        assert (grp_of_element(X) == grp_of_element(Y) == grp);
+        len_salt <- len(salt);
+        assert ((len_salt == 256) or (len_salt == 384) or (len_salt == 512));
+        y <- invoke DHGET(Y);
+        if (b and (y != None)) {
+            h <- mk_dh_handle(X, Y);
+            if (S[(h, salt)] == None) {
+                r <-$ Bits(512);
+                S[(h, salt)] <- Some(consume(r, len_salt));
+            }
+            return Unwrap(S[(h, salt)]);
+        }
+        hash <- invoke H(exp(Y, Unwrap(x)));
+        return hash;
+    }
+}

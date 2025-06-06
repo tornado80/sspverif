@@ -1,0 +1,8 @@
+package DH {
+    oracle DHGEN() {
+        b <- 1;
+    }
+    oracle DHGET() {
+        b <- 1;
+    }
+}

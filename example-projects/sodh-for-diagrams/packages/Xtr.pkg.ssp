@@ -1,0 +1,10 @@
+package Xtr {
+    import oracles {
+        XTR(),
+        DHGET(),
+        H(),
+    }
+    oracle XTR() {
+        b <- 1;
+    }
+}

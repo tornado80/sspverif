@@ -1,0 +1,8 @@
+package HonXtr {
+    import oracles {
+        DHGET(),
+    }
+    oracle XTR() {
+        b <- 1;
+    }
+}

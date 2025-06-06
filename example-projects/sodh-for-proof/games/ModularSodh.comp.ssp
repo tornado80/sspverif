@@ -1,0 +1,55 @@
+composition ModularSodh {
+    const b: Bool;
+    const uniform_dhgen: Bool;
+    const grp: Integer;
+    const gen: fn Integer -> Bits(*);
+    const ord: fn Bits(*) -> Integer;
+    const sample_finite_field: fn Bits(*), Integer -> Integer;
+    const grp_of_element: fn Bits(*) -> Integer;
+    const mk_dh_handle: Bits(*), Bits(*) -> Bits(*);
+    const exp: fn Bits(*), Integer -> Bits(*);
+    const len: fn Bits(*) -> Integer;
+    const consume: fn Bits(512), Integer -> Bits(*);
+
+    instance pkg_Dhgen = Dhgen {
+        params {
+            grp: grp,
+            uniform: uniform_dhgen,
+            gen: gen,
+            ord: ord,
+            sample_finite_field: sample_finite_field,
+            exp: exp
+        }
+    }
+
+    instance pkg_Xtr = Xtr {
+        params {
+            b: b,
+            grp: grp,
+            len: len,
+            grp_of_element: grp_of_element,
+            mk_dh_handle: mk_dh_handle,
+            consume: consume,
+            exp: exp
+        }
+    }
+
+    instance pkg_RandomOracle = RandomOracle {
+        params {
+            len: len,
+            consume: consume
+        }
+    }
+
+    compose {
+        adversary: {
+            DHGEN: pkg_DHGEN,
+            XTR: pkg_Xtr,
+            H: pkg_RandomOracle
+        }
+        pkg_Xtr: {
+            DHGET: pkg_DHGEN,
+            H: pkg_RandomOracle
+        }
+    }
+}

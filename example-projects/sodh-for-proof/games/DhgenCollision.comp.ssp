@@ -1,0 +1,26 @@
+composition DhgenCollision {
+    const uniform: Bool;
+    const grp: Integer;
+    const gen: fn Integer -> Bits(*);
+    const ord: fn Bits(*) -> Integer;
+    const sample_finite_field: fn Bits(*), Integer -> Integer;
+    const exp: fn Bits(*), Integer -> Bits(*);
+
+    instance pkg_Dhgen = Dhgen {
+        params {
+            uniform: uniform,
+            grp: grp,
+            gen: gen,
+            ord: ord,
+            sample_finite_field: sample_finite_field,
+            exp: exp
+        }
+    }
+
+    compose {
+        adversary: {
+            DHGEN: pkg_Dhgen,
+            DHGET: pkg_Dhgen
+        }
+    }
+}

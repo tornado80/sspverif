@@ -1,0 +1,5 @@
+package RO {
+    oracle H() {
+        b <- 1;
+    }
+}

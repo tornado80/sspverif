@@ -1,0 +1,40 @@
+package Xtr {
+    params {
+        b: Bool,
+        grp: Integer,
+        len: fn Bits(*) -> Integer,
+        grp_of_element: fn Bits(*) -> Integer,
+        mk_dh_handle: Bits(*), Bits(*) -> Bits(*),
+        consume: fn Bits(512), Integer -> Bits(*),
+        exp: fn Bits(*), Integer -> Bits(*)
+    }
+
+    import oracles {
+        DHGET(X: Bits(*)) -> Maybe(Integer),
+        H(Z: Bits(*), salt: Bits(*)) -> Bits(*),
+    }
+
+    state {
+        S: Table((Bits(*), Bits(*)), Bits(*)) 
+        /* maps handle, salt to hash value */
+    }
+
+    oracle XTR(X: Bits(*), Y: Bits(*), salt: Bits(*)) -> Bits(*) {
+        x <- invoke DHGET(X);
+        assert (x != None);
+        assert (grp_of_element(X) == grp_of_element(Y) == grp);
+        len_salt <- len(salt);
+        assert ((len_salt == 256) or (len_salt == 384) or (len_salt == 512));
+        y <- invoke DHGET(Y);
+        if (b and (y != None)) {
+            h <- mk_dh_handle(X, Y);
+            if (S[(h, salt)] == None) {
+                r <-$ Bits(512);
+                S[(h, salt)] <- Some(consume(r, len_salt));
+            }
+            return Unwrap(S[(h, salt)]);
+        }
+        hash <- invoke H(exp(Y, Unwrap(x)));
+        return hash;
+    }
+}

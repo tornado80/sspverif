@@ -1,0 +1,7 @@
+composition SodhReductionToSqdh {
+    const b: Bool;
+
+    compose {
+
+    }
+}

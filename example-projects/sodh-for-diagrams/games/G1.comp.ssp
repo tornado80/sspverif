@@ -1,0 +1,29 @@
+composition G1 {
+    instance ro = RO {
+
+    }
+    instance dh = DH {
+
+    }
+    instance xtr = Xtr {
+
+    }
+    instance honxtr = HonXtr {
+
+    }
+    compose {
+        adversary: {
+            DHGEN: dh,
+            XTR: xtr,
+            H: ro
+        }
+        xtr: {
+            DHGET: dh,
+            XTR: honxtr,
+            H: ro
+        }
+        honxtr: {
+            DHGET: dh
+        }
+    }
+}

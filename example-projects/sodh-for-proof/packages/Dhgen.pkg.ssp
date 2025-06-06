@@ -1,0 +1,38 @@
+package Dhgen {
+    params {
+        grp: Integer,
+        uniform: Bool,
+        gen: fn Integer -> Bits(*),
+        ord: fn Bits(*) -> Integer,
+        sample_finite_field: fn Bits(*), Integer -> Integer,
+        exp: fn Bits(*), Integer -> Bits(*)
+    }
+
+    state {
+        z: Maybe(Integer),
+        E: Table(Bits(*), Integer)
+    }
+
+    oracle DHGEN() -> Bits(*) {
+        g <- gen(grp);
+        q <- ord(g);
+        r <-$ Bits(*);
+        x <- sample_finite_field(r, q);
+        if uniform {
+            X <- exp(g, x);
+        } else {
+            if (z == None) {
+                rz <-$ Bits(*);
+                z <- Some(sample_finite_field(rz, q));
+            }
+            X <- exp(g, x * Unwrap(z));
+            x <- x * z;
+        }
+        E[X] <- Some(x);
+        return X;
+    }
+    
+    oracle DHGET(X: Bits(*)) -> Maybe(Integer) {
+        return E[X];
+    }
+}

@@ -1,0 +1,109 @@
+proof Reduction_SODH_to_SqDH {
+    const b: Bool;
+
+    instance mon_sodh = MonolithicSodh {
+        params {
+            b: b
+        }
+    }
+
+    instance mod_sodh_uniform_dhgen = ModularSodh {
+        params {
+            b: b,
+            uniform_dhgen: true
+        }
+    }
+
+    instance mod_sodh_non_uniform_dhgen = ModularSodh {
+        params {
+            b: b,
+            uniform_dhgen: false
+        }
+    }
+
+    instance dhgen_distribution_non_uniform = DhgenDistribution {
+        params {
+            uniform: false
+        }
+    }
+
+    instance dhgen_distribution_uniform = DhgenDistribution {
+        params {
+            uniform: true
+        }
+    }
+
+    /*
+    instance sodh_reduction_to_sqdh = SodhReductionToSqdh {
+        params {
+            b: b
+        }
+    }
+    
+    instance sqdh_
+
+    instance sodh_reduction_to_sqdh_real = SodhReductionToSqdh {
+        params {
+            b: false
+        }
+    }
+
+    instance sodh_reduction_to_sqdh_ideal = SodhReductionToSqdh {
+        params {
+            b: true
+        }
+    }
+    */
+
+    assumptions {
+        DhgenDistribution: 
+            dhgen_distribution_non_uniform ~
+            dhgen_distribution_uniform
+        /*
+        SqdhAssumption:
+            
+        */
+    }
+
+    gamehops {
+        /*
+        equivalence mon_sodh sodh_uniform_dhgen {
+            DHGEN: {
+
+            }
+            XTR: {
+
+            }
+            H: {
+
+            }
+        }
+        */
+
+        reduction mod_sodh_uniform_dhgen mod_sodh_non_uniform_dhgen {
+            assumption DhgenDistribution
+
+            map dhgen_distribution_uniform mod_sodh_uniform_dhgen {
+                pkg_Dhgen: pkg_Dhgen
+            }
+
+            map dhgen_distribution_non_uniform mod_sodh_non_uniform_dhgen {
+                pkg_Dhgen: pkg_Dhgen
+            }
+        }
+
+        /*
+        equivalence mod_sodh_non_uniform_dhgen sodh_reduction_to_sqdh {
+            DHGEN: {
+
+            }
+            XTR: {
+
+            }
+            H: {
+
+            }
+        }
+        */
+    }
+}
