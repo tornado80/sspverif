@@ -2,8 +2,8 @@ package Prot {
     params {
     isideal: Bool,                                              /* real-ideal-bit        */
       kgen: fn Bits(256)             ->   Bits(256),            /* takes sk, returns pk  */
-    encaps: fn (Bits(256),Bits(256)) ->  (Bits(256),Bits(256)), /* (pk,rand) -> (ctxt,k) */
-    decaps: fn (Bits(256),Bits(256)) ->   Bits(256),            /* (sk,ctxt) -> k        */
+    encaps: fn Bits(256),Bits(256) ->  (Bits(256),Bits(256)), /* (pk,rand) -> (ctxt,k) */
+    decaps: fn Bits(256),Bits(256) ->   Bits(256),            /* (sk,ctxt) -> k        */
     }
     
     state {
@@ -45,7 +45,7 @@ oracle Run() -> Bits(256)                            /* samples rand, stores sen
       SENTKEY[ctr]   <- Some(ksent);               /* store sent key     */
 
       /* run receiver */
-      kreceived         <- decaps(sk,ctxt);        /* decapsulate ctxt    */
+      kreceived         <- decaps(Unwrap(sk),ctxt);        /* decapsulate ctxt    */
       RECEIVEDCTXT[ctr] <- Some(ctxt);             /* store ctxt          */
       RECEIVEDKEY[ctr]  <- Some(kreceived);        /* store received key  */
 

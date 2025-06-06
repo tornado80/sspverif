@@ -1,8 +1,8 @@
 composition Prot {
     const isideal: Bool;                                              /* real-ideal-bit */
     const    kgen: fn Bits(256)             ->  Bits(256);            /* takes sk, returns pk  */
-    const  encaps: fn (Bits(256),Bits(256)) -> (Bits(256),Bits(256)); /* (pk,rand) -> (ctxt,k) */
-    const  decaps: fn (Bits(256),Bits(256)) ->  Bits(256);            /* (sk,ctxt) -> k        */
+    const  encaps: fn Bits(256),Bits(256) -> (Bits(256),Bits(256)); /* (pk,rand) -> (ctxt,k) */
+    const  decaps: fn Bits(256),Bits(256) ->  Bits(256);            /* (sk,ctxt) -> k        */
 
     instance Prot = Prot {
         params {

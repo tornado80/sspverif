@@ -2,8 +2,8 @@ package Corr_KEM {
     params {
     isideal: Bool,                                              /* real-ideal-bit        */
       kgen: fn Bits(256)             ->   Bits(256),            /* takes sk, returns pk  */
-    encaps: fn (Bits(256),Bits(256)) ->  (Bits(256),Bits(256)), /* (pk,rand) -> (ctxt,k) */
-    decaps: fn (Bits(256),Bits(256)) ->   Bits(256),            /* (sk,ctxt) -> k        */
+    encaps: fn Bits(256),Bits(256) ->  (Bits(256),Bits(256)), /* (pk,rand) -> (ctxt,k) */
+    decaps: fn Bits(256),Bits(256) ->   Bits(256),            /* (sk,ctxt) -> k        */
     }
     
     state {
@@ -32,7 +32,7 @@ oracle ENC_and_DEC() -> (Bits(256),Bits(256),Bits(256))  /* samples rand and ret
       }
       rand <-$ Bits(256);                          /* sample randomness               */
       (ctxt,ksent)  <- parse encaps(pk,rand);      /* encapsulate key                 */
-      kreceived     <- decaps(sk,ctxt);            /* decapsulate ctxt                */
+      kreceived     <- decaps(Unwrap(sk),ctxt);            /* decapsulate ctxt                */
         if isideal { 
              kreceived <- ksent;                   /* in ideal game, replace          */
        }                                           /* received key by sent key        */
