@@ -31,100 +31,73 @@
   )
 )
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  ; <game-Prot-<$<!false!>$>-pkgstate-Prot>
-  ;   <pkg-state-Prot-<$<!isideal!>$>-SENTCTXT>
-  ;   <pkg-state-Prot-<$<!isideal!>$>-SENTKEY>
-  ;   <pkg-state-Prot-<$<!isideal!>$>-RECEIVEDCTXT>
-  ;   <pkg-state-Prot-<$<!isideal!>$>-RECEIVEDKEY>
-  ;   <pkg-state-Prot-<$<!isideal!>$>-TESTED>
-  ;   <pkg-state-Prot-<$<!isideal!>$>-ctr>
-  ;   <pkg-state-Prot-<$<!isideal!>$>-sk>
-  ;   <pkg-state-Prot-<$<!isideal!>$>-pk>
-
-  ; <game-H1-<$<!false!>$>-pkgstate-Corr_KEM>
-  ;   <pkg-state-Corr_KEM-<$<!isideal!>$>-sk>
-  ;   <pkg-state-Corr_KEM-<$<!isideal!>$>-pk>
-
-  ; <game-H1-<$<!false!>$>-pkgstate-Corr_reduction>
-  ;   <pkg-state-Corr_reduction-<$<!isideal!>$>-SENTCTXT>
-  ;   <pkg-state-Corr_reduction-<$<!isideal!>$>-SENTKEY>
-  ;   <pkg-state-Corr_reduction-<$<!isideal!>$>-RECEIVEDCTXT>
-  ;   <pkg-state-Corr_reduction-<$<!isideal!>$>-RECEIVEDKEY>
-  ;   <pkg-state-Corr_reduction-<$<!isideal!>$>-TESTED>
-  ;   <pkg-state-Corr_reduction-<$<!isideal!>$>-ctr>
-
-
-
-
-
-
-
-
-
-
-
-
-
-  ; State of Prot/Prot
-;          SENTCTXT:     Table(Integer, Bits(256)),    /* administrative kid -> ctxt   */
-;          SENTKEY:      Table(Integer, Bits(256)),    /* administrative kid -> k      */
-;          RECEIVEDCTXT: Table(Integer, Bits(256)),    /* administrative kid -> k      */
-;          RECEIVEDKEY:  Table(Integer, Bits(256)),    /* administrative kid -> k      */
-;          TESTED:       Table(Integer,Bool),          /* has the key been tested      */
-;          ctr:          Integer,                      /* administrative ctr           */
-;          sk:           Maybe(Bits(256)),             /* long-term sk                 */
-;          pk:           Bits(256),                    /* long-term pk                 */
-  ; State of H1/Corr_KEM
-;    state {
-;          sk:          Maybe(Bits(256)),             /* long-term sk             */
-;          pk:          Bits(256),                    /* long-term pk             */
-;          }
-  ; State of H1/Corr_reduction
-;    state {
-;          SENTCTXT:     Table(Integer, Bits(256)),    /* administrative kid -> ctxt   */
-;          SENTKEY:      Table(Integer, Bits(256)),    /* administrative kid -> k      */
-;          RECEIVEDCTXT: Table(Integer, Bits(256)),    /* administrative kid -> k      */
-;          RECEIVEDKEY:  Table(Integer, Bits(256)),    /* administrative kid -> k      */
-;          TESTED:       Table(Integer,Bool),          /* has the key been tested      */
-;          ctr:          Integer,                      /* administrative ctr           */
-;    }
-
-  ; getting package-state out of game-state and demanding equality, they should be exactly the same in this case.
-; (=
-; (<game-KX-<$<!n!><!b!><!zeron!>$>-pkgstate-Game>     state-kx)         ;some params are still missing.
-; (<game-H1-<$<!n!><!b!><!false!><!zeron!>$>-pkgstate-Game> state-kxred) ;some params are still missing.
-; )
-;  (let
-;    ; getting ctr out of state
-;    ( (ctr-kxred (<pkg-state-Rand-<$<!n!>$>-ctr> (<game-SmallComposition-<$<!n!>$>-pkgstate-rand> state-0)))
-;      (ctr-kx (<pkg-state-Rand-<$<!n!>$>-ctr> (<game-MediumComposition-<$<!n!>$>-pkgstate-rand> state-1))))
+; Each sample operation is fully indexec by the pair (statement id, sample counter)
+; "stmt" – Each instructions containing a sampling operation in the game is assigned a statement id number; check the generated latex code for the proof (not games/compositions or packages) to find the statement ids.
+; "ctr" – Each sample operation also has a counter
 ;
-;    ; ctr are equal
-;    (= ctr-kxred ctr-kx))
+; Additionally, we are given a zero-counter; this would somehow be useful if we did more complex induction stuff
+; "base-ctr"
+;
+; To add some precision, the "ctr" explained above is really the offset from the zero counter. I.e. to derive the underlying counter,
+; you could calculate (+ ctr-left ctr-left-0), reversing the difference.
+;
+; These indices are given for both games; the game on the left and the game on the right.
+(define-fun randomness-mapping-GetPK (
+  (base-ctr-left Int) 
+  (base-ctr-right Int)
+  (stmt-left  Int) 
+  (stmt-right  Int)
+  (ctr-left Int)
+  (ctr-right Int)
+) Bool
+; BEGIN FUNCTION BODY
+  (and
+    (= stmt-left stmt-right)
+    (= ctr-left  ctr-right)
+  )
+)
+
+(define-fun randomness-mapping-Run (
+  (base-ctr-left Int) 
+  (base-ctr-right Int)
+  (stmt-left  Int) 
+  (stmt-right  Int)
+  (ctr-left Int)
+  (ctr-right Int)
+) Bool
+; BEGIN FUNCTION BODY
+  (and
+    (= stmt-left stmt-right)
+    (= ctr-left  ctr-right)
+  )
+)
+
+(define-fun randomness-mapping-TestSender (
+  (base-ctr-left Int) 
+  (base-ctr-right Int)
+  (stmt-left  Int) 
+  (stmt-right  Int)
+  (ctr-left Int)
+  (ctr-right Int)
+) Bool
+; BEGIN FUNCTION BODY
+  (and
+    (= stmt-left stmt-right)
+    (= ctr-left  ctr-right)
+  )
+)
+
+(define-fun randomness-mapping-TestReceiver (
+  (base-ctr-left Int) 
+  (base-ctr-right Int)
+  (stmt-left  Int) 
+  (stmt-right  Int)
+  (ctr-left Int)
+  (ctr-right Int)
+) Bool
+; BEGIN FUNCTION BODY
+  (and
+    (= stmt-left stmt-right)
+    (= ctr-left  ctr-right)
+  )
+)
