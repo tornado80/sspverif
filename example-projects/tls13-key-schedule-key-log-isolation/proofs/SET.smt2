@@ -75,7 +75,7 @@
         )
     )
 )
-(define-fun <relation-assume-other-invariants-game_Gks0-game_Gks0Map-SET> 
+(define-fun <relation-assume-updated-invariant-log-inverse-game_Gks0-game_Gks0Map-SET> 
     (
         (old-state-Gks0 <GameState_Gks0_<$$>>)
         (old-state-Gks0Map <GameState_Gks0Map_<$$>>)
@@ -90,10 +90,9 @@
     Bool
     (and
         (updated-invariant-log-inverse old-state-Gks0 old-state-Gks0Map)
-        (J-invariants old-state-Gks0Map)
     )
 )
-(define-fun <relation-assert-other-invariants-game_Gks0-game_Gks0Map-SET> 
+(define-fun <relation-assert-updated-invariant-log-inverse-game_Gks0-game_Gks0Map-SET> 
     (
         (old-state-Gks0 <GameState_Gks0_<$$>>)
         (old-state-Gks0Map <GameState_Gks0Map_<$$>>)
@@ -113,6 +112,45 @@
         )
         (and
             (updated-invariant-log-inverse new-state-Gks0 new-state-Gks0Map)
+        )
+    )
+)
+(define-fun <relation-assume-J-invariants-game_Gks0-game_Gks0Map-SET> 
+    (
+        (old-state-Gks0 <GameState_Gks0_<$$>>)
+        (old-state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (return-SET-Gks0 <OracleReturn-Gks0-<$$>-Key-<$$>-SET>)
+        (return-SET-Gks0Map <OracleReturn-Gks0Map-<$$>-Key-<$$>-SET>)
+        (n Int)
+        (l Int)
+        (h Bits_*)
+        (hon Bool)
+        (k Bits_*)
+    )
+    Bool
+    (and
+        (J-invariants old-state-Gks0Map)
+    )
+)
+(define-fun <relation-assert-J-invariants-game_Gks0-game_Gks0Map-SET> 
+    (
+        (old-state-Gks0 <GameState_Gks0_<$$>>)
+        (old-state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (return-SET-Gks0 <OracleReturn-Gks0-<$$>-Key-<$$>-SET>)
+        (return-SET-Gks0Map <OracleReturn-Gks0Map-<$$>-Key-<$$>-SET>)
+        (n Int)
+        (l Int)
+        (h Bits_*)
+        (hon Bool)
+        (k Bits_*)
+    )
+    Bool
+    (let 
+        (
+            (new-state-Gks0 (<oracle-return-Gks0-<$$>-Key-<$$>-SET-game-state> return-SET-Gks0))
+            (new-state-Gks0Map (<oracle-return-Gks0Map-<$$>-Key-<$$>-SET-game-state> return-SET-Gks0Map))
+        )
+        (and
             (J-invariants new-state-Gks0Map)
         )
     )

@@ -126,6 +126,9 @@ proof Proof {
 
                 lemmas {
                     /* lemma-SET-output-for-dh: [no-abort, ] */
+                    assert-J-invariants: [no-abort, assume-J-invariants]
+                    assert-updated-invariant-log-inverse: [no-abort, assume-updated-invariant-log-inverse]
+                    assert-invariant-2a-iii: [no-abort, assume-invariant-2a-iii, assume-updated-invariant-log-inverse, assume-J-invariants]
                     lemma-randomness-mapping: []
                     assert-invariant-consistent-log-for-dh-and-psk: [no-abort, assume-invariant-consistent-log-for-dh-and-psk, assume-invariant-2a-v, lemma-rand-is-eq]
                     assert-invariant-consistent-log-inverse-level-zero-psk: [no-abort, assume-invariant-consistent-log-inverse-level-zero-psk, assume-invariant-consistent-log-for-dh-and-psk]
@@ -136,8 +139,7 @@ proof Proof {
                     assert-invariant-2a-viii: [no-abort, assume-invariant-2a-viii, lemma-SAMPLE-output-length, assert-invariant-2a-iii, assert-invariant-log-preserves-name, lemma-injectivity-of-len_alg]
                     assert-invariant-2a-vii: [no-abort, assume-invariant-2a-vii]
                     assert-invariant-2a-iv: [no-abort, assume-invariant-2a-iv]
-                    assert-other-invariants: [no-abort, assume-other-invariants]
-                    assert-invariant-2a-iii: [no-abort, assume-invariant-2a-iii, assume-other-invariants]
+                    
                     assert-invariants-2a-i-and-2a-ii: [no-abort, assume-invariants-2a-i-and-2a-ii]
                     assert-invariants-2a-v-and-2a-vi: [no-abort, assume-invariants-2a-v-and-2a-vi]
                     lemma-SET-returns-same-handle-for-non-dh-and-psk: [no-abort, assume-invariants-2a-v-and-2a-vi]
