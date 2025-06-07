@@ -32,7 +32,7 @@
     Int
     (let 
         (
-            (level (<<func-proof-level>> h))
+            (level (<<func-level>> h))
         )
         (ite 
             ((_ is mk-none) level)
@@ -160,7 +160,7 @@
     ; Invariant (2a) (vii) : Log[(n', h)] != none => name(h) = n'
     (=>
         (not ((_ is mk-none) (select Log (mk-tuple2 m h))))
-        (= m (<<func-proof-name>> h))
+        (= m (<<func-name>> h))
     )
 )
 (define-fun invariant-2a-viii
@@ -185,8 +185,8 @@
                     (mapped_h (el3-1 (maybe-get log_entry)))
                 )
                 (and
-                    (= (<<func-proof-handle_alg>> h) (<<func-proof-handle_alg>> mapped_h))
-                    (= (<<func-proof-len_key>> k) (<<func-proof-len_alg>> (<<func-proof-handle_alg>> h)) (<<func-proof-len_alg>> (<<func-proof-handle_alg>> mapped_h)))
+                    (= (<<func-handle_alg>> h) (<<func-handle_alg>> mapped_h))
+                    (= (<<func-len_key>> k) (<<func-len_alg>> (<<func-handle_alg>> h)) (<<func-len_alg>> (<<func-handle_alg>> mapped_h)))
                 )
             )
         )
@@ -205,7 +205,7 @@
             (or (= n KEY_dh) (= n KEY_0ikm) (= n KEY_0salt))
             (not ((_ is mk-none) (select K (mk-tuple3 n 0 h))))
         )
-        ((_ is mk-none) (<<func-proof-level>> h))
+        ((_ is mk-none) (<<func-level>> h))
     )
 )
 (define-fun invariant-2a-x
@@ -225,7 +225,7 @@
                 (not (or (= n KEY_dh) (= n KEY_0ikm) (= n KEY_0salt)))
                 (not ((_ is mk-none) (select K (mk-tuple3 n l h))))
             )
-            (= (maybe-get (<<func-proof-level>> h)) l)
+            (= (maybe-get (<<func-level>> h)) l)
         )
     )
 )
@@ -242,7 +242,7 @@
         )
         (let
             (
-                (n (<<func-proof-name>> h))
+                (n (<<func-name>> h))
             )
             (let 
                 (
@@ -299,7 +299,7 @@
             )
             (let
                 (
-                    (n (<<func-proof-name>> h))
+                    (n (<<func-name>> h))
                 )
                 (let 
                     (
@@ -332,7 +332,7 @@
             )
             (let
                 (
-                    (n (<<func-proof-name>> h))
+                    (n (<<func-name>> h))
                 )
                 (=>
                     (and
@@ -495,7 +495,7 @@
                 )
             )
             (=
-                (<<func-proof-level>> (maybe-get h))
+                (<<func-level>> (maybe-get h))
                 (mk-some 0)
             )
         )
@@ -515,7 +515,7 @@
         (let
             (
                 (entry (select Log (mk-tuple2 KEY_psk (maybe-get h))))
-                (level (maybe-get (<<func-proof-level>> (maybe-get h))))
+                (level (maybe-get (<<func-level>> (maybe-get h))))
             )
             (and
                 (not ((_ is mk-none) entry))

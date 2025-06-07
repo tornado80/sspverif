@@ -33,7 +33,7 @@
     Bool
     (= 
         (return-value (<oracle-return-Gks0-<$$>-Check-<$$>-XPD-return-value-or-abort> return-XPD-Gks0))
-        (<<func-proof-mk_xpd_handle>> n (<<func-proof-label1>> n r) h args)
+        (<<func-mk_xpd_handle>> n (<<func-label1>> n r) h args)
     )
 )
 
@@ -52,7 +52,7 @@
     Bool
     (= 
         (return-value (<oracle-return-Gks0Map-<$$>-Check-<$$>-XPD-return-value-or-abort> return-XPD-Gks0Map))
-        (<<func-proof-mk_xpd_handle>> n (<<func-proof-label1>> n r) h args)
+        (<<func-mk_xpd_handle>> n (<<func-label1>> n r) h args)
     )
 )
 

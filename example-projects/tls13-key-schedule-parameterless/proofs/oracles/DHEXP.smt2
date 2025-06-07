@@ -30,7 +30,7 @@
     Bool
     (= 
         (return-value (<oracle-return-Gks0-<$$>-DH-<$$>-DHEXP-return-value-or-abort> return-DHEXP-Gks0))
-        (<<func-proof-mk_dh_handle>> X Y)
+        (<<func-mk_dh_handle>> X Y)
     )
 )
 
@@ -46,7 +46,7 @@
     Bool
     (= 
         (return-value (<oracle-return-Gks0Map-<$$>-Map-<$$>-DHEXP-return-value-or-abort> return-DHEXP-Gks0Map))
-        (<<func-proof-mk_dh_handle>> X Y)
+        (<<func-mk_dh_handle>> X Y)
     )
 )
 

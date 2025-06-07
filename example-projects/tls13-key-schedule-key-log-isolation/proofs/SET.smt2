@@ -207,7 +207,7 @@
                                 (= Log_new (store Log_old (mk-tuple2 n h) (mk-some (mk-tuple3 h hon k))))
                             )
                             (or (= Log_new (store Log_old (mk-tuple2 n h) (mk-some (mk-tuple3 h hon k)))) (= Log_new Log_old))
-                            (invariant-2a-iii (<<func-proof-name>> h) h Log_new)
+                            (invariant-2a-iii (<<func-name>> h) h Log_new)
                             (assert-invariant-2a-iii new-state-Gks0 new-state-Gks0Map)
                             (forall
                                 (
@@ -215,7 +215,7 @@
                                 )
                                 (let
                                     (
-                                        (n (<<func-proof-name>> hp))
+                                        (n (<<func-name>> hp))
                                     )
                                     (=>
                                         (not (= hp h))
@@ -266,7 +266,7 @@
                         (= n KEY_psk)
                         (assert-invariant-2a-iii new-state-Gks0 new-state-Gks0Map)
                         ;(=>
-                        ;    (invariant-2a-iii (<<func-proof-name>> h) h Log_new)
+                        ;    (invariant-2a-iii (<<func-name>> h) h Log_new)
                         ;    (assert-invariant-2a-iii new-state-Gks0 new-state-Gks0Map)
                         ;)
                     )
@@ -297,7 +297,7 @@
             )
             (let
                 (
-                    (n (<<func-proof-name>> h))
+                    (n (<<func-name>> h))
                 )
                 (let 
                     (
@@ -505,14 +505,14 @@
                 (k512_right (<pkg-state-Sample-<$$>-k512> (<game-Gks0Map-<$$>-pkgstate-pkg_Sample> new-state-Gks0Map)))
             )
             (and
-                (= (<<func-proof-len_key>> output_left) input_left)
-                (= (<<func-proof-len_key>> output_right) input_right)
-                (= (<<func-proof-len_key>> (<<func-proof-cast256>> k256_left)) 256)
-                (= (<<func-proof-len_key>> (<<func-proof-cast384>> k384_left)) 384)
-                (= (<<func-proof-len_key>> (<<func-proof-cast512>> k512_left)) 512)
-                (= (<<func-proof-len_key>> (<<func-proof-cast256>> k256_right)) 256)
-                (= (<<func-proof-len_key>> (<<func-proof-cast384>> k384_right)) 384)
-                (= (<<func-proof-len_key>> (<<func-proof-cast512>> k512_right)) 512)
+                (= (<<func-len_key>> output_left) input_left)
+                (= (<<func-len_key>> output_right) input_right)
+                (= (<<func-len_key>> (<<func-cast256>> k256_left)) 256)
+                (= (<<func-len_key>> (<<func-cast384>> k384_left)) 384)
+                (= (<<func-len_key>> (<<func-cast512>> k512_left)) 512)
+                (= (<<func-len_key>> (<<func-cast256>> k256_right)) 256)
+                (= (<<func-len_key>> (<<func-cast384>> k384_right)) 384)
+                (= (<<func-len_key>> (<<func-cast512>> k512_right)) 512)
             )
         )
     )
@@ -589,18 +589,18 @@
                                         (invariant-2a-viii n h Log_right)
                                         (= ks (el3-3 (maybe-get (select Log_right_old (mk-tuple2 n mapped_h)))))
                                         (invariant-2a-iii n h Log_right_old)
-                                        (= n (<<func-proof-name>> mapped_h))
-                                        (invariant-2a-viii (<<func-proof-name>> mapped_h) mapped_h Log_right_old)
+                                        (= n (<<func-name>> mapped_h))
+                                        (invariant-2a-viii (<<func-name>> mapped_h) mapped_h Log_right_old)
                                         (=>
-                                            (= n (<<func-proof-name>> mapped_h))
-                                            (= (<<func-proof-len_key>> ks) (<<func-proof-len_alg>> (<<func-proof-handle_alg>> mapped_h)))
+                                            (= n (<<func-name>> mapped_h))
+                                            (= (<<func-len_key>> ks) (<<func-len_alg>> (<<func-handle_alg>> mapped_h)))
                                         )
                                     )
                                 )
-                                (= (<<func-proof-len_key>> ks) len_handle_right)
-                                (= len_handle_right (<<func-proof-len_alg>> (<<func-proof-handle_alg>> h)))
-                                (= (<<func-proof-handle_alg>> h) (<<func-proof-handle_alg>> mapped_h))
-                                (= (<<func-proof-len_key>> ks) (<<func-proof-len_alg>> (<<func-proof-handle_alg>> h)) (<<func-proof-len_alg>> (<<func-proof-handle_alg>> mapped_h)))
+                                (= (<<func-len_key>> ks) len_handle_right)
+                                (= len_handle_right (<<func-len_alg>> (<<func-handle_alg>> h)))
+                                (= (<<func-handle_alg>> h) (<<func-handle_alg>> mapped_h))
+                                (= (<<func-len_key>> ks) (<<func-len_alg>> (<<func-handle_alg>> h)) (<<func-len_alg>> (<<func-handle_alg>> mapped_h)))
                             )
                         )
                     )
@@ -667,7 +667,7 @@
             (alg2 Int)
         )
         (=>
-            (= (<<func-proof-len_alg>> alg1) (<<func-proof-len_alg>> alg2))
+            (= (<<func-len_alg>> alg1) (<<func-len_alg>> alg2))
             (= alg1 alg2)
         )
     )

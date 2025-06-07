@@ -46,7 +46,7 @@
             (new-state-Gks0Map (<oracle-return-Gks0Map-<$$>-Log-<$$>-UNQ-game-state> return-UNQ-Gks0Map))
         )
         (=>
-            (and (= n KEY_dh) ((_ is mk-none) (<<func-proof-level>> h)) (= n (<<func-proof-name>> h)))
+            (and (= n KEY_dh) ((_ is mk-none) (<<func-level>> h)) (= n (<<func-name>> h)))
             (assert-invariant-2a-iii new-state-Gks0 new-state-Gks0Map)
         )
     )

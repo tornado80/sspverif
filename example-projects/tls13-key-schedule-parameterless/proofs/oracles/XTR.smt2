@@ -32,7 +32,7 @@
     Bool
     (= 
         (return-value (<oracle-return-Gks0-<$$>-Xtr-<$$>-XTR-return-value-or-abort> return-XTR-Gks0))
-        (<<func-proof-mk_xtr_handle>> n h1 h2)
+        (<<func-mk_xtr_handle>> n h1 h2)
     )
 )
 
@@ -50,7 +50,7 @@
     Bool
     (= 
         (return-value (<oracle-return-Gks0Map-<$$>-Map-<$$>-XTR-return-value-or-abort> return-XTR-Gks0Map))
-        (<<func-proof-mk_xtr_handle>> n h1 h2)
+        (<<func-mk_xtr_handle>> n h1 h2)
     )
 )
 
