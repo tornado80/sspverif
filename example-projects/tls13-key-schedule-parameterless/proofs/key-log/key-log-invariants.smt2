@@ -1,11 +1,11 @@
 (define-fun randomness-mapping-UNQ
     ( 
-        (sample-ctr-old-Gks0 Int)
-        (sample-ctr-old-Gks0Map Int)
-        (sample-id-Gks0 Int)
-        (sample-id-Gks0Map Int)
-        (sample-ctr-Gks0 Int)
-        (sample-ctr-Gks0Map Int)
+        (sample-ctr-old-KeyLogGks0 Int)
+        (sample-ctr-old-KeyLogGks0Map Int)
+        (sample-id-KeyLogGks0 Int)
+        (sample-id-KeyLogGks0Map Int)
+        (sample-ctr-KeyLogGks0 Int)
+        (sample-ctr-KeyLogGks0Map Int)
     )
     Bool
     false
@@ -13,32 +13,32 @@
 
 (define-fun randomness-mapping-SET
     ( 
-        (sample-ctr-old-Gks0 Int)
-        (sample-ctr-old-Gks0Map Int)
-        (sample-id-Gks0 Int)
-        (sample-id-Gks0Map Int)
-        (sample-ctr-Gks0 Int)
-        (sample-ctr-Gks0Map Int)
+        (sample-ctr-old-KeyLogGks0 Int)
+        (sample-ctr-old-KeyLogGks0Map Int)
+        (sample-id-KeyLogGks0 Int)
+        (sample-id-KeyLogGks0Map Int)
+        (sample-ctr-KeyLogGks0 Int)
+        (sample-ctr-KeyLogGks0Map Int)
     )
     Bool
     (or
         (and
-            (= sample-ctr-Gks0 sample-ctr-old-Gks0)
-            (= sample-ctr-Gks0Map sample-ctr-old-Gks0Map)
-            (= sample-id-Gks0 2)
-            (= sample-id-Gks0Map 2)
+            (= sample-ctr-KeyLogGks0 sample-ctr-old-KeyLogGks0)
+            (= sample-ctr-KeyLogGks0Map sample-ctr-old-KeyLogGks0Map)
+            (= sample-id-KeyLogGks0 2)
+            (= sample-id-KeyLogGks0Map 2)
         )
         (and
-            (= sample-ctr-Gks0 sample-ctr-old-Gks0)
-            (= sample-ctr-Gks0Map sample-ctr-old-Gks0Map)
-            (= sample-id-Gks0 1)
-            (= sample-id-Gks0Map 1)
+            (= sample-ctr-KeyLogGks0 sample-ctr-old-KeyLogGks0)
+            (= sample-ctr-KeyLogGks0Map sample-ctr-old-KeyLogGks0Map)
+            (= sample-id-KeyLogGks0 1)
+            (= sample-id-KeyLogGks0Map 1)
         )
         (and
-            (= sample-ctr-Gks0 sample-ctr-old-Gks0)
-            (= sample-ctr-Gks0Map sample-ctr-old-Gks0Map)
-            (= sample-id-Gks0 0)
-            (= sample-id-Gks0Map 0)
+            (= sample-ctr-KeyLogGks0 sample-ctr-old-KeyLogGks0)
+            (= sample-ctr-KeyLogGks0Map sample-ctr-old-KeyLogGks0Map)
+            (= sample-id-KeyLogGks0 0)
+            (= sample-id-KeyLogGks0Map 0)
         )
     )
 )
@@ -283,16 +283,16 @@
 )
 (define-fun invariant-2a-i-ii-iii-iv-vii-viii-ix-x
     (
-        (state-Gks0 <GameState_Gks0_<$$>>)
-        (state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (state-KeyLogGks0 <GameState_KeyLogGks0_<$$>>)
+        (state-KeyLogGks0Map <GameState_KeyLogGks0Map_<$$>>)
     )
     Bool
     (let 
         (
-            (Log_left (<pkg-state-Log-<$$>-Log> (<game-Gks0-<$$>-pkgstate-pkg_Log> state-Gks0)))
-            (Log_right (<pkg-state-Log-<$$>-Log> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))
-            (K_left (<pkg-state-Key-<$$>-K> (<game-Gks0-<$$>-pkgstate-pkg_Key> state-Gks0)))
-            (K_right (<pkg-state-Key-<$$>-K> (<game-Gks0Map-<$$>-pkgstate-pkg_Key> state-Gks0Map)))
+            (Log_left (<pkg-state-Log-<$$>-Log> (<game-KeyLogGks0-<$$>-pkgstate-pkg_Log> state-KeyLogGks0)))
+            (Log_right (<pkg-state-Log-<$$>-Log> (<game-KeyLogGks0Map-<$$>-pkgstate-pkg_Log> state-KeyLogGks0Map)))
+            (K_left (<pkg-state-Key-<$$>-K> (<game-KeyLogGks0-<$$>-pkgstate-pkg_Key> state-KeyLogGks0)))
+            (K_right (<pkg-state-Key-<$$>-K> (<game-KeyLogGks0Map-<$$>-pkgstate-pkg_Key> state-KeyLogGks0Map)))
         )
         (and
             (invariant-2a-i-ii-iii-iv-vii-viii-ix-x-one-table Log_left K_left)
@@ -302,15 +302,15 @@
 )
 (define-fun invariant-2a-v
     (
-        (state-Gks0 <GameState_Gks0_<$$>>)
-        (state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (state-KeyLogGks0 <GameState_KeyLogGks0_<$$>>)
+        (state-KeyLogGks0Map <GameState_KeyLogGks0Map_<$$>>)
     )
     Bool
     ; n = name(h)
     ; Invariant (2a) (v) : Log_left[(n, h)] = some(h, hon, k) or none
     (let
         (
-            (Log_left (<pkg-state-Log-<$$>-Log> (<game-Gks0-<$$>-pkgstate-pkg_Log> state-Gks0)))
+            (Log_left (<pkg-state-Log-<$$>-Log> (<game-KeyLogGks0-<$$>-pkgstate-pkg_Log> state-KeyLogGks0)))
         )
         (forall
             (
@@ -335,15 +335,15 @@
 )
 (define-fun invariant-2a-vi
     (
-        (state-Gks0 <GameState_Gks0_<$$>>)
-        (state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (state-KeyLogGks0 <GameState_KeyLogGks0_<$$>>)
+        (state-KeyLogGks0Map <GameState_KeyLogGks0Map_<$$>>)
     )
     Bool
     ; Invariant (2a) (vi) : Log_right[h] != none and name(h) not in {psk, dh} => Log_right[h] = (h, _, _)
     (let
         (
-            (Log_right (<pkg-state-Log-<$$>-Log> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))
-            (K_right (<pkg-state-Key-<$$>-K> (<game-Gks0Map-<$$>-pkgstate-pkg_Key> state-Gks0Map)))
+            (Log_right (<pkg-state-Log-<$$>-Log> (<game-KeyLogGks0Map-<$$>-pkgstate-pkg_Log> state-KeyLogGks0Map)))
+            (K_right (<pkg-state-Key-<$$>-K> (<game-KeyLogGks0Map-<$$>-pkgstate-pkg_Key> state-KeyLogGks0Map)))
         )
         (forall 
             (
@@ -370,20 +370,20 @@
 )
 (define-fun invariant-2a
     (
-        (state-Gks0 <GameState_Gks0_<$$>>)
-        (state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (state-KeyLogGks0 <GameState_KeyLogGks0_<$$>>)
+        (state-KeyLogGks0Map <GameState_KeyLogGks0Map_<$$>>)
     )
     Bool
     (and
-        ;(invariant-2a-i-ii-iii-iv-vii-viii-ix-x state-Gks0 state-Gks0Map)
-        (invariant-2a-v state-Gks0 state-Gks0Map)
-        (invariant-2a-vi state-Gks0 state-Gks0Map)
+        ;(invariant-2a-i-ii-iii-iv-vii-viii-ix-x state-KeyLogGks0 state-KeyLogGks0Map)
+        (invariant-2a-v state-KeyLogGks0 state-KeyLogGks0Map)
+        (invariant-2a-vi state-KeyLogGks0 state-KeyLogGks0Map)
     )
 )
 (define-fun invariant-2e
     (
-        (state-Gks0 <GameState_Gks0_<$$>>)
-        (state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (state-KeyLogGks0 <GameState_KeyLogGks0_<$$>>)
+        (state-KeyLogGks0Map <GameState_KeyLogGks0Map_<$$>>)
     )
     Bool
     ; Invariant (2e)
@@ -394,9 +394,9 @@
     ; ) => J[k] = true
     (let 
         (
-            (LogInverseDishonestLevelZero_right (<pkg-state-Log-<$$>-LogInverseDishonestLevelZero> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))
-            (LogInverseDishonestLevelNonZero_right (<pkg-state-Log-<$$>-LogInverseDishonestLevelNonZero> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))
-            (J (<pkg-state-Log-<$$>-J> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))
+            (LogInverseDishonestLevelZero_right (<pkg-state-Log-<$$>-LogInverseDishonestLevelZero> (<game-KeyLogGks0Map-<$$>-pkgstate-pkg_Log> state-KeyLogGks0Map)))
+            (LogInverseDishonestLevelNonZero_right (<pkg-state-Log-<$$>-LogInverseDishonestLevelNonZero> (<game-KeyLogGks0Map-<$$>-pkgstate-pkg_Log> state-KeyLogGks0Map)))
+            (J (<pkg-state-Log-<$$>-J> (<game-KeyLogGks0Map-<$$>-pkgstate-pkg_Log> state-KeyLogGks0Map)))
         )
         (forall 
             (
@@ -423,25 +423,25 @@
 )
 (define-fun invariant-2
     (
-        (state-Gks0 <GameState_Gks0_<$$>>)
-        (state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (state-KeyLogGks0 <GameState_KeyLogGks0_<$$>>)
+        (state-KeyLogGks0Map <GameState_KeyLogGks0Map_<$$>>)
     )
     Bool
     (and
-        (invariant-2a state-Gks0 state-Gks0Map)
-        ;(invariant-2e state-Gks0 state-Gks0Map)
+        (invariant-2a state-KeyLogGks0 state-KeyLogGks0Map)
+        ;(invariant-2e state-KeyLogGks0 state-KeyLogGks0Map)
     )
 )
 (define-fun invariant-consistent-log-for-dh-and-psk
     (
-        (state-Gks0 <GameState_Gks0_<$$>>)
-        (state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (state-KeyLogGks0 <GameState_KeyLogGks0_<$$>>)
+        (state-KeyLogGks0Map <GameState_KeyLogGks0Map_<$$>>)
     )
     Bool
     (let
         (
-            (Log_left (<pkg-state-Log-<$$>-Log> (<game-Gks0-<$$>-pkgstate-pkg_Log> state-Gks0)))
-            (Log_right (<pkg-state-Log-<$$>-Log> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))
+            (Log_left (<pkg-state-Log-<$$>-Log> (<game-KeyLogGks0-<$$>-pkgstate-pkg_Log> state-KeyLogGks0)))
+            (Log_right (<pkg-state-Log-<$$>-Log> (<game-KeyLogGks0Map-<$$>-pkgstate-pkg_Log> state-KeyLogGks0Map)))
         )
         (forall
             (
@@ -484,15 +484,15 @@
 )
 (define-fun invariant-consistent-log-inverse-level-zero-psk
     (
-        (state-Gks0 <GameState_Gks0_<$$>>)
-        (state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (state-KeyLogGks0 <GameState_KeyLogGks0_<$$>>)
+        (state-KeyLogGks0Map <GameState_KeyLogGks0Map_<$$>>)
     )
     Bool
     ; LogInverseDishonestLevelZero_left[k] = None <=> LogInverseDishonestLevelZero_right[k] = None
     (let
         (
-            (LogInverseDishonestLevelZero_left (<pkg-state-Log-<$$>-LogInverseDishonestLevelZero> (<game-Gks0-<$$>-pkgstate-pkg_Log> state-Gks0)))
-            (LogInverseDishonestLevelZero_right (<pkg-state-Log-<$$>-LogInverseDishonestLevelZero> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))
+            (LogInverseDishonestLevelZero_left (<pkg-state-Log-<$$>-LogInverseDishonestLevelZero> (<game-KeyLogGks0-<$$>-pkgstate-pkg_Log> state-KeyLogGks0)))
+            (LogInverseDishonestLevelZero_right (<pkg-state-Log-<$$>-LogInverseDishonestLevelZero> (<game-KeyLogGks0Map-<$$>-pkgstate-pkg_Log> state-KeyLogGks0Map)))
         )
         (forall
             (
@@ -615,8 +615,8 @@
 )
 (define-fun invariant-log-inverse
     (
-        (state-Gks0 <GameState_Gks0_<$$>>)
-        (state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (state-KeyLogGks0 <GameState_KeyLogGks0_<$$>>)
+        (state-KeyLogGks0Map <GameState_KeyLogGks0Map_<$$>>)
     )
     Bool
     ; Inverse maps
@@ -625,14 +625,14 @@
     ; Log[psk, LogInverseDishonest[(psk, k)]] = (_, false, k)
     (let
         (
-            (Log_left (<pkg-state-Log-<$$>-Log> (<game-Gks0-<$$>-pkgstate-pkg_Log> state-Gks0)))
-            (Log_right (<pkg-state-Log-<$$>-Log> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))
-            (LogInverseDishonest_left (<pkg-state-Log-<$$>-LogInverseDishonest> (<game-Gks0-<$$>-pkgstate-pkg_Log> state-Gks0)))
-            (LogInverseDishonest_right (<pkg-state-Log-<$$>-LogInverseDishonest> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))
-            (LogInverseDishonestLevelNonZero_left (<pkg-state-Log-<$$>-LogInverseDishonestLevelNonZero> (<game-Gks0-<$$>-pkgstate-pkg_Log> state-Gks0)))
-            (LogInverseDishonestLevelNonZero_right (<pkg-state-Log-<$$>-LogInverseDishonestLevelNonZero> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))
-            (LogInverseDishonestLevelZero_left (<pkg-state-Log-<$$>-LogInverseDishonestLevelZero> (<game-Gks0-<$$>-pkgstate-pkg_Log> state-Gks0)))
-            (LogInverseDishonestLevelZero_right (<pkg-state-Log-<$$>-LogInverseDishonestLevelZero> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))
+            (Log_left (<pkg-state-Log-<$$>-Log> (<game-KeyLogGks0-<$$>-pkgstate-pkg_Log> state-KeyLogGks0)))
+            (Log_right (<pkg-state-Log-<$$>-Log> (<game-KeyLogGks0Map-<$$>-pkgstate-pkg_Log> state-KeyLogGks0Map)))
+            (LogInverseDishonest_left (<pkg-state-Log-<$$>-LogInverseDishonest> (<game-KeyLogGks0-<$$>-pkgstate-pkg_Log> state-KeyLogGks0)))
+            (LogInverseDishonest_right (<pkg-state-Log-<$$>-LogInverseDishonest> (<game-KeyLogGks0Map-<$$>-pkgstate-pkg_Log> state-KeyLogGks0Map)))
+            (LogInverseDishonestLevelNonZero_left (<pkg-state-Log-<$$>-LogInverseDishonestLevelNonZero> (<game-KeyLogGks0-<$$>-pkgstate-pkg_Log> state-KeyLogGks0)))
+            (LogInverseDishonestLevelNonZero_right (<pkg-state-Log-<$$>-LogInverseDishonestLevelNonZero> (<game-KeyLogGks0Map-<$$>-pkgstate-pkg_Log> state-KeyLogGks0Map)))
+            (LogInverseDishonestLevelZero_left (<pkg-state-Log-<$$>-LogInverseDishonestLevelZero> (<game-KeyLogGks0-<$$>-pkgstate-pkg_Log> state-KeyLogGks0)))
+            (LogInverseDishonestLevelZero_right (<pkg-state-Log-<$$>-LogInverseDishonestLevelZero> (<game-KeyLogGks0Map-<$$>-pkgstate-pkg_Log> state-KeyLogGks0Map)))
         )
         (forall
             (
@@ -661,15 +661,15 @@
 )
 (define-fun invariant
     (
-        (state-Gks0 <GameState_Gks0_<$$>>)
-        (state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (state-KeyLogGks0 <GameState_KeyLogGks0_<$$>>)
+        (state-KeyLogGks0Map <GameState_KeyLogGks0Map_<$$>>)
     )
     Bool
     true
     ;(and
-        ;(invariant-2 state-Gks0 state-Gks0Map)
-        ;(invariant-log-inverse state-Gks0 state-Gks0Map)
-        ;(invariant-consistent-log-inverse state-Gks0 state-Gks0Map)
+        ;(invariant-2 state-KeyLogGks0 state-KeyLogGks0Map)
+        ;(invariant-log-inverse state-KeyLogGks0 state-KeyLogGks0Map)
+        ;(invariant-consistent-log-inverse state-KeyLogGks0 state-KeyLogGks0Map)
     ;)
 )
 (define-fun invariant-log-preserves-name-one-table
@@ -697,14 +697,14 @@
 )
 (define-fun invariant-log-preserves-name
     (
-        (state-Gks0 <GameState_Gks0_<$$>>)
-        (state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (state-KeyLogGks0 <GameState_KeyLogGks0_<$$>>)
+        (state-KeyLogGks0Map <GameState_KeyLogGks0Map_<$$>>)
     )
     Bool
     (let 
         (
-            (Log_left (<pkg-state-Log-<$$>-Log> (<game-Gks0-<$$>-pkgstate-pkg_Log> state-Gks0)))
-            (Log_right (<pkg-state-Log-<$$>-Log> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))
+            (Log_left (<pkg-state-Log-<$$>-Log> (<game-KeyLogGks0-<$$>-pkgstate-pkg_Log> state-KeyLogGks0)))
+            (Log_right (<pkg-state-Log-<$$>-Log> (<game-KeyLogGks0Map-<$$>-pkgstate-pkg_Log> state-KeyLogGks0Map)))
         )
         (forall
             (
@@ -724,15 +724,15 @@
 )
 (define-fun invariant-log-inverse-name
     (
-        (state-Gks0 <GameState_Gks0_<$$>>)
-        (state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (state-KeyLogGks0 <GameState_KeyLogGks0_<$$>>)
+        (state-KeyLogGks0Map <GameState_KeyLogGks0Map_<$$>>)
     )
     Bool
     (let
         (
-            (LogInverseDishonest_right (<pkg-state-Log-<$$>-LogInverseDishonest> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))
-            (LogInverseDishonestLevelNonZero_right (<pkg-state-Log-<$$>-LogInverseDishonestLevelNonZero> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))
-            (LogInverseDishonestLevelZero_right (<pkg-state-Log-<$$>-LogInverseDishonestLevelZero> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))            
+            (LogInverseDishonest_right (<pkg-state-Log-<$$>-LogInverseDishonest> (<game-KeyLogGks0Map-<$$>-pkgstate-pkg_Log> state-KeyLogGks0Map)))
+            (LogInverseDishonestLevelNonZero_right (<pkg-state-Log-<$$>-LogInverseDishonestLevelNonZero> (<game-KeyLogGks0Map-<$$>-pkgstate-pkg_Log> state-KeyLogGks0Map)))
+            (LogInverseDishonestLevelZero_right (<pkg-state-Log-<$$>-LogInverseDishonestLevelZero> (<game-KeyLogGks0Map-<$$>-pkgstate-pkg_Log> state-KeyLogGks0Map)))            
         )
         (forall
             (
@@ -769,14 +769,14 @@
 )
 (define-fun assert-invariant-2a-ix-and-2a-x 
     (
-        (state-Gks0 <GameState_Gks0_<$$>>)
-        (state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (state-KeyLogGks0 <GameState_KeyLogGks0_<$$>>)
+        (state-KeyLogGks0Map <GameState_KeyLogGks0Map_<$$>>)
     )
     Bool
     (let 
         (
-            (K_left (<pkg-state-Key-<$$>-K> (<game-Gks0-<$$>-pkgstate-pkg_Key> state-Gks0)))
-            (K_right (<pkg-state-Key-<$$>-K> (<game-Gks0Map-<$$>-pkgstate-pkg_Key> state-Gks0Map)))
+            (K_left (<pkg-state-Key-<$$>-K> (<game-KeyLogGks0-<$$>-pkgstate-pkg_Key> state-KeyLogGks0)))
+            (K_right (<pkg-state-Key-<$$>-K> (<game-KeyLogGks0Map-<$$>-pkgstate-pkg_Key> state-KeyLogGks0Map)))
         )
         (forall
             (
@@ -798,14 +798,14 @@
 )
 (define-fun assert-invariant-2a-iii
     (
-        (state-Gks0 <GameState_Gks0_<$$>>)
-        (state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (state-KeyLogGks0 <GameState_KeyLogGks0_<$$>>)
+        (state-KeyLogGks0Map <GameState_KeyLogGks0Map_<$$>>)
     )
     Bool
     (let 
         (
-            (Log_left (<pkg-state-Log-<$$>-Log> (<game-Gks0-<$$>-pkgstate-pkg_Log> state-Gks0)))
-            (Log_right (<pkg-state-Log-<$$>-Log> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))
+            (Log_left (<pkg-state-Log-<$$>-Log> (<game-KeyLogGks0-<$$>-pkgstate-pkg_Log> state-KeyLogGks0)))
+            (Log_right (<pkg-state-Log-<$$>-Log> (<game-KeyLogGks0Map-<$$>-pkgstate-pkg_Log> state-KeyLogGks0Map)))
         )
         (forall
             (
@@ -825,16 +825,16 @@
 )
 (define-fun assert-invariant-2a-iv
     (
-        (state-Gks0 <GameState_Gks0_<$$>>)
-        (state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (state-KeyLogGks0 <GameState_KeyLogGks0_<$$>>)
+        (state-KeyLogGks0Map <GameState_KeyLogGks0Map_<$$>>)
     )
     Bool
     (let 
         (
-            (Log_left (<pkg-state-Log-<$$>-Log> (<game-Gks0-<$$>-pkgstate-pkg_Log> state-Gks0)))
-            (Log_right (<pkg-state-Log-<$$>-Log> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))
-            (K_left (<pkg-state-Key-<$$>-K> (<game-Gks0-<$$>-pkgstate-pkg_Key> state-Gks0)))
-            (K_right (<pkg-state-Key-<$$>-K> (<game-Gks0Map-<$$>-pkgstate-pkg_Key> state-Gks0Map)))
+            (Log_left (<pkg-state-Log-<$$>-Log> (<game-KeyLogGks0-<$$>-pkgstate-pkg_Log> state-KeyLogGks0)))
+            (Log_right (<pkg-state-Log-<$$>-Log> (<game-KeyLogGks0Map-<$$>-pkgstate-pkg_Log> state-KeyLogGks0Map)))
+            (K_left (<pkg-state-Key-<$$>-K> (<game-KeyLogGks0-<$$>-pkgstate-pkg_Key> state-KeyLogGks0)))
+            (K_right (<pkg-state-Key-<$$>-K> (<game-KeyLogGks0Map-<$$>-pkgstate-pkg_Key> state-KeyLogGks0Map)))
         )
         (forall
             (
@@ -855,14 +855,14 @@
 )
 (define-fun assert-invariant-2a-vii
     (
-        (state-Gks0 <GameState_Gks0_<$$>>)
-        (state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (state-KeyLogGks0 <GameState_KeyLogGks0_<$$>>)
+        (state-KeyLogGks0Map <GameState_KeyLogGks0Map_<$$>>)
     )
     Bool
     (let 
         (
-            (Log_left (<pkg-state-Log-<$$>-Log> (<game-Gks0-<$$>-pkgstate-pkg_Log> state-Gks0)))
-            (Log_right (<pkg-state-Log-<$$>-Log> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))
+            (Log_left (<pkg-state-Log-<$$>-Log> (<game-KeyLogGks0-<$$>-pkgstate-pkg_Log> state-KeyLogGks0)))
+            (Log_right (<pkg-state-Log-<$$>-Log> (<game-KeyLogGks0Map-<$$>-pkgstate-pkg_Log> state-KeyLogGks0Map)))
         )
         (forall
             (
@@ -878,14 +878,14 @@
 )
 (define-fun assert-invariant-2a-viii
     (
-        (state-Gks0 <GameState_Gks0_<$$>>)
-        (state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (state-KeyLogGks0 <GameState_KeyLogGks0_<$$>>)
+        (state-KeyLogGks0Map <GameState_KeyLogGks0Map_<$$>>)
     )
     Bool
     (let 
         (
-            (Log_left (<pkg-state-Log-<$$>-Log> (<game-Gks0-<$$>-pkgstate-pkg_Log> state-Gks0)))
-            (Log_right (<pkg-state-Log-<$$>-Log> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))
+            (Log_left (<pkg-state-Log-<$$>-Log> (<game-KeyLogGks0-<$$>-pkgstate-pkg_Log> state-KeyLogGks0)))
+            (Log_right (<pkg-state-Log-<$$>-Log> (<game-KeyLogGks0Map-<$$>-pkgstate-pkg_Log> state-KeyLogGks0Map)))
         )
         (forall
             (
@@ -905,16 +905,16 @@
 )
 (define-fun updated-invariant-log-inverse
     (
-        (state-Gks0 <GameState_Gks0_<$$>>)
-        (state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (state-KeyLogGks0 <GameState_KeyLogGks0_<$$>>)
+        (state-KeyLogGks0Map <GameState_KeyLogGks0Map_<$$>>)
     )
     Bool
     (let
         (
-            (Log_right (<pkg-state-Log-<$$>-Log> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))
-            (LogInverseDishonest_right (<pkg-state-Log-<$$>-LogInverseDishonest> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))
-            (LogInverseDishonestLevelNonZero_right (<pkg-state-Log-<$$>-LogInverseDishonestLevelNonZero> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))
-            (LogInverseDishonestLevelZero_right (<pkg-state-Log-<$$>-LogInverseDishonestLevelZero> (<game-Gks0Map-<$$>-pkgstate-pkg_Log> state-Gks0Map)))            
+            (Log_right (<pkg-state-Log-<$$>-Log> (<game-KeyLogGks0Map-<$$>-pkgstate-pkg_Log> state-KeyLogGks0Map)))
+            (LogInverseDishonest_right (<pkg-state-Log-<$$>-LogInverseDishonest> (<game-KeyLogGks0Map-<$$>-pkgstate-pkg_Log> state-KeyLogGks0Map)))
+            (LogInverseDishonestLevelNonZero_right (<pkg-state-Log-<$$>-LogInverseDishonestLevelNonZero> (<game-KeyLogGks0Map-<$$>-pkgstate-pkg_Log> state-KeyLogGks0Map)))
+            (LogInverseDishonestLevelZero_right (<pkg-state-Log-<$$>-LogInverseDishonestLevelZero> (<game-KeyLogGks0Map-<$$>-pkgstate-pkg_Log> state-KeyLogGks0Map)))            
         )
         (forall
             (
@@ -951,9 +951,49 @@
         )
     )
 )
+(define-fun J-invariants 
+    (
+        (old-state-KeyLogGks0Map <GameState_KeyLogGks0Map_<$$>>)
+    )
+    Bool
+    (let 
+        (
+            (J (<pkg-state-Log-<$$>-J> (<game-KeyLogGks0Map-<$$>-pkgstate-pkg_Log> old-state-KeyLogGks0Map)))
+            (LogInverseDishonestLevelZero (<pkg-state-Log-<$$>-LogInverseDishonestLevelZero> (<game-KeyLogGks0Map-<$$>-pkgstate-pkg_Log> old-state-KeyLogGks0Map)))
+            (LogInverseDishonestLevelNonZero (<pkg-state-Log-<$$>-LogInverseDishonestLevelNonZero> (<game-KeyLogGks0Map-<$$>-pkgstate-pkg_Log> old-state-KeyLogGks0Map)))
+        )
+        (forall
+            (
+                (k Bits_*)
+            )
+            (let 
+                (
+                    (J_k (select J k))
+                    (LogInverseDishonestLevelZero_k (select LogInverseDishonestLevelZero k))
+                    (LogInverseDishonestLevelNonZero_k (select LogInverseDishonestLevelNonZero k))
+                )
+                (and 
+                    ;   J = None or some(True)
+                    (or
+                        ((_ is mk-none) J_k)
+                        (= J_k (mk-some true))
+                    )
+                    ;   J[k] = None => LogInverseDishonestLevelZero[k] = None or LogInverseDishonestLevelNonZero[k] = None
+                    (=>
+                        ((_ is mk-none) J_k)
+                        (or
+                            ((_ is mk-none) LogInverseDishonestLevelZero_k)
+                            ((_ is mk-none) LogInverseDishonestLevelNonZero_k)
+                        )
+                    )
+                )
+            )
+        )
+    )
+)
 ; check invariants hold in the beginning
 ; (push 1)
-; (assert (all-invariants <<game-state-game_Gks0-old>> <<game-state-game_Gks0Map-old>>))
+; (assert (all-invariants <<game-state-game_KeyLogGks0-old>> <<game-state-game_KeyLogGks0Map-old>>))
 ; (check-sat)
 ; (pop 1)
 

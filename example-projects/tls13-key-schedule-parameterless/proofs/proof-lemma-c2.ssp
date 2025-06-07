@@ -1,4 +1,4 @@
-proof Proof {
+proof LemmaC2 {
     const bits_to_integer: fn Bits(*) -> Integer;
     const cast256: fn Bits(256) -> Bits(*);
     const cast384: fn Bits(384) -> Bits(*);
@@ -311,12 +311,13 @@ proof Proof {
                 ]
 
                 lemmas {
-                    all-invariants-after: [no-abort, all-invariants-before]
-                    invariant: [no-abort]
+                    /* all-invariants-after: [no-abort, all-invariants-before] */
+                    
                     lemma-Gks0-output: [no-abort]
                     lemma-Gks0Map-output: [no-abort]
                     same-output: [no-abort]
                     equal-aborts: []
+                    invariant: [no-abort]
                 }
             }
             SET: {

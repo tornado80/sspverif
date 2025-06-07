@@ -1,4 +1,4 @@
-proof Proof {
+proof KeyLogInvariants {
     const cast256: fn Bits(256) -> Bits(*);
     const cast384: fn Bits(384) -> Bits(*);
     const cast512: fn Bits(512) -> Bits(*);
@@ -35,7 +35,7 @@ proof Proof {
     const untag: fn Bits(*) -> Bits(*);
     const zeros: fn Integer -> Bits(*);
 
-    instance game_Gks0 = Gks0 {
+    instance game_KeyLogGks0 = KeyLogGks0 {
         params {
             cast256: cast256,
             cast384: cast384,
@@ -75,7 +75,7 @@ proof Proof {
         }
     }
 
-    instance game_Gks0Map = Gks0Map {
+    instance game_KeyLogGks0Map = KeyLogGks0Map {
         params {
             cast256: cast256,
             cast384: cast384,
@@ -116,12 +116,12 @@ proof Proof {
     }
 
     gamehops {
-        equivalence game_Gks0 game_Gks0Map {
+        equivalence game_KeyLogGks0 game_KeyLogGks0Map {
             SET: {
                 invariant: [
                     ./proofs/abstract-functions.smt2
-                    ./proofs/invariants.smt2
-                    ./proofs/SET.smt2
+                    ./proofs/key-log/key-log-invariants.smt2
+                    ./proofs/key-log/SET.smt2
                 ]
 
                 lemmas {

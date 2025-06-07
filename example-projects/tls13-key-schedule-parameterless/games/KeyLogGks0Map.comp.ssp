@@ -1,4 +1,4 @@
-composition Gks0Map {
+composition KeyLogGks0Map {
     const cast256: fn Bits(256) -> Bits(*);
     const cast384: fn Bits(384) -> Bits(*);
     const cast512: fn Bits(512) -> Bits(*);
