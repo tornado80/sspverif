@@ -284,7 +284,6 @@
                 (TH (<pkg-state-g6P-<$$>-TH> (<game-G6-<$$>-pkgstate-g6> state-g6)))
                 (oldTXTR (<pkg-state-g6P-<$$>-TXTR> (<game-G6-<$$>-pkgstate-g6> old-state-g6)))
                 (TXTR (<pkg-state-g6P-<$$>-TXTR> (<game-G6-<$$>-pkgstate-g6> state-g6)))
-                (returnpoint (<pkg-state-g6P-<$$>-returnpoint> (<game-G6-<$$>-pkgstate-g6> state-g6)) )
             )
             (and 
                 ; TH[Z, s] = h != None => T[Z, s] = h
@@ -306,7 +305,7 @@
     ); proved
                 
 (=>
-    (not (= returnpoint 10))
+     true;(not (= returnpoint 10))
     (forall 
         (
             (Z Bits_*)
@@ -363,39 +362,4 @@
         )
     )
 
-)
-
-(define-fun <relation-lemma-find-collision-g5-g6-TH>
-    (
-        (old-state-g5  <GameState_G5_<$$>>)
-        (old-state-g6  <GameState_G6_<$$>>)
-        (return-g5 <OracleReturn-G5-<$$>-g5P-<$$>-TH>)
-        (return-g6 <OracleReturn-G6-<$$>-g6P-<$$>-TH>)
-        (Z Bits_*)
-        (s Bits_*)
-    )
-    Bool
-    (let 
-        (
-            (E (<pkg-state-g6P-<$$>-E> (<game-G6-<$$>-pkgstate-g6> old-state-g6)))
-            ; should be new state of G6 not old state
-            (XY (<pkg-state-g6P-<$$>-XY> (<game-G6-<$$>-pkgstate-g6> old-state-g6)))
-            (TXTR (<pkg-state-g6P-<$$>-TXTR> (<game-G6-<$$>-pkgstate-g6> old-state-g6)))
-        )
-        (and 
-            (=>
-                (not ((_ is mk-none) XY))
-                (let 
-                    (
-                        (X (el2-1 (maybe-get XY)))
-                        (Y (el2-2 (maybe-get XY)))
-                    )
-                    (and 
-                        (= Z (<<func-exp>> Y (maybe-get (select E X))))
-                        (not ((_ is mk-none) (select TXTR (mk-tuple3 X Y s))))
-                    )
-                )
-            )
-        )
-    )
 )

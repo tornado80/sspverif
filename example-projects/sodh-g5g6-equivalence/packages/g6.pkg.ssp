@@ -1,7 +1,5 @@
 package g6P {
     state {
-        XY: Maybe((Bits(*), Bits(*))),
-        returnpoint: Integer,
         E: Table(Bits(*), Integer),
         TH: Table((Bits(*), Bits(*)), Bits(*)),
         TXTR: Table((Bits(*), Bits(*), Bits(*)), Bits(*)),
@@ -25,7 +23,6 @@ package g6P {
             (Xp, Yp) <- parse Unwrap(XpYp);
             return Unwrap(TXTR[(Xp, Yp, s)]);
         }
-        returnpoint <- 10;
         h <-$ Bits(*);
         TXTR[(X, Y, s)] <- Some(h);
         return h;
