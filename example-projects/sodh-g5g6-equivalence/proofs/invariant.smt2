@@ -220,43 +220,9 @@
             ; T[Z, s] = None if and only if
             ; TH[Z, s] = None and
             ; forall X, Y such that Y^E[X] = Z then TXTR[X, Y, s] = None
-            (invariant-T-None-implies-TH-and-TXTR E_left T TH TXTR)
+            ;(invariant-T-None-implies-TH-and-TXTR E_left T TH TXTR)
             ; TXTR[X, Y, s] = h != None => T[Y^E[X], s] = h
             (invariant-TXTR-implies-T E_left T TH TXTR)
-            ; not necessary for verification but important for well-definedness 
-            ; of find_collision_in_TXTR
-            ; for each Z, there is exactly one X, Y pair in TXTR such that 
-            ; Y^E[X] = Z:
-            ; i.e.
-            ; TXTR[X, Y, s] != None => 
-            ; forall X', Y' if TXTR[X', Y', s] != None and Y^E[X] = Y'^E[X'] =>
-            ; X = S' and Y = Y'
-            (forall 
-                (
-                    (X Bits_*)
-                    (Y Bits_*)
-                    (s Bits_*)
-                )
-                (=>
-                    (not ((_ is mk-none) (select TXTR (mk-tuple3 X Y s))))
-                    (forall
-                        (
-                            (Xp Bits_*)
-                            (Yp Bits_*)
-                        )
-                        (=>
-                            (and 
-                                (not ((_ is mk-none) (select TXTR (mk-tuple3 Xp Yp s))))
-                                (= (<<func-exp>> Y (maybe-get (select E_left X))) (<<func-exp>> Yp (maybe-get (select E_left Xp))))
-                            )
-                            (and 
-                                (= X Xp)
-                                (= Y Yp)
-                            )
-                        )
-                    )
-                )
-            )
         )
     )
 )
@@ -675,6 +641,40 @@
                 (invariant-T-None-implies-TH-and-TXTR E_left T TH TXTR)
                 ; TXTR[X, Y, s] = h != None => T[Y^E[X], s] = h
                 (invariant-TXTR-implies-T E_left T TH TXTR)
+                ; not necessary for verification but important for well-definedness 
+                ; of find_collision_in_TXTR
+                ; for each Z, there is exactly one X, Y pair in TXTR such that 
+                ; Y^E[X] = Z:
+                ; i.e.
+                ; TXTR[X, Y, s] != None => 
+                ; forall X', Y' if TXTR[X', Y', s] != None and Y^E[X] = Y'^E[X'] =>
+                ; X = S' and Y = Y'
+                (forall 
+                    (
+                        (X Bits_*)
+                        (Y Bits_*)
+                        (s Bits_*)
+                    )
+                    (=>
+                        (not ((_ is mk-none) (select TXTR (mk-tuple3 X Y s))))
+                        (forall
+                            (
+                                (Xp Bits_*)
+                                (Yp Bits_*)
+                            )
+                            (=>
+                                (and 
+                                    (not ((_ is mk-none) (select TXTR (mk-tuple3 Xp Yp s))))
+                                    (= (<<func-exp>> Y (maybe-get (select E_left X))) (<<func-exp>> Yp (maybe-get (select E_left Xp))))
+                                )
+                                (and 
+                                    (= X Xp)
+                                    (= Y Yp)
+                                )
+                            )
+                        )
+                    )
+                )
             )
             
         )

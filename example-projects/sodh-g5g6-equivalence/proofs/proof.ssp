@@ -37,10 +37,10 @@ proof Proof {
                 ]
 
                 lemmas {
-                    /* assert-invariants: [no-abort, lemma-find-collision] */
                     invariant:    [no-abort, lemma-find-collision]
                     same-output:  [no-abort, lemma-find-collision]
                     equal-aborts: [lemma-find-collision]
+                    assert-invariants: [no-abort, lemma-find-collision]
                 }
             }
 
