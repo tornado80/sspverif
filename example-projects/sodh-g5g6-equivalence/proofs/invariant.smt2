@@ -267,9 +267,9 @@
         (old-state-g6  <GameState_G6_<$$>>)
         (return-g5 <OracleReturn-G5-<$$>-g5P-<$$>-TXTR>)
         (return-g6 <OracleReturn-G6-<$$>-g6P-<$$>-TXTR>)
-        (X Bits_*)
-        (Y Bits_*)
-        (s Bits_*)
+        (XXXX Bits_*)
+        (YYYY Bits_*)
+        (ssss Bits_*)
     )
     Bool
     (let
@@ -280,10 +280,6 @@
         (let 
             (
                 (E (<pkg-state-g6P-<$$>-E> (<game-G6-<$$>-pkgstate-g6> state-g6)))
-                (T (<pkg-state-g5P-<$$>-T> (<game-G5-<$$>-pkgstate-g5> state-g5)))
-                (TH (<pkg-state-g6P-<$$>-TH> (<game-G6-<$$>-pkgstate-g6> state-g6)))
-                (oldTXTR (<pkg-state-g6P-<$$>-TXTR> (<game-G6-<$$>-pkgstate-g6> old-state-g6)))
-                (TXTR (<pkg-state-g6P-<$$>-TXTR> (<game-G6-<$$>-pkgstate-g6> state-g6)))
             )
             (and
                 (forall 
@@ -356,8 +352,8 @@
         (old-state-g6  <GameState_G6_<$$>>)
         (return-g5 <OracleReturn-G5-<$$>-g5P-<$$>-TH>)
         (return-g6 <OracleReturn-G6-<$$>-g6P-<$$>-TH>)
-        (Z Bits_*)
-        (s Bits_*)
+        (ZZZZ Bits_*)
+        (ssss Bits_*)
     )
     Bool
     (let
@@ -368,10 +364,6 @@
         (let 
             (
                 (E (<pkg-state-g6P-<$$>-E> (<game-G6-<$$>-pkgstate-g6> state-g6)))
-                (T (<pkg-state-g5P-<$$>-T> (<game-G5-<$$>-pkgstate-g5> state-g5)))
-                (TH (<pkg-state-g6P-<$$>-TH> (<game-G6-<$$>-pkgstate-g6> state-g6)))
-                (oldTXTR (<pkg-state-g6P-<$$>-TXTR> (<game-G6-<$$>-pkgstate-g6> old-state-g6)))
-                (TXTR (<pkg-state-g6P-<$$>-TXTR> (<game-G6-<$$>-pkgstate-g6> state-g6)))
             )
             (and
                 (forall 
