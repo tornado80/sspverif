@@ -29,7 +29,7 @@ proof Proof {
                     same-output:  [no-abort, lemma-find-collision]
                     invariant:    [no-abort, lemma-find-collision]
                     equal-aborts: [lemma-find-collision]
-                    assert-invariants: [no-abort, lemma-find-collision]
+                    assert-uniqueness: [no-abort, assume-uniqueness-and-none-collision]
                 }
             }
             TXTR : {
@@ -41,7 +41,7 @@ proof Proof {
                     invariant:    [no-abort, lemma-find-collision]
                     same-output:  [no-abort, lemma-find-collision]
                     equal-aborts: [lemma-find-collision]
-                    assert-invariants: [no-abort, lemma-find-collision]
+                    assert-uniqueness: [no-abort, assume-uniqueness-and-none-collision]
                 }
             }
 
