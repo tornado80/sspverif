@@ -398,6 +398,70 @@
 
 ; only for debugging; not used for proving
 
+(define-fun <relation-assert-invariants-g5-g6-TH>
+    (
+        (old-state-g5  <GameState_G5_<$$>>)
+        (old-state-g6  <GameState_G6_<$$>>)
+        (return-g5 <OracleReturn-G5-<$$>-g5P-<$$>-TH>)
+        (return-g6 <OracleReturn-G6-<$$>-g6P-<$$>-TH>)
+        (ZZZZ Bits_*)
+        (ssss Bits_*)
+    )
+    Bool
+    (let
+        (
+            (state-g5 (<oracle-return-G5-<$$>-g5P-<$$>-TH-game-state> return-g5))
+            (state-g6 (<oracle-return-G6-<$$>-g6P-<$$>-TH-game-state> return-g6))
+        )
+        (let 
+            (
+                (E_left (<pkg-state-g5P-<$$>-E> (<game-G5-<$$>-pkgstate-g5> state-g5)))
+                (E_right (<pkg-state-g6P-<$$>-E> (<game-G6-<$$>-pkgstate-g6> state-g6)))
+                (oldT (<pkg-state-g5P-<$$>-T> (<game-G5-<$$>-pkgstate-g5> old-state-g5)))
+                (T (<pkg-state-g5P-<$$>-T> (<game-G5-<$$>-pkgstate-g5> state-g5)))
+                (oldTH (<pkg-state-g6P-<$$>-TH> (<game-G6-<$$>-pkgstate-g6> old-state-g6)))
+                (TH (<pkg-state-g6P-<$$>-TH> (<game-G6-<$$>-pkgstate-g6> state-g6)))
+                (oldTXTR (<pkg-state-g6P-<$$>-TXTR> (<game-G6-<$$>-pkgstate-g6> old-state-g6)))
+                (TXTR (<pkg-state-g6P-<$$>-TXTR> (<game-G6-<$$>-pkgstate-g6> state-g6)))
+            )
+                ; not necessary for verification but important for well-definedness 
+                ; of find_collision_in_TXTR
+                ; for each Z, there is exactly one X, Y pair in TXTR such that 
+                ; Y^E[X] = Z:
+                ; i.e.
+                ; TXTR[X, Y, s] != None => 
+                ; forall X', Y' if TXTR[X', Y', s] != None and Y^E[X] = Y'^E[X'] =>
+                ; X = S' and Y = Y'
+                (forall 
+                    (
+                        (X Bits_*)
+                        (Y Bits_*)
+                        (s Bits_*)
+                    )
+                    (=>
+                        (not ((_ is mk-none) (select TXTR (mk-tuple3 X Y s))))
+                        (forall
+                            (
+                                (Xp Bits_*)
+                                (Yp Bits_*)
+                            )
+                            (=>
+                                (and 
+                                    (not ((_ is mk-none) (select TXTR (mk-tuple3 Xp Yp s))))
+                                    (= (<<func-exp>> Y (maybe-get (select E_left X))) (<<func-exp>> Yp (maybe-get (select E_left Xp))))
+                                )
+                                (and 
+                                    (= X Xp)
+                                    (= Y Yp)
+                                )
+                            )
+                        )
+                    )
+                )
+        )
+    )
+)
+
 (define-fun <relation-assert-invariants-g5-g6-TXTR>
     (
         (old-state-g5  <GameState_G5_<$$>>)
@@ -406,7 +470,7 @@
         (return-g6 <OracleReturn-G6-<$$>-g6P-<$$>-TXTR>)
         (X Bits_*)
         (Y Bits_*)
-        (s Bits_*)
+        (ssss Bits_*)
     )
     Bool
     (let
@@ -446,13 +510,13 @@
                 
 (=>
     (and 
-        ((_ is mk-none) (select oldTH (mk-tuple2 (<<func-exp>> Y (maybe-get (select E_left X))) s)))
-        ((_ is mk-none) (<<func-find_collision_in_TXTR>> oldTXTR (<<func-exp>> Y (maybe-get (select E_left X))) s))
+        ((_ is mk-none) (select oldTH (mk-tuple2 (<<func-exp>> Y (maybe-get (select E_left X))) ssss)))
+        ((_ is mk-none) (<<func-find_collision_in_TXTR>> oldTXTR (<<func-exp>> Y (maybe-get (select E_left X))) ssss))
     )
     (and
-        (not ((_ is mk-none) (select TXTR (mk-tuple3 X Y s))))
-        (= (select TXTR (mk-tuple3 X Y s)) (select T (mk-tuple2 (<<func-exp>> Y (maybe-get (select E_left X))) s)))
-        (= (maybe-get (<<func-find_collision_in_TXTR>> TXTR (<<func-exp>> Y (maybe-get (select E_left X))) s)) (mk-tuple2 X Y))
+        (not ((_ is mk-none) (select TXTR (mk-tuple3 X Y ssss))))
+        (= (select TXTR (mk-tuple3 X Y ssss)) (select T (mk-tuple2 (<<func-exp>> Y (maybe-get (select E_left X))) ssss)))
+        (= (maybe-get (<<func-find_collision_in_TXTR>> TXTR (<<func-exp>> Y (maybe-get (select E_left X))) ssss)) (mk-tuple2 X Y))
         (forall 
             (
                 (Z Bits_*)
