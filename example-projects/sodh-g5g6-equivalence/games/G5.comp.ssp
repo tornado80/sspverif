@@ -1,0 +1,16 @@
+composition G5 {
+    const exp: fn Bits(*), Integer -> Bits(*);
+
+    instance g5 = g5P {
+        params {
+            exp: exp
+        }
+    }
+
+    compose {
+        adversary: {
+            TXTR: g5,
+            TH: g5
+        }
+    }
+}

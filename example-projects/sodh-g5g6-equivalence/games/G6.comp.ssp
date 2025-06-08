@@ -1,0 +1,21 @@
+composition G6 {
+    const exp: fn Bits(*), Integer -> Bits(*);
+    const find_collision_in_TXTR: 
+            fn Table((Bits(*), Bits(*), Bits(*)), Bits(*)),
+               Bits(*),
+               Bits(*) -> Maybe((Bits(*), Bits(*)));
+
+    instance g6 = g6P {
+        params {
+            exp: exp,
+            find_collision_in_TXTR: find_collision_in_TXTR
+        }
+    }
+
+    compose {
+        adversary: {
+            TH: g6,
+            TXTR: g6
+        }
+    }
+}

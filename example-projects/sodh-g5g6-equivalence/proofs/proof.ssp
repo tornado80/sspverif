@@ -1,0 +1,49 @@
+proof Proof {
+    const exp: fn Bits(*), Integer -> Bits(*);
+    const find_collision_in_TXTR: 
+            fn Table((Bits(*), Bits(*), Bits(*)), Bits(*)),
+               Bits(*),
+               Bits(*) -> Maybe((Bits(*), Bits(*)));
+
+    instance g5 = G5 {
+        params {
+            exp: exp
+        }
+    }
+
+    instance g6 = G6 {
+        params {
+            exp: exp,
+            find_collision_in_TXTR: find_collision_in_TXTR
+        }
+    }
+
+    gamehops {
+        equivalence g5 g6 {
+            TH : {
+                invariant: [
+                    ./proofs/invariant.smt2
+                ]
+
+                lemmas {
+                    same-output:  [no-abort]
+                    invariant:    [no-abort]
+                    equal-aborts: []
+                }
+            }
+            TXTR : {
+                invariant: [
+                    ./proofs/invariant.smt2
+                ]
+
+                lemmas {
+                    invariant:    [no-abort, lemma-find-collision]
+                    /* assert-invariants: [no-abort, lemma-find-collision] */
+                    same-output:  [no-abort]
+                    equal-aborts: []
+                }
+            }
+
+        }
+    }
+}

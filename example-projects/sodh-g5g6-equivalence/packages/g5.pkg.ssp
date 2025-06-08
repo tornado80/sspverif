@@ -1,0 +1,29 @@
+package g5P {
+    state {
+        E: Table(Bits(*), Integer),
+        T: Table((Bits(*), Bits(*)), Bits(*)),
+    }
+    
+    params {
+        exp: fn Bits(*), Integer -> Bits(*)
+    }
+
+    oracle TXTR(X: Bits(*), Y: Bits(*), s: Bits(*)) -> Bits(*) {
+        Z <- exp(Y, Unwrap(E[X]));
+        if (T[(Z, s)] != None as Bits(*)) {
+            return Unwrap(T[(Z, s)]);
+        }
+        h <-$ Bits(*);
+        T[(Z, s)] <- Some(h);
+        return h;
+    }
+
+    oracle TH(Z: Bits(*), s: Bits(*)) -> Bits(*) {
+        if (T[(Z, s)] != None as Bits(*)) {
+            return Unwrap(T[(Z, s)]);
+        }
+        h <-$ Bits(*);
+        T[(Z, s)] <- Some(h);
+        return h;
+    }
+}  
