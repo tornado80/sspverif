@@ -45,7 +45,7 @@
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define-fun invariant-TH-implies-TH
+(define-fun invariant-TH-implies-T
     (
         (E (Array Bits_* (Maybe Int)))
         (T (Array (Tuple2 Bits_* Bits_*) (Maybe Bits_*)))
@@ -193,7 +193,7 @@
         (and 
             (= E_left E_right)
             ; TH[Z, s] = h != None => T[Z, s] = h
-            (invariant-TH-implies-TH E_left T TH TXTR)
+            (invariant-TH-implies-T E_left T TH TXTR)
             ; T[Z, s] = h != None => TH[Z, s] = h or 
             ; there exists X, Y such that Y^E[X] = Z and TXTR[X, Y, s] = h
             (invariant-T-NotNone-implies-TH-and-TXTR E_left T TH TXTR)
@@ -288,7 +288,7 @@
             )
             (and 
                 ; TH[Z, s] = h != None => T[Z, s] = h
-                (invariant-TH-implies-TH E_left T TH TXTR)
+                (invariant-TH-implies-T E_left T TH TXTR)
                 ; T[Z, s] = h != None => TH[Z, s] = h or 
                 ; there exists X, Y such that Y^E[X] = Z and TXTR[X, Y, s] = h
                 (invariant-T-NotNone-implies-TH-and-TXTR E_left T TH TXTR)
