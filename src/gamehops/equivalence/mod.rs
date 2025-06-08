@@ -59,7 +59,7 @@ impl Equivalence {
         mut invariants: Vec<(String, Vec<String>)>,
         mut trees: Vec<(String, Vec<Claim>)>,
     ) -> Self {
-        trees.sort();
+        //trees.sort();
         invariants.sort();
 
         Equivalence {
@@ -1308,7 +1308,14 @@ impl<'a> EquivalenceContext<'a> {
     //     split_info
     // }
 
-    fn oracle_sequence(&self) -> Vec<&'a OracleSig> {
+    fn oracle_sequence(&self) -> Vec<&'a String> {
+        self
+            .equivalence
+            .trees
+            .iter()
+            .map(|(oracle_name, _)| oracle_name)
+            .collect()
+        /*
         let game_inst = self
             .proof
             .find_game_instance(self.equivalence().left_name())
@@ -1322,6 +1329,7 @@ impl<'a> EquivalenceContext<'a> {
             .iter()
             .map(|Export(_, oracle_sig)| oracle_sig)
             .collect()
+        */
     }
 
     // fn split_oracle_sequence(&self) -> Vec<&'a SplitOracleSig> {

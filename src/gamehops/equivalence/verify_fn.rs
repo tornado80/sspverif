@@ -36,18 +36,18 @@ pub fn verify(eq: &Equivalence, proof: &Proof, mut prover: Communicator) -> Resu
     eqctx.emit_game_definitions(&mut prover)?;
     eqctx.emit_constant_declarations(&mut prover)?;
 
-    for oracle_sig in eqctx.oracle_sequence() {
-        println!("verify: oracle:{oracle_sig:?}");
+    for oracle_name in eqctx.oracle_sequence() {
+        println!("verify: oracle:{oracle_name:?}");
         write!(prover, "(push 1)").unwrap();
-        eqctx.emit_return_value_helpers(&mut prover, &oracle_sig.name)?;
-        eqctx.emit_invariant(&mut prover, &oracle_sig.name)?;
+        eqctx.emit_return_value_helpers(&mut prover, &oracle_name)?;
+        eqctx.emit_invariant(&mut prover, &oracle_name)?;
 
         for claim in eqctx
             .equivalence
-            .proof_tree_by_oracle_name(&oracle_sig.name)
+            .proof_tree_by_oracle_name(&oracle_name)
         {
             write!(prover, "(push 1)").unwrap();
-            eqctx.emit_claim_assert(&mut prover, &oracle_sig.name, &claim)?;
+            eqctx.emit_claim_assert(&mut prover, &oracle_name, &claim)?;
             match prover.check_sat()? {
                 ProverResponse::Unsat => {}
                 response => {
