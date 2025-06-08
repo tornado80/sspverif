@@ -26,9 +26,9 @@ proof Proof {
                 ]
 
                 lemmas {
-                    same-output:  [no-abort]
-                    invariant:    [no-abort]
-                    equal-aborts: []
+                    same-output:  [no-abort, lemma-find-collision]
+                    invariant:    [no-abort, lemma-find-collision]
+                    equal-aborts: [lemma-find-collision]
                 }
             }
             TXTR : {
@@ -37,10 +37,10 @@ proof Proof {
                 ]
 
                 lemmas {
-                    invariant:    [no-abort, lemma-find-collision]
                     /* assert-invariants: [no-abort, lemma-find-collision] */
-                    same-output:  [no-abort]
-                    equal-aborts: []
+                    invariant:    [no-abort, lemma-find-collision]
+                    same-output:  [no-abort, lemma-find-collision]
+                    equal-aborts: [lemma-find-collision]
                 }
             }
 

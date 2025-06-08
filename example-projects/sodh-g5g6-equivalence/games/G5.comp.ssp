@@ -9,8 +9,8 @@ composition G5 {
 
     compose {
         adversary: {
-            TXTR: g5,
-            TH: g5
+            TH: g5,
+            TXTR: g5
         }
     }
 }
