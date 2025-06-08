@@ -332,6 +332,7 @@
                 (E (<pkg-state-g6P-<$$>-E> (<game-G6-<$$>-pkgstate-g6> state-g6)))
             )
             (and
+                ; find(table, Z, s) = None if and only if forall X,Y. table[X, Y, s] != None => Z = Y^E[X]
                 (forall 
                     (
                         (Zp Bits_*)
