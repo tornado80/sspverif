@@ -256,6 +256,8 @@
 
 )
 
+; only for debugging; not used for proving
+
 (define-fun <relation-assert-invariants-g5-g6-TXTR>
     (
         (old-state-g5  <GameState_G5_<$$>>)
