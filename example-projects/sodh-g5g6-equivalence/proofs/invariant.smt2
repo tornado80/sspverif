@@ -1,22 +1,10 @@
-; Main idea of this invariant proof
-; If ctr are equal in both games and they use the same randomness, then both games 
-;    - produce the same output
-;    - abort iff the other aborts
-;    - have same ctr afterwards
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;
-; Randomness mapping --- there is only 1 randomness counter
-;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 (define-fun randomness-mapping-TH
-  ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
-    (base-ctr-1 Int) ; This is the counter in the beginning of the oracle call on the left.
-    (id-0  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
-    (id-1  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
-    (scr-0 Int)      ; This is the counter which gets incremented each time a sampling is done with the same sample id.
-    (scr-1 Int))     ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+  ( (base-ctr-0 Int) 
+    (base-ctr-1 Int)
+    (id-0  Int)      
+    (id-1  Int)      
+    (scr-0 Int)      
+    (scr-1 Int))     
   Bool
   (and
     (= scr-1 base-ctr-1)
@@ -25,25 +13,18 @@
     (= id-1      1)))
 
 (define-fun randomness-mapping-TXTR
-  ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
-    (base-ctr-1 Int) ; This is the counter in the beginning of the oracle call on the left.
-    (id-0  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
-    (id-1  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
-    (scr-0 Int)      ; This is the counter which gets incremented each time a sampling is done with the same sample id.
-    (scr-1 Int))     ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+  ( (base-ctr-0 Int) 
+    (base-ctr-1 Int) 
+    (id-0  Int)      
+    (id-1  Int)      
+    (scr-0 Int)     
+    (scr-1 Int))     
   Bool
   (and
     (= scr-1 base-ctr-1)
     (= scr-0 base-ctr-0)
     (= id-0      0)
     (= id-1      0)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;
-; Invariant --- note that the invariant needs to be game-global 
-;               Having different variants for Oracle & UselessOracle would allow to prove wrong things.
-;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define-fun invariant-TH-implies-T
     (
@@ -248,7 +229,7 @@
                 (E (<pkg-state-g6P-<$$>-E> (<game-G6-<$$>-pkgstate-g6> state-g6)))
             )
             (and
-                ; find(table, Z, s) = None if and only if forall X,Y. table[X, Y, s] != None => Z = Y^E[X]
+                ; find(table, Z, s) = None if and only if forall X,Y. table[X, Y, s] != None => Z != Y^E[X]
                 (forall 
                     (
                         (Zp Bits_*)
@@ -333,7 +314,7 @@
                 (E (<pkg-state-g6P-<$$>-E> (<game-G6-<$$>-pkgstate-g6> state-g6)))
             )
             (and
-                ; find(table, Z, s) = None if and only if forall X,Y. table[X, Y, s] != None => Z = Y^E[X]
+                ; find(table, Z, s) = None if and only if forall X,Y. table[X, Y, s] != None => Z != Y^E[X]
                 (forall 
                     (
                         (Zp Bits_*)
@@ -397,8 +378,6 @@
     )
 
 )
-
-; only for debugging; not used for proving
 
 (define-fun <relation-assume-uniqueness-and-none-collision-g5-g6-TH>
     (
@@ -533,8 +512,8 @@
         (old-state-g6  <GameState_G6_<$$>>)
         (return-g5 <OracleReturn-G5-<$$>-g5P-<$$>-TXTR>)
         (return-g6 <OracleReturn-G6-<$$>-g6P-<$$>-TXTR>)
-        (X Bits_*)
-        (Y Bits_*)
+        (XXXX Bits_*)
+        (YYYY Bits_*)
         (ssss Bits_*)
     )
     Bool
@@ -549,7 +528,7 @@
                 (oldTXTR (<pkg-state-g6P-<$$>-TXTR> (<game-G6-<$$>-pkgstate-g6> old-state-g6)))
             )
             (and
-                ; find(table, Z, s) = None => forall X,Y. table[X, Y, s] != None => Z = Y^E[X]
+                ; find(table, Z, s) = None => forall X,Y. table[X, Y, s] != None => Z != Y^E[X]
                 (forall 
                     (
                         (Zp Bits_*)
@@ -616,8 +595,8 @@
         (old-state-g6  <GameState_G6_<$$>>)
         (return-g5 <OracleReturn-G5-<$$>-g5P-<$$>-TXTR>)
         (return-g6 <OracleReturn-G6-<$$>-g6P-<$$>-TXTR>)
-        (X Bits_*)
-        (Y Bits_*)
+        (XXXX Bits_*)
+        (YYYY Bits_*)
         (ssss Bits_*)
     )
     Bool
@@ -668,6 +647,8 @@
         )
     )
 )
+
+; only for debugging; not used for proving
 
 (define-fun <relation-assert-invariants-g5-g6-TXTR>
     (
