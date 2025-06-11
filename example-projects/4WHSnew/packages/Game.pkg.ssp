@@ -11,12 +11,12 @@ package Game {
           ctr_:  Integer,                       /* administrative sid  */
           kid_:  Integer,                       /* administrative kid  */
 		  /* session key table, reveal -> (.,false) ; test -> (.,true) */
-          RevTested:  Table((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256))),
+          RevTested:  Table((Integer,Integer,Bits(256),Bits(256),Bits(256)),
 		               Bool),
 		  Fresh: Table(Integer, Bool),
           /* Authentication */
-          First:  Table((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256))), Integer),
-          Second: Table((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256))), Integer),
+          First:  Table((Integer,Integer,Bits(256),Bits(256),Bits(256)), Integer),
+          Second: Table((Integer,Integer,Bits(256),Bits(256),Bits(256)), Integer),
           State: Table(Integer,
                   /*    administrative sid  */
                 (
@@ -41,7 +41,7 @@ package Game {
                         /* responder nonce */
                  Maybe(Bits(256)),
                         /* MAC key */
-                 Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
+                 Maybe((Integer,Integer,Bits(256),Bits(256),Bits(256))),
                         /* SID */
                  Integer))
                         /* nbr of messages sent */
@@ -51,47 +51,47 @@ package Game {
     import oracles {
          Run1(state: (Integer,Bool,Integer,Bits(256),Maybe(Bool),
                         Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
-                        Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
+                        Maybe((Integer,Integer,Bits(256),Bits(256),Bits(256))),
                         Integer))                            
          -> ((Integer,Bool,Integer,Bits(256),Maybe(Bool),
                         Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
-                        Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
+                        Maybe((Integer,Integer,Bits(256),Bits(256),Bits(256))),
                         Integer),
             (Bits(256))), 
          Run2(state: (Integer,Bool,Integer,Bits(256),Maybe(Bool),
                         Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
-                        Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
+                        Maybe((Integer,Integer,Bits(256),Bits(256),Bits(256))),
                         Integer), ni: Bits(256))               
          -> ((Integer,Bool,Integer,Bits(256),Maybe(Bool),
                         Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
-                        Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
+                        Maybe((Integer,Integer,Bits(256),Bits(256),Bits(256))),
                         Integer),
             (Bits(256),Bits(256))), 
          Run3(state: (Integer,Bool,Integer,Bits(256),Maybe(Bool),
                         Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
-                        Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
+                        Maybe((Integer,Integer,Bits(256),Bits(256),Bits(256))),
                         Integer), msg: (Bits(256), Bits(256))) 
          -> ((Integer,Bool,Integer,Bits(256),Maybe(Bool),
                         Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
-                        Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
+                        Maybe((Integer,Integer,Bits(256),Bits(256),Bits(256))),
                         Integer),
             (Bits(256),Bits(256))), 
          Run4(state: (Integer,Bool,Integer,Bits(256),Maybe(Bool),
                         Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
-                        Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
+                        Maybe((Integer,Integer,Bits(256),Bits(256),Bits(256))),
                         Integer), msg: (Bits(256), Bits(256))) 
          -> ((Integer,Bool,Integer,Bits(256),Maybe(Bool),
                         Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
-                        Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
+                        Maybe((Integer,Integer,Bits(256),Bits(256),Bits(256))),
                         Integer),
             (Bits(256))), 
          Run5(state: (Integer,Bool,Integer,Bits(256),Maybe(Bool),
                         Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
-                        Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
+                        Maybe((Integer,Integer,Bits(256),Bits(256),Bits(256))),
                         Integer), tau: Bits(256))              
          -> ((Integer,Bool,Integer,Bits(256),Maybe(Bool),
                         Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
-                        Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
+                        Maybe((Integer,Integer,Bits(256),Bits(256),Bits(256))),
                         Integer),
             (Bool)),
     }
@@ -280,7 +280,7 @@ oracle AtMost(ctr1: Integer, ctr2: Integer, ctr3: Integer) -> Bool {
 	return false;
 	}
 
-oracle AtLeast(sid: (Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))) -> Bool {
+oracle AtLeast(sid: (Integer,Integer,Bits(256),Bits(256),Bits(256))) -> Bool {
 
    if ((b == false) and (First[sid] != None as Integer)
                     and (Second[sid] == None)){

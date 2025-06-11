@@ -12,10 +12,10 @@ package ProtNoKey {
 
 	oracle Run1(state: (Integer,Bool,Integer,Bits(256),Maybe(Bool),
 	                    Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
-						Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
+						Maybe((Integer,Integer,Bits(256),Bits(256),Bits(256))),
 						Integer)) -> ((Integer,Bool,Integer,Bits(256),Maybe(Bool),
 				                       Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
-						               Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
+						               Maybe((Integer,Integer,Bits(256),Bits(256),Bits(256))),
 						               Integer),
 						              (Bits(256))) {
 	    (U,u,V,ltk,acc,k,ni_,nr,kmac,sid,mess) <- parse state;
@@ -30,11 +30,11 @@ package ProtNoKey {
 
 	oracle Run2(state: (Integer,Bool,Integer,Bits(256),Maybe(Bool),
 	                    Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
-						Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
+						Maybe((Integer,Integer,Bits(256),Bits(256),Bits(256))),
 						Integer),
 	            ni:Bits(256)) -> ((Integer,Bool,Integer,Bits(256),Maybe(Bool),
 				                    Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
-							        Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
+							        Maybe((Integer,Integer,Bits(256),Bits(256),Bits(256))),
 							        Integer),
 							       (Bits(256), Bits(256))) {
 	    (V,v,U,ltk,acc,k_,ni_,nr_,kmac_,sid_,mess) <- parse state;
@@ -44,7 +44,7 @@ package ProtNoKey {
 		nr         <- invoke Sample();
         kmac       <-  prf(ltk,U,V,ni,nr,false); /* need role agreement here, to be fixed */
         tau        <-  mac(kmac,nr,2);
-        sid        <- (U,V,Some(ni),Some(nr),Some(tau));
+        sid        <- (U,V,ni,nr,tau);
 
 		return ((V,v,U,ltk,acc,None,Some(ni),Some(nr),Some(kmac),Some(sid),1),
 		        (nr,tau));
@@ -52,11 +52,11 @@ package ProtNoKey {
 
 	oracle Run3(state: (Integer,Bool,Integer,Bits(256),Maybe(Bool),
 	                    Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
-						Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
+						Maybe((Integer,Integer,Bits(256),Bits(256),Bits(256))),
 						Integer),
 	            msg:(Bits(256),Bits(256))) -> ((Integer,Bool,Integer,Bits(256),Maybe(Bool),
 				                            Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
-							                Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
+							                Maybe((Integer,Integer,Bits(256),Bits(256),Bits(256))),
 							                Integer),
 							               (Bits(256), Bits(256))) {
 	    (U,u,V,ltk,acc,k_,ni,nr_,kmac_,sid_,mess) <- parse state;
@@ -66,7 +66,7 @@ package ProtNoKey {
 
 		kmac       <- prf(ltk,U,V,Unwrap(ni),nr,false);
         tau_       <- mac(kmac,Unwrap(ni),3);
-        sid        <- (U,V,ni,Some(nr),Some(tau));
+        sid        <- (U,V,Unwrap(ni),nr,tau);
 
         if (mac(kmac,nr,2) == tau) {
 		   return ((U,u,V,ltk,None,None,ni,Some(nr),Some(kmac),Some(sid),2),
@@ -78,11 +78,11 @@ package ProtNoKey {
 
 	oracle Run4(state: (Integer,Bool,Integer,Bits(256),Maybe(Bool),
 	                    Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
-						Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
+						Maybe((Integer,Integer,Bits(256),Bits(256),Bits(256))),
 						Integer),
 	            msg:(Bits(256),Bits(256))) -> ((Integer,Bool,Integer,Bits(256),Maybe(Bool),
 				                            Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
-							                Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
+							                Maybe((Integer,Integer,Bits(256),Bits(256),Bits(256))),
 							                Integer),
 							               (Bits(256))) {
 	    (V,v,U,ltk,acc,k,ni_,nr,kmac,sid,mess) <- parse state;
@@ -107,11 +107,11 @@ package ProtNoKey {
 
 	oracle Run5(state: (Integer,Bool,Integer,Bits(256),Maybe(Bool),
 	                    Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
-						Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
+						Maybe((Integer,Integer,Bits(256),Bits(256),Bits(256))),
 						Integer),
 	            tau:Bits(256)) -> ((Integer,Bool,Integer,Bits(256),Maybe(Bool),
 				                    Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
-				                    Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
+				                    Maybe((Integer,Integer,Bits(256),Bits(256),Bits(256))),
 				                    Integer),
 				                   (Bool)) {
 	    (U,u,V,ltk,acc,k,ni,nr,kmac,sid,mess) <- parse state;
