@@ -235,7 +235,8 @@
 
    (=> (not (= sid (as mk-none (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)))))
 	   (and
-		(not (= (select h2-mac (el5-5 (maybe-get sid))) (as mk-none (Maybe (Tuple3 Bits_256 Bits_256 Int)))))
+		(not (= (select h2-mac (el5-5 (maybe-get sid)))
+				(as mk-none (Maybe (Tuple3 Bits_256 Bits_256 Int)))))
 		(= kmac (mk-some (el3-1 (maybe-get (select h2-mac (el5-5 (maybe-get sid)))))))))
 
    (=> (not (= kmac (as mk-none (Maybe Bits_256))))
@@ -567,8 +568,8 @@
 		  (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR> state-H3))
 	   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	   ;; Local Statement on MAC & PRF collision-freeness
-	   (forall ((k1 Bits_256) (k2 Bits_256)) (helper-collision-resistance-pairwise h2-prf h2-mac k1 k2))
-	   (forall ((k Bits_256)) (helper-collision-resistance-singleside h2-prf h2-mac k))
+	   (forall ((k1 Bits_256) (k2 Bits_256)) (helper-collision-resistance-pairwise   h2-prf h2-mac k1 k2))
+	   (forall ((k Bits_256))                (helper-collision-resistance-singleside h2-prf h2-mac k))
 
 	   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	   ;; Local statement on single entries in the game state
