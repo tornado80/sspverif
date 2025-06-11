@@ -169,6 +169,7 @@
 
 
 (define-fun helper-gamestate-singleside ((h2-prf (Array Bits_256 (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool))))
+										 (h2-mac (Array Bits_256 (Maybe (Tuple3 Bits_256 Bits_256 Int))))
 										 (h2-nonces (Array Bits_256 (Maybe Bool)))
 										 (U Int) (u Bool) (V Int) (ltk Bits_256)
 										 (acc (Maybe Bool))
@@ -191,6 +192,10 @@
 								   (maybe-get ni)
 								   (maybe-get nr)
 								   true)))))
+
+   (=> (not (= sid (as mk-none (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)))))
+	   (= kmac (mk-some (el3-1 (maybe-get (select h2-mac (el5-5 (maybe-get sid))))))))
+
    (=> (not (= kmac (as mk-none (Maybe Bits_256))))
 	   (and (= kmac (mk-some (<<func-prf>> ltk (ite u V U) (ite u U V)     ; then kmac has the right value.
 										   (maybe-get ni)
@@ -215,11 +220,12 @@
 		(not (= kmac (as mk-none (Maybe Bits_256))))
 		(not (= k (as mk-none (Maybe Bits_256))))
 		(= sid (mk-some (mk-tuple5 (ite u V U) (ite u U V) (maybe-get ni) (maybe-get nr)       ; then sid  has the right value.
-								   (mk-some (<<func-mac>> (maybe-get kmac)
+								   (<<func-mac>> (maybe-get kmac)
 														  (maybe-get nr)
-														  2)))))))))
+														  2))))))))
 
 (define-fun helper-gamestate-responder ((h2-prf (Array Bits_256 (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool))))
+										(h2-mac (Array Bits_256 (Maybe (Tuple3 Bits_256 Bits_256 Int))))
 										(h2-nonces (Array Bits_256 (Maybe Bool)))
 										(U Int) (u Bool) (V Int) (ltk Bits_256)
 										(acc (Maybe Bool))
@@ -241,11 +247,12 @@
 				(not (= ni (as mk-none (Maybe Bits_256)))) ; then ni is not none.
 				(not (= nr (as mk-none (Maybe Bits_256)))) ; then nr   is not none.
 				(= sid (mk-some (mk-tuple5 V U (maybe-get ni) (maybe-get nr)       ; then sid  has the right value.
-										   (mk-some (<<func-mac>> (maybe-get kmac)
+										   (<<func-mac>> (maybe-get kmac)
 																  (maybe-get nr)
-																  2))))))))))
+																  2)))))))))
 
 (define-fun helper-gamestate-initiator ((h2-prf (Array Bits_256 (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool))))
+										(h2-mac (Array Bits_256 (Maybe (Tuple3 Bits_256 Bits_256 Int))))
 										(h2-nonces (Array Bits_256 (Maybe Bool)))
 										(U Int) (u Bool) (V Int) (ltk Bits_256)
 										(acc (Maybe Bool))
@@ -268,9 +275,9 @@
 	   (=> (and (> mess 1)
 				(= acc (mk-some true)))
 		   (and (= sid (mk-some (mk-tuple5 U V (maybe-get ni) (maybe-get nr)           ; then sid  has the right value.
-										   (mk-some (<<func-mac>> (maybe-get kmac)
+										   (<<func-mac>> (maybe-get kmac)
 																  (maybe-get nr)
-																  2))))))))))
+																  2)))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                                                      ;
@@ -392,13 +399,13 @@
 					   (and
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 						;; For any side
-						(helper-gamestate-singleside h2-prf h2-nonces U u V ltk acc k ni nr kmac sid mess) ; line sometimes causes mysterious cvc5 bug
+						(helper-gamestate-singleside h2-prf h2-mac h2-nonces U u V ltk acc k ni nr kmac sid mess) ; line sometimes causes mysterious cvc5 bug
 						;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 							;; Responder
-						(helper-gamestate-responder h2-prf h2-nonces U u V ltk acc k ni nr kmac sid mess) ; line sometimes causes mysterious cvc5 bug
+						(helper-gamestate-responder h2-prf h2-mac h2-nonces U u V ltk acc k ni nr kmac sid mess) ; line sometimes causes mysterious cvc5 bug
 						;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 							;; Initiator
-						(helper-gamestate-initiator h2-prf h2-nonces U u V ltk acc k ni nr kmac sid mess) ; line sometimes causes mysterious cvc5 bug
+						(helper-gamestate-initiator h2-prf h2-mac h2-nonces U u V ltk acc k ni nr kmac sid mess) ; line sometimes causes mysterious cvc5 bug
 						)))))
 			  (forall ((ctr1 Int) (ctr2 Int))
 			   (let ((state1 (select H2-state ctr1))
@@ -551,13 +558,13 @@
 					   (and
 						;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 						;; For any side
-						(helper-gamestate-singleside h2-prf h2-nonces U u V ltk acc k ni nr kmac sid mess)
+						(helper-gamestate-singleside h2-prf h2-mac h2-nonces U u V ltk acc k ni nr kmac sid mess)
 						;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 						;; Responder
-						(helper-gamestate-responder h2-prf h2-nonces U u V ltk acc k ni nr kmac sid mess)
+						(helper-gamestate-responder h2-prf h2-mac h2-nonces U u V ltk acc k ni nr kmac sid mess)
 						;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 						;; Initiator
-						(helper-gamestate-initiator h2-prf h2-nonces U u V ltk acc k ni nr kmac sid mess)
+						(helper-gamestate-initiator h2-prf h2-mac h2-nonces U u V ltk acc k ni nr kmac sid mess)
 						)))))
 	   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	   ;; Pairwise properties of game states
