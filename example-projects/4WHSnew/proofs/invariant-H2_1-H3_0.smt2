@@ -189,6 +189,26 @@
 		   (= k (<<func-prf>> ltk U V ni nr flag)))))))                        ; then k has been compute
 
 
+
+(define-fun helper-collision-resistance-pairwise ((h2-prf (Array Bits_256 (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool))))
+												  (h2-mac (Array Bits_256 (Maybe (Tuple3 Bits_256 Bits_256 Int))))
+												  (k1 Bits_256) (k2 Bits_256))
+  Bool
+  (and
+   (let ((entry1 (select h2-prf k1))
+		 (entry2 (select h2-prf k2)))
+	 (=> (and (not (= entry1 (as mk-none (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool)))))
+			  (not (= entry2 (as mk-none (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool))))))
+		 (=> (not (= k1 k2))
+			 (not (= entry1 entry2)))))
+   (let ((entry1 (select h2-mac k1))
+		 (entry2 (select h2-mac k2)))
+	 (=> (and (not (= entry1 (as mk-none (Maybe (Tuple3 Bits_256 Bits_256 Int)))))
+			  (not (= entry2 (as mk-none (Maybe (Tuple3 Bits_256 Bits_256 Int))))))
+		 (=> (not (= k1 k2))
+			 (not (= entry1 entry2)))))))
+
+
 (define-fun helper-gamestate-singleside ((h2-prf (Array Bits_256 (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool))))
 										 (h2-mac (Array Bits_256 (Maybe (Tuple3 Bits_256 Bits_256 Int))))
 										 (h2-nonces (Array Bits_256 (Maybe Bool)))
@@ -202,7 +222,7 @@
 										 (mess Int))
   Bool
   (and
-   ;(=> (not (= sid (as mk-none (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256))))))
+										;(=> (not (= sid (as mk-none (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256))))))
    (=> (not (= k (as mk-none (Maybe Bits_256))))
 	   (and (= k (mk-some (<<func-prf>> ltk (ite u V U) (ite u U V)        ; then k    has the right value.
 										(maybe-get ni)
@@ -242,8 +262,8 @@
 		(not (= k (as mk-none (Maybe Bits_256))))
 		(= sid (mk-some (mk-tuple5 (ite u V U) (ite u U V) (maybe-get ni) (maybe-get nr)       ; then sid  has the right value.
 								   (<<func-mac>> (maybe-get kmac)
-														  (maybe-get nr)
-														  2))))))))
+												 (maybe-get nr)
+												 2))))))))
 
 (define-fun helper-gamestate-responder ((h2-prf (Array Bits_256 (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool))))
 										(h2-mac (Array Bits_256 (Maybe (Tuple3 Bits_256 Bits_256 Int))))
@@ -269,8 +289,8 @@
 				(not (= nr (as mk-none (Maybe Bits_256)))) ; then nr   is not none.
 				(= sid (mk-some (mk-tuple5 V U (maybe-get ni) (maybe-get nr)       ; then sid  has the right value.
 										   (<<func-mac>> (maybe-get kmac)
-																  (maybe-get nr)
-																  2)))))))))
+														 (maybe-get nr)
+														 2)))))))))
 
 (define-fun helper-gamestate-initiator ((h2-prf (Array Bits_256 (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool))))
 										(h2-mac (Array Bits_256 (Maybe (Tuple3 Bits_256 Bits_256 Int))))
@@ -297,8 +317,8 @@
 				(= acc (mk-some true)))
 		   (and (= sid (mk-some (mk-tuple5 U V (maybe-get ni) (maybe-get nr)           ; then sid  has the right value.
 										   (<<func-mac>> (maybe-get kmac)
-																  (maybe-get nr)
-																  2)))))))))
+														 (maybe-get nr)
+														 2)))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                                                      ;
@@ -369,23 +389,9 @@
 
 	   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	   ;; Local Statement on MAC & PRF collision-freeness
-	   (forall ((k1 Bits_256) (k2 Bits_256))
-			   (and
-				(let ((entry1 (select h2-prf k1))
-					  (entry2 (select h2-prf k2)))
-				  (=> (and (not (= entry1 (as mk-none (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool)))))
-						   (not (= entry2 (as mk-none (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool))))))
-					  (=> (not (= k1 k2))
-						  (not (= entry1 entry2)))))
-				(let ((entry1 (select h2-mac k1))
-					  (entry2 (select h2-mac k2)))
-				  (=> (and (not (= entry1 (as mk-none (Maybe (Tuple3 Bits_256 Bits_256 Int)))))
-						   (not (= entry2 (as mk-none (Maybe (Tuple3 Bits_256 Bits_256 Int))))))
-					  (=> (not (= k1 k2))
-						  (not (= entry1 entry2)))))))
+	   (forall ((k1 Bits_256) (k2 Bits_256)) (helper-collision-resistance-pairwise h2-prf h2-mac k1 k2))
+	   (forall ((k Bits_256)) (helper-collision-resistance-singleside h2-prf h2-mac k))
 
-	   (forall ((k Bits_256)) (helper-collision-resistance-singleside h2-prf h2-mac k)
-			   
 	   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	   ;; Local statement on single entries in the game state
 	   (forall ((ctr Int))
@@ -468,7 +474,7 @@
 								 (= kmac1 kmac2))
 							(and (= ni1 ni2 (mk-some (el6-4 (maybe-get (select h2-prf (maybe-get kmac1))))))
 								 (= nr1 nr2 (mk-some (el6-5 (maybe-get (select h2-prf (maybe-get kmac1))))))))
-						
+
 						(=> (and (= (mk-some true) acc1 acc2)
 								 (= sid1 sid2))
 							(and (= key1 key2))))))))))))
@@ -523,22 +529,8 @@
 		  (<game-H3-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-CR> state-H3))
 	   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	   ;; Local Statement on MAC & PRF collision-freeness
-	   (forall ((k1 Bits_256) (k2 Bits_256))
-			   (and
-				(let ((entry1 (select h2-prf k1))
-					  (entry2 (select h2-prf k2)))
-				  (=> (and (not (= entry1 (as mk-none (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool)))))
-						   (not (= entry2 (as mk-none (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool))))))
-					  (=> (not (= k1 k2))
-						  (not (= entry1 entry2)))))
-				(let ((entry1 (select h2-mac k1))
-					  (entry2 (select h2-mac k2)))
-				  (=> (and (not (= entry1 (as mk-none (Maybe (Tuple3 Bits_256 Bits_256 Int)))))
-						   (not (= entry2 (as mk-none (Maybe (Tuple3 Bits_256 Bits_256 Int))))))
-					  (=> (not (= k1 k2))
-						  (not (= entry1 entry2)))))))
-
-	   (forall ((k Bits_256)) (helper-collision-resistance-singleside h2-prf h2-mac k)
+	   (forall ((k1 Bits_256) (k2 Bits_256)) (helper-collision-resistance-pairwise h2-prf h2-mac k1 k2))
+	   (forall ((k Bits_256)) (helper-collision-resistance-singleside h2-prf h2-mac k))
 
 	   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	   ;; Local statement on single entries in the game state
