@@ -167,6 +167,27 @@
 ;; Helper Functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(define-fun helper-collision-resistance-singleside ((h2-prf (Array Bits_256 (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool))))
+													(h2-mac (Array Bits_256 (Maybe (Tuple3 Bits_256 Bits_256 Int))))
+													(k Bits_256))
+  Bool
+  (and
+   (let ((entry (select h2-mac k)))                                            ; for all k
+	 (=> (not (= entry (as mk-none (Maybe (Tuple3 Bits_256 Bits_256 Int)))))   ; if entry at k not none
+		 (let ((kmac  (el3-1 (maybe-get entry)))
+			   (nonce (el3-2 (maybe-get entry)))
+			   (label (el3-3 (maybe-get entry))))
+		   (= k (<<func-mac>> kmac nonce label)))))                            ; then k has been computed correctly from kmac and inputs (and is stored at correct location)
+   (let ((entry (select h2-prf k)))                                            ; for all k
+	 (=> (not (= entry (as mk-none (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool))))) ; if entry at k not none
+		 (let ((ltk (el6-1 (maybe-get entry)))
+			   (U    (el6-2 (maybe-get entry)))
+			   (V    (el6-3 (maybe-get entry)))
+			   (ni   (el6-4 (maybe-get entry)))
+			   (nr   (el6-5 (maybe-get entry)))
+			   (flag (el6-6 (maybe-get entry))))
+		   (= k (<<func-prf>> ltk U V ni nr flag)))))))                        ; then k has been compute
+
 
 (define-fun helper-gamestate-singleside ((h2-prf (Array Bits_256 (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool))))
 										 (h2-mac (Array Bits_256 (Maybe (Tuple3 Bits_256 Bits_256 Int))))
@@ -363,31 +384,15 @@
 					  (=> (not (= k1 k2))
 						  (not (= entry1 entry2)))))))
 
-	   (forall ((k Bits_256))
-			   (and
-				(let ((entry (select h2-mac k)))                                            ; for all k
-				  (=> (not (= entry (as mk-none (Maybe (Tuple3 Bits_256 Bits_256 Int)))))   ; if entry at k not none
-					  (let ((kmac  (el3-1 (maybe-get entry)))
-							(nonce (el3-2 (maybe-get entry)))
-							(label (el3-3 (maybe-get entry))))
-						(= k (<<func-mac>> kmac nonce label)))))                            ; then k has been computed correctly from kmac and inputs (and is stored at correct location)
-				(let ((entry (select h2-prf k)))                                            ; for all k
-				  (=> (not (= entry (as mk-none (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool))))) ; if entry at k not none
-					  (let ((ltk (el6-1 (maybe-get entry)))
-							(U    (el6-2 (maybe-get entry)))
-							(V    (el6-3 (maybe-get entry)))
-							(ni   (el6-4 (maybe-get entry)))
-							(nr   (el6-5 (maybe-get entry)))
-							(flag (el6-6 (maybe-get entry))))
-						(= k (<<func-prf>> ltk U V ni nr flag)))))))                        ; then k has been computed correct from ltk + stuff and is stored at correct location
-
+	   (forall ((k Bits_256)) (helper-collision-resistance-singleside h2-prf h2-mac k)
+			   
 	   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	   ;; Local statement on single entries in the game state
 	   (forall ((ctr Int))
 			   (let ((state (select H2-state ctr)))
 				 (=> (not (= state
-							 (as mk-none (Maybe (Tuple11 Int Bool Int Bits_256 (Maybe Bool)
-														 (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
+							 (as mk-none (Maybe (Tuple11 Int Bool Int Bits_256 (Maybe Bool) (Maybe Bits_256)
+														 (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
 														 (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256))
 														 Int)))))
 					 (let ((U    (el11-1  (maybe-get state)))
@@ -463,14 +468,7 @@
 								 (= kmac1 kmac2))
 							(and (= ni1 ni2 (mk-some (el6-4 (maybe-get (select h2-prf (maybe-get kmac1))))))
 								 (= nr1 nr2 (mk-some (el6-5 (maybe-get (select h2-prf (maybe-get kmac1))))))))
-
-						(=> (and (not (= sid1 (as mk-none (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)))))
-								 (not (= sid2 (as mk-none (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)))))
-								 (= (el5-5 (maybe-get sid1)) (el5-5 (maybe-get sid2))))
-							(= kmac1 kmac2
-							   (mk-some (el3-1 (maybe-get (select h2-mac (el5-5 (maybe-get sid1))))))
-							   (mk-some (el3-1 (maybe-get (select h2-mac (el5-5 (maybe-get sid2))))))))
-
+						
 						(=> (and (= (mk-some true) acc1 acc2)
 								 (= sid1 sid2))
 							(and (= key1 key2))))))))))))
@@ -540,23 +538,7 @@
 					  (=> (not (= k1 k2))
 						  (not (= entry1 entry2)))))))
 
-	   (forall ((k Bits_256))
-			   (and
-				(let ((entry (select h2-mac k)))                                            ; for all k
-				  (=> (not (= entry (as mk-none (Maybe (Tuple3 Bits_256 Bits_256 Int)))))   ; if entry at k not none
-					  (let ((kmac  (el3-1 (maybe-get entry)))
-							(nonce (el3-2 (maybe-get entry)))
-							(label (el3-3 (maybe-get entry))))
-						(= k (<<func-mac>> kmac nonce label)))))                            ; then k has been computed correctly from kmac and inputs (and is stored at correct location)
-				(let ((entry (select h2-prf k)))                                            ; for all k
-				  (=> (not (= entry (as mk-none (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool))))) ; if entry at k not none
-					  (let ((ltk (el6-1 (maybe-get entry)))
-							(U    (el6-2 (maybe-get entry)))
-							(V    (el6-3 (maybe-get entry)))
-							(ni   (el6-4 (maybe-get entry)))
-							(nr   (el6-5 (maybe-get entry)))
-							(flag (el6-6 (maybe-get entry))))
-						(= k (<<func-prf>> ltk U V ni nr flag)))))))                        ; then k has been computed correct from ltk + stuff and is stored at correct location
+	   (forall ((k Bits_256)) (helper-collision-resistance-singleside h2-prf h2-mac k)
 
 	   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	   ;; Local statement on single entries in the game state
