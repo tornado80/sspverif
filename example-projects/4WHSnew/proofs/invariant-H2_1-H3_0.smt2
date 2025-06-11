@@ -176,7 +176,7 @@
 										 (ni (Maybe Bits_256))
 										 (nr (Maybe Bits_256))
 										 (kmac (Maybe Bits_256))
-										 (sid (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256))))
+										 (sid (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)))
 										 (mess Int))
   Bool
   (and
@@ -204,7 +204,7 @@
    (=> (< mess 1)
 	   (and (= k (as mk-none (Maybe Bits_256)))
 			(= kmac (as mk-none (Maybe Bits_256)))
-			(= sid (as mk-none (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)))))))
+			(= sid (as mk-none (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256))))))
    (=> (< mess 2)
 	   (= acc (as mk-none (Maybe Bool)))) ; Don't accept before message 2
    (=> (and (> mess 1) ; message large than 1
@@ -214,7 +214,7 @@
 		(not (= nr (as mk-none (Maybe Bits_256))))
 		(not (= kmac (as mk-none (Maybe Bits_256))))
 		(not (= k (as mk-none (Maybe Bits_256))))
-		(= sid (mk-some (mk-tuple5 (ite u V U) (ite u U V) ni nr       ; then sid  has the right value.
+		(= sid (mk-some (mk-tuple5 (ite u V U) (ite u U V) (maybe-get ni) (maybe-get nr)       ; then sid  has the right value.
 								   (mk-some (<<func-mac>> (maybe-get kmac)
 														  (maybe-get nr)
 														  2)))))))))
@@ -227,7 +227,7 @@
 										(ni (Maybe Bits_256))
 										(nr (Maybe Bits_256))
 										(kmac (Maybe Bits_256))
-										(sid (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256))))
+										(sid (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)))
 										(mess Int))
   Bool
   (=> u
@@ -240,7 +240,7 @@
 				(not (= k (as mk-none (Maybe Bits_256))))
 				(not (= ni (as mk-none (Maybe Bits_256)))) ; then ni is not none.
 				(not (= nr (as mk-none (Maybe Bits_256)))) ; then nr   is not none.
-				(= sid (mk-some (mk-tuple5 V U ni nr       ; then sid  has the right value.
+				(= sid (mk-some (mk-tuple5 V U (maybe-get ni) (maybe-get nr)       ; then sid  has the right value.
 										   (mk-some (<<func-mac>> (maybe-get kmac)
 																  (maybe-get nr)
 																  2))))))))))
@@ -253,7 +253,7 @@
 										(ni (Maybe Bits_256))
 										(nr (Maybe Bits_256))
 										(kmac (Maybe Bits_256))
-										(sid (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256))))
+										(sid (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)))
 										(mess Int))
   Bool
   (=> (not u)
@@ -264,11 +264,10 @@
 	   (=> (> mess 0)
 		   (not (= ni (as mk-none (Maybe Bits_256)))))
 	   (=> (< mess 2)
-		   (= sid (as mk-none (Maybe (Tuple5 Int Int (Maybe Bits_256)
-											 (Maybe Bits_256) (Maybe Bits_256))))))
+		   (= sid (as mk-none (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)))))
 	   (=> (and (> mess 1)
 				(= acc (mk-some true)))
-		   (and (= sid (mk-some (mk-tuple5 U V ni nr           ; then sid  has the right value.
+		   (and (= sid (mk-some (mk-tuple5 U V (maybe-get ni) (maybe-get nr)           ; then sid  has the right value.
 										   (mk-some (<<func-mac>> (maybe-get kmac)
 																  (maybe-get nr)
 																  2))))))))))
@@ -377,7 +376,7 @@
 				 (=> (not (= state
 							 (as mk-none (Maybe (Tuple11 Int Bool Int Bits_256 (Maybe Bool)
 														 (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
-														 (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)))
+														 (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256))
 														 Int)))))
 					 (let ((U    (el11-1  (maybe-get state)))
 						   (u    (el11-2  (maybe-get state)))
@@ -407,12 +406,12 @@
 				 (=> (and (not (= state1
 								  (as mk-none (Maybe (Tuple11 Int Bool Int Bits_256 (Maybe Bool)
 															  (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
-															  (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)))
+															  (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256))
 															  Int)))))
 						  (not (= state2
 								  (as mk-none (Maybe (Tuple11 Int Bool Int Bits_256 (Maybe Bool)
 															  (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
-															  (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)))
+															  (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256))
 															  Int))))))
 					 (let ((U1   (el11-1  (maybe-get (select H2-state ctr1))))
 						   (U2   (el11-1  (maybe-get (select H2-state ctr2))))
@@ -536,7 +535,7 @@
 				 (=> (not (= state
 							 (as mk-none (Maybe (Tuple11 Int Bool Int Bits_256 (Maybe Bool)
 														 (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
-														 (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)))
+														 (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256))
 														 Int)))))
 					 (let ((U    (el11-1  (maybe-get state)))
 						   (u    (el11-2  (maybe-get state)))
@@ -568,12 +567,12 @@
 				 (=> (and (not (= state1
 								  (as mk-none (Maybe (Tuple11 Int Bool Int Bits_256 (Maybe Bool)
 															  (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
-															  (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)))
+															  (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256))
 															  Int)))))
 						  (not (= state2
 								  (as mk-none (Maybe (Tuple11 Int Bool Int Bits_256 (Maybe Bool)
 															  (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
-															  (Maybe (Tuple5 Int Int (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)))
+															  (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256))
 															  Int))))))
 					 (let ((U1    (el11-1  (maybe-get (select H2-state ctr1))))
 						   (U2    (el11-1  (maybe-get (select H2-state ctr2))))
@@ -612,12 +611,11 @@
 							(and (= ni1 ni2 (mk-some (el6-4 (maybe-get (select h2-prf (maybe-get kmac1))))))
 								 (= nr1 nr2 (mk-some (el6-5 (maybe-get (select h2-prf (maybe-get kmac1))))))))
 
-						(=> (and (not (= sid1 (as mk-none (Maybe (Tuple5 Int Int (Maybe Bits_256)
-																		 (Maybe Bits_256) (Maybe Bits_256))))))
-								 (not (= sid2 (as mk-none (Maybe (Tuple5 Int Int (Maybe Bits_256)
-																		 (Maybe Bits_256) (Maybe Bits_256))))))
+						(=> (and (not (= sid1 (as mk-none (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)))))
+								 (not (= sid2 (as mk-none (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)))))
 								 (= (el5-5 (maybe-get sid1)) (el5-5 (maybe-get sid2))))
-							(= kmac1 kmac2 (mk-some (el3-1 (maybe-get (select h2-mac (maybe-get (el5-5 (maybe-get sid1)))))))))
+							(= kmac1 kmac2
+							   (mk-some (el3-1 (maybe-get (select h2-mac (el5-5 (maybe-get sid1))))))))
 
 						(=> (and (= (mk-some true) acc1 acc2)
 								 (= sid1 sid2))
