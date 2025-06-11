@@ -320,6 +320,56 @@
 														 (maybe-get nr)
 														 2)))))))))
 
+
+(define-fun helper-gamestate-pairwise ((h2-prf (Array Bits_256 (Maybe (Tuple6 Bits_256 Int Int Bits_256 Bits_256 Bool))))
+									   (h2-mac (Array Bits_256 (Maybe (Tuple3 Bits_256 Bits_256 Int))))
+									   (h2-nonces (Array Bits_256 (Maybe Bool)))
+									   (U1 Int) (u1 Bool) (V1 Int) (ltk1 Bits_256)
+									   (acc1 (Maybe Bool))
+									   (k1 (Maybe Bits_256))
+									   (ni1 (Maybe Bits_256))
+									   (nr1 (Maybe Bits_256))
+									   (kmac1 (Maybe Bits_256))
+									   (sid1 (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)))
+									   (mess1 Int)
+									   (U2 Int) (u2 Bool) (V2 Int) (ltk2 Bits_256)
+									   (acc2 (Maybe Bool))
+									   (k2 (Maybe Bits_256))
+									   (ni2 (Maybe Bits_256))
+									   (nr2 (Maybe Bits_256))
+									   (kmac2 (Maybe Bits_256))
+									   (sid2 (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)))
+									   (mess2 Int))
+  Bool
+  (and
+   (let ((nonce1 (ite u1 nr1 ni1))
+		 (nonce2 (ite u2 nr2 ni2)))
+	 (=> (and (not (= ctr1 ctr2))
+			  (not (= nonce1 (as mk-none (Maybe Bits_256)))))
+		 (not (= nonce1 nonce2))))
+
+   (=> (and (not (= key1 (as mk-none (Maybe Bits_256))))
+			(= key1 key2))
+	   (and (= ni1 ni2 (mk-some (el6-4 (maybe-get (select h2-prf (maybe-get key1))))))
+			(= nr1 nr2 (mk-some (el6-5 (maybe-get (select h2-prf (maybe-get key1))))))))
+
+   (=> (and (not (= kmac1 (as mk-none (Maybe Bits_256))))
+			(= kmac1 kmac2))
+	   (and (= ni1 ni2 (mk-some (el6-4 (maybe-get (select h2-prf (maybe-get kmac1))))))
+			(= nr1 nr2 (mk-some (el6-5 (maybe-get (select h2-prf (maybe-get kmac1))))))))
+
+   (=> (and (not (= sid1 (as mk-none (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)))))
+			(not (= sid2 (as mk-none (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)))))
+			(= (el5-5 (maybe-get sid1)) (el5-5 (maybe-get sid2))))
+	   (= kmac1 kmac2
+		  (mk-some (el3-1 (maybe-get (select h2-mac (el5-5 (maybe-get sid1))))))
+		  (mk-some (el3-1 (maybe-get (select h2-mac (el5-5 (maybe-get sid2))))))))
+
+   (=> (and (= (mk-some true) acc1 acc2)
+			(= sid1 sid2))
+	   (and (= key1 key2)))))
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                                                      ;
 ;; Debugging relation on new state (actual invariant is further down in file )                          ;
@@ -457,28 +507,13 @@
 						   (kmac1 (el11-9  (maybe-get (select H2-state ctr1))))
 						   (kmac2 (el11-9  (maybe-get (select H2-state ctr2))))
 						   (sid1  (el11-10 (maybe-get (select H2-state ctr1))))
-						   (sid2  (el11-10 (maybe-get (select H2-state ctr2)))))
-					   (and
-						(let ((nonce1 (ite u1 nr1 ni1))
-							  (nonce2 (ite u2 nr2 ni2)))
-						  (=> (and (not (= ctr1 ctr2))
-								   (not (= nonce1 (as mk-none (Maybe Bits_256)))))
-							  (not (= nonce1 nonce2))))
-
-						(=> (and (not (= key1 (as mk-none (Maybe Bits_256))))
-								 (= key1 key2))
-							(and (= ni1 ni2 (mk-some (el6-4 (maybe-get (select h2-prf (maybe-get key1))))))
-								 (= nr1 nr2 (mk-some (el6-5 (maybe-get (select h2-prf (maybe-get key1))))))))
-
-						(=> (and (not (= kmac1 (as mk-none (Maybe Bits_256))))
-								 (= kmac1 kmac2))
-							(and (= ni1 ni2 (mk-some (el6-4 (maybe-get (select h2-prf (maybe-get kmac1))))))
-								 (= nr1 nr2 (mk-some (el6-5 (maybe-get (select h2-prf (maybe-get kmac1))))))))
-
-						(=> (and (= (mk-some true) acc1 acc2)
-								 (= sid1 sid2))
-							(and (= key1 key2))))))))))))
-
+						   (sid2  (el11-10 (maybe-get (select H2-state ctr2))))
+						   (mess1 (el11-11 (maybe-get (select H2-state ctr1))))
+						   (mess2 (el11-11 (maybe-get (select H2-state ctr2)))))
+					   (helper-gamestate-pairwise h2-prf h2-mac h2-nonces
+												  U1 u1 V1 ltk1 acc1 k1 ni1 nr1 kmac1 sid1 mess1
+												  U2 u2 V2 ltk2 acc2 k2 ni2 nr2 kmac2 sid2 mess2)
+					   ))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; INVARIANT STARTS HERE
@@ -598,30 +633,7 @@
 						   (kmac2 (el11-9  (maybe-get (select H2-state ctr2))))
 						   (sid1  (el11-10 (maybe-get (select H2-state ctr1))))
 						   (sid2  (el11-10 (maybe-get (select H2-state ctr2)))))
-					   (and
-						(let ((nonce1 (ite u1 nr1 ni1))
-							  (nonce2 (ite u2 nr2 ni2)))
-						  (=> (and (not (= ctr1 ctr2))
-								   (not (= nonce1 (as mk-none (Maybe Bits_256)))))
-							  (not (= nonce1 nonce2))))
-
-						(=> (and (not (= key1 (as mk-none (Maybe Bits_256))))
-								 (= key1 key2))
-							(and (= ni1 ni2 (mk-some (el6-4 (maybe-get (select h2-prf (maybe-get key1))))))
-								 (= nr1 nr2 (mk-some (el6-5 (maybe-get (select h2-prf (maybe-get key1))))))))
-
-						(=> (and (not (= kmac1 (as mk-none (Maybe Bits_256))))
-								 (= kmac1 kmac2))
-							(and (= ni1 ni2 (mk-some (el6-4 (maybe-get (select h2-prf (maybe-get kmac1))))))
-								 (= nr1 nr2 (mk-some (el6-5 (maybe-get (select h2-prf (maybe-get kmac1))))))))
-
-						(=> (and (not (= sid1 (as mk-none (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)))))
-								 (not (= sid2 (as mk-none (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)))))
-								 (= (el5-5 (maybe-get sid1)) (el5-5 (maybe-get sid2))))
-							(= kmac1 kmac2
-							   (mk-some (el3-1 (maybe-get (select h2-mac (el5-5 (maybe-get sid1))))))
-							   (mk-some (el3-1 (maybe-get (select h2-mac (el5-5 (maybe-get sid2))))))))
-
-						(=> (and (= (mk-some true) acc1 acc2)
-								 (= sid1 sid2))
-							(and (= key1 key2))))))))))))
+					   (helper-gamestate-pairwise h2-prf h2-mac h2-nonces
+												  U1 u1 V1 ltk1 acc1 k1 ni1 nr1 kmac1 sid1 mess1
+												  U2 u2 V2 ltk2 acc2 k2 ni2 nr2 kmac2 sid2 mess2)
+					   ))))))))
