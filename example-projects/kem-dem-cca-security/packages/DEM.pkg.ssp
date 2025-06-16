@@ -6,7 +6,7 @@ package DEM {
     }
 
     state {
-        c: Maybe(Bits(*))
+        T: Table(Bits(*), Bool)
     }
 
     import oracles {
@@ -16,21 +16,23 @@ package DEM {
     }
 
     oracle ENC(m: Bits(*)) -> Bits(*) {
-        assert (c == None);
         k <- invoke GET();
         if b {
-            c1 <- invoke DEM_ENC(k, zeros(len(m)));
+            c <- invoke DEM_ENC(k, zeros(len(m)));
+            
         } else {
-            c1 <- invoke DEM_ENC(k, m);
+            c <- invoke DEM_ENC(k, m);
         }
-        c <- Some(c1);
-        return c1;
+        T[c] <- Some(true);
+        return c;
     }
 
-    oracle DEC(ctxt: Bits(*)) -> Bits(*) {
-        assert (Unwrap(c) != ctxt);
+    oracle DEC(c: Bits(*)) -> Bits(*) {
+        if (T[c] != None as Bool) {
+            abort;
+        }
         k <- invoke GET();
-        m <- invoke DEM_DEC(k, ctxt);
+        m <- invoke DEM_DEC(k, c);
         return m;
     }
 }

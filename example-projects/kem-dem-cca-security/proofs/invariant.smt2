@@ -73,10 +73,11 @@
             (right_c (<pkg-state-MOD_CCA-<$$>-c> (<game-ModularPkeCcaGame-<$<!false!><!b!>$>-pkgstate-pkg_MOD_CCA> state-right)))
             (right_kem_ek (<pkg-state-KEM-<$$>-ek> (<game-ModularPkeCcaGame-<$<!false!><!b!>$>-pkgstate-pkg_KEM> state-right)))
             (right_mod_cca_ek (<pkg-state-MOD_CCA-<$$>-ek> (<game-ModularPkeCcaGame-<$<!false!><!b!>$>-pkgstate-pkg_MOD_CCA> state-right)))
-            (right_dem_c (<pkg-state-DEM-<$<!dem_idealization!>$>-c> (<game-ModularPkeCcaGame-<$<!false!><!b!>$>-pkgstate-pkg_DEM> state-right)))
+            (right_dem_c (<pkg-state-MOD_CCA-<$$>-em> (<game-ModularPkeCcaGame-<$<!false!><!b!>$>-pkgstate-pkg_MOD_CCA> state-right)))
             (right_key_k (<pkg-state-Key-<$<!key_idealization!>$>-k> (<game-ModularPkeCcaGame-<$<!false!><!b!>$>-pkgstate-pkg_Key> state-right)))
             (right_sk (<pkg-state-KEM-<$$>-sk> (<game-ModularPkeCcaGame-<$<!false!><!b!>$>-pkgstate-pkg_KEM> state-right)))
             (right_encaps_randomness (<pkg-state-KEM-<$$>-encaps_randomness> (<game-ModularPkeCcaGame-<$<!false!><!b!>$>-pkgstate-pkg_KEM> state-right)))
+            (right_T (<pkg-state-DEM-<$<!dem_idealization!>$>-T> (<game-ModularPkeCcaGame-<$<!false!><!b!>$>-pkgstate-pkg_DEM> state-right)))
         )
         (and
             (= left_pk right_pk_mod_cca right_pk_kem) ; left_pk = right_pk
@@ -95,6 +96,21 @@
                 (and
                     (= (maybe-get right_key_k) (el2-1 (<<func-proof-kem_encaps>> (maybe-get right_encaps_randomness) (maybe-get right_pk_kem))))
                     (= (maybe-get right_kem_ek) (el2-2 (<<func-proof-kem_encaps>> (maybe-get right_encaps_randomness) (maybe-get right_pk_kem))))
+                )
+            )
+            (forall 
+                (
+                    (x Bits_*)
+                )
+                (and 
+                    (=> 
+                        ((_ is mk-none) right_c)
+                        ((_ is mk-none) (select right_T x))
+                    )
+                    (=> 
+                        (not ((_ is mk-none) right_c))
+                        (= (= x (maybe-get right_dem_c)) (not ((_ is mk-none) (select right_T x))))
+                    )
                 )
             )
         )
