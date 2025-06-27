@@ -34,12 +34,7 @@
 ; Each sample operation is fully indexec by the pair (statement id, sample counter)
 ; "stmt" – Each instructions containing a sampling operation in the game is assigned a statement id number; check the generated latex code for the proof (not games/compositions or packages) to find the statement ids.
 ; "ctr" – Each sample operation also has a counter
-;
-; Additionally, we are given a zero-counter; this would somehow be useful if we did more complex induction stuff
-; "base-ctr"
-;
-; To add some precision, the "ctr" explained above is really the offset from the zero counter. I.e. to derive the underlying counter,
-; you could calculate (+ ctr-left ctr-left-0), reversing the difference.
+; "base-ctr" – Additionally, we are given a zero-counter; this is useful if we want to compute offsets
 ;
 ; These indices are given for both games; the game on the left and the game on the right.
 (define-fun randomness-mapping-GetPK (
@@ -53,7 +48,7 @@
 ; BEGIN FUNCTION BODY
   (and
     (= stmt-left stmt-right)
-    (= ctr-left  ctr-right)
+    (= (- ctr-left base-ctr-left) (- ctr-right base-ctr-right))
   )
 )
 
@@ -68,7 +63,7 @@
 ; BEGIN FUNCTION BODY
   (and
     (= stmt-left stmt-right)
-    (= ctr-left  ctr-right)
+    (= (- ctr-left base-ctr-left) (- ctr-right base-ctr-right))
   )
 )
 
@@ -83,7 +78,7 @@
 ; BEGIN FUNCTION BODY
   (and
     (= stmt-left stmt-right)
-    (= ctr-left  ctr-right)
+    (= (- ctr-left base-ctr-left) (- ctr-right base-ctr-right))
   )
 )
 
@@ -98,6 +93,6 @@
 ; BEGIN FUNCTION BODY
   (and
     (= stmt-left stmt-right)
-    (= ctr-left  ctr-right)
+    (= (- ctr-left base-ctr-left) (- ctr-right base-ctr-right))
   )
 )
