@@ -1,6 +1,6 @@
 package Prot {
     params {
-    isideal: Bool,                                              /* real-ideal-bit        */
+    isideal_kem_cpa_security: Bool,                                              /* real-ideal-bit        */
       kgen: fn Bits(256)             ->   Bits(256),            /* takes sk, returns pk  */
     encaps: fn Bits(256),Bits(256) ->  (Bits(256),Bits(256)), /* (pk,rand) -> (ctxt,k) */
     decaps: fn Bits(256),Bits(256) ->   Bits(256),            /* (sk,ctxt) -> k        */
@@ -60,7 +60,7 @@ oracle Run() -> Bits(256)                            /* samples rand, stores sen
 
         k <- Unwrap(SENTKEY[id]);                    /* retrieve sent key k                    */
 
-        if isideal { k <-$ Bits(256); }              /* in ideal game, replace k by random     */
+        if isideal_kem_cpa_security { k <-$ Bits(256); }              /* in ideal game, replace k by random     */
 
         return k;                                    /* return key                             */
    }
@@ -71,7 +71,7 @@ oracle Run() -> Bits(256)                            /* samples rand, stores sen
 
         k <- Unwrap(RECEIVEDKEY[id]);                    /* retrieve sent key k                        */
 
-        if isideal { k <-$ Bits(256); }                  /* in ideal game, replace k by random         */
+        if isideal_kem_cpa_security { k <-$ Bits(256); }                  /* in ideal game, replace k by random         */
         
         return k;                                        /* return key                                 */
    }

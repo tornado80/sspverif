@@ -1,4 +1,5 @@
 proof KEM_Proof {
+    const isideal_kem_cpa_security: Bool;
     const    kgen: fn Bits(256)             ->  Bits(256);            /* takes sk, returns pk  */
     const  encaps: fn Bits(256),Bits(256) -> (Bits(256),Bits(256)); /* (pk,rand) -> (ctxt,k) */
     const  decaps: fn Bits(256),Bits(256) ->  Bits(256);            /* (sk,ctxt) -> k        */
@@ -21,36 +22,29 @@ proof KEM_Proof {
         }
     }
 
-    instance Prot_real = Prot {
+    instance Prot = Prot {
         params {
-        isideal: false,
+        isideal_kem_cpa_security: isideal_kem_cpa_security,
            kgen: kgen,
          encaps: encaps,
          decaps: decaps,
         }
     }
 
-    instance Prot_ideal = Prot {
+    instance H1_kem_correctness_real = H1 {
         params {
-        isideal: true,
+        isideal_kem_cpa_security: isideal_kem_cpa_security,
+        isideal_kem_correctness: false,
            kgen: kgen,
          encaps: encaps,
          decaps: decaps,
         }
     }
 
-    instance H1_real = H1 {
+    instance H1_kem_correctness_ideal = H1 {
         params {
-        isideal: false,
-           kgen: kgen,
-         encaps: encaps,
-         decaps: decaps,
-        }
-    }
-
-    instance H1_ideal = H1 {
-        params {
-        isideal: true,
+        isideal_kem_cpa_security: isideal_kem_cpa_security,
+        isideal_kem_correctness: true,
            kgen: kgen,
          encaps: encaps,
          decaps: decaps,
@@ -63,7 +57,7 @@ proof KEM_Proof {
 
     gamehops 
     {
-        equivalence Prot_real H1_real {
+        equivalence Prot H1_kem_correctness_real {
             GetPK: {
                 invariant: [
                     ./proofs/invariant-KEM_Proof-Prot_Real-H1_Real.smt2
