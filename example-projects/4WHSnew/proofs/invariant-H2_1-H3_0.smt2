@@ -223,7 +223,7 @@
   Bool
   (and
    ;; (=> (not (= k (as mk-none (Maybe Bits_256))))
-   ;; 	   (not (= kmac (as mk-none (Maybe Bits_256)))))
+   ;;      (not (= kmac (as mk-none (Maybe Bits_256)))))
    (=> (not (= kmac (as mk-none (Maybe Bits_256))))
 	   (and (not (= k (as mk-none (Maybe Bits_256))))
 			(= kmac (mk-some (<<func-prf>> ltk (ite u V U) (ite u U V)     ; then kmac has the right value.
@@ -248,16 +248,17 @@
 								   (maybe-get nr)
 								   true)))))
 			;; (= kmac (mk-some (<<func-prf>> ltk (ite u V U) (ite u U V)     ; then kmac has the right value.
-			;; 							   (maybe-get ni)
-			;; 							   (maybe-get nr)
-			;; 							   false)))
+			;;                             (maybe-get ni)
+			;;                             (maybe-get nr)
+			;;                             false)))
 			;; (= (select h2-prf (maybe-get kmac))        ; then PRF value kmac is also in PRF table (at correct position).
 			;;    (mk-some (mk-tuple6 ltk (ite u V U) (ite u U V)
-			;; 					   (maybe-get ni)
-			;; 					   (maybe-get nr)
-			;; 					   false)))))
+			;;                     (maybe-get ni)
+			;;                     (maybe-get nr)
+			;;                     false)))))
 
 
+   ;; sid bings kmac
    (=> (not (= sid (as mk-none (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)))))
 	   (and
 		(not (= (select h2-mac (el5-5 (maybe-get sid)))
