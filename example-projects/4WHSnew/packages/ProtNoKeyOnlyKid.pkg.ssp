@@ -100,7 +100,7 @@ package ProtNoKeyOnlyKid {
 		           (tau_));
 		} else {
 		    acc <- Some(false);
-		    return ((V,v,U,kid,acc,k,ni_,nr,kmac,sid,mess),
+		    return ((V,v,U,kid,acc,k,ni_,nr,kmac,sid,2),
 		            (zeron));
 		}
 	}

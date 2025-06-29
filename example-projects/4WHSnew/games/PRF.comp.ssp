@@ -15,7 +15,7 @@ composition PRF {
         adversary: {
             NewKey: PRF,
             Eval: PRF,
-            Exists: PRF,
+            Hon: PRF,
         },
     }
 }

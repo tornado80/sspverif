@@ -40,7 +40,8 @@ oracle NewKey(ltk: Maybe(Bits(256))) -> Integer {
         y <- PRF[(h,a,aa,c,d,e)];
         return Unwrap(y);
     }
-    oracle Exists(h: Integer) {
+    oracle Hon(h: Integer) -> Maybe(Bool) {
         assert not (LTK[h] == None);
+		return H[h];
     }
 }

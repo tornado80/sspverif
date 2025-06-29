@@ -798,6 +798,117 @@ proof WHSProto {
             }
         }
 
+        equivalence H5 H6_0 {
+            Send1: {
+                invariant: [./proofs/invariant-H5-H6_0.smt2]
+
+                lemmas {
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+                    equal-aborts: []
+                }
+            }
+             Send2: {
+                invariant: [./proofs/invariant-H5-H6_0.smt2]
+
+                lemmas {
+                    equal-aborts: []
+					/* debug:        [no-abort]*/
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+                }
+            }
+             Send3: {
+                invariant: [./proofs/invariant-H5-H6_0.smt2]
+
+                lemmas {
+                    equal-aborts: []
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+                }
+            }
+            Send4: {
+                invariant: [./proofs/invariant-H5-H6_0.smt2]
+
+                lemmas {
+                    equal-aborts: []
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+                }
+            }
+            Send5: {
+                invariant: [./proofs/invariant-H5-H6_0.smt2]
+
+                lemmas {
+                    equal-aborts: []
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+                }
+            }
+            NewKey: {
+                invariant: [./proofs/invariant-H5-H6_0.smt2]
+
+                lemmas {
+                    equal-aborts: []
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+                }
+            }
+            NewSession: {
+                invariant: [./proofs/invariant-H5-H6_0.smt2]
+
+                lemmas {
+                    equal-aborts: []
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+                }
+            }
+            Test: {
+                invariant: [./proofs/invariant-H5-H6_0.smt2]
+
+                lemmas {
+                    equal-aborts: []
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+                }
+            }
+            Reveal: {
+                invariant: [./proofs/invariant-H5-H6_0.smt2]
+
+                lemmas {
+                    equal-aborts: []
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+                }
+            }
+            SameKey: {
+                invariant: [./proofs/invariant-H5-H6_0.smt2]
+
+                lemmas {
+                    equal-aborts: []
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+                }
+            }
+            AtLeast: {
+                invariant: [./proofs/invariant-H5-H6_0.smt2]
+
+                lemmas {
+                    equal-aborts: []
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+                }
+            }
+            AtMost: {
+                invariant: [./proofs/invariant-H5-H6_0.smt2]
+
+                lemmas {
+                    equal-aborts: []
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+                }
+            }
+        }
 
         reduction H6_1 H6_0  
         {

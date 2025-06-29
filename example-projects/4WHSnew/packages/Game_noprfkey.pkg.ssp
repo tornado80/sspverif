@@ -8,9 +8,9 @@ package Game_noprfkey {
     }
     
     state {
-          H:     Table(Integer, Bool),          /* administrative kid, honesty */
+          /* H:     Table(Integer, Bool),*/          /* administrative kid, honesty */
           ctr_:  Integer,                       /* administrative sid  */
-          kid_:  Integer,                       /* administrative kid  */
+          /* kid_:  Integer, */                      /* administrative kid  */
 		  /* session key table, reveal -> (.,false) ; test -> (.,true) */
           RevTested:  Table((Integer,Integer,Bits(256),Bits(256),Bits(256)),
 		               Bool),
@@ -50,7 +50,7 @@ package Game_noprfkey {
           }
 
     import oracles {
-	     Exists(h: Integer),
+	     Hon(h: Integer) -> Maybe(Bool),
 		 Eval(h: Integer, a: Integer, aa: Integer, c: Bits(256), d: Bits(256), e: Bool) -> Bits(256),
          Run1(state: (Integer,Bool,Integer,Integer,Maybe(Bool),
                         Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
@@ -102,10 +102,10 @@ package Game_noprfkey {
 
 
 oracle NewSession(U: Integer, u: Bool, V: Integer, kid: Integer) -> Integer {
-        _ <- invoke Exists(kid);
         ctr_        <- (ctr_ + 1) ; 
         State[ctr_] <- Some((U,u,V,kid,None,None,None,None,None,None,0));
-		Fresh[ctr_] <- H[kid];
+		hon <- invoke Hon(kid);
+		Fresh[ctr_] <- hon;
         return ctr_;
     }
 
@@ -212,7 +212,11 @@ oracle Reveal(ctr: Integer) -> Bits(256)
 	/* mark key as revealed */
     RevTested[Unwrap(sid)] <- Some(false);    
 
-    k <- invoke Eval(kid,U,V,Unwrap(ni),Unwrap(nr) ,true);
+    if u {
+      k <- invoke Eval(kid,V,U,Unwrap(ni),Unwrap(nr) ,true);
+	} else {
+      k <- invoke Eval(kid,U,V,Unwrap(ni),Unwrap(nr) ,true);
+    }
     return k;
     }
 
@@ -230,7 +234,11 @@ oracle Test(ctr: Integer) -> Bits(256)
 	/* mark key as tested */
     RevTested[Unwrap(sid)] <- Some(true);
 	
-    k <- invoke Eval(kid,U,V,Unwrap(ni),Unwrap(nr),true);
+    if u {
+      k <- invoke Eval(kid,V,U,Unwrap(ni),Unwrap(nr) ,true);
+	} else {
+      k <- invoke Eval(kid,U,V,Unwrap(ni),Unwrap(nr) ,true);
+    }
     if b {
 	    k <-$ Bits(256);
 	}
