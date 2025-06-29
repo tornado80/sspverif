@@ -692,7 +692,6 @@ proof WHSProto {
 
                 lemmas {
                     equal-aborts: []
-             /*       debug    :    [no-abort]*/
                     invariant:    [no-abort]
                     same-output:  [no-abort]
                 }
