@@ -233,15 +233,16 @@ oracle Test(ctr: Integer) -> Bits(256)
 
 	/* mark key as tested */
     RevTested[Unwrap(sid)] <- Some(true);
-	
-    if u {
-      k <- invoke Eval(kid,V,U,Unwrap(ni),Unwrap(nr) ,true);
-	} else {
-      k <- invoke Eval(kid,U,V,Unwrap(ni),Unwrap(nr) ,true);
-    }
+
     if b {
 	    k <-$ Bits(256);
-	}
+	} else {
+       if u {
+         k <- invoke Eval(kid,V,U,Unwrap(ni),Unwrap(nr) ,true);
+	   } else {
+         k <- invoke Eval(kid,U,V,Unwrap(ni),Unwrap(nr) ,true);
+       }
+    }
     return k;
     }
 
