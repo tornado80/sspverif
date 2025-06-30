@@ -188,7 +188,9 @@ composition Gks0 {
         pkg_Key: {
             GET_HASH_ALGORITHM_LENGTH: pkg_Helpers,
             GET_KEY_PACKAGE_IDEALIZATION_PARAMETER: pkg_Parameters,
+            IS_0ikm: pkg_Names,
             IS_0ikm_HANDLE: pkg_Handles,
+            IS_0salt: pkg_Names,
             IS_0salt_HANDLE: pkg_Handles,
             IS_DH_KEY: pkg_Names,
             IS_HASH_ALGORITHM_SUPPORTED: pkg_Helpers,
@@ -236,9 +238,10 @@ composition Gks0 {
             SET: pkg_Key,
         },
         adversary: {
+            GET: pkg_OutputKeyGetter,
             DHEXP: pkg_DH,
             DHGEN: pkg_DH,
-            GET: pkg_OutputKeyGetter,
+            
             SET: pkg_ExternalPskSetter,
             XPD: pkg_Check,
             XTR: pkg_Xtr,

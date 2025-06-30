@@ -169,6 +169,8 @@ for game in GAMES:
                     "Q": "Log",
                     "IS_DH_KEY": "Names",
                     "IS_PSK": "Names",
+                    "IS_0salt": "Names",
+                    "IS_0ikm": "Names",
                     "IS_0salt_HANDLE": "Handles",
                     "IS_0ikm_HANDLE": "Handles",
                     "IS_noPSK_HANDLE": "Handles",
@@ -245,7 +247,10 @@ for game in GAMES:
                     "IS_noDH_HANDLE": "Handles",
                     "IS_0salt_HANDLE": "Handles",
                     "IS_0ikm_HANDLE": "Handles",
-                    "IS_DH_KEY": "Names"
+                    "IS_DH_KEY": "Names",
+                    "IS_PSK": "Names",
+                    "IS_0salt": "Names",
+                    "IS_0ikm": "Names",
                 }
             case "MapXpd":
                 instances_compositions[instance] = {

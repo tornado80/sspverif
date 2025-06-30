@@ -76,6 +76,20 @@
     (all-invariants <<game-state-game_Gks0-new-DHEXP>> <<game-state-game_Gks0Map-new-DHEXP>>)
 )
 
+(define-fun <relation-lemma-mk_dh_handle-type-game_Gks0-game_Gks0Map-DHEXP>
+    (
+        (old-state-Gks0 <GameState_Gks0_<$$>>)
+        (old-state-Gks0Map <GameState_Gks0Map_<$$>>)
+        (return-DHEXP-Gks0 <OracleReturn-Gks0-<$$>-DH-<$$>-DHEXP>)
+        (return-DHEXP-Gks0Map <OracleReturn-Gks0Map-<$$>-Map-<$$>-DHEXP>)
+        (X Bits_*)
+        (Y Bits_*)
+    )
+    Bool
+    (forall ((X Bits_*) (Y Bits_*)) (= (<<func-type>> (<<func-mk_dh_handle>> X Y)) 1))
+    ;(= (<<func-type>> (<<func-mk_dh_handle>> X Y)) 1)
+)
+
 (define-fun invariant
     (
         (state-Gks0 <GameState_Gks0_<$$>>)

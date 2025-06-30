@@ -311,7 +311,7 @@ proof LemmaC2 {
                 ]
 
                 lemmas {
-                    /* all-invariants-after: [no-abort, all-invariants-before] */
+                    all-invariants-after: [no-abort, all-invariants-before, lemma-mk_dh_handle-type]
                     
                     lemma-Gks0-output: [no-abort]
                     lemma-Gks0Map-output: [no-abort]
@@ -350,7 +350,10 @@ proof LemmaC2 {
                 ]
 
                 lemmas {
-                    all-invariants-after: [no-abort, all-invariants-before]
+                    /* all-invariants-after: [no-abort, all-invariants-before] */
+                    lemma-left-output: [no-abort, lemma-name-and-level-of-handle]
+                    lemma-right-output: [no-abort, lemma-name-and-level-of-handle]
+                    same-output: [no-abort, lemma-left-output, lemma-right-output, lemma-name-and-level-of-handle, lemma-alg-is-preserved]
                     /* invariant: [no-abort]
                     same-output: [no-abort]
                     equal-aborts: [] */

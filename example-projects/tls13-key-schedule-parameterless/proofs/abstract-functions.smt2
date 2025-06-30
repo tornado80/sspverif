@@ -88,14 +88,6 @@
 
 )
 
-; (forall ((X Bits_*) (Y Bits_*)) (= (type (mk_dh_handle X Y)) 1)) gives unknown
-(assert
-    (= 
-        (<<func-type>> (<<func-mk_dh_handle>> <arg-DHEXP-X> <arg-DHEXP-Y>))
-        1
-    )
-)
-
 (declare-const KEY_psk Int)(assert (= KEY_psk 0))(assert (= (<<func-get_psk>> 0) 0))
 (declare-const KEY_hs Int)(assert (= KEY_hs 1))(assert (= (<<func-get_hs>> 0) 1))
 (declare-const KEY_es Int)(assert (= KEY_es 2))(assert (= (<<func-get_es>> 0) 2))

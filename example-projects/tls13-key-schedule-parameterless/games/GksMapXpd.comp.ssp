@@ -216,9 +216,12 @@ composition GksMapXpd {
 
     compose {
         pkg_MapTable: {
+            IS_0ikm: pkg_Names,
             IS_0ikm_HANDLE: pkg_Handles,
+            IS_0salt: pkg_Names,
             IS_0salt_HANDLE: pkg_Handles,
             IS_DH_KEY: pkg_Names,
+            IS_PSK: pkg_Names,
             IS_noDH_HANDLE: pkg_Handles,
             IS_noPSK_HANDLE: pkg_Handles,
         },
@@ -242,7 +245,9 @@ composition GksMapXpd {
         pkg_Key: {
             GET_HASH_ALGORITHM_LENGTH: pkg_Helpers,
             GET_KEY_PACKAGE_IDEALIZATION_PARAMETER: pkg_Parameters,
+            IS_0ikm: pkg_Names,
             IS_0ikm_HANDLE: pkg_Handles,
+            IS_0salt: pkg_Names,
             IS_0salt_HANDLE: pkg_Handles,
             IS_DH_KEY: pkg_Names,
             IS_HASH_ALGORITHM_SUPPORTED: pkg_Helpers,

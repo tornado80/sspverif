@@ -130,6 +130,8 @@ composition KeyLogGks0 {
             GET_KEY_PACKAGE_IDEALIZATION_PARAMETER: pkg_Parameters,
             IS_0ikm_HANDLE: pkg_Handles,
             IS_0salt_HANDLE: pkg_Handles,
+            IS_0ikm: pkg_Names,
+            IS_0salt: pkg_Names,
             IS_DH_KEY: pkg_Names,
             IS_HASH_ALGORITHM_SUPPORTED: pkg_Helpers,
             IS_PSK: pkg_Names,

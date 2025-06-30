@@ -9,19 +9,34 @@ package MapTable {
         IS_0salt_HANDLE(h: Bits(*)) -> Bool,
         IS_0ikm_HANDLE(h: Bits(*)) -> Bool,
         IS_DH_KEY(n: Integer) -> Bool,
+        IS_PSK(n: Integer) -> Bool,
+        IS_0salt(n: Integer) -> Bool,
+        IS_0ikm(n: Integer) -> Bool,
     }
 
     oracle GETMAP(n: Integer, l: Integer, h: Bits(*)) -> Maybe(Bits(*)) {
+        /* noPSK, noDH, 0salt and 0ikm handles are fixed points of mapping, i.e. M[h] = h */
+        is_psk <- invoke IS_PSK(n);
         is_noPSK <- invoke IS_noPSK_HANDLE(h);
-        is_noDH <- invoke IS_noDH_HANDLE(h);
-        is_0salt <- invoke IS_0salt_HANDLE(h);
-        is_0ikm <- invoke IS_0ikm_HANDLE(h);
-        if (is_noPSK or is_noDH or is_0salt or is_0ikm) {
-            /* noPSK, noDH, 0salt and 0ikm handles are fixed points of mapping, i.e. M[h] = h */
+        if (is_psk and is_noPSK) {
+            return Some(h);
+        }
+        is_0salt <- invoke IS_0salt(n);
+        is_0salt_handle <- invoke IS_0salt_HANDLE(h);
+        if (is_0salt and is_0salt_handle) {
+            return Some(h);
+        }
+        is_0ikm <- invoke IS_0ikm(n);
+        is_0ikm_handle <- invoke IS_0ikm_HANDLE(h);
+        if (is_0ikm and is_0ikm_handle) {
             return Some(h);
         }
         is_dh_key <- invoke IS_DH_KEY(n);
         if is_dh_key {
+            is_noDH <- invoke IS_noDH_HANDLE(h);
+            if is_noDH {
+                return Some(h);
+            }
             return M[(n, 0, h)];
         }
         return M[(n, l, h)];

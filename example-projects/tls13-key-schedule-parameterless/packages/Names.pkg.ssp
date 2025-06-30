@@ -120,6 +120,20 @@ package Names {
         return false;
     }
 
+    oracle IS_0salt(n: Integer) -> Bool {
+        if (n == get_0salt(0)) {
+            return true;
+        }
+        return false;
+    }
+
+    oracle IS_0ikm(n: Integer) -> Bool {
+        if (n == get_0ikm(0)) {
+            return true;
+        }
+        return false;
+    }
+
     oracle IS_HANDSHAKE_SECRET(n: Integer) -> Bool {
         if (n == get_hs(0)) {
             return true;

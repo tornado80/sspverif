@@ -27,6 +27,8 @@ package Key {
         Q(n: Integer, h: Bits(*)) -> Maybe(Bits(*)),
         IS_DH_KEY(n: Integer) -> Bool,
         IS_PSK(n: Integer) -> Bool,
+        IS_0salt(n: Integer) -> Bool,
+        IS_0ikm(n: Integer) -> Bool,
         IS_0salt_HANDLE(h: Bits(*)) -> Bool,
         IS_0ikm_HANDLE(h: Bits(*)) -> Bool,
         IS_noPSK_HANDLE(h: Bits(*)) -> Bool,
@@ -92,21 +94,25 @@ package Key {
             k <- tag(h_alg, ks);
             return (k, hon);
         }
-        is_0salt_handle <- invoke IS_0salt_HANDLE(h);
-        if is_0salt_handle {
+        is_0salt <- invoke IS_0salt(n);
+        if is_0salt {
+            is_0salt_handle <- invoke IS_0salt_HANDLE(h);
+            assert is_0salt_handle;
             ks <- zeros(1);
             k <- tag(h_alg, ks);
             return (k, false);
         }
-        is_0ikm_handle <- invoke IS_0ikm_HANDLE(h);
-        if is_0ikm_handle {
+        is_0ikm <- invoke IS_0ikm(n);
+        if is_0ikm {
+            is_0ikm_handle <- invoke IS_0ikm_HANDLE(h);
+            assert is_0ikm_handle;
             ks <- zeros(len_h);
             k <- tag(h_alg, ks);
             return (k, false);
         }
         is_psk <- invoke IS_PSK(n);
         is_noPSK_handle <- invoke IS_noPSK_HANDLE(h);
-        if is_noPSK_handle {
+        if (is_psk and is_noPSK_handle) {
             return (tag(h_alg, zeros(len_h)), false);
         }
         assert (K[(n, l, h)] != None as (Bits(*), Bool));
