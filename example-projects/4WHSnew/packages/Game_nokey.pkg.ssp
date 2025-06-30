@@ -249,14 +249,15 @@ oracle Test(ctr: Integer) -> Bits(256)
 	/* mark key as tested */
     RevTested[Unwrap(sid)] <- Some(true);
 	
+    if b {
+	    k <-$ Bits(256);
+	} else {
     if u {
       k <- prf(ltk,V,U,Unwrap(ni),Unwrap(nr) ,true);
 	} else {
       k <- prf(ltk,U,V,Unwrap(ni),Unwrap(nr) ,true);
     }
-    if b {
-	    k <-$ Bits(256);
-	}
+    }
     return k;
     }
 

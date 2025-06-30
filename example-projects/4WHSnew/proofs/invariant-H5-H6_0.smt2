@@ -337,6 +337,6 @@
                (state-H6 (<pkg-state-Game_noprfkey-<$<!b!><!n!><!zeron!>$>-State> game-H6))
                (ltk-H6 (<pkg-state-PRF-<$<!bprf!><!n!>$>-LTK> prf-H6)))
            (and
-            (stuff-not-initialized-early state-H6)
-            (nonces-are-not-none state-H6)
+            ;(stuff-not-initialized-early state-H6)
+            ;(nonces-are-not-none state-H6)
             (state-equality state-H5 state-H6 ltk-H6))))))
