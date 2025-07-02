@@ -34,8 +34,9 @@ oracle NewKey(ltk: Maybe(Bits(256))) -> Integer {
               return prf(k,a,aa,c,d,e);
             }
         if (PRF[(h,a,aa,c,d,e)] == None) {
-                        temp <-$Bits(256);
+            temp <-$ Bits(256);
             PRF[(h,a,aa,c,d,e)] <- Some(temp);
+			return temp;
         }
         y <- PRF[(h,a,aa,c,d,e)];
         return Unwrap(y);

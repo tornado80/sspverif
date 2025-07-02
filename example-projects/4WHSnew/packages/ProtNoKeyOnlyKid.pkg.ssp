@@ -43,8 +43,8 @@ package ProtNoKeyOnlyKid {
         assert (mess == 0);
 
 		nr         <- invoke Sample();
-        kmac       <-  invoke Eval(kid,U,V,ni,nr,false); /* need role agreement here, to be fixed */
-        tau        <-  mac(kmac,nr,2);
+        kmac       <- invoke Eval(kid,U,V,ni,nr,false); /* need role agreement here, to be fixed */
+        tau        <- mac(kmac,nr,2);
         sid        <- (U,V,ni,nr,tau);
 
 		return ((V,v,U,kid,None,None,Some(ni),Some(nr),Some(kmac),Some(sid),1),

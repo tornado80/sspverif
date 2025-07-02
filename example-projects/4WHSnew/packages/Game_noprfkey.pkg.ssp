@@ -15,6 +15,7 @@ package Game_noprfkey {
           RevTested:  Table((Integer,Integer,Bits(256),Bits(256),Bits(256)),
 		               Bool),
 		  Fresh: Table(Integer, Bool),
+		  RevTestEval: Table((Integer,Integer,Integer,Bits(256),Bits(256)),Integer),
           /* Authentication */
           First:  Table((Integer,Integer,Bits(256),Bits(256),Bits(256)), Integer),
           Second: Table((Integer,Integer,Bits(256),Bits(256),Bits(256)), Integer),
@@ -213,9 +214,11 @@ oracle Reveal(ctr: Integer) -> Bits(256)
     RevTested[Unwrap(sid)] <- Some(false);    
 
     if u {
-      k <- invoke Eval(kid,V,U,Unwrap(ni),Unwrap(nr) ,true);
+	  RevTestEval[(kid,V,U,Unwrap(ni),Unwrap(nr))] <- Some(ctr);
+      k <- invoke Eval(kid,V,U,Unwrap(ni),Unwrap(nr),true);
 	} else {
-      k <- invoke Eval(kid,U,V,Unwrap(ni),Unwrap(nr) ,true);
+	  RevTestEval[(kid,U,V,Unwrap(ni),Unwrap(nr))] <- Some(ctr);
+      k <- invoke Eval(kid,U,V,Unwrap(ni),Unwrap(nr),true);
     }
     return k;
     }
@@ -235,11 +238,13 @@ oracle Test(ctr: Integer) -> Bits(256)
     RevTested[Unwrap(sid)] <- Some(true);
 
     if b {
-	    k <-$ Bits(256);
+	  k <-$ Bits(256);
 	} else {
        if u {
+	     RevTestEval[(kid,V,U,Unwrap(ni),Unwrap(nr))] <- Some(ctr);
          k <- invoke Eval(kid,V,U,Unwrap(ni),Unwrap(nr) ,true);
 	   } else {
+	     RevTestEval[(kid,U,V,Unwrap(ni),Unwrap(nr))] <- Some(ctr);
          k <- invoke Eval(kid,U,V,Unwrap(ni),Unwrap(nr) ,true);
        }
     }
