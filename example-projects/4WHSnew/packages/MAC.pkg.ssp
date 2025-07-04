@@ -27,7 +27,7 @@ package MAC {
         key <- Keys[handle];
         assert (key != None);
 
-        val1, val2 <- parse value;
+        (val1, val2) <- parse value;
         tag <- mac(Unwrap(key), val1, val2);
 
         Values[(handle, value)] <- Some(tag);
@@ -36,7 +36,7 @@ package MAC {
 
     oracle Verify(handle: (Integer, Integer,Integer,Bits(256),Bits(256)),
                   value: (Bits(256), Integer),
-                  tag: Bits(256)
+                  tag: Bits(256))
            -> Bool {
         key <- Keys[handle];
         assert (key != None);
@@ -51,7 +51,7 @@ package MAC {
             }
             return true;
 		} else {
-            val1, val2 <- parse value;
+            (val1, val2) <- parse value;
             tag_ <- mac(Unwrap(key), val1, val2);
 
             return (tag == tag_);

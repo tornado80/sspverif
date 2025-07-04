@@ -54,6 +54,22 @@ proof WHSProto {
         }
     }
 
+	instance MACreal = MAC {
+        params {
+  		    b: false,
+			mac: mac,
+			n: n,
+		}
+	}
+
+	instance MACideal = MAC {
+        params {
+  		    b: true,
+			mac: mac,
+			n: n,
+		}
+	}
+
     instance KX = KX {
         params {
             b       : b ,
@@ -169,10 +185,20 @@ proof WHSProto {
         }
     }
 
-    instance H6_1_0 = H6 {
+    instance H7_0 = H7 {
         params {
-            b       : false ,
-			bprf    : true,
+            b       : b ,
+			bmac    : false,
+            n       : n    ,
+            zeron   : zeron,
+  	        prf     : prf  ,
+            mac     : mac  ,
+        }
+    }
+    instance H7_1 = H7 {
+        params {
+            b       : b ,
+			bmac    : true,
             n       : n    ,
             zeron   : zeron,
   	        prf     : prf  ,
@@ -180,10 +206,21 @@ proof WHSProto {
         }
     }
 
-    instance H6_1_1 = H6 {
+    instance H7_1_0 = H7 {
+        params {
+            b       : false ,
+			bmac    : true,
+            n       : n    ,
+            zeron   : zeron,
+  	        prf     : prf  ,
+            mac     : mac  ,
+        }
+    }
+
+    instance H7_1_1 = H7 {
         params {
             b       : true,
-			bprf    : true,
+			bmac    : true,
             n       : n    ,
             zeron   : zeron,
   	        prf     : prf  ,
@@ -194,7 +231,8 @@ proof WHSProto {
     assumptions {
         prf:     PRFreal    ~ PRFideal    /* with advantage time^5/2^(sqrt(n)) */
         nonces:  Noncesreal ~ Noncesideal /* with advantage time^2/2^n */
-        collres: CRreal ~ CRideal
+        collres: CRreal     ~ CRideal
+		mac:     MACreal    ~ MACideal
     }
 
     gamehops 
@@ -944,9 +982,22 @@ proof WHSProto {
             }
         }
 
-        equivalence H6_1_0 H6_1_1 {
+        reduction H7_1 H7_0  
+        {
+            assumption mac
+
+            map MACreal H7_0  {
+			   MAC: MAC
+            }
+
+            map MACideal H7_1 {
+			   MAC: MAC
+            }
+        }
+
+        equivalence H7_1_0 H7_1_1 {
             Send1: {
-                invariant: [./proofs/invariant-H6_1_0-H6_1_1.smt2]
+                invariant: [./proofs/invariant-H7_1_0-H7_1_1.smt2]
 
                 lemmas {
                     invariant:    [no-abort]
@@ -955,7 +1006,7 @@ proof WHSProto {
                 }
             }
              Send2: {
-                invariant: [./proofs/invariant-H6_1_0-H6_1_1.smt2]
+                invariant: [./proofs/invariant-H7_1_0-H7_1_1.smt2]
 
                 lemmas {
                     same-output:  [no-abort]
@@ -964,7 +1015,7 @@ proof WHSProto {
                 }
             }
              Send3: {
-                invariant: [./proofs/invariant-H6_1_0-H6_1_1.smt2]
+                invariant: [./proofs/invariant-H7_1_0-H7_1_1.smt2]
 
                 lemmas {
                     equal-aborts: []
@@ -973,7 +1024,7 @@ proof WHSProto {
                 }
             }
             Send4: {
-                invariant: [./proofs/invariant-H6_1_0-H6_1_1.smt2]
+                invariant: [./proofs/invariant-H7_1_0-H7_1_1.smt2]
 
                 lemmas {
                     equal-aborts: []
@@ -982,7 +1033,7 @@ proof WHSProto {
                 }
             }
             Send5: {
-                invariant: [./proofs/invariant-H6_1_0-H6_1_1.smt2]
+                invariant: [./proofs/invariant-H7_1_0-H7_1_1.smt2]
 
                 lemmas {
                     equal-aborts: []
@@ -991,7 +1042,7 @@ proof WHSProto {
                 }
             }
             NewKey: {
-                invariant: [./proofs/invariant-H6_1_0-H6_1_1.smt2]
+                invariant: [./proofs/invariant-H7_1_0-H7_1_1.smt2]
 
                 lemmas {
                     equal-aborts: []
@@ -1000,7 +1051,7 @@ proof WHSProto {
                 }
             }
             NewSession: {
-                invariant: [./proofs/invariant-H6_1_0-H6_1_1.smt2]
+                invariant: [./proofs/invariant-H7_1_0-H7_1_1.smt2]
 
                 lemmas {
                     equal-aborts: []
@@ -1009,7 +1060,7 @@ proof WHSProto {
                 }
             }
             Test: {
-                invariant: [./proofs/invariant-H6_1_0-H6_1_1.smt2]
+                invariant: [./proofs/invariant-H7_1_0-H7_1_1.smt2]
 
                 lemmas {
                     equal-aborts: []
@@ -1019,7 +1070,7 @@ proof WHSProto {
                 }
             }
             Reveal: {
-                invariant: [./proofs/invariant-H6_1_0-H6_1_1.smt2]
+                invariant: [./proofs/invariant-H7_1_0-H7_1_1.smt2]
 
                 lemmas {
 				    /*lemma-key-not-yet-computed: []*/
@@ -1029,7 +1080,7 @@ proof WHSProto {
                 }
             }
             SameKey: {
-                invariant: [./proofs/invariant-H6_1_0-H6_1_1.smt2]
+                invariant: [./proofs/invariant-H7_1_0-H7_1_1.smt2]
 
                 lemmas {
                     equal-aborts: []
@@ -1038,7 +1089,7 @@ proof WHSProto {
                 }
             }
             AtLeast: {
-                invariant: [./proofs/invariant-H6_1_0-H6_1_1.smt2]
+                invariant: [./proofs/invariant-H7_1_0-H7_1_1.smt2]
 
                 lemmas {
                     equal-aborts: []
@@ -1047,7 +1098,7 @@ proof WHSProto {
                 }
             }
             AtMost: {
-                invariant: [./proofs/invariant-H6_1_0-H6_1_1.smt2]
+                invariant: [./proofs/invariant-H7_1_0-H7_1_1.smt2]
 
                 lemmas {
                     equal-aborts: []
