@@ -51,7 +51,7 @@ package Game_noprfkey {
           }
 
     import oracles {
-	     Hon(h: Integer) -> Maybe(Bool),
+	     Hon(h: Integer) -> Bool,
 		 Eval(h: Integer, a: Integer, aa: Integer, c: Bits(256), d: Bits(256), e: Bool) -> Bits(256),
          Run1(state: (Integer,Bool,Integer,Integer,Maybe(Bool),
                         Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
@@ -106,7 +106,7 @@ oracle NewSession(U: Integer, u: Bool, V: Integer, kid: Integer) -> Integer {
         ctr_        <- (ctr_ + 1) ; 
         State[ctr_] <- Some((U,u,V,kid,None,None,None,None,None,None,0));
 		hon <- invoke Hon(kid);
-		Fresh[ctr_] <- hon;
+		Fresh[ctr_] <- Some(hon);
         return ctr_;
     }
 
