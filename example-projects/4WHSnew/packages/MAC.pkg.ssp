@@ -9,22 +9,22 @@ package MAC {
     }
 
     state {
-        Handles: Table((Integer, Integer,Integer,Bits(256),Bits(256)),Bits(256)),
+        Keys: Table((Integer, Integer,Integer,Bits(256),Bits(256)),Bits(256)),
         Values: Table(((Integer, Integer,Integer,Bits(256),Bits(256)),
                        (Bits(256), Integer)), Bits(256)),
     }
 
     oracle Init(handle: (Integer, Integer,Integer,Bits(256),Bits(256))) {
-        assert (Handles[handle] == None);
-
-        key <-$ Bits(256);
-        Handles[handle] <- Some(key);
+        if (Keys[handle] == None) {
+            key <-$ Bits(256);
+            Keys[handle] <- Some(key);
+		}
     }
 
     oracle Mac(handle: (Integer, Integer,Integer,Bits(256),Bits(256)),
                value: (Bits(256), Integer))
            -> Bits(256) {
-        key <- Handles[handle];
+        key <- Keys[handle];
         assert (key != None);
 
         val1, val2 <- parse value;
@@ -37,15 +37,24 @@ package MAC {
     oracle Verify(handle: (Integer, Integer,Integer,Bits(256),Bits(256)),
                   value: (Bits(256), Integer),
                   tag: Bits(256)
-           -> Boolean {
+           -> Bool {
+        key <- Keys[handle];
+        assert (key != None);
 
-        entry <- Values[(handle, value)];
-        if (entry == None) {
-            return false;
+        if b {
+            entry <- Values[(handle, value)];
+            if (entry == None) {
+                return false;
+            }
+            if (Unwrap(entry) != tag) {
+                return false;
+            }
+            return true;
+		} else {
+            val1, val2 <- parse value;
+            tag_ <- mac(Unwrap(key), val1, val2);
+
+            return (tag == tag_);
         }
-        if (Unwrap(entry) !- tag) {
-            return false;
-        }
-        return true;
     }
 }
