@@ -993,10 +993,15 @@ proof WHSProto {
                 }
             }
              Send2: {
-                invariant: [./proofs/invariant-H6_1-H7_0.smt2]
+                invariant: [./proofs/invariant-H6_1-H7_0.smt2
+				           ,./proofs/debug-H6_1-H7_0.smt2]
 
                 lemmas {
-                    equal-aborts: []
+				    lemma-abort-left: []
+				    lemma-abort-right: []
+				    lemma-abort-left-implies-right: [lemma-abort-right, lemma-abort-left]
+				    lemma-abort-right-implies-left: [lemma-abort-right, lemma-abort-left]
+                    equal-aborts: [lemma-abort-right, lemma-abort-left]
                     invariant:    [no-abort]
                     same-output:  [no-abort]
                 }

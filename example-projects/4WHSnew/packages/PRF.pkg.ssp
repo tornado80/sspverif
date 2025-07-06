@@ -42,7 +42,7 @@ oracle NewKey(ltk: Maybe(Bits(256))) -> Integer {
         return Unwrap(y);
     }
     oracle Hon(h: Integer) -> Bool {
-        assert not (LTK[h] == None);
+        assert not (H[h] == None);
 		return Unwrap(H[h]);
     }
 }

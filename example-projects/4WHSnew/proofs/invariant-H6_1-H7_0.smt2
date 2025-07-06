@@ -1,0 +1,328 @@
+;; Main idea of this invariant proof
+;; If ctr are equal in both games and they use the same randomness, then both games
+;;    - produce the same output
+;;    - abort iff the other aborts
+;;    - have same ctr afterwards
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Randomness mapping
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define-fun randomness-mapping-Send1
+    ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
+      (base-ctr-1 Int) ; This is the counter in the beginning of the oracle call on the left.
+      (id-0  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+      (id-1  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+      (scr-0 Int)      ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+      (scr-1 Int))     ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+  Bool
+  (and
+   (= scr-1 base-ctr-1)
+   (= scr-0 base-ctr-0)
+   (= id-0 2)
+   (= id-1 3)))
+
+(define-fun randomness-mapping-Send2
+    ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
+      (base-ctr-1 Int) ; This is the counter in the beginning of the oracle call on the left.
+      (id-0  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+      (id-1  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+      (scr-0 Int)      ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+      (scr-1 Int))     ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+  Bool
+  (and
+   (= scr-1 base-ctr-1)
+   (= scr-0 base-ctr-0)
+   (or
+    (and ; Nonces
+     (= id-0 2)
+     (= id-1 3))
+    (and ; kmac
+     (= id-0 1)
+     (= id-1 2)))))
+
+
+(define-fun randomness-mapping-Send3
+    ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
+      (base-ctr-1 Int) ; This is the counter in the beginning of the oracle call on the left.
+      (id-0  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+      (id-1  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+      (scr-0 Int)      ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+      (scr-1 Int))     ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+  Bool
+  ;; There is no randomness used in this oracle.
+  (and
+   (= scr-1 base-ctr-1)
+   (= scr-0 base-ctr-0)
+   (= id-0 id-1)))
+
+(define-fun randomness-mapping-Send4
+    ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
+      (base-ctr-1 Int) ; This is the counter in the beginning of the oracle call on the left.
+      (id-0  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+      (id-1  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+      (scr-0 Int)      ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+      (scr-1 Int))     ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+  Bool
+  ;; There is no randomness used in this oracle.
+  false
+  )
+
+(define-fun randomness-mapping-Send5
+    ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
+      (base-ctr-1 Int) ; This is the counter in the beginning of the oracle call on the left.
+      (id-0  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+      (id-1  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+      (scr-0 Int)      ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+      (scr-1 Int))     ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+  Bool
+  ;; There is no randomness used in this oracle.
+  false
+  )
+
+(define-fun randomness-mapping-Reveal
+    ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
+      (base-ctr-1 Int) ; This is the counter in the beginning of the oracle call on the left.
+      (id-0  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+      (id-1  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+      (scr-0 Int)      ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+      (scr-1 Int))     ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+  Bool
+  (and
+   (= scr-1 base-ctr-1)
+   (= scr-0 base-ctr-0)
+   (= id-0 id-1)))
+
+
+(define-fun randomness-mapping-Test
+    ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
+      (base-ctr-1 Int) ; This is the counter in the beginning of the oracle call on the left.
+      (id-0  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+      (id-1  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+      (scr-0 Int)      ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+      (scr-1 Int))     ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+  Bool
+  (and
+   (= scr-1 base-ctr-1)
+   (= scr-0 base-ctr-0)
+   (= id-0 1)
+   (= id-1 3)))
+
+(define-fun randomness-mapping-NewKey
+    ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
+      (base-ctr-1 Int) ; This is the counter in the beginning of the oracle call on the left.
+      (id-0  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+      (id-1  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+      (scr-0 Int)      ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+      (scr-1 Int))     ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+  Bool
+  (and
+   (= scr-1 base-ctr-1)
+   (= scr-0 base-ctr-0)
+   (= id-0     0)   ; This is the 0th sampling in KX   and samples the random key in NewKey.
+   (= id-1     0)   ; This is the 0th sampling in H1_0 and samples the random key in NewKey.
+   ))
+
+(define-fun randomness-mapping-NewSession
+    ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
+      (base-ctr-1 Int) ; This is the counter in the beginning of the oracle call on the left.
+      (id-0  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+      (id-1  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+      (scr-0 Int)      ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+      (scr-1 Int))     ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+  Bool
+  ;; There is no randomness used in this oracle.
+  false
+  )
+
+(define-fun randomness-mapping-SameKey
+    ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
+      (base-ctr-1 Int) ; This is the counter in the beginning of the oracle call on the left.
+      (id-0  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+      (id-1  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+      (scr-0 Int)      ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+      (scr-1 Int))     ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+  Bool
+  ;; There is no randomness used in this oracle.
+  false
+  )
+(define-fun randomness-mapping-AtMost
+    ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
+      (base-ctr-1 Int) ; This is the counter in the beginning of the oracle call on the left.
+      (id-0  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+      (id-1  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+      (scr-0 Int)      ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+      (scr-1 Int))     ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+  Bool
+  ;; There is no randomness used in this oracle.
+  false
+  )
+(define-fun randomness-mapping-AtLeast
+    ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
+      (base-ctr-1 Int) ; This is the counter in the beginning of the oracle call on the left.
+      (id-0  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+      (id-1  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+      (scr-0 Int)      ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+      (scr-1 Int))     ; This is the counter which gets incremented each time a sampling is done with the same sample id.
+  Bool
+  ;; There is no randomness used in this oracle.
+  false
+  )
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                                                      ;
+;; Invariant --- note that the invariant needs to be game-global and not per oracle,                    ;
+;;               so that induction over the oracle calls remains meaningful.                            ;
+;;                                                                                                      ;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(define-fun stuff-not-initialized-early
+    ((state (Array Int (Maybe (Tuple11 Int Bool Int Int (Maybe Bool) (Maybe Bits_256)
+                                       (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
+                                       (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)) Int)))))
+  Bool
+  (let ((none (as mk-none (Maybe (Tuple11 Int Bool Int Int (Maybe Bool) (Maybe Bits_256)
+                                          (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
+                                          (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)) Int)))))
+    (forall ((ctr Int))
+            (let ((state (select state ctr)))
+              (=> (not (= state none))
+                  (let  ((U    (el11-1  (maybe-get state)))
+                         (u    (el11-2  (maybe-get state)))
+                         (V    (el11-3  (maybe-get state)))
+                         (ltk  (el11-4  (maybe-get state)))
+                         (acc  (el11-5  (maybe-get state)))
+                         (k    (el11-6  (maybe-get state)))
+                         (ni   (el11-7  (maybe-get state)))
+                         (nr   (el11-8  (maybe-get state)))
+                         (kmac (el11-9  (maybe-get state)))
+                         (sid  (el11-10 (maybe-get state)))
+                         (mess (el11-11 (maybe-get state))))
+                    (and (ite u
+                              (ite (> mess 0)
+                                   (and (not (= sid (as mk-none (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)))))
+                                        (not (= kmac (as mk-none (Maybe Bits_256))))
+                                        (not (= ni (as mk-none (Maybe Bits_256))))
+                                        (not (= nr (as mk-none (Maybe Bits_256)))))
+                                   (and (= sid (as mk-none (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256))))
+                                        (= ni nr kmac (as mk-none (Maybe Bits_256)))))
+                              (ite (= mess 0)
+                                   (and (= sid (as mk-none (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256))))
+                                        (= ni nr kmac (as mk-none (Maybe Bits_256))))
+                                   (ite (= mess 1)
+                                        (and (not (= ni (as mk-none (Maybe Bits_256))))
+                                             (= nr kmac (as mk-none (Maybe Bits_256)))
+                                             (= sid (as mk-none (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)))))
+                                        (and (not (= sid (as mk-none (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)))))
+                                             (not (= kmac (as mk-none (Maybe Bits_256))))
+                                             (not (= ni (as mk-none (Maybe Bits_256))))
+                                             (not (= nr (as mk-none (Maybe Bits_256)))))))))))))))
+
+
+(define-fun all-sessions-have-valid-keys
+    ((state (Array Int (Maybe (Tuple11 Int Bool Int Int (Maybe Bool) (Maybe Bits_256)
+                                       (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
+                                       (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)) Int))))
+     (ltk (Array Int (Maybe Bits_256))))
+  Bool
+    (let ((none (as mk-none (Maybe (Tuple11 Int Bool Int Int (Maybe Bool) (Maybe Bits_256)
+                                          (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
+                                          (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)) Int)))))
+      (forall ((ctr Int))
+              (let ((state (select state ctr)))
+                (=> (not (= state none))
+                    (let  ((kid  (el11-4  (maybe-get state))))
+                      (not (= (select ltk kid) (as mk-none (Maybe Bits_256))))))))))
+
+
+
+(define-fun kmac-sampled-consistently
+    ((prf (Array (Tuple6 Int Int Int Bits_256 Bits_256 Bool) (Maybe Bits_256)))
+     (keys (Array (Tuple5 Int Int Int Bits_256 Bits_256) (Maybe Bits_256))))
+  Bool
+  (forall ((kid Int) (U Int) (V Int) (ni Bits_256) (nr Bits_256))
+          (and 
+          (=> (= (select prf (mk-tuple6 kid U V ni nr false))
+                 (as mk-none (Maybe Bits_256)))
+              (= (select keys (mk-tuple5 kid U V ni nr))
+                 (as mk-none (Maybe Bits_256))))
+          (=> (= (select keys (mk-tuple5 kid U V ni nr))
+                 (as mk-none (Maybe Bits_256)))
+              (= (select prf (mk-tuple6 kid U V ni nr false))
+                 (as mk-none (Maybe Bits_256)))))))
+
+
+(define-fun prf-package-set-consistently
+    ((ltk (Array Int (Maybe Bits_256)))
+     (hon (Array Int (Maybe Bool))))
+  Bool
+  (forall ((kid Int))
+          (and
+           (=> (= (select ltk kid) (as mk-none (Maybe Bits_256)))
+               (= (select hon kid) (as mk-none (Maybe Bool))))
+           (=> (= (select hon kid) (as mk-none (Maybe Bool)))
+               (= (select ltk kid) (as mk-none (Maybe Bits_256)))))))
+
+(define-fun invariant
+    ((state-H61  <GameState_H6_<$<!n!><!b!><!true!><!zeron!>$>>)
+     (state-H70  <GameState_H7_<$<!n!><!b!><!false!><!zeron!>$>>))
+  Bool
+  (let ((nonces-H61 (<game-H6-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Nonces> state-H61))
+        (nonces-H70 (<game-H7-<$<!n!><!b!><!false!><!zeron!>$>-pkgstate-Nonces>  state-H70))
+        (game-H61 (<game-H6-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-Game_noprfkey> state-H61))
+        (game-H70 (<game-H7-<$<!n!><!b!><!false!><!zeron!>$>-pkgstate-Game_noprfkey>  state-H70))
+        (prf-H61 (<game-H6-<$<!n!><!b!><!true!><!zeron!>$>-pkgstate-PRF> state-H61))
+        (prf-H70 (<game-H7-<$<!n!><!b!><!false!><!zeron!>$>-pkgstate-PRF>  state-H70))
+        (mac-H70 (<game-H7-<$<!n!><!b!><!false!><!zeron!>$>-pkgstate-MAC>  state-H70)))
+    (let ((ctr0 (<pkg-state-Game_noprfkey-<$<!b!><!n!><!zeron!>$>-ctr_> game-H61))
+          (ctr1 (<pkg-state-Game_noprfkey-<$<!b!><!n!><!zeron!>$>-ctr_> game-H70))
+          (State0 (<pkg-state-Game_noprfkey-<$<!b!><!n!><!zeron!>$>-State> game-H61))
+          (State1 (<pkg-state-Game_noprfkey-<$<!b!><!n!><!zeron!>$>-State> game-H70))
+          (RevTested0 (<pkg-state-Game_noprfkey-<$<!b!><!n!><!zeron!>$>-RevTested> game-H61))
+          (RevTested1 (<pkg-state-Game_noprfkey-<$<!b!><!n!><!zeron!>$>-RevTested> game-H70))
+          (RevTestEval0 (<pkg-state-Game_noprfkey-<$<!b!><!n!><!zeron!>$>-RevTestEval> game-H61))
+          (RevTestEval1 (<pkg-state-Game_noprfkey-<$<!b!><!n!><!zeron!>$>-RevTestEval> game-H70))
+          (Fresh0 (<pkg-state-Game_noprfkey-<$<!b!><!n!><!zeron!>$>-Fresh> game-H61))
+          (Fresh1 (<pkg-state-Game_noprfkey-<$<!b!><!n!><!zeron!>$>-Fresh> game-H70))
+          (Nonces0 (<pkg-state-Nonces-<$<!true!><!n!>$>-Nonces> nonces-H61))
+          (Nonces1 (<pkg-state-Nonces-<$<!true!><!n!>$>-Nonces> nonces-H70))
+          (Ltk0 (<pkg-state-PRF-<$<!bprf!><!n!>$>-LTK> prf-H61))
+          (Ltk1 (<pkg-state-PRF-<$<!true!><!n!>$>-LTK> prf-H70))
+          (Prf0 (<pkg-state-PRF-<$<!bprf!><!n!>$>-PRF> prf-H61))
+          (Prf1 (<pkg-state-PRF-<$<!true!><!n!>$>-PRF> prf-H70))
+          (H0 (<pkg-state-PRF-<$<!bprf!><!n!>$>-H> prf-H61))
+          (H1 (<pkg-state-PRF-<$<!true!><!n!>$>-H> prf-H70))
+          (Keys1 (<pkg-state-MAC-<$<!bmac!><!n!>$>-Keys> mac-H70))
+          )
+      (and (= Nonces0 Nonces1)
+           (= Ltk0 Ltk1)
+           (= H0 H1)
+           (= (<pkg-state-PRF-<$<!bprf!><!n!>$>-kid_> prf-H61)
+              (<pkg-state-PRF-<$<!true!><!n!>$>-kid_> prf-H70))
+           (= ctr0 ctr1)
+           (= RevTested0 RevTested1)
+           (= Fresh0 Fresh1)
+           (= State0 State1) ; this is wrong
+           (= Prf0 Prf1)
+
+           (stuff-not-initialized-early State0)
+           (kmac-sampled-consistently Prf0 Keys1)
+           (prf-package-set-consistently Ltk0 H0)
+           (prf-package-set-consistently Ltk1 H1)
+           (all-sessions-have-valid-keys State0 Ltk0)
+           ;; (freshness-and-honesty-matches State0 Fresh0 H0)
+           ;; (revtesteval-matches-sometimes State0 RevTestEval0 RevTestEval1 RevTested0)
+           ;; (no-overwriting-prf prf-H61)
+           ;; (no-overwriting-game State0 ctr0)
+           ;; (sid-is-wellformed State0 Prf0)
+           ;; (sid-matches State0 Prf0)
+           ;; (own-nonce-is-unique State0 Nonces0)
+           ;; (revtesteval-populated RevTestEval0 H0 Prf0)
+           ;; (revtesteval-populated RevTestEval1 H1 Prf1)
+           ;; (prfeval-has-matching-session Prf0 RevTestEval0 RevTestEval1 RevTested0 State0)
+           ;; (key-not-computed-unless-test-or-reveal State0 RevTested0 Prf0 H0)
+           ;; (mac-keys-equal-in-prf Prf0 Prf1)
+           ;; (kmac-and-tau-are-computed-correctly State0 Prf0 H0 Ltk0)
+           ;; (kmac-and-tau-are-computed-correctly State1 Prf1 H1 Ltk1)
+           ))))
