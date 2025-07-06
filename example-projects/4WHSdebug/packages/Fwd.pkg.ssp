@@ -8,6 +8,7 @@ package Fwd {
 
     oracle Sample() -> Bits(256) {
         ni <- invoke Sample();
+        x  <-$Bits(128);
         return ni;
     }
 }
