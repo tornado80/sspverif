@@ -997,28 +997,36 @@ proof WHSProto {
 				           ,./proofs/debug-H6_1-H7_0.smt2]
 
                 lemmas {
+				    /* lemma-play:   [no-abort, lemma-debug] */
+                    invariant:    [no-abort, lemma-debug]
+                    equal-aborts: [lemma-debug]
+                    same-output:  [no-abort, lemma-debug]
+					/*
+					lemma-debug: []
 				    lemma-abort-left: []
 				    lemma-abort-right: []
-				    lemma-abort-left-implies-right: [lemma-abort-right, lemma-abort-left]
-				    lemma-abort-right-implies-left: [lemma-abort-right, lemma-abort-left]
-                    equal-aborts: [lemma-abort-right, lemma-abort-left]
-                    invariant:    [no-abort]
-                    same-output:  [no-abort]
+				    lemma-abort-left-implies-right: [lemma-abort-right, lemma-abort-left, lemma-debug]
+				    lemma-abort-right-implies-left: [lemma-abort-right, lemma-abort-left, lemma-debug]
+					*/
                 }
             }
              Send3: {
-                invariant: [./proofs/invariant-H6_1-H7_0.smt2]
+                invariant: [./proofs/invariant-H6_1-H7_0.smt2
+				           ,./proofs/debug-H6_1-H7_0.smt2]
 
                 lemmas {
                     equal-aborts: []
+					/* lemma-play:   [no-abort] */
                     invariant:    [no-abort]
                     same-output:  [no-abort]
                 }
             }
             Send4: {
-                invariant: [./proofs/invariant-H6_1-H7_0.smt2]
+                invariant: [./proofs/invariant-H6_1-H7_0.smt2
+				           ,./proofs/debug-H6_1-H7_0.smt2]
 
                 lemmas {
+					lemma-play:   []
                     equal-aborts: []
                     invariant:    [no-abort]
                     same-output:  [no-abort]
