@@ -127,7 +127,11 @@ package ReductionMac {
 		}
         if (verified and (ni == Unwrap(ni_))) {
 		    acc        <- Some(true);
-			tau_       <- invoke Mac( (kid,U,V,ni,Unwrap(nr)), (zeron,4));
+			if hon {
+			    tau_       <- invoke Mac( (kid,U,V,ni,Unwrap(nr)), (zeron,4));
+			} else {
+			    tau_       <- mac(Unwrap(kmac),zeron,4);
+			}
 			
 		   return ((V,v,U,kid,acc,k,ni_,nr,kmac,sid,2),
 		           (tau_));
