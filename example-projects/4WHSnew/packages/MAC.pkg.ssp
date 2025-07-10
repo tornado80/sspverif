@@ -25,7 +25,7 @@ package MAC {
                value: (Bits(256), Integer))
            -> Bits(256) {
         key <- Keys[handle];
-        assert (key != None as Bits(256));
+        assert not (key == None);
 
         (val1, val2) <- parse value;
         tag <- mac(Unwrap(key), val1, val2);
@@ -39,7 +39,7 @@ package MAC {
                   tag: Bits(256))
            -> Bool {
         key <- Keys[handle];
-        assert (key != None as Bits(256));
+        assert not (key == None);
 
         if b {
             entry <- Values[(handle, value)];
