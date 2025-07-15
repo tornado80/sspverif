@@ -20,8 +20,7 @@
   (and
    (= scr-1 base-ctr-1)
    (= scr-0 base-ctr-0)
-   (= id-0      2)  ; This is the 2nd sampling in KX and samples ni.
-   (= id-1      2)  ; This sampling happens in the Nonces package and is the 2nd sampling (in fact the last sampling, because Nonces is defined last).
+   (= id-0 id-1)
    ))
 
 (define-fun randomness-mapping-Send2
@@ -45,7 +44,6 @@
       (scr-0 Int)      ; This is the counter which gets incremented each time a sampling is done with the same sample id.
       (scr-1 Int))     ; This is the counter which gets incremented each time a sampling is done with the same sample id.
   Bool
-  ;; There is no randomness used in this oracle.
   (and
    (= scr-1 base-ctr-1)
    (= scr-0 base-ctr-0)
@@ -101,7 +99,7 @@
    (= scr-1 base-ctr-1)
    (= scr-0 base-ctr-0)
    (= id-0 1)
-   (= id-1 3)))
+   (= id-1 4)))
 
 (define-fun randomness-mapping-NewKey
     ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
@@ -114,8 +112,7 @@
   (and
    (= scr-1 base-ctr-1)
    (= scr-0 base-ctr-0)
-   (= id-0     0)   ; This is the 0th sampling in KX   and samples the random key in NewKey.
-   (= id-1     0)   ; This is the 0th sampling in H1_0 and samples the random key in NewKey.
+   (= id-0 id-1)   ; This is the 0th sampling in H1_0 and samples the random key in NewKey.
    ))
 
 (define-fun randomness-mapping-NewSession
@@ -172,46 +169,33 @@
 ;;                                                                                                      ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; For honest keys, before reveal the output key was never computed
-;;
-;; ie revtested = None -> no entry in the table
-;;
-(define-fun <relation-lemma-key-not-yet-computed-H7_1_0-H7_1_1-Reveal>
-    ((H710-old <GameState_H7_<$<!n!><!false!><!true!><!zeron!>$>>)
-     (H711-old <GameState_H7_<$<!n!><!true!><!true!><!zeron!>$>>)
-     (H710-return <OracleReturn-H7-<$<!n!><!false!><!true!><!zeron!>$>-Game_noprfkey-<$<!b!><!n!><!zeron!>$>-Reveal>)
-     (H711-return <OracleReturn-H7-<$<!n!><!true!><!true!><!zeron!>$>-Game_noprfkey-<$<!b!><!n!><!zeron!>$>-Reveal>)
-     (ctr Int))
-  Bool
-  (let ((retval0 (<oracle-return-H7-<$<!n!><!false!><!true!><!zeron!>$>-Game_noprfkey-<$<!b!><!n!><!zeron!>$>-Reveal-return-value-or-abort> H710-return))
-        (H710-new (<oracle-return-H7-<$<!n!><!false!><!true!><!zeron!>$>-Game_noprfkey-<$<!b!><!n!><!zeron!>$>-Reveal-game-state> H710-return))
-        (nonces-H710 (<game-H7-<$<!n!><!false!><!true!><!zeron!>$>-pkgstate-Nonces> H710-old))
-        (game-H710 (<game-H7-<$<!n!><!false!><!true!><!zeron!>$>-pkgstate-Game_noprfkey> H710-old))
-        (prf-H710 (<game-H7-<$<!n!><!false!><!true!><!zeron!>$>-pkgstate-PRF> H710-old))
-        (none (as mk-none (Maybe (Tuple11 Int Bool Int Int (Maybe Bool) (Maybe Bits_256)
-                                          (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
-                                          (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)) Int)))))
-    (let ((State0 (<pkg-state-Game_noprfkey-<$<!b!><!n!><!zeron!>$>-State> game-H710))
-          (RevTested0 (<pkg-state-Game_noprfkey-<$<!b!><!n!><!zeron!>$>-RevTested> game-H710))
-          (Prf0 (<pkg-state-PRF-<$<!true!><!n!>$>-PRF> prf-H710)))
-      (and
-       (=> (not (= retval0 (as mk-abort (ReturnValue Bits_256))))
-           (let ((state (select State0 ctr)))
-             (and (not (= state none))
-                  (let  ((U    (el11-1  (maybe-get state)))
-                         (u    (el11-2  (maybe-get state)))
-                         (V    (el11-3  (maybe-get state)))
-                         (kid  (el11-4  (maybe-get state)))
-                         (acc  (el11-5  (maybe-get state)))
-                         (k    (el11-6  (maybe-get state)))
-                         (ni   (el11-7  (maybe-get state)))
-                         (nr   (el11-8  (maybe-get state)))
-                         (kmac (el11-9  (maybe-get state)))
-                         (sid  (el11-10 (maybe-get state)))
-                         (mess (el11-11 (maybe-get state))))
-                    (and (not (= sid (as mk-none (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)))))
-                         (= (select RevTested0 (maybe-get sid))
-                            (as mk-none (Maybe Bool))))))))))))
+
+(define-fun select-kmac
+    ((ctr Int)
+     (State (Array Int (Maybe (Tuple11 Int Bool Int Int (Maybe Bool) (Maybe Bits_256)
+                                       (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
+                                       (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)) Int))))
+     (Fresh (Array Int (Maybe Bool)))
+     (Keys (Array (Tuple5 Int Int Int Bits_256 Bits_256) (Maybe Bits_256))))
+  (Maybe Bits_256)
+  (let ((state (select State ctr)))
+    (ite (is-mk-none state)
+         (as mk-none (Maybe Bits_256))
+         (let  ((U    (el11-1  (maybe-get state)))
+                (u    (el11-2  (maybe-get state)))
+                (V    (el11-3  (maybe-get state)))
+                (kid  (el11-4  (maybe-get state)))
+                (acc  (el11-5  (maybe-get state)))
+                (k    (el11-6  (maybe-get state)))
+                (ni   (el11-7  (maybe-get state)))
+                (nr   (el11-8  (maybe-get state)))
+                (kmac (el11-9  (maybe-get state)))
+                (sid  (el11-10 (maybe-get state)))
+                (mess (el11-11 (maybe-get state))))
+           (ite (= (select Fresh ctr) (mk-some true))
+                (select Keys (mk-tuple5 kid (ite u V U) (ite u U V)
+                                        (maybe-get ni) (maybe-get nr)))
+                kmac)))))
 
 
 
@@ -224,7 +208,8 @@
      (state (Array Int (Maybe (Tuple11 Int Bool Int Int (Maybe Bool) (Maybe Bits_256)
                                        (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
                                        (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)) Int))))
-     )
+     (Fresh (Array Int (Maybe Bool)))
+     (Keys (Array (Tuple5 Int Int Int Bits_256 Bits_256) (Maybe Bits_256))))
   Bool
   (let ((none (as mk-none (Maybe (Tuple11 Int Bool Int Int (Maybe Bool) (Maybe Bits_256)
                                           (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
@@ -232,16 +217,13 @@
     (forall ((kid Int) (U Int) (V Int) (ni Bits_256) (nr Bits_256))
             (let ((pos-prf (mk-tuple6 kid U V ni nr true))
                   (pos-rev (mk-tuple5 kid U V ni nr)))
-              (and (=> (not (= (select prf pos-prf)
-                          (as mk-none (Maybe Bits_256))))
-                       (not (= (select revtesteval pos-rev)
-                               (as mk-none (Maybe Int)))))
-                   (=> (not (= (select revtesteval pos-rev)
-                               (as mk-none (Maybe Int))))
+              (and (=> (not (is-mk-none (select prf pos-prf)))
+                       (not (is-mk-none (select revtesteval pos-rev))))
+                   (=> (not (is-mk-none (select revtesteval pos-rev)))
                        (let ((ctr (maybe-get (select revtesteval pos-rev)))
                              (st (select state (maybe-get (select revtesteval pos-rev)))))
                          (and
-                          (not (= st none))
+                          (not (is-mk-none st))
                           (let  ((Up   (el11-1  (maybe-get st)))
                                  (u    (el11-2  (maybe-get st)))
                                  (Vp   (el11-3  (maybe-get st)))
@@ -255,15 +237,18 @@
                                  (mess (el11-11 (maybe-get st))))
                             (and
                              (= acc (mk-some true))
-                             (not (= sid (as mk-none (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)))))
+                             (not (is-mk-none sid))
                              (= ni (maybe-get nip))
                              (= nr (maybe-get nrp))
                              (= U (ite u Vp Up))
                              (= V (ite u Up Vp))
                              (= kid kidp)
-                             (let ((tau (<<func-mac>> (maybe-get kmac) nr 2)))
-                               (= (mk-tuple5 U V ni nr tau)
-                                  (maybe-get sid)))
+                             (let ((kmac (ite (= (select Fresh ctr) (mk-some true))
+                                              (select Keys (mk-tuple5 kid U V ni nr))
+                                              kmac)))
+                               (let ((tau (<<func-mac>> (maybe-get kmac) nr 2)))
+                                 (= (mk-tuple5 U V ni nr tau)
+                                    (maybe-get sid))))
                              (not (= (select revtest (maybe-get sid))
                                      (as mk-none (Maybe Bool))))))))))))))
 
@@ -302,40 +287,42 @@
                            (not (= sid2 (as mk-none (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)))))
                            (= (mk-tuple5 kid1 (ite u1 V1 U1) (ite u1 U1 V1) ni1 nr1)
                               (mk-tuple5 kid2 (ite u2 V2 U2) (ite u2 U2 V2) ni2 nr2)))
-                      (and (not (= kmac1 (as mk-none (Maybe Bits_256))))
-                           (not (= kmac2 (as mk-none (Maybe Bits_256))))
-                           (= kmac1 kmac2)
-                           (= sid1 sid2)))))))))
+                      (= sid1 sid2))))))))
 
 
 (define-fun sid-is-wellformed
     ((state (Array Int (Maybe (Tuple11 Int Bool Int Int (Maybe Bool) (Maybe Bits_256)
                                        (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
                                        (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)) Int))))
-     (prf (Array (Tuple6 Int Int Int Bits_256 Bits_256 Bool) (Maybe Bits_256))))
+     (prf (Array (Tuple6 Int Int Int Bits_256 Bits_256 Bool) (Maybe Bits_256)))
+     (Fresh (Array Int (Maybe Bool)))
+     (Keys (Array (Tuple5 Int Int Int Bits_256 Bits_256) (Maybe Bits_256))))
   Bool
-  (let ((none (as mk-none (Maybe (Tuple11 Int Bool Int Int (Maybe Bool) (Maybe Bits_256)
-                                          (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
-                                          (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)) Int)))))
-    (forall ((ctr Int))
-            (let ((state (select state ctr)))
-              (=> (not (= state none))
-                  (let  ((U    (el11-1  (maybe-get state)))
-                         (u    (el11-2  (maybe-get state)))
-                         (V    (el11-3  (maybe-get state)))
-                         (kid  (el11-4  (maybe-get state)))
-                         (acc  (el11-5  (maybe-get state)))
-                         (k    (el11-6  (maybe-get state)))
-                         (ni   (el11-7  (maybe-get state)))
-                         (nr   (el11-8  (maybe-get state)))
-                         (kmac (el11-9  (maybe-get state)))
-                         (sid  (el11-10 (maybe-get state)))
-                         (mess (el11-11 (maybe-get state))))
-                    (=> (not (= sid (as mk-none (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)))))
-                        (let ((tau (<<func-mac>> (maybe-get kmac) (maybe-get nr) 2)))
-                          (= (mk-tuple5 (ite u V U) (ite u U V)
-                                        (maybe-get ni) (maybe-get nr) tau)
-                             (maybe-get sid))))))))))
+  (forall ((ctr Int))
+          (let ((state (select state ctr)))
+            (=> (not (is-mk-none state))
+                (let  ((U    (el11-1  (maybe-get state)))
+                       (u    (el11-2  (maybe-get state)))
+                       (V    (el11-3  (maybe-get state)))
+                       (kid  (el11-4  (maybe-get state)))
+                       (acc  (el11-5  (maybe-get state)))
+                       (k    (el11-6  (maybe-get state)))
+                       (ni   (el11-7  (maybe-get state)))
+                       (nr   (el11-8  (maybe-get state)))
+                       (kmac (el11-9  (maybe-get state)))
+                       (sid  (el11-10 (maybe-get state)))
+                       (mess (el11-11 (maybe-get state))))
+                  (=> (not (is-mk-none sid))
+                      (let ((kmac (ite (= (select Fresh ctr) (mk-some true))
+                                       (select Keys (mk-tuple5 kid (ite u V U) (ite u U V)
+                                                               (maybe-get ni) (maybe-get nr)))
+                                       kmac)))
+                        (and
+                         (not (is-mk-none kmac))
+                         (let ((tau (<<func-mac>> (maybe-get kmac) (maybe-get nr) 2)))
+                           (= (mk-tuple5 (ite u V U) (ite u U V)
+                                         (maybe-get ni) (maybe-get nr) tau)
+                              (maybe-get sid)))))))))))
 
 
 (define-fun key-not-computed-unless-test-or-reveal
@@ -344,7 +331,8 @@
                                        (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)) Int))))
      (revtest (Array (Tuple5 Int Int Bits_256 Bits_256 Bits_256) (Maybe Bool)))
      (prf (Array (Tuple6 Int Int Int Bits_256 Bits_256 Bool) (Maybe Bits_256)))
-     (H (Array Int (Maybe Bool))))
+     (H (Array Int (Maybe Bool)))
+     (Keys (Array (Tuple5 Int Int Int Bits_256 Bits_256) (Maybe Bits_256))))
   Bool
   (and
    ;; mac keys are computed before output keys
@@ -355,8 +343,9 @@
             (nr Bits_256))
            (=> (not (= (select prf (mk-tuple6 kid U V ni nr true))
                        (as mk-none (Maybe Bits_256))))
-               (not (= (select prf (mk-tuple6 kid U V ni nr false))
-                       (as mk-none (Maybe Bits_256))))))
+               (ite (= (select H kid) (mk-some true))
+                    (not (is-mk-none (select Keys (mk-tuple5 kid U V ni nr))))
+                    (not (is-mk-none (select prf (mk-tuple6 kid U V ni nr false)))))))
 
    ;; output keys are only computed when revtesting
    (forall ((kid Int)
@@ -367,9 +356,10 @@
             (kmac-prime Bits_256))
            (and
             ;; entry in PRF table => entry in revtest
-            (=> (not (= (select prf (mk-tuple6 kid U V ni nr true))
-                        (as mk-none (Maybe Bits_256))))
-                (let ((kmac (select prf (mk-tuple6 kid U V ni nr false))))
+            (=> (not (is-mk-none (select prf (mk-tuple6 kid U V ni nr true))))
+                (let ((kmac (ite (= (select H kid) (mk-some true))
+                                 (select Keys (mk-tuple5 kid U V ni nr))
+                                 (select prf (mk-tuple6 kid U V ni nr false)))))
                   (let ((tau (<<func-mac>> (maybe-get kmac) nr 2)))
                     (not (= (select revtest (mk-tuple5 U V ni nr tau))
                             (as mk-none (Maybe Bool)))))))
@@ -378,7 +368,9 @@
             (=> (let ((tau (<<func-mac>> kmac-prime nr 2)))
                   (= (select revtest (mk-tuple5 U V ni nr tau))
                      (as mk-none (Maybe Bool))))
-                (=> (= (select prf (mk-tuple6 kid U V ni nr false))
+                (=> (= (ite (= (select H kid) (mk-some true))
+                                     (select Keys (mk-tuple5 kid U V ni nr))
+                                     (select prf (mk-tuple6 kid U V ni nr false)))
                        (mk-some kmac-prime))
                     (= (select prf (mk-tuple6 kid U V ni nr true))
                        (as mk-none (Maybe Bits_256)))))))))
@@ -415,11 +407,7 @@
   Bool
   (forall ((i Int))
           (=> (> i ctr)
-              (= (select state i)
-                 (as mk-none (Maybe (Tuple11 Int Bool Int Int (Maybe Bool) (Maybe Bits_256)
-                                             (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
-                                             (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)) Int)))))))
-
+              (is-mk-none (select state i)))))
 
 
 (define-fun mac-keys-equal-in-prf
@@ -438,7 +426,9 @@
                                        (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)) Int))))
      (prf (Array (Tuple6 Int Int Int Bits_256 Bits_256 Bool) (Maybe Bits_256)))
      (honesty (Array Int (Maybe Bool)))
-     (ltk (Array Int (Maybe Bits_256))))
+     (ltk (Array Int (Maybe Bits_256)))
+     (Fresh (Array Int (Maybe Bool)))
+     (Keys (Array (Tuple5 Int Int Int Bits_256 Bits_256) (Maybe Bits_256))))
   Bool
   (let ((none (as mk-none (Maybe (Tuple11 Int Bool Int Int (Maybe Bool) (Maybe Bits_256)
                                           (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
@@ -460,31 +450,30 @@
                     (and
                      (not (= (select ltk kid) (as mk-none (Maybe Bits_256))))
                      (not (= (select honesty kid) (as mk-none (Maybe Bool))))
-                     (=> (and (not (= kmac (as mk-none (Maybe Bits_256))))
-                              (= (select honesty kid) (mk-some false)))
-                         (= kmac (mk-some (<<func-prf>> (maybe-get (select ltk kid)) (ite u V U) (ite u U V)
-                                                        (maybe-get ni) (maybe-get nr) false))))
-                     (=> (and (not (= kmac (as mk-none (Maybe Bits_256))))
-                              (= (select honesty kid) (mk-some true)))
-                         (= kmac (select prf (mk-tuple6 kid (ite u V U) (ite u U V)
-                                                        (maybe-get ni) (maybe-get nr) false)))))))))))
+                     (and
+                      (=> (and (not (= kmac (as mk-none (Maybe Bits_256))))
+                               (= (select honesty kid) (mk-some false)))
+                          (= kmac (mk-some (<<func-prf>> (maybe-get (select ltk kid)) (ite u V U) (ite u U V)
+                                                         (maybe-get ni) (maybe-get nr) false))))))))))))
 
 
 (define-fun stuff-not-initialized-early
-    ((state (Array Int (Maybe (Tuple11 Int Bool Int Int (Maybe Bool) (Maybe Bits_256)
+    ((State (Array Int (Maybe (Tuple11 Int Bool Int Int (Maybe Bool) (Maybe Bits_256)
                                        (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
-                                       (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)) Int)))))
+                                       (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)) Int))))
+     (Fresh (Array Int (Maybe Bool)))
+     (Keys (Array (Tuple5 Int Int Int Bits_256 Bits_256) (Maybe Bits_256))))
   Bool
   (let ((none (as mk-none (Maybe (Tuple11 Int Bool Int Int (Maybe Bool) (Maybe Bits_256)
                                           (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
                                           (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)) Int)))))
     (forall ((ctr Int))
-            (let ((state (select state ctr)))
+            (let ((state (select State ctr)))
               (=> (not (= state none))
                   (let  ((U    (el11-1  (maybe-get state)))
                          (u    (el11-2  (maybe-get state)))
                          (V    (el11-3  (maybe-get state)))
-                         (ltk  (el11-4  (maybe-get state)))
+                         (kid  (el11-4  (maybe-get state)))
                          (acc  (el11-5  (maybe-get state)))
                          (k    (el11-6  (maybe-get state)))
                          (ni   (el11-7  (maybe-get state)))
@@ -495,7 +484,9 @@
                     (and (ite u
                               (ite (> mess 0)
                                    (and (not (= sid (as mk-none (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)))))
-                                        (not (= kmac (as mk-none (Maybe Bits_256))))
+                                        (ite (= (select Fresh ctr) (mk-some true))
+                                             (not (is-mk-none (select Keys (mk-tuple5 kid V U (maybe-get ni) (maybe-get nr)))))
+                                             (not (is-mk-none kmac)))
                                         (not (= ni (as mk-none (Maybe Bits_256))))
                                         (not (= nr (as mk-none (Maybe Bits_256)))))
                                    (and (= sid (as mk-none (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256))))
@@ -508,7 +499,9 @@
                                              (= nr kmac (as mk-none (Maybe Bits_256)))
                                              (= sid (as mk-none (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)))))
                                         (and (not (= sid (as mk-none (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)))))
-                                             (not (= kmac (as mk-none (Maybe Bits_256))))
+                                             (ite (= (select Fresh ctr) (mk-some true))
+                                                  (not (is-mk-none (select Keys (mk-tuple5 kid U V (maybe-get ni) (maybe-get nr)))))
+                                                  (not (is-mk-none kmac)))
                                              (not (= ni (as mk-none (Maybe Bits_256))))
                                              (not (= nr (as mk-none (Maybe Bits_256)))))))))))))))
 
@@ -591,15 +584,11 @@
      (revtesteval1 (Array (Tuple5 Int Int Int Bits_256 Bits_256) (Maybe Int)))
      (revtest (Array (Tuple5 Int Int Bits_256 Bits_256 Bits_256) (Maybe Bool))))
   Bool
-   (let ((none (as mk-none (Maybe (Tuple11 Int Bool Int Int (Maybe Bool) (Maybe Bits_256)
-                                           (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
-                                           (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)) Int)))))
      (and
       (forall ((kid Int) (U Int) (V Int) (ni Bits_256) (nr Bits_256))
-              (=> (not (= (select revtesteval1 (mk-tuple5 kid U V ni nr))
-                          (as mk-none (Maybe Int))))
+              (=> (not (is-mk-none (select revtesteval1 (mk-tuple5 kid U V ni nr))))
                   (= (select revtesteval1 (mk-tuple5 kid U V ni nr))
-                     (select revtesteval0 (mk-tuple5 kid U V ni nr))))))))
+                     (select revtesteval0 (mk-tuple5 kid U V ni nr)))))))
 
 
 
@@ -621,12 +610,48 @@
                        (select honest kid))))))))
 
 
+(define-fun mac-table-wellformed
+    ((Keys (Array (Tuple5 Int Int Int Bits_256 Bits_256) (Maybe Bits_256)))
+     (Values (Array (Tuple2 (Tuple5 Int Int Int Bits_256 Bits_256) (Tuple2 Bits_256 Int)) (Maybe Bits_256))))
+  Bool
+  (forall ((idx (Tuple5 Int Int Int Bits_256 Bits_256))
+           (msg1 Bits_256)
+           (msg2 Int))
+          (let ((val-idx (mk-tuple2 idx (mk-tuple2 msg1 msg2))))
+            (and (=> (is-mk-none (select Keys idx))
+                     (is-mk-none (select Values val-idx)))
+
+                 (=> (not (is-mk-none (select Values val-idx)))
+                     (= (select Values val-idx)
+                        (mk-some (<<func-mac>> (maybe-get (select Keys idx)) msg1 msg2))))))))
+
+
+(define-fun no-ideal-values-for-dishonest-keys
+    ((H (Array Int (Maybe Bool)))
+     (Prf (Array (Tuple6 Int Int Int Bits_256 Bits_256 Bool) (Maybe Bits_256)))
+     (Keys (Array (Tuple5 Int Int Int Bits_256 Bits_256) (Maybe Bits_256))))
+  Bool
+  (forall ((kid Int)
+           (U Int)
+           (V Int)
+           (ni Bits_256)
+           (nr Bits_256))
+          (=> (= (select H kid) (mk-some false))
+              (and
+               (is-mk-none (select Keys (mk-tuple5 kid U V ni nr)))
+               (is-mk-none (select Prf (mk-tuple6 kid U V ni nr true)))
+               (is-mk-none (select Prf (mk-tuple6 kid U V ni nr false)))))))
+
+
+
 (define-fun invariant
     ((state-H710  <GameState_H7_<$<!n!><!false!><!true!><!zeron!>$>>)
      (state-H711  <GameState_H7_<$<!n!><!true!><!true!><!zeron!>$>>))
   Bool
   (let ((nonces-H710 (<game-H7-<$<!n!><!false!><!true!><!zeron!>$>-pkgstate-Nonces> state-H710))
         (nonces-H711 (<game-H7-<$<!n!><!true!><!true!><!zeron!>$>-pkgstate-Nonces>  state-H711))
+        (mac-H710 (<game-H7-<$<!n!><!false!><!true!><!zeron!>$>-pkgstate-MAC> state-H710))
+        (mac-H711 (<game-H7-<$<!n!><!true!><!true!><!zeron!>$>-pkgstate-MAC>  state-H711))
         (game-H710 (<game-H7-<$<!n!><!false!><!true!><!zeron!>$>-pkgstate-Game_noprfkey> state-H710))
         (game-H711 (<game-H7-<$<!n!><!true!><!true!><!zeron!>$>-pkgstate-Game_noprfkey>  state-H711))
         (prf-H710 (<game-H7-<$<!n!><!false!><!true!><!zeron!>$>-pkgstate-PRF> state-H710))
@@ -643,6 +668,10 @@
           (Fresh1 (<pkg-state-Game_noprfkey-<$<!b!><!n!><!zeron!>$>-Fresh> game-H711))
           (Nonces0 (<pkg-state-Nonces-<$<!true!><!n!>$>-Nonces> nonces-H710))
           (Nonces1 (<pkg-state-Nonces-<$<!true!><!n!>$>-Nonces> nonces-H711))
+          (Keys0 (<pkg-state-MAC-<$<!bmac!><!n!>$>-Keys> mac-H710))
+          (Keys1 (<pkg-state-MAC-<$<!bmac!><!n!>$>-Keys> mac-H711))
+          (Values0 (<pkg-state-MAC-<$<!bmac!><!n!>$>-Values> mac-H710))
+          (Values1 (<pkg-state-MAC-<$<!bmac!><!n!>$>-Values> mac-H711))
           (Ltk0 (<pkg-state-PRF-<$<!true!><!n!>$>-LTK> prf-H710))
           (Ltk1 (<pkg-state-PRF-<$<!true!><!n!>$>-LTK> prf-H711))
           (Prf0 (<pkg-state-PRF-<$<!true!><!n!>$>-PRF> prf-H710))
@@ -658,132 +687,26 @@
            (= State0 State1)
            (= RevTested0 RevTested1)
            (= Fresh0 Fresh1)
+           (= Keys0 Keys1)
+           (= Values0 Values1)
 
            (freshness-and-honesty-matches State0 Fresh0 H0)
            (revtesteval-matches-sometimes State0 RevTestEval0 RevTestEval1 RevTested0)
            (no-overwriting-prf prf-H710)
            (no-overwriting-game State0 ctr0)
-           (sid-is-wellformed State0 Prf0)
+           (sid-is-wellformed State0 Prf0 Fresh0 Keys0)
            (sid-matches State0 Prf0)
            (own-nonce-is-unique State0 Nonces0)
            (revtesteval-populated RevTestEval0 H0 Prf0)
            (revtesteval-populated RevTestEval1 H1 Prf1)
-           (prfeval-has-matching-session Prf0 RevTestEval0 RevTestEval1 RevTested0 State0)
-           (key-not-computed-unless-test-or-reveal State0 RevTested0 Prf0 H0)
+           (prfeval-has-matching-session Prf0 RevTestEval0 RevTestEval1 RevTested0 State0 Fresh0 Keys0)
+           (key-not-computed-unless-test-or-reveal State0 RevTested0 Prf0 H0 Keys0)
            (mac-keys-equal-in-prf Prf0 Prf1)
-           (kmac-and-tau-are-computed-correctly State0 Prf0 H0 Ltk0)
-           (kmac-and-tau-are-computed-correctly State1 Prf1 H1 Ltk1)
-           (stuff-not-initialized-early State0)
+           (kmac-and-tau-are-computed-correctly State0 Prf0 H0 Ltk0 Fresh0 Keys0)
+           (kmac-and-tau-are-computed-correctly State1 Prf1 H1 Ltk1 Fresh1 Keys1)
+           (stuff-not-initialized-early State0 Fresh0 Keys0)
+           (mac-table-wellformed Keys0 Values0)
+
+           (no-ideal-values-for-dishonest-keys H0 Prf0 Keys0)
+
            ))))
-
-
-(define-fun prf-table-empty
-    ((state0 (Array Int (Maybe (Tuple11 Int Bool Int Int (Maybe Bool) (Maybe Bits_256)
-                                       (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
-                                       (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)) Int))))
-     (revtesteval0 (Array (Tuple5 Int Int Int Bits_256 Bits_256) (Maybe Int)))
-     (revtested0 (Array (Tuple5 Int Int Bits_256 Bits_256 Bits_256) (Maybe Bool)))
-     (prf0 (Array (Tuple6 Int Int Int Bits_256 Bits_256 Bool) (Maybe Bits_256)))
-     (ctr Int))
-  Bool
-  (let ((none (as mk-none (Maybe (Tuple11 Int Bool Int Int (Maybe Bool) (Maybe Bits_256)
-                                          (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
-                                          (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)) Int)))))
-    (let ((state (select state0 ctr)))
-      (and (not (= state none))
-           (let  ((U    (el11-1  (maybe-get state)))
-                  (u    (el11-2  (maybe-get state)))
-                  (V    (el11-3  (maybe-get state)))
-                  (kid  (el11-4  (maybe-get state)))
-                  (acc  (el11-5  (maybe-get state)))
-                  (k    (el11-6  (maybe-get state)))
-                  (ni   (el11-7  (maybe-get state)))
-                  (nr   (el11-8  (maybe-get state)))
-                  (kmac (el11-9  (maybe-get state)))
-                  (sid  (el11-10 (maybe-get state)))
-                  (mess (el11-11 (maybe-get state))))
-             (and (not (= sid (as mk-none (Maybe (Tuple5 Int Int Bits_256 Bits_256 Bits_256)))))
-                  (= (select revtested0 (maybe-get sid)) (as mk-none (Maybe Bool)))
-                  (= (select revtesteval0 (mk-tuple5 kid (ite u V U) (ite u U V)
-                                                     (maybe-get ni) (maybe-get nr)))
-                     (as mk-none (Maybe Int)))
-                  (= (select prf0 (mk-tuple6 kid (ite u V U) (ite u U V)
-                                             (maybe-get ni) (maybe-get nr) true))
-                     (as mk-none (Maybe Bits_256)))
-                  ))))))
-
-
-(define-fun <relation-lemma-debug-H7_1_0-H7_1_1-Test>
-    ((H710-old <GameState_H7_<$<!n!><!false!><!true!><!zeron!>$>>)
-     (H711-old <GameState_H7_<$<!n!><!true!><!true!><!zeron!>$>>)
-     (H710-return <OracleReturn-H7-<$<!n!><!false!><!true!><!zeron!>$>-Game_noprfkey-<$<!b!><!n!><!zeron!>$>-Test>)
-     (H711-return <OracleReturn-H7-<$<!n!><!true!><!true!><!zeron!>$>-Game_noprfkey-<$<!b!><!n!><!zeron!>$>-Test>)
-     (ctr Int))
-  Bool
-  (let ((state-H710 (<oracle-return-H7-<$<!n!><!false!><!true!><!zeron!>$>-Game_noprfkey-<$<!b!><!n!><!zeron!>$>-Test-game-state> H710-return))
-        (state-H711 (<oracle-return-H7-<$<!n!><!true!><!true!><!zeron!>$>-Game_noprfkey-<$<!b!><!n!><!zeron!>$>-Test-game-state> H711-return))
-        (retval0 (<oracle-return-H7-<$<!n!><!false!><!true!><!zeron!>$>-Game_noprfkey-<$<!b!><!n!><!zeron!>$>-Test-return-value-or-abort> H710-return))
-        (retval1 (<oracle-return-H7-<$<!n!><!true!><!true!><!zeron!>$>-Game_noprfkey-<$<!b!><!n!><!zeron!>$>-Test-return-value-or-abort> H711-return)))
-    (let ((nonces-H710 (<game-H7-<$<!n!><!false!><!true!><!zeron!>$>-pkgstate-Nonces> state-H710))
-          (nonces-H711 (<game-H7-<$<!n!><!true!><!true!><!zeron!>$>-pkgstate-Nonces>  state-H711))
-          (game-H710 (<game-H7-<$<!n!><!false!><!true!><!zeron!>$>-pkgstate-Game_noprfkey> state-H710))
-          (game-H710-old (<game-H7-<$<!n!><!false!><!true!><!zeron!>$>-pkgstate-Game_noprfkey> H710-old))
-          (game-H711 (<game-H7-<$<!n!><!true!><!true!><!zeron!>$>-pkgstate-Game_noprfkey>  state-H711))
-          (game-H711-old (<game-H7-<$<!n!><!true!><!true!><!zeron!>$>-pkgstate-Game_noprfkey>  H711-old))
-          (prf-H710 (<game-H7-<$<!n!><!false!><!true!><!zeron!>$>-pkgstate-PRF> state-H710))
-          (prf-H710-old (<game-H7-<$<!n!><!false!><!true!><!zeron!>$>-pkgstate-PRF> H710-old))
-          (prf-H711 (<game-H7-<$<!n!><!true!><!true!><!zeron!>$>-pkgstate-PRF>  state-H711)))
-      (let ((ctr0 (<pkg-state-Game_noprfkey-<$<!b!><!n!><!zeron!>$>-ctr_> game-H710))
-            (ctr1 (<pkg-state-Game_noprfkey-<$<!b!><!n!><!zeron!>$>-ctr_> game-H711))
-            (State0 (<pkg-state-Game_noprfkey-<$<!b!><!n!><!zeron!>$>-State> game-H710))
-            (State1 (<pkg-state-Game_noprfkey-<$<!b!><!n!><!zeron!>$>-State> game-H711))
-            (RevTested0 (<pkg-state-Game_noprfkey-<$<!b!><!n!><!zeron!>$>-RevTested> game-H710))
-            (RevTested0-old (<pkg-state-Game_noprfkey-<$<!b!><!n!><!zeron!>$>-RevTested> game-H710-old))
-            (RevTested1 (<pkg-state-Game_noprfkey-<$<!b!><!n!><!zeron!>$>-RevTested> game-H711))
-            (RevTestEval0 (<pkg-state-Game_noprfkey-<$<!b!><!n!><!zeron!>$>-RevTestEval> game-H710))
-            (RevTestEval0-old (<pkg-state-Game_noprfkey-<$<!b!><!n!><!zeron!>$>-RevTestEval> game-H710-old))
-            (RevTestEval1 (<pkg-state-Game_noprfkey-<$<!b!><!n!><!zeron!>$>-RevTestEval> game-H711))
-            (RevTestEval1-old (<pkg-state-Game_noprfkey-<$<!b!><!n!><!zeron!>$>-RevTestEval> game-H711-old))
-            (Fresh0 (<pkg-state-Game_noprfkey-<$<!b!><!n!><!zeron!>$>-Fresh> game-H710))
-            (Fresh1 (<pkg-state-Game_noprfkey-<$<!b!><!n!><!zeron!>$>-Fresh> game-H711))
-            (Nonces0 (<pkg-state-Nonces-<$<!true!><!n!>$>-Nonces> nonces-H710))
-            (Nonces1 (<pkg-state-Nonces-<$<!true!><!n!>$>-Nonces> nonces-H711))
-            (Ltk0 (<pkg-state-PRF-<$<!true!><!n!>$>-LTK> prf-H710))
-            (Ltk1 (<pkg-state-PRF-<$<!true!><!n!>$>-LTK> prf-H711))
-            (Prf0 (<pkg-state-PRF-<$<!true!><!n!>$>-PRF> prf-H710))
-            (Prf0-old (<pkg-state-PRF-<$<!true!><!n!>$>-PRF> prf-H710-old))
-            (Prf1 (<pkg-state-PRF-<$<!true!><!n!>$>-PRF> prf-H711))
-            (H0 (<pkg-state-PRF-<$<!true!><!n!>$>-H> prf-H710))
-            (H1 (<pkg-state-PRF-<$<!true!><!n!>$>-H> prf-H711)))
-        (and (= nonces-H710 nonces-H711)
-             (= Ltk0 Ltk1)
-             (= H0 H1)
-             (= (<pkg-state-PRF-<$<!true!><!n!>$>-kid_> prf-H710)
-                (<pkg-state-PRF-<$<!true!><!n!>$>-kid_> prf-H711))
-             (= ctr0 ctr1)
-             (= State0 State1)
-             (= RevTested0 RevTested1)
-             ;;(= RevTestEval0 RevTestEval1)
-             (= Fresh0 Fresh1)
-
-             (= RevTestEval1 RevTestEval1-old)
-             (let ((sid (maybe-get (el11-10 (maybe-get (select State0 ctr))))))
-               (= (select RevTested0 sid) (mk-some true)))
-
-             (prf-table-empty State0 RevTestEval0-old RevTested0-old Prf0-old ctr)
-
-             ;;(revtesteval-matches-sometimes State0 RevTestEval0 RevTestEval1 RevTested0)
-             (no-overwriting-prf prf-H710)
-             (no-overwriting-game State0 ctr0)
-             (sid-is-wellformed State0 Prf0)
-             (sid-matches State0 Prf0)
-             (own-nonce-is-unique State0 Nonces0)
-             (revtesteval-populated RevTestEval0 H0 Prf0)
-             (revtesteval-populated RevTestEval1 H1 Prf1)
-             (prfeval-has-matching-session Prf0 RevTestEval0 RevTestEval1 RevTested0 State0)
-             (key-not-computed-unless-test-or-reveal State0 RevTested0 Prf0 H0)
-             (mac-keys-equal-in-prf Prf0 Prf1)
-             (kmac-and-tau-are-computed-correctly State0 Prf0 H0 Ltk0)
-             (kmac-and-tau-are-computed-correctly State1 Prf1 H1 Ltk1)
-             (stuff-not-initialized-early State0)
-             )))))
