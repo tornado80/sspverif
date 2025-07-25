@@ -1,6 +1,5 @@
 package H2_CPA_reduction {
     params {
-    isideal_kem_cpa_security: Bool,                           /* real-ideal-bit        */
       kgen: fn Bits(256)             ->   Bits(256),          /* takes sk, returns pk  */
     encaps: fn Bits(256),Bits(256) ->  (Bits(256),Bits(256)), /* (pk,rand) -> (ctxt,k) */
     decaps: fn Bits(256),Bits(256) ->   Bits(256),            /* (sk,ctxt) -> k        */

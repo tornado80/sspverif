@@ -69,6 +69,23 @@ proof KEM_Proof {
         }
     }
 
+    instance H2_kem_cpa_real = H2 {
+        params {
+            isideal_kem_cpa_security: false,
+            kgen: kgen,
+            encaps: encaps,
+            decaps: decaps,
+        }
+    }
+
+    instance H2_kem_cpa_ideal = H2 {
+        params {
+            isideal_kem_cpa_security: true,
+            kgen: kgen,
+            encaps: encaps,
+            decaps: decaps,
+        }
+    }
 
     assumptions {
         Corr:    Corr_KEM_real ~ Corr_KEM_ideal
@@ -143,6 +160,29 @@ proof KEM_Proof {
 
                 Corr_KEM : Corr_KEM
                  /* package instance of assumption : pkg instance of H1 */
+
+            }
+        }
+        reduction H2_kem_cpa_real H2_kem_cpa_ideal 
+        {
+            assumption CPA
+
+            map CPA_real H2_kem_cpa_real {
+                 /* name of left target     game instance : 
+                    name of left assumption game instance */
+
+                CPA : CPA
+                 /* package instance of assumption : pkg instance of H2 */
+
+            }
+
+            map CPA_ideal H2_kem_cpa_ideal {
+                 /* name of left target     game instance : 
+                    name of left assumption game instance */
+
+
+                CPA : CPA
+                 /* package instance of assumption : pkg instance of H2 */
 
             }
         }

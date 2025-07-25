@@ -15,7 +15,6 @@ composition H2 {
 
     instance H2_CPA_reduction = H2_CPA_reduction {
         params {
-          isideal_kem_cpa_security:   isideal_kem_cpa_security,
              kgen:   kgen,
            encaps:   encaps,
            decaps:   decaps,
