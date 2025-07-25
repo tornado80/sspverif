@@ -1,6 +1,6 @@
 package CPA {
     params {
-    isideal: Bool,                                              /* real-ideal-bit        */
+    isideal_kem_cpa_security: Bool,                                              /* real-ideal-bit        */
       kgen: fn Bits(256)             ->   Bits(256),            /* takes sk, returns pk  */
     encaps: fn Bits(256),Bits(256) ->  (Bits(256),Bits(256)), /* (pk,rand) -> (ctxt,k) */
     decaps: fn Bits(256),Bits(256) ->   Bits(256),            /* (sk,ctxt) -> k        */
@@ -49,7 +49,7 @@ oracle ENC() -> Bits(256)                            /* samples rand and returns
 
         k <- Unwrap(KEY[ctxt_id]);                      /* retrieve key                           */
 
-        if isideal { 
+        if isideal_kem_cpa_security { 
              k <-$ Bits(256);                      /* in ideal game, replace k by random     */
         }
         return k;                                  /* return key                             */
