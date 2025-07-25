@@ -62,6 +62,7 @@ impl<'a> BlockWriter<'a> {
     fn type_to_tex_short(&self, tipe: &Type) -> String {
         match tipe {
             Type::Tuple(_) => "\\O{Tuple[..]}".to_string(),
+            Type::Bits(n) => format!("\\bin^{{{}}}", self.countspec_to_tex(n)),
             _ => format!("\\O{{{:?}}}", tipe),
         }
     }
