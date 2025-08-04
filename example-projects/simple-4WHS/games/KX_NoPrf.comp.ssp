@@ -14,7 +14,7 @@ composition KX_NoPrf {
 		}
     }
 
-    instance Prot = Prot {
+    instance Prot = Prot_NoPrf {
         params {
         n: n,
         zeron: zeron,
@@ -22,7 +22,7 @@ composition KX_NoPrf {
         mac: mac,
         }
     }
-    instance Game = Game {
+    instance Game = Game_NoPrf {
         params {
         b: b,
         n: n,
@@ -49,6 +49,11 @@ composition KX_NoPrf {
             Run3:      Prot,
             Run4:      Prot,
             Run5:      Prot,
+            Hon:       Prf,
+            Eval:      Prf,
         },
+        Prot: {
+            Eval: Prf,
+        }
     }
 }

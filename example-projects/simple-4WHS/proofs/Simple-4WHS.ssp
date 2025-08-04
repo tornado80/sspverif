@@ -180,7 +180,122 @@ proof Simple4WHS {
                 }
             }
         }
-         reduction KX_NoPrf_RealPrf KX_NoPrf_IdealPrf
+        
+        equivalence KX_NoKey KX_NoPrf_RealPrf {
+            Send1: {
+                invariant: [
+                    ./proofs/invariant-KX_NoKey-KX_NoPrf.smt2,
+                    ./proofs/randomness-KX_NoKey-KX_NoPrf.smt2
+                    ]
+
+                lemmas {
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+                    equal-aborts: []
+                }
+            }
+             Send2: {
+                invariant: [
+                    ./proofs/invariant-KX_NoKey-KX_NoPrf.smt2,
+                    ./proofs/randomness-KX_NoKey-KX_NoPrf.smt2
+                    ]
+
+                lemmas {
+                    same-output:  [no-abort]
+                    invariant:    [no-abort]
+                    equal-aborts: []
+                }
+            }
+             Send3: {
+                invariant: [
+                    ./proofs/invariant-KX_NoKey-KX_NoPrf.smt2,
+                    ./proofs/randomness-KX_NoKey-KX_NoPrf.smt2
+                    ]
+
+                lemmas {
+                    equal-aborts: []
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+                }
+            }
+            Send4: {
+                invariant: [
+                    ./proofs/invariant-KX_NoKey-KX_NoPrf.smt2,
+                    ./proofs/randomness-KX_NoKey-KX_NoPrf.smt2
+                    ]
+
+                lemmas {
+                    equal-aborts: []
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+                }
+            }
+            Send5: {
+                invariant: [
+                    ./proofs/invariant-KX_NoKey-KX_NoPrf.smt2,
+                    ./proofs/randomness-KX_NoKey-KX_NoPrf.smt2
+                    ]
+
+                lemmas {
+                    equal-aborts: []
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+                }
+            }
+            NewKey: {
+                invariant: [
+                    ./proofs/invariant-KX_NoKey-KX_NoPrf.smt2,
+                    ./proofs/randomness-KX_NoKey-KX_NoPrf.smt2
+                    ]
+
+                lemmas {
+                    equal-aborts: []
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+                }
+            }
+            NewSession: {
+                invariant: [
+                    ./proofs/invariant-KX_NoKey-KX_NoPrf.smt2,
+                    ./proofs/randomness-KX_NoKey-KX_NoPrf.smt2
+                    ]
+
+                lemmas {
+                    equal-aborts: []
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+                }
+            }
+            Test: {
+                invariant: [
+                    ./proofs/invariant-KX_NoKey-KX_NoPrf.smt2,
+                    ./proofs/randomness-KX_NoKey-KX_NoPrf.smt2
+                    ]
+
+                lemmas {
+                    equal-aborts: []
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+                }
+            }
+            Reveal: {
+                invariant: [
+                    ./proofs/invariant-KX_NoKey-KX_NoPrf.smt2,
+                    ./proofs/randomness-KX_NoKey-KX_NoPrf.smt2
+                    ]
+
+                lemmas {
+                    equal-aborts: []
+                    invariant:    [no-abort]
+                    same-output:  [no-abort]
+                }
+            }
+        }
+
+
+
+
+        reduction KX_NoPrf_RealPrf KX_NoPrf_IdealPrf
         {
             assumption prf
 
