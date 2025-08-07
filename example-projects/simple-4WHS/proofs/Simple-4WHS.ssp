@@ -59,7 +59,7 @@ proof Simple4WHS {
         }
     }
 
-    instance IdealKX_NoPrf_IdealPrf = KX_NoPrf {
+    instance IdealKX_NoPrf_IdealPrf = KX_NoPrfB {
         params {
             b       : true ,
             bprf    : true,
@@ -347,9 +347,9 @@ proof Simple4WHS {
                     ]
 
                 lemmas {
+                    equal-aborts: []
                     same-output:  [no-abort]
                     invariant:    [no-abort]
-                    equal-aborts: []
                 }
             }
              Send3: {
@@ -360,8 +360,8 @@ proof Simple4WHS {
 
                 lemmas {
                     equal-aborts: []
-                    invariant:    [no-abort]
                     same-output:  [no-abort]
+                    invariant:    [no-abort]
                 }
             }
             Send4: {

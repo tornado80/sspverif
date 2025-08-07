@@ -9,8 +9,7 @@
   (and
    (= scr-1 base-ctr-1)
    (= scr-0 base-ctr-0)
-   (= id-0      0)
-   (= id-1      2)
+   (= id-0 id-1)
    ))
 
 (define-fun randomness-mapping-Send2
@@ -24,8 +23,7 @@
   (and
    (= scr-1 base-ctr-1)
    (= scr-0 base-ctr-0)
-   (= id-0      1)
-   (= id-1      3)
+   (= id-0 id-1)
    ))
 
 (define-fun randomness-mapping-Send3
@@ -36,7 +34,11 @@
       (scr-0 Int)
       (scr-1 Int))
   Bool
-  false)
+  (and
+   (= scr-1 base-ctr-1)
+   (= scr-0 base-ctr-0)
+   (= id-0 id-1)
+   ))
 
 (define-fun randomness-mapping-Send4
     ( (base-ctr-0 Int)
@@ -46,7 +48,11 @@
       (scr-0 Int)
       (scr-1 Int))
   Bool
-  false)
+  (and
+   (= scr-1 base-ctr-1)
+   (= scr-0 base-ctr-0)
+   (= id-0 id-1)
+   ))
 
 (define-fun randomness-mapping-Send5
     ( (base-ctr-0 Int)
@@ -66,7 +72,11 @@
       (scr-0 Int)
       (scr-1 Int))
   Bool
-  false)
+  (and
+   (= scr-1 base-ctr-1)
+   (= scr-0 base-ctr-0)
+   (= id-0 id-1)
+   ))
 
 (define-fun randomness-mapping-Test
     ( (base-ctr-0 Int) (base-ctr-1 Int)
@@ -75,8 +85,9 @@
   Bool
   (and
    (= scr-1 base-ctr-1)
-   (= id-0     3)
-   (= id-1     4)
+   (= scr-0 base-ctr-0)
+   (= id-0 1)
+   (= id-1 4)
    ))
 
 
@@ -91,8 +102,7 @@
   (and
    (= scr-1 base-ctr-1)
    (= scr-0 base-ctr-0)
-   (= id-0     0)
-   (= id-1     0)
+   (= id-0 id-1)
    ))
 
 (define-fun randomness-mapping-NewSession
