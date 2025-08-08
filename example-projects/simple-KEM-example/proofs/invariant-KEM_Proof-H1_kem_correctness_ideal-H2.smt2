@@ -117,12 +117,8 @@
 ) Bool
 ; BEGIN FUNCTION BODY
   (and
-    (or
-      (and
-        (= stmt-left 4)
-        (= stmt-right 3)
-      )
-    )
+    (= stmt-left 4)
+    (= stmt-right 3)
     (= (- ctr-left base-ctr-left) (- ctr-right base-ctr-right))
   )
 )
