@@ -272,12 +272,12 @@
 
 (define-fun invariant
     ((left-game <GameState_KX_NoPrf_<$<!n!>$>>)
-     (right-game <GameState_KX_NoPrfB_<$<!n!>$>>))
+     (right-game <GameState_KX_NoPrf_<$<!n!>$>>))
   Bool
   (let ((left-prf-pkg (<game-KX_NoPrf-<$<!n!>$>-pkgstate-Prf> left-game))
         (left-game-pkg (<game-KX_NoPrf-<$<!n!>$>-pkgstate-Game> left-game))
-        (right-prf-pkg (<game-KX_NoPrfB-<$<!n!>$>-pkgstate-Prf> right-game))
-        (right-game-pkg (<game-KX_NoPrfB-<$<!n!>$>-pkgstate-Game> right-game)))
+        (right-prf-pkg (<game-KX_NoPrf-<$<!n!>$>-pkgstate-Prf> right-game))
+        (right-game-pkg (<game-KX_NoPrf-<$<!n!>$>-pkgstate-Game> right-game)))
     (let ((left-LTK (<pkg-state-PRF-<$<!n!>$>-LTK> left-prf-pkg))
           (left-PRF (<pkg-state-PRF-<$<!n!>$>-PRF> left-prf-pkg))
           (left-State (<pkg-state-Game_NoPrf-<$<!n!>$>-State> left-game-pkg))
@@ -287,14 +287,14 @@
           (left-kid (<pkg-state-PRF-<$<!n!>$>-kid_> left-prf-pkg))
           (left-ctr (<pkg-state-Game_NoPrf-<$<!n!>$>-ctr_> left-game-pkg))
           ;;
-          (right-LTK (<pkg-state-PRFB-<$<!n!>$>-LTK> right-prf-pkg))
-          (right-PRF (<pkg-state-PRFB-<$<!n!>$>-PRF> right-prf-pkg))
-          (right-State (<pkg-state-Game_NoPrfB-<$<!n!>$>-State> right-game-pkg))
-          (right-Fresh (<pkg-state-Game_NoPrfB-<$<!n!>$>-Fresh> right-game-pkg))
-          (right-RevTested (<pkg-state-Game_NoPrfB-<$<!n!>$>-RevTested> right-game-pkg))
-          (right-H (<pkg-state-PRFB-<$<!n!>$>-H> right-prf-pkg))
-          (right-kid (<pkg-state-PRFB-<$<!n!>$>-kid_> right-prf-pkg))
-          (right-ctr (<pkg-state-Game_NoPrfB-<$<!n!>$>-ctr_> right-game-pkg)))
+          (right-LTK (<pkg-state-PRF-<$<!n!>$>-LTK> right-prf-pkg))
+          (right-PRF (<pkg-state-PRF-<$<!n!>$>-PRF> right-prf-pkg))
+          (right-State (<pkg-state-Game_NoPrf-<$<!n!>$>-State> right-game-pkg))
+          (right-Fresh (<pkg-state-Game_NoPrf-<$<!n!>$>-Fresh> right-game-pkg))
+          (right-RevTested (<pkg-state-Game_NoPrf-<$<!n!>$>-RevTested> right-game-pkg))
+          (right-H (<pkg-state-PRF-<$<!n!>$>-H> right-prf-pkg))
+          (right-kid (<pkg-state-PRF-<$<!n!>$>-kid_> right-prf-pkg))
+          (right-ctr (<pkg-state-Game_NoPrf-<$<!n!>$>-ctr_> right-game-pkg)))
       (and
        (= left-kid right-kid)
        (= left-ctr right-ctr)

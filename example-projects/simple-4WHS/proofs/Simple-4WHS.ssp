@@ -59,7 +59,7 @@ proof Simple4WHS {
         }
     }
 
-    instance IdealKX_NoPrf_IdealPrf = KX_NoPrfB {
+    instance IdealKX_NoPrf_IdealPrf = KX_NoPrf {
         params {
             b       : true ,
             bprf    : true,
