@@ -7,6 +7,7 @@
           (let ((kmac-index (mk-tuple6 kid U V ni nr false))
                 (k-index (mk-tuple6 kid U V ni nr true)))
             (and
+             ;; (is-mk-none (select right-prf k-index))
              (=> (not (is-mk-none (select right-prf k-index)))
                  (= (select left-prf k-index)
                     (select right-prf k-index)))
@@ -71,16 +72,7 @@
   (forall ((ctr Int))
           (let ((state (select State ctr)))
                  (=> (not (is-mk-none state))
-                  (let  ((U    (el10-1  (maybe-get state)))
-                         (u    (el10-2  (maybe-get state)))
-                         (V    (el10-3  (maybe-get state)))
-                         (kid  (el10-4  (maybe-get state)))
-                         (acc  (el10-5  (maybe-get state)))
-                         (ni   (el10-6  (maybe-get state)))
-                         (nr   (el10-7  (maybe-get state)))
-                         (kmac (el10-8  (maybe-get state)))
-                         (sid  (el10-9  (maybe-get state)))
-                         (mess (el10-10 (maybe-get state))))
+                  (let  ((kid  (el10-4  (maybe-get state))))
                     (not (is-mk-none (select Ltk kid)))))))))
 
 (define-fun ltk-and-h-set-together
@@ -306,7 +298,6 @@
        (= left-State right-State)
 
        (no-overwriting-state left-ctr left-State)
-
        (no-overwriting-prf left-kid left-H left-LTK)
        (no-overwriting-prf right-kid right-H right-LTK)
 

@@ -36,6 +36,7 @@
           (=> (> kid max-kid)
               (is-mk-none (select Ltk kid)))))
 
+
 (define-fun ltk-and-h-set-together
     ((Ltk (Array Int (Maybe Bits_256)))
      (H (Array Int (Maybe Bool))))
@@ -77,7 +78,4 @@
        (state= left-State right-State right-LTK)
 
        (no-overwriting-prf right-kid right-LTK)
-       
-       (ltk-and-h-set-together right-LTK right-H)
-       
-       ))))
+       (ltk-and-h-set-together right-LTK right-H)))))

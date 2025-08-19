@@ -196,9 +196,9 @@ proof Simple4WHS {
                     ]
 
                 lemmas {
-                    equal-aborts: []
                     invariant:    [no-abort]
                     same-output:  [no-abort]
+                    equal-aborts: []
                 }
             }
         }

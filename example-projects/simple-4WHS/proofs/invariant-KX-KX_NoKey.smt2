@@ -1,4 +1,3 @@
-
 (define-fun state=
     ((left-State (Array Int (Maybe (Tuple11 Int Bool Int Bits_256 (Maybe Bool) (Maybe Bits_256)
                                        (Maybe Bits_256) (Maybe Bits_256) (Maybe Bits_256)
@@ -60,22 +59,11 @@
   (forall ((ctr Int))
           (let ((state (select left-State ctr)))
             (=> (not (is-mk-none state))
-                (let  ((U    (el11-1  (maybe-get state)))
-                       (u    (el11-2  (maybe-get state)))
-                       (V    (el11-3  (maybe-get state)))
-                       (ltk  (el11-4  (maybe-get state)))
+                (let  ((u    (el11-2  (maybe-get state)))
                        (acc  (el11-5  (maybe-get state)))
-                       (k    (el11-6  (maybe-get state)))
-                       (ni   (el11-7  (maybe-get state)))
-                       (nr   (el11-8  (maybe-get state)))
-                       (kmac (el11-9  (maybe-get state)))
-                       (sid  (el11-10 (maybe-get state)))
                        (mess (el11-11 (maybe-get state))))
-                  (ite (or (and u (> mess 1))
-                           (and (not u) (> mess 2)))
-                       (not (is-mk-none acc))
-                       (is-mk-none acc)))))))
-
+                  (=> (not (is-mk-none acc))
+                      (ite u (> mess 1) (> mess 2))))))))
 
 
 (define-fun time-of-nonces
@@ -86,16 +74,9 @@
   (forall ((ctr Int))
           (let ((state (select left-State ctr)))
             (=> (not (is-mk-none state))
-                (let  ((U    (el11-1  (maybe-get state)))
-                       (u    (el11-2  (maybe-get state)))
-                       (V    (el11-3  (maybe-get state)))
-                       (ltk  (el11-4  (maybe-get state)))
-                       (acc  (el11-5  (maybe-get state)))
-                       (k    (el11-6  (maybe-get state)))
+                (let  ((u    (el11-2  (maybe-get state)))
                        (ni   (el11-7  (maybe-get state)))
                        (nr   (el11-8  (maybe-get state)))
-                       (kmac (el11-9  (maybe-get state)))
-                       (sid  (el11-10 (maybe-get state)))
                        (mess (el11-11 (maybe-get state))))
                   (and
                    ;; ni
@@ -138,6 +119,6 @@
        (state= left-State right-State)
 
        (keys-computed-correctly left-State)
+
        (time-of-nonces left-State)
-       (time-of-acceptance left-State)
-       ))))
+       (time-of-acceptance left-State)))))
