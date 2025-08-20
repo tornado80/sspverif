@@ -299,21 +299,19 @@
 
        (no-overwriting-state left-ctr left-State)
        (no-overwriting-prf left-kid left-H left-LTK)
-       (no-overwriting-prf right-kid right-H right-LTK)
 
        (kmac-requires-nonces left-State)
        (kmac-is-wellformed left-State left-Fresh left-LTK left-PRF)
        (no-kmac-in-send1 left-State)
-       (kmac-before-k left-PRF)
 
        (sid-requires-nonces left-State)
        (sid-is-wellformed left-State left-H left-LTK left-PRF)
        (no-sid-in-send1 left-State)
 
        (kmac-before-sid left-State)
+       (kmac-before-k left-PRF)
 
        (referenced-kid-exist left-State left-PRF left-LTK)
-       (referenced-kid-exist right-State right-PRF right-LTK)
 
        (ltk-and-h-set-together left-LTK left-H)
        (h-and-fresh-match left-State left-Fresh left-H)
