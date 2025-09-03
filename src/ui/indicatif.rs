@@ -1,4 +1,4 @@
-use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
+use indicatif::{MultiProgress, ProgressBar};
 use indicatif_log_bridge::LogWrapper;
 use itertools::Itertools;
 use std::collections::HashMap;
@@ -49,7 +49,7 @@ impl ProofUI for IndicatifProofUI {
         let proof_progress = self.main_progress.add(ProgressBar::new(num_proofsteps));
 
         proof_progress.set_style(indicatif_style::proof_bar());
-        proof_progress.set_message(format!("{proof_name}"));
+        proof_progress.set_message(proof_name.to_string());
 
         self.seq_proof_progress
             .insert(proof_name.to_string(), proof_progress);
@@ -67,7 +67,7 @@ impl ProofUI for IndicatifProofUI {
     fn start_proofstep(&mut self, proof_name: &str, proofstep_name: &str) {
         let proofstep_progress = self.main_progress.add(ProgressBar::new(1));
         proofstep_progress.set_style(indicatif_style::proofstep_bar());
-        proofstep_progress.set_message(format!("{proofstep_name}"));
+        proofstep_progress.set_message(proofstep_name.to_string());
 
         self.seq_proofstep_progress.insert(
             (proof_name.to_string(), proofstep_name.to_string()),
@@ -119,7 +119,7 @@ impl ProofUI for IndicatifProofUI {
             self.seq_oracle_progress
                 .iter()
                 .filter_map(|(k, v)| {
-                    if (k.0 == proof_name && k.1 == proofstep_name) {
+                    if k.0 == proof_name && k.1 == proofstep_name {
                         let duration = v.elapsed();
                         v.finish_and_clear();
                         let seconds = duration.as_secs() % 60;
@@ -149,7 +149,7 @@ impl ProofUI for IndicatifProofUI {
     ) {
         let oracle_progress = self.main_progress.add(ProgressBar::new(num_lemmata));
         oracle_progress.set_style(indicatif_style::oracle_bar());
-        oracle_progress.set_message(format!("{oracle_name}"));
+        oracle_progress.set_message(oracle_name.to_string());
 
         self.seq_oracle_progress.insert(
             (
@@ -206,7 +206,7 @@ impl ProofUI for IndicatifProofUI {
             oracle_name.to_string(),
         )) {
             oracle_progress.inc(1);
-            oracle_progress.set_message(format!("{oracle_name}"));
+            oracle_progress.set_message(oracle_name.to_string());
         }
     }
 }

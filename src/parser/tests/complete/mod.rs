@@ -13,7 +13,7 @@ use crate::{
     proof::{Claim, ClaimType},
     statement::Statement,
     types::{CountSpec, Type},
-    util::prover_process::{Communicator, ProverBackend},
+    util::prover_process::ProverBackend,
 };
 use std::{
     collections::HashMap,
@@ -22,7 +22,7 @@ use std::{
     sync::{Arc, RwLock},
 };
 
-use crate::ui::{mock::MockTestProofUI, ProofUI};
+use crate::ui::mock::MockTestProofUI;
 
 #[test]
 fn empty_param_section_is_fine() {
@@ -207,9 +207,7 @@ fn equivalence_gamehome_generates_code() {
     )
     .unwrap_or_else(|err| {
         panic!(
-            "got error {err}.\n\ntranscript:\n{transcript}",
-            err = err,
-            transcript = transcript
+            "got error {err}.\n\ntranscript:\n{transcript}"
         )
     })
 }
@@ -278,7 +276,7 @@ fn package_empty_loop_works() {
             assert_eq!(i.ident(), "i");
             assert_eq!(n.ident(), "n")
         }
-        other => panic!("expected For, got {:?}", other),
+        other => panic!("expected For, got {other:?}"),
     }
 }
 
