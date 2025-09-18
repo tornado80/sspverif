@@ -5,8 +5,9 @@ use std::iter::FromIterator;
 use crate::expressions::Expression;
 use crate::identifier::game_ident::GameIdentifier;
 use crate::identifier::pkg_ident::PackageIdentifier;
-use crate::identifier::proof_ident::ProofIdentifier;
+use crate::identifier::proof_ident::{ProofConstIdentifier, ProofIdentifier};
 use crate::identifier::Identifier;
+use crate::types::CountSpec;
 use crate::writers::smt::contexts::GameInstanceContext;
 use crate::writers::smt::declare::declare_const;
 use crate::writers::smt::patterns::const_mapping::{
@@ -24,11 +25,7 @@ use crate::{
     hacks,
     package::{Export, OracleSig},
     proof::{Claim, ClaimType, GameInstance, Proof},
-    transforms::{
-        proof_transforms::EquivalenceTransform,
-        samplify::{Position, SampleInfo},
-        ProofTransform,
-    },
+    transforms::{proof_transforms::EquivalenceTransform, samplify::SampleInfo, ProofTransform},
     types::Type,
     util::prover_process::{Communicator, ProverResponse},
     writers::smt::{
@@ -114,7 +111,7 @@ pub mod error;
 mod verify_fn;
 
 use error::{Error, Result};
-pub use verify_fn::verify;
+pub use verify_fn::{verify, verify_parallel};
 
 #[derive(Clone, Copy)]
 pub(crate) struct EquivalenceContext<'a> {
@@ -161,8 +158,8 @@ impl<'a> EquivalenceContext<'a> {
 
         let mut bits_sort_suffixes = HashSet::new();
 
-        for tipe in self.types() {
-            if let Type::Bits(id) = &tipe {
+        for ty in self.types() {
+            if let Type::Bits(id) = &ty {
                 let bits_sort_suffix = match &**id {
                     crate::types::CountSpec::Literal(num) => format!("{num}"),
                     crate::types::CountSpec::Any => "*".to_string(),
@@ -173,26 +170,31 @@ impl<'a> EquivalenceContext<'a> {
                                 Some(Expression::Identifier(ident@Identifier::ProofIdentifier(ProofIdentifier::Const(_)))) => ident.ident(),
                                 Some(Expression::Identifier(_)) => unreachable!("other identifiers can't occur here"),
                                 Some(other) => todo!("ADD ERR MSG: no complex expressions allowed for now, found {other:?}"),
-                                None => {println!("skipping identifier {id:?} since it is not fully resolved"); ident.ident()}
+                                None => {log::debug!("skipping identifier {id:?} since it is not fully resolved"); ident.ident()}
                             }
                         } ,
-                        Identifier::PackageIdentifier(PackageIdentifier::Const(pkg_const_ident)) => match pkg_const_ident.game_assignment.as_ref().unwrap_or_else(|| panic!("the assigned value for this identifier should have been resolved at this point:\n  {pkg_const_ident:#?}")).as_ref() {
-                            Expression::Identifier(Identifier::GameIdentifier(GameIdentifier::Const(game_const_ident))) => {
-                                match game_const_ident.assigned_value.as_ref().map(Box::as_ref) {
-                                    Some(Expression::Identifier(ident@Identifier::ProofIdentifier(ProofIdentifier::Const(_))) )=> ident.ident(),
-                                    Some(Expression::Identifier(_) )=> unreachable!("other identifiers can't occur here"),
-                                    Some(other) => todo!("ADD ERR MSG: no complex expressions allowed for now, found {other:?}"),
-                                    None => {println!("skipping identifier {id:?} since it is not fully resolved"); ident.ident()}
-                                }
-                            },
-                            Expression::Identifier(_) => unreachable!("other identifiers can't occur here"),
-                            other => todo!("ADD ERR MSG: no complex expressions allowed for now, found {other:?}"),
-                        }
+                        Identifier::PackageIdentifier(PackageIdentifier::Const(pkg_const_ident)) =>
+                            match pkg_const_ident.game_assignment.as_ref().unwrap_or_else(
+                                || panic!("the assigned value for this identifier should have been resolved at this point:\n  {pkg_const_ident:#?}"))
+                            .as_ref() {
+                                Expression::Identifier(Identifier::GameIdentifier(GameIdentifier::Const(game_const_ident))) => {
+                                    match game_const_ident.assigned_value.as_ref().map(Box::as_ref) {
+                                        Some(Expression::Identifier(ident@Identifier::ProofIdentifier(ProofIdentifier::Const(_))) )=> ident.ident(),
+                                        Some(Expression::Identifier(_) )=> unreachable!("other identifiers can't occur here"),
+                                        Some(other) => todo!("ADD ERR MSG: no complex expressions allowed for now, found {other:?}"),
+                                        None => {log::debug!("skipping identifier {id:?} since it is not fully resolved"); ident.ident()}
+                                    }
+                                },
+                                Expression::Identifier(_) => unreachable!("other identifiers can't occur here"),
+                                other => todo!("ADD ERR MSG: no complex expressions allowed for now, found {other:?}"),
+                            }
                         Identifier::PackageIdentifier(_) => unreachable!("non-const package identifiers can't occur here"),
                         Identifier::GameIdentifier(_) => unreachable!("non-const game identifiers can't occur here"),
                         Identifier::Generated(_, _) => unreachable!("generated identifiers can't occur here"),
                     },
                 };
+
+                log::debug!("found {bits_sort_suffix}");
 
                 // ensure we don't write more than once. Earlier we also dedupe, but we dedupe
                 // identifiers, which contain more info than just the name.
@@ -206,6 +208,7 @@ impl<'a> EquivalenceContext<'a> {
         base_declarations.push(hacks::ReturnValueDeclaration.into());
         base_declarations.extend(hacks::TuplesDeclaration(1..32));
         base_declarations.extend(hacks::EmptyDeclaration);
+        base_declarations.push(hacks::SampleIdDeclaration.into());
 
         for decl in base_declarations {
             comm.write_smt(decl)?
@@ -228,13 +231,13 @@ impl<'a> EquivalenceContext<'a> {
         for (func_name, arg_types, ret_type) in funcs {
             let arg_types: SmtExpr = arg_types
                 .into_iter()
-                .map(|tipe| tipe.into())
+                .map(|ty| ty.into())
                 .collect::<Vec<SmtExpr>>()
                 .into();
 
             let smt = (
                 "declare-fun",
-                format!("<<func-proof-{func_name}>>"),
+                format!("<<func-{func_name}>>"),
                 arg_types,
                 ret_type,
             );
@@ -258,24 +261,35 @@ impl<'a> EquivalenceContext<'a> {
 
         let mut out = vec![];
 
+        // This is for debugging, so we know what section the offending thing came from
+        let mut offsets = Vec::with_capacity(16);
+
         out.append(&mut left_writer.smt_composition_randomness());
+        offsets.push((out.len(), "left writer comp rand"));
         out.append(&mut right_writer.smt_composition_randomness());
-        out.append(&mut left_writer.smt_composition_paramfuncs());
-        out.append(&mut right_writer.smt_composition_paramfuncs());
+        offsets.push((out.len(), "right writer comp rand"));
 
         out.extend(self.smt_package_const_definitions());
+        offsets.push((out.len(), "pkg const defs"));
         out.extend(self.smt_package_state_definitions());
+        offsets.push((out.len(), "pkg state defs"));
 
         out.extend(self.smt_proof_const_definition());
+        offsets.push((out.len(), "proof const defs"));
         out.extend(self.smt_game_const_definitions());
+        offsets.push((out.len(), "game const defs"));
         out.extend(self.smt_game_state_definitions());
+        offsets.push((out.len(), "game state defs"));
 
         out.extend(self.smt_proof_game_const_mapping_definitions());
+        offsets.push((out.len(), "proof to game const mapping defs"));
         out.extend(self.smt_game_pkg_const_mapping_definitions());
+        offsets.push((out.len(), "game to pkg const mapping defs"));
 
         out.extend(self.smt_package_return_definitions());
-
+        offsets.push((out.len(), "pkg return type defs"));
         out.extend(self.smt_oracle_function_definitions());
+        offsets.push((out.len(), "oracle function defs"));
         //out.append(&mut left_writer.smt_datatypes());
         // out.append(&mut right_writer.smt_datatypes());
 
@@ -287,8 +301,13 @@ impl<'a> EquivalenceContext<'a> {
         //out.append(&mut left_writer.smt_composition_all());
         //out.append(&mut right_writer.smt_composition_all());
 
-        for decl in out {
-            comm.write_smt(decl)?
+        for (i, ref decl) in out.into_iter().enumerate() {
+            comm.write_smt(decl.clone()).inspect_err(|err| {
+                let (_, section) = offsets.iter().find(|(j, _)| i <= *j).unwrap();
+                log::debug!(
+                    "failed with at item {i}(section {section}) with error {err} at decl {decl:?}"
+                )
+            })?
         }
 
         Ok(())
@@ -321,7 +340,7 @@ impl<'a> EquivalenceContext<'a> {
          *   - for $oracle in $game_inst.non-split-exports
          *     - partial return = $oracle(state, args...)
          *
-         * Jan's thoughts on the design of the next iteration of this:
+         * Thoughts on the design of the next iteration of this:
          *
          * What can go wrong here?
          *
@@ -490,13 +509,13 @@ impl<'a> EquivalenceContext<'a> {
 
         let proof_game_const_mapping_left = GameConstMappingFunction {
             proof_name: &self.proof().name,
-            game_name: &left_game_name,
+            game_name: left_game_name,
             game_inst_name: left_game_inst_name,
         };
 
         let proof_game_const_mapping_right = GameConstMappingFunction {
             proof_name: &self.proof().name,
-            game_name: &right_game_name,
+            game_name: right_game_name,
             game_inst_name: right_game_inst_name,
         };
 
@@ -705,14 +724,14 @@ impl<'a> EquivalenceContext<'a> {
             game_inst_name: left_gctx.game_inst().name(),
             pkg_inst_name: left_pctx.pkg_inst_name(),
             oracle_name,
-            tipe: left_octx.oracle_return_type(),
+            ty: left_octx.oracle_return_type(),
         };
 
         let right_is_abort = ReturnIsAbortConst {
             game_inst_name: right_gctx.game_inst().name(),
             pkg_inst_name: right_pctx.pkg_inst_name(),
             oracle_name,
-            tipe: right_octx.oracle_return_type(),
+            ty: right_octx.oracle_return_type(),
         };
 
         let consts: [(_, SmtExpr); 3] = [
@@ -764,14 +783,14 @@ impl<'a> EquivalenceContext<'a> {
 
     fn emit_invariant(&self, comm: &mut Communicator, oracle_name: &str) -> Result<()> {
         for file_name in &self.equivalence.invariants_by_oracle_name(oracle_name) {
-            println!("reading file {file_name}");
+            log::info!("reading file {file_name}");
             let file_contents = std::fs::read_to_string(file_name).map_err(|err| {
                 let file_name = file_name.clone();
                 error::new_invariant_file_read_error(oracle_name.to_string(), file_name, err)
             })?;
-            println!("read file {file_name}");
+            log::info!("read file {file_name}");
             write!(comm, "{file_contents}").unwrap();
-            println!("wrote contents of file {file_name}");
+            log::info!("wrote contents of file {file_name}");
 
             if comm.check_sat()? != ProverResponse::Sat {
                 return Err(Error::UnsatAfterInvariantRead {
@@ -1033,7 +1052,7 @@ impl<'a> EquivalenceContext<'a> {
     //         })
     //         .collect();
     //
-    //     let postcond_call = match claim.tipe {
+    //     let postcond_call = match claim.ty {
     //         ClaimType::Lemma => build_lemma_call.clone()(&claim.name),
     //         ClaimType::Relation => build_relation_call(&claim.name),
     //         ClaimType::Invariant => build_invariant_new_call(&claim.name),
@@ -1095,9 +1114,6 @@ impl<'a> EquivalenceContext<'a> {
         let octx_left = gctx_left.exported_oracle_ctx_by_name(oracle_name).unwrap();
         let octx_right = gctx_right.exported_oracle_ctx_by_name(oracle_name).unwrap();
 
-        let pkg_inst_name_left = octx_left.pkg_inst_ctx().pkg_inst_name();
-        let pkg_inst_name_right = octx_right.pkg_inst_ctx().pkg_inst_name();
-
         let pkg_name_left = octx_left.pkg_inst_ctx().pkg_name();
         let pkg_name_right = octx_right.pkg_inst_ctx().pkg_name();
 
@@ -1120,7 +1136,6 @@ impl<'a> EquivalenceContext<'a> {
         // the oracle of this name, both left and right.
         let left_return = patterns::ReturnConst {
             game_inst_name: game_inst_name_left,
-            pkg_inst_name: pkg_inst_name_left,
             game_name: game_name_left,
             game_params: game_params_left,
             pkg_name: pkg_name_left,
@@ -1132,7 +1147,6 @@ impl<'a> EquivalenceContext<'a> {
             game_inst_name: game_inst_name_right,
             game_name: game_name_right,
             game_params: game_params_right,
-            pkg_inst_name: pkg_inst_name_right,
             pkg_name: pkg_name_right,
             pkg_params: pkg_params_right,
             oracle_name,
@@ -1203,7 +1217,7 @@ impl<'a> EquivalenceContext<'a> {
             })
             .collect();
 
-        let postcond_call = match claim.tipe {
+        let postcond_call = match claim.ty {
             ClaimType::Lemma => build_lemma_call.clone()(&claim.name),
             ClaimType::Relation => build_relation_call(&claim.name),
             ClaimType::Invariant => build_invariant_new_call(&claim.name),
@@ -1211,9 +1225,9 @@ impl<'a> EquivalenceContext<'a> {
 
         let randomness_mapping = SmtForall {
             bindings: vec![
-                ("randmap-sample-id-left".into(), Type::Integer.into()),
+                ("randmap-sample-id-left".into(), "SampleId".into()),
                 ("randmap-sample-ctr-left".into(), Type::Integer.into()),
-                ("randmap-sample-id-right".into(), Type::Integer.into()),
+                ("randmap-sample-id-right".into(), "SampleId".into()),
                 ("randmap-sample-ctr-right".into(), Type::Integer.into()),
             ],
             body: (
@@ -1271,7 +1285,30 @@ impl<'a> EquivalenceContext<'a> {
             .iter()
             .find(|(name, _aux)| name == self.equivalence().right_name())
             .unwrap();
-        let mut types: Vec<_> = types_left.union(types_right).cloned().collect();
+        let types_proof: HashSet<Type> = self
+            .proof()
+            .consts
+            .iter()
+            .filter_map(|(name, ty)| match ty {
+                Type::Integer => Some(Type::Bits(Box::new(CountSpec::Identifier(
+                    Identifier::ProofIdentifier(ProofIdentifier::Const(ProofConstIdentifier {
+                        proof_name: self.proof().name.clone(),
+                        name: name.clone(),
+                        ty: Type::Integer,
+                        inst_info: None,
+                    })),
+                )))),
+                _ => None,
+            })
+            .collect();
+
+        let mut types: Vec<_> = types_left
+            .union(types_right)
+            .cloned()
+            .collect::<HashSet<_>>()
+            .union(&types_proof)
+            .cloned()
+            .collect();
         types.sort();
         types
     }
@@ -1316,7 +1353,7 @@ impl<'a> EquivalenceContext<'a> {
             .find_game_instance(self.equivalence().left_name())
             .unwrap();
 
-        println!("oracle sequence: {:?}", game_inst.game().exports);
+        log::debug!("oracle sequence: {:?}", game_inst.game().exports);
 
         game_inst
             .game()
@@ -1407,7 +1444,7 @@ impl<'a> EquivalenceContext<'a> {
             .flat_map(|pctx| pctx.oracle_contexts())
             .filter_map(move |octx| {
                 let pattern = octx.return_pattern();
-                let spec = pattern.datastructure_spec(&octx.oracle_sig().tipe);
+                let spec = pattern.datastructure_spec(&octx.oracle_sig().ty);
 
                 if already_defined.insert(pattern.sort_name()) {
                     Some(declare_datatype(&pattern, &spec))
@@ -1594,8 +1631,8 @@ impl<'a> EquivalenceContext<'a> {
 
         for selector in selectors {
             body = match selector {
-                patterns::GameStateSelector::Randomness { sample_id } => SmtIte {
-                    cond: ("=", "sample-id", *sample_id),
+                patterns::GameStateSelector::Randomness { sample_pos } => SmtIte {
+                    cond: ("=", "sampleid", sample_pos),
                     then: (pattern.selector_name(selector), state_name.clone()),
                     els: body,
                 }
@@ -1607,7 +1644,7 @@ impl<'a> EquivalenceContext<'a> {
         (
             "define-fun",
             format!("get-rand-ctr-{game_inst_name}"),
-            (("sample-id", Type::Integer),),
+            (("sampleid", "SampleId"),),
             "Int",
             body,
         )
@@ -1633,13 +1670,40 @@ impl<'a> EquivalenceContext<'a> {
          *
          */
 
+        fn type_use_proof_ident(ty: Type) -> Type {
+            match ty {
+                Type::Bits(mut count_spec) => {
+                    if let CountSpec::Identifier(identifier) = count_spec.as_mut() {
+                        let proof_ident = identifier.as_proof_identifier();
+                        assert!(
+                            proof_ident.is_some(),
+                            "expected {identifier:?} to be completely resolved"
+                        );
+                        *identifier = Identifier::ProofIdentifier(proof_ident.cloned().unwrap());
+                    }
+                    Type::Bits(count_spec)
+                }
+                _ => ty,
+            }
+        }
+
         let left_positions = &self.sample_info_left().positions;
         let right_positions = &self.sample_info_right().positions;
 
-        let left_types: HashSet<Type> =
-            HashSet::from_iter(self.sample_info_left().tipes.iter().cloned());
-        let right_types: HashSet<Type> =
-            HashSet::from_iter(self.sample_info_right().tipes.iter().cloned());
+        let left_types: HashSet<Type> = HashSet::from_iter(
+            self.sample_info_left()
+                .tys
+                .iter()
+                .cloned()
+                .map(type_use_proof_ident),
+        );
+        let right_types: HashSet<Type> = HashSet::from_iter(
+            self.sample_info_right()
+                .tys
+                .iter()
+                .cloned()
+                .map(type_use_proof_ident),
+        );
 
         let types: Vec<&Type> = left_types.intersection(&right_types).collect();
 
@@ -1647,37 +1711,41 @@ impl<'a> EquivalenceContext<'a> {
         let mut right_positions_by_type: HashMap<_, Vec<_>> = HashMap::new();
 
         for pos in left_positions {
+            let pos_ty = pos.ty.clone();
+            let pos_proof_ty = type_use_proof_ident(pos_ty);
             left_positions_by_type
-                .entry(&pos.tipe)
+                .entry(pos_proof_ty)
                 .or_default()
                 .push(pos);
         }
 
         for pos in right_positions {
+            let pos_ty = pos.ty.clone();
+            let pos_proof_ty = type_use_proof_ident(pos_ty);
             right_positions_by_type
-                .entry(&pos.tipe)
+                .entry(pos_proof_ty)
                 .or_default()
                 .push(pos);
         }
 
-        let mut body: SmtExpr = false.into();
+        let mut body: SmtExpr = true.into();
 
-        for tipe in types {
-            let sort: SmtExpr = tipe.into();
+        for ty in types {
+            let sort: SmtExpr = ty.into();
 
             let left_has_type = left_positions_by_type
-                .entry(tipe)
-                .or_default()
+                .get(ty)
+                .expect("expected that left sample info has positions for type {ty:?}")
                 .iter()
-                .map(|Position { sample_id, .. }| ("=", *sample_id, "sample-id-left").into());
+                .map(|sample_pos| ("=", *sample_pos, "sample-id-left").into());
             let mut left_or_case: Vec<SmtExpr> = vec!["or".into()];
             left_or_case.extend(left_has_type);
 
             let right_has_type = right_positions_by_type
-                .entry(tipe)
-                .or_default()
+                .get(ty)
+                .expect("expected that right sample info has positions for type {ty:?}")
                 .iter()
-                .map(|Position { sample_id, .. }| ("=", *sample_id, "sample-id-right").into());
+                .map(|sample_pos| ("=", *sample_pos, "sample-id-right").into());
 
             let mut right_or_case: Vec<SmtExpr> = vec!["or".into()];
             right_or_case.extend(right_has_type);
@@ -1709,8 +1777,8 @@ impl<'a> EquivalenceContext<'a> {
             "define-fun",
             "rand-is-eq",
             (
-                ("sample-id-left", Type::Integer),
-                ("sample-id-right", Type::Integer),
+                ("sample-id-left", "SampleId"),
+                ("sample-id-right", "SampleId"),
                 ("sample-ctr-left", Type::Integer),
                 ("sample-ctr-right", Type::Integer),
             ),
@@ -1740,7 +1808,7 @@ fn build_returns(game_inst: &GameInstance) -> Vec<(SmtExpr, SmtExpr)> {
         let pkg_params = &pkg_inst.params;
         let pkg_name = &pkg_inst.pkg.name;
         let oracle_name = &sig.name;
-        let return_type = &sig.tipe;
+        let return_type = &sig.ty;
 
         let octx = gctx
             .exported_oracle_ctx_by_name(&sig.name)
@@ -1754,7 +1822,6 @@ fn build_returns(game_inst: &GameInstance) -> Vec<(SmtExpr, SmtExpr)> {
             game_inst_name,
             game_name,
             game_params,
-            pkg_inst_name,
             pkg_name,
             pkg_params,
             oracle_name,
@@ -1764,14 +1831,14 @@ fn build_returns(game_inst: &GameInstance) -> Vec<(SmtExpr, SmtExpr)> {
             game_inst_name,
             pkg_inst_name,
             oracle_name,
-            tipe: &sig.tipe,
+            ty: &sig.ty,
         };
 
         let is_abort_const_pattern = ReturnIsAbortConst {
             game_inst_name,
             pkg_inst_name,
             oracle_name,
-            tipe: &sig.tipe,
+            ty: &sig.ty,
         };
 
         let state = octx.oracle_arg_game_state_pattern();
@@ -1797,7 +1864,7 @@ fn build_returns(game_inst: &GameInstance) -> Vec<(SmtExpr, SmtExpr)> {
             .access(
                 &return_spec,
                 &patterns::ReturnSelector::ReturnValueOrAbort {
-                    return_type: &sig.tipe,
+                    return_type: &sig.ty,
                 },
                 return_const.name(),
             )
@@ -1854,7 +1921,7 @@ fn build_rands(
         .iter()
         .map(|sample_item| {
             let sample_id = sample_item.sample_id;
-            let tipe = &sample_item.tipe;
+            let ty = &sample_item.ty;
             let game_inst_name = game_inst.name();
 
             let state = gctx
@@ -1865,7 +1932,7 @@ fn build_rands(
             let randval_name = format!("randval-{game_inst_name}-{sample_id}");
 
             let decl_randctr = declare::declare_const(randctr_name.clone(), Sort::Int);
-            let decl_randval = declare::declare_const(randval_name.clone(), tipe.clone().into());
+            let decl_randval = declare::declare_const(randval_name.clone(), ty.clone().into());
 
             // pull randomness counter for given sample_id out of the gamestate
             let randctr = gctx
@@ -1879,7 +1946,7 @@ fn build_rands(
             .into();
 
             // apply respective randomness function (based on type) to the given counter
-            let randval = gctx.smt_eval_randfn(sample_id, ("+", 0, randctr_name.as_str()), tipe);
+            let randval = gctx.smt_eval_randfn(sample_item, ("+", 0, randctr_name.as_str()), ty);
 
             let constrain_randval: SmtExpr = SmtAssert(SmtEq2 {
                 lhs: randval_name,

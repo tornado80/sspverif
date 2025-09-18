@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use crate::{
     expressions::Expression,
+    gamehops::conjecture::Conjecture,
     gamehops::equivalence::Equivalence,
     gamehops::reduction::Assumption,
     gamehops::GameHop,
@@ -33,6 +34,7 @@ use pest::{
 use thiserror::Error;
 
 use super::{
+    ast::GameInstanceName,
     common::{self, HandleTypeError},
     error::{
         AssumptionExportsNotSufficientError, AssumptionMappingMissesPackageInstanceError,
@@ -242,17 +244,17 @@ pub fn handle_proof<'a>(
     for ast in proof_ast.into_inner() {
         match ast.as_rule() {
             Rule::const_decl => {
-                let (const_name, tipe) = common::handle_const_decl(&ctx.parse_ctx(), ast)?;
+                let (const_name, ty) = common::handle_const_decl(&ctx.parse_ctx(), ast)?;
                 let clone = Declaration::Identifier(Identifier::ProofIdentifier(Const(
                     ProofConstIdentifier {
                         proof_name: proof_name.to_string(),
                         name: const_name.clone(),
-                        tipe: tipe.clone(),
+                        ty: ty.clone(),
                         inst_info: None,
                     },
                 )));
                 ctx.declare(&const_name, clone).unwrap();
-                ctx.add_const(const_name, tipe);
+                ctx.add_const(const_name, ty);
             }
             Rule::assumptions => {
                 handle_assumptions(&mut ctx, ast.into_inner())?;
@@ -353,7 +355,7 @@ fn handle_instance_assign_list(
                         GameConstIdentifier {
                             game_name: game.name.to_string(),
                             name,
-                            tipe: value.get_type(),
+                            ty: value.get_type(),
                             assigned_value: Some(Box::new(value.clone())),
                             inst_info: None,
                             game_inst_name: Some(game_inst_name.to_string()),
@@ -412,24 +414,34 @@ fn handle_game_hops<'a>(
 ) -> Result<(), ParseProofError> {
     for hop_ast in ast {
         let game_hop = match hop_ast.as_rule() {
+            Rule::conjecture => handle_conjecture(ctx, hop_ast)?,
             Rule::equivalence => handle_equivalence(ctx, hop_ast)?,
             Rule::reduction => super::reduction::handle_reduction(ctx, hop_ast)?,
             otherwise => unreachable!("found {:?} in game_hops", otherwise),
         };
-        ctx.game_hops.extend(game_hop)
+        ctx.game_hops.push(game_hop)
     }
 
     Ok(())
 }
 
+pub(crate) fn handle_conjecture<'a>(
+    _ctx: &mut ParseProofContext<'a>,
+    ast: Pair<'a, Rule>,
+) -> Result<GameHop<'a>, ParseProofError> {
+    let mut ast = ast.into_inner();
+
+    let [left_game, right_game]: [GameInstanceName; 2] = handle_identifiers(&mut ast);
+
+    Ok(GameHop::Conjecture(Conjecture::new(left_game, right_game)))
+}
+
 fn handle_equivalence<'a>(
     ctx: &mut ParseProofContext,
     ast: Pair<'a, Rule>,
-) -> Result<Vec<GameHop<'a>>, ParseProofError> {
+) -> Result<GameHop<'a>, ParseProofError> {
     let mut ast = ast.into_inner();
     let (left_name, right_name) = handle_string_pair(&mut ast);
-
-    let mut equivalences = vec![];
 
     let equivalence_data: Vec<_> = ast.map(handle_equivalence_oracle).collect();
 
@@ -467,16 +479,14 @@ fn handle_equivalence<'a>(
         .into());
     }
 
-    let eq = GameHop::Equivalence(Equivalence::new(
+    let eq = Equivalence::new(
         left_name.as_str().to_string(),
         right_name.as_str().to_string(),
         invariants,
         trees,
-    ));
+    );
 
-    equivalences.push(eq);
-
-    Ok(equivalences)
+    Ok(GameHop::Equivalence(eq))
 }
 
 fn handle_equivalence_oracle(ast: Pair<Rule>) -> (String, Vec<String>, Vec<(String, Vec<String>)>) {

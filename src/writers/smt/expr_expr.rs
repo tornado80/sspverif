@@ -1,34 +1,23 @@
 use super::exprs::SmtExpr;
 use crate::expressions::Expression;
-use crate::identifier::game_ident::{GameConstIdentifier, GameIdentifier};
-use crate::identifier::pkg_ident::{PackageConstIdentifier, PackageIdentifier};
-use crate::identifier::proof_ident::{ProofConstIdentifier, ProofIdentifier};
-use crate::identifier::Identifier;
 use crate::types::Type;
 
 impl From<Expression> for SmtExpr {
     fn from(expr: Expression) -> SmtExpr {
         match expr {
             Expression::EmptyTable(t) => {
-                if let Type::Table(idxtipe, valtipe) = t {
+                if let Type::Table(idxty, valty) = t {
                     (
-                        (
-                            "as",
-                            "const",
-                            ("Array", *idxtipe, Type::Maybe(valtipe.clone())),
-                        ),
-                        ("as", "mk-none", Type::Maybe(valtipe)),
+                        ("as", "const", ("Array", *idxty, Type::Maybe(valty.clone()))),
+                        ("as", "mk-none", Type::Maybe(valty)),
                     )
                         .into()
                 } else {
-                    panic!("Empty table of type {:?}", t)
+                    panic!("Empty table of type {t:?}")
                 }
             }
             Expression::Unwrap(inner) => {
-                panic!(
-                    "found an unwrap and don't knwo what to do with it -- {expr:?}",
-                    expr = inner
-                );
+                panic!("found an unwrap and don't knwo what to do with it -- {inner:?}");
                 //panic!("unwrap expressions need to be on the right hand side of an assign!");
                 // TODO find a better way to present that error to the user.
             }
@@ -40,7 +29,7 @@ impl From<Expression> for SmtExpr {
                 SmtExpr::Atom("mk-none".into()),
                 Type::Maybe(Box::new(inner)).into(),
             ]),
-            Expression::StringLiteral(litname) => SmtExpr::Atom(format!("\"{}\"", litname)),
+            Expression::StringLiteral(litname) => SmtExpr::Atom(format!("\"{litname}\"")),
             Expression::BooleanLiteral(litname) => SmtExpr::Atom(litname),
             Expression::IntegerLiteral(litname) => SmtExpr::Atom(format!("{litname}")),
             Expression::Equals(exprs) => {
@@ -160,33 +149,8 @@ impl From<Expression> for SmtExpr {
             }
              */
             Expression::FnCall(id, exprs) => {
-                let func_name = match id {
-                    Identifier::PackageIdentifier(PackageIdentifier::Const(
-                        PackageConstIdentifier {
-                            name,
-                            game_inst_name: Some(game_inst_name),
-                            pkg_inst_name: Some(pkg_inst_name),
-                            ..
-                        },
-                    )) => {
-                        format!("<<func-pkg-{game_inst_name}-{pkg_inst_name}-{name}>>")
-                    }
-
-                    Identifier::GameIdentifier(GameIdentifier::Const(GameConstIdentifier {
-                        name,
-                        game_inst_name: Some(game_inst_name),
-                        ..
-                    })) => {
-                        format!("<<func-game-{game_inst_name}-{name}>>")
-                    }
-                    Identifier::ProofIdentifier(ProofIdentifier::Const(ProofConstIdentifier {
-                        name,
-                        ..
-                    })) => {
-                        format!("<<func-proof-{name}>>")
-                    }
-                    other => unreachable!("unexpected identifier in function call: {other:?}"),
-                };
+                let name_in_proof = id.as_proof_identifier().unwrap().ident_ref();
+                let func_name = format!("<<func-{name_in_proof}>>");
 
                 SmtExpr::List(
                     Some(func_name.into())
@@ -239,7 +203,7 @@ impl From<Expression> for SmtExpr {
                 set
             }
             _ => {
-                panic!("not implemented: {:?}", expr);
+                panic!("not implemented: {expr:?}");
             }
         }
     }

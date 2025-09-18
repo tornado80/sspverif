@@ -62,7 +62,7 @@ impl Expression {
     pub fn get_type(&self) -> Type {
         match self {
             Expression::Bot => Type::Empty,
-            Expression::Sample(tipe) => tipe.clone(),
+            Expression::Sample(ty) => ty.clone(),
             Expression::StringLiteral(_) => Type::String,
             Expression::BooleanLiteral(_) => Type::Boolean,
             Expression::IntegerLiteral(_) => Type::Integer,
@@ -89,10 +89,10 @@ impl Expression {
                     ident.ident()
                 ),
             },
-            Expression::None(tipe) => Type::Maybe(Box::new(tipe.clone())),
+            Expression::None(ty) => Type::Maybe(Box::new(ty.clone())),
             Expression::Some(expr) => Type::Maybe(Box::new(expr.get_type())),
             Expression::Unwrap(expr) => match expr.get_type() {
-                Type::Maybe(tipe) => *tipe,
+                Type::Maybe(ty) => *ty,
                 _ => unreachable!("Unwrapping non-maybe {expr:?}", expr = expr),
             },
 
@@ -217,7 +217,7 @@ impl Expression {
             }
 
             _ => {
-                panic!("Expression: not implemented: {:#?}", self)
+                panic!("Expression: not implemented: {self:#?}")
             }
         }
     }
@@ -287,7 +287,7 @@ impl Expression {
                 Expression::Set(exprs.iter().map(|expr| expr.borrow_map(f)).collect())
             }
             _ => {
-                panic!("Expression: not implemented: {:#?}", self)
+                panic!("Expression: not implemented: {self:#?}")
             }
         })
     }
@@ -445,7 +445,7 @@ impl Expression {
                 (ac, Expression::Set(newexprs))
             }
             _ => {
-                panic!("Expression: not implemented: {:#?}", self)
+                panic!("Expression: not implemented: {self:#?}")
             }
         };
         f(ac, ex)
@@ -453,6 +453,29 @@ impl Expression {
 
     pub fn new_equals(exprs: Vec<&Expression>) -> Expression {
         Expression::Equals(exprs.into_iter().cloned().collect())
+    }
+
+    pub fn into_identifier(self) -> Option<Identifier> {
+        if let Self::Identifier(v) = self {
+            Some(v)
+        } else {
+            None
+        }
+    }
+
+    pub fn as_identifier_mut(&mut self) -> Option<&mut Identifier> {
+        if let Self::Identifier(v) = self {
+            Some(v)
+        } else {
+            None
+        }
+    }
+    pub fn as_identifier(&self) -> Option<&Identifier> {
+        if let Self::Identifier(v) = self {
+            Some(v)
+        } else {
+            None
+        }
     }
 }
 

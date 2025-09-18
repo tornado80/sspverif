@@ -19,6 +19,24 @@ impl From<ReturnValueDeclaration> for SmtExpr {
     }
 }
 
+pub struct SampleIdDeclaration;
+
+impl From<SampleIdDeclaration> for SmtExpr {
+    fn from(_: SampleIdDeclaration) -> Self {
+        (
+            "declare-datatype",
+            "SampleId",
+            ((
+                "sample-id",
+                ("sample-pkg-name", "String"),
+                ("sample-oracle-name", "String"),
+                ("sample-name", "String"),
+            ),),
+        )
+            .into()
+    }
+}
+
 pub struct MaybeDeclaration;
 
 impl Display for MaybeDeclaration {
@@ -167,8 +185,8 @@ impl From<EmptyDeclaration> for Vec<SmtExpr> {
 }
 
 macro_rules! impl_IntoIterator {
-    ($tipe:ident) => {
-        impl IntoIterator for $tipe {
+    ($ty:ident) => {
+        impl IntoIterator for $ty {
             type Item = SmtExpr;
             type IntoIter = <Vec<SmtExpr> as IntoIterator>::IntoIter;
 

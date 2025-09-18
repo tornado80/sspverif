@@ -66,7 +66,7 @@ impl Unwrapifier {
                 // This has the same effect, because we'd increment at exactly the same place we
                 // push to the array.
                 let unwrap_id = self.ctr + acc.len();
-                let varname: String = format!("unwrap-{}", unwrap_id);
+                let varname: String = format!("unwrap-{unwrap_id}");
                 let ty = e.get_type();
                 let ident = Identifier::Generated(varname.clone(), ty);
 
@@ -89,7 +89,7 @@ impl Unwrapifier {
         for stmt in cb.0.clone() {
             match stmt {
                 Statement::Abort(_)
-                | Statement::Sample(_, None, _, _, _)
+                | Statement::Sample(_, None, _, _, _, _)
                 | Statement::Return(None, _) => {
                     newcode.push(stmt);
                 }
@@ -149,7 +149,14 @@ impl Unwrapifier {
                         file_pos,
                     ))
                 }
-                Statement::Sample(ref id, Some(ref expr), ref sample_id, ref tipe, file_pos) => {
+                Statement::Sample(
+                    ref id,
+                    Some(ref expr),
+                    ref sample_id,
+                    ref ty,
+                    ref sample_name,
+                    file_pos,
+                ) => {
                     let (newexpr, unwraps) = self.replace_unwrap(expr);
                     if unwraps.is_empty() {
                         newcode.push(stmt);
@@ -159,7 +166,8 @@ impl Unwrapifier {
                             id.clone(),
                             Some(newexpr),
                             *sample_id,
-                            tipe.clone(),
+                            ty.clone(),
+                            sample_name.clone(),
                             file_pos,
                         ));
                     }
@@ -177,7 +185,7 @@ impl Unwrapifier {
                     name,
                     args,
                     target_inst_name,
-                    tipe,
+                    ty,
                     file_pos,
                 }) => {
                     let opt_idx = opt_idx.map(|expr| {
@@ -200,7 +208,7 @@ impl Unwrapifier {
                         name,
                         args,
                         target_inst_name,
-                        tipe,
+                        ty,
                         file_pos,
                     }));
                 }
@@ -250,7 +258,7 @@ mod test {
             pkg_name: "TestPackage".to_string(),
             oracle_name: "TestOracle".to_string(),
             name: name.to_string(),
-            tipe: ty,
+            ty,
             pkg_inst_name: None,
             game_name: None,
             game_inst_name: None,

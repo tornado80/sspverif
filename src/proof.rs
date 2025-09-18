@@ -1,23 +1,16 @@
-use itertools::Itertools as _;
-
 use crate::{
     expressions::Expression,
     gamehops::{reduction::Assumption, GameHop},
-    identifier::{
-        game_ident::{GameConstIdentifier, GameIdentifier},
-        pkg_ident::{PackageConstIdentifier, PackageIdentifier},
-        proof_ident::{ProofConstIdentifier, ProofIdentifier},
-        Identifier,
-    },
-    package::{Composition, OracleSig, Package},
+    identifier::game_ident::GameConstIdentifier,
+    package::{Composition, Package},
     packageinstance::instantiate::InstantiationContext,
-    types::{CountSpec, Type},
+    types::Type,
 };
 
 ////////////////////////////////////////////////////
 
 #[derive(Debug, Clone)]
-pub(crate) struct GameInstance {
+pub struct GameInstance {
     pub(crate) name: String,
     pub(crate) game: Composition,
     pub(crate) types: Vec<(String, Type)>,
@@ -57,8 +50,26 @@ mod instantiate {
         //     .map(|split_oracle_def| inst_ctx.rewrite_split_oracle_def(split_oracle_def.clone()))
         //     .collect();
 
+        let new_state = pkg_inst
+            .pkg
+            .state
+            .iter()
+            .cloned()
+            .map(|(ident, ty, span)| (ident, inst_ctx.rewrite_type(ty), span))
+            .collect();
+
+        let new_params = pkg_inst
+            .pkg
+            .params
+            .iter()
+            .cloned()
+            .map(|(ident, ty, span)| (ident, inst_ctx.rewrite_type(ty), span))
+            .collect();
+
         let pkg = Package {
             oracles: new_oracles,
+            state: new_state,
+            params: new_params,
             // split_oracles: new_split_oracles,
             ..pkg_inst.pkg.clone()
         };
@@ -71,7 +82,27 @@ mod instantiate {
             *index = inst_ctx.rewrite_expression(index);
         }
 
-        PackageInstance { pkg, ..pkg_inst }
+        let new_params = pkg_inst
+            .params
+            .iter()
+            .map(|(ident, expr)| {
+                (
+                    inst_ctx
+                        .rewrite_pkg_identifier(
+                            crate::identifier::pkg_ident::PackageIdentifier::Const(ident.clone()),
+                        )
+                        .into_const()
+                        .unwrap(),
+                    inst_ctx.rewrite_expression(expr),
+                )
+            })
+            .collect();
+
+        PackageInstance {
+            pkg,
+            params: new_params,
+            ..pkg_inst
+        }
     }
 }
 
@@ -98,9 +129,16 @@ impl GameInstance {
             })
             .collect();
 
+        let resolved_params = game
+            .consts
+            .iter()
+            .map(|(ident, ty)| (ident.clone(), inst_ctx.rewrite_type(ty.clone())))
+            .collect();
+
         let game = Composition {
             name: game.name.clone(),
             pkgs: new_pkg_instances,
+            consts: resolved_params,
 
             ..game
         };
@@ -131,141 +169,6 @@ impl GameInstance {
     pub(crate) fn game(&self) -> &Composition {
         &self.game
     }
-
-    /// instantiates the provided type. this means that occurrences game parameters
-    /// are replaced with the assigned values.
-    ///
-    /// This also means that the types somehow don't match 100%, this will just ignore that type and
-    /// leave it as-is. But that shouldn't really happen, since we compare the types in the package
-    /// params with the types in the code. But it could be the source of annoying-to-debug bugs.
-    ///
-    /// this is needed for Bits(n), since the `n` is different in game and package.
-    pub(crate) fn instantiate_type(&self, ty: Type) -> Type {
-        // we only want the ints, because the maybe be in Bits(n)
-        let int_params = self
-            .consts
-            .iter()
-            .filter(|(_, expr)| matches!(expr.get_type(), Type::Integer))
-            .flat_map(|(ident, expr)| {
-                let assigned_countspec = match expr {
-                    Expression::Identifier(Identifier::ProofIdentifier(_)) => {
-                        CountSpec::Identifier(Identifier::GameIdentifier(GameIdentifier::Const(GameConstIdentifier {
-                            assigned_value: Some(Box::new(expr.clone())),
-                            ..ident.clone()
-                        }))).into()
-                    },
-                    Expression::IntegerLiteral(num) => CountSpec::Literal(*num as u64),
-                    other => panic!("found unexpected expression in constant assignment in game instance: {other:?}"),
-                };
-
-                // The code that we are replacing might not have been enriched with this optional
-                // information yet, so we we take it out in order for the comparison to not fail
-                // TODO: Maybe just implement comparison such that these values are ignored?
-                let noned_ident = GameConstIdentifier {
-                    game_inst_name: None,
-                    proof_name: None,
-                    inst_info: None,
-                    assigned_value: None,
-                    ..ident.clone()
-                };
-
-                vec![
-                        (
-                                noned_ident.clone(),
-                                Type::Bits(Box::new(assigned_countspec.clone())),
-                            ),
-                            (
-                                ident.clone(),
-                                Type::Bits(Box::new(assigned_countspec)),
-                            ),
-                ]
-            }).collect_vec();
-
-        match &ty {
-            Type::Bits(cs) => match cs.as_ref() {
-                CountSpec::Identifier(Identifier::PackageIdentifier(PackageIdentifier::Const(
-                    pkg_ident,
-                ))) => {
-                    if pkg_ident.game_name.as_ref().map(String::as_str) != Some(self.game_name()) {
-                        println!("found possible instantiation bug - game name or game instance name not set. skipping");
-                        println!("ty:   {ty:?}");
-                        println!("self: {self:?}");
-                        return ty;
-                    }
-
-                    let more = int_params
-                        .into_iter()
-                        .flat_map(|(game_ident, new_ty)| {
-                            vec![
-                                (
-                                    Type::Bits(Box::new(CountSpec::Identifier(
-                                        Identifier::PackageIdentifier(PackageIdentifier::Const(
-                                            PackageConstIdentifier {
-                                                game_assignment: Some(Box::new(
-                                                    Expression::Identifier(
-                                                        Identifier::GameIdentifier(
-                                                            GameIdentifier::Const(
-                                                                game_ident.clone(),
-                                                            ),
-                                                        ),
-                                                    ),
-                                                )),
-                                                ..pkg_ident.clone()
-                                            },
-                                        )),
-                                    ))),
-                                    new_ty.clone(),
-                                ),
-                                (
-                                    Type::Bits(Box::new(CountSpec::Identifier(
-                                        Identifier::GameIdentifier(GameIdentifier::Const(
-                                            game_ident.clone(),
-                                        )),
-                                    ))),
-                                    new_ty.clone(),
-                                ),
-                            ]
-                        })
-                        .collect_vec();
-                    ty.rewrite_type(&more)
-                }
-                CountSpec::Identifier(Identifier::GameIdentifier(GameIdentifier::Const(_))) => {
-                    let more = int_params
-                        .into_iter()
-                        .flat_map(|(game_ident, new_ty)| {
-                            Some((
-                                Type::Bits(Box::new(CountSpec::Identifier(
-                                    Identifier::GameIdentifier(GameIdentifier::Const(
-                                        game_ident.clone(),
-                                    )),
-                                ))),
-                                new_ty.clone(),
-                            ))
-                        })
-                        .collect_vec();
-                    ty.rewrite_type(&more)
-                }
-                _ => ty,
-            },
-            _ => ty,
-        }
-    }
-
-    /// instantiates the provided oraclae signature. this means that occurrences game parameters
-    /// are replaced with the assigned values.
-    ///
-    /// this is needed for Bits(n), since the `n` is different in game and package.
-    pub(crate) fn instantiate_oracle_signature(&self, sig: OracleSig) -> OracleSig {
-        OracleSig {
-            args: sig
-                .args
-                .into_iter()
-                .map(|(name, ty)| (name, self.instantiate_type(ty)))
-                .collect(),
-            tipe: self.instantiate_type(sig.tipe),
-            ..sig
-        }
-    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -290,18 +193,18 @@ impl ClaimType {
 #[derive(Clone, Debug, PartialEq, PartialOrd, Ord, Eq)]
 pub struct Claim {
     pub(crate) name: String,
-    pub(crate) tipe: ClaimType,
+    pub(crate) ty: ClaimType,
     pub(crate) dependencies: Vec<String>,
 }
 
 impl Claim {
     pub fn from_tuple(data: (String, Vec<String>)) -> Self {
         let (name, dependencies) = data;
-        let tipe = ClaimType::guess_from_name(&name);
+        let ty = ClaimType::guess_from_name(&name);
 
         Self {
             name,
-            tipe,
+            ty,
             dependencies,
         }
     }
@@ -310,8 +213,8 @@ impl Claim {
         &self.name
     }
 
-    pub fn tipe(&self) -> ClaimType {
-        self.tipe
+    pub fn ty(&self) -> ClaimType {
+        self.ty
     }
 
     pub fn dependencies(&self) -> &[String] {
@@ -321,32 +224,20 @@ impl Claim {
 
 #[derive(Clone, Debug)]
 pub struct Proof<'a> {
-    pub(crate) name: String,
-    pub(crate) consts: Vec<(String, Type)>,
-    pub(crate) instances: Vec<GameInstance>,
-    pub(crate) assumptions: Vec<Assumption>,
-    pub(crate) game_hops: Vec<GameHop<'a>>,
-    pub(crate) pkgs: Vec<Package>,
+    pub name: String,
+    pub consts: Vec<(String, Type)>,
+    pub instances: Vec<GameInstance>,
+    pub assumptions: Vec<Assumption>,
+    pub game_hops: Vec<GameHop<'a>>,
+    pub pkgs: Vec<Package>,
 }
 
-impl Proof<'_> {
-    pub(crate) fn with_new_instances(&self, instances: Vec<GameInstance>) -> Proof {
+impl<'a> Proof<'a> {
+    pub(crate) fn with_new_instances(&self, instances: Vec<GameInstance>) -> Proof<'a> {
         Proof {
             instances,
             ..self.clone()
         }
-    }
-
-    pub(crate) fn as_name(&self) -> &str {
-        &self.name
-    }
-
-    pub(crate) fn game_hops(&self) -> &[GameHop] {
-        &self.game_hops
-    }
-
-    pub(crate) fn instances(&self) -> &[GameInstance] {
-        &self.instances
     }
 
     pub(crate) fn find_game_instance(&self, game_inst_name: &str) -> Option<&GameInstance> {

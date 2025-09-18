@@ -6,23 +6,6 @@ composition H6 {
         const b: Bool;
         const bprf: Bool;
     
-    instance Game_noprfkey = Game_noprfkey {
-        params {
-        b: b,
-        n: n,
-        zeron: zeron,
-        prf: prf,
-        mac: mac,
-        }
-    }
-    instance Prot = ProtNoKeyOnlyKid {
-        params {
-        n: n,
-        zeron: zeron,
-        prf: prf,
-        mac: mac,
-        }
-    }
 	instance PRF = PRF {
 	    params {
             b: bprf,
@@ -36,6 +19,23 @@ composition H6 {
 			b: true,
 		}
 	}
+    instance Prot = ProtNoKeyOnlyKid {
+        params {
+        n: n,
+        zeron: zeron,
+        prf: prf,
+        mac: mac,
+        }
+    }
+    instance Game_noprfkey = Game_noprfkey {
+        params {
+        b: b,
+        n: n,
+        zeron: zeron,
+        prf: prf,
+        mac: mac,
+        }
+    }
 
     compose {
         adversary: {
@@ -59,7 +59,7 @@ composition H6 {
             Run3:      Prot,
             Run4:      Prot,
             Run5:      Prot,
-			Exists:    PRF,
+			Hon:       PRF,
 			Eval:      PRF,
         },
 

@@ -1,4 +1,3 @@
-use miette::Diagnostic;
 /**
  *  project is the high-level structure of sspverif.
  *
@@ -6,7 +5,6 @@ use miette::Diagnostic;
  *  we also facilitate individual proof steps here, and provide an interface for doing the whole proof.
  *
  */
-use std::io::ErrorKind;
 use std::path::Path;
 use std::{collections::HashMap, path::PathBuf};
 use walkdir;
@@ -16,7 +14,6 @@ use error::{Error, Result};
 use crate::parser::ast::Identifier;
 use crate::parser::package::handle_pkg;
 use crate::parser::SspParser;
-use crate::util::prover_process::Communicator;
 use crate::{
     gamehops::{equivalence, GameHop},
     package::{Composition, Package},
@@ -24,6 +21,8 @@ use crate::{
     transforms::Transformation,
     util::prover_process::ProverBackend,
 };
+
+use crate::ui::{indicatif::IndicatifProofUI, ProofUI};
 
 pub const PROJECT_FILE: &str = "ssp.toml";
 
@@ -102,12 +101,20 @@ impl Files {
 #[derive(Debug)]
 pub struct Project<'a> {
     root_dir: PathBuf,
-    packages: HashMap<String, Package>,
     games: HashMap<String, Composition>,
     proofs: HashMap<String, Proof<'a>>,
 }
 
 impl<'a> Project<'a> {
+    #[cfg(test)]
+    pub(crate) fn empty() -> Self {
+        Self {
+            root_dir: PathBuf::new(),
+            games: HashMap::new(),
+            proofs: HashMap::new(),
+        }
+    }
+
     pub fn load(files: &'a Files) -> Result<Project<'a>> {
         let root_dir = find_project_root()?;
 
@@ -143,7 +150,6 @@ impl<'a> Project<'a> {
 
         let project = Project {
             root_dir,
-            packages,
             games,
             proofs,
         };
@@ -158,7 +164,7 @@ impl<'a> Project<'a> {
         for proof_key in proof_keys.into_iter() {
             let proof = &self.proofs[proof_key];
             let max_width_left = proof
-                .game_hops()
+                .game_hops
                 .iter()
                 .map(GameHop::left_game_instance_name)
                 .map(str::len)
@@ -166,7 +172,7 @@ impl<'a> Project<'a> {
                 .unwrap_or(0);
 
             println!("{proof_key}:");
-            for (i, game_hop) in proof.game_hops().iter().enumerate() {
+            for (i, game_hop) in proof.game_hops.iter().enumerate() {
                 match game_hop {
                     GameHop::Equivalence(eq) => {
                         let left_name = eq.left_name();
@@ -182,6 +188,13 @@ impl<'a> Project<'a> {
                             red.assumption_name()
                         );
                     }
+                    GameHop::Conjecture(conj) => {
+                        println!(
+                            "{i}: Conjecture   {} ~= {}",
+                            conj.left_name().as_str(),
+                            conj.right_name().as_str()
+                        );
+                    }
                 }
             }
         }
@@ -194,44 +207,60 @@ impl<'a> Project<'a> {
         &self,
         backend: ProverBackend,
         transcript: bool,
+        parallel: usize,
         req_proof: &Option<String>,
         req_proofstep: Option<usize>,
+        req_oracle: &Option<String>,
     ) -> Result<()> {
         let mut proof_keys: Vec<_> = self.proofs.keys().collect();
         proof_keys.sort();
 
+        let mut ui = IndicatifProofUI::new(proof_keys.len().try_into().unwrap());
+
         for proof_key in proof_keys.into_iter() {
             let proof = &self.proofs[proof_key];
+            ui.start_proof(&proof.name, proof.game_hops.len().try_into().unwrap());
+
             if let Some(ref req_proof) = req_proof {
                 if proof_key != req_proof {
+                    ui.finish_proof(&proof.name);
                     continue;
                 }
             }
-            for (i, game_hop) in proof.game_hops().iter().enumerate() {
+
+            for (i, game_hop) in proof.game_hops.iter().enumerate() {
+                ui.start_proofstep(&proof.name, &format!("{game_hop}"));
+
                 if let Some(ref req_proofstep) = req_proofstep {
                     if i != *req_proofstep {
+                        ui.finish_proofstep(&proof.name, &format!("{game_hop}"));
                         continue;
                     }
                 }
+
                 match game_hop {
-                    GameHop::Reduction(_) => { /* the reduction has been verified at parse time */ }
+                    GameHop::Reduction(_) => {
+                        ui.proofstep_is_reduction(&proof.name, &format!("{game_hop}"));
+                    }
+                    GameHop::Conjecture(_) => {
+                        ui.proofstep_is_reduction(&proof.name, &format!("{game_hop}"));
+                    }
                     GameHop::Equivalence(eq) => {
-                        let transcript_file: std::fs::File;
-                        let prover = if transcript {
-                            transcript_file =
-                                self.get_joined_smt_file(eq.left_name(), eq.right_name())?;
-                            Communicator::new_with_transcript(backend, transcript_file)?
+                        if parallel > 1 {
+                            equivalence::verify_parallel(
+                                self, &mut ui, eq, proof, backend, transcript, parallel, req_oracle,
+                            )?;
                         } else {
-                            Communicator::new(backend)?
-                        };
-                        equivalence::verify(eq, proof, prover)?;
+                            equivalence::verify(
+                                self, &mut ui, eq, proof, backend, transcript, req_oracle,
+                            )?;
+                        }
                     }
                 }
-
-                let proof_name = proof.as_name();
-
-                println!("proof {proof_name}: step {i}: checked");
+                ui.finish_proofstep(&proof.name, &format!("{game_hop}"));
             }
+
+            ui.finish_proof(&proof.name);
         }
 
         Ok(())
@@ -392,13 +421,20 @@ impl<'a> Project<'a> {
         &self,
         left_game_name: &str,
         right_game_name: &str,
+        oracle_name: Option<&str>,
     ) -> Result<std::fs::File> {
         let mut path = self.root_dir.clone();
 
         path.push("_build/code_eq/joined/");
         std::fs::create_dir_all(&path)?;
 
-        path.push(format!("{left_game_name}_{right_game_name}.smt2"));
+        if let Some(oracle_name) = oracle_name {
+            path.push(format!(
+                "{left_game_name}_{right_game_name}_{oracle_name}.smt2"
+            ));
+        } else {
+            path.push(format!("{left_game_name}_{right_game_name}.smt2"));
+        }
         let f = std::fs::OpenOptions::new()
             .create(true)
             .write(true)

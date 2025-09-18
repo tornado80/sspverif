@@ -64,9 +64,9 @@ impl<W: Write> FmtWriter<W> {
             Type::Tuple(types) => {
                 self.write_string("(")?;
                 let mut maybe_comma = "";
-                for tipe in types {
+                for ty in types {
                     self.write_string(maybe_comma)?;
-                    self.write_type(tipe)?;
+                    self.write_type(ty)?;
                     maybe_comma = ", ";
                 }
                 self.write_string(")")
@@ -80,12 +80,23 @@ impl<W: Write> FmtWriter<W> {
             }
             Type::UserDefined(type_name) => self.write_string(type_name),
             Type::Unknown => self.write_string("Unknown"),
+            Type::Fn(args, ret) => {
+                self.write_string("fn ")?;
+                let mut maybe_comma = "";
+                for ty in args {
+                    self.write_string(maybe_comma)?;
+                    self.write_type(ty)?;
+                    maybe_comma = ", ";
+                }
+                self.write_string(" -> ")?;
+                self.write_type(ret)
+            }
             _ => todo!("{:#?}", t),
         }
     }
 
     pub fn write_string(&mut self, string: &str) -> Result {
-        write!(&mut self.w, "{}", string)
+        write!(&mut self.w, "{string}")
     }
 
     pub fn write_call(&mut self, name: &str, args: &[Expression]) -> Result {
@@ -231,7 +242,7 @@ impl<W: Write> FmtWriter<W> {
                     self.write_string("return;\n")?;
                 }
             }
-            Statement::Sample(id, idx, sample_id, t, _) => {
+            Statement::Sample(id, idx, sample_id, t, _, _) => {
                 self.write_identifier(id)?;
 
                 if let Some(idx) = idx {
@@ -244,7 +255,7 @@ impl<W: Write> FmtWriter<W> {
                 self.write_type(t)?;
                 if self.annotate {
                     if let Some(sample_id) = sample_id {
-                        self.write_string(&format!("; /* with sample_id {} */\n", sample_id))?;
+                        self.write_string(&format!("; /* with sample_id {sample_id} */\n"))?;
                     } else {
                         self.write_string("; /* sample_id not assigned */\n")?;
                     }
@@ -256,7 +267,7 @@ impl<W: Write> FmtWriter<W> {
                 name,
                 args,
                 target_inst_name,
-                tipe: opt_tipe,
+                ty: opt_ty,
                 ..
             }) => {
                 self.write_identifier(id)?;
@@ -272,14 +283,13 @@ impl<W: Write> FmtWriter<W> {
                 if self.annotate {
                     if let Some(target_inst_name) = target_inst_name {
                         self.write_string(&format!(
-                            "; /* with target instance name {} */",
-                            target_inst_name
+                            "; /* with target instance name {target_inst_name} */"
                         ))?;
                     } else {
                         self.write_string("; /* target instance name not assigned */")?;
                     }
-                    if let Some(tipe) = opt_tipe {
-                        self.write_string(&format!(" /* return type {:?} */", tipe))?;
+                    if let Some(ty) = opt_ty {
+                        self.write_string(&format!(" /* return type {ty:?} */"))?;
                     } else {
                         self.write_string(" /* return type unknown */")?;
                     }
@@ -350,9 +360,7 @@ impl<W: Write> FmtWriter<W> {
     }
 
     pub fn write_oraclesig(&mut self, sig: &OracleSig) -> Result {
-        let OracleSig {
-            name, args, tipe, ..
-        } = sig;
+        let OracleSig { name, args, ty, .. } = sig;
 
         self.write_string(name)?;
         self.write_string("(")?;
@@ -360,14 +368,14 @@ impl<W: Write> FmtWriter<W> {
         let mut maybe_comma = "";
         for (arg_name, arg_type) in args {
             self.write_string(maybe_comma)?;
-            self.write_string(&format!("{}: ", arg_name))?;
+            self.write_string(&format!("{arg_name}: "))?;
             self.write_type(arg_type)?;
             maybe_comma = ", ";
         }
 
         self.write_string(")")?;
         self.write_string(" -> ")?;
-        self.write_type(tipe)?;
+        self.write_type(ty)?;
 
         Ok(())
     }

@@ -8,16 +8,17 @@ package Game_noprfkey {
     }
     
     state {
-          H:     Table(Integer, Bool),          /* administrative kid, honesty */
+          /* H:     Table(Integer, Bool),*/          /* administrative kid, honesty */
           ctr_:  Integer,                       /* administrative sid  */
-          kid_:  Integer,                       /* administrative kid  */
+          /* kid_:  Integer, */                      /* administrative kid  */
 		  /* session key table, reveal -> (.,false) ; test -> (.,true) */
-          RevTested:  Table((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256))),
+          RevTested:  Table((Integer,Integer,Bits(256),Bits(256),Bits(256)),
 		               Bool),
 		  Fresh: Table(Integer, Bool),
+		  RevTestEval: Table((Integer,Integer,Integer,Bits(256),Bits(256)),Integer),
           /* Authentication */
-          First:  Table((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256))), Integer),
-          Second: Table((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256))), Integer),
+          First:  Table((Integer,Integer,Bits(256),Bits(256),Bits(256)), Integer),
+          Second: Table((Integer,Integer,Bits(256),Bits(256),Bits(256)), Integer),
           State: Table(Integer,
                   /*    administrative sid  */
                 (
@@ -28,9 +29,6 @@ package Game_noprfkey {
                         true : responder,*/ 
                  Integer,
                   /* Intended Peer */
-                 Bool,
-                  /*    false: initiator, 
-                        true : responder,*/ 
                  Integer,
                   /*    kid          */
                  Maybe(Bool),
@@ -45,7 +43,7 @@ package Game_noprfkey {
                         /* responder nonce */
                  Maybe(Bits(256)),
                         /* MAC key */
-                 Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
+                 Maybe((Integer,Integer,Bits(256),Bits(256),Bits(256))),
                         /* SID */
                  Integer))
                         /* nbr of messages sent */
@@ -53,73 +51,71 @@ package Game_noprfkey {
           }
 
     import oracles {
-	     Exists(h: Integer),
+	     Hon(h: Integer) -> Bool,
 		 Eval(h: Integer, a: Integer, aa: Integer, c: Bits(256), d: Bits(256), e: Bool) -> Bits(256),
-         Run1(state: (Integer,Bool,Integer,Bool,Integer,Maybe(Bool),
+         Run1(state: (Integer,Bool,Integer,Integer,Maybe(Bool),
                         Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
-                        Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
+                        Maybe((Integer,Integer,Bits(256),Bits(256),Bits(256))),
                         Integer))                            
-         -> ((Integer,Bool,Integer,Bool,Integer,Maybe(Bool),
+         -> ((Integer,Bool,Integer,Integer,Maybe(Bool),
                         Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
-                        Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
+                        Maybe((Integer,Integer,Bits(256),Bits(256),Bits(256))),
                         Integer),
-            Bits(256)), 
-         Run2(state: (Integer,Bool,Integer,Bool,Integer,Maybe(Bool),
+            (Bits(256))), 
+         Run2(state: (Integer,Bool,Integer,Integer,Maybe(Bool),
                         Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
-                        Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
+                        Maybe((Integer,Integer,Bits(256),Bits(256),Bits(256))),
                         Integer), ni: Bits(256))               
-         -> ((Integer,Bool,Integer,Bool,Integer,Maybe(Bool),
+         -> ((Integer,Bool,Integer,Integer,Maybe(Bool),
                         Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
-                        Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
+                        Maybe((Integer,Integer,Bits(256),Bits(256),Bits(256))),
                         Integer),
             (Bits(256),Bits(256))), 
-         Run3(state: (Integer,Bool,Integer,Bool,Integer,Maybe(Bool),
+         Run3(state: (Integer,Bool,Integer,Integer,Maybe(Bool),
                         Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
-                        Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
+                        Maybe((Integer,Integer,Bits(256),Bits(256),Bits(256))),
                         Integer), msg: (Bits(256), Bits(256))) 
-         -> ((Integer,Bool,Integer,Bool,Integer,Maybe(Bool),
+         -> ((Integer,Bool,Integer,Integer,Maybe(Bool),
                         Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
-                        Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
+                        Maybe((Integer,Integer,Bits(256),Bits(256),Bits(256))),
                         Integer),
             (Bits(256),Bits(256))), 
-         Run4(state: (Integer,Bool,Integer,Bool,Integer,Maybe(Bool),
+         Run4(state: (Integer,Bool,Integer,Integer,Maybe(Bool),
                         Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
-                        Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
+                        Maybe((Integer,Integer,Bits(256),Bits(256),Bits(256))),
                         Integer), msg: (Bits(256), Bits(256))) 
-         -> ((Integer,Bool,Integer,Bool,Integer,Maybe(Bool),
+         -> ((Integer,Bool,Integer,Integer,Maybe(Bool),
                         Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
-                        Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
+                        Maybe((Integer,Integer,Bits(256),Bits(256),Bits(256))),
                         Integer),
-            Bits(256)), 
-         Run5(state: (Integer,Bool,Integer,Bool,Integer,Maybe(Bool),
+            (Bits(256))), 
+         Run5(state: (Integer,Bool,Integer,Integer,Maybe(Bool),
                         Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
-                        Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
+                        Maybe((Integer,Integer,Bits(256),Bits(256),Bits(256))),
                         Integer), tau: Bits(256))              
-         -> ((Integer,Bool,Integer,Bool,Integer,Maybe(Bool),
+         -> ((Integer,Bool,Integer,Integer,Maybe(Bool),
                         Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)),
-                        Maybe((Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))),
+                        Maybe((Integer,Integer,Bits(256),Bits(256),Bits(256))),
                         Integer),
-            Bool),
+            (Bool)),
     }
 
 
 
-oracle NewSession(U: Integer, u: Bool, V: Integer, v: Bool, kid: Integer) -> Integer {
-        assert not (u == v);            /* Different roles */
-        _ <- invoke Exists(kid);
+oracle NewSession(U: Integer, u: Bool, V: Integer, kid: Integer) -> Integer {
         ctr_        <- (ctr_ + 1) ; 
-        State[ctr_] <- Some((U,u,V,v,kid,None,None,None,None,None,None,0));
-		Fresh[ctr_] <- H[kid];
+        State[ctr_] <- Some((U,u,V,kid,None,None,None,None,None,None,0));
+		hon         <- invoke Hon(kid);
+		Fresh[ctr_] <- Some(hon);
         return ctr_;
     }
 
-oracle Send1(ctr: Integer) -> Bits(256)
+oracle Send1(ctr: Integer) -> (Bits(256))
     {
         assert not (State[ctr] == None);     /* session has been initialized */
         state <- Unwrap(State[ctr]);
-        (U,u,V,v,kid,acc,k,ni,nr,kmac,sid,mess) <- parse state;
+        (U,u,V,kid,acc,k,ni,nr,kmac,sid,mess) <- parse state;
         assert (u == false);                 /* session belongs to initiator */
-        assert (acc  == None );              /* session is still running           */
         return      <- invoke Run1(state);
         (state,msg) <- parse return;
         State[ctr]  <- Some(state);
@@ -130,9 +126,8 @@ oracle Send2(ctr: Integer, msg: Bits(256)) -> (Bits(256),Bits(256))
     {
         assert not (State[ctr] == None);     /* session has been initialized */
         state   <- Unwrap(State[ctr]);
-        (V,v,U,u,kid,acc,k,ni_,nr,kmac,sid,mess) <- parse state;
+        (V,v,U,kid,acc,k,ni_,nr,kmac,sid,mess) <- parse state;
         assert (v    == true );              /* session belongs to responder */
-        assert (acc  == None );              /* session is still running           */
         return         <- invoke Run2(state,msg);
         (state,msg_)   <- parse return;
         State[ctr]     <-  Some(state);
@@ -143,14 +138,14 @@ oracle Send3(ctr: Integer, msg: (Bits(256),Bits(256))) -> (Bits(256), Bits(256))
     {
         assert not (State[ctr] == None);    /* session has been initialized */
         state                                           <- Unwrap(State[ctr]);
-        (U,u,V,v,kid,acc,k_,ni_,nr_,kmac_,sid_,mess)    <- parse state;
+        (U,u,V,kid,acc,k_,ni_,nr_,kmac_,sid_,mess)    <- parse state;
         assert (u    == false);              /* session belongs to initiator       */
-        assert (acc  == None);               /* session is still running           */
         return         <- invoke Run3(state,msg);
         (state,msg_)   <- parse return;
 
 		/* Delete for no authentication */
-		(_U,_u,_V,_v,_kid,_acc,_k,_ni,_nr,_kmac,sid,_mess) <- parse state;
+		(_U,_u,_V,_kid,_acc,_k,_ni,_nr,_kmac,sid,_mess) <- parse state;
+        if (_mess == 2){
 		if (First[Unwrap(sid)] == None) {
 		    First[Unwrap(sid)] <- Some(ctr);
 		} else {
@@ -158,27 +153,27 @@ oracle Send3(ctr: Integer, msg: (Bits(256),Bits(256))) -> (Bits(256), Bits(256))
 		      Second[Unwrap(sid)] <- Some(ctr);
 		  }
 		}
+        }
 		/* Until Here */
 
         State[ctr]     <-  Some(state);
         return msg_;
     } 
 
-oracle Send4(ctr: Integer, msg: (Bits(256),Bits(256))) -> Bits(256)
+oracle Send4(ctr: Integer, msg: (Bits(256),Bits(256))) -> (Bits(256))
     {
         assert not (State[ctr] == None);     /* session has been initialized */
         state                                          <- Unwrap(State[ctr]);
-        (V,v,U,u,kid,acc,k,ni_,nr,kmac,sid_,mess)      <- parse state;
+        (V,v,U,kid,acc,k,ni_,nr,kmac,sid_,mess)      <- parse state;
 		
         assert (v    == true);                /* session belongs to responder       */
-        assert (acc  == None);                /* session is still running           */
 
         return       <- invoke Run4(state,msg);
         (state,msg_) <- parse return;
         State[ctr]   <- Some(state);
 
 		/* Delete for no authentication */
-		(_U,_u,_V,_v,_kid,_acc,_k,_ni,_nr,_kmac,sid,_mess) <- parse state;
+		(_U,_u,_V,_kid,_acc,_k,_ni,_nr,_kmac,sid,_mess) <- parse state;
 		if (First[Unwrap(sid)] == None) {
 		    First[Unwrap(sid)] <- Some(ctr);
 		} else {
@@ -191,14 +186,13 @@ oracle Send4(ctr: Integer, msg: (Bits(256),Bits(256))) -> Bits(256)
         return msg_;  
     } 
 
-oracle Send5(ctr: Integer, msg: Bits(256)) -> Bool
+oracle Send5(ctr: Integer, msg: Bits(256)) -> (Bool)
     {
         assert not (State[ctr] == None);    /* session has been initialized */
         state                                       <- Unwrap(State[ctr]);
-        (U,u,V,v,kid,acc,k,ni,nr,kmac,sid,mess)     <- parse state;
+        (U,u,V,kid,acc,k,ni,nr,kmac,sid,mess)     <- parse state;
 		
         assert (u    == false);              /* session belongs to initiator       */
-        assert (acc  == None);               /* session is still running           */
 		
         return      <- invoke Run5(state,msg);
         (state,stop) <- parse return;
@@ -208,7 +202,7 @@ oracle Send5(ctr: Integer, msg: Bits(256)) -> Bool
 
 oracle Reveal(ctr: Integer) -> Bits(256)
     {
-    (U,u,V,v,kid,acc,_k,ni,nr,kmac,sid,mess) <- parse Unwrap(State[ctr]);
+    (U,u,V,kid,acc,_k,ni,nr,kmac,sid,mess) <- parse Unwrap(State[ctr]);
 
 	/* Session accepted */
     assert (acc == Some(true));
@@ -219,13 +213,19 @@ oracle Reveal(ctr: Integer) -> Bits(256)
 	/* mark key as revealed */
     RevTested[Unwrap(sid)] <- Some(false);    
 
-    k <- invoke Eval(kid,U,V,Unwrap(ni),Unwrap(nr) ,true);
+    if u {
+	  RevTestEval[(kid,V,U,Unwrap(ni),Unwrap(nr))] <- Some(ctr);
+      k <- invoke Eval(kid,V,U,Unwrap(ni),Unwrap(nr),true);
+	} else {
+	  RevTestEval[(kid,U,V,Unwrap(ni),Unwrap(nr))] <- Some(ctr);
+      k <- invoke Eval(kid,U,V,Unwrap(ni),Unwrap(nr),true);
+    }
     return k;
     }
 
 oracle Test(ctr: Integer) -> Bits(256)
     {
-    (U,u,V,v,kid,acc,_k,ni,nr,kmac,sid,mess) <- parse Unwrap(State[ctr]);
+    (U,u,V,kid,acc,_k,ni,nr,kmac,sid,mess) <- parse Unwrap(State[ctr]);
 	
 	/* Session accepted */
     assert (acc == Some(true));
@@ -236,34 +236,41 @@ oracle Test(ctr: Integer) -> Bits(256)
 
 	/* mark key as tested */
     RevTested[Unwrap(sid)] <- Some(true);
-	
-    k <- invoke Eval(kid,U,V,Unwrap(ni),Unwrap(nr),true);
+
     if b {
-	    k <-$ Bits(256);
-	}
+	  k <-$ Bits(256);
+	} else {
+       if u {
+	     RevTestEval[(kid,V,U,Unwrap(ni),Unwrap(nr))] <- Some(ctr);
+         k <- invoke Eval(kid,V,U,Unwrap(ni),Unwrap(nr) ,true);
+	   } else {
+	     RevTestEval[(kid,U,V,Unwrap(ni),Unwrap(nr))] <- Some(ctr);
+         k <- invoke Eval(kid,U,V,Unwrap(ni),Unwrap(nr) ,true);
+       }
+    }
     return k;
     }
 
 oracle SameKey(ctr1: Integer, ctr2: Integer) -> Bool {
-    (_U,_u,_V,_v,_kid,acc1,k1,_ni,_nr,_kmac,sid1,_mess) <- parse Unwrap(State[ctr1]);
-    (_U,_u,_V,_v,_kid,acc2,k2,_ni,_nr,_kmac,sid2,_mess) <- parse Unwrap(State[ctr2]);
+    (_U,_u,_V,_kid,acc1,k1,_ni,_nr,_kmac,sid1,_mess) <- parse Unwrap(State[ctr1]);
+    (_U,_u,_V,_kid,acc2,k2,_ni,_nr,_kmac,sid2,_mess) <- parse Unwrap(State[ctr2]);
 
 	return false;
 	}
 
 oracle AtMost(ctr1: Integer, ctr2: Integer, ctr3: Integer) -> Bool {
-    (_U,_u,_V,_v,_kid,acc1,_k,_ni,_nr,_kmac,sid1,_mess) <- parse Unwrap(State[ctr1]);
-    (_U,_u,_V,_v,_kid,acc2,_k,_ni,_nr,_kmac,sid2,_mess) <- parse Unwrap(State[ctr2]);
-    (_U,_u,_V,_v,_kid,acc3,_k,_ni,_nr,_kmac,sid3,_mess) <- parse Unwrap(State[ctr3]);
+    (_U,_u,_V,_kid,acc1,_k,_ni,_nr,_kmac,sid1,_mess) <- parse Unwrap(State[ctr1]);
+    (_U,_u,_V,_kid,acc2,_k,_ni,_nr,_kmac,sid2,_mess) <- parse Unwrap(State[ctr2]);
+    (_U,_u,_V,_kid,acc3,_k,_ni,_nr,_kmac,sid3,_mess) <- parse Unwrap(State[ctr3]);
 
 	return false;
 	}
 
-oracle AtLeast(sid: (Integer,Integer,Maybe(Bits(256)),Maybe(Bits(256)),Maybe(Bits(256)))) -> Bool {
+oracle AtLeast(sid: (Integer,Integer,Bits(256),Bits(256),Bits(256))) -> Bool {
 
    if ((b == false) and (First[sid] != None as Integer)
                     and (Second[sid] == None)){
-      (_U,_u,_V,_v,_kid,acc1,_k,_ni,_nr,_kmac,_sid,_mess) <- parse Unwrap(State[Unwrap(First[sid])]);
+      (_U,_u,_V,_kid,acc1,_k,_ni,_nr,_kmac,_sid,_mess) <- parse Unwrap(State[Unwrap(First[sid])]);
 	  if (acc1 == Some(true)) {
           return true;
 	  }

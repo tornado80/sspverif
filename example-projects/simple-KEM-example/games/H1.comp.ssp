@@ -1,12 +1,13 @@
 composition H1 {
-    const isideal: Bool;                                              /* real-ideal-bit */
-    const    kgen: fn Bits(256)             ->  Bits(256);            /* takes sk, returns pk  */
-    const  encaps: fn (Bits(256),Bits(256)) -> (Bits(256),Bits(256)); /* (pk,rand) -> (ctxt,k) */
-    const  decaps: fn (Bits(256),Bits(256)) ->  Bits(256);            /* (sk,ctxt) -> k        */
+    const isideal_kem_cpa_security: Bool;                           /* real-ideal-bit */
+    const isideal_kem_correctness: Bool;                            /* real-ideal-bit */
+    const    kgen: fn Bits(256)             ->  Bits(256);          /* takes sk, returns pk  */
+    const  encaps: fn Bits(256),Bits(256) -> (Bits(256),Bits(256)); /* (pk,rand) -> (ctxt,k) */
+    const  decaps: fn Bits(256),Bits(256) ->  Bits(256);            /* (sk,ctxt) -> k        */
 
     instance Corr_KEM = Corr_KEM {
         params {
-          isideal:   isideal,
+          isideal_kem_correctness:   isideal_kem_correctness,
              kgen:   kgen,
            encaps:   encaps,
            decaps:   decaps,
@@ -15,7 +16,7 @@ composition H1 {
 
     instance Corr_reduction = Corr_reduction {
         params {
-          isideal:   isideal,
+          isideal_kem_cpa_security:   isideal_kem_cpa_security,
              kgen:   kgen,
            encaps:   encaps,
            decaps:   decaps,

@@ -8,7 +8,6 @@ use crate::{
     },
     package::{OracleDef, OracleSig, Package},
     parser::package::MultiInstanceIndices,
-    statement::Statement,
     types::{CountSpec, Type},
 };
 
@@ -74,7 +73,7 @@ impl PackageInstance {
                 .into_iter()
                 .map(|(name, ty)| (name, self.instantiate_type(ty)))
                 .collect(),
-            tipe: self.instantiate_type(sig.tipe),
+            ty: self.instantiate_type(sig.ty),
             ..sig
         }
     }
@@ -130,21 +129,38 @@ impl PackageInstance {
                 &types,
             );
 
+        let new_params = pkg
+            .params
+            .iter()
+            .cloned()
+            .map(|(name, ty, span)| (name, inst_ctx.rewrite_type(ty), span))
+            .collect();
+
+        let new_state = pkg
+            .state
+            .iter()
+            .cloned()
+            .map(|(name, ty, span)| (name, inst_ctx.rewrite_type(ty), span))
+            .collect();
+
+        let new_imports = pkg
+            .imports
+            .iter()
+            .cloned()
+            .map(|(sig, span)| (inst_ctx.rewrite_oracle_sig(sig), span))
+            .collect();
+
         let new_oracles = pkg
             .oracles
             .iter()
             .map(|oracle_def| inst_ctx.rewrite_oracle_def(oracle_def.clone()))
             .collect();
 
-        // let new_split_oracles = pkg
-        //     .split_oracles
-        //     .iter()
-        //     .map(|split_oracle_def| inst_ctx.rewrite_split_oracle_def(split_oracle_def.clone()))
-        //     .collect();
-
         let pkg = Package {
             oracles: new_oracles,
-            //split_oracles: new_split_oracles,
+            state: new_state,
+            params: new_params,
+            imports: new_imports,
             ..pkg.clone()
         };
 
@@ -162,13 +178,11 @@ pub(crate) mod instantiate {
     use super::*;
     use crate::{
         identifier::{
-            game_ident::{GameConstIdentifier, GameIdentInstanciationInfo, GameIdentifier},
+            game_ident::{GameConstIdentifier, GameIdentifier},
             pkg_ident::{
                 PackageLocalIdentifier, PackageOracleArgIdentifier, PackageStateIdentifier,
             },
-            proof_ident::{ProofIdentInstanciationInfo, ProofIdentifier},
         },
-        parser::error::UndefinedIdentifierError,
         statement::*,
     };
 
@@ -244,7 +258,7 @@ pub(crate) mod instantiate {
                 ) => {
                     let (_, assigned_expr) = const_assignments
                         .iter()
-                        .find(|(ident, expr)| ident.name == pkg_const_ident.name)
+                        .find(|(ident, _)| ident.name == pkg_const_ident.name)
                         .expect("TODO todo: this should be a propoer error");
 
                     pkg_const_ident.set_pkg_inst_info(
@@ -257,6 +271,7 @@ pub(crate) mod instantiate {
                         pkg_const_ident,
                     )))
                 }
+
                 (
                     InstantiationSource::Game { const_assignments },
                     CountSpec::Identifier(Identifier::GameIdentifier(GameIdentifier::Const(
@@ -265,7 +280,7 @@ pub(crate) mod instantiate {
                 ) => {
                     let (_, assigned_expr) = const_assignments
                         .iter()
-                        .find(|(ident, expr)| ident.name == game_const_ident.name)
+                        .find(|(ident, _)| ident.name == game_const_ident.name)
                         .expect("TODO todo: this should be a propoer error");
 
                     game_const_ident.set_game_inst_info(
@@ -278,27 +293,38 @@ pub(crate) mod instantiate {
                         game_const_ident,
                     )))
                 }
+
+                // In this case we don't want to look up the value for the package const itself,
+                // but for the game const that is inside. We also make sure the names are set
+                // correctly. One thing we cannot do is set the assigned value on the package const
+                // itself: we can only look up values in the assignment of the game instance.
+                //
                 (
-                    InstantiationSource::Game { const_assignments },
+                    InstantiationSource::Game { .. },
                     CountSpec::Identifier(Identifier::PackageIdentifier(PackageIdentifier::Const(
                         mut pkg_const_ident,
                     ))),
                 ) => {
-                    let (_, assigned_expr) = const_assignments
-                        .iter()
-                        .find(|(ident, expr)| ident.name == pkg_const_ident.name)
-                        .expect("TODO todo: this should be a propoer error");
-
                     pkg_const_ident.set_game_inst_info(
                         self.inst_name.to_string(),
                         self.parent_name.to_string(),
                     );
-                    pkg_const_ident.game_assignment = Some(Box::new(assigned_expr.clone()));
-
                     CountSpec::Identifier(Identifier::PackageIdentifier(PackageIdentifier::Const(
-                        pkg_const_ident,
+                        if let Some(expr) = pkg_const_ident.game_assignment {
+                            PackageConstIdentifier {
+                                game_assignment: Some(Box::new(
+                                    self.rewrite_expression(expr.as_ref()),
+                                )),
+                                ..pkg_const_ident
+                            }
+                        } else {
+                            // XXX: is this a valid case, o should we be expect that every package
+                            // instance is already resolved up to the game at this point?
+                            pkg_const_ident
+                        },
                     )))
                 }
+
                 (_, other @ (CountSpec::Any | CountSpec::Literal(_))) => other,
 
                 // not entirely sure about this one:
@@ -315,7 +341,7 @@ pub(crate) mod instantiate {
             let mut type_rewrite_rules = self
                 .type_assignments
                 .iter()
-                .map(|(name, tipe)| (Type::UserDefined(name.to_string()), tipe.clone()))
+                .map(|(name, ty)| (Type::UserDefined(name.to_string()), ty.clone()))
                 .collect_vec();
 
             match self.src {
@@ -372,19 +398,36 @@ pub(crate) mod instantiate {
             type_rewrite_rules
         }
 
+        pub(crate) fn rewrite_type(&self, ty: Type) -> Type {
+            let fix_box = |bxty: Box<Type>| -> Box<Type> { Box::new(self.rewrite_type(*bxty)) };
+            let fix_vec = |tys: Vec<Type>| -> Vec<Type> {
+                tys.into_iter().map(|ty| self.rewrite_type(ty)).collect()
+            };
+
+            match ty {
+                Type::Bits(cs) => Type::Bits(Box::new(self.rewrite_count_spec(*cs))),
+                Type::Tuple(tys) => Type::Tuple(fix_vec(tys)),
+                Type::Table(kty, vty) => Type::Table(fix_box(kty), fix_box(vty)),
+                Type::Fn(arg_tys, ret_ty) => Type::Fn(fix_vec(arg_tys), fix_box(ret_ty)),
+
+                Type::List(ty) => Type::List(fix_box(ty)),
+                Type::Maybe(ty) => Type::Maybe(fix_box(ty)),
+                Type::Set(ty) => Type::Set(fix_box(ty)),
+                other => other,
+            }
+        }
+
         pub(crate) fn rewrite_oracle_sig(&self, oracle_sig: OracleSig) -> OracleSig {
             {
-                let type_rewrite_rules = self.base_rewrite_rules();
-
                 OracleSig {
                     name: oracle_sig.name,
                     multi_inst_idx: oracle_sig.multi_inst_idx,
                     args: oracle_sig
                         .args
                         .into_iter()
-                        .map(|(name, tipe)| (name.clone(), tipe.rewrite_type(&type_rewrite_rules)))
+                        .map(|(name, ty)| (name.clone(), self.rewrite_type(ty)))
                         .collect(),
-                    tipe: oracle_sig.tipe.rewrite_type(&type_rewrite_rules),
+                    ty: self.rewrite_type(oracle_sig.ty),
                 }
             }
         }
@@ -405,7 +448,7 @@ pub(crate) mod instantiate {
         //     let type_rewrite_rules: Vec<_> = self
         //         .type_assignments
         //         .iter()
-        //         .map(|(name, tipe)| (Type::UserDefined(name.to_string()), tipe.clone()))
+        //         .map(|(name, ty)| (Type::UserDefined(name.to_string()), ty.clone()))
         //         .collect();
         //
         //     SplitOracleSig {
@@ -413,12 +456,12 @@ pub(crate) mod instantiate {
         //         args: split_oracle_sig
         //             .args
         //             .iter()
-        //             .map(|(name, tipe)| (name.clone(), tipe.rewrite(&type_rewrite_rules)))
+        //             .map(|(name, ty)| (name.clone(), ty.rewrite(&type_rewrite_rules)))
         //             .collect(),
         //         partial_vars: split_oracle_sig
         //             .partial_vars
         //             .iter()
-        //             .map(|(name, tipe)| (name.clone(), tipe.rewrite(&type_rewrite_rules)))
+        //             .map(|(name, ty)| (name.clone(), ty.rewrite(&type_rewrite_rules)))
         //             .collect(),
         //         path: SplitPath::new(
         //             split_oracle_sig
@@ -446,7 +489,7 @@ pub(crate) mod instantiate {
         //                 })
         //                 .collect(),
         //         ),
-        //         tipe: split_oracle_sig.tipe.rewrite(&type_rewrite_rules),
+        //         ty: split_oracle_sig.ty.rewrite(&type_rewrite_rules),
         //     }
         // }
         //
@@ -462,16 +505,15 @@ pub(crate) mod instantiate {
 
         pub(crate) fn rewrite_statement(&self, stmt: Statement) -> Statement {
             let type_rewrite_rules = self.base_rewrite_rules();
-
             match stmt {
                 Statement::Abort(_) => stmt.clone(),
                 Statement::Return(expr, pos) => {
-                    Statement::Return(expr.clone().map(|expr| self.rewrite_expression(&expr)), pos)
+                    Statement::Return(expr.as_ref().map(|expr| self.rewrite_expression(expr)), pos)
                 }
 
                 Statement::Assign(ident, index, value, pos) => Statement::Assign(
                     self.rewrite_identifier(ident),
-                    index.clone().map(|expr| self.rewrite_expression(&expr)),
+                    index.as_ref().map(|expr| self.rewrite_expression(expr)),
                     self.rewrite_expression(&value),
                     pos,
                 ),
@@ -483,13 +525,16 @@ pub(crate) mod instantiate {
                     self.rewrite_expression(&expr),
                     pos,
                 ),
-                Statement::Sample(ident, index, sample_id, tipe, pos) => Statement::Sample(
-                    self.rewrite_identifier(ident),
-                    index.clone().map(|expr| self.rewrite_expression(&expr)),
-                    sample_id,
-                    tipe.rewrite_type(&type_rewrite_rules),
-                    pos,
-                ),
+                Statement::Sample(ident, index, sample_id, ty, sample_name, pos) => {
+                    Statement::Sample(
+                        self.rewrite_identifier(ident),
+                        index.as_ref().map(|expr| self.rewrite_expression(expr)),
+                        sample_id,
+                        self.rewrite_type(ty),
+                        sample_name,
+                        pos,
+                    )
+                }
                 Statement::InvokeOracle(InvokeOracleStatement {
                     id,
                     opt_idx,
@@ -497,7 +542,7 @@ pub(crate) mod instantiate {
                     name,
                     args,
                     target_inst_name,
-                    tipe,
+                    ty,
                     file_pos,
                 }) => Statement::InvokeOracle(InvokeOracleStatement {
                     name,
@@ -505,17 +550,15 @@ pub(crate) mod instantiate {
                     file_pos,
 
                     id: self.rewrite_identifier(id),
-                    opt_idx: opt_idx.clone().map(|expr| self.rewrite_expression(&expr)),
+                    opt_idx: opt_idx.as_ref().map(|expr| self.rewrite_expression(expr)),
                     opt_dst_inst_idx: opt_dst_inst_idx
-                        .clone()
-                        .map(|expr| self.rewrite_expression(&expr)),
+                        .as_ref()
+                        .map(|expr| self.rewrite_expression(expr)),
                     args: args
-                        .into_iter()
-                        .map(|expr| self.rewrite_expression(&expr))
+                        .iter()
+                        .map(|expr| self.rewrite_expression(expr))
                         .collect(),
-                    tipe: tipe
-                        .clone()
-                        .map(|tipe| tipe.rewrite_type(&type_rewrite_rules)),
+                    ty: ty.as_ref().map(|ty| ty.rewrite_type(&type_rewrite_rules)),
                 }),
 
                 Statement::IfThenElse(ite) => Statement::IfThenElse(IfThenElse {
@@ -537,141 +580,116 @@ pub(crate) mod instantiate {
 
     impl InstantiationContext<'_> {
         pub(crate) fn rewrite_expression(&self, expr: &Expression) -> Expression {
-            expr.map(|expr| match (self.src, expr) {
-                (_, Expression::Identifier(ident)) => {
+            expr.map(|expr| match expr {
+                Expression::Identifier(ident) => {
                     Expression::Identifier(self.rewrite_identifier(ident))
                 }
 
-                // XXX: Are we sure these should all be unreachable???
-                (
-                    InstantiationSource::Package { const_assignments },
-                    Expression::Identifier(Identifier::PackageIdentifier(
-                        PackageIdentifier::Const(pkg_const_ident),
-                    )),
-                ) => const_assignments
-                    .iter()
-                    .find_map(|(search, replace)| {
-                        if search.name == pkg_const_ident.name {
-                            let new_expr = replace.map(|expr| match expr {
-                                Expression::Identifier(Identifier::GameIdentifier(game_ident)) => {
-                                    let inst_info = GameIdentInstanciationInfo {
-                                        lower: pkg_const_ident.clone(),
-                                        pkg_inst_name: self.inst_name.to_string(),
-                                    };
-
-                                    Expression::Identifier(Identifier::GameIdentifier(
-                                        game_ident.with_instance_info(inst_info),
-                                    ))
-                                }
-                                other => other,
-                            });
-                            Some(new_expr)
-                        } else {
-                            None
-                        }
-                    })
-                    .unwrap(),
-                (
-                    InstantiationSource::Game { const_assignments },
-                    Expression::Identifier(Identifier::GameIdentifier(GameIdentifier::Const(
-                        game_const_ident,
-                    ))),
-                ) => const_assignments
-                    .iter()
-                    .find_map(|(search, replace)| {
-                        if search.name == game_const_ident.name {
-                            let new_expr = replace.map(|mut expr| match expr {
-                                Expression::Identifier(ref mut ident) => match self.src {
-                                    InstantiationSource::Package { .. } => {
-                                        ident.set_pkg_inst_info(
-                                            self.inst_name.to_string(),
-                                            self.parent_name.to_string(),
-                                        );
-                                        expr
-                                    }
-                                    InstantiationSource::Game { .. } => {
-                                        ident.set_game_inst_info(
-                                            self.inst_name.to_string(),
-                                            self.parent_name.to_string(),
-                                        );
-                                        expr
-                                    }
-                                },
-                                Expression::Identifier(Identifier::ProofIdentifier(
-                                    proof_ident,
-                                )) => {
-                                    let inst_info = ProofIdentInstanciationInfo {
-                                        lower: game_const_ident.clone(),
-                                        game_inst_name: self.inst_name.to_string(),
-                                    };
-
-                                    Expression::Identifier(Identifier::ProofIdentifier(
-                                        proof_ident.with_instance_info(inst_info),
-                                    ))
-                                }
-                                other => other,
-                            });
-                            Some(new_expr)
-                        } else {
-                            None
-                        }
-                    })
-                    .unwrap(),
-
                 // can only happen in oracle code, i.e. package code
-                (_, Expression::TableAccess(ident, expr)) => {
+                Expression::TableAccess(ident, expr) => {
                     Expression::TableAccess(self.rewrite_identifier(ident), expr)
                 }
-                (_, Expression::FnCall(ident, args)) => {
+                Expression::EmptyTable(ty) => Expression::EmptyTable(self.rewrite_type(ty)),
+                Expression::FnCall(ident, args) => {
                     Expression::FnCall(self.rewrite_identifier(ident), args)
                 }
+                Expression::None(ty) => Expression::None(self.rewrite_type(ty)),
+                Expression::Sample(ty) => Expression::Sample(self.rewrite_type(ty)),
 
-                (_, expr) => expr,
+                expr => expr,
             })
+        }
+
+        pub(crate) fn rewrite_pkg_identifier(
+            &self,
+            mut pkg_ident: PackageIdentifier,
+        ) -> PackageIdentifier {
+            match self.src {
+                InstantiationSource::Package { const_assignments } => {
+                    pkg_ident.set_pkg_inst_info(
+                        self.inst_name.to_string(),
+                        self.parent_name.to_string(),
+                    );
+
+                    if let PackageIdentifier::Const(pkg_const_ident) = &mut pkg_ident {
+                        let (_, ref assignment) = const_assignments
+                            .iter()
+                            .find(|(assignment_const_ident, _)| {
+                                assignment_const_ident.name == pkg_const_ident.name
+                            })
+                            .unwrap();
+
+                        pkg_const_ident.set_assignment(assignment.clone());
+                    }
+
+                    pkg_ident
+                }
+                InstantiationSource::Game { .. } => {
+                    if let Some(ident) = &mut pkg_ident.as_const_mut() {
+                        if let Some(assignment) = ident.game_assignment.as_mut() {
+                            if let Expression::Identifier(ident) = assignment.as_mut() {
+                                *ident = self.rewrite_identifier(ident.clone())
+                            }
+                        }
+                    }
+
+                    pkg_ident.set_game_inst_info(
+                        self.inst_name.to_string(),
+                        self.parent_name.to_string(),
+                    );
+                    pkg_ident
+                }
+            }
+        }
+
+        pub(crate) fn rewrite_game_identifier(
+            &self,
+            mut game_ident: GameIdentifier,
+        ) -> GameIdentifier {
+            match self.src {
+                InstantiationSource::Game { const_assignments } => {
+                    game_ident.set_game_inst_info(
+                        self.inst_name.to_string(),
+                        self.parent_name.to_string(),
+                    );
+                    if let GameIdentifier::Const(game_const_ident) = &mut game_ident {
+                        let (_, ref assignment) = const_assignments
+                            .iter()
+                            .find(|(assignment_const_ident, _)| {
+                                assignment_const_ident.name == game_const_ident.name
+                            })
+                            .unwrap();
+
+                        game_const_ident.set_assignment(assignment.clone());
+                    }
+                    game_ident
+                }
+                InstantiationSource::Package { .. } => {
+                    unreachable!(
+                        r#"found game identifier `{name}' when instantiating package
+    identifier: {game_ident:?}
+    inst ctx:   {self:?}"#,
+                        name = game_ident.ident(),
+                    )
+                }
+            }
         }
 
         pub(crate) fn rewrite_identifier(&self, ident: Identifier) -> Identifier {
             let type_rewrite_rules = self.base_rewrite_rules();
 
             // extend the identifier with the instance and parent names
-            let ident = match (self.src, ident) {
-                (
-                    InstantiationSource::Package { .. },
-                    Identifier::PackageIdentifier(mut pkg_ident),
-                ) => {
-                    pkg_ident.set_pkg_inst_info(
-                        self.inst_name.to_string(),
-                        self.parent_name.to_string(),
-                    );
-                    pkg_ident.into()
+            let ident = match ident {
+                Identifier::PackageIdentifier(pkg_ident) => {
+                    self.rewrite_pkg_identifier(pkg_ident).into()
                 }
-                (
-                    InstantiationSource::Game { .. },
-                    Identifier::PackageIdentifier(mut pkg_ident),
-                ) => {
-                    pkg_ident.set_game_inst_info(
-                        self.inst_name.to_string(),
-                        self.parent_name.to_string(),
-                    );
-                    pkg_ident.into()
-                }
-                (InstantiationSource::Game { .. }, Identifier::GameIdentifier(mut game_ident)) => {
-                    game_ident.set_game_inst_info(
-                        self.inst_name.to_string(),
-                        self.parent_name.to_string(),
-                    );
-                    game_ident.into()
+                Identifier::GameIdentifier(game_ident) => {
+                    self.rewrite_game_identifier(game_ident).into()
                 }
 
-                (InstantiationSource::Package { .. }, ident @ Identifier::GameIdentifier(_))
-                | (InstantiationSource::Package { .. }, ident @ Identifier::ProofIdentifier(_))
-                | (InstantiationSource::Game { .. }, ident @ Identifier::ProofIdentifier(_)) => {
-                    unreachable!(
-                        "found\n    {ident:?}\n  when instantiating with context\n    {self:?}",
-                    )
+                ident @ Identifier::ProofIdentifier(_) | ident @ Identifier::Generated(_, _) => {
+                    ident
                 }
-                (InstantiationSource::Package { .. }, ident @ Identifier::Generated(_, _))
-                | (InstantiationSource::Game { .. }, ident @ Identifier::Generated(_, _)) => ident,
             };
 
             // rewrite the types
@@ -681,19 +699,19 @@ pub(crate) mod instantiate {
                     let pkg_ident = match pkg_ident {
                         PackageIdentifier::Const(const_ident) => {
                             PackageIdentifier::Const(PackageConstIdentifier {
-                                tipe: const_ident.tipe.rewrite_type(&type_rewrite_rules),
+                                ty: const_ident.ty.rewrite_type(&type_rewrite_rules),
                                 ..const_ident
                             })
                         }
                         PackageIdentifier::State(state_ident) => {
                             PackageIdentifier::State(PackageStateIdentifier {
-                                tipe: state_ident.tipe.rewrite_type(&type_rewrite_rules),
+                                ty: state_ident.ty.rewrite_type(&type_rewrite_rules),
                                 ..state_ident
                             })
                         }
                         PackageIdentifier::Local(local_ident) => {
                             PackageIdentifier::Local(PackageLocalIdentifier {
-                                tipe: local_ident.tipe.rewrite_type(&type_rewrite_rules),
+                                ty: local_ident.ty.rewrite_type(&type_rewrite_rules),
                                 ..local_ident
                             })
                         }
@@ -704,7 +722,7 @@ pub(crate) mod instantiate {
 
                         PackageIdentifier::OracleArg(arg_ident) => {
                             PackageIdentifier::OracleArg(PackageOracleArgIdentifier {
-                                tipe: arg_ident.tipe.rewrite_type(&type_rewrite_rules),
+                                ty: arg_ident.ty.rewrite_type(&type_rewrite_rules),
                                 ..arg_ident.clone()
                             })
                         }

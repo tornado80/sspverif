@@ -1,5 +1,5 @@
 ; Main idea of this invariant proof
-; If ctr are equal in both games and they use the same randomness, then both games 
+; If game states (ctr) are equal in both games and they use the same randomness, then both games 
 ;    - produce the same output
 ;    - abort iff the other aborts
 ;    - have same ctr afterwards
@@ -13,21 +13,22 @@
 (define-fun randomness-mapping-UsefulOracle
   ( (base-ctr-0 Int) ; This is the counter in the beginning of the oracle call on the left.
     (base-ctr-1 Int) ; This is the counter in the beginning of the oracle call on the left.
-    (id-0  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
-    (id-1  Int)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+    (id-0  SampleId)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
+    (id-1  SampleId)      ; This is the sample-id, see LaTeX export for which id corresponds to which sampling.
     (scr-0 Int)      ; This is the counter which gets incremented each time a sampling is done with the same sample id.
     (scr-1 Int))     ; This is the counter which gets incremented each time a sampling is done with the same sample id.
   Bool
   (and
-    (= scr-1 base-ctr-1)
-    (= scr-0 base-ctr-0)
-    (= id-0      0)
-    (= id-1      0)))
+    (= scr-1 base-ctr-1) ; This means that the actual sampling has the same counter as the state counter initially.
+    (= scr-0 base-ctr-0) ; This means that the actual sampling has the same counter as the state counter initially.
+    (= id-0  (sample-id "rand" "UsefulOracle" "0"))
+    (= id-1  (sample-id "rand" "UsefulOracle" "0"))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
-; Invariant --- note that the invariant needs to be game-global 
-;               Having different variants for Oracle & UselessOracle would allow to prove wrong things.
+; Invariant --- note that the invariant needs to be global for **all** oracles. 
+;               Having different variants for Oracle & UselessOracle would allow
+;               us to prove wrong statements.
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

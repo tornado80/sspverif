@@ -6,7 +6,7 @@ pub mod package;
 
 pub mod error;
 pub mod proof;
-mod wire_checks;
+// mod wire_checks;
 
 pub mod ast;
 pub mod reduction;
@@ -52,15 +52,15 @@ impl<'a> ParseContext<'a> {
 }
 
 impl SspParser {
-    pub fn parse_package(contents: &str) -> Result<Pairs<Rule>, Error<Rule>> {
+    pub fn parse_package<'a>(contents: &'a str) -> Result<Pairs<'a, Rule>, Error<Rule>> {
         SspParser::parse(Rule::package, contents)
     }
 
-    pub fn parse_composition(contents: &str) -> Result<Pairs<Rule>, Error<Rule>> {
+    pub fn parse_composition<'a>(contents: &'a str) -> Result<Pairs<'a, Rule>, Error<Rule>> {
         SspParser::parse(Rule::composition, contents)
     }
 
-    pub fn parse_proof(contents: &str) -> Result<Pairs<Rule>, Error<Rule>> {
+    pub fn parse_proof<'a>(contents: &'a str) -> Result<Pairs<'a, Rule>, Error<Rule>> {
         SspParser::parse(Rule::proof, contents)
     }
 }

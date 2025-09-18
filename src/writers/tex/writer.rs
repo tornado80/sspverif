@@ -20,12 +20,12 @@ use crate::util::prover_process::ProverBackend;
 use crate::util::prover_process::{Communicator, ProverResponse};
 use crate::util::smtmodel::{SmtModel, SmtModelEntry};
 
-/// TODO: Move to struct so we can have verbose versions (e.g. writing types to expressions)
+// TODO: Move to struct so we can have verbose versions (e.g. writing types to expressions)
 
 fn genindentation(cnt: u8) -> String {
     let mut acc = String::new();
     for _ in 0..cnt {
-        acc = format!("{}\\pcind", acc);
+        acc = format!("{acc}\\pcind");
     }
     acc
 }
@@ -52,17 +52,18 @@ impl<'a> BlockWriter<'a> {
         }
     }
 
-    fn type_to_tex(&self, tipe: &Type) -> String {
-        match tipe {
+    fn type_to_tex(&self, ty: &Type) -> String {
+        match ty {
             Type::Bits(n) => format!("\\bin^{{{}}}", self.countspec_to_tex(n)),
-            _ => format!("\\O{{{:?}}}", tipe),
+            _ => format!("\\O{{{ty:?}}}"),
         }
     }
 
-    fn type_to_tex_short(&self, tipe: &Type) -> String {
-        match tipe {
+    fn type_to_tex_short(&self, ty: &Type) -> String {
+        match ty {
             Type::Tuple(_) => "\\O{Tuple[..]}".to_string(),
-            _ => format!("\\O{{{:?}}}", tipe),
+            Type::Bits(n) => format!("\\bin^{{{}}}", self.countspec_to_tex(n)),
+            _ => format!("\\O{{{ty:?}}}"),
         }
     }
     fn forcomp_to_tex(&self, forcomp: &ForComp) -> String {
@@ -81,7 +82,7 @@ impl<'a> BlockWriter<'a> {
         } else {
             let mut it = list.iter();
             let mut lines = vec![format!("\\phantom{{{}}}{}", join, it.next().unwrap())];
-            let mut rest: Vec<_> = it.map(|s| format!("{}{}", join, s)).collect();
+            let mut rest: Vec<_> = it.map(|s| format!("{join}{s}")).collect();
             lines.append(&mut rest);
             format!(
                 "\\begin{{array}}{{c}}{}\\end{{array}}",
@@ -125,8 +126,8 @@ impl<'a> BlockWriter<'a> {
     fn expression_to_tex(&self, expr: &Expression) -> String {
         match expr {
             Expression::Bot => "\\bot".to_string(),
-            Expression::IntegerLiteral(val) => format!("{}", val),
-            Expression::BooleanLiteral(val) => format!("\\lit{{{}}}", val),
+            Expression::IntegerLiteral(val) => format!("{val}"),
+            Expression::BooleanLiteral(val) => format!("\\lit{{{val}}}"),
             Expression::Identifier(ident) => self.ident_to_tex(ident),
             Expression::Not(expr) => format!("\\neg {}", self.expression_to_tex(expr)),
             Expression::Unwrap(expr) => {
@@ -146,11 +147,11 @@ impl<'a> BlockWriter<'a> {
                     format!("\\O{{some}}\\left({}\\right)", self.expression_to_tex(expr))
                 }
             }
-            Expression::None(tipe) => {
+            Expression::None(ty) => {
                 if self.lossy {
                     "\\bot".to_string()
                 } else {
-                    format!("\\O{{none}}\\left({}\\right)", self.type_to_tex_short(tipe))
+                    format!("\\O{{none}}\\left({}\\right)", self.type_to_tex_short(ty))
                 }
             }
             Expression::Add(lhs, rhs) => format!(
@@ -210,7 +211,7 @@ impl<'a> BlockWriter<'a> {
                 )
             }
             _ => {
-                format!("{:?}", expr)
+                format!("{expr:?}")
             }
         }
     }
@@ -291,7 +292,7 @@ impl<'a> BlockWriter<'a> {
                 }
             }
             Statement::For(var, from, to, code, _) => {
-                println!("{:?}", var);
+                println!("{var:?}");
                 if let Identifier::PackageIdentifier(PackageIdentifier::CodeLoopVar(
                     PackageOracleCodeLoopVarIdentifier {
                         start_comp,
@@ -315,7 +316,7 @@ impl<'a> BlockWriter<'a> {
                     unreachable!();
                 }
             }
-            Statement::Sample(ident, None, maybecnt, tipe, _) => {
+            Statement::Sample(ident, None, maybecnt, ty, _, _) => {
                 let cnt = maybecnt.expect("Expected samplified input");
 
                 writeln!(
@@ -324,10 +325,10 @@ impl<'a> BlockWriter<'a> {
                     genindentation(indentation),
                     self.ident_to_tex(ident),
                     cnt,
-                    self.type_to_tex(tipe)
+                    self.type_to_tex(ty)
                 )?;
             }
-            Statement::Sample(ident, Some(idxexpr), maybecnt, tipe, _) => {
+            Statement::Sample(ident, Some(idxexpr), maybecnt, ty, _, _) => {
                 let cnt = maybecnt.expect("Expected samplified input");
 
                 writeln!(
@@ -337,7 +338,7 @@ impl<'a> BlockWriter<'a> {
                     self.ident_to_tex(ident),
                     self.expression_to_tex(idxexpr),
                     cnt,
-                    self.type_to_tex(tipe)
+                    self.type_to_tex(ty)
                 )?;
             }
             Statement::InvokeOracle(InvokeOracleStatement {
@@ -346,7 +347,7 @@ impl<'a> BlockWriter<'a> {
                 name,
                 args,
                 target_inst_name: Some(target_inst_name),
-                tipe: _,
+                ty: _,
                 ..
             }) => {
                 writeln!(self.file,
@@ -363,7 +364,7 @@ impl<'a> BlockWriter<'a> {
                 name,
                 args,
                 target_inst_name: Some(target_inst_name),
-                tipe: _,
+                ty: _,
                 ..
             }) => {
                 writeln!(self.file,
@@ -499,7 +500,7 @@ fn tex_solve_composition_graph(
 ) -> Option<SmtModel> {
     use std::fmt::Write;
 
-    let mut model = String::new();
+    let mut model;
     let write_model = |comm: &mut crate::util::prover_process::Communicator| {
         let mut edges: HashSet<(usize, usize)> = HashSet::new();
 
@@ -615,28 +616,28 @@ fn tex_solve_composition_graph(
         }
     };
 
-    let mut min_width = 50;
+    let _min_width = 50;
 
     // Check if it is at all solvable
     let mut comm = Communicator::new(backend.unwrap()).unwrap();
     write_model(&mut comm);
 
-    let mut max_width = 0;
+    let mut max_width;
     let mut min_width = 0;
     if comm.check_sat().unwrap() != ProverResponse::Sat {
         return None;
     } else {
         model = comm.get_model().unwrap();
         let model = SmtModel::from_string(&model);
-        if let SmtModelEntry::IntEntry { name, value } = model.get_value("width").unwrap() {
-            max_width = value;
-        }
+        let SmtModelEntry::IntEntry { value, .. } = model.get_value("width").unwrap();
+
+        max_width = value;
     }
 
     let mut max_height = 0;
     let mut min_height = 0;
-    let mut opt_width = 0;
-    while true {
+    let opt_width;
+    loop {
         let mut comm = Communicator::new(backend.unwrap()).unwrap();
 
         let width = min_width + (max_width - min_width) / 2;
@@ -647,9 +648,9 @@ fn tex_solve_composition_graph(
             max_width = width;
             model = comm.get_model().unwrap();
             let model = SmtModel::from_string(&model);
-            if let SmtModelEntry::IntEntry { name, value } = model.get_value("height").unwrap() {
-                max_height = value;
-            }
+            let SmtModelEntry::IntEntry { value, .. } = model.get_value("height").unwrap();
+
+            max_height = value;
         } else {
             min_width = width;
         }
@@ -660,7 +661,7 @@ fn tex_solve_composition_graph(
     }
 
     if min_height != max_height {
-        while true {
+        loop {
             let mut comm = Communicator::new(backend.unwrap()).unwrap();
 
             let height = min_height + (max_height - min_height) / 2;
@@ -679,7 +680,7 @@ fn tex_solve_composition_graph(
         }
     }
 
-    if model == "" {
+    if model.is_empty() {
         None
     } else {
         let model = SmtModel::from_string(&model);
@@ -877,8 +878,7 @@ fn tex_write_composition_graph(
 
         writeln!(
             file,
-            "\\node[package] (nodea) at ({}, {}) {{$A$}};",
-            tikzx, tikzy
+            "\\node[package] (nodea) at ({tikzx}, {tikzy}) {{$A$}};"
         )?;
         for Export(to, oracle) in &composition.exports {
             writeln!(file, "\\draw[-latex,rounded corners] (nodea) -- ($(nodea.east) + (1,0)$) |- node[onarrow] {{\\O{{{}}}}} (node{});", oracle.name, to)?;
@@ -894,7 +894,7 @@ fn tex_write_composition_graph_file(
     name: &str,
     target: &Path,
 ) -> std::io::Result<String> {
-    let fname = target.join(format!("CompositionGraph_{}.tex", name));
+    let fname = target.join(format!("CompositionGraph_{name}.tex"));
     let file = File::create(fname.clone())?;
 
     tex_write_composition_graph(backend, &file, composition, &Vec::new())?;
@@ -918,7 +918,7 @@ pub fn tex_write_composition(
 
     tex_write_document_header(&file)?;
 
-    writeln!(file, "\\title{{{} Game}}", name)?;
+    writeln!(file, "\\title{{{name} Game}}")?;
     writeln!(file, "\\begin{{document}}")?;
     writeln!(file, "\\maketitle")?;
 
@@ -986,7 +986,7 @@ pub fn tex_write_proof(
             instance.name(),
             instance.name().replace('_', "\\_")
         )?;
-        writeln!(file, "\\input{{{}}}", graphfname)?;
+        writeln!(file, "\\input{{{graphfname}}}")?;
         writeln!(file, "\\end{{minipage}}")?;
         fill += 1;
         if fill == 3 {
@@ -1009,7 +1009,7 @@ pub fn tex_write_proof(
             instance.game_name().replace('_', "\\_")
         );
         writeln!(file, "\\begin{{center}}")?;
-        writeln!(file, "\\input{{{}}}", graphfname)?;
+        writeln!(file, "\\input{{{graphfname}}}")?;
         writeln!(file, "\\end{{center}}")?;
 
         writeln!(file, "\\begin{{pchstack}}")?;
@@ -1021,7 +1021,7 @@ pub fn tex_write_proof(
                 if lossy { "_lossy" } else { "" }
             );
             //writeln!(file, "\\begin{{center}}")?;
-            writeln!(file, "\\input{{{}}}", pkgfname)?;
+            writeln!(file, "\\input{{{pkgfname}}}")?;
             //writeln!(file, "\\end{{center}}")?;
             writeln!(file, "\\pchspace")?;
         }
@@ -1100,6 +1100,14 @@ pub fn tex_write_proof(
                     "\\section{{Equivalence between {} and {}}}",
                     equiv.left_name().replace('_', "\\_"),
                     equiv.right_name().replace('_', "\\_")
+                )?;
+            }
+            GameHop::Conjecture(conj) => {
+                writeln!(
+                    file,
+                    "\\section{{Conjectured Indistinguishability between {} and {}}}",
+                    conj.left_name().as_str().replace('_', "\\_"),
+                    conj.right_name().as_str().replace('_', "\\_")
                 )?;
             }
         }

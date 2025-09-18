@@ -3,9 +3,10 @@ use crate::{
     identifier::{game_ident::GameConstIdentifier, pkg_ident::PackageConstIdentifier},
     types::Type,
     writers::smt::{
+        names::FunctionNameBuilder,
         patterns::{
             self,
-            instance_names::{encode_params, only_non_function_expression},
+            instance_names::{encode_params, only_ints_and_funs},
             oracle_args::OracleArgPattern as _,
             DatastructurePattern as _, FunctionPattern, ReturnPattern,
         },
@@ -18,6 +19,7 @@ pub const ORACLE_ARG_INTERMEDIATE_STATE: &str = "__intermediate_state";
 
 pub struct OraclePattern<'a> {
     pub game_name: &'a str,
+    pub game_inst_name: &'a str,
     pub pkg_name: &'a str,
     pub oracle_name: &'a str,
     pub oracle_args: &'a [(String, Type)],
@@ -27,17 +29,16 @@ pub struct OraclePattern<'a> {
 
 impl FunctionPattern for OraclePattern<'_> {
     fn function_name(&self) -> String {
-        let Self {
-            game_name,
-            pkg_name,
-            oracle_name,
-            ..
-        } = self;
+        let pkg_encoded_params = encode_params(only_ints_and_funs(self.pkg_params));
 
-        let encoded_game_params = encode_params(only_non_function_expression(self.game_params));
-        let encoded_pkg_params = encode_params(only_non_function_expression(self.pkg_params));
-
-        format!("<oracle-{game_name}-{encoded_game_params}-{pkg_name}-{encoded_pkg_params}-{oracle_name}>")
+        FunctionNameBuilder::new()
+            .push("oracle")
+            .push(self.game_name)
+            .push(self.game_inst_name)
+            .push(self.pkg_name)
+            .maybe_extend(&pkg_encoded_params)
+            .push(self.oracle_name)
+            .build()
     }
 
     fn function_args(&self) -> Vec<(String, Sort)> {
@@ -64,7 +65,7 @@ impl FunctionPattern for OraclePattern<'_> {
                 oracle_args
                     .iter()
                     .cloned()
-                    .map(|(name, tipe)| (name, tipe.into())),
+                    .map(|(name, ty)| (name, ty.into())),
             )
             .collect()
     }

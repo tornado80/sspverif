@@ -2,13 +2,10 @@ use std::fmt::Display;
 
 use sspverif_smtlib::syntax::s_expr::SExpr;
 
+use crate::transforms::samplify::Position as SamplePosition;
 use crate::types::Type;
 
 use super::sorts::Sort;
-
-pub(crate) fn smt_to_string<T: Into<SmtExpr>>(t: T) -> String {
-    t.into().to_string()
-}
 
 #[derive(Debug, Clone, PartialOrd, Ord, Eq, PartialEq, Hash)]
 pub enum SmtExpr {
@@ -74,6 +71,18 @@ impl From<usize> for SmtExpr {
 impl From<bool> for SmtExpr {
     fn from(value: bool) -> Self {
         SmtExpr::Atom(format!("{value}"))
+    }
+}
+
+impl From<&SamplePosition> for SmtExpr {
+    fn from(position: &SamplePosition) -> Self {
+        (
+            "sample-id",
+            format!("\"{}\"", position.inst_name),
+            format!("\"{}\"", position.oracle_name),
+            format!("\"{}\"", position.sample_name),
+        )
+            .into()
     }
 }
 
@@ -210,8 +219,8 @@ impl<
 impl Display for SmtExpr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            SmtExpr::Comment(str) => write!(f, "; {}", str),
-            SmtExpr::Atom(str) => write!(f, "{}", str),
+            SmtExpr::Comment(str) => write!(f, "; {str}"),
+            SmtExpr::Atom(str) => write!(f, "{str}"),
             SmtExpr::List(lst) => {
                 let mut peek = lst.iter().peekable();
 
@@ -234,7 +243,9 @@ impl From<Type> for SmtExpr {
         match t {
             Type::Bits(length) => {
                 let length = match &*length {
-                    crate::types::CountSpec::Identifier(identifier) => identifier.ident(),
+                    crate::types::CountSpec::Identifier(identifier) => {
+                        identifier.as_proof_identifier().unwrap().ident()
+                    }
                     crate::types::CountSpec::Literal(num) => format!("{num}"),
                     crate::types::CountSpec::Any => "*".to_string(),
                 };
@@ -258,7 +269,7 @@ impl From<Type> for SmtExpr {
                 els
             }),
             _ => {
-                panic!("not implemented: {:?}", t)
+                panic!("not implemented: {t:?}")
             }
         }
     }
@@ -269,7 +280,9 @@ impl From<&Type> for SmtExpr {
         match t {
             Type::Bits(length) => {
                 let length = match &**length {
-                    crate::types::CountSpec::Identifier(identifier) => identifier.ident(),
+                    crate::types::CountSpec::Identifier(identifier) => {
+                        identifier.as_proof_identifier().unwrap().ident()
+                    }
                     crate::types::CountSpec::Literal(num) => format!("{num}"),
                     crate::types::CountSpec::Any => "*".to_string(),
                 };
@@ -293,7 +306,7 @@ impl From<&Type> for SmtExpr {
             }),
             Type::Empty => SmtExpr::Atom("Empty".to_string()),
             _ => {
-                panic!("not implemented: {:?}", t)
+                panic!("not implemented: {t:?}")
             }
         }
     }

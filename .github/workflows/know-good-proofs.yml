@@ -1,0 +1,23 @@
+name: Run Known-Good Proofs
+
+on:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  check-proofs:
+    runs-on: ubuntu-latest
+    name: Check Proofs
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install CVC5
+        run: sudo apt install cvc5
+
+      - name: Build ssbee
+        run: |
+          cargo build --release -p ssbee
+          echo "SSBEE=$(pwd)/target/release/ssbee">>$GITHUB_ENV
+
+      - name: Run proofs
+        run: ./scripts/test-known-examples.sh

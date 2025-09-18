@@ -21,6 +21,7 @@ kw_assert = _{ "assert" }
 kw_abort = _{ "abort" }
 kw_invoke = _{ "invoke" }
 kw_for = _{ "for" }
+kw_sample_name = _{ "sample-name" }
 
 kw_true  = _{ "true" }
 kw_false = _{ "false" }
@@ -31,6 +32,7 @@ kw_assumption = _{ "assumption" }
 kw_assumptions = _{ "assumptions" }
 kw_reduction = _{ "reduction" }
 kw_equivalence = _{ "equivalence" }
+kw_conjecture = _{ "conjecture" }
 kw_gamehops = _{ "gamehops" }
 kw_map = _{ "map" }
 kw_invariant = _{ "invariant" }
@@ -40,7 +42,9 @@ proof = { kw_proof ~ identifier ~ "{" ~ proof_spec_list ~ "}" }
 proof_spec_list = { const_decl* ~ instance_decl* ~ assumptions? ~ game_hops }
   assumptions = { kw_assumptions ~ "{" ~ ( assumption_entry )* ~ "}" }
     assumption_entry = { identifier ~ ":" ~ identifier ~ "~" ~ identifier }
-  game_hops = { kw_gamehops ~ "{" ~ ( reduction | equivalence )* ~ "}"}
+  game_hops = { kw_gamehops ~ "{" ~ ( reduction | equivalence | conjecture )* ~ "}"}
+
+    conjecture = { kw_conjecture ~ identifier ~ identifier }
 
     reduction = { kw_reduction ~ identifier ~ identifier ~ "{" ~ reduction_spec ~ "}"}
       reduction_spec = { assumption_spec ~ map_spec ~ map_spec }
@@ -167,12 +171,12 @@ stmt = _{ table_sample | table_assign | sample | parse | invocation | assign | r
 
 ite = {"if" ~ expression ~ "{" ~ code ~ "}" ~ ( "else" ~ "{" ~ code ~ "}" )? }
 
-sample = { identifier ~ "<-$" ~ tipe ~ ";" }
+sample = { identifier ~ "<-$" ~ tipe ~ (kw_sample_name ~ identifier)? ~ ";" }
 assign = { identifier ~ "<-" ~ expression ~ ";" }
 invocation = { identifier ~ ( "[" ~ table_index ~ "]" )? ~ "<-" ~ kw_invoke ~ oracle_call ~ ";" }
 parse = { parse_tuple ~ "<-" ~  kw_parse ~ expression ~ ";" }
   parse_tuple = { "(" ~ identifier ~ ("," ~ identifier )+ ~ ")" }
-table_sample = { identifier ~ "[" ~ expression ~ "]" ~ "<-$" ~ tipe ~ ";" }
+table_sample = { identifier ~ "[" ~ expression ~ "]" ~ "<-$" ~ tipe ~ (kw_sample_name ~ identifier)? ~ ";" }
 table_assign = { identifier ~ "[" ~ expression ~ "]" ~ "<-" ~ expression ~ ";" }
 return_stmt = { kw_return ~ expression? ~ ";" }
 assert = { kw_assert ~ expression ~ ";" }

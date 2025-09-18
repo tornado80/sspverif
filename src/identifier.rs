@@ -21,6 +21,68 @@ pub enum Identifier {
 }
 
 impl Identifier {
+    pub fn into_proof_identifier(self) -> Option<ProofIdentifier> {
+        match self {
+            Identifier::PackageIdentifier(package_identifier) => package_identifier
+                .into_const()?
+                .game_assignment?
+                .into_identifier()?
+                .into_proof_identifier(),
+
+            Identifier::GameIdentifier(game_identifier) => game_identifier
+                .into_const()?
+                .assigned_value?
+                .into_identifier()?
+                .into_proof_identifier(),
+            Identifier::ProofIdentifier(proof_identifier) => Some(proof_identifier),
+            Identifier::Generated(_, _) => None,
+        }
+    }
+
+    pub fn as_proof_identifier_mut(&mut self) -> Option<&mut ProofIdentifier> {
+        match self {
+            Identifier::PackageIdentifier(package_identifier) => package_identifier
+                .as_const_mut()?
+                .game_assignment
+                .as_mut()?
+                .as_mut()
+                .as_identifier_mut()?
+                .as_proof_identifier_mut(),
+
+            Identifier::GameIdentifier(game_identifier) => game_identifier
+                .as_const_mut()?
+                .assigned_value
+                .as_mut()?
+                .as_mut()
+                .as_identifier_mut()?
+                .as_proof_identifier_mut(),
+            Identifier::ProofIdentifier(proof_identifier) => Some(proof_identifier),
+            Identifier::Generated(_, _) => None,
+        }
+    }
+
+    pub fn as_proof_identifier(&self) -> Option<&ProofIdentifier> {
+        match self {
+            Identifier::PackageIdentifier(package_identifier) => package_identifier
+                .as_const()?
+                .game_assignment
+                .as_ref()?
+                .as_ref()
+                .as_identifier()?
+                .as_proof_identifier(),
+
+            Identifier::GameIdentifier(game_identifier) => game_identifier
+                .as_const()?
+                .assigned_value
+                .as_ref()?
+                .as_ref()
+                .as_identifier()?
+                .as_proof_identifier(),
+            Identifier::ProofIdentifier(proof_identifier) => Some(proof_identifier),
+            Identifier::Generated(_, _) => None,
+        }
+    }
+
     pub(crate) fn identifiers_match(&self, other: &Self) -> bool {
         match (self, other) {
             (Identifier::Generated(_, _), _) | (_, Identifier::Generated(_, _)) => {
@@ -65,7 +127,30 @@ impl Identifier {
                 Identifier::ProofIdentifier(ProofIdentifier::Const(r)),
             ) => l.name == r.name,
 
-            _ => todo!(),
+            (
+                Identifier::PackageIdentifier(PackageIdentifier::Const(PackageConstIdentifier {
+                    game_assignment,
+                    ..
+                })),
+                game_ident @ Identifier::GameIdentifier(_),
+            )
+            | (
+                game_ident @ Identifier::GameIdentifier(_),
+                Identifier::PackageIdentifier(PackageIdentifier::Const(PackageConstIdentifier {
+                    game_assignment,
+                    ..
+                })),
+            ) => {
+                let assignment = &**game_assignment.as_ref().unwrap();
+                match assignment {
+                    Expression::Identifier(inner_ident) => {
+                        game_ident.identifiers_match(inner_ident)
+                    }
+                    _ => false,
+                }
+            }
+
+            other => todo!("{other:?}"),
         }
         // 1. find common root context
         // 2. compare value at shared context
@@ -78,30 +163,6 @@ impl Identifier {
                 | Identifier::GameIdentifier(GameIdentifier::Const(_))
                 | Identifier::ProofIdentifier(ProofIdentifier::Const(_))
         )
-    }
-
-    pub(crate) fn value(&self) -> Option<&Expression> {
-        match self {
-            Identifier::Generated(_, _) => None,
-            Identifier::ProofIdentifier(_) => None,
-            Identifier::GameIdentifier(GameIdentifier::Const(GameConstIdentifier {
-                assigned_value,
-                ..
-            })) => assigned_value.as_ref().map(|value| value.as_ref()),
-            Identifier::PackageIdentifier(PackageIdentifier::Const(PackageConstIdentifier {
-                game_assignment,
-                ..
-            })) => game_assignment.as_ref().map(|value| value.as_ref()),
-            _ => None,
-        }
-    }
-
-    pub(crate) fn resolve_value(&self) -> Option<Expression> {
-        match self.value() {
-            Some(Expression::Identifier(ident)) => ident.resolve_value(),
-            Some(other) => Some(other.clone()),
-            None => None,
-        }
     }
 }
 
@@ -164,10 +225,10 @@ pub mod pkg_ident {
 
         pub(crate) fn get_type(&self) -> Type {
             match self {
-                PackageIdentifier::Const(const_ident) => const_ident.tipe.clone(),
-                PackageIdentifier::State(state_ident) => state_ident.tipe.clone(),
-                PackageIdentifier::Local(local_ident) => local_ident.tipe.clone(),
-                PackageIdentifier::OracleArg(arg_ident) => arg_ident.tipe.clone(),
+                PackageIdentifier::Const(const_ident) => const_ident.ty.clone(),
+                PackageIdentifier::State(state_ident) => state_ident.ty.clone(),
+                PackageIdentifier::Local(local_ident) => local_ident.ty.clone(),
+                PackageIdentifier::OracleArg(arg_ident) => arg_ident.ty.clone(),
                 PackageIdentifier::OracleImport(oracle_import) => oracle_import.return_type.clone(),
                 PackageIdentifier::ImportsLoopVar(_loopvar) => Type::Integer,
                 PackageIdentifier::CodeLoopVar(_loopvar) => Type::Integer,
@@ -211,13 +272,42 @@ pub mod pkg_ident {
                 }
             }
         }
+
+        pub fn as_const(&self) -> Option<&PackageConstIdentifier> {
+            if let Self::Const(v) = self {
+                Some(v)
+            } else {
+                None
+            }
+        }
+        pub fn as_const_mut(&mut self) -> Option<&mut PackageConstIdentifier> {
+            if let Self::Const(v) = self {
+                Some(v)
+            } else {
+                None
+            }
+        }
+        pub fn into_const(self) -> Option<PackageConstIdentifier> {
+            if let Self::Const(v) = self {
+                Some(v)
+            } else {
+                None
+            }
+        }
+        pub fn into_state(self) -> Option<PackageStateIdentifier> {
+            if let Self::State(v) = self {
+                Some(v)
+            } else {
+                None
+            }
+        }
     }
 
     #[derive(Debug, Clone, Hash, PartialOrd, Eq, Ord, PartialEq)]
     pub struct PackageConstIdentifier {
         pub pkg_name: String,
         pub name: String,
-        pub tipe: crate::types::Type,
+        pub ty: crate::types::Type,
         pub game_assignment: Option<Box<Expression>>,
         pub pkg_inst_name: Option<String>,
         pub game_name: Option<String>,
@@ -236,7 +326,7 @@ pub mod pkg_ident {
             Self {
                 pkg_name,
                 name,
-                tipe: ty,
+                ty,
                 game_assignment: None,
                 pkg_inst_name: None,
                 game_name: None,
@@ -252,13 +342,17 @@ pub mod pkg_ident {
         pub(crate) fn ident_ref(&self) -> &str {
             &self.name
         }
+
+        pub(crate) fn set_assignment(&mut self, assignment: Expression) {
+            self.game_assignment = Some(Box::new(assignment))
+        }
     }
 
     #[derive(Debug, Clone, Hash, PartialOrd, Eq, Ord, PartialEq)]
     pub struct PackageStateIdentifier {
         pub pkg_name: String,
         pub name: String,
-        pub tipe: crate::types::Type,
+        pub ty: crate::types::Type,
         pub pkg_inst_name: Option<String>,
         pub game_name: Option<String>,
         pub game_inst_name: Option<String>,
@@ -300,7 +394,7 @@ pub mod pkg_ident {
             Self {
                 pkg_name,
                 name,
-                tipe: ty,
+                ty,
                 pkg_inst_name: None,
                 game_name: None,
                 game_inst_name: None,
@@ -314,7 +408,7 @@ pub mod pkg_ident {
         pub pkg_name: String,
         pub oracle_name: String,
         pub name: String,
-        pub tipe: crate::types::Type,
+        pub ty: crate::types::Type,
         pub pkg_inst_name: Option<String>,
         pub game_name: Option<String>,
         pub game_inst_name: Option<String>,
@@ -326,7 +420,7 @@ pub mod pkg_ident {
         pub pkg_name: String,
         pub oracle_name: String,
         pub name: String,
-        pub tipe: crate::types::Type,
+        pub ty: crate::types::Type,
         pub pkg_inst_name: Option<String>,
         pub game_name: Option<String>,
         pub game_inst_name: Option<String>,
@@ -349,7 +443,7 @@ pub mod pkg_ident {
     pub struct PackageImportsLoopVarIdentifier {
         pub pkg_name: String,
         pub name: String,
-        // tipe is always Integer
+        // ty is always Integer
         pub start: Box<Expression>,
         pub end: Box<Expression>,
         pub start_comp: ForComp,
@@ -364,7 +458,7 @@ pub mod pkg_ident {
     pub struct PackageOracleCodeLoopVarIdentifier {
         pub pkg_name: String,
         pub name: String,
-        // tipe is always Integer
+        // ty is always Integer
         pub start: Box<Expression>,
         pub end: Box<Expression>,
         pub start_comp: ForComp,
@@ -387,6 +481,7 @@ pub mod pkg_ident {
 /*
 *
 * - im code soll der identifier stehen, der beschreibt wo der wert deklariert wird
+*
 *
 * - pkg instanziieren:
 *   - pkg const ident   -> aufloesen
@@ -421,8 +516,32 @@ pub mod game_ident {
 
         pub(crate) fn get_type(&self) -> Type {
             match self {
-                GameIdentifier::Const(const_ident) => const_ident.tipe.clone(),
+                GameIdentifier::Const(const_ident) => const_ident.ty.clone(),
                 GameIdentifier::LoopVar(_local_ident) => Type::Integer,
+            }
+        }
+
+        pub fn into_const(self) -> Option<GameConstIdentifier> {
+            if let Self::Const(v) = self {
+                Some(v)
+            } else {
+                None
+            }
+        }
+
+        pub fn as_const_mut(&mut self) -> Option<&mut GameConstIdentifier> {
+            if let Self::Const(v) = self {
+                Some(v)
+            } else {
+                None
+            }
+        }
+
+        pub fn as_const(&self) -> Option<&GameConstIdentifier> {
+            if let Self::Const(v) = self {
+                Some(v)
+            } else {
+                None
             }
         }
     }
@@ -469,6 +588,10 @@ pub mod game_ident {
             self.game_inst_name = Some(game_inst_name);
             self.proof_name = Some(proof_name);
         }
+
+        pub(crate) fn set_assignment(&mut self, assignment: Expression) {
+            self.assigned_value = Some(Box::new(assignment))
+        }
     }
 
     impl GameLoopVarIdentifier {
@@ -488,7 +611,7 @@ pub mod game_ident {
     pub struct GameConstIdentifier {
         pub game_name: String,
         pub name: String,
-        pub tipe: crate::types::Type,
+        pub ty: crate::types::Type,
         pub game_inst_name: Option<String>,
         pub proof_name: Option<String>,
         pub inst_info: Option<GameIdentInstanciationInfo>,
@@ -497,7 +620,7 @@ pub mod game_ident {
 
     impl PartialEq for GameConstIdentifier {
         fn eq(&self, other: &Self) -> bool {
-            self.game_name == other.game_name && self.name == other.name && self.tipe == other.tipe
+            self.game_name == other.game_name && self.name == other.name && self.ty == other.ty
         }
     }
 
@@ -505,7 +628,7 @@ pub mod game_ident {
         fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
             self.game_name.hash(state);
             self.name.hash(state);
-            self.tipe.hash(state);
+            self.ty.hash(state);
         }
     }
 
@@ -513,7 +636,7 @@ pub mod game_ident {
     pub struct GameLoopVarIdentifier {
         pub game_name: String,
         pub name: String,
-        // tipe is always Integer
+        // ty is always Integer
         pub start: Box<Expression>,
         pub end: Box<Expression>,
         pub start_comp: ForComp,
@@ -549,7 +672,7 @@ pub mod proof_ident {
 
         pub(crate) fn get_type(&self) -> Type {
             match self {
-                ProofIdentifier::Const(const_ident) => const_ident.tipe.clone(),
+                ProofIdentifier::Const(const_ident) => const_ident.ty.clone(),
                 ProofIdentifier::LoopVar(_local_ident) => Type::Integer,
             }
         }
@@ -593,7 +716,7 @@ pub mod proof_ident {
     pub struct ProofConstIdentifier {
         pub proof_name: String,
         pub name: String,
-        pub tipe: crate::types::Type,
+        pub ty: crate::types::Type,
         pub inst_info: Option<ProofIdentInstanciationInfo>,
     }
 
@@ -601,7 +724,7 @@ pub mod proof_ident {
     pub struct ProofLoopVarIdentifier {
         pub proof_name: String,
         pub name: String,
-        // tipe is always Integer
+        // ty is always Integer
         pub start: Box<Expression>,
         pub end: Box<Expression>,
         pub start_comp: ForComp,
@@ -659,24 +782,6 @@ impl Identifier {
             Identifier::PackageIdentifier(pkg_ident) => pkg_ident.ident(),
             Identifier::GameIdentifier(game_ident) => game_ident.ident(),
             Identifier::ProofIdentifier(proof_ident) => proof_ident.ident(),
-        }
-    }
-
-    pub(crate) fn set_pkg_inst_info(&mut self, pkg_inst_name: String, game_name: String) {
-        match self {
-            Identifier::PackageIdentifier(id) => id.set_pkg_inst_info(pkg_inst_name, game_name),
-            Identifier::GameIdentifier(_) => {}
-            Identifier::ProofIdentifier(_) => {}
-            Identifier::Generated(_, _) => {}
-        }
-    }
-
-    pub(crate) fn set_game_inst_info(&mut self, game_inst_name: String, proof_name: String) {
-        match self {
-            Identifier::PackageIdentifier(id) => id.set_game_inst_info(game_inst_name, proof_name),
-            Identifier::GameIdentifier(id) => id.set_game_inst_info(game_inst_name, proof_name),
-            Identifier::ProofIdentifier(_) => {}
-            Identifier::Generated(_, _) => {}
         }
     }
 }

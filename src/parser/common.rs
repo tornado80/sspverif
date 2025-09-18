@@ -9,10 +9,13 @@ use crate::{debug_assert_matches, expressions::Expression, types::Type};
 use super::composition::ParseGameContext;
 use super::error::{
     DuplicateGameParameterDefinitionError, DuplicatePackageParameterDefinitionError,
-    MissingGameParameterDefinitionError, MissingPackageParameterDefinitionError,
-    NoSuchGameParameterError, NoSuchPackageParameterError, NoSuchTypeError, ParseNumberError,
+    ExpectedExpressionIdentifierError, MissingGameParameterDefinitionError,
+    MissingPackageParameterDefinitionError, NoSuchGameParameterError, NoSuchPackageParameterError,
+    NoSuchTypeError, ParseNumberError, UndefinedIdentifierError,
 };
-use super::package::{handle_identifier_in_code_rhs, ParseIdentifierError};
+use super::package::{
+    handle_identifier_in_code_rhs, HandleIdentifierRhsError, ParseIdentifierError,
+};
 use super::proof::{ParseProofContext, ParseProofError};
 use super::{ParseContext, Rule};
 
@@ -32,7 +35,7 @@ pub(crate) fn handle_countspec(
         match inner.as_rule() {
             Rule::identifier => {
                 let name = inner.as_str();
-                let ident = handle_identifier_in_code_rhs(name, &ctx.scope).map_err(Box::new)?;
+                let ident = handle_identifier_in_code_rhs(ctx, &inner, name)?;
                 Ok(CountSpec::Identifier(ident))
             }
             Rule::num => {
@@ -65,54 +68,72 @@ pub enum HandleTypeError {
     #[error(transparent)]
     #[diagnostic(transparent)]
     ParseNumber(#[from] ParseNumberError),
+
+    #[error(transparent)]
+    #[diagnostic(transparent)]
+    UndefinedIdentifier(#[from] UndefinedIdentifierError),
+
+    #[diagnostic(transparent)]
+    #[error(transparent)]
+    ExpectedExpressionIdentifier(#[from] ExpectedExpressionIdentifierError),
 }
 
-pub(crate) fn handle_type(ctx: &ParseContext, tipe: Pair<Rule>) -> Result<Type, HandleTypeError> {
-    let out = match tipe.as_rule() {
+impl From<HandleIdentifierRhsError> for HandleTypeError {
+    fn from(value: HandleIdentifierRhsError) -> Self {
+        match value {
+            HandleIdentifierRhsError::UndefinedIdentifier(err) => Self::UndefinedIdentifier(err),
+            HandleIdentifierRhsError::ExpectedExpressionIdentifier(err) => {
+                Self::ExpectedExpressionIdentifier(err)
+            }
+        }
+    }
+}
+
+pub(crate) fn handle_type(ctx: &ParseContext, ty: Pair<Rule>) -> Result<Type, HandleTypeError> {
+    let out = match ty.as_rule() {
         Rule::type_empty => Type::Empty,
         Rule::type_bool => Type::Boolean,
         Rule::type_integer => Type::Integer,
         Rule::type_string => Type::String,
-        Rule::type_maybe => Type::Maybe(Box::new(handle_type(
-            ctx,
-            tipe.into_inner().next().unwrap(),
-        )?)),
+        Rule::type_maybe => {
+            Type::Maybe(Box::new(handle_type(ctx, ty.into_inner().next().unwrap())?))
+        }
         Rule::type_bits => Type::Bits(Box::new(handle_countspec(
             ctx,
-            tipe.into_inner().next().unwrap(),
+            ty.into_inner().next().unwrap(),
         )?)),
         Rule::type_tuple => Type::Tuple(
-            tipe.into_inner()
+            ty.into_inner()
                 .map(|t| handle_type(ctx, t))
                 .collect::<Result<_, _>>()?,
         ),
         Rule::type_table => {
-            let mut inner = tipe.into_inner();
+            let mut inner = ty.into_inner();
             let indextype = handle_type(ctx, inner.next().unwrap())?;
             let valuetype = handle_type(ctx, inner.next().unwrap())?;
             Type::Table(Box::new(indextype), Box::new(valuetype))
         }
         Rule::type_fn => {
-            let mut inner = tipe.into_inner();
-            let argtipes = inner
+            let mut inner = ty.into_inner();
+            let argtys = inner
                 .next()
                 .unwrap()
                 .into_inner()
                 .map(|spec| handle_type(ctx, spec.into_inner().next().unwrap()))
                 .collect::<Result<_, _>>()?;
-            let tipe = handle_type(ctx, inner.next().unwrap())?;
-            Type::Fn(argtipes, Box::new(tipe))
+            let ty = handle_type(ctx, inner.next().unwrap())?;
+            Type::Fn(argtys, Box::new(ty))
         }
         Rule::type_userdefined => {
-            let type_name = tipe.as_str();
+            let type_name = ty.as_str();
             if ctx
                 .types
                 .iter()
                 .any(|declared_type| declared_type == type_name)
             {
-                Type::UserDefined(tipe.as_str().to_string())
+                Type::UserDefined(ty.as_str().to_string())
             } else {
-                let span = tipe.as_span();
+                let span = ty.as_span();
                 return Err(NoSuchTypeError {
                     source_code: ctx.named_source(),
                     at: (span.start()..span.end()).into(),
@@ -122,7 +143,7 @@ pub(crate) fn handle_type(ctx: &ParseContext, tipe: Pair<Rule>) -> Result<Type, 
             }
         }
         _ => {
-            unreachable!("{:#?}", tipe)
+            unreachable!("{:#?}", ty)
         }
     };
 
@@ -190,7 +211,8 @@ pub(crate) fn handle_game_params_def_list(
                     // TODO:: enforce somehow that this number is not negative
                     Expression::IntegerLiteral(num) => CountSpec::Literal(num as u64),
                     _ => {
-                        return Err(todo!());
+                        //return Err(todo!());
+                        todo!()
                     }
                 };
 
@@ -202,7 +224,7 @@ pub(crate) fn handle_game_params_def_list(
                             PackageConstIdentifier {
                                 pkg_name: pkg.name.clone(),
                                 name: name.to_string(),
-                                tipe: Type::Integer,
+                                ty: Type::Integer,
                                 game_name: None,
                                 pkg_inst_name: None,
                                 game_inst_name: None,
@@ -334,48 +356,48 @@ pub(crate) fn handle_proof_params_def_list(
 
     // ... then we parse the ints and add populate a list of rewrite rules
     //     for all the Bits types ...
-    let ints: Vec<_> = ints
-        .into_iter()
-        .map(|res| {
-            res.and_then(|(pair_span, name_ast, value_ast, expected_type)| {
-                // parse the assigned value, and set the expected type to what the clone
-                // prescribes.
-                let value = super::package::handle_expression(
-                    &ctx.parse_ctx(),
-                    value_ast.clone(),
-                    Some(&expected_type),
-                )?;
+    for res in &ints {
+        // skip entries with errors. We'll catch the error when we iterate over the combined
+        // iterator below.
+        let Ok((_, name_ast, value_ast, expected_type)) = res.as_ref() else {
+            continue;
+        };
 
-                let assigned_countspec = match value {
-                    Expression::Identifier(ident) => CountSpec::Identifier(ident),
-                    // TODO:: enforce somehow that this number is not negative
-                    Expression::IntegerLiteral(num) => CountSpec::Literal(num as u64),
-                    _ => {
-                        return Err(todo!());
-                    }
-                };
+        // parse the assigned value, and set the expected type to what the clone
+        // prescribes.
+        let value = super::package::handle_expression(
+            &ctx.parse_ctx(),
+            value_ast.clone(),
+            Some(expected_type),
+        )?;
 
-                let name: &str = name_ast.as_str();
+        let assigned_countspec = match value {
+            Expression::Identifier(ident) => CountSpec::Identifier(ident),
+            // TODO:: enforce somehow that this number is not negative
+            Expression::IntegerLiteral(num) => CountSpec::Literal(num as u64),
+            _ => {
+                //return Err(todo!());
+                todo!()
+            }
+        };
 
-                bits_rewrite_rules.push((
-                    Type::Bits(Box::new(CountSpec::Identifier(Identifier::GameIdentifier(
-                        GameIdentifier::Const(GameConstIdentifier {
-                            game_name: game.name.clone(),
-                            name: name.to_string(),
-                            tipe: Type::Integer,
-                            game_inst_name: None,
-                            proof_name: None,
-                            inst_info: None,
-                            assigned_value: None,
-                        }),
-                    )))),
-                    Type::Bits(Box::new(assigned_countspec)),
-                ));
+        let name: &str = name_ast.as_str();
 
-                Ok((pair_span, name_ast, value_ast, expected_type))
-            })
-        })
-        .collect();
+        bits_rewrite_rules.push((
+            Type::Bits(Box::new(CountSpec::Identifier(Identifier::GameIdentifier(
+                GameIdentifier::Const(GameConstIdentifier {
+                    game_name: game.name.clone(),
+                    name: name.to_string(),
+                    ty: Type::Integer,
+                    game_inst_name: None,
+                    proof_name: None,
+                    inst_info: None,
+                    assigned_value: None,
+                }),
+            )))),
+            Type::Bits(Box::new(assigned_countspec)),
+        ));
+    }
 
     // ... then we map the other values to rewrite the types according to the rules defined
     //     above ...

@@ -6,7 +6,7 @@ use thiserror::Error;
 
 use crate::types::Type;
 
-use super::Rule;
+use super::ast::Identifier as _;
 
 pub enum NewError {}
 
@@ -370,6 +370,19 @@ pub struct UntypedNoneTypeInferenceError {
 }
 
 #[derive(Debug, Diagnostic, Error)]
+#[error("Expected an expression identifier, got oracle identifier {oracle_name}`")]
+#[diagnostic(code(ssbee::code::expected_expression_identifier))]
+pub struct ExpectedExpressionIdentifierError {
+    #[source_code]
+    pub source_code: miette::NamedSource<String>,
+
+    #[label("this identifier is an oracle, not an expression")]
+    pub at: SourceSpan,
+
+    pub oracle_name: String,
+}
+
+#[derive(Debug, Diagnostic, Error)]
 #[error("The package instances {assumption_pkg_inst_name} and {construction_pkg_inst_name} in a reduction mapping have different package types")]
 #[diagnostic(code(ssbee::code::proof::reduction::mapping::package_mismatch))]
 pub struct AssumptionMappingContainsDifferentPackagesError {
@@ -557,6 +570,22 @@ pub struct UnusedEdgeError {
 }
 
 #[derive(Error, Diagnostic, Debug)]
+#[error("oracle {oracle_name} wired to incompatible oracle signature")]
+#[diagnostic(code(ssbee::code::game::unused_edge))]
+pub struct OracleSigMismatchError {
+    #[source_code]
+    pub source_code: miette::NamedSource<String>,
+
+    // this should be the package instance definition
+    #[label("signature of oracle {oracle_name} imported by {src_pkg_inst_name} does not match the one exposed by {dst_pkg_inst_name}")]
+    pub at: SourceSpan,
+
+    pub oracle_name: String,
+    pub src_pkg_inst_name: String,
+    pub dst_pkg_inst_name: String,
+}
+
+#[derive(Error, Diagnostic, Debug)]
 #[error("game {game_name} assigns an edge from package instance {pkg_inst_name} for oracle {oracle_name} twice")]
 #[diagnostic(code(ssbee::code::game::unused_edge))]
 pub struct DuplicateEdgeDefinitionError {
@@ -606,18 +635,18 @@ pub struct InvalidGameInstanceInReductionError {
 impl InvalidGameInstanceInReductionError {
     pub(crate) fn new(
         source: miette::NamedSource<String>,
-        name_pair: &pest::iterators::Pair<Rule>,
+        name: &crate::parser::ast::GameInstanceName,
         header_span: impl Into<miette::SourceSpan>,
     ) -> Self {
-        let name_start = name_pair.as_span().start();
-        let name_end = name_pair.as_span().end();
+        let name_start = name.as_span().start();
+        let name_end = name.as_span().end();
         let span = (name_start..name_end).into();
 
         Self {
             source_code: source,
             span,
             header_span: header_span.into(),
-            name: name_pair.as_str().to_string(),
+            name: name.as_str().to_string(),
         }
     }
 }

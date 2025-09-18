@@ -1,17 +1,16 @@
 use crate::{
     expressions::Expression,
-    identifier::{game_ident::GameConstIdentifier, Identifier},
+    identifier::game_ident::GameConstIdentifier,
     package::{Composition, Export},
     proof::GameInstance,
-    transforms::samplify::SampleInfo,
+    transforms::samplify::{Position as SamplePosition, SampleInfo},
     types::Type,
     writers::smt::{
         exprs::SmtExpr,
         names,
-        //partials::PartialsDatatype,
         patterns::{
             self, game_consts::GameConstsPattern, DatastructurePattern, GameStateDeclareInfo,
-            GameStatePattern, GameStateSelector, SmtDefineFun,
+            GameStatePattern, GameStateSelector,
         },
     },
 };
@@ -55,7 +54,9 @@ impl<'a> GameInstanceContext<'a> {
 
 // Patterns
 impl<'a> GameInstanceContext<'a> {
-    pub(crate) fn oracle_arg_game_state_pattern(&self) -> patterns::oracle_args::GameStatePattern {
+    pub(crate) fn oracle_arg_game_state_pattern(
+        &self,
+    ) -> patterns::oracle_args::GameStatePattern<'a> {
         patterns::oracle_args::GameStatePattern {
             game_name: self.game_name(),
             game_params: self.game_params(),
@@ -75,7 +76,7 @@ impl<'a> GameInstanceContext<'a> {
         GameConstsPattern { game_name }
     }
 
-    fn game_state_declare_info(&self, sample_info: &'a SampleInfo) -> GameStateDeclareInfo {
+    fn game_state_declare_info(&self, sample_info: &'a SampleInfo) -> GameStateDeclareInfo<'a> {
         let game_inst = self.game_inst;
         GameStateDeclareInfo {
             game_inst,
@@ -99,7 +100,7 @@ impl GameInstanceContext<'_> {
         //            for sample instuctions, it should still behave correctly when queried for
         //            package state.
         let sample_info = SampleInfo {
-            tipes: vec![],
+            tys: vec![],
             count: 0,
             positions: vec![],
         };
@@ -127,7 +128,9 @@ impl GameInstanceContext<'_> {
         let spec = self
             .datastructure_game_state_pattern()
             .datastructure_spec(&declare_info);
-        let selector = GameStateSelector::Randomness { sample_id };
+        let selector = GameStateSelector::Randomness {
+            sample_pos: sample_info.positions[sample_id].clone(),
+        };
 
         self.datastructure_game_state_pattern()
             .access(&spec, &selector, state)
@@ -178,7 +181,9 @@ impl GameInstanceContext<'_> {
         let spec = self
             .datastructure_game_state_pattern()
             .datastructure_spec(&declare_info);
-        let selector = GameStateSelector::Randomness { sample_id };
+        let selector = GameStateSelector::Randomness {
+            sample_pos: sample_info.positions[sample_id].clone(),
+        };
 
         self.datastructure_game_state_pattern()
             .update(&spec, &selector, state, new_value)
@@ -201,87 +206,12 @@ impl GameInstanceContext<'_> {
 
     pub(crate) fn smt_eval_randfn<CTR: Into<SmtExpr>>(
         &self,
-        sample_id: usize,
+        sample_pos: &SamplePosition,
         ctr: CTR,
-        tipe: &Type,
+        ty: &Type,
     ) -> SmtExpr {
-        let rand_fn_name = names::fn_sample_rand_name(&self.game_inst.name, tipe);
-        (rand_fn_name, sample_id, ctr).into()
-    }
-
-    // TODO: find a way to return an iterator here
-    pub(crate) fn smt_define_param_functions(&self) -> Vec<SmtDefineFun<Expression>> {
-        /// looks up the constant assigment for constant with name `name` in game instance
-        /// `game_inst`.
-        fn get_assignment(
-            game_inst: &GameInstance,
-            name: &str,
-        ) -> Option<(GameConstIdentifier, Expression)> {
-            game_inst
-                .consts
-                .iter()
-                .find(|(ident, _)| name == ident.name)
-                .cloned()
-        }
-
-        let game_inst_name = self.game_inst_name();
-
-        // the assigments for all function parameters declared in the game
-        self.game()
-            .consts
-            .iter()
-            .filter_map(|(name, ty)| match ty {
-                Type::Fn(args, ret) => {
-                    let (ident, expr) = get_assignment(self.game_inst(), name)
-                        .expect("this can't fail because it means a parameter isn't assigned");
-                    Some((ident.clone(), args.clone(), ret.clone(), expr.clone()))
-                }
-                _ => None,
-            })
-            .map(|(ident, args, ret, expr)| {
-                let func_name = &ident.name;
-
-                // (ident, type) pairs for the arguments
-                let args_idents: Vec<_> = args
-                    .iter()
-                    .enumerate()
-                    .map(|(i, ty)| (Identifier::Generated(format!("arg-{i}"), ty.clone())))
-                    .collect();
-
-                // (smt-name, type) pairs for the arguments
-                let named_args: Vec<_> = args_idents
-                    .iter()
-                    .map(|ident| (ident.smt_identifier_string(), ident.get_type().into()))
-                    .collect();
-
-                // build the expression for the args in the call to the function declared in the
-                // proof
-                let arg_exprs: Vec<_> = args_idents
-                    .iter()
-                    .cloned()
-                    .map(|ident| ident.into())
-                    .collect();
-
-                // the expression assigned to the parameter must be an identifer, since we don't
-                // have anoymous functions
-                let Expression::Identifier(proof_func) = expr else {
-                    unreachable!()
-                };
-
-                // build the call to the function declared in the proof
-                let proof_fn_call = Expression::FnCall(proof_func.clone(), arg_exprs);
-
-                // build the function definition of the function for the game instance, which just
-                // calls the function declared in the proof
-                SmtDefineFun {
-                    is_rec: false,
-                    name: format!("<<func-game-{game_inst_name}-{func_name}>>"),
-                    args: named_args,
-                    sort: (*ret).into(),
-                    body: proof_fn_call,
-                }
-            })
-            .collect()
+        let rand_fn_name = names::fn_sample_rand_name(&self.game_inst.name, ty);
+        (rand_fn_name, sample_pos, ctr).into()
     }
 }
 

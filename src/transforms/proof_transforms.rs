@@ -3,8 +3,9 @@ use std::{collections::HashSet, convert::Infallible};
 use crate::{proof::GameInstance, types::Type};
 
 use super::{
-    resolveoracles, returnify, samplify, tableinitialize, treeify, type_extract, unwrapify,
-    GameTransform, Transformation,
+    resolveoracles::{self, ResolutionError},
+    returnify, samplify, tableinitialize, treeify, type_extract, unwrapify, GameTransform,
+    Transformation,
 };
 
 pub struct EquivalenceTransform;
@@ -12,20 +13,13 @@ pub struct EquivalenceTransform;
 impl super::ProofTransform for EquivalenceTransform {
     type Err = Infallible;
 
-    type Aux = Vec<(
-        String,
-        (
-            HashSet<Type>,
-            samplify::SampleInfo,
-            //split_partial::SplitInfo,
-        ),
-    )>;
+    type Aux = Vec<(String, (HashSet<Type>, samplify::SampleInfo))>;
 
     fn transform_proof<'a>(
         &self,
         proof: &'a crate::proof::Proof<'a>,
     ) -> Result<(crate::proof::Proof<'a>, Self::Aux), Self::Err> {
-        let results = proof.instances().iter().map(transform_game_inst);
+        let results = proof.instances.iter().map(transform_game_inst);
         let (instances, auxs) = itertools::process_results(results, |res| res.unzip())?;
         let proof = proof.with_new_instances(instances);
 
@@ -38,25 +32,21 @@ fn transform_game_inst(
 ) -> Result<
     (
         GameInstance,
-        (
-            String,
-            (
-                HashSet<Type>,
-                samplify::SampleInfo,
-                // split_partial::SplitInfo,
-            ),
-        ),
+        (String, (HashSet<Type>, samplify::SampleInfo)),
     ),
     Infallible,
 > {
     let comp = game_inst.game();
 
-    //let (comp, _) = resolvetypes::Transformation(comp)
-    //    .transform()
-    //    .expect("resolving user-defined types failed");
     let (comp, types) = type_extract::Transformation(comp)
         .transform()
         .expect("type extraction transformation failed unexpectedly");
+    /*
+     * Note: we currently do samplify early so a `if foo { stuff }
+     * else { other stuff } ... x <- Integer` gets the same sample
+     * counter for the x sampling after returnify (instead of
+     * different ones depending on which branch was taken)
+     */
     let (comp, samplinginfo) = samplify::Transformation(&comp)
         .transform()
         .expect("samplify transformation failed unexpectedly");
@@ -65,19 +55,15 @@ fn transform_game_inst(
         .expect("unwrapify transformation failed unexpectedly");
     let (comp, _) = resolveoracles::Transformation(&comp)
         .transform()
-        .expect("resolveoracles transformation failed unexpectedly");
+        .unwrap_or_else(|ResolutionError(failed_oracle_stmts)| {
+            panic!("error resolving oracles: {failed_oracle_stmts:?}")
+        });
     let (comp, _) = returnify::TransformNg
         .transform_game(&comp)
         .expect("returnify transformation failed unexpectedly");
     let (comp, _) = treeify::Transformation(&comp)
         .transform()
         .expect("treeify transformation failed unexpectedly");
-    // let (comp, splits) = split_partial::SplitPartial
-    //     .transform_game(&comp)
-    //     .expect("split_partial transform failed unexpectedly");
-    // println!("#####################");
-    // println!("{:#?}", comp);
-    // println!("$$$$$$$$$$$$$$$$$$$$$");
     let (comp, _) = tableinitialize::Transformation(&comp)
         .transform()
         .expect("tableinitialize transformation failed unexpectedly");

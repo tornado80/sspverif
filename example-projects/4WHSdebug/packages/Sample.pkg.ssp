@@ -5,6 +5,7 @@ package Sample {
     
     oracle Sample() -> Bits(256) {
         ni         <-$ Bits(256);
+        x          <-$ Bits(128);
         return ni;
     }
 }

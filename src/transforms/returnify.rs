@@ -29,7 +29,7 @@ impl super::GameTransform for TransformNg {
                     newinst.pkg.oracles[i].code = returnify(
                         &oracle.code,
                         oracle.file_pos,
-                        oracle.sig.tipe == Type::Empty,
+                        oracle.sig.ty == Type::Empty,
                         &inst.name,
                         &oracle.sig.name,
                     )?;
@@ -38,7 +38,7 @@ impl super::GameTransform for TransformNg {
                 //     newinst.pkg.split_oracles[i].code = returnify(
                 //         &oracle.code,
                 //         oracle.file_pos,
-                //         oracle.sig.tipe == Type::Empty,
+                //         oracle.sig.ty == Type::Empty,
                 //         &inst.name,
                 //         &oracle.sig.name,
                 //     )?;
@@ -53,48 +53,6 @@ impl super::GameTransform for TransformNg {
             },
             (),
         ))
-    }
-}
-
-mod old {
-    use super::super::Transformation as TransformationTrait;
-    use super::{returnify, Error};
-    use crate::package::Composition;
-    use crate::types::Type;
-
-    pub struct Transformation<'a>(pub &'a Composition);
-
-    impl TransformationTrait for Transformation<'_> {
-        type Err = Error;
-        type Aux = ();
-
-        fn transform(&self) -> Result<(Composition, ()), Error> {
-            let insts: Result<Vec<_>, _> = self
-                .0
-                .pkgs
-                .iter()
-                .map(|inst| {
-                    let mut newinst = inst.clone();
-                    for (i, oracle) in newinst.pkg.oracles.clone().iter().enumerate() {
-                        newinst.pkg.oracles[i].code = returnify(
-                            &oracle.code,
-                            oracle.file_pos,
-                            oracle.sig.tipe == Type::Empty,
-                            &inst.name,
-                            &oracle.sig.name,
-                        )?;
-                    }
-                    Ok(newinst)
-                })
-                .collect();
-            Ok((
-                Composition {
-                    pkgs: insts?,
-                    ..self.0.clone()
-                },
-                (),
-            ))
-        }
     }
 }
 
@@ -178,12 +136,12 @@ mod test {
     use crate::statement::{CodeBlock, IfThenElse, Statement};
     use crate::types::Type;
 
-    fn pkg_local_test_ident(name: &str, tipe: Type) -> Identifier {
+    fn pkg_local_test_ident(name: &str, ty: Type) -> Identifier {
         Identifier::PackageIdentifier(PackageIdentifier::Local(PackageLocalIdentifier {
             pkg_name: "TestPkg".to_string(),
             oracle_name: "TestOracle".to_string(),
             name: name.to_string(),
-            tipe,
+            ty,
             pkg_inst_name: Some("test-pkg".to_string()),
             game_name: Some("TestGame".to_string()),
             game_inst_name: Some("test-game".to_string()),
@@ -196,7 +154,7 @@ mod test {
         let d = pkg_local_test_ident("d", Type::Integer);
         let file_pos: SourceSpan = (0..1).into();
         let code = block! {
-            Statement::Sample(d, None, None, Type::Integer, file_pos),
+            Statement::Sample(d, None, None, Type::Integer, None, file_pos),
             Statement::Return(None, file_pos)
         };
         assert_eq!(
@@ -210,7 +168,7 @@ mod test {
         let file_pos: SourceSpan = (0..1).into();
         let d = pkg_local_test_ident("d", Type::Integer);
         let code = block! {
-            Statement::Sample(d, None, None, Type::Integer, file_pos),
+            Statement::Sample(d, None, None, Type::Integer, None, file_pos),
             Statement::Return(Some(Expression::IntegerLiteral(5)), file_pos)
         };
         assert_eq!(
@@ -224,7 +182,7 @@ mod test {
         let file_pos: SourceSpan = (0..1).into();
         let d = pkg_local_test_ident("d", Type::Integer);
         let code = block! {
-            Statement::Sample(d, None, None, Type::Integer, file_pos),
+            Statement::Sample(d, None, None, Type::Integer, None, file_pos),
             Statement::Abort(file_pos)
         };
         assert_eq!(
@@ -238,10 +196,10 @@ mod test {
         let file_pos: SourceSpan = (0..1).into();
         let d = pkg_local_test_ident("d", Type::Integer);
         let before = block! {
-            Statement::Sample(d.clone(), None, None, Type::Integer, file_pos)
+            Statement::Sample(d.clone(), None, None, Type::Integer, None, file_pos)
         };
         let after = block! {
-            Statement::Sample(d, None, None,  Type::Integer, file_pos),
+            Statement::Sample(d, None, None,  Type::Integer, None, file_pos),
             Statement::Return(None, file_pos)
         };
         assert_eq!(
@@ -268,11 +226,11 @@ mod test {
                                             &(a.clone().into())]),
                 then_block:
                 block!{
-                    Statement::Sample(d.clone(), None, None, Type::Integer, file_pos)
+                    Statement::Sample(d.clone(), None, None, Type::Integer, None, file_pos)
                 },
 
                 else_block: block!{
-                    Statement::Sample(e.clone(), None, None, Type::Integer, file_pos),
+                    Statement::Sample(e.clone(), None, None, Type::Integer, None, file_pos),
                     Statement::Return(None, file_pos)
                 },
 
@@ -289,13 +247,13 @@ mod test {
 
                 then_block:
                 block!{
-                    Statement::Sample(d, None, None, Type::Integer, file_pos),
+                    Statement::Sample(d, None, None, Type::Integer, None, file_pos),
                     Statement::Return(None, file_pos)
                 },
 
                 else_block:
                 block!{
-                    Statement::Sample(e, None, None, Type::Integer, file_pos),
+                    Statement::Sample(e, None, None, Type::Integer, None, file_pos),
                     Statement::Return(None, file_pos)
                 },
 
@@ -325,10 +283,10 @@ mod test {
                 cond: Expression::new_equals(vec![&(a.clone().into()),
                                                   &(a.clone().into())]),
                 then_block: block!{
-                    Statement::Sample(d.clone(), None, None, Type::Integer, file_pos)
+                    Statement::Sample(d.clone(), None, None, Type::Integer, None, file_pos)
                 },
                 else_block: block!{
-                    Statement::Sample(e.clone(), None, None, Type::Integer, file_pos)
+                    Statement::Sample(e.clone(), None, None, Type::Integer, None, file_pos)
                 },
                 then_span: file_pos,
                 else_span: file_pos,
@@ -340,12 +298,12 @@ mod test {
                 cond: Expression::new_equals(vec![&(a.clone().into()),
                                                   &(a.clone().into())]),
                 then_block: block!{
-                    Statement::Sample(d.clone(), None, None, Type::Integer, file_pos),
+                    Statement::Sample(d.clone(), None, None, Type::Integer, None, file_pos),
                     Statement::Return(None, file_pos)
                 },
 
                 else_block: block!{
-                    Statement::Sample(e.clone(), None, None, Type::Integer, file_pos),
+                    Statement::Sample(e.clone(), None, None, Type::Integer, None, file_pos),
                     Statement::Return(None, file_pos)
                 },
 

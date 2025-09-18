@@ -13,7 +13,7 @@ use crate::{
     proof::{Claim, ClaimType},
     statement::Statement,
     types::{CountSpec, Type},
-    util::prover_process::{Communicator, ProverBackend},
+    util::prover_process::ProverBackend,
 };
 use std::{
     collections::HashMap,
@@ -21,6 +21,8 @@ use std::{
     iter::FromIterator as _,
     sync::{Arc, RwLock},
 };
+
+use crate::ui::mock::MockTestProofUI;
 
 #[test]
 fn empty_param_section_is_fine() {
@@ -65,7 +67,7 @@ fn tiny_package() {
     assert_eq!(pkg.params[0].1, Type::Integer);
     assert_eq!(pkg.oracles.len(), 1);
     assert_eq!(pkg.oracles[0].sig.name, "N");
-    assert_eq!(pkg.oracles[0].sig.tipe, Type::Integer);
+    assert_eq!(pkg.oracles[0].sig.ty, Type::Integer);
     assert!(pkg.oracles[0].sig.args.is_empty());
     assert!(pkg.imports.is_empty());
 }
@@ -89,7 +91,7 @@ fn small_game() {
         Expression::Identifier(Identifier::GameIdentifier(GameIdentifier::Const(
             GameConstIdentifier {
                 name: "n".to_string(),
-                tipe: Type::Integer,
+                ty: Type::Integer,
                 game_name: "SmallGame".to_string(),
                 game_inst_name: None,
                 proof_name: None,
@@ -110,7 +112,7 @@ fn small_for_package() {
     assert_eq!(pkg.params[0].1, Type::Integer);
     assert_eq!(pkg.oracles.len(), 1);
     assert_eq!(pkg.oracles[0].sig.name, "Sum");
-    assert_eq!(pkg.oracles[0].sig.tipe, Type::Integer);
+    assert_eq!(pkg.oracles[0].sig.ty, Type::Integer);
     assert!(pkg.oracles[0].sig.args.is_empty());
 }
 
@@ -162,7 +164,7 @@ fn equivalence_parses() {
             "N".into(),
             vec![Claim {
                 name: "smt_ident".into(),
-                tipe: ClaimType::Lemma,
+                ty: ClaimType::Lemma,
                 dependencies: vec![]
             }]
         )]
@@ -193,14 +195,17 @@ fn equivalence_gamehome_generates_code() {
 
     let backend = ProverBackend::Cvc5;
     let transcript = SharedVecWriter::default();
-    let prover = Communicator::new_with_transcript(backend, transcript.clone()).unwrap();
-    equivalence::verify(eq, &proof, prover).unwrap_or_else(|err| {
-        panic!(
-            "got error {err}.\n\ntranscript:\n{transcript}",
-            err = err,
-            transcript = transcript
-        )
-    })
+    let project = crate::project::Project::empty();
+    equivalence::verify(
+        &project,
+        &mut MockTestProofUI::new(),
+        eq,
+        &proof,
+        backend,
+        false,
+        &None,
+    )
+    .unwrap_or_else(|err| panic!("got error {err}.\n\ntranscript:\n{transcript}"))
 }
 
 #[test]
@@ -221,7 +226,17 @@ fn game_instantiating_with_literal_works() {
             .find(|(id, _expr)| id.name == "n")
             .unwrap()
             .1,
-        Expression::IntegerLiteral(1)
+        Expression::Identifier(Identifier::GameIdentifier(GameIdentifier::Const(
+            GameConstIdentifier {
+                game_name: "ConstructionReal".to_string(),
+                name: "n".to_string(),
+                ty: Type::Integer,
+                game_inst_name: None,
+                proof_name: None,
+                inst_info: None,
+                assigned_value: None
+            }
+        )))
     );
 }
 
@@ -236,7 +251,7 @@ fn package_empty_loop_works() {
     assert_eq!(pkg.params[0].1, Type::Integer);
     assert_eq!(pkg.oracles.len(), 2);
     assert_eq!(pkg.oracles[0].sig.name, "Set");
-    assert_eq!(pkg.oracles[0].sig.tipe, Type::Empty);
+    assert_eq!(pkg.oracles[0].sig.ty, Type::Empty);
 
     assert!(matches!(
             &pkg.oracles[0].sig.args[0],
@@ -257,7 +272,7 @@ fn package_empty_loop_works() {
             assert_eq!(i.ident(), "i");
             assert_eq!(n.ident(), "n")
         }
-        other => panic!("expected For, got {:?}", other),
+        other => panic!("expected For, got {other:?}"),
     }
 }
 

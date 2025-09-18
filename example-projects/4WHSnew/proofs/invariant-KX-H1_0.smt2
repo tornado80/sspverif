@@ -172,21 +172,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define-fun invariant
-  ( (state-kx     <GameState_KX_<$<!n!><!b!><!zeron!>$>>)
-    (state-kxred  <GameState_H1_<$<!n!><!b!><!false!><!zeron!>$>>))
+    ((state-left  <GameState_KX_<$<!n!>$>>)
+     (state-right <GameState_H1_<$<!n!>$>>))
   Bool
-; getting package-state out of game-state and demanding equality, they should be exactly the same in this case.
-(=
-(<game-KX-<$<!n!><!b!><!zeron!>$>-pkgstate-Game>     state-kx)    ;some params are still missing.
-(<game-H1-<$<!n!><!b!><!false!><!zeron!>$>-pkgstate-Game> state-kxred) ;some params are still missing.
-)
-
-;  (let
-;    ; getting ctr out of state
-;    ( (ctr-kxred (<pkg-state-Rand-<$<!n!>$>-ctr> (<game-SmallComposition-<$<!n!>$>-pkgstate-rand> state-0)))
-;      (ctr-kx (<pkg-state-Rand-<$<!n!>$>-ctr> (<game-MediumComposition-<$<!n!>$>-pkgstate-rand> state-1))))
-;
-;    ; ctr are equal
-;    (= ctr-kxred ctr-kx))
-
-)
+  (= (<game-KX-<$<!n!>$>-pkgstate-Game> state-left)    
+     (<game-H1-<$<!n!>$>-pkgstate-Game> state-right)))

@@ -4,15 +4,13 @@ composition H4 {
         const prf: fn Bits(256), Integer, Integer, Bits(256), Bits(256), Bool ->  Bits(256);
         const mac: fn Bits(256), Bits(256), Integer -> Bits(256);
         const b: Bool;
-        const bcr: Bool;
     
-    instance Game_nochecks = Game_nochecks {
-        params {
-        b: b,
-        n: n,
-        zeron: zeron,
-        }
-    }
+	instance Nonces = Nonces {
+		params {
+        	n: n,
+			b: true,
+		}
+	}
     instance Prot = ReductionNonce {
         params {
         n: n,
@@ -21,12 +19,13 @@ composition H4 {
         mac: mac,
         }
     }
-	instance Nonces = Nonces {
-		params {
-        	n: n,
-			b: true,
-		}
-	}
+    instance Game_nochecks = Game_nochecks {
+        params {
+        b: b,
+        n: n,
+        zeron: zeron,
+        }
+    }
 
     compose {
         adversary: {

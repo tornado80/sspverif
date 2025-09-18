@@ -26,7 +26,7 @@ impl Type {
             replace.clone()
         } else {
             match self {
-                Type::Bits(count_spec) if matches!(count_spec.as_ref(), CountSpec::Identifier(Identifier::PackageIdentifier(PackageIdentifier::Const(pkg_const_ident ))) if &pkg_const_ident.name == "n" && pkg_const_ident.tipe == Type::Integer) => {
+                Type::Bits(count_spec) if matches!(count_spec.as_ref(), CountSpec::Identifier(Identifier::PackageIdentifier(PackageIdentifier::Const(pkg_const_ident ))) if &pkg_const_ident.name == "n" && pkg_const_ident.ty == Type::Integer) => {
                     assert!(!rules.is_empty(), "no type rewrite rules found despite identifier in CountSpec: {count_spec:?}");
                     self.clone()
                 }
@@ -60,7 +60,7 @@ impl Type {
 
     pub(crate) fn types_match(&self, other: &Self) -> bool {
         match (self, other) {
-            (Type::Bits(l), Type::Bits(r)) => dbg!(l.countspecs_match(r.as_ref())),
+            (Type::Bits(l), Type::Bits(r)) => l.countspecs_match(r.as_ref()),
 
             (Type::List(l), Type::List(r))
             | (Type::Set(l), Type::Set(r))
@@ -150,7 +150,7 @@ mod tests {
                         pkg_name: "SomePackage".to_string(),
                         name: "n".to_string(),
                         pkg_inst_name: None,
-                        tipe: Type::Integer,
+                        ty: Type::Integer,
                         game_assignment: None,
                         game_inst_name: None,
                         game_name: None,

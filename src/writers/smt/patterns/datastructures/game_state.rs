@@ -2,12 +2,13 @@ use crate::{
     expressions::Expression,
     identifier::game_ident::GameConstIdentifier,
     proof::GameInstance,
-    transforms::samplify::SampleInfo,
+    transforms::samplify::{Position as SamplePosition, SampleInfo},
     types::Type,
     writers::smt::{
         exprs::SmtExpr,
+        names::{Delimiter, FunctionNameBuilder, NameBuilderStage, NameSection, SortNameBuilder},
         patterns::{
-            instance_names::{encode_params, only_non_function_expression},
+            instance_names::{encode_params, only_ints},
             DatastructurePattern, DatastructureSpec, PackageStatePattern,
         },
         sorts::Sort,
@@ -23,7 +24,25 @@ pub struct GameStatePattern<'a> {
 #[derive(Debug, PartialEq, Eq)]
 pub enum GameStateSelector<'a> {
     PackageInstance { pkg_inst_name: &'a str, sort: Sort },
-    Randomness { sample_id: usize },
+    Randomness { sample_pos: SamplePosition },
+}
+
+impl<'a> NameSection for GameStateSelector<'a> {
+    fn push_into<Delim, Stage>(
+        &self,
+        builder: crate::writers::smt::names::NameBuilder<Delim, Stage>,
+    ) -> crate::writers::smt::names::NameBuilder<Delim, crate::writers::smt::names::NotEmpty>
+    where
+        Delim: Delimiter,
+        Stage: NameBuilderStage,
+    {
+        match self {
+            GameStateSelector::PackageInstance { pkg_inst_name, .. } => {
+                builder.push("pkgstate").push(pkg_inst_name)
+            }
+            GameStateSelector::Randomness { sample_pos } => builder.push("rand").extend(sample_pos),
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -41,45 +60,39 @@ impl<'a> DatastructurePattern<'a> for GameStatePattern<'a> {
     const KEBAB_CASE: &'static str = "game";
 
     fn sort_name(&self) -> String {
-        let Self { game_name, params } = self;
-        let camel_case = <GameStatePattern as DatastructurePattern>::CAMEL_CASE;
-        let encoded_params = encode_params(only_non_function_expression(*params));
+        let encoded_params = encode_params(only_ints(self.params));
 
-        format!("<{camel_case}_{game_name}_{encoded_params}>")
+        SortNameBuilder::new()
+            .push(Self::CAMEL_CASE)
+            .push(self.game_name)
+            .maybe_extend(&encoded_params)
+            .build()
     }
 
     fn constructor_name(&self, _cons: &Self::Constructor) -> String {
-        let kebab_case = Self::KEBAB_CASE;
-        let Self { game_name, .. } = self;
-        let encoded_params = encode_params(only_non_function_expression(self.params));
+        let encoded_params = encode_params(only_ints(self.params));
 
-        format!("<mk-{kebab_case}-{game_name}-{encoded_params}>")
+        FunctionNameBuilder::new()
+            .push("mk")
+            .push(Self::KEBAB_CASE)
+            .push(self.game_name)
+            .maybe_extend(&encoded_params)
+            .build()
     }
 
     fn selector_name(&self, sel: &Self::Selector) -> String {
-        let kebab_case = Self::KEBAB_CASE;
-        let Self { game_name, .. } = self;
-        let encoded_params = encode_params(only_non_function_expression(self.params));
+        let encoded_params = encode_params(only_ints(self.params));
 
-        let (kind_name, field_name) = match sel {
-            GameStateSelector::PackageInstance { pkg_inst_name, .. } => {
-                ("pkgstate", pkg_inst_name.to_string())
-            }
-            GameStateSelector::Randomness { sample_id } => ("rand", format!("{sample_id}")),
-        };
-
-        format!("<{kebab_case}-{game_name}-{encoded_params}-{kind_name}-{field_name}>")
+        FunctionNameBuilder::new()
+            .push(Self::KEBAB_CASE)
+            .push(self.game_name)
+            .maybe_extend(&encoded_params)
+            .extend(sel)
+            .build()
     }
 
     fn matchfield_name(&self, sel: &Self::Selector) -> String {
-        let (kind_name, field_name) = match sel {
-            GameStateSelector::PackageInstance { pkg_inst_name, .. } => {
-                ("pkgstate", pkg_inst_name.to_string())
-            }
-            GameStateSelector::Randomness { sample_id } => ("rand", format!("{sample_id}")),
-        };
-
-        format!("match-{kind_name}-{field_name}")
+        FunctionNameBuilder::new().push("match").extend(sel).build()
     }
 
     fn selector_sort(&self, sel: &Self::Selector) -> SmtExpr {
@@ -106,8 +119,13 @@ impl<'a> DatastructurePattern<'a> for GameStatePattern<'a> {
             }
         });
 
-        let rand_selectors = (0..info.sample_info.count)
-            .map(|sample_id| GameStateSelector::Randomness { sample_id });
+        let rand_selectors =
+            info.sample_info
+                .positions
+                .iter()
+                .map(|sample_pos| GameStateSelector::Randomness {
+                    sample_pos: sample_pos.clone(),
+                });
 
         let fields = pkgstate_selectors.chain(rand_selectors).collect();
 
