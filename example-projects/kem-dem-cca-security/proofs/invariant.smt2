@@ -59,8 +59,8 @@
 
 (define-fun invariant
     (
-        (state-left <GameState_MonolithicPkeCcaGame_<$<!b!>$>>) ; left
-        (state-right <GameState_ModularPkeCcaGame_<$<!false!><!b!>$>>) ; right
+        (state-left <GameState_MonolithicPkeCcaGame>) ; left
+        (state-right <GameState_ModularPkeCcaGame>) ; right
     )
     Bool
     (let
