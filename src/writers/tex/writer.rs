@@ -316,30 +316,29 @@ impl<'a> BlockWriter<'a> {
                     unreachable!();
                 }
             }
-            Statement::Sample(ident, None, maybecnt, ty, _, _) => {
-                let cnt = maybecnt.expect("Expected samplified input");
-
+            Statement::Sample(ident, None, _, ty, Some(sample_name), _) => {
                 writeln!(
                     self.file,
                     "{}{} \\stackrel{{{}}}{{\\sample}} {}\\\\",
                     genindentation(indentation),
                     self.ident_to_tex(ident),
-                    cnt,
+                    sample_name,
                     self.type_to_tex(ty)
                 )?;
             }
-            Statement::Sample(ident, Some(idxexpr), maybecnt, ty, _, _) => {
-                let cnt = maybecnt.expect("Expected samplified input");
-
+            Statement::Sample(ident, Some(idxexpr), _, ty, Some(sample_name), _) => {
                 writeln!(
                     self.file,
                     "{}{}[{}] \\stackrel{{{}}}{{\\samples}} {}\\\\",
                     genindentation(indentation),
                     self.ident_to_tex(ident),
                     self.expression_to_tex(idxexpr),
-                    cnt,
+                    sample_name,
                     self.type_to_tex(ty)
                 )?;
+            }
+            Statement::Sample(_, _, _, _, None, _) => {
+                unreachable!("Expected sample name")
             }
             Statement::InvokeOracle(InvokeOracleStatement {
                 id: ident,
